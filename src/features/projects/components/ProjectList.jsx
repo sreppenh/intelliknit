@@ -1,11 +1,40 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 
 const ProjectList = ({ onCreateProject, onOpenProject }) => {
-  const { projects } = useProjectsContext();
+  const { projects, dispatch } = useProjectsContext();
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   const handleProjectSelect = (project) => {
+    setOpenMenuId(null); // Close any open menu
     onOpenProject(project);
+  };
+
+  const handleMenuToggle = (projectId, event) => {
+    event.stopPropagation(); // Prevent project selection
+    setOpenMenuId(openMenuId === projectId ? null : projectId);
+  };
+
+  const handleDeleteProject = (projectId, projectName, event) => {
+    event.stopPropagation();
+    const confirmed = window.confirm(`Delete "${projectName}"? This cannot be undone.`);
+    
+    if (confirmed) {
+      dispatch({
+        type: 'DELETE_PROJECT',
+        payload: projectId
+      });
+    }
+    setOpenMenuId(null);
+  };
+
+  // Close menu when clicking outside
+  const handleCardClick = (project) => {
+    if (openMenuId) {
+      setOpenMenuId(null);
+    } else {
+      handleProjectSelect(project);
+    }
   };
 
   return (
@@ -29,7 +58,7 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
             <div className="text-center py-4">
               <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-wool-200 mb-4">
                 <div className="text-4xl mb-3">🏠</div>
-                <h2 className="text-xl font-bold text-wool-700 mb-2">Welcome to IntelliKnit!</h2>
+                <h2 className="text-xl font-bold text-wool-700 mb-2">Welcome to Your Craft Room!</h2>
                 <p className="text-wool-500 mb-4 leading-relaxed text-sm">
                   Ready to start your knitting journey? Create your first project and let's organize your stitches, track your progress, and celebrate every row.
                 </p>
@@ -76,29 +105,57 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
                 {projects.map((project) => (
                   <div
                     key={project.id}
-                    onClick={() => handleProjectSelect(project)}
-                    className="bg-white border-2 border-wool-200 rounded-xl p-4 hover:border-sage-400 hover:shadow-md transition-all duration-200 cursor-pointer shadow-sm"
+                    onClick={() => handleCardClick(project)}
+                    className="bg-white border-2 border-wool-200 rounded-xl p-4 hover:border-sage-400 hover:shadow-md transition-all duration-200 cursor-pointer shadow-sm relative"
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1">
+                      <div className="flex-1 pr-8">
                         <h3 className="font-semibold text-wool-700 text-base mb-0.5">{project.name}</h3>
                         <p className="text-wool-500 text-xs">Size: {project.size}</p>
                       </div>
                       
-                      {/* Status indicator */}
-                      {project.completed ? (
-                        <span className="bg-sage-100 text-sage-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-sage-200">
-                          ✓ Complete
-                        </span>
-                      ) : project.components.length === 0 ? (
-                        <span className="bg-yarn-100 text-yarn-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-yarn-200">
-                          🚀 New
-                        </span>
-                      ) : (
-                        <span className="bg-wool-100 text-wool-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-wool-200">
-                          📝 In Progress
-                        </span>
-                      )}
+                      <div className="flex items-center gap-2">
+                        {/* Status indicator */}
+                        {project.completed ? (
+                          <span className="bg-sage-100 text-sage-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-sage-200">
+                            ✓ Complete
+                          </span>
+                        ) : project.components.length === 0 ? (
+                          <span className="bg-yarn-100 text-yarn-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-yarn-200">
+                            🚀 New
+                          </span>
+                        ) : (
+                          <span className="bg-wool-100 text-wool-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-wool-200">
+                            📝 In Progress
+                          </span>
+                        )}
+
+                        {/* Three-dot menu */}
+                        <div className="relative">
+                          <button
+                            onClick={(e) => handleMenuToggle(project.id, e)}
+                            className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-100 rounded-full transition-colors"
+                          >
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                              <circle cx="8" cy="3" r="1.5"/>
+                              <circle cx="8" cy="8" r="1.5"/>
+                              <circle cx="8" cy="13" r="1.5"/>
+                            </svg>
+                          </button>
+
+                          {/* Dropdown menu */}
+                          {openMenuId === project.id && (
+                            <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-32">
+                              <button
+                                onClick={(e) => handleDeleteProject(project.id, project.name, e)}
+                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      </div>
                     </div>
                     
                     {/* MOBILE-OPTIMIZED: Compact project stats */}
