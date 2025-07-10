@@ -3,37 +3,52 @@ import React from 'react';
 const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother }) => {
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-xl p-6 w-full max-w-sm">
-        <div className="text-center mb-6">
-          <div className="text-3xl mb-2">✅</div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-1">Component Added!</h3>
-          <p className="text-gray-600 text-sm">
-            "{componentName}" has been added
-          </p>
-        </div>
+      <div className="bg-yarn-50 rounded-2xl shadow-xl max-w-sm w-full border-2 border-wool-200">
         
-        <div className="space-y-3">
-          <button
-            onClick={onAddSteps}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
-          >
-            📝 Add Steps to This Component
-          </button>
-          
-          <button
-            onClick={onAddAnother}
-            className="w-full bg-gray-600 text-white py-3 rounded-lg font-medium hover:bg-gray-700 transition-colors"
-          >
-            ➕ Add Another Component
-          </button>
+        {/* Header with more celebration */}
+        <div className="bg-yarn-600 text-white px-6 py-4 rounded-t-2xl">
+          <div className="text-center">
+            <div className="text-3xl mb-2">🎉</div>
+            <h2 className="text-lg font-semibold">Component Created!</h2>
+            <p className="text-yarn-100 text-sm">🧶 {componentName} is ready to knit!</p>
+          </div>
         </div>
-        
-        <button
-          onClick={onClose}
-          className="w-full mt-4 text-gray-500 hover:text-gray-700 transition-colors text-sm"
-        >
-          I'll decide later
-        </button>
+
+        {/* Content */}
+        <div className="p-6 bg-yarn-50">
+          <div className="text-center mb-6">
+            <p className="text-wool-600 mb-4">What would you like to do next?</p>
+          </div>
+
+          {/* Action Options */}
+          <div className="space-y-3">
+            {/* Primary action - Add Steps */}
+            <button
+              onClick={onAddSteps}
+              className="w-full bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <span className="text-lg">📝</span>
+              Add Steps to {componentName}
+            </button>
+
+            {/* Secondary action - Add Another */}
+            <button
+              onClick={onAddAnother}
+              className="w-full bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <span className="text-lg">🧶</span>
+              Add Another Component
+            </button>
+
+            {/* Tertiary action - Close */}
+            <button
+              onClick={onClose}
+              className="w-full bg-wool-100 text-wool-700 py-3 px-6 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   );

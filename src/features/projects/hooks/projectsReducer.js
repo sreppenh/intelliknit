@@ -3,11 +3,11 @@ export const initialState = {
   currentProject: null,
   selectedComponentIndex: null,
   activeComponentIndex: 0,
-  wizardType: 'enhanced' // NEW: Default to enhanced wizard
+  wizardType: 'enhanced'
 };
 
 export const projectsReducer = (state, action) => {
-  // ADDED: Safety check to ensure state is defined
+  // Safety check to ensure state is defined
   if (!state) {
     console.error('State is undefined in projectsReducer');
     return initialState;
@@ -25,7 +25,7 @@ export const projectsReducer = (state, action) => {
         id: `project-${Date.now()}`,
         name: action.payload.name.trim(),
         size: action.payload.size?.trim() || 'Not specified',
-        defaultUnits: action.payload.defaultUnits || 'inches', // NEW
+        defaultUnits: action.payload.defaultUnits || 'inches',
         components: [],
         currentComponent: 0,
         createdAt: new Date().toISOString(),
@@ -75,6 +75,53 @@ export const projectsReducer = (state, action) => {
         currentProject: updatedProject,
         projects: state.projects.map(p => 
           p.id === state.currentProject.id ? updatedProject : p
+        )
+      };
+
+    case 'ADD_ENHANCED_COMPONENT':
+      if (!state.currentProject) return state;
+      
+      // Create enhanced component with automatic Cast On step
+      const enhancedComponent = {
+        id: `comp-${Date.now()}`,
+        ...action.payload,
+        steps: [],
+        currentStep: 0
+      };
+
+      // Auto-add Cast On step if startingStitches provided
+      if (action.payload.startingStitches && action.payload.startingStitches > 0) {
+        const castOnStep = {
+          id: `step-${Date.now()}-cast-on`,
+          description: `Cast on ${action.payload.startingStitches} stitches`,
+          type: 'calculated',
+          wizardConfig: {
+            stitchPattern: {
+              pattern: 'Cast On',
+              stitchCount: action.payload.startingStitches.toString(),
+              method: 'long_tail' // Default method
+            }
+          },
+          startingStitches: 0,
+          endingStitches: action.payload.startingStitches,
+          totalRows: 1,
+          construction: action.payload.construction || 'flat',
+          completed: false
+        };
+        
+        enhancedComponent.steps.push(castOnStep);
+      }
+
+      const updatedProjectWithEnhanced = {
+        ...state.currentProject,
+        components: [...state.currentProject.components, enhancedComponent]
+      };
+
+      return {
+        ...state,
+        currentProject: updatedProjectWithEnhanced,
+        projects: state.projects.map(p => 
+          p.id === state.currentProject.id ? updatedProjectWithEnhanced : p
         )
       };
 
@@ -139,107 +186,106 @@ export const projectsReducer = (state, action) => {
         )
       };
 
-case 'ADD_CALCULATED_STEP':
-  if (!state.currentProject) {
-    console.error('ADD_CALCULATED_STEP: No current project');
-    return state;
-  }
-  
-  const { componentIndex: calcCompIndex, step: calcStep } = action.payload;
-  
-  // ADDED: Validate componentIndex
-  if (calcCompIndex === null || calcCompIndex === undefined || 
-      !state.currentProject.components[calcCompIndex]) {
-    console.error('ADD_CALCULATED_STEP: Invalid component index', calcCompIndex);
-    return state;
-  }
+    case 'ADD_CALCULATED_STEP':
+      if (!state.currentProject) {
+        console.error('ADD_CALCULATED_STEP: No current project');
+        return state;
+      }
+      
+      const { componentIndex: calcCompIndex, step: calcStep } = action.payload;
+      
+      if (calcCompIndex === null || calcCompIndex === undefined || 
+          !state.currentProject.components[calcCompIndex]) {
+        console.error('ADD_CALCULATED_STEP: Invalid component index', calcCompIndex);
+        return state;
+      }
 
-  const newCalculatedStep = {
-    id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    description: calcStep.description.trim(),
-    type: calcStep.type,
-    patternType: calcStep.patternType,
-    parsedData: calcStep.parsedData,
-    construction: calcStep.construction,
-    calculatedRows: calcStep.calculatedRows || [],
-    startingStitches: calcStep.startingStitches,
-    endingStitches: calcStep.endingStitches,
-    totalRows: calcStep.totalRows,
-    wizardConfig: calcStep.wizardConfig, // EXISTING: Original wizard config
-    advancedWizardConfig: calcStep.advancedWizardConfig, // NEW: Advanced wizard config
-    completed: false
-  };
+      const newCalculatedStep = {
+        id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        description: calcStep.description.trim(),
+        type: calcStep.type,
+        patternType: calcStep.patternType,
+        parsedData: calcStep.parsedData,
+        construction: calcStep.construction,
+        calculatedRows: calcStep.calculatedRows || [],
+        startingStitches: calcStep.startingStitches,
+        endingStitches: calcStep.endingStitches,
+        totalRows: calcStep.totalRows,
+        wizardConfig: calcStep.wizardConfig,
+        advancedWizardConfig: calcStep.advancedWizardConfig,
+        completed: false
+      };
 
-  const componentsWithNewCalculatedStep = [...state.currentProject.components];
-  // ADDED: Safety check for steps array
-  if (!componentsWithNewCalculatedStep[calcCompIndex].steps) {
-    componentsWithNewCalculatedStep[calcCompIndex].steps = [];
-  }
-  componentsWithNewCalculatedStep[calcCompIndex].steps.push(newCalculatedStep);
+      const componentsWithNewCalculatedStep = [...state.currentProject.components];
+      if (!componentsWithNewCalculatedStep[calcCompIndex].steps) {
+        componentsWithNewCalculatedStep[calcCompIndex].steps = [];
+      }
+      componentsWithNewCalculatedStep[calcCompIndex].steps.push(newCalculatedStep);
 
-  const projectWithNewCalculatedStep = {
-    ...state.currentProject,
-    components: componentsWithNewCalculatedStep
-  };
+      const projectWithNewCalculatedStep = {
+        ...state.currentProject,
+        components: componentsWithNewCalculatedStep
+      };
 
-  return {
-    ...state,
-    currentProject: projectWithNewCalculatedStep,
-    projects: state.projects.map(p => 
-      p.id === state.currentProject.id ? projectWithNewCalculatedStep : p
-    )
-  };
+      return {
+        ...state,
+        currentProject: projectWithNewCalculatedStep,
+        projects: state.projects.map(p => 
+          p.id === state.currentProject.id ? projectWithNewCalculatedStep : p
+        )
+      };
 
     case 'ADD_STEP':
-  if (!state.currentProject) {
-    console.error('ADD_STEP: No current project');
-    return state;
-  }
-  
-  const { componentIndex, step } = action.payload;
-  
-  // ADDED: Validate componentIndex and step data
-  if (componentIndex === null || componentIndex === undefined || 
-      !state.currentProject.components[componentIndex]) {
-    console.error('ADD_STEP: Invalid component index', componentIndex);
-    return state;
-  }
+      if (!state.currentProject) {
+        console.error('ADD_STEP: No current project');
+        return state;
+      }
+      
+      const { componentIndex, step } = action.payload;
+      
+      if (componentIndex === null || componentIndex === undefined || 
+          !state.currentProject.components[componentIndex]) {
+        console.error('ADD_STEP: Invalid component index', componentIndex);
+        return state;
+      }
 
-  if (!step || !step.description) {
-    console.error('ADD_STEP: Invalid step data', step);
-    return state;
-  }
+      if (!step || !step.description) {
+        console.error('ADD_STEP: Invalid step data', step);
+        return state;
+      }
 
-  const newStep = {
-    id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    description: step.description.trim(),
-    expectedStitches: parseInt(step.expectedStitches) || 0,
-    type: step.type || 'manual',
-    construction: step.construction,
-    wizardConfig: step.wizardConfig, // EXISTING: Original wizard config
-    advancedWizardConfig: step.advancedWizardConfig, // NEW: Advanced wizard config
-    completed: false
-  };
+      const newStep = {
+        id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        description: step.description.trim(),
+        expectedStitches: parseInt(step.expectedStitches) || 0,
+        type: step.type || 'manual',
+        construction: step.construction,
+        wizardConfig: step.wizardConfig,
+        advancedWizardConfig: step.advancedWizardConfig,
+        startingStitches: step.startingStitches,
+        endingStitches: step.endingStitches || step.expectedStitches,
+        totalRows: step.totalRows,
+        completed: false
+      };
 
-  const componentsWithNewStep = [...state.currentProject.components];
-  // ADDED: Safety check for steps array
-  if (!componentsWithNewStep[componentIndex].steps) {
-    componentsWithNewStep[componentIndex].steps = [];
-  }
-  componentsWithNewStep[componentIndex].steps.push(newStep);
+      const componentsWithNewStep = [...state.currentProject.components];
+      if (!componentsWithNewStep[componentIndex].steps) {
+        componentsWithNewStep[componentIndex].steps = [];
+      }
+      componentsWithNewStep[componentIndex].steps.push(newStep);
 
-  const projectWithNewStep = {
-    ...state.currentProject,
-    components: componentsWithNewStep
-  };
+      const projectWithNewStep = {
+        ...state.currentProject,
+        components: componentsWithNewStep
+      };
 
-  return {
-    ...state,
-    currentProject: projectWithNewStep,
-    projects: state.projects.map(p => 
-      p.id === state.currentProject.id ? projectWithNewStep : p
-    )
-  };
+      return {
+        ...state,
+        currentProject: projectWithNewStep,
+        projects: state.projects.map(p => 
+          p.id === state.currentProject.id ? projectWithNewStep : p
+        )
+      };
 
     case 'DELETE_STEP':
       if (!state.currentProject) {
@@ -249,7 +295,6 @@ case 'ADD_CALCULATED_STEP':
       
       const { componentIndex: compIndex, stepIndex } = action.payload;
       
-      // ADDED: Validate indices
       if (compIndex === null || compIndex === undefined || 
           !state.currentProject.components[compIndex] ||
           !state.currentProject.components[compIndex].steps ||
@@ -277,57 +322,54 @@ case 'ADD_CALCULATED_STEP':
         )
       };
 
-case 'UPDATE_STEP':
-  if (!state.currentProject) {
-    console.error('UPDATE_STEP: No current project');
-    return state;
-  }
-  
-  const { componentIndex: updateCompIndex, stepIndex: updateStepIndex, step: updatedStepData } = action.payload;
-  
-  // ADDED: Validate indices and data
-  if (updateCompIndex === null || updateCompIndex === undefined || 
-      !state.currentProject.components[updateCompIndex] ||
-      !state.currentProject.components[updateCompIndex].steps ||
-      updateStepIndex === null || updateStepIndex === undefined ||
-      !state.currentProject.components[updateCompIndex].steps[updateStepIndex]) {
-    console.error('UPDATE_STEP: Invalid indices', { updateCompIndex, updateStepIndex });
-    return state;
-  }
+    case 'UPDATE_STEP':
+      if (!state.currentProject) {
+        console.error('UPDATE_STEP: No current project');
+        return state;
+      }
+      
+      const { componentIndex: updateCompIndex, stepIndex: updateStepIndex, step: updatedStepData } = action.payload;
+      
+      if (updateCompIndex === null || updateCompIndex === undefined || 
+          !state.currentProject.components[updateCompIndex] ||
+          !state.currentProject.components[updateCompIndex].steps ||
+          updateStepIndex === null || updateStepIndex === undefined ||
+          !state.currentProject.components[updateCompIndex].steps[updateStepIndex]) {
+        console.error('UPDATE_STEP: Invalid indices', { updateCompIndex, updateStepIndex });
+        return state;
+      }
 
-  const componentsWithUpdatedStep = [...state.currentProject.components];
-  
-  // Preserve the original step ID and completion status
-  const originalStep = componentsWithUpdatedStep[updateCompIndex].steps[updateStepIndex];
-  const updatedStep = {
-    ...originalStep,
-    ...updatedStepData,
-    id: originalStep.id, // Keep original ID
-    completed: originalStep.completed, // Keep original completion status
-    advancedWizardConfig: updatedStepData.advancedWizardConfig || originalStep.advancedWizardConfig // Preserve or update advanced config
-  };
-  
-  componentsWithUpdatedStep[updateCompIndex].steps[updateStepIndex] = updatedStep;
+      const componentsWithUpdatedStep = [...state.currentProject.components];
+      
+      const originalStep = componentsWithUpdatedStep[updateCompIndex].steps[updateStepIndex];
+      const updatedStep = {
+        ...originalStep,
+        ...updatedStepData,
+        id: originalStep.id,
+        completed: originalStep.completed,
+        advancedWizardConfig: updatedStepData.advancedWizardConfig || originalStep.advancedWizardConfig
+      };
+      
+      componentsWithUpdatedStep[updateCompIndex].steps[updateStepIndex] = updatedStep;
 
-  const projectWithUpdatedStep = {
-    ...state.currentProject,
-    components: componentsWithUpdatedStep
-  };
+      const projectWithUpdatedStep = {
+        ...state.currentProject,
+        components: componentsWithUpdatedStep
+      };
 
-  return {
-    ...state,
-    currentProject: projectWithUpdatedStep,
-    projects: state.projects.map(p => 
-      p.id === state.currentProject.id ? projectWithUpdatedStep : p
-    )
-  };
+      return {
+        ...state,
+        currentProject: projectWithUpdatedStep,
+        projects: state.projects.map(p => 
+          p.id === state.currentProject.id ? projectWithUpdatedStep : p
+        )
+      };
 
-case 'SET_WIZARD_TYPE':
-  return {
-    ...state,
-    wizardType: action.payload // 'original' or 'enhanced'
-  };
-
+    case 'SET_WIZARD_TYPE':
+      return {
+        ...state,
+        wizardType: action.payload
+      };
       
     case 'TOGGLE_STEP_COMPLETION':
       if (!state.currentProject) {
@@ -337,7 +379,6 @@ case 'SET_WIZARD_TYPE':
       
       const { componentIndex: toggleCompIndex, stepIndex: toggleStepIndex } = action.payload;
       
-      // ADDED: Validate indices
       if (toggleCompIndex === null || toggleCompIndex === undefined || 
           !state.currentProject.components[toggleCompIndex] ||
           !state.currentProject.components[toggleCompIndex].steps ||
@@ -351,20 +392,16 @@ case 'SET_WIZARD_TYPE':
       const stepToToggle = componentsWithToggledStep[toggleCompIndex].steps[toggleStepIndex];
       stepToToggle.completed = !stepToToggle.completed;
 
-      // Update current step for component
       if (stepToToggle.completed) {
-        // Find next incomplete step
         const nextIncompleteIndex = componentsWithToggledStep[toggleCompIndex].steps.findIndex(
           (s, i) => i > toggleStepIndex && !s.completed
         );
         if (nextIncompleteIndex !== -1) {
           componentsWithToggledStep[toggleCompIndex].currentStep = nextIncompleteIndex;
         } else {
-          // All steps completed
           componentsWithToggledStep[toggleCompIndex].currentStep = componentsWithToggledStep[toggleCompIndex].steps.length;
         }
       } else {
-        // If unchecking (frogging), set current step to this step
         componentsWithToggledStep[toggleCompIndex].currentStep = toggleStepIndex;
       }
 
@@ -401,29 +438,6 @@ case 'SET_WIZARD_TYPE':
         )
       };
 
-    case 'ADD_ENHANCED_COMPONENT':
-  if (!state.currentProject) return state;
-  
-  const enhancedComponent = {
-    id: `comp-${Date.now()}`,
-    ...action.payload,
-    steps: [],
-    currentStep: 0
-  };
-
-  const updatedProjectWithEnhanced = {
-    ...state.currentProject,
-    components: [...state.currentProject.components, enhancedComponent]
-  };
-
-  return {
-    ...state,
-    currentProject: updatedProjectWithEnhanced,
-    projects: state.projects.map(p => 
-      p.id === state.currentProject.id ? updatedProjectWithEnhanced : p
-    )
-  };  
-
     case 'SET_SELECTED_COMPONENT_INDEX':
       return {
         ...state,
@@ -436,54 +450,8 @@ case 'SET_WIZARD_TYPE':
         activeComponentIndex: action.payload
       };
 
-    case 'ADD_ADVANCED_CALCULATED_STEP':
-  if (!state.currentProject) {
-    console.error('ADD_ADVANCED_CALCULATED_STEP: No current project');
-    return state;
-  }
-  
-  const { componentIndex: advancedCompIndex, step: advancedStep } = action.payload;
-  
-  // ADDED: Validate componentIndex
-  if (advancedCompIndex === null || advancedCompIndex === undefined || 
-      !state.currentProject.components[advancedCompIndex]) {
-    console.error('ADD_ADVANCED_CALCULATED_STEP: Invalid component index', advancedCompIndex);
-    return state;
-  }
-
-  const newAdvancedStep = {
-    id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-    description: advancedStep.description.trim(),
-    type: 'advanced_calculated',
-    patternType: advancedStep.patternType,
-    construction: advancedStep.construction,
-    calculatedRows: advancedStep.calculatedRows || [],
-    startingStitches: advancedStep.startingStitches,
-    endingStitches: advancedStep.endingStitches,
-    totalRows: advancedStep.totalRows,
-    advancedWizardConfig: advancedStep.advancedWizardConfig, // NEW: Save advanced wizard config
-    completed: false
-  };
-
-  const componentsWithNewAdvancedStep = [...state.currentProject.components];
-  // ADDED: Safety check for steps array
-  if (!componentsWithNewAdvancedStep[advancedCompIndex].steps) {
-    componentsWithNewAdvancedStep[advancedCompIndex].steps = [];
-  }
-  componentsWithNewAdvancedStep[advancedCompIndex].steps.push(newAdvancedStep);
-
-  const projectWithNewAdvancedStep = {
-    ...state.currentProject,
-    components: componentsWithNewAdvancedStep
-  };
-
-  return {
-    ...state,
-    currentProject: projectWithNewAdvancedStep,
-    projects: state.projects.map(p => 
-      p.id === state.currentProject.id ? projectWithNewAdvancedStep : p
-    )
-  };  
+    // REMOVED: ADD_COMPONENT_ENDING, ADD_ADVANCED_CALCULATED_STEP (redundant with ADD_CALCULATED_STEP)
+    // The new architecture treats all steps equally
 
     default:
       console.warn('Unknown action type:', action.type);

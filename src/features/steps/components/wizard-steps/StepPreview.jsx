@@ -2,31 +2,39 @@ import React from 'react';
 import { useStepCalculation } from '../../hooks/useStepCalculation';
 import { useStepGeneration } from '../../hooks/useStepGeneration';
 
-const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack }) => {
+const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinishComponent }) => {
   const { calculateEffect } = useStepCalculation();
   const { generateInstruction } = useStepGeneration();
 
   const instruction = generateInstruction(wizard.wizardData);
   const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
 
+  // Fixed: onFinishComponent should add current step first, then show ending wizard
+  const handleFinishComponent = () => {
+    // First add the current step
+    onAddStep();
+    // Then trigger the finish component flow (which will show ending wizard)
+    onFinishComponent();
+  };
+
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Review Step Details</h2>
-        <p className="text-sm text-gray-600 mb-4">Step ready to be added to {wizard.component?.name}</p>
+        <h2 className="text-xl font-semibold text-wool-700 mb-3">Review Step Details</h2>
+        <p className="text-wool-500 mb-4">Step ready to be added to {wizard.component?.name}</p>
       </div>
 
       <div className="space-y-4">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <div className="font-medium text-blue-800 mb-2">Generated Instruction:</div>
-          <div className="text-blue-900">
+        <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+          <div className="font-semibold text-sage-700 mb-2">Generated Instruction:</div>
+          <div className="text-sage-800">
             {instruction}
           </div>
         </div>
 
-        <div className="bg-green-50 border border-green-200 rounded-lg p-4">
-          <div className="font-medium text-green-800 mb-2">Calculated Effect:</div>
-          <div className="text-sm text-green-700">
+        <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
+          <div className="font-semibold text-yarn-700 mb-2">Calculated Effect:</div>
+          <div className="text-sm text-yarn-700">
             {effect.success ? (
               effect.totalRows 
                 ? `${effect.totalRows} rows • ${effect.startingStitches} → ${effect.endingStitches} stitches`
@@ -38,31 +46,34 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack }) => {
         </div>
 
         <div className="space-y-3">
+          {/* Add Another Step - primary action */}
           <button
             onClick={onAddStepAndContinue}
-            className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 transition-colors"
+            className="w-full bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-yarn-700 transition-colors shadow-sm flex items-center justify-center gap-2"
           >
-            ➕ Add Another Step
+            <span className="text-xl">🧶</span>
+            Add Another Step
           </button>
           
+          {/* Finish Component - Fixed to add current step first */}
           <button
-            onClick={onAddStep}
-            className="w-full bg-blue-600 text-white py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            onClick={handleFinishComponent}
+            className="w-full bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-sage-600 transition-colors shadow-sm"
           >
-            ✅ Finish {wizard.component?.name}
+            🏁 Finish {wizard.component?.name}
           </button>
 
           <div className="flex gap-3">
             <button
               onClick={() => wizard.navigation.goToStep(1)}
-              className="flex-1 bg-yellow-600 text-white py-2 rounded-lg font-medium hover:bg-yellow-700 transition-colors"
+              className="flex-1 bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
             >
               ✏️ Edit Step
             </button>
             
             <button
               onClick={onBack}
-              className="flex-1 bg-gray-500 text-white py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors"
+              className="flex-1 bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
             >
               Cancel
             </button>

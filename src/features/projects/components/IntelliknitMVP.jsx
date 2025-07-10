@@ -12,45 +12,45 @@ import ManageSteps from '../../steps/components/ManageSteps';
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('project-list');
   const { dispatch, selectedComponentIndex } = useProjectsContext();
-
+  
   const handleCreateProject = () => {
     setCurrentView('create-project');
   };
-
+  
   const handleProjectCreated = () => {
     setCurrentView('project-detail');
   };
-
+  
   const handleOpenProject = (project) => {
     dispatch({ type: 'SET_CURRENT_PROJECT', payload: project });
     setCurrentView('project-detail');
   };
-
+  
   const handleViewComponent = (componentIndex) => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('component-detail');
   };
-
+  
   const handleEditSteps = (componentIndex) => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('step-wizard'); // UPDATED: Use new step wizard
   };
-
+  
   const handleManageSteps = (componentIndex) => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('manage-steps');
   };
-
+  
   const handleStartKnitting = (componentIndex) => {
     dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('tracking');
   };
-
+  
   const handleBackToProjectList = () => {
     setCurrentView('project-list');
     dispatch({ type: 'SET_CURRENT_PROJECT', payload: null });
   };
-
+  
   const handleBackToProjectDetail = () => {
     setCurrentView('project-detail');
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: null });
@@ -65,7 +65,6 @@ const IntelliknitMVPContent = () => {
           onOpenProject={handleOpenProject}
         />
       );
-
     case 'create-project':
       return (
         <CreateProject
@@ -73,7 +72,6 @@ const IntelliknitMVPContent = () => {
           onProjectCreated={handleProjectCreated}
         />
       );
-
     case 'project-detail':
       return (
         <ProjectDetail
@@ -83,7 +81,6 @@ const IntelliknitMVPContent = () => {
           onStartKnitting={handleStartKnitting}
         />
       );
-
     case 'component-detail':
       return (
         <ComponentDetail
@@ -93,7 +90,6 @@ const IntelliknitMVPContent = () => {
           onStartKnitting={handleStartKnitting}
         />
       );
-
     case 'step-wizard': // UPDATED: New clean wizard
       return (
         <StepWizard
@@ -101,7 +97,6 @@ const IntelliknitMVPContent = () => {
           onBack={handleBackToProjectDetail}
         />
       );
-
     case 'manage-steps':
       return (
         <ManageSteps
@@ -109,7 +104,6 @@ const IntelliknitMVPContent = () => {
           onBack={handleBackToProjectDetail}
         />
       );
-
     case 'tracking':
       return (
         <Tracking
@@ -117,7 +111,6 @@ const IntelliknitMVPContent = () => {
           onEditSteps={handleEditSteps}
         />
       );
-
     default:
       return <div>View not found</div>;
   }
@@ -126,7 +119,10 @@ const IntelliknitMVPContent = () => {
 const IntelliknitMVP = () => {
   return (
     <ProjectsProvider>
-      <IntelliknitMVPContent />
+      {/* UPDATED: Add warm background to entire app */}
+      <div className="min-h-screen bg-yarn-50">
+        <IntelliknitMVPContent />
+      </div>
     </ProjectsProvider>
   );
 };

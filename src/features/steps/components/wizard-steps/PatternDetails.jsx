@@ -1,49 +1,65 @@
 // features/steps/components/wizard-steps/PatternDetails.jsx
 import React from 'react';
 import BasicPatternConfig from '../pattern-types/BasicPatternConfig';
-import ShapingToggle from '../pattern-types/ShapingToggle';
 
 const STITCH_PATTERNS = {
   basic: { 
     name: 'Basic Stitches', 
     icon: '📐',
-    patterns: ['Stockinette', 'Garter', 'Reverse Stockinette']
+    patterns: [
+      { name: 'Stockinette', icon: '⬜', desc: 'Classic smooth fabric' },
+      { name: 'Garter', icon: '〰️', desc: 'Bumpy, stretchy texture' },
+      { name: 'Reverse Stockinette', icon: '⬛', desc: 'Purl side showing' }
+    ]
   },
   rib: { 
     name: 'Ribbing', 
     icon: '〰️',
-    patterns: ['1x1 Rib', '2x2 Rib', '3x3 Rib', '2x1 Rib', 'Twisted Rib', 'Other']
+    patterns: [
+      { name: '1x1 Rib', icon: '|||', desc: 'K1, P1 alternating' },
+      { name: '2x2 Rib', icon: '||||', desc: 'K2, P2 alternating' },
+      { name: '3x3 Rib', icon: '||||||', desc: 'K3, P3 alternating' },
+      { name: '2x1 Rib', icon: '|||', desc: 'K2, P1 alternating' },
+      { name: 'Twisted Rib', icon: '🌀', desc: 'Twisted knit stitches' },
+      { name: 'Other', icon: '📝', desc: 'Custom ribbing pattern' }
+    ]
   },
   textured: {
     name: 'Textured',
     icon: '🔹',
-    patterns: ['Seed Stitch', 'Moss Stitch', 'Double Seed', 'Other']
+    patterns: [
+      { name: 'Seed Stitch', icon: '🌱', desc: 'Bumpy alternating texture' },
+      { name: 'Moss Stitch', icon: '🍃', desc: 'British seed stitch' },
+      { name: 'Double Seed', icon: '🌾', desc: '2x2 seed pattern' },
+      { name: 'Other', icon: '📝', desc: 'Custom textured pattern' }
+    ]
   },
   lace: { 
     name: 'Lace', 
     icon: '🕸️',
-    patterns: ['Lace Pattern']
+    patterns: [
+      { name: 'Lace Pattern', icon: '🕸️', desc: 'Openwork with YOs and decreases' }
+    ]
   },
   cable: { 
     name: 'Cables', 
     icon: '🔗',
-    patterns: ['Cable Pattern']
+    patterns: [
+      { name: 'Cable Pattern', icon: '🔗', desc: 'Twisted rope-like cables' }
+    ]
   },
   colorwork: { 
     name: 'Colorwork', 
     icon: '🌈',
-    patterns: ['Fair Isle', 'Intarsia', 'Stripes']
-  },
-  other: { 
-    name: 'Other', 
-    icon: '📋',
-    patterns: ['Custom pattern']
+    patterns: [
+      { name: 'Fair Isle', icon: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', desc: 'Stranded colorwork' },
+      { name: 'Intarsia', icon: '🎨', desc: 'Large color blocks' },
+      { name: 'Stripes', icon: '🌈', desc: 'Horizontal color bands' }
+    ]
   }
-  // REMOVED: castOn and bindOff patterns
 };
 
 export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping }) => {
-   console.log('PatternDetails wizardData:', wizardData); // ADD THIS
   if (!wizardData.stitchPattern.category) {
     return null;
   }
@@ -55,64 +71,58 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping })
   };
 
   const handlePatternSelect = (pattern) => {
-    updateWizardData('stitchPattern', { pattern });
-  };
-
-  // FIXED: Proper shaping toggle handler for root-level property
-  const handleShapingToggle = (hasShaping) => {
-      console.log('About to update hasShaping to:', hasShaping); // ADD THIS
-    updateWizardData('hasShaping', hasShaping);
+    updateWizardData('stitchPattern', { pattern: pattern.name });
   };
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Pattern Details</h2>
-        <p className="text-sm text-gray-600 mb-4">Configure the specific pattern details</p>
+        <h2 className="text-xl font-semibold text-wool-700 mb-3">Pattern Details</h2>
+        <p className="text-wool-500 mb-4">Choose your specific {category.name.toLowerCase()} pattern</p>
       </div>
 
       <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <button
-            onClick={handleBackToCategories}
-            className="text-purple-600 hover:text-purple-800 text-sm"
-          >
-            ← Back to categories
-          </button>
-          <span className="text-sm text-gray-600">{category.name}</span>
-        </div>
-        
-        {/* Pattern Selection */}
-        {category.patterns.length > 1 && (
-          <div className="space-y-2">
+        {/* REDESIGNED: Visual card grid like Choose Stitch Pattern */}
+        {category.patterns.length > 1 ? (
+          <div className="grid grid-cols-2 gap-3">
             {category.patterns.map(pattern => (
               <button
-                key={pattern}
+                key={pattern.name}
                 onClick={() => handlePatternSelect(pattern)}
-                className={`w-full p-3 text-left border rounded-lg transition-colors ${
-                  wizardData.stitchPattern.pattern === pattern
-                    ? 'border-purple-500 bg-purple-50 text-purple-900'
-                    : 'border-gray-200 hover:border-purple-300 hover:bg-purple-50'
+                className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
+                  wizardData.stitchPattern.pattern === pattern.name
+                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
                 }`}
               >
-                {pattern}
+                <div className="text-2xl mb-2">{pattern.icon}</div>
+                <div className="text-sm font-semibold mb-1">{pattern.name}</div>
+                <div className="text-xs opacity-75">{pattern.desc}</div>
               </button>
             ))}
+          </div>
+        ) : (
+          /* Single pattern - show as selected card */
+          <div className="grid grid-cols-1">
+            <div className="p-4 border-2 border-sage-500 bg-sage-100 text-sage-700 rounded-xl text-center shadow-sm">
+              <div className="text-2xl mb-2">{category.patterns[0].icon}</div>
+              <div className="text-sm font-semibold mb-1">{category.patterns[0].name}</div>
+              <div className="text-xs opacity-75">{category.patterns[0].desc}</div>
+            </div>
           </div>
         )}
 
         {/* Pattern-specific Configuration */}
         {wizardData.stitchPattern.pattern && (
           <>
-            {/* All patterns use BasicPatternConfig now - no special Cast On/Bind Off handling */}
             <BasicPatternConfig 
               wizardData={wizardData} 
               updateWizardData={updateWizardData}
             />
 
-            {/* Additional Details */}
+            {/* Additional Details Input */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
+              <label className="block text-sm font-semibold text-wool-700 mb-3">
                 Additional Details (optional)
               </label>
               <input
@@ -120,50 +130,50 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping })
                 value={wizardData.stitchPattern.customDetails || ''}
                 onChange={(e) => updateWizardData('stitchPattern', { customDetails: e.target.value })}
                 placeholder="e.g., 'with seed stitch border', 'using chart A'"
-                className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-purple-500"
+                className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
               />
             </div>
 
-{/* Shaping vs Duration Choice */}
-<div className="border-t border-gray-200 pt-4">
-  <h3 className="text-sm font-medium text-gray-700 mb-3">How do you want to work this pattern?</h3>
-  
-  <div className="space-y-3">
-    <button
-      onClick={() => updateWizardData('hasShaping', false)}
-      className={`w-full p-4 text-left border rounded-lg transition-colors ${
-        wizardData.hasShaping === false
-          ? 'border-green-500 bg-green-50 text-green-900'
-          : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <div className="text-2xl">⏱️</div>
-        <div>
-          <div className="font-medium">Set Duration</div>
-          <div className="text-sm text-gray-600">Work pattern for specific length (No shaping)</div>
-        </div>
-      </div>
-    </button>
+            {/* REDESIGNED: Shaping vs Duration choice with improved visual design */}
+            <div className="border-t border-wool-200 pt-6">
+              <h3 className="text-lg font-semibold text-wool-700 mb-3">How do you want to work this pattern?</h3>
+              
+              <div className="grid grid-cols-1 gap-3">
+                <button
+                  onClick={() => updateWizardData('hasShaping', false)}
+                  className={`p-4 text-left border-2 rounded-xl transition-all duration-200 ${
+                    wizardData.hasShaping === false
+                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                      : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">⏱️</div>
+                    <div className="flex-1">
+                      <div className="font-semibold">Set Duration</div>
+                      <div className="text-sm opacity-75">Work pattern for specific length (No shaping)</div>
+                    </div>
+                  </div>
+                </button>
 
-    <button
-      onClick={() => updateWizardData('hasShaping', true)}
-      className={`w-full p-4 text-left border rounded-lg transition-colors ${
-        wizardData.hasShaping === true
-          ? 'border-green-500 bg-green-50 text-green-900'
-          : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
-      }`}
-    >
-      <div className="flex items-center gap-3">
-        <div className="text-2xl">📏</div>
-        <div>
-          <div className="font-medium">Add Shaping</div>
-          <div className="text-sm text-gray-600">Configure increases, decreases, etc. (Length calculated automatically)</div>
-        </div>
-      </div>
-    </button>
-  </div>
-</div>
+                <button
+                  onClick={() => updateWizardData('hasShaping', true)}
+                  className={`p-4 text-left border-2 rounded-xl transition-all duration-200 ${
+                    wizardData.hasShaping === true
+                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                      : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="text-2xl">📏</div>
+                    <div className="flex-1">
+                      <div className="font-semibold">Add Shaping</div>
+                      <div className="text-sm opacity-75">Configure increases, decreases, etc. (Length calculated automatically)</div>
+                    </div>
+                  </div>
+                </button>
+              </div>
+            </div>
           </>
         )}
       </div>

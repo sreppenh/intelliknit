@@ -14,13 +14,13 @@ const WizardHeader = ({ wizard, onBack }) => {
 
   return (
     <>
-      {/* Header */}
-      <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white p-6">
-        <div className="flex items-center gap-4">
+      {/* UPDATED: Compact header with sage colors */}
+      <div className="bg-sage-500 text-white px-6 py-4">
+        <div className="flex items-center gap-3">
           {wizard.wizardStep > 1 && (
             <button 
               onClick={wizard.navigation.previousStep}
-              className="text-2xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
             >
               ←
             </button>
@@ -28,50 +28,40 @@ const WizardHeader = ({ wizard, onBack }) => {
           {wizard.wizardStep === 1 && (
             <button 
               onClick={onBack}
-              className="text-2xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
             >
               ←
             </button>
           )}
           <div className="flex-1">
-            <h1 className="text-xl font-bold">
+            <h1 className="text-lg font-semibold">
               {wizard.isEditing ? 'Edit Step' : 'Add Pattern Step'}
             </h1>
-            <p className="text-purple-100">
+            <p className="text-sage-100 text-sm">
               {wizard.isEditing ? `Editing: ${wizard.editingStep?.description?.substring(0, 30)}...` : 
                `Step ${wizard.wizardStep} of 4: ${getStepName(wizard.wizardStep)}`}
             </p>
           </div>
         </div>
-        
-        {/* Progress Dots */}
-        <div className="flex justify-center gap-2 mt-4">
-          {[1, 2, 3, 4].map(step => (
-            <div 
-              key={step}
-              className={`w-3 h-3 rounded-full transition-colors ${
-                step <= wizard.wizardStep ? 'bg-white' : 'bg-white bg-opacity-30'
-              }`}
-            />
-          ))}
-        </div>
       </div>
 
-      {/* Construction & Current Steps Info */}
-      <div className="p-4 bg-blue-50 border-b border-blue-200">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium text-blue-800">Construction:</span>
-          <select
-            value={wizard.construction}
-            onChange={(e) => wizard.setConstruction(e.target.value)}
-            className="text-sm border border-blue-300 rounded px-2 py-1 bg-white"
-          >
-            <option value={CONSTRUCTION_TYPES.FLAT}>Flat</option>
-            <option value={CONSTRUCTION_TYPES.ROUND}>Round</option>
-          </select>
-        </div>
-        <div className="text-xs text-blue-600">
-          Current stitches: {wizard.currentStitches} • Step {wizard.component.steps.length + 1} of {wizard.component.name}
+      {/* UPDATED: Construction info bar - now more compact */}
+      <div className="px-6 py-3 bg-sage-100 border-b border-sage-200">
+        <div className="flex items-center justify-between text-sm">
+          <div className="flex items-center gap-4">
+            <span className="font-medium text-sage-700">Construction:</span>
+            <select
+              value={wizard.construction}
+              onChange={(e) => wizard.setConstruction(e.target.value)}
+              className="text-sm border border-sage-300 rounded-lg px-3 py-1 bg-white text-sage-700 focus:ring-2 focus:ring-sage-500 focus:border-transparent"
+            >
+              <option value={CONSTRUCTION_TYPES.FLAT}>Flat</option>
+              <option value={CONSTRUCTION_TYPES.ROUND}>Round</option>
+            </select>
+          </div>
+          <div className="text-sage-600 text-xs">
+            {wizard.currentStitches} stitches • {wizard.component?.name}
+          </div>
         </div>
       </div>
     </>

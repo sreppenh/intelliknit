@@ -17,7 +17,7 @@ export const useStepActions = (wizard, onBack) => {
       dispatch({
         type: 'UPDATE_STEP',
         payload: {
-          componentIndex: wizard.componentIndex, // FIXED: Use componentIndex from wizard object
+          componentIndex: wizard.componentIndex,
           stepIndex: wizard.editingStepIndex,
           step: {
             description: instruction,
@@ -44,7 +44,7 @@ export const useStepActions = (wizard, onBack) => {
         dispatch({
           type: 'ADD_CALCULATED_STEP',
           payload: {
-            componentIndex: wizard.componentIndex, // FIXED: Use componentIndex from wizard object
+            componentIndex: wizard.componentIndex,
             step: {
               description: instruction,
               type: 'calculated',
@@ -67,12 +67,15 @@ export const useStepActions = (wizard, onBack) => {
         dispatch({
           type: 'ADD_STEP',
           payload: {
-            componentIndex: wizard.componentIndex, // FIXED: Use componentIndex from wizard object
+            componentIndex: wizard.componentIndex,
             step: {
               description: instruction,
               expectedStitches: effect.endingStitches,
               type: 'manual',
               construction: wizard.construction,
+              startingStitches: wizard.currentStitches,
+              endingStitches: effect.endingStitches,
+              totalRows: effect.totalRows,
               wizardConfig: wizard.wizardData,
               advancedWizardConfig: { 
                 hasShaping: wizard.wizardData.hasShaping, 
@@ -96,7 +99,7 @@ export const useStepActions = (wizard, onBack) => {
       dispatch({
         type: 'ADD_CALCULATED_STEP',
         payload: {
-          componentIndex: wizard.componentIndex, // FIXED: Use componentIndex from wizard object
+          componentIndex: wizard.componentIndex,
           step: {
             description: instruction,
             type: 'calculated',
@@ -119,12 +122,15 @@ export const useStepActions = (wizard, onBack) => {
       dispatch({
         type: 'ADD_STEP',
         payload: {
-          componentIndex: wizard.componentIndex, // FIXED: Use componentIndex from wizard object
+          componentIndex: wizard.componentIndex,
           step: {
             description: instruction,
             expectedStitches: effect.endingStitches,
             type: 'manual',
             construction: wizard.construction,
+            startingStitches: wizard.currentStitches,
+            endingStitches: effect.endingStitches,
+            totalRows: effect.totalRows,
             wizardConfig: wizard.wizardData,
             advancedWizardConfig: { 
               hasShaping: wizard.wizardData.hasShaping, 
@@ -137,7 +143,7 @@ export const useStepActions = (wizard, onBack) => {
 
     // Reset wizard for next step but stay in wizard
     wizard.navigation.goToStep(1);
-    wizard.resetWizardData(); // This should now work with the added resetWizardData function
+    wizard.resetWizardData();
   };
 
   return {

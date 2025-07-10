@@ -32,7 +32,6 @@ const STITCH_PATTERNS = {
     icon: '🌈',
     patterns: ['Fair Isle', 'Intarsia', 'Stripes']
   }
-  // REMOVED: other category entirely
 };
 
 export const PatternSelector = ({ wizardData, updateWizardData, navigation }) => {
@@ -55,23 +54,24 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Choose Stitch Pattern</h2>
-        <p className="text-sm text-gray-600 mb-4">Select the main stitch pattern for this section</p>
+        <h2 className="text-xl font-semibold text-wool-700 mb-3">Choose Stitch Pattern</h2>
+        <p className="text-wool-500 mb-4">Select the main stitch pattern for this section</p>
       </div>
 
+      {/* UPDATED: Consistent card styling with sage selection states */}
       <div className="grid grid-cols-2 gap-3">
         {Object.entries(STITCH_PATTERNS).map(([key, category]) => (
           <button
             key={key}
             onClick={() => handleCategorySelect(key)}
-            className={`p-4 border border-gray-200 rounded-lg hover:border-purple-300 hover:bg-purple-50 transition-colors text-center ${
+            className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${
               wizardData?.stitchPattern?.category === key
-                ? 'border-purple-500 bg-purple-50 text-purple-900'
-                : ''
+                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm' // UPDATED: Sage selection state
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm' // UPDATED: Sage hover state
             }`}
           >
             <div className="text-2xl mb-2">{category.icon}</div>
-            <div className="text-sm font-medium text-gray-700">{category.name}</div>
+            <div className="text-sm font-medium">{category.name}</div>
           </button>
         ))}
       </div>

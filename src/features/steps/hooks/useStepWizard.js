@@ -69,38 +69,22 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     }
   }, [component?.steps]);
 
-  // Get current stitch count from last step OR component starting stitches
+  // Get current stitch count from the step chain
   useEffect(() => {
     if (!component) return;
     
     if (component.steps.length === 0) {
-      // Use component's starting stitch count for enhanced components
-      if (component.startingStitches && component.startingStitches > 0) {
-        setCurrentStitches(component.startingStitches);
-      } else {
-        setCurrentStitches(0); // Legacy components without starting stitches
-      }
+      // No steps yet - start with 0
+      setCurrentStitches(0);
       return;
     }
     
+    // Get the ending stitch count from the last step
     const lastStep = component.steps[component.steps.length - 1];
-    if (lastStep.calculatedRows && lastStep.calculatedRows.length > 0) {
-      const lastRow = lastStep.calculatedRows[lastStep.calculatedRows.length - 1];
-      setCurrentStitches(lastRow.stitchCount);
-    } else if (lastStep.endingStitches && lastStep.endingStitches > 0) {
-      setCurrentStitches(lastStep.endingStitches);
-    } else if (lastStep.expectedStitches > 0) {
-      setCurrentStitches(lastStep.expectedStitches);
-    } else {
-      const stitchMatch = lastStep.description.match(/→\s*(\d+)\s*stitches/);
-      if (stitchMatch) {
-        setCurrentStitches(parseInt(stitchMatch[1]));
-      } else {
-        // Fall back to component starting stitches if we can't determine from step
-        setCurrentStitches(component.startingStitches || 0);
-      }
-    }
-  }, [component?.steps, component?.startingStitches, componentIndex]);
+    const stitchCount = lastStep.endingStitches || lastStep.expectedStitches || 0;
+    setCurrentStitches(stitchCount);
+    
+  }, [component?.steps, componentIndex]);
 
   const updateWizardData = (sectionOrKey, dataOrValue) => {
     setWizardData(prev => {
@@ -132,7 +116,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     return pattern && pattern !== 'Cast On' && pattern !== 'Bind Off';
   };
 
-  // UPDATED: Fixed navigation functions
+  // Navigation functions
   const getNextStep = (currentStep) => {
     if (currentStep === 1) return 2;
     if (currentStep === 2) return 3; // Always go to step 3 (either Shaping or Duration)
@@ -147,7 +131,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     return currentStep - 1;
   };
 
-  // UPDATED: Fixed validation function
+  // Validation function
   const canProceed = (step) => {
     switch (step) {
       case 1:

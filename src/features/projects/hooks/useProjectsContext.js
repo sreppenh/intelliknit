@@ -1,6 +1,8 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { projectsReducer, initialState } from './projectsReducer';
 import { StorageService } from '../../../shared/utils/StorageService';
+import { migrateAllProjectsToNewArchitecture } from '../../../shared/utils/dataMigration';
+
 const ProjectsContext = createContext();
 
 export const ProjectsProvider = ({ children }) => {
@@ -12,7 +14,19 @@ export const ProjectsProvider = ({ children }) => {
       try {
         const savedProjects = await StorageService.getProjects();
         if (savedProjects && savedProjects.length > 0) {
-          dispatch({ type: 'LOAD_PROJECTS', payload: savedProjects });
+          // Automatically migrate legacy data to new architecture
+          const { projects: migratedProjects, migratedCount } = migrateAllProjectsToNewArchitecture(savedProjects);
+          
+          if (migratedCount > 0) {
+            console.log(`✅ Migrated ${migratedCount} projects to new architecture`);
+          }
+          
+          dispatch({ type: 'LOAD_PROJECTS', payload: migratedProjects });
+          
+          // Save migrated data back to storage if any migrations occurred
+          if (migratedCount > 0) {
+            await StorageService.saveProjects(migratedProjects);
+          }
         }
       } catch (error) {
         console.error('Failed to load projects:', error);
@@ -20,7 +34,7 @@ export const ProjectsProvider = ({ children }) => {
     };
     
     loadProjects();
-  }, []);
+  }, []); // Empty dependency array - no more useMigration dependency
 
   // Save projects to storage whenever they change
   useEffect(() => {

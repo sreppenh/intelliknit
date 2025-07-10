@@ -19,9 +19,6 @@ const EnhancedComponentCreation = ({ onBack, onComponentCreated }) => {
       startDescription: type === 'cast_on' ? 'Cast on from scratch' : '',
       startStitches: type === 'cast_on' ? prev.startStitches : ''
     }));
-    
-    // Auto-advance to next step when selected (future UI enhancement)
-    // For now, user still needs to configure and click Continue
   };
 
   const canProceedFromStep = (currentStep) => {
@@ -62,60 +59,52 @@ const EnhancedComponentCreation = ({ onBack, onComponentCreated }) => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-        {/* Header */}
-        <div className="bg-gradient-to-r from-green-600 to-teal-600 text-white p-6">
-          <div className="flex items-center gap-4">
+    <div className="min-h-screen bg-yarn-50">
+      <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
+        {/* UPDATED: Header with sage colors and compact styling */}
+        <div className="bg-sage-500 text-white px-6 py-4">
+          <div className="flex items-center gap-3">
             <button
               onClick={step === 1 ? onBack : () => setStep(step - 1)}
-              className="text-2xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
             >
               ←
             </button>
             <div className="flex-1">
-              <h1 className="text-xl font-bold">Add Component</h1>
-              <p className="text-green-100">
+              <h1 className="text-lg font-semibold">Add Component</h1>
+              <p className="text-sage-100 text-sm">
                 Step {step} of 2: {step === 1 ? 'Name' : 'How it starts'}
               </p>
             </div>
           </div>
-          
-          {/* Progress Dots */}
-          <div className="flex justify-center gap-2 mt-4">
-            {[1, 2].map(stepNum => (
-              <div 
-                key={stepNum}
-                className={`w-3 h-3 rounded-full transition-colors ${
-                  stepNum <= step ? 'bg-white' : 'bg-white bg-opacity-30'
-                }`}
-              />
-            ))}
-          </div>
         </div>
 
-        <div className="p-6">
+        <div className="p-6 bg-yarn-50">
           {/* Step 1: Component Name */}
           {step === 1 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-3">Component Name</h2>
-                <p className="text-sm text-gray-600 mb-4">What piece are you knitting?</p>
+                <h2 className="text-xl font-semibold text-wool-700 mb-3">Component Name</h2>
+                <p className="text-wool-500 mb-4">What piece are you knitting?</p>
               </div>
 
               <div>
+                <label className="block text-sm font-semibold text-wool-700 mb-3">
+                  Component Name
+                </label>
                 <input
                   type="text"
                   value={componentData.name}
                   onChange={(e) => setComponentData(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="e.g., Left Sleeve, Back Panel, Collar"
-                  className="w-full border border-gray-300 rounded-lg px-4 py-3 text-lg focus:ring-2 focus:ring-green-500 focus:border-transparent"
+                  className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
                 />
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h3 className="text-sm font-medium text-blue-800 mb-2">💡 Examples:</h3>
-                <div className="text-sm text-blue-700 space-y-1">
+              {/* UPDATED: Consistent info card styling */}
+              <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+                <h3 className="text-sm font-semibold text-sage-700 mb-2">💡 Examples:</h3>
+                <div className="text-sm text-sage-600 space-y-1">
                   <div>• Left Sleeve, Right Sleeve</div>
                   <div>• Front Panel, Back Panel</div>
                   <div>• Collar, Cuff, Pocket</div>
@@ -128,87 +117,72 @@ const EnhancedComponentCreation = ({ onBack, onComponentCreated }) => {
           {step === 2 && (
             <div className="space-y-6">
               <div>
-                <h2 className="text-lg font-semibold text-gray-800 mb-3">How does it start?</h2>
-                <p className="text-sm text-gray-600 mb-4">How do you begin this component?</p>
+                <h2 className="text-xl font-semibold text-wool-700 mb-3">How does it start?</h2>
+                <p className="text-wool-500 mb-4">How do you begin this component?</p>
               </div>
 
-              <div className="space-y-3">
+              {/* UPDATED: Big 2x2 grid buttons like pattern selector */}
+              <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => handleStartTypeSelect('cast_on')}
-                  className={`w-full p-4 text-left border rounded-lg transition-colors ${
+                  className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
                     componentData.startType === 'cast_on'
-                      ? 'border-green-500 bg-green-50 text-green-900'
-                      : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                      : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">🏗️</div>
-                    <div>
-                      <div className="font-medium">Cast On</div>
-                      <div className="text-sm text-gray-600">Start from scratch</div>
-                    </div>
-                  </div>
+                  <div className="text-2xl mb-2">🏗️</div>
+                  <div className="font-semibold text-sm">Cast On</div>
+                  <div className="text-xs opacity-75">Start from scratch</div>
                 </button>
 
                 <button
                   onClick={() => handleStartTypeSelect('pick_up')}
-                  className={`w-full p-4 text-left border rounded-lg transition-colors ${
+                  className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
                     componentData.startType === 'pick_up'
-                      ? 'border-green-500 bg-green-50 text-green-900'
-                      : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                      : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">📌</div>
-                    <div>
-                      <div className="font-medium">Pick Up Stitches</div>
-                      <div className="text-sm text-gray-600">From existing piece</div>
-                    </div>
-                  </div>
+                  <div className="text-2xl mb-2">📌</div>
+                  <div className="font-semibold text-sm">Pick Up</div>
+                  <div className="text-xs opacity-75">From existing piece</div>
                 </button>
 
                 <button
                   onClick={() => handleStartTypeSelect('continue')}
-                  className={`w-full p-4 text-left border rounded-lg transition-colors ${
+                  className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
                     componentData.startType === 'continue'
-                      ? 'border-green-500 bg-green-50 text-green-900'
-                      : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                      : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">↗️</div>
-                    <div>
-                      <div className="font-medium">Continue From</div>
-                      <div className="text-sm text-gray-600">From saved stitches</div>
-                    </div>
-                  </div>
+                  <div className="text-2xl mb-2">↗️</div>
+                  <div className="font-semibold text-sm">Continue</div>
+                  <div className="text-xs opacity-75">From saved stitches</div>
                 </button>
 
                 <button
                   onClick={() => handleStartTypeSelect('other')}
-                  className={`w-full p-4 text-left border rounded-lg transition-colors ${
+                  className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
                     componentData.startType === 'other'
-                      ? 'border-green-500 bg-green-50 text-green-900'
-                      : 'border-gray-200 hover:border-green-300 hover:bg-green-50'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                      : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className="text-2xl">📝</div>
-                    <div>
-                      <div className="font-medium">Other</div>
-                      <div className="text-sm text-gray-600">Complex initialization</div>
-                    </div>
-                  </div>
+                  <div className="text-2xl mb-2">📝</div>
+                  <div className="font-semibold text-sm">Other</div>
+                  <div className="text-xs opacity-75">Complex setup</div>
                 </button>
               </div>
 
               {/* Configuration based on selected type */}
               {componentData.startType && (
-                <div className="space-y-4 pt-4 border-t border-gray-200">
+                <div className="space-y-4 pt-4 border-t border-wool-200">
                   {componentData.startType === 'cast_on' && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-wool-700 mb-3">
                           Number of Stitches
                         </label>
                         <input
@@ -216,17 +190,17 @@ const EnhancedComponentCreation = ({ onBack, onComponentCreated }) => {
                           value={componentData.startStitches}
                           onChange={(e) => setComponentData(prev => ({ ...prev, startStitches: e.target.value }))}
                           placeholder="80"
-                          className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+                          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-wool-700 mb-3">
                           Cast On Method (optional)
                         </label>
                         <select
                           value={componentData.startMethod}
                           onChange={(e) => setComponentData(prev => ({ ...prev, startMethod: e.target.value }))}
-                          className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+                          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
                         >
                           <option value="">Standard</option>
                           <option value="long_tail">Long Tail</option>
@@ -242,7 +216,7 @@ const EnhancedComponentCreation = ({ onBack, onComponentCreated }) => {
                   {(componentData.startType === 'pick_up' || componentData.startType === 'continue' || componentData.startType === 'other') && (
                     <>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-wool-700 mb-3">
                           Description
                         </label>
                         <input
@@ -254,11 +228,11 @@ const EnhancedComponentCreation = ({ onBack, onComponentCreated }) => {
                             componentData.startType === 'continue' ? 'e.g., From front piece' :
                             'e.g., Pick up 40, cast on 4'
                           }
-                          className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+                          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                        <label className="block text-sm font-semibold text-wool-700 mb-3">
                           Starting Stitches
                         </label>
                         <input
@@ -266,7 +240,7 @@ const EnhancedComponentCreation = ({ onBack, onComponentCreated }) => {
                           value={componentData.startStitches}
                           onChange={(e) => setComponentData(prev => ({ ...prev, startStitches: e.target.value }))}
                           placeholder="76"
-                          className="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"
+                          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
                         />
                       </div>
                     </>
@@ -276,21 +250,30 @@ const EnhancedComponentCreation = ({ onBack, onComponentCreated }) => {
             </div>
           )}
 
-          {/* Navigation */}
-          <div className="pt-6 border-t border-gray-200 space-y-3">
+          {/* UPDATED: Navigation with horizontal layout and consistent styling */}
+          <div className="pt-6 border-t border-wool-200">
             {step < 2 ? (
-              <button
-                onClick={() => setStep(step + 1)}
-                disabled={!canProceedFromStep(step)}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-              >
-                Continue →
-              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={onBack}
+                  className="flex-1 bg-wool-100 text-wool-700 py-4 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={() => setStep(step + 1)}
+                  disabled={!canProceedFromStep(step)}
+                  className="flex-2 bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  style={{flexGrow: 2}}
+                >
+                  Continue →
+                </button>
+              </div>
             ) : (
               <button
                 onClick={handleCreateComponent}
                 disabled={!canProceedFromStep(step)}
-                className="w-full bg-green-600 text-white py-3 rounded-lg font-medium hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+                className="w-full bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
               >
                 Create Component
               </button>

@@ -8,21 +8,27 @@ const WizardNavigation = ({ wizard, onBack }) => {
   };
 
   return (
-    <div className="pt-6 border-t border-gray-200 space-y-3">
-      <button
-        onClick={wizard.navigation.nextStep}
-        disabled={!wizard.navigation.canProceed()}
-        className="w-full bg-purple-600 text-white py-3 rounded-lg font-medium hover:bg-purple-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-      >
-        {getButtonText()}
-      </button>
-      
-      <button
-        onClick={onBack}
-        className="w-full bg-gray-500 text-white py-2 rounded-lg font-medium hover:bg-gray-600 transition-colors"
-      >
-        Cancel
-      </button>
+    <div className="pt-6 border-t border-wool-100">
+      {/* UPDATED: Horizontal layout for space efficiency */}
+      <div className="flex gap-3">
+        {/* Cancel button - smaller, 1/3 width */}
+        <button
+          onClick={onBack}
+          className="flex-1 bg-wool-100 text-wool-700 py-4 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+        >
+          Cancel
+        </button>
+        
+        {/* Primary button - larger, 2/3 width */}
+        <button
+          onClick={wizard.navigation.nextStep}
+          disabled={!wizard.navigation.canProceed()}
+          className="flex-2 bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
+          style={{flexGrow: 2}}
+        >
+          {getButtonText()}
+        </button>
+      </div>
     </div>
   );
 };
