@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 
-const CreateProject = ({ onBack, onProjectCreated }) => {
+const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
   const { dispatch } = useProjectsContext();
   const [projectData, setProjectData] = useState({
     name: '',
@@ -22,6 +22,7 @@ const CreateProject = ({ onBack, onProjectCreated }) => {
       name: projectData.name.trim(),
       size: projectData.size.trim() || 'Not specified',
       defaultUnits: projectData.defaultUnits,
+      projectType: selectedProjectType,
       // Set empty defaults for additional details (can be added later)
       source: '',
       recipient: '',
@@ -62,7 +63,7 @@ const CreateProject = ({ onBack, onProjectCreated }) => {
           {/* Welcome Message */}
           <div className="text-center">
             <div className="text-4xl mb-3">🧶</div>
-            <h2 className="text-xl font-semibold text-wool-700 mb-2">Start Your Project</h2>
+            <h2 className="text-xl font-semibold text-wool-700 mb-2">Provide Details</h2>
             <p className="text-wool-500 text-sm">You can always add more details later!</p>
           </div>
 

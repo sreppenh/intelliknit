@@ -9,13 +9,15 @@ import EditProjectDetails from './EditProjectDetails'; // NEW IMPORT
 import Tracking from './Tracking';
 import StepWizard from '../../steps/components/StepWizard';
 import ManageSteps from '../../steps/components/ManageSteps';
+import ProjectTypeSelector from './ProjectTypeSelector';
 
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('project-list');
   const { dispatch, selectedComponentIndex } = useProjectsContext();
+  const [selectedProjectType, setSelectedProjectType] = useState(null);
   
   const handleCreateProject = () => {
-    setCurrentView('create-project');
+    setCurrentView('project-type-selector');
   };
   
   const handleProjectCreated = () => {
@@ -37,10 +39,10 @@ const IntelliknitMVPContent = () => {
     setCurrentView('step-wizard');
   };
   
-  const handleManageSteps = (componentIndex) => {
-    dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
-    setCurrentView('manage-steps');
-  };
+const handleManageSteps = (componentIndex) => {
+  dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
+  setCurrentView('manage-steps');
+};
   
   const handleStartKnitting = (componentIndex) => {
     dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
@@ -62,6 +64,8 @@ const IntelliknitMVPContent = () => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: null });
   };
 
+  
+
   // Router logic based on current view
   switch (currentView) {
     case 'project-list':
@@ -74,19 +78,31 @@ const IntelliknitMVPContent = () => {
     case 'create-project':
       return (
         <CreateProject
-          onBack={handleBackToProjectList}
-          onProjectCreated={handleProjectCreated}
+      onBack={() => setCurrentView('project-type-selector')}
+      onProjectCreated={handleProjectCreated}
+      selectedProjectType={selectedProjectType} // NEW LINE
         />
       );
+
+      case 'project-type-selector':
+  return (
+    <ProjectTypeSelector
+      onBack={handleBackToProjectList}
+      onContinue={() => setCurrentView('create-project')}
+      selectedType={selectedProjectType}
+      onTypeSelect={setSelectedProjectType}
+    />
+  );
     case 'project-detail':
       return (
         <ProjectDetail
-          onBack={handleBackToProjectList}
-          onViewComponent={handleViewComponent}
-          onEditSteps={handleEditSteps}
-          onStartKnitting={handleStartKnitting}
-          onEditProjectDetails={handleEditProjectDetails} // NEW PROP
-        />
+  onBack={handleBackToProjectList}
+  onViewComponent={handleViewComponent}
+  onEditSteps={handleEditSteps}         // Keep this for wizard
+  onManageSteps={handleManageSteps}     // ✅ Add this for ManageSteps
+  onStartKnitting={handleStartKnitting}
+  onEditProjectDetails={handleEditProjectDetails}
+/>
       );
     case 'edit-project-details': // NEW CASE
       return (

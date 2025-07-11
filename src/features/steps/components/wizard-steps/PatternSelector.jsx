@@ -1,4 +1,3 @@
-// features/steps/components/wizard-steps/PatternSelector.jsx
 import React from 'react';
 
 const STITCH_PATTERNS = {
@@ -36,21 +35,68 @@ const STITCH_PATTERNS = {
 
 export const PatternSelector = ({ wizardData, updateWizardData, navigation }) => {
   const handleCategorySelect = (key) => {
-    // Only clear fields that are specific to other pattern types
+    // Clear fields that are specific to other pattern types
     updateWizardData('stitchPattern', { 
       category: key,
-      customText: '',       // Clear custom text (used by Other/Custom)
-      rowsInPattern: '',    // Clear rows in pattern (used by Lace/Cable/etc)
-      method: ''            // Clear method (used by Cast On/Bind Off)
+      pattern: null,
+      customText: '',
+      rowsInPattern: '',
+      method: ''
     });
     
     const category = STITCH_PATTERNS[key];
     
+    // If only one pattern option, select it and auto-advance
     if (category.patterns.length === 1) {
       updateWizardData('stitchPattern', { pattern: category.patterns[0] });
+      setTimeout(() => navigation.nextStep(), 150);
     }
   };
 
+  const handlePatternSelect = (patternName) => {
+    updateWizardData('stitchPattern', { pattern: patternName });
+    // Auto-advance to next step
+    setTimeout(() => navigation.nextStep(), 150);
+  };
+
+  const selectedCategory = wizardData?.stitchPattern?.category;
+  const selectedPattern = wizardData?.stitchPattern?.pattern;
+
+  // Show pattern selection if category is selected but not pattern
+  if (selectedCategory && !selectedPattern) {
+    const category = STITCH_PATTERNS[selectedCategory];
+    
+    return (
+      <div className="space-y-6">
+        <div>
+          <h2 className="text-xl font-semibold text-wool-700 mb-3">Choose {category.name}</h2>
+          <p className="text-wool-500 mb-4">Select your specific {category.name.toLowerCase()} pattern</p>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          {category.patterns.map(pattern => (
+            <button
+              key={pattern}
+              onClick={() => handlePatternSelect(pattern)}
+              className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+            >
+              <div className="text-sm font-semibold mb-1">{pattern}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Back to categories option */}
+        <button
+          onClick={() => updateWizardData('stitchPattern', { category: null, pattern: null })}
+          className="w-full text-wool-500 text-sm py-2 hover:text-wool-700 transition-colors"
+        >
+          ← Choose different category
+        </button>
+      </div>
+    );
+  }
+
+  // Show category selection (initial step)
   return (
     <div className="space-y-6">
       <div>
@@ -58,16 +104,15 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
         <p className="text-wool-500 mb-4">Select the main stitch pattern for this section</p>
       </div>
 
-      {/* UPDATED: Consistent card styling with sage selection states */}
       <div className="grid grid-cols-2 gap-3">
         {Object.entries(STITCH_PATTERNS).map(([key, category]) => (
           <button
             key={key}
             onClick={() => handleCategorySelect(key)}
             className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${
-              wizardData?.stitchPattern?.category === key
-                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm' // UPDATED: Sage selection state
-                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm' // UPDATED: Sage hover state
+              selectedCategory === key
+                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
             }`}
           >
             <div className="text-2xl mb-2">{category.icon}</div>

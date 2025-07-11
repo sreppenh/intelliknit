@@ -32,6 +32,7 @@ export const projectsReducer = (state, action) => {
         name: action.payload.name.trim(),
         size: action.payload.size?.trim() || 'Not specified',
         defaultUnits: action.payload.defaultUnits || 'inches',
+        projectType: action.payload.projectType || 'other', // NEW LINE
         components: [],
         currentComponent: 0,
         createdAt: new Date().toISOString(),
