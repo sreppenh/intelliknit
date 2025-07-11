@@ -1,7 +1,7 @@
 import React from 'react';
 import { CONSTRUCTION_TYPES } from '../../../../shared/utils/constants';
 
-const WizardHeader = ({ wizard, onBack }) => {
+const WizardHeader = ({ wizard, onBack, onCancel }) => {
   const getStepName = (step) => {
     switch (step) {
       case 1: return 'Stitch Pattern';
@@ -14,7 +14,7 @@ const WizardHeader = ({ wizard, onBack }) => {
 
   return (
     <>
-      {/* UPDATED: Compact header with sage colors */}
+      {/* UPDATED: Header with X button in top right */}
       <div className="bg-sage-500 text-white px-6 py-4">
         <div className="flex items-center gap-3">
           {wizard.wizardStep > 1 && (
@@ -42,6 +42,16 @@ const WizardHeader = ({ wizard, onBack }) => {
                `Step ${wizard.wizardStep} of 4: ${getStepName(wizard.wizardStep)}`}
             </p>
           </div>
+          {/* NEW: X button for canceling entire flow */}
+          {onCancel && (
+            <button 
+              onClick={onCancel}
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              title="Cancel step creation"
+            >
+              ✕
+            </button>
+          )}
         </div>
       </div>
 

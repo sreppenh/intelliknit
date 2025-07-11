@@ -4,12 +4,13 @@ import ComponentChoiceModal from './ComponentChoiceModal';
 import CompleteProjectModal from './CompleteProjectModal';
 import EnhancedComponentCreation from './EnhancedComponentCreation';
 
-const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onStartKnitting }) => {
+const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onStartKnitting, onEditProjectDetails }) => {
   const { currentProject, dispatch } = useProjectsContext();
   const [showChoiceModal, setShowChoiceModal] = useState(false);
   const [showCompleteProjectModal, setShowCompleteProjectModal] = useState(false);
   const [showEnhancedCreation, setShowEnhancedCreation] = useState(false);
   const [lastAddedComponentIndex, setLastAddedComponentIndex] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   if (!currentProject) {
     return <div>No project selected</div>;
@@ -38,6 +39,73 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onStartKnitting }
     setLastAddedComponentIndex(null);
   };
 
+  // NEW: Handle component menu actions
+  const handleMenuToggle = (componentId, event) => {
+    event.stopPropagation(); // Prevent component selection
+    setOpenMenuId(openMenuId === componentId ? null : componentId);
+  };
+
+  const handleRenameComponent = (componentIndex, event) => {
+    event.stopPropagation();
+    const component = currentProject.components[componentIndex];
+    const newName = window.prompt(`Rename "${component.name}" to:`, component.name);
+    
+    if (newName && newName.trim() !== '' && newName !== component.name) {
+      const updatedComponents = [...currentProject.components];
+      updatedComponents[componentIndex] = {
+        ...component,
+        name: newName.trim()
+      };
+      
+      const updatedProject = {
+        ...currentProject,
+        components: updatedComponents
+      };
+      
+      dispatch({
+        type: 'UPDATE_PROJECT',
+        payload: updatedProject
+      });
+    }
+    setOpenMenuId(null);
+  };
+
+  const handleCopyComponent = (componentIndex, event) => {
+    event.stopPropagation();
+    const component = currentProject.components[componentIndex];
+    const newName = window.prompt(`Copy "${component.name}" as:`, `${component.name} Copy`);
+    
+    if (newName && newName.trim() !== '') {
+      dispatch({
+        type: 'COPY_COMPONENT',
+        payload: { sourceIndex: componentIndex, newName: newName.trim() }
+      });
+    }
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteComponent = (componentIndex, componentName, event) => {
+    event.stopPropagation();
+    const confirmed = window.confirm(`Delete "${componentName}"? This cannot be undone.`);
+    
+    if (confirmed) {
+      dispatch({
+        type: 'DELETE_COMPONENT',
+        payload: componentIndex
+      });
+    }
+    setOpenMenuId(null);
+  };
+
+  // Close menu when clicking component card
+  const handleComponentClick = (componentIndex) => {
+    if (openMenuId) {
+      setOpenMenuId(null);
+    } else {
+      onViewComponent(componentIndex);
+    }
+  };
+
   if (showEnhancedCreation) {
     return (
       <EnhancedComponentCreation
@@ -63,14 +131,59 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onStartKnitting }
               <h1 className="text-lg font-semibold">{currentProject.name}</h1>
               <p className="text-sage-100 text-sm">Size: {currentProject.size || 'Not specified'}</p>
             </div>
+            {/* NEW: Edit details button in header */}
+            <button
+              onClick={onEditProjectDetails}
+              className="text-white text-lg hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              title="Edit project details"
+            >
+              ⚙️
+            </button>
           </div>
         </div>
 
         <div className="p-6 bg-yarn-50">
           <div className="space-y-6">
+            
+            {/* NEW: Project Info Section (if any details exist) */}
+            {(currentProject.gauge || currentProject.yarns?.length > 0 || currentProject.needles?.length > 0 || 
+              currentProject.source || currentProject.designer || currentProject.recipient) && (
+              <div className="bg-white rounded-xl border-2 border-wool-200 p-4 shadow-sm">
+                <div className="flex items-center justify-between mb-3">
+                  <h3 className="text-md font-semibold text-wool-700">Project Info</h3>
+                  <button
+                    onClick={onEditProjectDetails}
+                    className="text-xs text-sage-600 hover:text-sage-700 font-medium"
+                  >
+                    Edit →
+                  </button>
+                </div>
+                <div className="space-y-2 text-sm">
+                  {currentProject.gauge && (
+                    <div><span className="font-medium text-wool-600">Gauge:</span> {currentProject.gauge}</div>
+                  )}
+                  {currentProject.yarns && currentProject.yarns.length > 0 && (
+                    <div><span className="font-medium text-wool-600">Yarn:</span> {currentProject.yarns.join(', ')}</div>
+                  )}
+                  {currentProject.needles && currentProject.needles.length > 0 && (
+                    <div><span className="font-medium text-wool-600">Needles:</span> {currentProject.needles.join(', ')}</div>
+                  )}
+                  {currentProject.recipient && (
+                    <div><span className="font-medium text-wool-600">For:</span> {currentProject.recipient}</div>
+                  )}
+                  {currentProject.source && (
+                    <div><span className="font-medium text-wool-600">Source:</span> {currentProject.source}</div>
+                  )}
+                  {currentProject.designer && (
+                    <div><span className="font-medium text-wool-600">Designer:</span> {currentProject.designer}</div>
+                  )}
+                </div>
+              </div>
+            )}
+
             <h2 className="text-xl font-semibold text-wool-700 text-left">Components</h2>
             
-            {/* FIXED: Better spacing and structure */}
+            {/* Components section */}
             <div className="space-y-6">
               {currentProject.components.length === 0 ? (
                 /* Empty state with proper spacing */
@@ -85,17 +198,57 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onStartKnitting }
                   {currentProject.components.map((component, index) => (
                     <div 
                       key={component.id} 
-                      onClick={() => onViewComponent(index)}
-                      className="border-2 border-wool-200 rounded-xl p-5 hover:border-sage-400 hover:bg-white hover:shadow-md transition-all duration-200 cursor-pointer bg-white shadow-sm"
+                      onClick={() => handleComponentClick(index)}
+                      className="border-2 border-wool-200 rounded-xl p-5 hover:border-sage-400 hover:bg-white hover:shadow-md transition-all duration-200 cursor-pointer bg-white shadow-sm relative"
                     >
                       <div className="text-left">
                         <div className="flex items-center gap-2 mb-2">
-                          <h3 className="font-semibold text-wool-700">{component.name}</h3>
+                          <h3 className="font-semibold text-wool-700 flex-1 pr-8">{component.name}</h3>
+                          
+                          {/* Status badge */}
                           {component.steps.length > 0 && component.currentStep >= component.steps.length && (
                             <span className="bg-sage-100 text-sage-700 text-xs font-semibold px-2 py-1 rounded-full border border-sage-200">
                               ✓ Complete
                             </span>
                           )}
+
+                          {/* Three-dot menu */}
+                          <div className="relative">
+                            <button
+                              onClick={(e) => handleMenuToggle(component.id, e)}
+                              className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-100 rounded-full transition-colors"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                <circle cx="8" cy="3" r="1.5"/>
+                                <circle cx="8" cy="8" r="1.5"/>
+                                <circle cx="8" cy="13" r="1.5"/>
+                              </svg>
+                            </button>
+
+                            {/* Dropdown menu */}
+                            {openMenuId === component.id && (
+                              <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-32">
+                                <button
+                                  onClick={(e) => handleRenameComponent(index, e)}
+                                  className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 rounded-t-lg text-sm flex items-center gap-2 transition-colors"
+                                >
+                                  ✏️ Rename
+                                </button>
+                                <button
+                                  onClick={(e) => handleCopyComponent(index, e)}
+                                  className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors"
+                                >
+                                  📋 Copy
+                                </button>
+                                <button
+                                  onClick={(e) => handleDeleteComponent(index, component.name, e)}
+                                  className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors"
+                                >
+                                  🗑️ Delete
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         </div>
                         
                         {/* Enhanced component info if available */}
@@ -162,7 +315,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onStartKnitting }
                 </div>
               )}
               
-              {/* FIXED: Add Component button with proper spacing */}
+              {/* Add Component button */}
               <button
                 onClick={() => setShowEnhancedCreation(true)}
                 className="w-full bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-yarn-700 transition-colors shadow-sm flex items-center justify-center gap-2"

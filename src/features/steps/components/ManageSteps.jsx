@@ -8,6 +8,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingStepIndex, setEditingStepIndex] = useState(null);
   const [showEndingWizard, setShowEndingWizard] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState(null);
 
   // Component validation
   if (!currentProject || componentIndex === null || !currentProject.components[componentIndex]) {
@@ -150,6 +151,69 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const handleEditStep = () => {
     setEditingStepIndex(editableStepIndex);
     setIsEditing(true);
+  };
+
+  // NEW: Handle step menu actions
+  const handleMenuToggle = (stepId, event) => {
+    event.stopPropagation();
+    setOpenMenuId(openMenuId === stepId ? null : stepId);
+  };
+
+  const handleEditStepFromMenu = (stepIndex, event) => {
+    event.stopPropagation();
+    setEditingStepIndex(stepIndex);
+    setIsEditing(true);
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteStepFromMenu = (stepIndex, event) => {
+    event.stopPropagation();
+    const stepToDelete = component.steps[stepIndex];
+    const confirmed = window.confirm(`Delete "${stepToDelete.description}"? This cannot be undone.`);
+    
+    if (confirmed) {
+      dispatch({
+        type: 'DELETE_STEP',
+        payload: { componentIndex, stepIndex }
+      });
+    }
+    setOpenMenuId(null);
+  };
+
+  const handleCopyStepPattern = (stepIndex, event) => {
+    event.stopPropagation();
+    const step = component.steps[stepIndex];
+    
+    // Create a simplified pattern description for copying
+    let patternDescription = '';
+    if (step.wizardConfig?.stitchPattern) {
+      const pattern = step.wizardConfig.stitchPattern.pattern || step.wizardConfig.stitchPattern.category;
+      patternDescription = pattern;
+      
+      if (step.wizardConfig.duration?.type === 'rows' && step.wizardConfig.duration?.value) {
+        patternDescription += ` for ${step.wizardConfig.duration.value} rows`;
+      }
+      
+      if (step.advancedWizardConfig?.hasShaping) {
+        const shaping = step.advancedWizardConfig.shapingConfig;
+        patternDescription += ` with ${shaping.shapingType}s`;
+      }
+    } else {
+      // Fallback to step description
+      patternDescription = step.description;
+    }
+    
+    const copied = window.prompt(
+      'Copy this pattern for reuse:\n\n(You can modify this before using it in a new step)', 
+      patternDescription
+    );
+    
+    if (copied && copied.trim() !== '') {
+      // For now, just show success - in the future this could auto-populate the step wizard
+      alert(`Pattern copied: "${copied.trim()}"\n\nYou can use this when creating your next step!`);
+    }
+    
+    setOpenMenuId(null);
   };
 
   const handleAddNewStep = () => {
@@ -306,43 +370,53 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                             </div>
                           </div>
                           
-                          {/* Only show edit/delete if component is not finished AND this is the editable step */}
-                          {isEditable && !isComponentFinished() && (
-                            <div className="flex gap-2 flex-shrink-0">
-                              <button 
-                                onClick={handleEditStep}
-                                className="bg-sage-500 text-white px-3 py-1 rounded-lg text-xs font-medium hover:bg-sage-600 transition-colors"
+                          {/* NEW: Three-dot menu for editable steps OR bind-off steps */}
+                          {(isEditable && !isComponentFinished()) || (isSpecial && getPatternDisplay(step) === 'Bind Off') ? (
+                            <div className="relative flex-shrink-0">
+                              <button
+                                onClick={(e) => handleMenuToggle(step.id, e)}
+                                className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-100 rounded-full transition-colors"
                               >
-                                Edit
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                                  <circle cx="8" cy="3" r="1.5"/>
+                                  <circle cx="8" cy="8" r="1.5"/>
+                                  <circle cx="8" cy="13" r="1.5"/>
+                                </svg>
                               </button>
-                              <button 
-                                onClick={handleDeleteStep}
-                                className="bg-wool-300 text-wool-700 px-3 py-1 rounded-lg text-xs font-medium hover:bg-wool-400 transition-colors"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
 
-                          {/* Show delete button for Bind Off steps (last step management) */}
-                          {isSpecial && getPatternDisplay(step) === 'Bind Off' && (
-                            <div className="flex gap-2 flex-shrink-0">
-                              <button 
-                                onClick={() => {
-                                  const confirmed = window.confirm(`Delete "${step.description}"? This will allow you to add more steps.`);
-                                  if (confirmed) {
-                                    dispatch({
-                                      type: 'DELETE_STEP',
-                                      payload: { componentIndex, stepIndex }
-                                    });
-                                  }
-                                }}
-                                className="bg-wool-300 text-wool-700 px-3 py-1 rounded-lg text-xs font-medium hover:bg-wool-400 transition-colors"
-                              >
-                                Delete
-                              </button>
+                              {/* Dropdown menu */}
+                              {openMenuId === step.id && (
+                                <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-36">
+                                  {isEditable && !isComponentFinished() && (
+                                    <>
+                                      <button
+                                        onClick={(e) => handleEditStepFromMenu(stepIndex, e)}
+                                        className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 rounded-t-lg text-sm flex items-center gap-2 transition-colors"
+                                      >
+                                        ✏️ Edit Step
+                                      </button>
+                                      <button
+                                        onClick={(e) => handleDeleteStepFromMenu(stepIndex, e)}
+                                        className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors"
+                                      >
+                                        🗑️ Delete Step
+                                      </button>
+                                    </>
+                                  )}
+                                  
+                                  {/* Special case for Bind Off steps */}
+                                  {isSpecial && getPatternDisplay(step) === 'Bind Off' && (
+                                    <button
+                                      onClick={(e) => handleDeleteStepFromMenu(stepIndex, e)}
+                                      className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                                    >
+                                      🗑️ Delete Step
+                                    </button>
+                                  )}
+                                </div>
+                              )}
                             </div>
-                          )}
+                          ) : null}
                         </div>
                       </div>
                     </div>

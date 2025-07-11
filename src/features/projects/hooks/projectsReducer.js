@@ -6,6 +6,12 @@ export const initialState = {
   wizardType: 'enhanced'
 };
 
+// Helper function to update project activity timestamp
+const updateProjectActivity = (project) => ({
+  ...project,
+  lastActivityAt: new Date().toISOString()
+});
+
 export const projectsReducer = (state, action) => {
   // Safety check to ensure state is defined
   if (!state) {
@@ -29,6 +35,7 @@ export const projectsReducer = (state, action) => {
         components: [],
         currentComponent: 0,
         createdAt: new Date().toISOString(),
+        lastActivityAt: new Date().toISOString(), // NEW: Track activity on creation
         completed: false
       };
       
@@ -36,6 +43,21 @@ export const projectsReducer = (state, action) => {
         ...state,
         projects: [...state.projects, newProject],
         currentProject: newProject
+      };
+
+    case 'UPDATE_PROJECT':
+      const updatedProject = {
+        ...action.payload,
+        updatedAt: new Date().toISOString(),
+        lastActivityAt: new Date().toISOString() // NEW: Track activity on update
+      };
+
+      return {
+        ...state,
+        currentProject: updatedProject,
+        projects: state.projects.map(p => 
+          p.id === updatedProject.id ? updatedProject : p
+        )
       };
 
     case 'SET_CURRENT_PROJECT':
@@ -65,16 +87,19 @@ export const projectsReducer = (state, action) => {
         currentStep: 0
       };
 
-      const updatedProject = {
+      const projectWithNewComponent = {
         ...state.currentProject,
         components: [...state.currentProject.components, newComponent]
       };
 
+      // NEW: Add activity tracking
+      const projectWithComponentActivity = updateProjectActivity(projectWithNewComponent);
+
       return {
         ...state,
-        currentProject: updatedProject,
+        currentProject: projectWithComponentActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? updatedProject : p
+          p.id === state.currentProject.id ? projectWithComponentActivity : p
         )
       };
 
@@ -117,11 +142,14 @@ export const projectsReducer = (state, action) => {
         components: [...state.currentProject.components, enhancedComponent]
       };
 
+      // NEW: Add activity tracking
+      const projectWithEnhancedActivity = updateProjectActivity(updatedProjectWithEnhanced);
+
       return {
         ...state,
-        currentProject: updatedProjectWithEnhanced,
+        currentProject: projectWithEnhancedActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? updatedProjectWithEnhanced : p
+          p.id === state.currentProject.id ? projectWithEnhancedActivity : p
         )
       };
 
@@ -140,11 +168,14 @@ export const projectsReducer = (state, action) => {
         components: updatedComponents
       };
 
+      // NEW: Add activity tracking
+      const projectWithDeleteActivity = updateProjectActivity(projectWithDeletedComponent);
+
       return {
         ...state,
-        currentProject: projectWithDeletedComponent,
+        currentProject: projectWithDeleteActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? projectWithDeletedComponent : p
+          p.id === state.currentProject.id ? projectWithDeleteActivity : p
         )
       };
 
@@ -178,11 +209,14 @@ export const projectsReducer = (state, action) => {
         components: [...state.currentProject.components, copiedComponent]
       };
 
+      // NEW: Add activity tracking
+      const projectWithCopyActivity = updateProjectActivity(projectWithCopiedComponent);
+
       return {
         ...state,
-        currentProject: projectWithCopiedComponent,
+        currentProject: projectWithCopyActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? projectWithCopiedComponent : p
+          p.id === state.currentProject.id ? projectWithCopyActivity : p
         )
       };
 
@@ -227,11 +261,14 @@ export const projectsReducer = (state, action) => {
         components: componentsWithNewCalculatedStep
       };
 
+      // NEW: Add activity tracking
+      const projectWithCalculatedStepActivity = updateProjectActivity(projectWithNewCalculatedStep);
+
       return {
         ...state,
-        currentProject: projectWithNewCalculatedStep,
+        currentProject: projectWithCalculatedStepActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? projectWithNewCalculatedStep : p
+          p.id === state.currentProject.id ? projectWithCalculatedStepActivity : p
         )
       };
 
@@ -279,11 +316,14 @@ export const projectsReducer = (state, action) => {
         components: componentsWithNewStep
       };
 
+      // NEW: Add activity tracking
+      const projectWithStepActivity = updateProjectActivity(projectWithNewStep);
+
       return {
         ...state,
-        currentProject: projectWithNewStep,
+        currentProject: projectWithStepActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? projectWithNewStep : p
+          p.id === state.currentProject.id ? projectWithStepActivity : p
         )
       };
 
@@ -314,11 +354,14 @@ export const projectsReducer = (state, action) => {
         components: componentsWithDeletedStep
       };
 
+      // NEW: Add activity tracking
+      const projectWithDeleteStepActivity = updateProjectActivity(projectWithDeletedStep);
+
       return {
         ...state,
-        currentProject: projectWithDeletedStep,
+        currentProject: projectWithDeleteStepActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? projectWithDeletedStep : p
+          p.id === state.currentProject.id ? projectWithDeleteStepActivity : p
         )
       };
 
@@ -357,11 +400,14 @@ export const projectsReducer = (state, action) => {
         components: componentsWithUpdatedStep
       };
 
+      // NEW: Add activity tracking
+      const projectWithUpdateStepActivity = updateProjectActivity(projectWithUpdatedStep);
+
       return {
         ...state,
-        currentProject: projectWithUpdatedStep,
+        currentProject: projectWithUpdateStepActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? projectWithUpdatedStep : p
+          p.id === state.currentProject.id ? projectWithUpdateStepActivity : p
         )
       };
 
@@ -410,11 +456,14 @@ export const projectsReducer = (state, action) => {
         components: componentsWithToggledStep
       };
 
+      // NEW: Add activity tracking for step completion
+      const projectWithToggleActivity = updateProjectActivity(projectWithToggledStep);
+
       return {
         ...state,
-        currentProject: projectWithToggledStep,
+        currentProject: projectWithToggleActivity,
         projects: state.projects.map(p => 
-          p.id === state.currentProject.id ? projectWithToggledStep : p
+          p.id === state.currentProject.id ? projectWithToggleActivity : p
         )
       };
 
@@ -427,7 +476,8 @@ export const projectsReducer = (state, action) => {
       const completedProject = {
         ...state.currentProject,
         completed: true,
-        completedAt: new Date().toISOString()
+        completedAt: new Date().toISOString(),
+        lastActivityAt: new Date().toISOString() // NEW: Track activity on completion
       };
 
       return {
@@ -449,9 +499,6 @@ export const projectsReducer = (state, action) => {
         ...state,
         activeComponentIndex: action.payload
       };
-
-    // REMOVED: ADD_COMPONENT_ENDING, ADD_ADVANCED_CALCULATED_STEP (redundant with ADD_CALCULATED_STEP)
-    // The new architecture treats all steps equally
 
     default:
       console.warn('Unknown action type:', action.type);

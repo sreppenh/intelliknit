@@ -114,7 +114,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
 
   return (
     <WizardLayout>
-      <WizardHeader wizard={wizard} onBack={onBack} />
+      <WizardHeader wizard={wizard} onBack={onBack} onCancel={onBack} />
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}
         {wizard.wizardStep < 4 && (

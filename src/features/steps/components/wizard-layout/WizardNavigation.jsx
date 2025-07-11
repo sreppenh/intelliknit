@@ -9,14 +9,14 @@ const WizardNavigation = ({ wizard, onBack }) => {
 
   return (
     <div className="pt-6 border-t border-wool-100">
-      {/* UPDATED: Horizontal layout for space efficiency */}
+      {/* UPDATED: Horizontal layout with Back instead of Cancel */}
       <div className="flex gap-3">
-        {/* Cancel button - smaller, 1/3 width */}
+        {/* Back button - smaller, 1/3 width */}
         <button
           onClick={onBack}
           className="flex-1 bg-wool-100 text-wool-700 py-4 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
         >
-          Cancel
+          ← Back
         </button>
         
         {/* Primary button - larger, 2/3 width */}

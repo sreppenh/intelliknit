@@ -5,8 +5,9 @@ import ProjectList from './ProjectList';
 import CreateProject from './CreateProject';
 import ProjectDetail from './ProjectDetail';
 import ComponentDetail from './ComponentDetail';
+import EditProjectDetails from './EditProjectDetails'; // NEW IMPORT
 import Tracking from './Tracking';
-import StepWizard from '../../steps/components/StepWizard'; // NEW: Use refactored wizard
+import StepWizard from '../../steps/components/StepWizard';
 import ManageSteps from '../../steps/components/ManageSteps';
 
 const IntelliknitMVPContent = () => {
@@ -33,7 +34,7 @@ const IntelliknitMVPContent = () => {
   
   const handleEditSteps = (componentIndex) => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
-    setCurrentView('step-wizard'); // UPDATED: Use new step wizard
+    setCurrentView('step-wizard');
   };
   
   const handleManageSteps = (componentIndex) => {
@@ -44,6 +45,11 @@ const IntelliknitMVPContent = () => {
   const handleStartKnitting = (componentIndex) => {
     dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('tracking');
+  };
+
+  // NEW: Handle edit project details
+  const handleEditProjectDetails = () => {
+    setCurrentView('edit-project-details');
   };
   
   const handleBackToProjectList = () => {
@@ -79,6 +85,13 @@ const IntelliknitMVPContent = () => {
           onViewComponent={handleViewComponent}
           onEditSteps={handleEditSteps}
           onStartKnitting={handleStartKnitting}
+          onEditProjectDetails={handleEditProjectDetails} // NEW PROP
+        />
+      );
+    case 'edit-project-details': // NEW CASE
+      return (
+        <EditProjectDetails
+          onBack={handleBackToProjectDetail}
         />
       );
     case 'component-detail':
@@ -90,7 +103,7 @@ const IntelliknitMVPContent = () => {
           onStartKnitting={handleStartKnitting}
         />
       );
-    case 'step-wizard': // UPDATED: New clean wizard
+    case 'step-wizard':
       return (
         <StepWizard
           componentIndex={selectedComponentIndex}
@@ -119,7 +132,6 @@ const IntelliknitMVPContent = () => {
 const IntelliknitMVP = () => {
   return (
     <ProjectsProvider>
-      {/* UPDATED: Add warm background to entire app */}
       <div className="min-h-screen bg-yarn-50">
         <IntelliknitMVPContent />
       </div>

@@ -5,13 +5,32 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
   const { projects, dispatch } = useProjectsContext();
   const [openMenuId, setOpenMenuId] = useState(null);
 
-  const handleProjectSelect = (project) => {
-    setOpenMenuId(null); // Close any open menu
-    onOpenProject(project);
+  const handleProjectEdit = (project) => {
+    setOpenMenuId(null);
+    
+    // Update last activity when opening project for editing
+    const updatedProject = {
+      ...project,
+      lastActivityAt: new Date().toISOString()
+    };
+    
+    dispatch({
+      type: 'UPDATE_PROJECT',
+      payload: updatedProject
+    });
+    
+    onOpenProject(updatedProject);
+  };
+
+  const handleProjectKnitting = (project) => {
+    setOpenMenuId(null);
+    // TODO: Navigate to knitting mode when implemented
+    console.log('Starting knitting mode for:', project.name);
+    // For now, could go to tracking or show coming soon
   };
 
   const handleMenuToggle = (projectId, event) => {
-    event.stopPropagation(); // Prevent project selection
+    event.stopPropagation();
     setOpenMenuId(openMenuId === projectId ? null : projectId);
   };
 
@@ -28,12 +47,112 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
     setOpenMenuId(null);
   };
 
+  const handleCopyPattern = (project, event) => {
+    event.stopPropagation();
+    const newName = window.prompt(`Copy "${project.name}" as:`, `${project.name} Copy`);
+    
+    if (newName && newName.trim() !== '') {
+      // TODO: Implement copy pattern functionality
+      console.log('Copying pattern:', project.name, 'as:', newName);
+      alert(`Pattern copying coming soon! Would copy "${project.name}" as "${newName.trim()}"`);
+    }
+    setOpenMenuId(null);
+  };
+
+  // Helper functions for smart button logic
+  const getProjectStatus = (project) => {
+    if (project.completed) return 'completed';
+    if (project.components.length === 0) return 'planning';
+    
+    const totalSteps = project.components.reduce((total, comp) => total + comp.steps.length, 0);
+    const completedSteps = project.components.reduce((total, comp) => 
+      total + comp.steps.filter(s => s.completed).length, 0);
+    
+    if (totalSteps === 0) return 'planning';
+    if (completedSteps === 0) return 'ready';
+    if (completedSteps === totalSteps) return 'completed';
+    return 'in_progress';
+  };
+
+  // NEW: Smart project sorting with featured top project
+  const getSortedProjects = () => {
+    if (projects.length === 0) return [];
+    
+    const sorted = [...projects].sort((a, b) => {
+      // First priority: Most recent activity
+      const activityA = new Date(a.lastActivityAt || a.createdAt);
+      const activityB = new Date(b.lastActivityAt || b.createdAt);
+      
+      if (activityA > activityB) return -1;
+      if (activityA < activityB) return 1;
+      
+      // Second priority: Status-based ordering
+      const statusOrder = {
+        'in_progress': 1,
+        'ready': 2,
+        'planning': 3,
+        'completed': 4
+      };
+      
+      const statusA = getProjectStatus(a);
+      const statusB = getProjectStatus(b);
+      
+      if (statusOrder[statusA] !== statusOrder[statusB]) {
+        return statusOrder[statusA] - statusOrder[statusB];
+      }
+      
+      // Final: Creation date (newest first)
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+    
+    return sorted;
+  };
+
+  const getKnittingButtonText = (project) => {
+    const status = getProjectStatus(project);
+    switch (status) {
+      case 'ready': return 'Start Knitting';
+      case 'in_progress': return 'Continue Knitting';
+      case 'completed': return 'View Project';
+      case 'planning': return 'Plan Project';
+      default: return 'Continue Knitting';
+    }
+  };
+
+  const getKnittingButtonIcon = (project) => {
+    const status = getProjectStatus(project);
+    switch (status) {
+      case 'ready': return '🚀';
+      case 'in_progress': return '🧶';
+      case 'completed': return '🏆';
+      case 'planning': return '📝';
+      default: return '🧶';
+    }
+  };
+
+  const shouldShowKnittingButton = (project) => {
+    return getProjectStatus(project) !== 'planning';
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    
+    if (diffDays === 0) return 'Today';
+    if (diffDays === 1) return 'Yesterday';
+    if (diffDays < 7) return `${diffDays} days ago`;
+    
+    return date.toLocaleDateString('en-US', { 
+      month: 'short', 
+      day: 'numeric'
+    });
+  };
+
   // Close menu when clicking outside
   const handleCardClick = (project) => {
     if (openMenuId) {
       setOpenMenuId(null);
-    } else {
-      handleProjectSelect(project);
     }
   };
 
@@ -41,12 +160,12 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
         
-        {/* MOBILE-OPTIMIZED: Compact header */}
+        {/* Header */}
         <div className="bg-sage-500 text-white px-6 py-4">
           <div className="text-center">
             <div className="text-2xl mb-1">🧶</div>
             <h1 className="text-xl font-bold mb-0.5">IntelliKnit</h1>
-            <p className="text-sage-100 text-xs">Your knitting companion</p>
+            <p className="text-sage-100 text-xs">Ready to knit something amazing?</p>
           </div>
         </div>
 
@@ -54,19 +173,17 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
           
           {/* Project List or Welcome Screen */}
           {projects.length === 0 ? (
-            /* MOBILE-OPTIMIZED: Compact welcome screen */
             <div className="text-center py-4">
               <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-wool-200 mb-4">
                 <div className="text-4xl mb-3">🏠</div>
                 <h2 className="text-xl font-bold text-wool-700 mb-2">Welcome to Your Craft Room!</h2>
                 <p className="text-wool-500 mb-4 leading-relaxed text-sm">
-                  Ready to start your knitting journey? Create your first project and let's organize your stitches, track your progress, and celebrate every row.
+                  Ready to start your knitting journey? Create your first project and let's get those needles clicking!
                 </p>
                 
-                {/* MOBILE-OPTIMIZED: Compact features preview */}
                 <div className="grid grid-cols-1 gap-2 text-left mb-4">
                   <div className="flex items-center gap-3 p-2.5 bg-sage-50 rounded-lg border border-sage-200">
-                    <div className="text-xl">📊</div>
+                    <div className="text-xl">🎯</div>
                     <div>
                       <div className="font-semibold text-sage-700 text-xs">Smart Progress Tracking</div>
                       <div className="text-xs text-sage-600">Never lose your place again</div>
@@ -76,23 +193,22 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
                   <div className="flex items-center gap-3 p-2.5 bg-yarn-100 rounded-lg border border-yarn-200">
                     <div className="text-xl">🧮</div>
                     <div>
-                      <div className="font-semibold text-yarn-700 text-xs">Pattern Calculations</div>
-                      <div className="text-xs text-yarn-600">Automatic stitch math</div>
+                      <div className="font-semibold text-yarn-700 text-xs">Pattern Assistant</div>
+                      <div className="text-xs text-yarn-600">Guided step creation</div>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-3 p-2.5 bg-wool-100 rounded-lg border border-wool-200">
-                    <div className="text-xl">🎯</div>
+                    <div className="text-xl">🧶</div>
                     <div>
-                      <div className="font-semibold text-wool-700 text-xs">Step-by-Step Guidance</div>
-                      <div className="text-xs text-wool-600">Break complex projects into manageable pieces</div>
+                      <div className="font-semibold text-wool-700 text-xs">Knitting-First Design</div>
+                      <div className="text-xs text-wool-600">Focus on the joy of making</div>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
           ) : (
-            /* MOBILE-OPTIMIZED: Compact project list */
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-wool-700">Your Projects</h2>
@@ -102,34 +218,51 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
               </div>
               
               <div className="space-y-3">
-                {projects.map((project) => (
-                  <div
-                    key={project.id}
-                    onClick={() => handleCardClick(project)}
-                    className="bg-white border-2 border-wool-200 rounded-xl p-4 hover:border-sage-400 hover:shadow-md transition-all duration-200 cursor-pointer shadow-sm relative"
-                  >
-                    <div className="flex items-start justify-between mb-2">
-                      <div className="flex-1 pr-8">
-                        <h3 className="font-semibold text-wool-700 text-base mb-0.5">{project.name}</h3>
-                        <p className="text-wool-500 text-xs">Size: {project.size}</p>
-                      </div>
-                      
-                      <div className="flex items-center gap-2">
-                        {/* Status indicator */}
-                        {project.completed ? (
-                          <span className="bg-sage-100 text-sage-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-sage-200">
-                            ✓ Complete
-                          </span>
-                        ) : project.components.length === 0 ? (
-                          <span className="bg-yarn-100 text-yarn-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-yarn-200">
-                            🚀 New
-                          </span>
-                        ) : (
-                          <span className="bg-wool-100 text-wool-700 text-xs font-semibold px-2 py-0.5 rounded-full border border-wool-200">
-                            📝 In Progress
-                          </span>
-                        )}
+                {getSortedProjects().map((project, index) => {
+                  const isTopProject = index === 0 && projects.length > 1;
+                  const status = getProjectStatus(project);
+                  const totalSteps = project.components.reduce((total, comp) => total + comp.steps.length, 0);
+                  const completedSteps = project.components.reduce((total, comp) => 
+                    total + comp.steps.filter(s => s.completed).length, 0);
+                  const completedComponents = project.components.filter(comp => 
+                    comp.steps.length > 0 && comp.steps.every(step => step.completed)
+                  ).length;
+                  const progressPercent = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
 
+                  return (
+                    <div
+                      key={project.id}
+                      onClick={() => handleCardClick(project)}
+                      className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 relative ${
+                        isTopProject 
+                          ? 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02]' 
+                          : 'bg-white border-wool-200'
+                      }`}
+                    >
+                      {/* Project Header */}
+                      <div className="flex items-start justify-between mb-3">
+                        <div className="flex-1 pr-8">
+                          <div className="flex items-center gap-2 mb-1">
+                            {/* NEW: Subtle current project indicator */}
+                            {isTopProject && (
+                              <span className="text-sm">⭐</span>
+                            )}
+                            <h3 className={`font-bold text-base ${
+                              isTopProject ? 'text-sage-700' : 'text-wool-700'
+                            }`}>
+                              {project.name}
+                            </h3>
+                            {status === 'completed' && (
+                              <span className="text-lg">🏆</span>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-xs text-wool-500">
+                            <span>{project.size || 'No size specified'}</span>
+                            <span>•</span>
+                            <span>Started {formatDate(project.createdAt)}</span>
+                          </div>
+                        </div>
+                        
                         {/* Three-dot menu */}
                         <div className="relative">
                           <button
@@ -145,81 +278,107 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
 
                           {/* Dropdown menu */}
                           {openMenuId === project.id && (
-                            <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-32">
+                            <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-40">
+                              <button
+                                onClick={(e) => handleProjectEdit(project)}
+                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 rounded-t-lg text-sm flex items-center gap-2 transition-colors"
+                              >
+                                📝 Edit Project
+                              </button>
+                              <button
+                                onClick={(e) => handleCopyPattern(project, e)}
+                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-yarn-50 text-sm flex items-center gap-2 transition-colors"
+                              >
+                                📋 Copy Pattern
+                              </button>
                               <button
                                 onClick={(e) => handleDeleteProject(project.id, project.name, e)}
-                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors"
                               >
-                                🗑️ Delete
+                                🗑️ Delete Project
                               </button>
                             </div>
                           )}
                         </div>
                       </div>
-                    </div>
-                    
-                    {/* MOBILE-OPTIMIZED: Compact project stats */}
-                    <div className="grid grid-cols-2 gap-3 text-xs">
-                      <div className="bg-wool-50 rounded-lg p-2 border border-wool-100">
-                        <div className="font-semibold text-wool-600">{project.components.length}</div>
-                        <div className="text-xs text-wool-500">Component{project.components.length !== 1 ? 's' : ''}</div>
-                      </div>
-                      
-                      <div className="bg-wool-50 rounded-lg p-2 border border-wool-100">
-                        <div className="font-semibold text-wool-600">
-                          {project.components.reduce((total, comp) => total + comp.steps.length, 0)}
-                        </div>
-                        <div className="text-xs text-wool-500">Total Steps</div>
-                      </div>
-                    </div>
-                    
-                    {/* MOBILE-OPTIMIZED: Compact progress if project has components */}
-                    {project.components.length > 0 && (
-                      <div className="mt-2">
-                        <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-wool-100 rounded-full h-1.5 border border-wool-200">
-                            <div 
-                              className="h-1.5 bg-sage-500 rounded-full transition-all duration-300"
-                              style={{
-                                width: `${(() => {
-                                  const totalSteps = project.components.reduce((total, comp) => total + comp.steps.length, 0);
-                                  const completedSteps = project.components.reduce((total, comp) => 
-                                    total + comp.steps.filter(s => s.completed).length, 0);
-                                  return totalSteps > 0 ? (completedSteps / totalSteps) * 100 : 0;
-                                })()}%`
-                              }}
-                            ></div>
+
+                      {/* Progress Section */}
+                      {project.components.length > 0 && (
+                        <div className="mb-4">
+                          <div className="flex items-center gap-3 mb-2">
+                            <div className="flex-1 bg-wool-100 rounded-full h-2 border border-wool-200">
+                              <div 
+                                className={`h-2 rounded-full transition-all duration-300 ${
+                                  status === 'completed' ? 'bg-sage-500' : 'bg-yarn-500'
+                                }`}
+                                style={{ width: `${progressPercent}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-bold text-wool-700 tabular-nums">
+                              {progressPercent}%
+                            </span>
                           </div>
-                          <span className="text-xs font-semibold text-wool-600 tabular-nums">
-                            {(() => {
-                              const totalSteps = project.components.reduce((total, comp) => total + comp.steps.length, 0);
-                              const completedSteps = project.components.reduce((total, comp) => 
-                                total + comp.steps.filter(s => s.completed).length, 0);
-                              return totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
-                            })()}%
-                          </span>
+                          <div className="text-xs text-wool-500">
+                            {completedComponents} of {project.components.length} components complete
+                          </div>
                         </div>
-                        <div className="text-xs text-wool-500 mt-1">Tap to continue knitting →</div>
+                      )}
+
+                      {/* Action Button */}
+                      <div className="space-y-2">
+                        {shouldShowKnittingButton(project) ? (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              if (status === 'completed' || status === 'planning') {
+                                handleProjectEdit(project);
+                              } else {
+                                handleProjectKnitting(project);
+                              }
+                            }}
+                            className={`w-full py-3 px-4 rounded-xl font-semibold text-base transition-colors shadow-sm flex items-center justify-center gap-2 ${
+                              status === 'completed' 
+                                ? 'bg-sage-500 text-white hover:bg-sage-600'
+                                : isTopProject
+                                ? 'bg-sage-600 text-white hover:bg-sage-700 shadow-md'
+                                : 'bg-yarn-600 text-white hover:bg-yarn-700'
+                            }`}
+                          >
+                            <span className="text-lg">{getKnittingButtonIcon(project)}</span>
+                            {getKnittingButtonText(project)}
+                          </button>
+                        ) : (
+                          <button
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleProjectEdit(project);
+                            }}
+                            className="w-full bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200 flex items-center justify-center gap-2"
+                          >
+                            <span className="text-lg">📝</span>
+                            Plan Project
+                          </button>
+                        )}
                       </div>
-                    )}
-                  </div>
-                ))}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
           
-          {/* MOBILE-OPTIMIZED: Prominent, always-visible start button */}
+          {/* Create Project Button */}
           <div className="pt-4">
             <button
               onClick={onCreateProject}
-              className="w-full bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 transition-colors shadow-lg flex items-center justify-center gap-2"
+              className="w-full bg-sage-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-700 transition-colors shadow-lg flex items-center justify-center gap-2"
             >
-              <span className="text-xl">🧶</span>
+              <span className="text-xl">✨</span>
               {projects.length === 0 ? 'Start Your First Project' : 'Create New Project'}
             </button>
           </div>
           
-          {/* MOBILE-OPTIMIZED: Compact footer */}
+          {/* Footer */}
           <div className="text-center pt-4 pb-2">
             <p className="text-xs text-wool-400">Happy knitting! 🧶</p>
           </div>
