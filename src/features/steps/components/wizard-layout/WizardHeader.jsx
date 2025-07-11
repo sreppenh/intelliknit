@@ -60,14 +60,31 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
         <div className="flex items-center justify-between text-sm">
           <div className="flex items-center gap-4">
             <span className="font-medium text-sage-700">Construction:</span>
-            <select
-              value={wizard.construction}
-              onChange={(e) => wizard.setConstruction(e.target.value)}
-              className="text-sm border border-sage-300 rounded-lg px-3 py-1 bg-white text-sage-700 focus:ring-2 focus:ring-sage-500 focus:border-transparent"
-            >
-              <option value={CONSTRUCTION_TYPES.FLAT}>Flat</option>
-              <option value={CONSTRUCTION_TYPES.ROUND}>Round</option>
-            </select>
+            <div className="bg-sage-200 border border-sage-300 rounded-md p-0.5">
+              <div className="grid grid-cols-2 gap-0.5">
+                <button
+                  onClick={() => wizard.setConstruction('flat')}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${
+                    wizard.construction === 'flat'
+                      ? 'bg-white text-sage-700 shadow-sm'
+                      : 'text-sage-600 hover:text-sage-800'
+                  }`}
+                >
+                  Flat
+                </button>
+                
+                <button
+                  onClick={() => wizard.setConstruction('round')}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${
+                    wizard.construction === 'round'
+                      ? 'bg-white text-sage-700 shadow-sm'
+                      : 'text-sage-600 hover:text-sage-800'
+                  }`}
+                >
+                  Round
+                </button>
+              </div>
+            </div>
           </div>
           <div className="text-sage-600 text-xs">
             {wizard.currentStitches} stitches • {wizard.component?.name}

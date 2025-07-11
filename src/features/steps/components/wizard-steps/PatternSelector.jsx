@@ -4,32 +4,56 @@ const STITCH_PATTERNS = {
   basic: { 
     name: 'Basic Stitches', 
     icon: '📐',
-    patterns: ['Stockinette', 'Garter', 'Reverse Stockinette']
+    patterns: [
+      { name: 'Stockinette', icon: '⬜', desc: 'Classic smooth fabric' },
+      { name: 'Garter', icon: '〰️', desc: 'Bumpy, stretchy texture' },
+      { name: 'Reverse Stockinette', icon: '⬛', desc: 'Purl side showing' }
+    ]
   },
   rib: { 
     name: 'Ribbing', 
     icon: '〰️',
-    patterns: ['1x1 Rib', '2x2 Rib', '3x3 Rib', '2x1 Rib', 'Twisted Rib', 'Other']
+    patterns: [
+      { name: '1x1 Rib', icon: '|||', desc: 'K1, P1 alternating' },
+      { name: '2x2 Rib', icon: '||||', desc: 'K2, P2 alternating' },
+      { name: '3x3 Rib', icon: '||||||', desc: 'K3, P3 alternating' },
+      { name: '2x1 Rib', icon: '||', desc: 'K2, P1 alternating' },
+      { name: '1x1 Twisted Rib', icon: '🌀', desc: 'Twisted knit stitches' },
+      { name: '2x2 Twisted Rib', icon: '🌀', desc: 'Twisted knit stitches' },
+    ]
   },
   textured: {
     name: 'Textured',
     icon: '🔹',
-    patterns: ['Seed Stitch', 'Moss Stitch', 'Double Seed', 'Other']
+    patterns: [
+      { name: 'Seed Stitch', icon: '🌱', desc: 'Bumpy alternating texture' },
+      { name: 'Moss Stitch', icon: '🍃', desc: 'British seed stitch' },
+      { name: 'Double Seed', icon: '🌿', desc: '2x2 seed variation' },
+      { name: 'Basketweave', icon: '🧺', desc: 'Alternating knit/purl blocks' }
+    ]
   },
   lace: { 
     name: 'Lace', 
     icon: '🕸️',
-    patterns: ['Lace Pattern']
+    patterns: [
+      { name: 'Lace Pattern', icon: '🕸️', desc: 'Openwork with YOs and decreases' }
+    ]
   },
   cable: { 
     name: 'Cables', 
     icon: '🔗',
-    patterns: ['Cable Pattern']
+    patterns: [
+      { name: 'Cable Pattern', icon: '🔗', desc: 'Twisted rope-like cables' }
+    ]
   },
   colorwork: { 
     name: 'Colorwork', 
     icon: '🌈',
-    patterns: ['Fair Isle', 'Intarsia', 'Stripes']
+    patterns: [
+      { name: 'Fair Isle', icon: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', desc: 'Stranded colorwork' },
+      { name: 'Intarsia', icon: '🎨', desc: 'Large color blocks' },
+      { name: 'Stripes', icon: '🌈', desc: 'Horizontal color bands' }
+    ]
   }
 };
 
@@ -46,17 +70,18 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
     
     const category = STITCH_PATTERNS[key];
     
-    // If only one pattern option, select it and auto-advance
+    // If only one pattern option, select it and auto-advance smoothly
     if (category.patterns.length === 1) {
-      updateWizardData('stitchPattern', { pattern: category.patterns[0] });
-      setTimeout(() => navigation.nextStep(), 150);
+      updateWizardData('stitchPattern', { pattern: category.patterns[0].name });
+      // Use requestAnimationFrame for smoother transition
+      requestAnimationFrame(() => navigation.nextStep());
     }
   };
 
-  const handlePatternSelect = (patternName) => {
-    updateWizardData('stitchPattern', { pattern: patternName });
-    // Auto-advance to next step
-    setTimeout(() => navigation.nextStep(), 150);
+  const handlePatternSelect = (pattern) => {
+    updateWizardData('stitchPattern', { pattern: pattern.name });
+    // Smooth auto-advance for pattern selection
+    requestAnimationFrame(() => navigation.nextStep());
   };
 
   const selectedCategory = wizardData?.stitchPattern?.category;
@@ -76,11 +101,13 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
         <div className="grid grid-cols-2 gap-3">
           {category.patterns.map(pattern => (
             <button
-              key={pattern}
+              key={pattern.name}
               onClick={() => handlePatternSelect(pattern)}
               className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
             >
-              <div className="text-sm font-semibold mb-1">{pattern}</div>
+              <div className="text-2xl mb-2">{pattern.icon}</div>
+              <div className="text-sm font-semibold mb-1">{pattern.name}</div>
+              <div className="text-xs opacity-75">{pattern.desc}</div>
             </button>
           ))}
         </div>

@@ -9,11 +9,15 @@ import PatternConfiguration from './wizard-steps/PatternConfiguration';
 import DurationChoice from './wizard-steps/DurationChoice';
 import StepPreview from './wizard-steps/StepPreview';
 import ComponentEndingWizard from './ComponentEndingWizard';
+import DurationShapingChoice from './wizard-steps/DurationShapingChoice';
+import { createWizardNavigator, shouldSkipConfiguration, shouldShowNavigation } from './wizard-navigation/WizardNavigator';
+import { renderStep } from './wizard-navigation/StepRenderer';
+import { useWizardState } from './wizard-navigation/WizardState';
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
   const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
-  const [showEndingWizard, setShowEndingWizard] = useState(false);
+  const wizardState = useWizardState(wizard, onBack);
 
   // Component validation
   if (!wizard.component) {
@@ -33,184 +37,43 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     );
   }
 
-  // New substep navigation logic
-  const getNextStep = () => {
-    const { pattern } = wizard.wizardData.stitchPattern;
-    
-    switch (wizard.wizardStep) {
-      case 1: // PatternSelector
-        return 2; // Always go to PatternConfiguration
-        
-      case 2: // PatternConfiguration
-        // Cast On and Bind Off can skip duration if already configured
-        if (pattern === 'Cast On' && wizard.wizardData.stitchPattern.stitchCount) {
-          return 4; // Skip to preview
-        }
-        if (pattern === 'Bind Off') {
-          return 4; // Skip to preview (bind off handles its own duration)
-        }
-        return 3; // Go to DurationChoice
-        
-      case 3: // DurationChoice
-        return 4; // Go to preview
-        
-      default:
-        return wizard.wizardStep + 1;
-    }
-  };
+const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
 
-  const getPreviousStep = () => {
-    const { pattern } = wizard.wizardData.stitchPattern;
-    
-    switch (wizard.wizardStep) {
-      case 4: // StepPreview
-        // If we skipped duration choice, go back to configuration
-        if (pattern === 'Cast On' || pattern === 'Bind Off') {
-          return 2;
-        }
-        return 3; // Normal case: back to duration choice
-        
-      case 3: // DurationChoice
-        return 2; // Back to configuration
-        
-      case 2: // PatternConfiguration
-        return 1; // Back to selector
-        
-      default:
-        return Math.max(1, wizard.wizardStep - 1);
-    }
-  };
-
-  const canProceedFromStep = () => {
-    const { category, pattern, stitchCount } = wizard.wizardData.stitchPattern;
-    const { type, value } = wizard.wizardData.duration;
-    
-    switch (wizard.wizardStep) {
-      case 1: // PatternSelector
-        return category && pattern;
-        
-      case 2: // PatternConfiguration
-        if (pattern === 'Cast On') {
-          return stitchCount && parseInt(stitchCount) > 0;
-        }
-        if (pattern === 'Bind Off') {
-          return true; // Bind off can proceed without additional config
-        }
-        if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
-          return wizard.wizardData.stitchPattern.rowsInPattern && 
-                 parseInt(wizard.wizardData.stitchPattern.rowsInPattern) > 0;
-        }
-        if (pattern === 'Custom pattern') {
-          return wizard.wizardData.stitchPattern.customText && 
-                 wizard.wizardData.stitchPattern.customText.trim() !== '';
-        }
-        return true; // Other patterns can proceed
-        
-      case 3: // DurationChoice
-        if (pattern === 'Bind Off') {
-          return true; // Bind off handles its own duration
-        }
-        return type && value;
-        
-      case 4: // StepPreview
-        return true; // Preview is always ready
-        
-      default:
-        return false;
-    }
-  };
-
-  const handleNext = () => {
-    const nextStep = getNextStep();
-    wizard.navigation.goToStep(nextStep);
-  };
-
-  const handlePrevious = () => {
-    const prevStep = getPreviousStep();
-    wizard.navigation.goToStep(prevStep);
-  };
-
-  const customNavigation = {
-    canProceed: canProceedFromStep,
-    nextStep: handleNext,
-    previousStep: handlePrevious,
-    goToStep: wizard.navigation.goToStep
-  };
-
-  const handleFinishComponent = () => {
-    setShowEndingWizard(true);
-  };
-
-  const handleEndingComplete = (endingStep) => {
-    handleAddStep();
-    onBack();
-  };
-
-  const handleBackFromEnding = () => {
-    setShowEndingWizard(false);
-    onBack();
-  };
+const customNavigation = {
+  canProceed: navigator.canProceed,
+  nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
+  previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
+  goToStep: wizard.navigation.goToStep
+};
 
   // If showing ending wizard
-  if (showEndingWizard) {
-    return (
-      <ComponentEndingWizard
-        component={wizard.component}
-        onBack={handleBackFromEnding}
-        onComplete={handleEndingComplete}
-      />
-    );
-  }
+if (wizardState.showEndingWizard) {
+  return (
+    <ComponentEndingWizard
+      component={wizard.component}
+      onBack={wizardState.handleBackFromEnding}
+      onComplete={wizardState.handleEndingComplete}
+    />
+  );
+}
 
-  const renderCurrentStep = () => {
-    switch (wizard.wizardStep) {
-      case 1:
-        return (
-          <PatternSelector
-            wizardData={wizard.wizardData}
-            updateWizardData={wizard.updateWizardData}
-            navigation={customNavigation}
-          />
-        );
-        
-      case 2:
-        return (
-          <PatternConfiguration
-            wizardData={wizard.wizardData}
-            updateWizardData={wizard.updateWizardData}
-          />
-        );
-        
-      case 3:
-        return (
-          <DurationChoice
-            wizardData={wizard.wizardData}
-            updateWizardData={wizard.updateWizardData}
-          />
-        );
-        
-      case 4:
-        return (
-          <StepPreview
-            wizard={wizard}
-            onAddStep={handleAddStep}
-            onAddStepAndContinue={handleAddStepAndContinue}
-            onFinishComponent={handleFinishComponent}
-            onBack={onBack}
-          />
-        );
-        
-      default:
-        return <div>Step not found</div>;
-    }
+const renderCurrentStep = () => {
+  const handlers = {
+    handleAddStep: wizardState.handleAddStep,
+    handleAddStepAndContinue: wizardState.handleAddStepAndContinue, 
+    handleFinishComponent: wizardState.handleFinishComponent,
+    onBack
   };
+  
+  return renderStep(wizard.wizardStep, wizard, customNavigation, handlers);
+};
 
   return (
     <WizardLayout>
       <WizardHeader wizard={wizard} onBack={onBack} onCancel={onBack} />
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}
-        {wizard.wizardStep < 4 && wizard.wizardStep !== 1 && (
+        {wizard.wizardStep < 4 && wizard.wizardStep !== 1 && wizard.wizardStep !== 3 && (
   <WizardNavigation wizard={{ ...wizard, navigation: customNavigation }} onBack={onBack} />
 )}
       </div>

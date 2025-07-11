@@ -144,34 +144,34 @@ const EditProjectDetails = ({ onBack }) => {
               />
             </div>
 
-            <div>
+<div>
               <label className="block text-sm font-semibold text-wool-700 mb-3">
                 Preferred Units
               </label>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => handleInputChange('defaultUnits', 'inches')}
-                  className={`p-3 border-2 rounded-xl transition-all duration-200 text-center ${
-                    projectData.defaultUnits === 'inches'
-                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                      : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                  }`}
-                >
-                  <div className="text-lg mb-1">📏</div>
-                  <div className="font-semibold text-sm">Inches</div>
-                </button>
-                
-                <button
-                  onClick={() => handleInputChange('defaultUnits', 'cm')}
-                  className={`p-3 border-2 rounded-xl transition-all duration-200 text-center ${
-                    projectData.defaultUnits === 'cm'
-                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                      : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                  }`}
-                >
-                  <div className="text-lg mb-1">📐</div>
-                  <div className="font-semibold text-sm">Centimeters</div>
-                </button>
+              <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
+                <div className="grid grid-cols-2 gap-1">
+                  <button
+                    onClick={() => handleInputChange('defaultUnits', 'inches')}
+                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                      projectData.defaultUnits === 'inches'
+                        ? 'bg-sage-500 text-white shadow-sm'
+                        : 'text-wool-600 hover:text-sage-600'
+                    }`}
+                  >
+                    🇺🇸 Inches
+                  </button>
+                  
+                  <button
+                    onClick={() => handleInputChange('defaultUnits', 'cm')}
+                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
+                      projectData.defaultUnits === 'cm'
+                        ? 'bg-sage-500 text-white shadow-sm'
+                        : 'text-wool-600 hover:text-sage-600'
+                    }`}
+                  >
+                    🇬🇧 Centimeters
+                  </button>
+                </div>
               </div>
             </div>
           </div>
