@@ -11,8 +11,7 @@ import StepPreview from './wizard-steps/StepPreview';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import DurationShapingChoice from './wizard-steps/DurationShapingChoice';
 import { createWizardNavigator, shouldSkipConfiguration, shouldShowNavigation } from './wizard-navigation/WizardNavigator';
-import { renderStep } from './wizard-navigation/StepRenderer';
-import { useWizardState } from './wizard-navigation/WizardState';
+import { renderStep } from './wizard-navigation/StepRenderer';import { useWizardState } from './wizard-navigation/WizardState';
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
@@ -73,9 +72,12 @@ const renderCurrentStep = () => {
       <WizardHeader wizard={wizard} onBack={onBack} onCancel={onBack} />
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}
-        {wizard.wizardStep < 4 && wizard.wizardStep !== 1 && wizard.wizardStep !== 3 && (
+        
+ {(wizard.wizardStep === 2 || wizard.wizardStep === 4) && (
   <WizardNavigation wizard={{ ...wizard, navigation: customNavigation }} onBack={onBack} />
 )}
+
+
       </div>
     </WizardLayout>
   );

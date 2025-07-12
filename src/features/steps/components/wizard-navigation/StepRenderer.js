@@ -34,7 +34,7 @@ export const renderStep = (
       );
       
     case 3:
-      // Duration/Shaping choice - no nav buttons needed
+      // Duration/Shaping choice - no nav buttons needed (auto-advances)
       return (
         <DurationShapingChoice
           wizardData={wizard.wizardData}
@@ -44,28 +44,16 @@ export const renderStep = (
       );
       
     case 4:
-      // If we chose duration, show DurationChoice
-      if (wizard.wizardData.hasShaping === false) {
-        return (
-          <DurationChoice
-            wizardData={wizard.wizardData}
-            updateWizardData={wizard.updateWizardData}
-          />
-        );
-      }
-      // For shaping (future), would show shaping config
+      // Duration Choice - our new single page that NEEDS nav buttons
       return (
-        <StepPreview
-          wizard={wizard}
-          onAddStep={handleAddStep}
-          onAddStepAndContinue={handleAddStepAndContinue}
-          onFinishComponent={handleFinishComponent}
-          onBack={onBack}
+        <DurationChoice
+          wizardData={wizard.wizardData}
+          updateWizardData={wizard.updateWizardData}
         />
       );
       
     case 5:
-      // Preview step (after duration config)
+      // Preview step (has custom buttons, no nav needed)
       return (
         <StepPreview
           wizard={wizard}

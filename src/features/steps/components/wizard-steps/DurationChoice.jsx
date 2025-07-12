@@ -23,6 +23,21 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
     updateWizardData('duration', { type, value: '' });
   };
 
+  // Smart gauge calculation
+  const calculateRowsFromLength = (inches) => {
+    // Mock gauge for demo - in real app, get from project settings
+    const mockGauge = "18 sts and 24 rows = 4 inches"; // This would come from project.gauge
+    if (!inches || !mockGauge) return null;
+    
+    // Simple extraction - in real app, parse the gauge properly
+    const rowsPerInch = 6; // 24 rows / 4 inches
+    return Math.round(parseFloat(inches) * rowsPerInch);
+  };
+
+  const estimatedRows = wizardData.duration.type === 'length' && wizardData.duration.value 
+    ? calculateRowsFromLength(wizardData.duration.value)
+    : null;
+
   return (
     <div className="space-y-6">
       <div>
@@ -42,7 +57,7 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
           </div>
           
           <div>
-            <label className="block text-sm font-semibold text-wool-700 mb-3">
+            <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
               Number of Stitches to Bind Off
             </label>
             <input
@@ -58,152 +73,248 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
           </div>
         </div>
       ) : (
-        /* Normal Duration Selection */
-        <div className="space-y-6">
-          {/* Duration Type Selection - Visual Cards */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Rows Option */}
-            <button
-              onClick={() => handleDurationTypeSelect('rows')}
-              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                wizardData.duration.type === 'rows'
-                  ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
-              }`}
-            >
-              <div className="text-2xl mb-2">📊</div>
-              <div className="font-semibold text-sm">Rows</div>
-              <div className="text-xs opacity-75">Count rows</div>
-            </button>
-
-            {/* Measurement Option */}
-            <button
-              onClick={() => handleDurationTypeSelect('measurement')}
-              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                wizardData.duration.type === 'measurement'
-                  ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
-              }`}
-            >
-              <div className="text-2xl mb-2">📏</div>
-              <div className="font-semibold text-sm">Length</div>
-              <div className="text-xs opacity-75">Measure inches/cm</div>
-            </button>
-
-            {/* Pattern Repeats - only show if pattern has repeats */}
-            {patternHasRepeats && (
-              <>
-                <button
-                  onClick={() => handleDurationTypeSelect('repeats')}
-                  className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                    wizardData.duration.type === 'repeats'
-                      ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                      : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="text-2xl mb-2">🔄</div>
-                  <div className="font-semibold text-sm">Repeats</div>
-                  <div className="text-xs opacity-75">{wizardData.stitchPattern.rowsInPattern}-row pattern</div>
-                </button>
-
-                {/* Until Length - special combination option */}
-                <button
-                  onClick={() => handleDurationTypeSelect('until_length')}
-                  className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                    wizardData.duration.type === 'until_length'
-                      ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                      : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
-                  }`}
-                >
-                  <div className="text-2xl mb-2">📐</div>
-                  <div className="font-semibold text-sm">Until Length</div>
-                  <div className="text-xs opacity-75">Repeat until measurement</div>
-                </button>
-              </>
-            )}
-          </div>
-
-          {/* Value Input Based on Selection */}
-          {wizardData.duration.type && (
-            <div className="space-y-4">
-              <div className="bg-sage-50 border border-sage-200 rounded-xl p-4">
-                <h4 className="text-sm font-semibold text-sage-700 mb-3">
-                  {wizardData.duration.type === 'rows' && '📊 Number of Rows'}
-                  {wizardData.duration.type === 'measurement' && '📏 Target Length'}
-                  {wizardData.duration.type === 'repeats' && '🔄 Number of Repeats'}
-                  {wizardData.duration.type === 'until_length' && '📐 Work Until Length'}
-                </h4>
+        /* Normal Duration Selection - Single Page with Radio Buttons */
+        <div className="space-y-4">
+          
+          {/* Rows Option */}
+          <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${
+            wizardData.duration.type === 'rows'
+              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+          }`}>
+            <div className="flex items-start gap-4">
+              <input
+                type="radio"
+                name="duration_type"
+                value="rows"
+                checked={wizardData.duration.type === 'rows'}
+                onChange={() => handleDurationTypeSelect('rows')}
+                className="w-4 h-4 text-sage-600 mt-1"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="text-2xl">📊</div>
+                  <div className="text-left">
+                    <div className="font-semibold text-base">Rows</div>
+                    <div className="text-sm opacity-75">Count specific number of rows</div>
+                  </div>
+                </div>
                 
-                {wizardData.duration.type === 'measurement' || wizardData.duration.type === 'until_length' ? (
-                  <div className="flex gap-3">
-                    <input
-                      type="number"
-                      step="0.25"
-                      value={wizardData.duration.value}
-                      onChange={(e) => updateWizardData('duration', { value: e.target.value })}
-                      placeholder="5"
-                      className="flex-1 border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                    />
-                    <select
-                      value={wizardData.duration.units}
-                      onChange={(e) => updateWizardData('duration', { units: e.target.value })}
-                      className="border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                    >
-                      <option value="inches">inches</option>
-                      <option value="cm">cm</option>
-                    </select>
+                {wizardData.duration.type === 'rows' && (
+                  <div className="mt-3 space-y-2">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        value={wizardData.duration.value}
+                        onChange={(e) => updateWizardData('duration', { value: e.target.value })}
+                        placeholder="40"
+                        className="w-20 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                      />
+                      <span className="text-sm text-sage-700">rows</span>
+                    </div>
+                    <div className="text-xs text-sage-600">
+                      💡 This is the total number of rows to work for this section
+                    </div>
                   </div>
-                ) : wizardData.duration.type === 'repeats' ? (
-                  <div>
-                    <input
-                      type="number"
-                      value={wizardData.duration.value}
-                      onChange={(e) => updateWizardData('duration', { value: e.target.value })}
-                      placeholder="5"
-                      min="1"
-                      className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                    />
-                    <p className="text-xs text-yarn-600 mt-2 bg-yarn-50 rounded-lg p-2">
-                      <strong>Preview:</strong> This will work the {wizardData.stitchPattern.rowsInPattern}-row pattern {wizardData.duration.value || 'X'} times 
-                      ({(parseInt(wizardData.stitchPattern.rowsInPattern) || 0) * (parseInt(wizardData.duration.value) || 0)} total rows)
-                    </p>
-                  </div>
-                ) : (
-                  <input
-                    type="number"
-                    value={wizardData.duration.value}
-                    onChange={(e) => updateWizardData('duration', { value: e.target.value })}
-                    placeholder={wizardData.duration.type === 'rows' ? '40' : '5'}
-                    className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                  />
                 )}
               </div>
-
-              {/* Helpful context */}
-              {wizardData.duration.type === 'rows' && (
-                <div className="bg-wool-100 border border-wool-200 rounded-lg p-3">
-                  <p className="text-xs text-wool-600">
-                    💡 <strong>Tip:</strong> This is the total number of rows to work for this section.
-                  </p>
-                </div>
-              )}
-
-              {wizardData.duration.type === 'measurement' && (
-                <div className="bg-wool-100 border border-wool-200 rounded-lg p-3">
-                  <p className="text-xs text-wool-600">
-                    💡 <strong>Tip:</strong> IntelliKnit will calculate the approximate rows needed based on your gauge.
-                  </p>
-                </div>
-              )}
-
-              {wizardData.duration.type === 'until_length' && (
-                <div className="bg-yarn-100 border border-yarn-200 rounded-lg p-3">
-                  <p className="text-xs text-yarn-600">
-                    💡 <strong>Smart Choice:</strong> Work full pattern repeats until you reach the target length. No partial patterns!
-                  </p>
-                </div>
-              )}
             </div>
+          </label>
+
+          {/* Length from current position */}
+          <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${
+            wizardData.duration.type === 'length'
+              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+          }`}>
+            <div className="flex items-start gap-4">
+              <input
+                type="radio"
+                name="duration_type"
+                value="length"
+                checked={wizardData.duration.type === 'length'}
+                onChange={() => handleDurationTypeSelect('length')}
+                className="w-4 h-4 text-sage-600 mt-1"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="text-2xl">📏</div>
+                  <div className="text-left">
+                    <div className="font-semibold text-base">Length from current position</div>
+                    <div className="text-sm opacity-75">Add specific length from where you are now</div>
+                  </div>
+                </div>
+                
+                {wizardData.duration.type === 'length' && (
+                  <div className="mt-3 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        step="0.25"
+                        value={wizardData.duration.value}
+                        onChange={(e) => updateWizardData('duration', { value: e.target.value })}
+                        placeholder="2"
+                        className="w-20 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                      />
+                      <select
+                        value={wizardData.duration.units || 'inches'}
+                        onChange={(e) => updateWizardData('duration', { units: e.target.value })}
+                        className="border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                      >
+                        <option value="inches">inches</option>
+                        <option value="cm">cm</option>
+                      </select>
+                    </div>
+                    
+                    {/* Smart gauge field */}
+                    {estimatedRows && (
+                      <div className="bg-sage-50 border border-sage-200 rounded-lg p-3">
+                        <div className="text-sm text-sage-700">
+                          <span className="font-medium">Estimated rows:</span> {estimatedRows}
+                          <div className="text-xs text-sage-600 mt-1">Using gauge: 18 sts and 24 rows = 4 inches</div>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <div className="text-xs text-sage-600">
+                      💡 This adds length from your current position. Gauge calculation helps estimate rows needed
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </label>
+
+          {/* Length until target */}
+          <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${
+            wizardData.duration.type === 'until_length'
+              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+          }`}>
+            <div className="flex items-start gap-4">
+              <input
+                type="radio"
+                name="duration_type"
+                value="until_length"
+                checked={wizardData.duration.type === 'until_length'}
+                onChange={() => handleDurationTypeSelect('until_length')}
+                className="w-4 h-4 text-sage-600 mt-1"
+              />
+              <div className="flex-1">
+                <div className="flex items-center gap-3 mb-2">
+                  <div className="text-2xl">📐</div>
+                  <div className="text-left">
+                    <div className="font-semibold text-base">Length until target</div>
+                    <div className="text-sm opacity-75">Work until piece measures target length</div>
+                  </div>
+                </div>
+                
+                {wizardData.duration.type === 'until_length' && (
+                  <div className="mt-3 space-y-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-sage-700">Work until piece measures</span>
+                      <input
+                        type="number"
+                        step="0.25"
+                        value={wizardData.duration.value}
+                        onChange={(e) => updateWizardData('duration', { value: e.target.value })}
+                        placeholder="18"
+                        className="w-20 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                      />
+                      <select
+                        value={wizardData.duration.units || 'inches'}
+                        onChange={(e) => updateWizardData('duration', { units: e.target.value })}
+                        className="border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                      >
+                        <option value="inches">inches</option>
+                        <option value="cm">cm</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <input
+                        type="text"
+                        value={wizardData.duration.reference || ''}
+                        onChange={(e) => updateWizardData('duration', { reference: e.target.value })}
+                        placeholder="from cast on, from start of armhole, etc."
+                        className="w-full border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white placeholder-sage-400"
+                      />
+                      <p className="text-xs text-sage-600 mt-1">Reference point (e.g., from cast on, from start of armhole)</p>
+                    </div>
+                    
+                    {/* Complete repeats checkbox - only for patterns with repeats */}
+                    {patternHasRepeats && (
+                      <label className="flex items-start gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={wizardData.duration.completeRepeats || false}
+                          onChange={(e) => updateWizardData('duration', { completeRepeats: e.target.checked })}
+                          className="w-4 h-4 text-sage-600 mt-0.5"
+                        />
+                        <span className="text-sm text-sage-700 text-left">Complete pattern repeats only (no partial patterns)</span>
+                      </label>
+                    )}
+                    
+                    <div className="text-xs text-sage-600">
+                      💡 Work until your piece reaches the exact target measurement from your reference point
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          </label>
+
+          {/* Pattern repeats - only show if pattern has repeats */}
+          {patternHasRepeats && (
+            <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${
+              wizardData.duration.type === 'repeats'
+                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+            }`}>
+              <div className="flex items-start gap-4">
+                <input
+                  type="radio"
+                  name="duration_type"
+                  value="repeats"
+                  checked={wizardData.duration.type === 'repeats'}
+                  onChange={() => handleDurationTypeSelect('repeats')}
+                  className="w-4 h-4 text-sage-600 mt-1"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-2xl">🔄</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-base">Pattern repeats</div>
+                      <div className="text-sm opacity-75">Repeat the {wizardData.stitchPattern.rowsInPattern}-row pattern</div>
+                    </div>
+                  </div>
+                  
+                  {wizardData.duration.type === 'repeats' && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-sage-700">Repeat the pattern</span>
+                        <input
+                          type="number"
+                          value={wizardData.duration.value}
+                          onChange={(e) => updateWizardData('duration', { value: e.target.value })}
+                          placeholder="3"
+                          min="1"
+                          className="w-16 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                        />
+                        <span className="text-sm text-sage-700">times</span>
+                      </div>
+                      
+                      {wizardData.duration.value && (
+                        <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
+                          <strong>Preview:</strong> Repeat the {wizardData.stitchPattern.rowsInPattern}-row pattern {wizardData.duration.value} times 
+                          ({(parseInt(wizardData.stitchPattern.rowsInPattern) || 0) * (parseInt(wizardData.duration.value) || 0)} total rows)
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </label>
           )}
         </div>
       )}
