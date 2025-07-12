@@ -45,7 +45,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">Configure {pattern}</h2>
-        <p className="text-wool-500 mb-4">Set up the details for your {pattern.toLowerCase()}</p>
+      {/*  <p className="text-wool-500 mb-4">Set up the details for your {pattern.toLowerCase()}</p> */}
       </div>
 
       {renderPatternConfig()}

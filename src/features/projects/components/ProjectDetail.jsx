@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
-import ComponentChoiceModal from './ComponentChoiceModal';
+import ComponentCreatedCelebration from './ComponentCreatedCelebration';
 import CompleteProjectModal from './CompleteProjectModal';
-// import EnhancedComponentCreation from './EnhancedComponentCreation';
 import SmartComponentCreation from './SmartComponentCreation';
 import CompactComponentCard from './CompactComponentCard';
 
@@ -99,14 +98,14 @@ const ProjectOverview = ({ project, onEditProjectDetails }) => {
             </div>
           </div>
 
-{/* Project Stats */}
-<div className="mt-3">
-{/* Components Count */}
-<div className="flex items-center text-sm">
-  <span className="text-wool-500 ml-auto">
-    {completedComponents} of {totalComponents} components complete
-  </span>
-</div>
+          {/* Project Stats */}
+          <div className="mt-3">
+            {/* Components Count */}
+            <div className="flex items-center text-sm">
+              <span className="text-wool-500 ml-auto">
+                {completedComponents} of {totalComponents} components complete
+              </span>
+            </div>
 
             {/* Additional Project Details (if available) */}
             {(project.recipient || project.gauge || project.yarns?.length > 0) && (
@@ -133,10 +132,10 @@ const ProjectOverview = ({ project, onEditProjectDetails }) => {
 
 const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, onStartKnitting, onEditProjectDetails }) => {
   const { currentProject, dispatch } = useProjectsContext();
-  const [showChoiceModal, setShowChoiceModal] = useState(false);
   const [showCompleteProjectModal, setShowCompleteProjectModal] = useState(false);
   const [showEnhancedCreation, setShowEnhancedCreation] = useState(false);
-  const [lastAddedComponentIndex, setLastAddedComponentIndex] = useState(null);
+  const [showCelebrationScreen, setShowCelebrationScreen] = useState(false);
+  const [celebrationComponent, setCelebrationComponent] = useState(null);
 
   if (!currentProject) {
     return <div>No project selected</div>;
@@ -144,10 +143,8 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
 
   const handleEnhancedComponentCreated = (component) => {
     setShowEnhancedCreation(false);
-    
-    const newComponentIndex = currentProject.components.length;
-    setLastAddedComponentIndex(newComponentIndex);
-    setShowChoiceModal(true);
+    setCelebrationComponent(component);
+    setShowCelebrationScreen(true);
   };
 
   const handleCompleteProject = () => {
@@ -155,14 +152,20 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
     setShowCompleteProjectModal(false);
   };
 
-  const handleChoiceModalAction = (action) => {
-    setShowChoiceModal(false);
-    
-    if (action === 'add-steps' && lastAddedComponentIndex !== null) {
-      onEditSteps(lastAddedComponentIndex);
-    }
-    
-    setLastAddedComponentIndex(null);
+  const handleCelebrationAddSteps = () => {
+    setShowCelebrationScreen(false);
+    const newComponentIndex = currentProject.components.length - 1;
+    onManageSteps(newComponentIndex);
+  };
+
+  const handleCelebrationAddAnother = () => {
+    setShowCelebrationScreen(false);
+    setShowEnhancedCreation(true);
+  };
+
+  const handleCelebrationClose = () => {
+    setShowCelebrationScreen(false);
+    setCelebrationComponent(null);
   };
 
   const handleComponentMenuAction = (action, componentId) => {
@@ -212,16 +215,27 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
     }
   };
 
- const handleComponentManageSteps = (componentId) => {
-  const componentIndex = currentProject.components.findIndex(c => c.id === componentId);
-  onManageSteps(componentIndex);  // ✅ This goes to ManageSteps first
-};
+  const handleComponentManageSteps = (componentId) => {
+    const componentIndex = currentProject.components.findIndex(c => c.id === componentId);
+    onManageSteps(componentIndex);
+  };
 
   if (showEnhancedCreation) {
     return (
       <SmartComponentCreation
         onBack={() => setShowEnhancedCreation(false)}
         onComponentCreated={handleEnhancedComponentCreated}
+      />
+    );
+  }
+
+  if (showCelebrationScreen && celebrationComponent) {
+    return (
+      <ComponentCreatedCelebration
+        component={celebrationComponent}
+        onAddSteps={handleCelebrationAddSteps}
+        onAddAnother={handleCelebrationAddAnother}
+        onClose={handleCelebrationClose}
       />
     );
   }
@@ -305,19 +319,6 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
         </div>
         
         {/* Modals */}
-        {showChoiceModal && (
-          <ComponentChoiceModal
-            componentName={
-              lastAddedComponentIndex !== null && currentProject.components[lastAddedComponentIndex]
-                ? currentProject.components[lastAddedComponentIndex].name
-                : 'New Component'
-            }
-            onClose={() => handleChoiceModalAction('close')}
-            onAddSteps={() => handleChoiceModalAction('add-steps')}
-            onAddAnother={() => handleChoiceModalAction('add-another')}
-          />
-        )}
-        
         {showCompleteProjectModal && (
           <CompleteProjectModal
             projectName={currentProject.name}

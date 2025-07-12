@@ -1,7 +1,7 @@
 import React from 'react';
 
 const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
-  const needsRowInput = ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern);
+  const needsRowInput = ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes', 'Custom pattern'].includes(wizardData.stitchPattern.pattern);
   const needsDescription = ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern);
   const isCustomPattern = wizardData.stitchPattern.pattern === 'Custom pattern';
   const isOtherPattern = wizardData.stitchPattern.pattern === 'Other';
@@ -18,7 +18,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
       {needsDescription && (
         <div>
           <label className="block text-sm font-semibold text-wool-700 mb-3">
-            Pattern Description *
+            Pattern Description
           </label>
           <textarea
             value={wizardData.stitchPattern.customText || ''}
@@ -33,11 +33,28 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
         </div>
       )}
 
+      {/* Custom pattern input */}
+      {isCustomPattern && (
+        <div>
+          <label className="block text-sm font-semibold text-wool-700 mb-3">
+            Pattern Description
+          </label>
+          <textarea
+            value={wizardData.stitchPattern.customText}
+            onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
+            placeholder="e.g., '5 rows stockinette, 1 bobble row'"
+            rows={3}
+            className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+          />
+        </div>
+      )}
+
+
       {/* Lace/Cable/Colorwork - Required row input */}
       {needsRowInput && (
         <div>
           <label className="block text-sm font-semibold text-wool-700 mb-3">
-            Rows in Pattern *
+            Rows in Pattern
           </label>
           <input
             type="number"
@@ -73,21 +90,6 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
         </div>
       )}
 
-      {/* Custom pattern input */}
-      {isCustomPattern && (
-        <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
-            Pattern Description *
-          </label>
-          <textarea
-            value={wizardData.stitchPattern.customText}
-            onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
-            placeholder="e.g., '5 rows stockinette, 1 bobble row'"
-            rows={3}
-            className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
-          />
-        </div>
-      )}
 
       {/* Other pattern input */}
       {isOtherPattern && (
