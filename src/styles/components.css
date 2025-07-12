@@ -1,0 +1,145 @@
+/* IntelliKnit Design System Components */
+
+/* ===== Button System ===== */
+.btn-primary {
+  @apply bg-sage-500 hover:bg-sage-600 text-white py-4 px-6 rounded-xl font-semibold shadow-sm transition-colors;
+  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
+  @apply disabled:bg-wool-400 disabled:cursor-not-allowed;
+}
+
+.btn-secondary {
+  @apply bg-yarn-600 hover:bg-yarn-700 text-white py-3 px-4 rounded-xl font-semibold transition-colors;
+  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
+  @apply disabled:bg-wool-400 disabled:cursor-not-allowed;
+}
+
+.btn-tertiary {
+  @apply bg-wool-100 hover:bg-wool-200 text-wool-700 py-3 px-4 rounded-xl font-semibold border border-wool-200 transition-colors;
+  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-info {
+  @apply bg-lavender-500 hover:bg-lavender-600 text-white py-3 px-4 rounded-xl font-semibold transition-colors;
+  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
+  @apply disabled:bg-lavender-300 disabled:cursor-not-allowed;
+}
+
+.btn-danger {
+  @apply bg-red-50 hover:bg-red-100 text-red-700 py-3 px-4 rounded-xl font-semibold border border-red-200 transition-colors;
+  @apply focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
+}
+
+/* Button size variants */
+.btn-sm {
+  @apply py-2 px-3 text-sm;
+}
+
+.btn-lg {
+  @apply py-4 px-6 text-lg;
+}
+
+/* ===== Card System ===== */
+.card {
+  @apply bg-white border-2 border-wool-200 rounded-xl p-5 shadow-sm;
+}
+
+.card-highlight {
+  @apply bg-gradient-to-r from-sage-50 to-yarn-50 border-2 border-sage-200 rounded-xl p-5 shadow-sm;
+}
+
+.card-info {
+  @apply bg-lavender-100 border-2 border-lavender-200 rounded-xl p-5;
+}
+
+.card-compact {
+  @apply bg-white border-2 border-wool-200 rounded-xl p-3 shadow-sm;
+}
+
+/* ===== Form Elements ===== */
+.input-field {
+  @apply w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base;
+  @apply focus:border-sage-500 focus:ring-0 transition-colors;
+  @apply placeholder-wool-400 bg-white;
+}
+
+.input-field-lg {
+  @apply w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base;
+  @apply focus:border-sage-500 focus:ring-0 transition-colors;
+  @apply placeholder-wool-400 bg-white;
+}
+
+/* ===== Transition Utilities ===== */
+.transition-standard {
+  @apply transition-all duration-200;
+}
+
+.transition-slow {
+  @apply transition-all duration-300;
+}
+
+/* ===== Info/Tip Blocks ===== */
+.info-block {
+  @apply bg-lavender-100 border-2 border-lavender-200 rounded-xl p-4;
+}
+
+.tip-block {
+  @apply bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4;
+}
+
+.success-block {
+  @apply bg-sage-100 border-2 border-sage-200 rounded-xl p-4;
+}
+
+/* ===== Header Styles ===== */
+.header-primary {
+  @apply bg-sage-500 text-white px-6 py-4;
+}
+
+.header-secondary {
+  @apply bg-yarn-600 text-white px-6 py-4;
+}
+
+/* ===== Progress Indicators ===== */
+.progress-bar {
+  @apply bg-wool-100 rounded-full h-2 border border-wool-200;
+}
+
+.progress-fill-sage {
+  @apply bg-sage-500 h-2 rounded-full transition-all duration-300;
+}
+
+.progress-fill-lavender {
+  @apply bg-lavender-500 h-2 rounded-full transition-all duration-300;
+}
+
+.progress-fill-yarn {
+  @apply bg-yarn-500 h-2 rounded-full transition-all duration-300;
+}
+
+/* ===== Modal Overlays ===== */
+.modal-overlay {
+  @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50;
+}
+
+.modal-content {
+  @apply bg-yarn-50 rounded-2xl shadow-xl max-w-sm w-full border-2 border-wool-200;
+}
+
+/* ===== Spacing Utilities ===== */
+.stack-sm {
+  @apply space-y-3;
+}
+
+.stack-md {
+  @apply space-y-4;
+}
+
+.stack-lg {
+  @apply space-y-6;
+}
+
+/* ===== Focus States ===== */
+.focus-ring {
+  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
+}
