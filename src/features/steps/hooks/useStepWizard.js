@@ -35,7 +35,8 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
       shapingMode: 'regular',
       bindOffSequence: [3, 2, 2, 1, 1],
       comments: ''
-    }
+    },
+    prepNote: '' // NEW: Add prep note to wizard data
   });
 
   const [wizardData, setWizardData] = useState(() => {
@@ -53,7 +54,8 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
           bindOffSequence: [3, 2, 2, 1, 1],
           comments: '',
           ...(editingStep.advancedWizardConfig?.shapingConfig || {})
-        }
+        },
+        prepNote: editingStep.prepNote || '' // NEW: Include existing prep note when editing
       };
     }
     return getInitialWizardData(currentProject?.defaultUnits);
@@ -88,7 +90,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
 
   const updateWizardData = (sectionOrKey, dataOrValue) => {
     setWizardData(prev => {
-      // Handle root-level properties (like hasShaping)
+      // Handle root-level properties (like hasShaping, prepNote)
       if (typeof dataOrValue === 'boolean' || typeof dataOrValue === 'string' || typeof dataOrValue === 'number') {
         return {
           ...prev,

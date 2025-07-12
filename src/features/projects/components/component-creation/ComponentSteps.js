@@ -88,7 +88,7 @@ export const handleStartTypeSelection = (type, setComponentData, setStep) => {
   }));
   
   // Auto-advance to method selection step
-  requestAnimationFrame(() => setStep(COMPONENT_STEPS.METHOD));
+  setTimeout(() => setStep(COMPONENT_STEPS.METHOD), 50);
 };
 
 // Helper to handle method selection with auto-advance
@@ -99,7 +99,7 @@ export const handleMethodSelection = (method, setComponentData, setStep) => {
   }));
   
   // Auto-advance to details step
-  requestAnimationFrame(() => setStep(COMPONENT_STEPS.DETAILS));
+  setTimeout(() => setStep(COMPONENT_STEPS.DETAILS), 50);
 };
 
 // Get available methods based on start type

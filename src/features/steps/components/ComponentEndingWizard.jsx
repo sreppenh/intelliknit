@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import EndingTypeSelector from './ending-wizard/EndingTypeSelector';
 import BindOffConfig from './ending-wizard/BindOffConfig';
 import AttachmentConfig from './ending-wizard/AttachmentConfig';
@@ -11,8 +12,25 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     method: 'standard', // Default to standard bind off
     targetComponent: '',
     customText: '',
-    customMethod: ''
+    customMethod: '',
+    prepNote: '' // NEW: Add prep note to ending data
   });
+
+  // Prep note management
+  const {
+    isOverlayOpen,
+    currentNote,
+    hasNote,
+    notePreview,
+    handleOpenOverlay,
+    handleCloseOverlay,
+    handleSaveNote
+  } = usePrepNoteManager(endingData.prepNote, (note) => {
+    setEndingData(prev => ({ ...prev, prepNote: note }));
+  });
+
+  // Get config for component ending
+  const prepConfig = getPrepNoteConfig('componentEnding');
 
   // Get current stitch count from last step
   const getCurrentStitchCount = () => {
@@ -31,7 +49,8 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
       handleComplete({
         type,
         description: `Put all ${currentStitches} stitches on holder for later use`,
-        stitchCount: currentStitches
+        stitchCount: currentStitches,
+        prepNote: endingData.prepNote // NEW: Include prep note
       });
       return;
     }
@@ -54,7 +73,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   };
 
   const generateEndingStep = () => {
-    const { type, method, targetComponent, customText, customMethod, stitchCount } = endingData;
+    const { type, method, targetComponent, customText, customMethod, stitchCount, prepNote } = endingData;
     
     switch (type) {
       case 'bind_off_all':
@@ -64,7 +83,8 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           type,
           method: method || 'standard',
           stitchCount: actualCount,
-          description: `Bind off all ${actualCount} stitches${methodName ? ` using ${methodName}` : ''}`
+          description: `Bind off all ${actualCount} stitches${methodName ? ` using ${methodName}` : ''}`,
+          prepNote // NEW: Include prep note
         };
         
       case 'attach_to_piece':
@@ -75,7 +95,8 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           method,
           targetComponent: target,
           stitchCount: currentStitches,
-          description: `Attach to ${target}${attachMethod ? ` using ${attachMethod}` : ''}`
+          description: `Attach to ${target}${attachMethod ? ` using ${attachMethod}` : ''}`,
+          prepNote // NEW: Include prep note
         };
         
       case 'other':
@@ -83,11 +104,17 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           type,
           description: customText,
           customText,
-          stitchCount: currentStitches
+          stitchCount: currentStitches,
+          prepNote // NEW: Include prep note
         };
         
       default:
-        return { type, description: 'Unknown ending', stitchCount: currentStitches };
+        return { 
+          type, 
+          description: 'Unknown ending', 
+          stitchCount: currentStitches,
+          prepNote // NEW: Include prep note
+        };
     }
   };
 
@@ -123,6 +150,62 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   // Step 1: What happens to stitches?
   if (step === 1) {
     return (
+      <>
+        <div className="min-h-screen bg-yarn-50">
+          <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+            
+            {/* Header */}
+            <div className="bg-sage-500 text-white px-6 py-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={onBack}
+                  className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                >
+                  ←
+                </button>
+                <div className="flex-1">
+                  <h1 className="text-lg font-semibold">Finish Component</h1>
+                  <p className="text-sage-100 text-sm">What happens to the {currentStitches} stitches?</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 bg-yarn-50 space-y-6 relative">
+              
+              {/* Prep Note Button */}
+              <PrepStepButton 
+                onClick={handleOpenOverlay}
+                hasNote={hasNote}
+                notePreview={notePreview}
+                position="top-right"
+                size="normal"
+                variant="ghost"
+              />
+
+              <EndingTypeSelector 
+                onTypeSelect={handleEndingTypeSelect}
+                component={component}
+                currentStitches={currentStitches}
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Prep Note Overlay */}
+        <PrepStepOverlay
+          isOpen={isOverlayOpen}
+          onClose={handleCloseOverlay}
+          onSave={handleSaveNote}
+          existingNote={currentNote}
+          {...prepConfig}
+        />
+      </>
+    );
+  }
+
+  // Step 2: Configuration based on ending type
+  return (
+    <>
       <div className="min-h-screen bg-yarn-50">
         <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
           
@@ -130,93 +213,80 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           <div className="bg-sage-500 text-white px-6 py-4">
             <div className="flex items-center gap-3">
               <button
-                onClick={onBack}
+                onClick={() => setStep(1)}
                 className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
               >
                 ←
               </button>
               <div className="flex-1">
-                <h1 className="text-lg font-semibold">Finish Component</h1>
-                <p className="text-sage-100 text-sm">What happens to the {currentStitches} stitches?</p>
+                <h1 className="text-lg font-semibold">Configure Ending</h1>
+                <p className="text-sage-100 text-sm">Set up the details</p>
               </div>
             </div>
           </div>
 
-          <div className="p-6 bg-yarn-50 space-y-6">
-            <EndingTypeSelector 
-              onTypeSelect={handleEndingTypeSelect}
-              component={component}
-              currentStitches={currentStitches}
+          <div className="p-6 bg-yarn-50 space-y-6 relative">
+            
+            {/* Prep Note Button */}
+            <PrepStepButton 
+              onClick={handleOpenOverlay}
+              hasNote={hasNote}
+              notePreview={notePreview}
+              position="top-right"
+              size="normal"
+              variant="ghost"
             />
-          </div>
-        </div>
-      </div>
-    );
-  }
+            
+            {/* Render appropriate configuration component */}
+            {endingData.type === 'bind_off_all' && (
+              <BindOffConfig 
+                endingData={endingData}
+                setEndingData={setEndingData}
+                currentStitches={currentStitches}
+                isFinishingComponent={true} // New prop to indicate this is "bind off all"
+              />
+            )}
 
-  // Step 2: Configuration based on ending type
-  return (
-    <div className="min-h-screen bg-yarn-50">
-      <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-        
-        {/* Header */}
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={() => setStep(1)}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-            >
-              ←
-            </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">Configure Ending</h1>
-              <p className="text-sage-100 text-sm">Set up the details</p>
+            {endingData.type === 'attach_to_piece' && (
+              <AttachmentConfig 
+                endingData={endingData}
+                setEndingData={setEndingData}
+                currentStitches={currentStitches}
+              />
+            )}
+
+            {endingData.type === 'other' && (
+              <OtherEndingConfig 
+                endingData={endingData}
+                setEndingData={setEndingData}
+                currentStitches={currentStitches}
+              />
+            )}
+
+            {/* Finish Button */}
+            <div className="pt-6 border-t border-wool-200">
+              <button
+                onClick={() => handleComplete()}
+                disabled={!canComplete()}
+                className="w-full bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
+              >
+                <span className="text-xl">🏁</span>
+                Finish Component
+              </button>
             </div>
           </div>
         </div>
-
-        <div className="p-6 bg-yarn-50 space-y-6">
-          
-          {/* Render appropriate configuration component */}
-          {endingData.type === 'bind_off_all' && (
-            <BindOffConfig 
-              endingData={endingData}
-              setEndingData={setEndingData}
-              currentStitches={currentStitches}
-              isFinishingComponent={true} // New prop to indicate this is "bind off all"
-            />
-          )}
-
-          {endingData.type === 'attach_to_piece' && (
-            <AttachmentConfig 
-              endingData={endingData}
-              setEndingData={setEndingData}
-              currentStitches={currentStitches}
-            />
-          )}
-
-          {endingData.type === 'other' && (
-            <OtherEndingConfig 
-              endingData={endingData}
-              setEndingData={setEndingData}
-              currentStitches={currentStitches}
-            />
-          )}
-
-          {/* Finish Button */}
-          <div className="pt-6 border-t border-wool-200">
-            <button
-              onClick={() => handleComplete()}
-              disabled={!canComplete()}
-              className="w-full bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
-            >
-              <span className="text-xl">🏁</span>
-              Finish Component
-            </button>
-          </div>
-        </div>
       </div>
-    </div>
+
+      {/* Prep Note Overlay */}
+      <PrepStepOverlay
+        isOpen={isOverlayOpen}
+        onClose={handleCloseOverlay}
+        onSave={handleSaveNote}
+        existingNote={currentNote}
+        {...prepConfig}
+      />
+    </>
   );
 };
 

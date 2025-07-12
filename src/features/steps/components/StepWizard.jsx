@@ -11,7 +11,8 @@ import StepPreview from './wizard-steps/StepPreview';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import DurationShapingChoice from './wizard-steps/DurationShapingChoice';
 import { createWizardNavigator, shouldSkipConfiguration, shouldShowNavigation } from './wizard-navigation/WizardNavigator';
-import { renderStep } from './wizard-navigation/StepRenderer';import { useWizardState } from './wizard-navigation/WizardState';
+import { renderStep } from './wizard-navigation/StepRenderer';
+import { useWizardState } from './wizard-navigation/WizardState';
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
@@ -36,36 +37,98 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     );
   }
 
-const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
+  const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
 
-const customNavigation = {
-  canProceed: navigator.canProceed,
-  nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
-  previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
-  goToStep: wizard.navigation.goToStep
-};
+  const customNavigation = {
+    canProceed: navigator.canProceed,
+    nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
+    previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
+    goToStep: wizard.navigation.goToStep
+  };
 
   // If showing ending wizard
-if (wizardState.showEndingWizard) {
-  return (
-    <ComponentEndingWizard
-      component={wizard.component}
-      onBack={wizardState.handleBackFromEnding}
-      onComplete={wizardState.handleEndingComplete}
-    />
-  );
-}
+  if (wizardState.showEndingWizard) {
+    return (
+      <ComponentEndingWizard
+        component={wizard.component}
+        onBack={wizardState.handleBackFromEnding}
+        onComplete={wizardState.handleEndingComplete}
+      />
+    );
+  }
 
-const renderCurrentStep = () => {
-  const handlers = {
-    handleAddStep: wizardState.handleAddStep,
-    handleAddStepAndContinue: wizardState.handleAddStepAndContinue, 
-    handleFinishComponent: wizardState.handleFinishComponent,
-    onBack
+  const renderCurrentStep = () => {
+    const handlers = {
+      handleAddStep: wizardState.handleAddStep,
+      handleAddStepAndContinue: wizardState.handleAddStepAndContinue, 
+      handleFinishComponent: wizardState.handleFinishComponent,
+      onBack
+    };
+    
+    // Enhanced step rendering with prep note support
+    switch (wizard.wizardStep) {
+      case 1:
+        return (
+          <PatternSelector
+            wizardData={wizard.wizardData}
+            updateWizardData={wizard.updateWizardData}
+            navigation={customNavigation}
+            existingPrepNote={wizard.wizardData.prepNote || ''}
+            onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
+          />
+        );
+        
+      case 2:
+        return (
+          <PatternConfiguration
+            wizardData={wizard.wizardData}
+            updateWizardData={wizard.updateWizardData}
+            navigation={customNavigation}
+            existingPrepNote={wizard.wizardData.prepNote || ''}
+            onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
+          />
+        );
+        
+      case 3:
+        // Duration/Shaping choice - no nav buttons needed (auto-advances)
+        return (
+          <DurationShapingChoice
+            wizardData={wizard.wizardData}
+            updateWizardData={wizard.updateWizardData}
+            onAdvanceStep={() => wizard.navigation.goToStep(4)}
+            existingPrepNote={wizard.wizardData.prepNote || ''}
+            onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
+          />
+        );
+        
+      case 4:
+        // Duration Choice - our new single page that NEEDS nav buttons
+        return (
+          <DurationChoice
+            wizardData={wizard.wizardData}
+            updateWizardData={wizard.updateWizardData}
+            existingPrepNote={wizard.wizardData.prepNote || ''}
+            onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
+          />
+        );
+        
+      case 5:
+        // Preview step (has custom buttons, no nav needed)
+        return (
+          <StepPreview
+            wizard={wizard}
+            onAddStep={handleAddStep}
+            onAddStepAndContinue={handleAddStepAndContinue}
+            onFinishComponent={wizardState.handleFinishComponent}
+            onBack={onBack}
+            prepNote={wizard.wizardData.prepNote || ''}
+          />
+        );
+        
+      default:
+        return <div>Step not found</div>;
+    }
   };
-  
-  return renderStep(wizard.wizardStep, wizard, customNavigation, handlers);
-};
 
   return (
     <WizardLayout>
@@ -73,11 +136,9 @@ const renderCurrentStep = () => {
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}
         
- {(wizard.wizardStep === 2 || wizard.wizardStep === 4) && (
-  <WizardNavigation wizard={{ ...wizard, navigation: customNavigation }} onBack={onBack} />
-)}
-
-
+        {(wizard.wizardStep === 2 || wizard.wizardStep === 4) && (
+          <WizardNavigation wizard={{ ...wizard, navigation: customNavigation }} onBack={onBack} />
+        )}
       </div>
     </WizardLayout>
   );

@@ -12,6 +12,7 @@ import StepWizard from '../../steps/components/StepWizard';
 import ManageSteps from '../../steps/components/ManageSteps';
 import ProjectTypeSelector from './ProjectTypeSelector';
 
+
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing'); // Changed from 'project-list'
   const { dispatch, selectedComponentIndex } = useProjectsContext();
