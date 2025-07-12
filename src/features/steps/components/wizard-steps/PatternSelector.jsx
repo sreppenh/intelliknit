@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 
 const STITCH_PATTERNS = {
   basic: { 
@@ -58,16 +58,11 @@ const STITCH_PATTERNS = {
 };
 
 export const PatternSelector = ({ wizardData, updateWizardData, navigation }) => {
-  const [isNavigating, setIsNavigating] = useState(false);
-
   const handleCategorySelect = (key) => {
-    if (isNavigating) return; // Prevent double clicks
-    
     const category = STITCH_PATTERNS[key];
     
     // If only one pattern option, set both category AND pattern together
     if (category.patterns.length === 1) {
-      setIsNavigating(true);
       // Single state update with both category and pattern
       updateWizardData('stitchPattern', { 
         category: key,
@@ -76,8 +71,8 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
         rowsInPattern: '',
         method: ''
       });
-      // Shorter delay to reduce flash
-      setTimeout(() => navigation.nextStep(), 50);
+      // Navigate immediately - no timeout needed
+      navigation.nextStep();
     } else {
       // Multiple patterns - just set category (no auto-advance)
       updateWizardData('stitchPattern', { 
@@ -91,13 +86,28 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
   };
 
   const handlePatternSelect = (pattern) => {
-    if (isNavigating) return; // Prevent double clicks
+    // Check if this is a basic pattern that should skip configuration
+    const basicPatterns = [
+      'Stockinette', 'Garter', 'Reverse Stockinette',
+      '1x1 Rib', '2x2 Rib', '3x3 Rib', '2x1 Rib', '1x1 Twisted Rib', '2x2 Twisted Rib',
+      'Seed Stitch', 'Moss Stitch', 'Double Seed', 'Basketweave'
+    ];
     
-    setIsNavigating(true);
-    // Set pattern data
+    // Update pattern data
     updateWizardData('stitchPattern', { pattern: pattern.name });
-    // Longer delay to let React update wizardData before navigation
-    setTimeout(() => navigation.nextStep(), 100);
+    
+    if (basicPatterns.includes(pattern.name)) {
+      // For basic patterns, use a callback to ensure state update completes
+      // then manually skip to step 3
+      setTimeout(() => {
+        navigation.goToStep(3);
+      }, 10);
+    } else {
+      // For complex patterns, go to configuration step
+      setTimeout(() => {
+        navigation.nextStep();
+      }, 10);
+    }
   };
 
   const selectedCategory = wizardData?.stitchPattern?.category;
@@ -119,12 +129,7 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
             <button
               key={pattern.name}
               onClick={() => handlePatternSelect(pattern)}
-              disabled={isNavigating}
-              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                isNavigating 
-                  ? 'border-sage-300 bg-sage-100 text-sage-600 cursor-not-allowed'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
-              }`}
+              className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
             >
               <div className="text-2xl mb-2">{pattern.icon}</div>
               <div className="text-sm font-semibold mb-1">{pattern.name}</div>
@@ -136,8 +141,7 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
         {/* Back to categories option */}
         <button
           onClick={() => updateWizardData('stitchPattern', { category: null, pattern: null })}
-          disabled={isNavigating}
-          className="w-full text-wool-500 text-sm py-2 hover:text-wool-700 transition-colors disabled:opacity-50"
+          className="w-full text-wool-500 text-sm py-2 hover:text-wool-700 transition-colors"
         >
           ← Choose different category
         </button>
@@ -158,12 +162,9 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
           <button
             key={key}
             onClick={() => handleCategorySelect(key)}
-            disabled={isNavigating}
             className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${
               selectedCategory === key
                 ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                : isNavigating
-                ? 'border-wool-300 bg-wool-100 text-wool-500 cursor-not-allowed'
                 : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
             }`}
           >

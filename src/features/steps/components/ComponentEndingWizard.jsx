@@ -1,220 +1,223 @@
 import React, { useState } from 'react';
 
 const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
-  const [step, setStep] = useState(1); // 1 = ending type, 2 = details
+  const [step, setStep] = useState(1);
   const [endingData, setEndingData] = useState({
-    type: 'bind_off_all', // Default to bind off all for new architecture
-    method: 'standard',
-    stitchCount: '',
-    customText: '',
-    attachmentMethod: '',
+    type: null,
+    method: '',
     targetComponent: '',
-    instructions: '',
-    additionalDetails: ''
+    customText: '',
+    customMethod: ''
   });
 
-  const endingTypes = [
-    {
-      id: 'bind_off_all',
-      name: 'Bind Off All',
-      icon: '✂️',
-      description: 'Finish component completely'
-    },
-    {
-      id: 'bind_off_partial', 
-      name: 'Bind Off Some',
-      icon: '🔄',
-      description: 'Bind off specific number of stitches'
-    },
-    {
-      id: 'put_on_holder',
-      name: 'Put on Holder',
-      icon: '📎',
-      description: 'Keep stitches live for later'
-    },
-    {
-      id: 'attach_to_piece',
-      name: 'Attach to Piece',
-      icon: '🔗',
-      description: 'Connect to another component'
-    },
-    {
-      id: 'continue_component',
-      name: 'Continue Component',
-      icon: '➡️',
-      description: 'Transition to next section'
-    },
-    {
-      id: 'other',
-      name: 'Other Ending',
-      icon: '📝',
-      description: 'Custom ending method'
-    }
-  ];
-
-  const bindOffMethods = [
-    {
-      id: 'standard',
-      name: 'Standard',
-      icon: '✂️',
-      description: 'Basic bind off',
-      instructions: 'Knit 2 stitches, *slip left stitch over right stitch, knit 1* repeat across.'
-    },
-    {
-      id: 'stretchy',
-      name: 'Stretchy',
-      icon: '🌊',
-      description: 'Extra stretch for ribbing',
-      instructions: '*K2, slip both stitches back to left needle, K2tog through back loops* repeat across.'
-    },
-    {
-      id: 'italian',
-      name: 'Italian',
-      icon: '🇮🇹',
-      description: 'Invisible elastic edge',
-      instructions: 'Cut yarn 3x fabric width. Thread tapestry needle. Work in ribbing pattern, pulling stitches through in sequence to create invisible edge.'
-    },
-    {
-      id: 'tubular',
-      name: 'Tubular',
-      icon: '🔄',
-      description: 'Perfect for ribbing',
-      instructions: 'Setup: *K1, slip 1 purlwise* for 4 rounds. Then graft live stitches together using kitchener stitch.'
-    },
-    {
-      id: 'three_needle',
-      name: 'Three-Needle',
-      icon: '🔗',
-      description: 'Joins two pieces',
-      instructions: 'Hold pieces with right sides together. Insert 3rd needle through first stitch of each needle and knit together, binding off as you go.'
-    },
-    {
-      id: 'other',
-      name: 'Other Method',
-      icon: '📝',
-      description: 'Specify your own',
-      instructions: ''
-    }
-  ];
-
-  const attachmentMethods = [
-    {
-      id: 'mattress_stitch',
-      name: 'Mattress Stitch',
-      icon: '🧵',
-      description: 'Invisible side seam',
-      instructions: 'Pick up horizontal bars between edge stitches, alternating sides every 1-2 rows. Pull tight to close seam.'
-    },
-    {
-      id: 'backstitch',
-      name: 'Backstitch',
-      icon: '⬅️',
-      description: 'Strong, visible seam',
-      instructions: 'Work from right to left, inserting needle one stitch back and emerging one stitch ahead.'
-    },
-    {
-      id: 'kitchener_stitch',
-      name: 'Kitchener Stitch',
-      icon: '🪡',
-      description: 'Invisible graft',
-      instructions: 'Setup: Purl through first stitch on front needle, knit through first stitch on back needle. Then alternate: front - knit off, purl on; back - purl off, knit on.'
-    },
-    {
-      id: 'three_needle_bindoff',
-      name: 'Three-Needle Bind Off',
-      icon: '🔗',
-      description: 'Joins with seam',
-      instructions: 'Hold pieces right sides together. Knit one stitch from each needle together, then bind off as normal.'
-    },
-    {
-      id: 'other',
-      name: 'Other Method',
-      icon: '📝',
-      description: 'Specify your own',
-      instructions: ''
-    }
+  // Get existing components for the dropdown (mock data for now)
+  const availableComponents = [
+    'Left Sleeve',
+    'Right Sleeve', 
+    'Back Panel',
+    'Front Panel',
+    'Collar',
+    'Other...'
   ];
 
   const handleEndingTypeSelect = (type) => {
-    setEndingData(prev => ({ 
-      ...prev, 
-      type, 
-      method: type === 'bind_off_all' || type === 'bind_off_partial' ? 'standard' : '',
-      instructions: '' 
-    }));
-  };
-
-  const handleMethodSelect = (method) => {
-    const methodData = (endingData.type === 'bind_off_all' || endingData.type === 'bind_off_partial')
-      ? bindOffMethods.find(m => m.id === method)
-      : attachmentMethods.find(m => m.id === method);
+    setEndingData(prev => ({ ...prev, type }));
     
-    setEndingData(prev => ({ 
-      ...prev, 
-      method,
-      instructions: methodData?.instructions || ''
-    }));
-  };
-
-  const handleContinue = () => {
-    if (step === 1) {
-      setStep(2);
-    } else {
-      handleComplete();
+    // Put on Holder is instant - no configuration needed
+    if (type === 'put_on_holder') {
+      handleComplete({
+        type,
+        description: 'Put all stitches on holder for later use'
+      });
+      return;
     }
-  };
-
-  const handleComplete = () => {
-    // Generate description for the ending step
-    let description = '';
-    const endingType = endingTypes.find(t => t.id === endingData.type);
     
-    if (endingData.type === 'bind_off_all') {
-      description = `Bind off all stitches`;
-    } else if (endingData.type === 'bind_off_partial') {
-      description = `Bind off ${endingData.stitchCount || 'some'} stitches`;
-    } else if (endingData.type === 'put_on_holder') {
-      description = `Put all stitches on holder for later use`;
-    } else if (endingData.type === 'attach_to_piece') {
-      description = `Attach to ${endingData.targetComponent || 'another piece'} using ${endingData.attachmentMethod || 'seaming'}`;
-    } else if (endingData.type === 'continue_component') {
-      description = `Continue to: ${endingData.customText || 'next section'}`;
-    } else {
-      description = endingData.customText || 'Custom ending';
-    }
+    // All other types need configuration
+    setStep(2);
+  };
 
-    // Create the ending step data in the new format
-    const endingStep = {
-      description,
-      method: endingData.method,
-      stitchCount: endingData.stitchCount,
-      customText: endingData.customText,
-      attachmentMethod: endingData.attachmentMethod,
-      targetComponent: endingData.targetComponent,
-      additionalDetails: endingData.additionalDetails,
-      endingType: endingData.type
-    };
-
+  const handleComplete = (finalData = null) => {
+    const endingStep = finalData || generateEndingStep();
     onComplete(endingStep);
   };
 
-  const canContinue = () => {
-    if (step === 1) {
-      return endingData.type !== null;
+  const generateEndingStep = () => {
+    const { type, method, targetComponent, customText, customMethod } = endingData;
+    
+    switch (type) {
+      case 'bind_off_all':
+        const methodName = method === 'other' ? customMethod : getMethodName(method);
+        return {
+          type,
+          method: method || 'standard',
+          description: `Bind off all stitches${methodName ? ` using ${methodName}` : ''}`
+        };
+        
+      case 'attach_to_piece':
+        const attachMethod = method === 'other' ? customMethod : getMethodName(method);
+        const target = targetComponent === 'Other...' ? customText : targetComponent;
+        return {
+          type,
+          method,
+          targetComponent: target,
+          description: `Attach to ${target}${attachMethod ? ` using ${attachMethod}` : ''}`
+        };
+        
+      case 'continue_component':
+        return {
+          type,
+          description: `Continue to: ${customText}`,
+          customText
+        };
+        
+      case 'other':
+        return {
+          type,
+          description: customText,
+          customText
+        };
+        
+      default:
+        return { type, description: 'Unknown ending' };
     }
-    
-    // Step 2 validation
-    if (endingData.type === 'continue_component' && !endingData.customText) return false;
-    if (endingData.type === 'attach_to_piece' && (!endingData.targetComponent || !endingData.attachmentMethod)) return false;
-    if (endingData.type === 'bind_off_partial' && !endingData.stitchCount) return false;
-    
-    return true;
   };
 
-  const needsBindOffMethods = () => {
-    return endingData.type === 'bind_off_all' || endingData.type === 'bind_off_partial';
+  const getMethodName = (methodId) => {
+    const methodNames = {
+      'standard': 'standard bind off',
+      'stretchy': 'stretchy bind off', 
+      'picot': 'picot bind off',
+      'three_needle': 'three needle bind off',
+      'mattress_stitch': 'mattress stitch',
+      'backstitch': 'backstitch',
+      'kitchener_stitch': 'kitchener stitch',
+      'three_needle_bindoff': 'three needle bind off'
+    };
+    return methodNames[methodId] || methodId;
   };
 
+  const canComplete = () => {
+    const { type, method, targetComponent, customText, customMethod } = endingData;
+    
+    switch (type) {
+      case 'bind_off_all':
+        return true; // Method is optional
+      case 'attach_to_piece':
+        return method && targetComponent && (targetComponent !== 'Other...' || customText);
+      case 'continue_component':
+        return customText && customText.trim() !== '';
+      case 'other':
+        return customText && customText.trim() !== '';
+      default:
+        return false;
+    }
+  };
+
+  // Step 1: What happens to stitches?
+  if (step === 1) {
+    return (
+      <div className="min-h-screen bg-yarn-50">
+        <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+          
+          {/* Header */}
+          <div className="bg-sage-500 text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={onBack}
+                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              >
+                ←
+              </button>
+              <div className="flex-1">
+                <h1 className="text-lg font-semibold">Finish Component</h1>
+                <p className="text-sage-100 text-sm">What happens to the stitches?</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6 bg-yarn-50 space-y-6">
+            <div>
+              <div className="text-center mb-6">
+                <div className="text-2xl mb-2">🏁</div>
+                <h2 className="text-xl font-semibold text-wool-700 mb-2">How does {component?.name || 'this component'} end?</h2>
+                <p className="text-wool-500">Choose what happens to your stitches</p>
+              </div>
+            </div>
+            
+            {/* Clickable cards - no buttons needed */}
+            <div className="space-y-3">
+              <button
+                onClick={() => handleEndingTypeSelect('bind_off_all')}
+                className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">✂️</div>
+                  <div>
+                    <div className="font-semibold text-base mb-1">Bind Off All Stitches</div>
+                    <div className="text-sm opacity-75">Finish the component completely</div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleEndingTypeSelect('put_on_holder')}
+                className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">📎</div>
+                  <div>
+                    <div className="font-semibold text-base mb-1">Put on Holder</div>
+                    <div className="text-sm opacity-75">Keep stitches live for later use</div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleEndingTypeSelect('attach_to_piece')}
+                className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">🔗</div>
+                  <div>
+                    <div className="font-semibold text-base mb-1">Attach to Another Piece</div>
+                    <div className="text-sm opacity-75">Connect to another component</div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleEndingTypeSelect('continue_component')}
+                className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">➡️</div>
+                  <div>
+                    <div className="font-semibold text-base mb-1">Continue This Component</div>
+                    <div className="text-sm opacity-75">Transition to next section</div>
+                  </div>
+                </div>
+              </button>
+
+              <button
+                onClick={() => handleEndingTypeSelect('other')}
+                className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
+              >
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">📝</div>
+                  <div>
+                    <div className="font-semibold text-base mb-1">Other Ending</div>
+                    <div className="text-sm opacity-75">Custom ending method</div>
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Step 2: Configuration based on ending type
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
@@ -223,221 +226,317 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
         <div className="bg-sage-500 text-white px-6 py-4">
           <div className="flex items-center gap-3">
             <button
-              onClick={step === 1 ? onBack : () => setStep(1)}
+              onClick={() => setStep(1)}
               className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
             >
               ←
             </button>
             <div className="flex-1">
-              <h1 className="text-lg font-semibold">Finish Component</h1>
-              <p className="text-sage-100 text-sm">
-                Step {step} of 2: {step === 1 ? 'Ending Type' : 'Configuration'}
-              </p>
+              <h1 className="text-lg font-semibold">Configure Ending</h1>
+              <p className="text-sage-100 text-sm">Set up the details</p>
             </div>
           </div>
         </div>
 
         <div className="p-6 bg-yarn-50 space-y-6">
           
-          {/* Step 1: How does it end? */}
-          {step === 1 && (
+          {/* Bind Off All Configuration */}
+          {endingData.type === 'bind_off_all' && (
             <>
               <div>
-                <h2 className="text-xl font-semibold text-wool-700 mb-3">How does it end?</h2>
-                <p className="text-wool-500 mb-4">Choose how {component?.name || 'this component'} finishes</p>
+                <h2 className="text-xl font-semibold text-wool-700 mb-3">Bind Off Method</h2>
+                <p className="text-wool-500 mb-4">Choose your bind off technique (optional)</p>
               </div>
-              
-              <div className="grid grid-cols-2 gap-3">
-                {endingTypes.map((type) => (
-                  <button
-                    key={type.id}
-                    onClick={() => handleEndingTypeSelect(type.id)}
-                    className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                      endingData.type === type.id
-                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
-                    }`}
-                  >
-                    <div className="text-2xl mb-2">{type.icon}</div>
-                    <div className="font-semibold text-sm mb-1">{type.name}</div>
-                    <div className="text-xs opacity-75">{type.description}</div>
-                  </button>
-                ))}
+
+              {/* Radio list for methods */}
+              <div className="space-y-3">
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="bindoff_method"
+                    value="standard"
+                    checked={endingData.method === 'standard'}
+                    onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                    className="w-4 h-4 text-sage-600 mr-3"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">✂️</span>
+                    <div>
+                      <div className="font-medium text-wool-700">Standard Bind Off</div>
+                      <div className="text-sm text-wool-500">Basic bind off, most common</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="bindoff_method"
+                    value="stretchy"
+                    checked={endingData.method === 'stretchy'}
+                    onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                    className="w-4 h-4 text-sage-600 mr-3"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🌊</span>
+                    <div>
+                      <div className="font-medium text-wool-700">Stretchy Bind Off</div>
+                      <div className="text-sm text-wool-500">Extra stretch for ribbing</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="bindoff_method"
+                    value="picot"
+                    checked={endingData.method === 'picot'}
+                    onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                    className="w-4 h-4 text-sage-600 mr-3"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🌸</span>
+                    <div>
+                      <div className="font-medium text-wool-700">Picot Bind Off</div>
+                      <div className="text-sm text-wool-500">Decorative scalloped edge</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="bindoff_method"
+                    value="three_needle"
+                    checked={endingData.method === 'three_needle'}
+                    onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                    className="w-4 h-4 text-sage-600 mr-3"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">🔗</span>
+                    <div>
+                      <div className="font-medium text-wool-700">Three Needle Bind Off</div>
+                      <div className="text-sm text-wool-500">Joins two pieces together</div>
+                    </div>
+                  </div>
+                </label>
+
+                <label className="flex items-center cursor-pointer">
+                  <input
+                    type="radio"
+                    name="bindoff_method"
+                    value="other"
+                    checked={endingData.method === 'other'}
+                    onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                    className="w-4 h-4 text-sage-600 mr-3"
+                  />
+                  <div className="flex items-center gap-3">
+                    <span className="text-lg">📝</span>
+                    <div>
+                      <div className="font-medium text-wool-700">Other Method</div>
+                      <div className="text-sm text-wool-500">Specify your own</div>
+                    </div>
+                  </div>
+                </label>
+
+                {endingData.method === 'other' && (
+                  <div className="ml-7 mt-3">
+                    <input
+                      type="text"
+                      value={endingData.customMethod}
+                      onChange={(e) => setEndingData(prev => ({ ...prev, customMethod: e.target.value }))}
+                      placeholder="e.g., Jeny's surprisingly stretchy bind off"
+                      className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                    />
+                  </div>
+                )}
               </div>
             </>
           )}
 
-          {/* Step 2: Configuration Details */}
-          {step === 2 && (
+          {/* Attach to Piece Configuration */}
+          {endingData.type === 'attach_to_piece' && (
             <>
               <div>
-                <h2 className="text-xl font-semibold text-wool-700 mb-3">Configure Details</h2>
-                <p className="text-wool-500 mb-4">Set up your {endingTypes.find(t => t.id === endingData.type)?.name.toLowerCase()}</p>
+                <h2 className="text-xl font-semibold text-wool-700 mb-3">Attachment Details</h2>
+                <p className="text-wool-500 mb-4">Choose method and target component</p>
               </div>
 
-              <div className="space-y-6">
-                {/* Bind Off Partial - Stitch Count */}
-                {endingData.type === 'bind_off_partial' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-wool-700 mb-3">
-                      Number of Stitches to Bind Off
-                    </label>
-                    <input
-                      type="number"
-                      value={endingData.stitchCount}
-                      onChange={(e) => setEndingData(prev => ({ ...prev, stitchCount: e.target.value }))}
-                      placeholder="e.g., 20"
-                      className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                    />
-                  </div>
-                )}
-
-                {/* Bind Off Methods - for bind_off_all and bind_off_partial */}
-                {needsBindOffMethods() && (
-                  <div>
-                    <label className="block text-sm font-semibold text-wool-700 mb-3">
-                      Bind Off Method
-                    </label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {bindOffMethods.map((method) => (
-                        <button
-                          key={method.id}
-                          onClick={() => handleMethodSelect(method.id)}
-                          className={`p-3 border-2 rounded-xl transition-all duration-200 text-center ${
-                            endingData.method === method.id
-                              ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                              : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50'
-                          }`}
-                        >
-                          <div className="text-lg mb-1">{method.icon}</div>
-                          <div className="font-semibold text-xs mb-1">{method.name}</div>
-                          <div className="text-xs opacity-75">{method.description}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-
-                {/* Attach to Piece - Component and Method */}
-                {endingData.type === 'attach_to_piece' && (
-                  <>
-                    <div>
-                      <label className="block text-sm font-semibold text-wool-700 mb-3">
-                        Attach to Which Component?
-                      </label>
+              {/* Attachment Method - Radio List */}
+              <div className="space-y-4">
+                <div>
+                  <h3 className="text-sm font-semibold text-wool-700 mb-3">Attachment Method</h3>
+                  <div className="space-y-2">
+                    <label className="flex items-center cursor-pointer">
                       <input
-                        type="text"
-                        value={endingData.targetComponent}
-                        onChange={(e) => setEndingData(prev => ({ ...prev, targetComponent: e.target.value }))}
-                        placeholder="e.g., Right Sleeve, Back Panel"
-                        className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                        type="radio"
+                        name="attach_method"
+                        value="mattress_stitch"
+                        checked={endingData.method === 'mattress_stitch'}
+                        onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                        className="w-4 h-4 text-sage-600 mr-3"
                       />
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-semibold text-wool-700 mb-3">
-                        Attachment Method
-                      </label>
-                      <div className="grid grid-cols-2 gap-3">
-                        {attachmentMethods.map((method) => (
-                          <button
-                            key={method.id}
-                            onClick={() => {
-                              setEndingData(prev => ({ ...prev, attachmentMethod: method.id, instructions: method.instructions }));
-                            }}
-                            className={`p-3 border-2 rounded-xl transition-all duration-200 text-center ${
-                              endingData.attachmentMethod === method.id
-                                ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                                : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50'
-                            }`}
-                          >
-                            <div className="text-lg mb-1">{method.icon}</div>
-                            <div className="font-semibold text-xs mb-1">{method.name}</div>
-                            <div className="text-xs opacity-75">{method.description}</div>
-                          </button>
-                        ))}
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">🧵</span>
+                        <div>
+                          <div className="font-medium text-wool-700">Mattress Stitch</div>
+                          <div className="text-sm text-wool-500">Invisible side seam</div>
+                        </div>
                       </div>
-                    </div>
-                  </>
-                )}
-
-                {/* Continue Component - Description */}
-                {endingData.type === 'continue_component' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-wool-700 mb-3">
-                      Continue to What?
                     </label>
-                    <input
-                      type="text"
-                      value={endingData.customText}
-                      onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
-                      placeholder="e.g., sleeve decreases, neckline shaping"
-                      className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                    />
-                  </div>
-                )}
 
-                {/* Other - Custom Description */}
-                {endingData.type === 'other' && (
-                  <div>
-                    <label className="block text-sm font-semibold text-wool-700 mb-3">
-                      Describe Your Ending Method
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="attach_method"
+                        value="backstitch"
+                        checked={endingData.method === 'backstitch'}
+                        onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                        className="w-4 h-4 text-sage-600 mr-3"
+                      />
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">⬅️</span>
+                        <div>
+                          <div className="font-medium text-wool-700">Backstitch</div>
+                          <div className="text-sm text-wool-500">Strong, visible seam</div>
+                        </div>
+                      </div>
                     </label>
-                    <input
-                      type="text"
-                      value={endingData.customText}
-                      onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
-                      placeholder="Describe how this component ends..."
-                      className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                    />
-                  </div>
-                )}
 
-                {/* Instructions Display */}
-                {endingData.instructions && (
-                  <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
-                    <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Instructions</h4>
-                    <p className="text-sm text-yarn-600 text-left">{endingData.instructions}</p>
-                  </div>
-                )}
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="attach_method"
+                        value="kitchener_stitch"
+                        checked={endingData.method === 'kitchener_stitch'}
+                        onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                        className="w-4 h-4 text-sage-600 mr-3"
+                      />
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">🪡</span>
+                        <div>
+                          <div className="font-medium text-wool-700">Kitchener Stitch</div>
+                          <div className="text-sm text-wool-500">Invisible graft</div>
+                        </div>
+                      </div>
+                    </label>
 
-                {/* Additional Details - Always Available */}
+                    <label className="flex items-center cursor-pointer">
+                      <input
+                        type="radio"
+                        name="attach_method"
+                        value="other"
+                        checked={endingData.method === 'other'}
+                        onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
+                        className="w-4 h-4 text-sage-600 mr-3"
+                      />
+                      <div className="flex items-center gap-3">
+                        <span className="text-lg">📝</span>
+                        <div>
+                          <div className="font-medium text-wool-700">Other Method</div>
+                          <div className="text-sm text-wool-500">Specify your own</div>
+                        </div>
+                      </div>
+                    </label>
+
+                    {endingData.method === 'other' && (
+                      <div className="ml-7 mt-2">
+                        <input
+                          type="text"
+                          value={endingData.customMethod}
+                          onChange={(e) => setEndingData(prev => ({ ...prev, customMethod: e.target.value }))}
+                          placeholder="Describe your attachment method"
+                          className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Component Dropdown */}
                 <div>
                   <label className="block text-sm font-semibold text-wool-700 mb-3">
-                    Additional Details (optional)
+                    Attach to Component
                   </label>
-                  <textarea
-                    value={endingData.additionalDetails}
-                    onChange={(e) => setEndingData(prev => ({ ...prev, additionalDetails: e.target.value }))}
-                    placeholder="Add any special notes or modifications..."
-                    rows={3}
-                    className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
-                  />
+                  <select
+                    value={endingData.targetComponent}
+                    onChange={(e) => setEndingData(prev => ({ ...prev, targetComponent: e.target.value }))}
+                    className="w-full border-2 border-wool-200 rounded-lg px-3 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                  >
+                    <option value="">Choose component...</option>
+                    {availableComponents.map(comp => (
+                      <option key={comp} value={comp}>{comp}</option>
+                    ))}
+                  </select>
+
+                  {endingData.targetComponent === 'Other...' && (
+                    <div className="mt-3">
+                      <input
+                        type="text"
+                        value={endingData.customText}
+                        onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
+                        placeholder="Describe the component to attach to"
+                        className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                      />
+                    </div>
+                  )}
                 </div>
               </div>
             </>
           )}
 
-          {/* Navigation */}
-          <div className="pt-6 border-t border-wool-200">
-            <div className="flex gap-3">
-              <button
-                onClick={step === 1 ? onBack : () => setStep(1)}
-                className="flex-1 bg-wool-100 text-wool-700 py-4 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
-              >
-                {step === 1 ? 'Cancel' : '← Back'}
-              </button>
-              <button
-                onClick={handleContinue}
-                disabled={!canContinue()}
-                className="flex-2 bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
-                style={{flexGrow: 2}}
-              >
-                {step === 1 ? 'Continue →' : '🏁 Finish Component'}
-              </button>
-            </div>
-          </div>
+          {/* Continue Component Configuration */}
+          {endingData.type === 'continue_component' && (
+            <>
+              <div>
+                <h2 className="text-xl font-semibold text-wool-700 mb-3">Continue To What?</h2>
+                <p className="text-wool-500 mb-4">Describe what section comes next</p>
+              </div>
 
+              <div>
+                <input
+                  type="text"
+                  value={endingData.customText}
+                  onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
+                  placeholder="e.g., sleeve decreases, neckline shaping, collar"
+                  className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Other Ending Configuration */}
+          {endingData.type === 'other' && (
+            <>
+              <div>
+                <h2 className="text-xl font-semibold text-wool-700 mb-3">Describe Your Ending</h2>
+                <p className="text-wool-500 mb-4">What happens to complete this component?</p>
+              </div>
+
+              <div>
+                <textarea
+                  value={endingData.customText}
+                  onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
+                  placeholder="Describe how this component ends..."
+                  rows={3}
+                  className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+                />
+              </div>
+            </>
+          )}
+
+          {/* Finish Button */}
+          <div className="pt-6 border-t border-wool-200">
+            <button
+              onClick={() => handleComplete()}
+              disabled={!canComplete()}
+              className="w-full bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-lg hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
+            >
+              <span className="text-xl">🏁</span>
+              Finish Component
+            </button>
+          </div>
         </div>
       </div>
     </div>
