@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-const EndingTypeSelector = ({ onTypeSelect, component }) => {
+const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
   const [showHolderSuccess, setShowHolderSuccess] = useState(false);
 
   const handlePutOnHolderClick = () => {
@@ -20,7 +20,7 @@ const EndingTypeSelector = ({ onTypeSelect, component }) => {
           <div className="text-4xl mb-4">✅</div>
           <h2 className="text-xl font-semibold text-sage-700 mb-2">Stitches on Holder!</h2>
           <p className="text-sage-600">
-            All stitches for {component?.name || 'this component'} are now safely on a holder.
+            All {currentStitches} stitches for {component?.name || 'this component'} are now safely on a holder.
           </p>
         </div>
         
@@ -42,12 +42,16 @@ const EndingTypeSelector = ({ onTypeSelect, component }) => {
           <h2 className="text-xl font-semibold text-wool-700 mb-2">
             How does {component?.name || 'this component'} end?
           </h2>
-          <p className="text-wool-500">Choose what happens to your stitches</p>
+          <p className="text-wool-500">
+            Choose what happens to your {currentStitches} stitches
+          </p>
         </div>
       </div>
       
-      {/* Clickable cards */}
+      {/* Clickable cards - Clean 4 options */}
       <div className="space-y-3">
+        
+        {/* Bind Off All Stitches - Most common, show stitch count */}
         <button
           onClick={() => onTypeSelect('bind_off_all')}
           className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
@@ -56,11 +60,14 @@ const EndingTypeSelector = ({ onTypeSelect, component }) => {
             <div className="text-3xl">✂️</div>
             <div>
               <div className="font-semibold text-base mb-1">Bind Off All Stitches</div>
-              <div className="text-sm opacity-75">Finish the component completely</div>
+              <div className="text-sm opacity-75">
+                Finish the component completely ({currentStitches} stitches)
+              </div>
             </div>
           </div>
         </button>
 
+        {/* Put on Holder */}
         <button
           onClick={handlePutOnHolderClick}
           className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
@@ -69,11 +76,14 @@ const EndingTypeSelector = ({ onTypeSelect, component }) => {
             <div className="text-3xl">📎</div>
             <div>
               <div className="font-semibold text-base mb-1">Put on Holder</div>
-              <div className="text-sm opacity-75">Keep stitches live for later use</div>
+              <div className="text-sm opacity-75">
+                Keep {currentStitches} stitches live for later use
+              </div>
             </div>
           </div>
         </button>
 
+        {/* Attach to Another Piece */}
         <button
           onClick={() => onTypeSelect('attach_to_piece')}
           className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
@@ -87,19 +97,7 @@ const EndingTypeSelector = ({ onTypeSelect, component }) => {
           </div>
         </button>
 
-        <button
-          onClick={() => onTypeSelect('continue_component')}
-          className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
-        >
-          <div className="flex items-center gap-4">
-            <div className="text-3xl">➡️</div>
-            <div>
-              <div className="font-semibold text-base mb-1">Continue This Component</div>
-              <div className="text-sm opacity-75">Transition to next section</div>
-            </div>
-          </div>
-        </button>
-
+        {/* Other Ending - For complex scenarios */}
         <button
           onClick={() => onTypeSelect('other')}
           className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
@@ -108,10 +106,18 @@ const EndingTypeSelector = ({ onTypeSelect, component }) => {
             <div className="text-3xl">📝</div>
             <div>
               <div className="font-semibold text-base mb-1">Other Ending</div>
-              <div className="text-sm opacity-75">Custom ending method</div>
+              <div className="text-sm opacity-75">Custom finishing method</div>
             </div>
           </div>
         </button>
+      </div>
+
+      {/* Helpful context for complex scenarios */}
+      <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
+        <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Need Something Complex?</h4>
+        <div className="text-sm text-yarn-600">
+          Use "Other Ending" for scenarios like "Bind off center 24 stitches, put remaining 20 on holders" or other custom combinations.
+        </div>
       </div>
     </div>
   );

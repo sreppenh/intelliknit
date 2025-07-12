@@ -1,6 +1,6 @@
 import React from 'react';
 
-const BindOffConfig = ({ endingData, setEndingData }) => {
+const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishingComponent = false }) => {
   const methods = [
     { 
       id: 'standard', 
@@ -27,12 +27,6 @@ const BindOffConfig = ({ endingData, setEndingData }) => {
       description: 'Joins two pieces together'
     },
     { 
-      id: 'provisional', 
-      name: 'Put on Holder', 
-      icon: '📎',
-      description: 'Keep stitches live for later'
-    },
-    { 
       id: 'other', 
       name: 'Other Method', 
       icon: '📝',
@@ -44,58 +38,66 @@ const BindOffConfig = ({ endingData, setEndingData }) => {
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">Bind Off Method</h2>
-        <p className="text-wool-500 mb-4">How do you want to finish these stitches?</p>
-      </div>
-
-      {/* Stitch Count Input */}
-      <div>
-        <label className="block text-sm font-semibold text-wool-700 mb-3">
-          Number of Stitches to Bind Off
-        </label>
-        <input
-          type="number"
-          value={endingData.stitchCount || ''}
-          onChange={(e) => setEndingData(prev => ({ ...prev, stitchCount: e.target.value }))}
-          placeholder="Leave blank for all stitches"
-          min="1"
-          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-        />
-        <p className="text-xs text-wool-500 mt-2">
-          Leave blank to bind off all remaining stitches
+        <p className="text-wool-500 mb-4">
+          {isFinishingComponent 
+            ? `How do you want to finish these ${currentStitches} stitches?`
+            : 'Choose your bind off method'
+          }
         </p>
       </div>
 
-      {/* Method Selection - Oval Radio Buttons */}
+      {/* Smart Stitch Count Display/Input */}
+      <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+        <div className="flex items-center justify-between mb-3">
+          <div>
+            <h3 className="text-sm font-semibold text-sage-700">Stitches to Bind Off</h3>
+            <p className="text-xs text-sage-600 mt-1">
+              {isFinishingComponent 
+                ? 'Finishing the entire component'
+                : 'You can adjust this number if needed'
+              }
+            </p>
+          </div>
+          <div className="text-right">
+            <div className="text-2xl font-bold text-sage-700">{endingData.stitchCount || currentStitches}</div>
+            <div className="text-xs text-sage-600">stitches</div>
+          </div>
+        </div>
+        
+        {/* Only show input if NOT finishing component (for partial bind-offs) */}
+        {!isFinishingComponent && (
+          <input
+            type="number"
+            value={endingData.stitchCount || ''}
+            onChange={(e) => setEndingData(prev => ({ ...prev, stitchCount: e.target.value }))}
+            placeholder={currentStitches.toString()}
+            min="1"
+            max={currentStitches}
+            className="w-full border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+          />
+        )}
+      </div>
+
+      {/* Method Selection - Grid Layout */}
       <div>
         <label className="block text-sm font-semibold text-wool-700 mb-3">
-          Bind Off Method
+          Bind Off Method (optional)
         </label>
-        <div className="space-y-3">
+        <div className="grid grid-cols-2 gap-3">
           {methods.map((method) => (
-            <label 
+            <button
               key={method.id}
-              className={`flex items-center cursor-pointer p-4 rounded-2xl border-2 transition-all duration-200 ${
+              onClick={() => setEndingData(prev => ({ ...prev, method: method.id }))}
+              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
                 endingData.method === method.id
                   ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
               }`}
             >
-              <input
-                type="radio"
-                name="bindoff_method"
-                value={method.id}
-                checked={endingData.method === method.id}
-                onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
-                className="w-4 h-4 text-sage-600 mr-4"
-              />
-              <div className="flex items-center gap-3 flex-1">
-                <span className="text-xl">{method.icon}</span>
-                <div className="text-left">
-                  <div className="font-medium">{method.name}</div>
-                  <div className="text-sm opacity-75">{method.description}</div>
-                </div>
-              </div>
-            </label>
+              <div className="text-2xl mb-2">{method.icon}</div>
+              <div className="font-semibold text-sm mb-1">{method.name}</div>
+              <div className="text-xs opacity-75">{method.description}</div>
+            </button>
           ))}
         </div>
       </div>
@@ -103,7 +105,7 @@ const BindOffConfig = ({ endingData, setEndingData }) => {
       {/* Custom Method Input */}
       {endingData.method === 'other' && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+          <label className="block text-sm font-semibold text-wool-700 mb-3">
             Describe Your Bind Off Method
           </label>
           <input
@@ -123,7 +125,9 @@ const BindOffConfig = ({ endingData, setEndingData }) => {
           <div>• <strong>Standard:</strong> Works for most situations</div>
           <div>• <strong>Stretchy:</strong> Essential for necklines and cuffs</div>
           <div>• <strong>Three Needle:</strong> Great for shoulder seams</div>
-          <div>• <strong>Put on Holder:</strong> When you'll graft or pick up later</div>
+          {isFinishingComponent && (
+            <div>• <strong>Finishing:</strong> This will complete your {endingData.stitchCount || currentStitches}-stitch component</div>
+          )}
         </div>
       </div>
     </div>

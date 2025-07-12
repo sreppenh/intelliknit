@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import ComponentChoiceModal from './ComponentChoiceModal';
 import CompleteProjectModal from './CompleteProjectModal';
-import EnhancedComponentCreation from './EnhancedComponentCreation';
+// import EnhancedComponentCreation from './EnhancedComponentCreation';
+import SmartComponentCreation from './SmartComponentCreation';
 import CompactComponentCard from './CompactComponentCard';
 
 const ProjectOverview = ({ project, onEditProjectDetails }) => {
@@ -218,7 +219,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
 
   if (showEnhancedCreation) {
     return (
-      <EnhancedComponentCreation
+      <SmartComponentCreation
         onBack={() => setShowEnhancedCreation(false)}
         onComponentCreated={handleEnhancedComponentCreated}
       />

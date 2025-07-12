@@ -2,9 +2,7 @@ import React, { useState } from 'react';
 import EndingTypeSelector from './ending-wizard/EndingTypeSelector';
 import BindOffConfig from './ending-wizard/BindOffConfig';
 import AttachmentConfig from './ending-wizard/AttachmentConfig';
-import ContinueConfig from './ending-wizard/ContinueConfig';
 import OtherEndingConfig from './ending-wizard/OtherEndingConfig';
-
 
 const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   const [step, setStep] = useState(1);
@@ -16,6 +14,15 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     customMethod: ''
   });
 
+  // Get current stitch count from last step
+  const getCurrentStitchCount = () => {
+    if (!component?.steps || component.steps.length === 0) return 0;
+    const lastStep = component.steps[component.steps.length - 1];
+    return lastStep.endingStitches || lastStep.expectedStitches || 0;
+  };
+
+  const currentStitches = getCurrentStitchCount();
+
   const handleEndingTypeSelect = (type) => {
     setEndingData(prev => ({ ...prev, type }));
     
@@ -23,9 +30,18 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     if (type === 'put_on_holder') {
       handleComplete({
         type,
-        description: 'Put all stitches on holder for later use'
+        description: `Put all ${currentStitches} stitches on holder for later use`,
+        stitchCount: currentStitches
       });
       return;
+    }
+    
+    // Bind Off All gets smart defaults and skips to method selection
+    if (type === 'bind_off_all') {
+      setEndingData(prev => ({
+        ...prev,
+        stitchCount: currentStitches // Auto-populate with current count
+      }));
     }
     
     // All other types need configuration
@@ -38,15 +54,17 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   };
 
   const generateEndingStep = () => {
-    const { type, method, targetComponent, customText, customMethod } = endingData;
+    const { type, method, targetComponent, customText, customMethod, stitchCount } = endingData;
     
     switch (type) {
       case 'bind_off_all':
         const methodName = method === 'other' ? customMethod : getMethodName(method);
+        const actualCount = stitchCount || currentStitches; // Fallback to current if somehow missing
         return {
           type,
           method: method || 'standard',
-          description: `Bind off all stitches${methodName ? ` using ${methodName}` : ''}`
+          stitchCount: actualCount,
+          description: `Bind off all ${actualCount} stitches${methodName ? ` using ${methodName}` : ''}`
         };
         
       case 'attach_to_piece':
@@ -56,25 +74,20 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           type,
           method,
           targetComponent: target,
+          stitchCount: currentStitches,
           description: `Attach to ${target}${attachMethod ? ` using ${attachMethod}` : ''}`
-        };
-        
-      case 'continue_component':
-        return {
-          type,
-          description: `Continue to: ${customText}`,
-          customText
         };
         
       case 'other':
         return {
           type,
           description: customText,
-          customText
+          customText,
+          stitchCount: currentStitches
         };
         
       default:
-        return { type, description: 'Unknown ending' };
+        return { type, description: 'Unknown ending', stitchCount: currentStitches };
     }
   };
 
@@ -97,11 +110,9 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     
     switch (type) {
       case 'bind_off_all':
-        return true; // Method is optional
+        return true; // Method is optional, stitch count is auto-populated
       case 'attach_to_piece':
         return method && targetComponent && (targetComponent !== 'Other...' || customText);
-      case 'continue_component':
-        return customText && customText.trim() !== '';
       case 'other':
         return customText && customText.trim() !== '';
       default:
@@ -126,7 +137,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
               </button>
               <div className="flex-1">
                 <h1 className="text-lg font-semibold">Finish Component</h1>
-                <p className="text-sage-100 text-sm">What happens to the stitches?</p>
+                <p className="text-sage-100 text-sm">What happens to the {currentStitches} stitches?</p>
               </div>
             </div>
           </div>
@@ -135,6 +146,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             <EndingTypeSelector 
               onTypeSelect={handleEndingTypeSelect}
               component={component}
+              currentStitches={currentStitches}
             />
           </div>
         </div>
@@ -170,6 +182,8 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             <BindOffConfig 
               endingData={endingData}
               setEndingData={setEndingData}
+              currentStitches={currentStitches}
+              isFinishingComponent={true} // New prop to indicate this is "bind off all"
             />
           )}
 
@@ -177,13 +191,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             <AttachmentConfig 
               endingData={endingData}
               setEndingData={setEndingData}
-            />
-          )}
-
-          {endingData.type === 'continue_component' && (
-            <ContinueConfig 
-              endingData={endingData}
-              setEndingData={setEndingData}
+              currentStitches={currentStitches}
             />
           )}
 
@@ -191,6 +199,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             <OtherEndingConfig 
               endingData={endingData}
               setEndingData={setEndingData}
+              currentStitches={currentStitches}
             />
           )}
 

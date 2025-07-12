@@ -160,7 +160,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
         
-/* Header */
 <div className="bg-sage-500 text-white px-6 py-4">
   <div className="flex items-center gap-3">
     {onBack && (
