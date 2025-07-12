@@ -1,20 +1,41 @@
 // features/projects/components/IntelliknitMVP.jsx
 import React, { useState } from 'react';
 import { ProjectsProvider, useProjectsContext } from '../hooks/useProjectsContext';
+import LandingPage from './LandingPage';
 import ProjectList from './ProjectList';
 import CreateProject from './CreateProject';
 import ProjectDetail from './ProjectDetail';
 import ComponentDetail from './ComponentDetail';
-import EditProjectDetails from './EditProjectDetails'; // NEW IMPORT
+import EditProjectDetails from './EditProjectDetails';
 import Tracking from './Tracking';
 import StepWizard from '../../steps/components/StepWizard';
 import ManageSteps from '../../steps/components/ManageSteps';
 import ProjectTypeSelector from './ProjectTypeSelector';
 
 const IntelliknitMVPContent = () => {
-  const [currentView, setCurrentView] = useState('project-list');
+  const [currentView, setCurrentView] = useState('landing'); // Changed from 'project-list'
   const { dispatch, selectedComponentIndex } = useProjectsContext();
   const [selectedProjectType, setSelectedProjectType] = useState(null);
+  
+  // Landing Page Actions
+  const handleAddNewProject = () => {
+    setCurrentView('project-type-selector');
+  };
+  
+  const handleViewProjects = () => {
+    setCurrentView('project-list');
+  };
+  
+  const handleContinueKnitting = () => {
+    // TODO: Implement smart session resume
+    // For now, go to project list
+    setCurrentView('project-list');
+  };
+  
+  const handleNotepad = () => {
+    // TODO: Implement notepad feature
+    alert('Notepad feature coming soon!');
+  };
   
   const handleCreateProject = () => {
     setCurrentView('project-type-selector');
@@ -39,19 +60,23 @@ const IntelliknitMVPContent = () => {
     setCurrentView('step-wizard');
   };
   
-const handleManageSteps = (componentIndex) => {
-  dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
-  setCurrentView('manage-steps');
-};
+  const handleManageSteps = (componentIndex) => {
+    dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
+    setCurrentView('manage-steps');
+  };
   
   const handleStartKnitting = (componentIndex) => {
     dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('tracking');
   };
 
-  // NEW: Handle edit project details
   const handleEditProjectDetails = () => {
     setCurrentView('edit-project-details');
+  };
+  
+  const handleBackToLanding = () => {
+    setCurrentView('landing');
+    dispatch({ type: 'SET_CURRENT_PROJECT', payload: null });
   };
   
   const handleBackToProjectList = () => {
@@ -64,52 +89,65 @@ const handleManageSteps = (componentIndex) => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: null });
   };
 
-  
-
   // Router logic based on current view
   switch (currentView) {
+    case 'landing':
+      return (
+        <LandingPage
+          onAddNewProject={handleAddNewProject}
+          onViewProjects={handleViewProjects}
+          onContinueKnitting={handleContinueKnitting}
+          onNotepad={handleNotepad}
+        />
+      );
+      
     case 'project-list':
       return (
         <ProjectList
           onCreateProject={handleCreateProject}
           onOpenProject={handleOpenProject}
+          onBack={handleBackToLanding} // NEW: Add back to landing
         />
       );
+      
     case 'create-project':
       return (
         <CreateProject
-      onBack={() => setCurrentView('project-type-selector')}
-      onProjectCreated={handleProjectCreated}
-      selectedProjectType={selectedProjectType} // NEW LINE
+          onBack={() => setCurrentView('project-type-selector')}
+          onProjectCreated={handleProjectCreated}
+          selectedProjectType={selectedProjectType}
         />
       );
 
-      case 'project-type-selector':
-  return (
-    <ProjectTypeSelector
-      onBack={handleBackToProjectList}
-      onContinue={() => setCurrentView('create-project')}
-      selectedType={selectedProjectType}
-      onTypeSelect={setSelectedProjectType}
-    />
-  );
+    case 'project-type-selector':
+      return (
+        <ProjectTypeSelector
+          onBack={handleBackToLanding} // Changed from handleBackToProjectList
+          onContinue={() => setCurrentView('create-project')}
+          selectedType={selectedProjectType}
+          onTypeSelect={setSelectedProjectType}
+        />
+      );
+      
     case 'project-detail':
       return (
         <ProjectDetail
-  onBack={handleBackToProjectList}
-  onViewComponent={handleViewComponent}
-  onEditSteps={handleEditSteps}         // Keep this for wizard
-  onManageSteps={handleManageSteps}     // ✅ Add this for ManageSteps
-  onStartKnitting={handleStartKnitting}
-  onEditProjectDetails={handleEditProjectDetails}
-/>
+          onBack={handleBackToProjectList}
+          onViewComponent={handleViewComponent}
+          onEditSteps={handleEditSteps}
+          onManageSteps={handleManageSteps}
+          onStartKnitting={handleStartKnitting}
+          onEditProjectDetails={handleEditProjectDetails}
+        />
       );
-    case 'edit-project-details': // NEW CASE
+      
+    case 'edit-project-details':
       return (
         <EditProjectDetails
           onBack={handleBackToProjectDetail}
         />
       );
+      
     case 'component-detail':
       return (
         <ComponentDetail
@@ -119,6 +157,7 @@ const handleManageSteps = (componentIndex) => {
           onStartKnitting={handleStartKnitting}
         />
       );
+      
     case 'step-wizard':
       return (
         <StepWizard
@@ -126,6 +165,7 @@ const handleManageSteps = (componentIndex) => {
           onBack={handleBackToProjectDetail}
         />
       );
+      
     case 'manage-steps':
       return (
         <ManageSteps
@@ -133,6 +173,7 @@ const handleManageSteps = (componentIndex) => {
           onBack={handleBackToProjectDetail}
         />
       );
+      
     case 'tracking':
       return (
         <Tracking
@@ -140,6 +181,7 @@ const handleManageSteps = (componentIndex) => {
           onEditSteps={handleEditSteps}
         />
       );
+      
     default:
       return <div>View not found</div>;
   }

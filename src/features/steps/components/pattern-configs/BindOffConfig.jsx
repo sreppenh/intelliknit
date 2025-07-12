@@ -31,12 +31,6 @@ const BindOffConfig = ({ wizardData, updateWizardData }) => {
       description: 'Joins two pieces together'
     },
     { 
-      id: 'provisional', 
-      name: 'Put on Holder', 
-      icon: '📎',
-      description: 'Keep stitches live for later'
-    },
-    { 
       id: 'other', 
       name: 'Other Method', 
       icon: '📝',

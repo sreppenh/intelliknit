@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 
-const ProjectList = ({ onCreateProject, onOpenProject }) => {
+const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const { projects, dispatch } = useProjectsContext();
   const [openMenuId, setOpenMenuId] = useState(null);
 
@@ -160,14 +160,26 @@ const ProjectList = ({ onCreateProject, onOpenProject }) => {
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
         
-        {/* Header */}
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="text-center">
-            <div className="text-2xl mb-1">🧶</div>
-            <h1 className="text-xl font-bold mb-0.5">IntelliKnit</h1>
-            <p className="text-sage-100 text-xs">Ready to knit something amazing?</p>
-          </div>
-        </div>
+/* Header */
+<div className="bg-sage-500 text-white px-6 py-4">
+  <div className="flex items-center gap-3">
+    {onBack && (
+      <button
+        onClick={onBack}
+        className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+      >
+        ←
+      </button>
+    )}
+    <div className="flex-1 text-center">
+      <div className="text-2xl mb-1">🧶</div>
+      <h1 className="text-xl font-bold mb-0.5">IntelliKnit</h1>
+      <p className="text-sage-100 text-xs">Ready to knit something amazing?</p>
+    </div>
+    {/* Spacer to center the content when back button is present */}
+    {onBack && <div className="w-10"></div>}
+  </div>
+</div>
 
         <div className="p-4 bg-yarn-50">
           
