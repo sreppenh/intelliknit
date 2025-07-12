@@ -29,20 +29,23 @@ export const createWizardNavigator = (wizardData, currentStep) => {
     const { pattern } = wizardData.stitchPattern;
     
     switch (currentStep) {
-      case 1: // PatternSelector
-        return 2;
+      case 1: // PatternSelector  
+        // Skip step 2 for basic patterns - go directly to step 3
+        if (shouldSkipConfiguration(wizardData)) {
+          return 3; // Skip directly to Duration/Shaping choice
+        }
+        return 2; // Go to configuration for complex patterns
         
       case 2: // PatternConfiguration
-        if (shouldSkipConfiguration(wizardData)) {
-          return 3; // Skip to Duration/Shaping choice
-        }
+        // Cast On and Bind Off skip to preview
         if (pattern === 'Cast On' && wizardData.stitchPattern.stitchCount) {
-          return 5; // Skip to preview
+          return 5; 
         }
         if (pattern === 'Bind Off') {
-          return 5; // Skip to preview
+          return 5; 
         }
-        return 3; // Go to Duration/Shaping choice
+        // Everything else goes to Duration/Shaping choice
+        return 3;
         
       case 3: // Duration/Shaping Choice
         if (wizardData.hasShaping === false) {
@@ -86,7 +89,7 @@ export const createWizardNavigator = (wizardData, currentStep) => {
   };
 
   const canProceed = () => {
-    const { category, pattern, stitchCount } = wizardData.stitchPattern;
+    const { category, pattern, stitchCount, customText, rowsInPattern } = wizardData.stitchPattern;
     const { type, value } = wizardData.duration;
     
     switch (currentStep) {
@@ -104,14 +107,21 @@ export const createWizardNavigator = (wizardData, currentStep) => {
         if (pattern === 'Bind Off') {
           return true;
         }
+        
+        // Complex patterns that need both description AND row count
         if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
-          return wizardData.stitchPattern.rowsInPattern && 
-                 parseInt(wizardData.stitchPattern.rowsInPattern) > 0;
+          return customText && customText.trim() !== '' && 
+                 rowsInPattern && parseInt(rowsInPattern) > 0;
         }
+        
         if (pattern === 'Custom pattern') {
-          return wizardData.stitchPattern.customText && 
-                 wizardData.stitchPattern.customText.trim() !== '';
+          return customText && customText.trim() !== '';
         }
+        
+        if (pattern === 'Other') {
+          return customText && customText.trim() !== '';
+        }
+        
         return true;
         
       case 3: // Duration/Shaping choice

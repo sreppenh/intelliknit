@@ -25,26 +25,11 @@ export const renderStep = (
       );
       
     case 2:
-      // Check if we should skip configuration for basic patterns
-      if (shouldSkipConfiguration(wizard.wizardData)) {
-        // Auto-advance to step 3 for basic patterns
-        setTimeout(() => wizard.navigation.goToStep(3), 0);
-        return (
-          <div className="space-y-6">
-            <div className="text-center">
-              <div className="text-4xl mb-3">🧶</div>
-              <h2 className="text-xl font-semibold text-wool-700 mb-2">
-                Setting up {wizard.wizardData.stitchPattern.pattern}...
-              </h2>
-            </div>
-          </div>
-        );
-      }
-      
       return (
         <PatternConfiguration
           wizardData={wizard.wizardData}
           updateWizardData={wizard.updateWizardData}
+          navigation={customNavigation}
         />
       );
       

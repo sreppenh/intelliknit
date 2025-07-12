@@ -54,7 +54,7 @@ const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect })
                 key={type.id}
                 onClick={() => {
                   onTypeSelect(type.id);
-                  requestAnimationFrame(() => onContinue());
+                  setTimeout(() => onContinue(), 50);
                 }}
                 className="p-3 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-102"
               >

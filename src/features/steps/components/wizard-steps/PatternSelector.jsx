@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 
 const STITCH_PATTERNS = {
   basic: { 
@@ -58,30 +58,46 @@ const STITCH_PATTERNS = {
 };
 
 export const PatternSelector = ({ wizardData, updateWizardData, navigation }) => {
+  const [isNavigating, setIsNavigating] = useState(false);
+
   const handleCategorySelect = (key) => {
-    // Clear fields that are specific to other pattern types
-    updateWizardData('stitchPattern', { 
-      category: key,
-      pattern: null,
-      customText: '',
-      rowsInPattern: '',
-      method: ''
-    });
+    if (isNavigating) return; // Prevent double clicks
     
     const category = STITCH_PATTERNS[key];
     
-    // If only one pattern option, select it and auto-advance smoothly
+    // If only one pattern option, set both category AND pattern together
     if (category.patterns.length === 1) {
-      updateWizardData('stitchPattern', { pattern: category.patterns[0].name });
-      // Use requestAnimationFrame for smoother transition
-      requestAnimationFrame(() => navigation.nextStep());
+      setIsNavigating(true);
+      // Single state update with both category and pattern
+      updateWizardData('stitchPattern', { 
+        category: key,
+        pattern: category.patterns[0].name,
+        customText: '',
+        rowsInPattern: '',
+        method: ''
+      });
+      // Shorter delay to reduce flash
+      setTimeout(() => navigation.nextStep(), 50);
+    } else {
+      // Multiple patterns - just set category (no auto-advance)
+      updateWizardData('stitchPattern', { 
+        category: key,
+        pattern: null,
+        customText: '',
+        rowsInPattern: '',
+        method: ''
+      });
     }
   };
 
   const handlePatternSelect = (pattern) => {
+    if (isNavigating) return; // Prevent double clicks
+    
+    setIsNavigating(true);
+    // Set pattern data
     updateWizardData('stitchPattern', { pattern: pattern.name });
-    // Smooth auto-advance for pattern selection
-    requestAnimationFrame(() => navigation.nextStep());
+    // Longer delay to let React update wizardData before navigation
+    setTimeout(() => navigation.nextStep(), 100);
   };
 
   const selectedCategory = wizardData?.stitchPattern?.category;
@@ -103,7 +119,12 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
             <button
               key={pattern.name}
               onClick={() => handlePatternSelect(pattern)}
-              className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+              disabled={isNavigating}
+              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
+                isNavigating 
+                  ? 'border-sage-300 bg-sage-100 text-sage-600 cursor-not-allowed'
+                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
+              }`}
             >
               <div className="text-2xl mb-2">{pattern.icon}</div>
               <div className="text-sm font-semibold mb-1">{pattern.name}</div>
@@ -115,7 +136,8 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
         {/* Back to categories option */}
         <button
           onClick={() => updateWizardData('stitchPattern', { category: null, pattern: null })}
-          className="w-full text-wool-500 text-sm py-2 hover:text-wool-700 transition-colors"
+          disabled={isNavigating}
+          className="w-full text-wool-500 text-sm py-2 hover:text-wool-700 transition-colors disabled:opacity-50"
         >
           ← Choose different category
         </button>
@@ -136,9 +158,12 @@ export const PatternSelector = ({ wizardData, updateWizardData, navigation }) =>
           <button
             key={key}
             onClick={() => handleCategorySelect(key)}
+            disabled={isNavigating}
             className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${
               selectedCategory === key
                 ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                : isNavigating
+                ? 'border-wool-300 bg-wool-100 text-wool-500 cursor-not-allowed'
                 : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
             }`}
           >
