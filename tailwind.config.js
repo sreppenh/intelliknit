@@ -28,6 +28,19 @@ module.exports = {
           500: '#6b7280',  // Secondary text, placeholders
           700: '#374151',  // Primary text, headings
           800: '#1f2937',  // Very dark text (if needed)
+        },
+        // NEW: Lavender accent color
+        lavender: {
+          50: '#faf7ff',   // Very light backgrounds
+          100: '#f3ebff',  // Light backgrounds, info states
+          200: '#e5d4ff',  // Borders, subtle accents
+          500: '#8b5dff',  // Information, cool accents
+          600: '#7c4dff',  // Active states, links
+        },
+        // Semantic colors
+        red: {
+          500: '#ef4444',
+          600: '#dc2626',
         }
       },
       fontFamily: {

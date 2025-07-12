@@ -50,7 +50,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
         </div>
 
         {/* Action Cards - 2x2 Grid */}
-        <div className="p-6 space-y-4">
+        <div className="p-6 space-y-6">
           
           {/* Top Row */}
           <div className="grid grid-cols-2 gap-4">
@@ -58,7 +58,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
             {/* Add New Project - Top Left */}
             <button
               onClick={onAddNewProject}
-              className="bg-white border-2 border-wool-200 rounded-2xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95"
+              className="bg-white border-2 border-wool-200 rounded-xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95"
             >
               <div className="text-4xl mb-3">✨</div>
               <div className="font-semibold text-base text-wool-700 mb-1">Add New Project</div>
@@ -68,7 +68,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
             {/* Continue Knitting - Top Right (Primary Action) */}
             <button
               onClick={handleContinueKnitting}
-              className="bg-gradient-to-br from-sage-500 to-sage-600 text-white rounded-2xl p-6 text-center hover:from-sage-600 hover:to-sage-700 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 shadow-md"
+              className="bg-gradient-to-br from-sage-500 to-sage-600 text-white rounded-xl p-6 text-center hover:from-sage-600 hover:to-sage-700 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 shadow-md"
             >
               <div className="text-4xl mb-3">🧶</div>
               <div className="font-semibold text-base mb-1">Continue Knitting</div>
@@ -82,7 +82,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
             {/* View Projects - Bottom Left */}
             <button
               onClick={onViewProjects}
-              className="bg-white border-2 border-wool-200 rounded-2xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95"
+              className="bg-white border-2 border-wool-200 rounded-xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95"
             >
               <div className="text-4xl mb-3">📋</div>
               <div className="font-semibold text-base text-wool-700 mb-1">View Projects</div>
@@ -92,14 +92,14 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
             {/* Notepad - Bottom Right (Placeholder) */}
             <button
               onClick={handleNotepad}
-              className="bg-white border-2 border-wool-200 rounded-2xl p-6 text-center hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 relative"
+              className="bg-white border-2 border-wool-200 rounded-xl p-6 text-center hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 relative"
             >
               <div className="text-4xl mb-3">📝</div>
               <div className="font-semibold text-base text-wool-700 mb-1">Notepad</div>
               <div className="text-xs text-wool-500">Quick notes & calculations</div>
               
               {/* Coming Soon Badge */}
-              <div className="absolute top-2 right-2 bg-yarn-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
+              <div className="absolute top-2 right-2 bg-lavender-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
                 Soon
               </div>
             </button>
