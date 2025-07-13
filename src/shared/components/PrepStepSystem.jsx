@@ -42,8 +42,8 @@ export const PrepStepOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-yarn-50 rounded-2xl shadow-xl max-w-sm w-full border-2 border-wool-200 max-h-[80vh] overflow-y-auto">
+    <div className="modal-overlay">
+      <div className="modal-content max-h-[80vh] overflow-y-auto">
         
         {/* Header */}
         <div className="bg-sage-500 text-white px-6 py-4 rounded-t-2xl">
@@ -62,7 +62,7 @@ export const PrepStepOverlay = ({
           </div>
         </div>
 
-        <div className="p-6 bg-yarn-50 space-y-6">
+        <div className="p-6 bg-yarn-50 stack-lg">
           
           {/* Note Input */}
           <div>
@@ -74,14 +74,14 @@ export const PrepStepOverlay = ({
               onChange={(e) => setNote(e.target.value)}
               placeholder={placeholder}
               rows={3}
-              className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+              className="input-field-lg resize-none"
               autoFocus
             />
           </div>
 
           {/* Examples (only show if no existing note to save space) */}
           {!hasExistingNote && (
-            <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+            <div className="success-block">
               <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Examples</h4>
               <div className="text-sm text-sage-600 space-y-1">
                 {examples.slice(0, 3).map((example, index) => (
@@ -104,7 +104,7 @@ export const PrepStepOverlay = ({
             
             <button
               onClick={onClose}
-              className="flex-1 bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+              className="flex-1 btn-tertiary"
             >
               Cancel
             </button>

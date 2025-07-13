@@ -23,7 +23,7 @@ const DurationShapingChoice = (props) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">How do you want to work this {pattern?.toLowerCase()}?</h2>
         <p className="text-wool-500 mb-4">Choose how you want to specify your pattern</p>
@@ -35,7 +35,7 @@ const DurationShapingChoice = (props) => {
         {/* Set Duration Button */}
         <button
           onClick={handleDurationChoice}
-          className={`p-6 border-2 rounded-xl transition-all duration-200 text-left ${
+          className={`card-selectable p-6 text-left ${
             wizardData.hasShaping === false && wizardData.choiceMade
               ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-lg transform scale-[1.02]'
               : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.01]'
@@ -60,7 +60,7 @@ const DurationShapingChoice = (props) => {
         {/* Add Shaping Button */}
         <button
           onClick={handleShapingChoice}
-          className={`p-6 border-2 rounded-xl transition-all duration-200 text-left relative ${
+          className={`card-selectable p-6 text-left relative ${
             wizardData.hasShaping === true && wizardData.choiceMade
               ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-lg transform scale-[1.02]'
               : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-md hover:transform hover:scale-[1.01]'
@@ -82,14 +82,14 @@ const DurationShapingChoice = (props) => {
           </div>
           
           {/* Coming Soon Badge */}
-          <div className="absolute top-3 right-3 bg-yarn-600 text-white text-xs px-2 py-1 rounded-full font-semibold">
+          <div className="absolute top-3 right-3 badge badge-next-step">
             Coming Soon
           </div>
         </button>
       </div>
 
       {/* Info Section */}
-      <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+      <div className="success-block">
         <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Quick Guide</h4>
         <div className="text-sm text-sage-600 space-y-1">
           <div>• <strong>Set Duration:</strong> Perfect for straightforward sections like "work stockinette for 6 inches"</div>

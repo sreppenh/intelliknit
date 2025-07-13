@@ -78,7 +78,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
                 value={projectData.name}
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="e.g., Mom's Birthday Sweater"
-                className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                className="input-field"
               />
             </div>
 
@@ -92,7 +92,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
                 value={projectData.size}
                 onChange={(e) => handleInputChange('size', e.target.value)}
                 placeholder="e.g., Medium, 36 inches"
-                className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                className="input-field"
               />
             </div>
 
@@ -142,7 +142,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
             <div className="flex gap-3">
               <button
                 onClick={onBack}
-                className="flex-1 bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+                className="flex-1 btn-tertiary"
               >
                 Back
               </button>

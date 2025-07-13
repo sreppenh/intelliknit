@@ -13,7 +13,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       {/* Pattern Description - For Lace, Cable, Colorwork patterns */}
       {needsDescription && (
         <div>
@@ -25,7 +25,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
             onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
             placeholder={`Describe your ${wizardData.stitchPattern.pattern.toLowerCase()}...`}
             rows={3}
-            className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+            className="input-field-lg resize-none"
           />
           <p className="text-xs text-wool-500 mt-2">
             Describe the pattern sequence, special techniques, or any important notes
@@ -44,7 +44,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
             onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
             placeholder="e.g., '5 rows stockinette, 1 bobble row'"
             rows={3}
-            className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+            className="input-field-lg resize-none"
           />
         </div>
       )}
@@ -102,7 +102,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
             onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
             placeholder="Describe your stitch pattern..."
             rows={3}
-            className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+            className="input-field-lg resize-none"
           />
         </div>
       )}

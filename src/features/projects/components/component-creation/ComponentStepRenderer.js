@@ -3,7 +3,7 @@ import { COMPONENT_STEPS, getMethodsForStartType } from './ComponentSteps';
 
 // Step 1: Component Name
 export const renderNameStep = (componentData, setComponentData) => (
-  <div className="space-y-6">
+  <div className="stack-lg">
     <div>
       <h2 className="text-xl font-semibold text-wool-700 mb-3">Component Name</h2>
       <p className="text-wool-500 mb-4">What component are you adding?</p>
@@ -22,7 +22,7 @@ export const renderNameStep = (componentData, setComponentData) => (
       />
     </div>
 
-    <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+    <div className="success-block">
       <h3 className="text-sm font-semibold text-sage-700 mb-2">💡 Examples:</h3>
       <div className="text-sm text-sage-600 space-y-1">
         <div>• Left Sleeve, Right Sleeve</div>
@@ -35,7 +35,7 @@ export const renderNameStep = (componentData, setComponentData) => (
 
 // Step 2: Start Type Selection
 export const renderStartTypeStep = (componentData, handleStartTypeSelect) => (
-  <div className="space-y-6">
+  <div className="stack-lg">
     <div>
       <h2 className="text-xl font-semibold text-wool-700 mb-3">How does it start?</h2>
       <p className="text-wool-500 mb-4">Choose how you begin this component</p>
@@ -44,7 +44,7 @@ export const renderStartTypeStep = (componentData, handleStartTypeSelect) => (
     <div className="grid grid-cols-2 gap-3">
       <button
         onClick={() => handleStartTypeSelect('cast_on')}
-        className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+        className="card-selectable"
       >
         <div className="text-2xl mb-2">🏗️</div>
         <div className="font-semibold text-sm">Cast On</div>
@@ -53,7 +53,7 @@ export const renderStartTypeStep = (componentData, handleStartTypeSelect) => (
 
       <button
         onClick={() => handleStartTypeSelect('pick_up')}
-        className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+        className="card-selectable"
       >
         <div className="text-2xl mb-2">📌</div>
         <div className="font-semibold text-sm">Pick Up</div>
@@ -62,7 +62,7 @@ export const renderStartTypeStep = (componentData, handleStartTypeSelect) => (
 
       <button
         onClick={() => handleStartTypeSelect('continue')}
-        className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+        className="card-selectable"
       >
         <div className="text-2xl mb-2">↗️</div>
         <div className="font-semibold text-sm">Continue</div>
@@ -71,7 +71,7 @@ export const renderStartTypeStep = (componentData, handleStartTypeSelect) => (
 
       <button
         onClick={() => handleStartTypeSelect('other')}
-        className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+        className="card-selectable"
       >
         <div className="text-2xl mb-2">📝</div>
         <div className="font-semibold text-sm">Other</div>
@@ -83,7 +83,7 @@ export const renderStartTypeStep = (componentData, handleStartTypeSelect) => (
 
 // Step 3: Method Selection
 export const renderMethodStep = (componentData, handleMethodSelect) => (
-  <div className="space-y-6">
+  <div className="stack-lg">
     <div>
       <h2 className="text-xl font-semibold text-wool-700 mb-3">
         {componentData.startType === 'cast_on' && 'Cast On Method'}
@@ -99,7 +99,7 @@ export const renderMethodStep = (componentData, handleMethodSelect) => (
         <button
           key={method.id}
           onClick={() => handleMethodSelect(method.id)}
-          className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+          className="card-selectable"
         >
           <div className="text-2xl mb-2">{method.icon}</div>
           <div className="font-semibold text-sm mb-1">{method.name}</div>
@@ -216,7 +216,7 @@ export const renderDetailsStep = (componentData, setComponentData) => {
   const fieldConfig = getFieldsForType();
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">{fieldConfig.title}</h2>
         <p className="text-wool-500 mb-4">{fieldConfig.subtitle}</p>

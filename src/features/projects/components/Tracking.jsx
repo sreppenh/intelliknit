@@ -89,7 +89,7 @@ const Tracking = ({ onBack, onEditSteps }) => {
                 </div>
               </div>
               
-              <div className="space-y-3">
+              <div className="stack-sm">
                 {activeComponent.steps.map((step, stepIndex) => {
                   const isCurrentStep = stepIndex === activeComponent.currentStep;
                   const isCompleted = step.completed;

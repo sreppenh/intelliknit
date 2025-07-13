@@ -2,7 +2,7 @@ import React from 'react';
 
 const OtherEndingConfig = ({ endingData, setEndingData }) => {
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">Describe Your Ending</h2>
         <p className="text-wool-500 mb-4">What happens to complete this component?</p>
@@ -17,7 +17,7 @@ const OtherEndingConfig = ({ endingData, setEndingData }) => {
           onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
           placeholder="Describe how this component ends..."
           rows={4}
-          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+          className="input-field-lg resize-none"
         />
       </div>
 

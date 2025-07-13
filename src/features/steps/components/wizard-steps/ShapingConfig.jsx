@@ -2,7 +2,7 @@ import React from 'react';
 
 const ShapingConfig = ({ wizardData, updateWizardData }) => {
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-lg font-semibold text-gray-800 mb-3">Configure Shaping</h2>
         <p className="text-sm text-gray-600 mb-4">Set up your shaping details</p>
@@ -90,7 +90,7 @@ const ShapingConfig = ({ wizardData, updateWizardData }) => {
             </div>
 
             {/* Frequency and Times */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid-2-equal">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Every Nth Row
@@ -159,7 +159,7 @@ const ShapingConfig = ({ wizardData, updateWizardData }) => {
             </div>
 
             {/* Raglan Frequency */}
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid-2-equal">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-2">
                   Every Nth Row

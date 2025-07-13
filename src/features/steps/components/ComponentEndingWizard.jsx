@@ -170,7 +170,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
               </div>
             </div>
 
-            <div className="p-6 bg-yarn-50 space-y-6 relative">
+            <div className="p-6 bg-yarn-50 stack-lg relative">
               
               {/* Prep Note Button */}
               <PrepStepButton 
@@ -225,7 +225,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             </div>
           </div>
 
-          <div className="p-6 bg-yarn-50 space-y-6 relative">
+          <div className="p-6 bg-yarn-50 stack-lg relative">
             
             {/* Prep Note Button */}
             <PrepStepButton 

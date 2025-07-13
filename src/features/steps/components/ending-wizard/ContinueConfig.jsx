@@ -2,7 +2,7 @@ import React from 'react';
 
 const ContinueConfig = ({ endingData, setEndingData }) => {
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">Continue To What?</h2>
         <p className="text-wool-500 mb-4">Describe what section comes next</p>
@@ -22,7 +22,7 @@ const ContinueConfig = ({ endingData, setEndingData }) => {
       </div>
 
       {/* Helpful examples */}
-      <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+      <div className="success-block">
         <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Examples</h4>
         <div className="text-sm text-sage-600 space-y-1">
           <div>• Sleeve decreases for armhole shaping</div>

@@ -6,8 +6,8 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
   // Skip duration for Cast On (already configured)
   if (pattern === 'Cast On') {
     return (
-      <div className="space-y-6">
-        <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4 text-center">
+      <div className="stack-lg">
+        <div className="success-block text-center">
           <div className="text-2xl mb-2">🏗️</div>
           <h3 className="text-lg font-semibold text-sage-700 mb-2">Cast On Ready!</h3>
           <p className="text-sm text-sage-600">Your cast on step is ready to add</p>
@@ -39,7 +39,7 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
     : null;
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">How Long?</h2>
         <p className="text-wool-500 mb-4">Choose how you want to work this {pattern?.toLowerCase()}</p>
@@ -48,7 +48,7 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
       {/* Bind Off - Special case */}
       {pattern === 'Bind Off' ? (
         <div className="space-y-4">
-          <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+          <div className="success-block">
             <div className="text-center">
               <div className="text-2xl mb-2">✂️</div>
               <h3 className="text-lg font-semibold text-sage-700 mb-2">Bind Off Stitches</h3>
@@ -146,7 +146,7 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
                 </div>
                 
                 {wizardData.duration.type === 'length' && (
-                  <div className="mt-3 space-y-3">
+                  <div className="mt-3 stack-sm">
                     <div className="flex items-center gap-2">
                       <input
                         type="number"
@@ -210,7 +210,7 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
                 </div>
                 
                 {wizardData.duration.type === 'until_length' && (
-                  <div className="mt-3 space-y-3">
+                  <div className="mt-3 stack-sm">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-sage-700">Work until piece measures</span>
                       <input

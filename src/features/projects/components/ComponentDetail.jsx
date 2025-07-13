@@ -85,7 +85,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
             {/* Enhanced component info */}
             {component.startingStitches && (
               <div className="bg-sage-50 rounded-lg p-3 border border-sage-200 mb-4">
-                <div className="grid grid-cols-2 gap-4 text-sm">
+                <div className="grid-2-equal text-sm">
                   <div>
                     <div className="font-semibold text-sage-700">Starting</div>
                     <div className="text-sage-600">{component.startingStitches} stitches</div>
@@ -103,7 +103,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
             )}
 
             {/* Progress Overview */}
-            <div className="space-y-3">
+            <div className="stack-sm">
               <div className="flex justify-between items-center">
                 <span className="text-wool-600 font-medium">Progress</span>
                 <span className="text-wool-500 text-sm">
@@ -137,13 +137,13 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
           <div className="space-y-4">
             
             {/* Primary Actions */}
-            <div className="space-y-3">
+            <div className="stack-sm">
               <h3 className="text-lg font-semibold text-wool-700">Actions</h3>
               
               {/* Manage Steps - yarn orange for exciting action */}
               <button
                 onClick={() => onManageSteps(componentIndex)}
-                className="w-full bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 transition-colors shadow-sm flex items-center justify-center gap-2"
+                className="w-full btn-secondary flex items-center justify-center gap-2"
               >
                 <span className="text-lg">📝</span>
                 {component.steps.length === 0 ? 'Add Steps' : 'Manage Steps'}
@@ -153,7 +153,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
               {component.steps.length > 0 && (
                 <button
                   onClick={() => onStartKnitting(componentIndex)}
-                  className="w-full bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 transition-colors shadow-sm flex items-center justify-center gap-2"
+                  className="w-full btn-primary flex items-center justify-center gap-2"
                 >
                   <span className="text-lg">🧶</span>
                   {component.steps.filter(s => s.completed).length === 0 ? 'Start Knitting' : 'Continue Knitting'}
@@ -165,11 +165,11 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
             <div className="pt-4 border-t border-wool-200">
               <h4 className="text-sm font-semibold text-wool-600 mb-3">More Options</h4>
               
-              <div className="space-y-3">
+              <div className="stack-sm">
                 {/* Copy Component */}
                 <button
                   onClick={handleCopyComponent}
-                  className="w-full bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200 flex items-center justify-center gap-2"
+                  className="w-full btn-tertiary flex items-center justify-center gap-2"
                 >
                   <span>📋</span>
                   Copy Component
@@ -200,8 +200,8 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-yarn-50 rounded-2xl shadow-xl max-w-sm w-full border-2 border-wool-200">
+          <div className="modal-overlay">
+            <div className="modal-content">
               
               <div className="bg-red-500 text-white px-6 py-4 rounded-t-2xl">
                 <div className="text-center">
@@ -221,7 +221,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                   </p>
                 </div>
 
-                <div className="space-y-3">
+                <div className="stack-sm">
                   <button
                     onClick={handleDeleteComponent}
                     className="w-full btn-danger"

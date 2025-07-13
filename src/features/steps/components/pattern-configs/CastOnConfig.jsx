@@ -45,7 +45,7 @@ const CastOnConfig = ({ wizardData, updateWizardData }) => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h3 className="text-lg font-semibold text-wool-700 mb-3">Cast On Method</h3>
         <p className="text-wool-500 mb-4">Choose your preferred cast on technique</p>
@@ -107,7 +107,7 @@ const CastOnConfig = ({ wizardData, updateWizardData }) => {
       )}
 
       {/* Helpful Info */}
-      <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+      <div className="success-block">
         <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Cast On Tips</h4>
         <div className="text-sm text-sage-600 space-y-1">
           <div>• <strong>Long Tail:</strong> Most versatile, good for most projects</div>

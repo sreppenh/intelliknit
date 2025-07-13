@@ -39,7 +39,7 @@ const AttachmentConfig = ({ endingData, setEndingData }) => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">Attachment Details</h2>
         <p className="text-wool-500 mb-4">Choose method and target component</p>
@@ -48,7 +48,7 @@ const AttachmentConfig = ({ endingData, setEndingData }) => {
       {/* Attachment Method - Oval Radio List */}
       <div>
         <h3 className="text-sm font-semibold text-wool-700 mb-3 text-left">Attachment Method</h3>
-        <div className="space-y-3">
+        <div className="stack-sm">
           {methods.map((method) => (
             <label 
               key={method.id}

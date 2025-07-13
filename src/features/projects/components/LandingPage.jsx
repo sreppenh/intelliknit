@@ -53,7 +53,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
         <div className="p-6 space-y-4">
           
           {/* Top Row */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid-2-equal">
             
             {/* Add New Project - Top Left */}
             <button
@@ -77,12 +77,12 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
           </div>
 
           {/* Bottom Row */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid-2-equal">
             
             {/* View Projects - Bottom Left */}
             <button
               onClick={onViewProjects}
-              className="bg-white border-2 border-wool-200 rounded-xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95"
+              className="card-interactive"
             >
               <div className="text-4xl mb-3">📋</div>
               <div className="font-semibold text-base text-wool-700 mb-1">View Projects</div>
@@ -92,14 +92,14 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
             {/* Notepad - Bottom Right (Placeholder) */}
             <button
               onClick={handleNotepad}
-              className="bg-white border-2 border-wool-200 rounded-xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 relative"
+              className="card-interactive relative"
             >
               <div className="text-4xl mb-3">📝</div>
               <div className="font-semibold text-base text-wool-700 mb-1">Notepad</div>
               <div className="text-xs text-wool-500">Quick notes & calculations</div>
               
               {/* Coming Soon Badge */}
-              <div className="absolute top-2 right-2 bg-lavender-500 text-white text-xs px-2 py-1 rounded-full font-semibold">
+              <div className="absolute top-2 right-2 badge badge-coming-soon">
                 Soon
               </div>
             </button>

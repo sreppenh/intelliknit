@@ -168,7 +168,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               </div>
             </div>
 
-            <div className="p-6 bg-yarn-50 space-y-6 relative">
+            <div className="p-6 bg-yarn-50 stack-lg relative">
               
               {/* Prep Note Button */}
               <PrepStepButton 
@@ -331,7 +331,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             </div>
           </div>
 
-          <div className="p-6 bg-yarn-50 space-y-6 relative">
+          <div className="p-6 bg-yarn-50 stack-lg relative">
             
             {/* Prep Note Button */}
             <PrepStepButton 
@@ -344,7 +344,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             />
             
             {/* Summary */}
-            <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+            <div className="success-block">
               <div className="text-sm text-sage-700">
                 <div className="font-semibold mb-1">{componentData.name}</div>
                 <div className="opacity-75">

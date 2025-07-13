@@ -188,7 +188,7 @@ export const PatternSelector = ({
               <button
                 key={pattern.name}
                 onClick={() => handleAdvancedPatternSelect(pattern)}
-                className="p-4 border-2 rounded-xl transition-all duration-200 text-center border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+                className="card-selectable"
               >
                 <div className="text-2xl mb-2">{pattern.icon}</div>
                 <div className="text-sm font-semibold mb-1">{pattern.name}</div>

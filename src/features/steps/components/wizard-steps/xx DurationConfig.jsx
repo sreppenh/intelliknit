@@ -9,7 +9,7 @@ const DurationConfig = ({ wizardData, updateWizardData }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">How Long?</h2>
         <p className="text-wool-500 mb-4">Choose how you want to specify the duration</p>
@@ -17,8 +17,8 @@ const DurationConfig = ({ wizardData, updateWizardData }) => {
 
       {/* Bind Off - Special case */}
       {wizardData.stitchPattern.pattern === 'Bind Off' ? (
-        <div className="space-y-6">
-          <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+        <div className="stack-lg">
+          <div className="success-block">
             <div className="text-center">
               <div className="text-2xl mb-2">✂️</div>
               <h3 className="text-lg font-semibold text-sage-700 mb-2">Bind Off Stitches</h3>
@@ -44,7 +44,7 @@ const DurationConfig = ({ wizardData, updateWizardData }) => {
         </div>
       ) : (
         /* Normal Duration Selection */
-        <div className="space-y-6">
+        <div className="stack-lg">
           {/* Duration Type Selection - Visual Cards */}
           <div className="grid grid-cols-2 gap-3">
             {/* Rows Option */}

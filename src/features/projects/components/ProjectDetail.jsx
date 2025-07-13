@@ -260,7 +260,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
         </div>
 
         <div className="p-6 bg-yarn-50">
-          <div className="space-y-6">
+          <div className="stack-lg">
             
             {/* Project Overview Section */}
             <ProjectOverview 
@@ -271,7 +271,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
             <h2 className="text-xl font-semibold text-wool-700 text-left">Components</h2>
             
             {/* Components section */}
-            <div className="space-y-6">
+            <div className="stack-lg">
               {currentProject.components.length === 0 ? (
                 /* Empty state */
                 <div className="py-12 text-center bg-white rounded-xl border-2 border-wool-200 shadow-sm">

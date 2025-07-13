@@ -43,7 +43,7 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
           </div>
         </div>
 
-        <div className="p-6 bg-yarn-50 space-y-6">
+        <div className="p-6 bg-yarn-50 stack-lg">
           
           {/* Celebration Header */}
           <div className="text-center">
@@ -60,7 +60,7 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
               <p className="text-sage-600 text-sm">{getStartTypeDisplay(component.startType)}</p>
             </div>
 
-            <div className="bg-white bg-opacity-50 rounded-lg p-4 space-y-3">
+            <div className="bg-white bg-opacity-50 rounded-lg p-4 stack-sm">
               
               <div className="flex items-center justify-between">
                 <span className="text-sm text-wool-600">Starting Stitches:</span>
@@ -83,7 +83,7 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
           </div>
 
           {/* Actions */}
-          <div className="space-y-3">
+          <div className="stack-sm">
             
             <button
               onClick={onAddSteps}
@@ -104,7 +104,7 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
 
             <button
               onClick={onClose}
-              className="w-full bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+              className="w-full btn-tertiary"
             >
               Done for Now
             </button>

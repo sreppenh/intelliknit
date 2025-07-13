@@ -139,10 +139,10 @@ export const ErrorFallback = ({ error, resetError }) => (
           </details>
         </div>
 
-        <div className="space-y-3">
+        <div className="stack-sm">
           <button
             onClick={resetError}
-            className="w-full bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 transition-colors shadow-sm"
+            className="w-full btn-primary"
           >
             Try Again
           </button>

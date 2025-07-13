@@ -15,7 +15,7 @@ const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
   // Show success message for "Put on Holder"
   if (showHolderSuccess) {
     return (
-      <div className="space-y-6">
+      <div className="stack-lg">
         <div className="text-center">
           <div className="text-4xl mb-4">✅</div>
           <h2 className="text-xl font-semibold text-sage-700 mb-2">Stitches on Holder!</h2>
@@ -24,7 +24,7 @@ const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
           </p>
         </div>
         
-        <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+        <div className="success-block">
           <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 What's Next?</h4>
           <div className="text-sm text-sage-600">
             These stitches are ready to be picked up later for seaming, grafting, or continuing the pattern.
@@ -35,7 +35,7 @@ const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <div className="text-center mb-6">
           <div className="text-2xl mb-2">🏁</div>
@@ -49,7 +49,7 @@ const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
       </div>
       
       {/* Clickable cards - Clean 4 options */}
-      <div className="space-y-3">
+      <div className="stack-sm">
         
         {/* Bind Off All Stitches - Most common, show stitch count */}
         <button

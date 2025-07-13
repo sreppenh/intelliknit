@@ -21,7 +21,7 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
   };
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       {/* Celebration Header */}
       <div className="text-center">
         <div className="text-3xl mb-2">🎉</div>
@@ -64,7 +64,7 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
       </div>
 
       {/* Action Buttons - Prioritized */}
-      <div className="space-y-3">
+      <div className="stack-sm">
         
         {/* Primary Action - Add Another (Most Common) */}
         <button
@@ -88,7 +88,7 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
           
           <button
             onClick={onBack}
-            className="bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200 flex items-center justify-center gap-2"
+            className="btn-tertiary flex items-center justify-center gap-2"
           >
             <span className="text-lg">📋</span>
             <span>View All Steps</span>

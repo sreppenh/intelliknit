@@ -176,7 +176,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
     switch (currentStepKey) {
       case 'pattern-selection':
         return (
-          <div className="space-y-6">
+          <div className="stack-lg">
             <div>
               <h2 className="text-xl font-semibold text-wool-700 mb-3">Choose Pattern</h2>
               <p className="text-wool-500 mb-4">Select your specific {category.name.toLowerCase()} pattern</p>
@@ -204,7 +204,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
 
       case 'cast-on-config':
         return (
-          <div className="space-y-6">
+          <div className="stack-lg">
             <div>
               <h2 className="text-xl font-semibold text-wool-700 mb-3">Cast On Setup</h2>
               <p className="text-wool-500 mb-4">Configure your cast on method and stitch count</p>
@@ -218,7 +218,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
 
       case 'bind-off-config':
         return (
-          <div className="space-y-6">
+          <div className="stack-lg">
             <div>
               <h2 className="text-xl font-semibold text-wool-700 mb-3">Bind Off Setup</h2>
               <p className="text-wool-500 mb-4">Choose how to finish these stitches</p>
@@ -232,7 +232,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
 
       case 'custom-definition':
         return (
-          <div className="space-y-6">
+          <div className="stack-lg">
             <div>
               <h2 className="text-xl font-semibold text-wool-700 mb-3">Define Your Pattern</h2>
               <p className="text-wool-500 mb-4">Describe your custom pattern with any repeats or special instructions</p>
@@ -247,7 +247,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
                 onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
                 placeholder="e.g., 4 rows stockinette, 2 rows garter, repeat"
                 rows={3}
-                className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+                className="input-field-lg resize-none"
               />
             </div>
 
@@ -281,7 +281,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
 
       case 'pattern-config':
         return (
-          <div className="space-y-6">
+          <div className="stack-lg">
             <div>
               <h2 className="text-xl font-semibold text-wool-700 mb-3">Pattern Details</h2>
               <p className="text-wool-500 mb-4">Configure your {currentPattern}</p>
@@ -296,7 +296,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
 
       case 'duration-choice':
         return (
-          <div className="space-y-6">
+          <div className="stack-lg">
             <div>
               <h2 className="text-xl font-semibold text-wool-700 mb-3">How Long?</h2>
               <p className="text-wool-500 mb-4">Choose how you want to work this pattern</p>
@@ -304,7 +304,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
 
             {/* Show repeat option only if pattern has repeats */}
             {wizardData.stitchPattern.rowsInPattern && parseInt(wizardData.stitchPattern.rowsInPattern) > 0 && (
-              <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4 mb-4">
+              <div className="success-block mb-4">
                 <h4 className="text-sm font-semibold text-sage-700 mb-2">🔄 Pattern Repeat Detected</h4>
                 <p className="text-sm text-sage-600">
                   This pattern has a {wizardData.stitchPattern.rowsInPattern}-row repeat. 
@@ -355,7 +355,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
   };
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       {renderCurrentStep()}
     </div>
   );

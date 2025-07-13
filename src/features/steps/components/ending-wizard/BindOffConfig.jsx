@@ -35,7 +35,7 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">Bind Off Method</h2>
         <p className="text-wool-500 mb-4">
@@ -47,7 +47,7 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
       </div>
 
       {/* Smart Stitch Count Display/Input */}
-      <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
+      <div className="success-block">
         <div className="flex items-center justify-between mb-3">
           <div>
             <h3 className="text-sm font-semibold text-sage-700">Stitches to Bind Off</h3>

@@ -39,7 +39,7 @@ const BindOffConfig = ({ wizardData, updateWizardData }) => {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="stack-lg">
       <div>
         <h3 className="text-lg font-semibold text-wool-700 mb-3">Bind Off Method</h3>
         <p className="text-wool-500 mb-4">How do you want to finish these stitches?</p>

@@ -228,7 +228,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                 </span>
               </div>
               
-              <div className="space-y-3">
+              <div className="stack-sm">
                 {getSortedProjects().map((project, index) => {
                   const isTopProject = index === 0 && projects.length > 1;
                   const status = getProjectStatus(project);
@@ -364,7 +364,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                               e.stopPropagation();
                               handleProjectEdit(project);
                             }}
-                            className="w-full bg-wool-100 text-wool-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200 flex items-center justify-center gap-2"
+                            className="w-full btn-tertiary flex items-center justify-center gap-2"
                           >
                             <span className="text-lg">📝</span>
                             Plan Project

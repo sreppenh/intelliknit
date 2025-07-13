@@ -304,7 +304,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           </div>
         </div>
 
-        <div className="p-6 bg-yarn-50 space-y-6">
+        <div className="p-6 bg-yarn-50 stack-lg">
           {/* Component Summary */}
           <div className="bg-wool-100 border border-wool-200 rounded-lg p-3">
             <div className="flex items-center justify-between">
@@ -327,7 +327,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
           {/* Steps List */}
           {component.steps.length > 0 ? (
-            <div className="space-y-3">
+            <div className="stack-sm">
               <div className="flex justify-between items-center">
                 <h3 className="text-lg font-semibold text-wool-700">Pattern Steps</h3>
                 <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
