@@ -56,6 +56,29 @@
   @apply bg-white border-2 border-wool-200 rounded-xl p-3 shadow-sm;
 }
 
+/* NEW: Interactive card patterns you actually use */
+.card-interactive {
+  @apply bg-white border-2 border-wool-200 rounded-xl p-6 text-center transition-all duration-200;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02];
+  @apply active:scale-95 cursor-pointer;
+}
+
+.card-selectable {
+  @apply border-2 rounded-xl p-4 transition-all duration-200 text-center cursor-pointer;
+  @apply border-wool-200 bg-white text-wool-700;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm;
+}
+
+.card-selectable-selected {
+  @apply border-sage-500 bg-sage-100 text-sage-700 shadow-sm;
+}
+
+.card-pattern-option {
+  @apply border border-wool-200 rounded-lg p-3 transition-all duration-200 text-center;
+  @apply bg-wool-50 text-wool-700;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm;
+}
+
 /* ===== Form Elements ===== */
 .input-field {
   @apply w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base;
@@ -67,6 +90,20 @@
   @apply w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base;
   @apply focus:border-sage-500 focus:ring-0 transition-colors;
   @apply placeholder-wool-400 bg-white;
+}
+
+/* NEW: Segmented control (for your units selector) */
+.segmented-control {
+  @apply bg-wool-100 border-2 border-wool-200 rounded-xl p-1;
+}
+
+.segmented-option {
+  @apply py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200;
+  @apply text-wool-600 hover:text-sage-600;
+}
+
+.segmented-option-active {
+  @apply bg-sage-500 text-white shadow-sm;
 }
 
 /* ===== Transition Utilities ===== */
@@ -89,6 +126,29 @@
 
 .success-block {
   @apply bg-sage-100 border-2 border-sage-200 rounded-xl p-4;
+}
+
+/* NEW: Warning and note blocks */
+.warning-block {
+  @apply bg-wool-100 border border-wool-200 rounded-lg p-3;
+}
+
+.help-block {
+  @apply bg-sage-100 border border-sage-200 rounded-lg p-3;
+}
+
+/* ===== Layout Patterns ===== */
+.grid-2-equal {
+  @apply grid grid-cols-2 gap-4;
+}
+
+.grid-3-equal {
+  @apply grid grid-cols-3 gap-3;
+}
+
+.grid-auto-fit {
+  @apply grid gap-3;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
 }
 
 /* ===== Header Styles ===== */
@@ -114,7 +174,7 @@
 }
 
 .progress-fill-yarn {
-  @apply bg-yarn-500 h-2 rounded-full transition-all duration-300;
+  @apply bg-yarn-600 h-2 rounded-full transition-all duration-300;
 }
 
 /* ===== Modal Overlays ===== */
@@ -142,4 +202,21 @@
 /* ===== Focus States ===== */
 .focus-ring {
   @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
+}
+
+/* ===== Badge System ===== */
+.badge {
+  @apply text-xs px-2 py-1 rounded-full font-semibold;
+}
+
+.badge-coming-soon {
+  @apply bg-lavender-500 text-white;
+}
+
+.badge-next-step {
+  @apply bg-yarn-500 text-white;
+}
+
+.badge-success {
+  @apply bg-sage-500 text-white;
 }

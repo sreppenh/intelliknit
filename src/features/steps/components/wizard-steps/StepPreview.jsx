@@ -69,7 +69,7 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
         {/* Primary Action - Add Another (Most Common) */}
         <button
           onClick={onAddStepAndContinue}
-          className="w-full bg-yarn-600 text-white py-4 px-6 rounded-2xl font-semibold text-lg hover:bg-yarn-700 transition-all duration-200 shadow-md hover:shadow-lg hover:transform hover:scale-[1.02] flex items-center justify-center gap-3"
+          className="w-full btn-secondary btn-lg flex items-center justify-center gap-3"
         >
           <span className="text-xl">➕</span>
           <span>Add Another Step</span>

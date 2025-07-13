@@ -75,7 +75,7 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
   return (
     <div 
       onClick={handleCardClick}
-      className={`border-2 rounded-xl p-3 cursor-pointer transition-all duration-200 hover:shadow-md hover:transform hover:scale-105 relative ${stateConfig.color}`}
+      className={`card-compact cursor-pointer transition-all duration-200 hover:shadow-md hover:transform hover:scale-105 relative ${stateConfig.color}`}
     >
       {/* Header with name and menu */}
       <div className="flex items-start justify-between mb-2">

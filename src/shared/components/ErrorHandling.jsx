@@ -149,7 +149,7 @@ export const ErrorFallback = ({ error, resetError }) => (
           
           <button
             onClick={() => window.location.reload()}
-            className="w-full bg-wool-100 text-wool-700 py-3 px-6 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+            className="w-full btn-tertiary"
           >
             Refresh Page
           </button>

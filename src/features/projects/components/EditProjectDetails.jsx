@@ -25,7 +25,7 @@ const EditProjectDetails = ({ onBack }) => {
           <h3 className="text-lg font-medium text-wool-600 mb-2">No project selected</h3>
           <button 
             onClick={onBack}
-            className="bg-sage-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-sage-600 transition-colors"
+            className="btn-primary btn-sm"
           >
             Go Back
           </button>
@@ -344,7 +344,7 @@ const EditProjectDetails = ({ onBack }) => {
             <div className="flex gap-3">
               <button
                 onClick={onBack}
-                className="flex-1 bg-wool-100 text-wool-700 py-4 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+                className="flex-1 btn-tertiary"
               >
                 Cancel
               </button>

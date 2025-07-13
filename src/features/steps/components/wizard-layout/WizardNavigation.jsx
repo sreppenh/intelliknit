@@ -14,7 +14,7 @@ const WizardNavigation = ({ wizard, onBack }) => {
         {/* Back button - smaller, 1/3 width */}
         <button
           onClick={onBack}
-          className="flex-1 bg-wool-100 text-wool-700 py-4 px-4 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+          className="flex-1 btn-tertiary"
         >
           ← Back
         </button>
@@ -23,7 +23,7 @@ const WizardNavigation = ({ wizard, onBack }) => {
         <button
           onClick={wizard.navigation.nextStep}
           disabled={!wizard.navigation.canProceed()}
-          className="flex-2 bg-sage-500 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
+          className="flex-2 btn-primary"
           style={{flexGrow: 2}}
         >
           {getButtonText()}

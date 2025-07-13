@@ -43,7 +43,7 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
             {/* Tertiary action - Close */}
             <button
               onClick={onClose}
-              className="w-full bg-wool-100 text-wool-700 py-3 px-6 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+              className="w-full btn-tertiary"
             >
               Close
             </button>

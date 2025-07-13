@@ -19,7 +19,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           <h3 className="text-lg font-medium text-wool-600 mb-2">Component not found</h3>
           <button 
             onClick={onBack}
-            className="bg-sage-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-sage-600 transition-colors"
+            className="btn-primary btn-sm"
           >
             Go Back
           </button>

@@ -13,7 +13,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
           <h3 className="text-lg font-medium text-wool-600 mb-2">Component not found</h3>
           <button 
             onClick={onBack}
-            className="bg-sage-500 text-white px-4 py-2 rounded-lg font-medium hover:bg-sage-600 transition-colors"
+            className="btn-primary btn-sm"
           >
             Go Back
           </button>
@@ -224,14 +224,14 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                 <div className="space-y-3">
                   <button
                     onClick={handleDeleteComponent}
-                    className="w-full bg-red-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-red-700 transition-colors shadow-sm"
+                    className="w-full btn-danger"
                   >
                     Yes, Delete Component
                   </button>
                   
                   <button
                     onClick={() => setShowDeleteModal(false)}
-                    className="w-full bg-wool-100 text-wool-700 py-3 px-6 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
+                    className="w-full btn-tertiary"
                   >
                     Cancel
                   </button>

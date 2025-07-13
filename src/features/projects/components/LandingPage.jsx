@@ -50,7 +50,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
         </div>
 
         {/* Action Cards - 2x2 Grid */}
-        <div className="p-6 space-y-6">
+        <div className="p-6 space-y-4">
           
           {/* Top Row */}
           <div className="grid grid-cols-2 gap-4">
@@ -58,7 +58,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
             {/* Add New Project - Top Left */}
             <button
               onClick={onAddNewProject}
-              className="bg-white border-2 border-wool-200 rounded-xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95"
+              className="bg-white border-2 border-wool-200 rounded-2xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95"
             >
               <div className="text-4xl mb-3">✨</div>
               <div className="font-semibold text-base text-wool-700 mb-1">Add New Project</div>
@@ -92,7 +92,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
             {/* Notepad - Bottom Right (Placeholder) */}
             <button
               onClick={handleNotepad}
-              className="bg-white border-2 border-wool-200 rounded-xl p-6 text-center hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 relative"
+              className="bg-white border-2 border-wool-200 rounded-xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 relative"
             >
               <div className="text-4xl mb-3">📝</div>
               <div className="font-semibold text-base text-wool-700 mb-1">Notepad</div>
