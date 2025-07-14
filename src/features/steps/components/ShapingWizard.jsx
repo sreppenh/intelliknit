@@ -22,6 +22,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
   };
 
   const handleConfigComplete = (config) => {
+     console.log('Saving config:', config);  // Add this line
     // Update wizard data with shaping configuration
     updateWizardData('shapingConfig', {
       type: shapingData.type,
@@ -36,20 +37,17 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
 
   // Create a wizard-like object for the header - include ALL required functions
   const shapingWizard = {
-    wizardStep: 0, // Set to 0 to hide step progress
-    wizardData: {
-      ...wizardData,
-      isShapingWizard: true
-    },
-    construction,
-    currentStitches,
-    component,
-    setConstruction,
-    updateWizardData, // Add the missing function!
-    navigation: {
-      goToStep: (step) => setStep(step)
-    }
-  };
+  wizardStep: step,
+  wizardData: { ...wizardData, isShapingWizard: true },
+  construction,
+  currentStitches,
+  component,
+  setConstruction,
+  updateWizardData, // Pass through the real function
+  navigation: {
+    goToStep: (step) => setStep(step)
+  }
+};
 
   const renderConfigStep = () => {
     switch (shapingData.type) {

@@ -2,12 +2,16 @@ import React from 'react';
 import { useStepCalculation } from '../../hooks/useStepCalculation';
 import { useStepGeneration } from '../../hooks/useStepGeneration';
 
+
 const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinishComponent }) => {
   const { calculateEffect } = useStepCalculation();
   const { generateInstruction } = useStepGeneration();
 
   const instruction = generateInstruction(wizard.wizardData);
   const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
+
+  console.log('StepPreview instruction from generateInstruction:', instruction);
+console.log('StepPreview effect:', effect);
 
   // Calculate current step number
   const currentStepNumber = (wizard.component?.steps?.length || 0) + 1;

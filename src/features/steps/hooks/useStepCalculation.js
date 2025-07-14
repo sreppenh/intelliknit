@@ -34,12 +34,37 @@ export const useStepCalculation = () => {
     }
     
     // NEW: Handle patterns with advanced shaping using AdvancedPatternCalculator
-    if (wizardData.hasShaping && wizardData.shapingConfig) {
-      try {
-        const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange } = wizardData.shapingConfig;
-        
-        // Stepped Bind-Off
-        if (shapingMode === 'bindoff') {
+if (wizardData.hasShaping && wizardData.shapingConfig) {
+  try {
+    const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange, type, config } = wizardData.shapingConfig;
+    
+    // Check for new shaping structure first (from ShapingWizard)
+if (type === 'even_distribution' && config && config.calculation) {
+  return {
+    success: true,
+    totalRows: 1,
+    startingStitches: config.calculation.startingStitches,
+    endingStitches: config.calculation.endingStitches,
+    hasShaping: true,
+    shapingMode: 'distribution',
+    netStitchChange: config.calculation.changeCount * (config.action === 'increase' ? 1 : -1)
+  };
+}
+else if (type === 'phases' && config && config.calculation) {
+  return {
+    success: true,
+    totalRows: config.calculation.totalRows,
+    startingStitches: config.calculation.startingStitches,
+    endingStitches: config.calculation.endingStitches,
+    hasShaping: true,
+    shapingMode: 'phases',
+    netStitchChange: config.calculation.netStitchChange
+  };
+}
+    
+    // Stepped Bind-Off
+    else if (shapingMode === 'bindoff') {
+     
           const bindOffResult = advancedCalculator.calculateSteppedBindOff(bindOffSequence, currentStitches, construction);
           if (bindOffResult.success) {
             return {

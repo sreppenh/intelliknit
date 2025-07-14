@@ -62,6 +62,11 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
   const getStepName = () => {
     const { category, pattern } = wizard.wizardData.stitchPattern || {};
     
+  if (wizard.wizardData.isShapingWizard) {
+    return 'Shaping Setup';
+  }
+
+
     switch (wizard.wizardStep) {
       case 1: 
         if (category && !pattern) {
