@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import WizardLayout from './wizard-layout/WizardLayout';
+import WizardHeader from './wizard-layout/WizardHeader';
 import ShapingTypeSelector from './shaping-wizard/ShapingTypeSelector';
 import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
@@ -28,8 +30,25 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
     });
     updateWizardData('hasShaping', true);
     
-    // Navigate back to main wizard flow
-    onBack();
+    // Navigate back to main wizard flow and go to step 5 (Preview)
+    onBack(5);
+  };
+
+  // Create a wizard-like object for the header - include ALL required functions
+  const shapingWizard = {
+    wizardStep: 0, // Set to 0 to hide step progress
+    wizardData: {
+      ...wizardData,
+      isShapingWizard: true
+    },
+    construction,
+    currentStitches,
+    component,
+    setConstruction,
+    updateWizardData, // Add the missing function!
+    navigation: {
+      goToStep: (step) => setStep(step)
+    }
   };
 
   const renderConfigStep = () => {
@@ -96,68 +115,14 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
   };
 
   return (
-    <div className="min-h-screen bg-yarn-50">
-      <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-        
-        {/* Header */}
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={step === 1 ? onBack : () => setStep(1)}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-            >
-              ←
-            </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">
-                {step === 1 ? 'Shaping Type' : 'Configure Shaping'}
-              </h1>
-              <p className="text-sage-100 text-sm">
-                {step === 1 ? 'Choose your shaping method' : 'Set up your shaping details'}
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Construction info bar - COPIED FROM YOUR WizardHeader.jsx */}
-        <div className="px-6 py-3 bg-sage-100 border-b border-sage-200">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-4">
-              <span className="font-medium text-sage-700">Construction:</span>
-              <div className="bg-sage-200 border border-sage-300 rounded-md p-0.5">
-                <div className="grid grid-cols-2 gap-1">
-                  <button
-                    onClick={() => setConstruction && setConstruction('flat')}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${
-                      construction === 'flat'
-                        ? 'bg-white text-sage-700 shadow-sm'
-                        : 'text-sage-600 hover:text-sage-800'
-                    }`}
-                  >
-                    Flat
-                  </button>
-                  
-                  <button
-                    onClick={() => setConstruction && setConstruction('round')}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${
-                      construction === 'round'
-                        ? 'bg-white text-sage-700 shadow-sm'
-                        : 'text-sage-600 hover:text-sage-800'
-                    }`}
-                  >
-                    Round
-                  </button>
-                </div>
-              </div>
-            </div>
-            
-            <div className="text-sage-600 text-xs">
-              {currentStitches} stitches • {component?.name}
-            </div>
-          </div>
-        </div>
-
-        <div className="bg-yarn-50 min-h-screen">
+    <WizardLayout>
+      <WizardHeader 
+        wizard={shapingWizard} 
+        onBack={step === 1 ? onBack : () => setStep(1)} 
+        onCancel={onBack} 
+      />
+      <div className="p-6 bg-yarn-50 min-h-screen">
+        <div className="stack-lg">
           {step === 1 ? (
             <ShapingTypeSelector 
               onTypeSelect={handleShapingTypeSelect}
@@ -168,7 +133,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
           )}
         </div>
       </div>
-    </div>
+    </WizardLayout>
   );
 };
 

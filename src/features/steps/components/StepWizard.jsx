@@ -71,7 +71,12 @@ if (showShapingWizard) {
       construction={wizard.construction}
       setConstruction={wizard.setConstruction}
       component={wizard.component}  
-      onBack={() => setShowShapingWizard(false)}
+      onBack={(targetStep) => {
+  setShowShapingWizard(false);
+  if (targetStep) {
+    wizard.navigation.goToStep(targetStep);
+  }
+}}
     />
   );
 }

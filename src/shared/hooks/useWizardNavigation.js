@@ -97,6 +97,11 @@ const shouldSkipConfiguration = (wizardData) => {
 const getStepWizardStepName = (step, wizardData) => {
   const { pattern } = wizardData.stitchPattern || {};
   
+  // Special case for shaping wizard
+  if (wizardData.isShapingWizard) {
+    return 'Shaping Setup';
+  }
+  
   switch (step) {
     case 1: return 'Stitch Pattern';
     case 2: return 'Pattern Details';
@@ -106,7 +111,7 @@ const getStepWizardStepName = (step, wizardData) => {
       return 'Duration & Shaping';
     case 4: 
       if (wizardData.hasShaping === false) return 'Duration Setup';
-      return 'Configuration';
+      return 'Shaping Setup';
     case 5: return 'Preview';
     default: return 'Configuration';
   }
