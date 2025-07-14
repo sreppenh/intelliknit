@@ -4,17 +4,19 @@ import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig 
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
-  const [screen, setScreen] = useState(1);
-  const [showMoreMethods, setShowMoreMethods] = useState(false);
   
+  const [screen, setScreen] = useState(1);
   const [componentData, setComponentData] = useState({
     name: '',
     startType: null,
     startMethod: null,
     startStitches: '',
     startDescription: '',
-    prepNote: '' // NEW: Add prep note to component data
+    prepNote: ''
   });
+
+  // State for which start type is expanded (like selectedQuickCategory)
+  const [selectedStartType, setSelectedStartType] = useState(null);
 
   // Prep note management
   const {
@@ -29,44 +31,32 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     setComponentData(prev => ({ ...prev, prepNote: note }));
   });
 
-  // Get config for component creation
   const prepConfig = getPrepNoteConfig('componentCreation');
 
-  // Method definitions - clean and focused!
+  // Method definitions - organized by start type
   const methodsByStartType = {
-    cast_on: {
-      primary: [
-        { id: 'long_tail', name: 'Long Tail', icon: '🪢', desc: 'Most common, stretchy edge' },
-        { id: 'cable', name: 'Cable', icon: '🔗', desc: 'Firm, decorative edge' },
-        { id: 'tubular', name: 'Tubular', icon: '🌊', desc: 'Perfect for ribbing!' },
-        { id: 'provisional', name: 'Provisional', icon: '📎', desc: 'Removable, for later pickup' }
-      ],
-      secondary: [
-        { id: 'german_twisted', name: 'German Twisted', icon: '🌀', desc: 'Very stretchy' },
-        { id: 'backward_loop', name: 'Backward Loop', icon: '↪️', desc: 'Quick and simple' },
-        { id: 'other', name: 'Other Method', icon: '📝', desc: 'Specify your own' }
-      ]
-    },
-    pick_up: {
-      primary: [
-        { id: 'pick_up_knit', name: 'Pick Up & Knit', icon: '🧶', desc: 'Pick up and knit in one motion' },
-        { id: 'other', name: 'Other Method', icon: '📝', desc: 'Specify your own' }
-      ],
-      secondary: []
-    },
-    continue: {
-      primary: [
-        { id: 'from_holder', name: 'From Holder', icon: '📎', desc: 'Resume saved stitches' },
-        { id: 'other', name: 'Other Method', icon: '📝', desc: 'Specify your own' }
-      ],
-      secondary: []
-    },
-    other: {
-      primary: [
-        { id: 'custom', name: 'Custom Setup', icon: '📝', desc: 'Describe your setup method' }
-      ],
-      secondary: []
-    }
+    cast_on: [
+      { id: 'long_tail', name: 'Long Tail', icon: '🪢' },
+      { id: 'cable', name: 'Cable', icon: '🔗' },
+      { id: 'provisional', name: 'Provisional', icon: '📎' },
+      { id: 'tubular', name: 'Tubular', icon: '🌊' },
+      { id: 'german_twisted', name: 'German Twisted', icon: '🌀' },
+      { id: 'backward_loop', name: 'Backward Loop', icon: '↪️' },
+      { id: 'other', name: 'Other', icon: '📝' }
+    ],
+    pick_up: [
+      { id: 'pick_up_knit', name: 'Pick Up & Knit', icon: '🧶' },
+      { id: 'standard', name: 'Standard Pick Up', icon: '📌' },
+      { id: 'other', name: 'Other', icon: '📝' }
+    ],
+    continue: [
+      { id: 'from_holder', name: 'From Holder', icon: '📎' },
+      { id: 'from_previous', name: 'From Previous', icon: '↗️' },
+      { id: 'other', name: 'Other', icon: '📝' }
+    ],
+    other: [
+      { id: 'custom', name: 'Custom Setup', icon: '📝' }
+    ]
   };
 
   const startTypes = [
@@ -76,20 +66,35 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     { id: 'other', name: 'Other', icon: '📝', desc: 'Complex setup' }
   ];
 
-  const handleStartTypeSelect = (startType) => {
+  const handleStartTypeSelect = (startTypeId) => {
+    setSelectedStartType(selectedStartType === startTypeId ? null : startTypeId);
+    // Reset component data when changing start type
     setComponentData(prev => ({
       ...prev,
-      startType,
-      startMethod: null // Reset method when changing start type
+      startType: null,
+      startMethod: null,
+      startStitches: '',
+      startDescription: ''
     }));
-    setShowMoreMethods(false); // Reset expanded state
   };
 
-  const handleMethodSelect = (methodId) => {
+  const handleMethodSelect = (startTypeId, methodId) => {
     setComponentData(prev => ({
       ...prev,
+      startType: startTypeId,
       startMethod: methodId
     }));
+    
+    // Auto-advance to screen 2 after a brief delay (like PatternSelector)
+    setTimeout(() => {
+      setScreen(2);
+    }, 50);
+  };
+
+  const needsDescription = () => {
+    return componentData.startType === 'pick_up' || 
+           componentData.startType === 'continue' || 
+           componentData.startMethod === 'other';
   };
 
   const canProceedToDetails = () => {
@@ -99,8 +104,15 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   };
 
   const canCreateComponent = () => {
-    return componentData.startStitches && 
-           parseInt(componentData.startStitches) > 0;
+    if (!componentData.startStitches || parseInt(componentData.startStitches) <= 0) {
+      return false;
+    }
+    
+    if (needsDescription() && !componentData.startDescription?.trim()) {
+      return false;
+    }
+    
+    return true;
   };
 
   const handleCreateComponent = () => {
@@ -116,7 +128,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       endMethod: '',
       steps: [],
       currentStep: 0,
-      prepNote: componentData.prepNote // NEW: Include prep note in component
+      prepNote: componentData.prepNote
     };
 
     dispatch({ 
@@ -137,200 +149,113 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     return typeMap[componentData.startType] || '';
   };
 
-  const getSelectedMethods = () => {
-    if (!componentData.startType) return { primary: [], secondary: [] };
-    return methodsByStartType[componentData.startType] || { primary: [], secondary: [] };
-  };
-
-  const selectedMethods = getSelectedMethods();
-  const hasSecondaryMethods = selectedMethods.secondary.length > 0;
-
-  // Screen 1: Name + Start Type + Method Selection
-  if (screen === 1) {
-    return (
-      <>
-        <div className="min-h-screen bg-yarn-50">
-          <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-            
-            {/* Header */}
-            <div className="bg-sage-500 text-white px-6 py-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={onBack}
-                  className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-                >
-                  ←
-                </button>
-                <div className="flex-1">
-                  <h1 className="text-lg font-semibold">Add Component</h1>
-                  <p className="text-sage-100 text-sm">Setup and method</p>
-                </div>
-              </div>
-            </div>
-
-            <div className="p-6 bg-yarn-50 stack-lg relative">
-              
-              {/* Prep Note Button */}
-              <PrepStepButton 
-                onClick={handleOpenOverlay}
-                hasNote={hasNote}
-                notePreview={notePreview}
-                position="top-right"
-                size="normal"
-                variant="ghost"
-              />
-              
-              {/* Component Name */}
-              <div>
-                <h2 className="text-xl font-semibold text-wool-700 mb-3">Component Name</h2>
-                <input
-                  type="text"
-                  value={componentData.name}
-                  onChange={(e) => setComponentData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Left Sleeve, Back Panel, Collar"
-                  className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                />
-              </div>
-
-              {/* How Does It Start */}
-              <div>
-                <h2 className="text-xl font-semibold text-wool-700 mb-3">How does it start?</h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {startTypes.map((type) => (
-                    <button
-                      key={type.id}
-                      onClick={() => handleStartTypeSelect(type.id)}
-                      className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                        componentData.startType === type.id
-                          ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                          : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="text-2xl mb-2">{type.icon}</div>
-                      <div className="font-semibold text-sm mb-1">{type.name}</div>
-                      <div className="text-xs opacity-75">{type.desc}</div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              {/* Method Selection - Appears when start type is selected */}
-              {componentData.startType && (
-                <div className="space-y-4">
-                  <h2 className="text-xl font-semibold text-wool-700">Choose Method</h2>
-                  
-                  {/* Primary Methods */}
-                  <div className="grid grid-cols-2 gap-3">
-                    {selectedMethods.primary.map((method) => (
-                      <button
-                        key={method.id}
-                        onClick={() => handleMethodSelect(method.id)}
-                        className={`p-3 border-2 rounded-xl transition-all duration-200 text-center ${
-                          componentData.startMethod === method.id
-                            ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                            : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
-                        }`}
-                      >
-                        <div className="text-xl mb-1">{method.icon}</div>
-                        <div className="font-semibold text-xs mb-1">{method.name}</div>
-                        <div className="text-xs opacity-75">{method.desc}</div>
-                      </button>
-                    ))}
-                  </div>
-
-                  {/* More Methods Toggle */}
-                  {hasSecondaryMethods && (
-                    <div>
-                      <button
-                        onClick={() => setShowMoreMethods(!showMoreMethods)}
-                        className="w-full py-2 px-4 border-2 border-dashed border-wool-300 rounded-lg text-wool-600 hover:border-yarn-400 hover:text-yarn-600 transition-colors text-sm font-medium flex items-center justify-center gap-2"
-                      >
-                        {showMoreMethods ? '↑ Fewer Methods' : '↓ More Methods'}
-                      </button>
-
-                      {/* Secondary Methods */}
-                      {showMoreMethods && (
-                        <div className="grid grid-cols-2 gap-3 mt-3">
-                          {selectedMethods.secondary.map((method) => (
-                            <button
-                              key={method.id}
-                              onClick={() => handleMethodSelect(method.id)}
-                              className={`p-3 border-2 rounded-xl transition-all duration-200 text-center ${
-                                componentData.startMethod === method.id
-                                  ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                                  : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
-                              }`}
-                            >
-                              <div className="text-xl mb-1">{method.icon}</div>
-                              <div className="font-semibold text-xs mb-1">{method.name}</div>
-                              <div className="text-xs opacity-75">{method.desc}</div>
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Navigation */}
-              <div className="pt-6 border-t border-wool-200">
-                <div className="flex gap-3">
-                  <button
-                    onClick={onBack}
-                    className="flex-1 btn-tertiary"
-                  >
-                    Cancel
-                  </button>
-                  
-                  <button
-                    onClick={() => setScreen(2)}
-                    disabled={!canProceedToDetails()}
-                    className="flex-2 btn-primary"
-                    style={{flexGrow: 2}}
-                  >
-                    Continue →
-                  </button>
-                </div>
-              </div>
+  return (
+    <div className="min-h-screen bg-yarn-50">
+      <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
+        
+        {/* Header */}
+        <div className="bg-sage-500 text-white px-6 py-4">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={screen === 1 ? onBack : () => setScreen(1)}
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+            >
+              ←
+            </button>
+            <div className="flex-1">
+              <h1 className="text-lg font-semibold">Add Component</h1>
+              <p className="text-sage-100 text-sm">{screen === 1 ? 'Setup and method' : 'Final details'}</p>
             </div>
           </div>
         </div>
 
-        {/* Prep Note Overlay */}
-        <PrepStepOverlay
-          isOpen={isOverlayOpen}
-          onClose={handleCloseOverlay}
-          onSave={handleSaveNote}
-          existingNote={currentNote}
-          {...prepConfig}
-        />
-      </>
-    );
-  }
+        {screen === 1 ? (
+          // Screen 1: Name + Integrated Start Type & Method Selection
+          <div className="p-6 bg-yarn-50 space-y-6 relative">
+            
+            {/* Prep Note Button */}
+            <PrepStepButton 
+              onClick={handleOpenOverlay}
+              hasNote={hasNote}
+              notePreview={notePreview}
+              position="top-right"
+              size="normal"
+              variant="ghost"
+            />
+            
+            {/* Component Name */}
+            <div>
+              <h2 className="text-xl font-semibold text-wool-700 mb-3">Component Name</h2>
+              <input
+                type="text"
+                value={componentData.name}
+                onChange={(e) => setComponentData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Left Sleeve, Back Panel, Collar"
+                className="input-field-lg"
+              />
+            </div>
 
-  // Screen 2: Details
-  return (
-    <>
-      <div className="min-h-screen bg-yarn-50">
-        <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-          
-          {/* Header */}
-          <div className="bg-sage-500 text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setScreen(1)}
-                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-              >
-                ←
-              </button>
-              <div className="flex-1">
-                <h1 className="text-lg font-semibold">Setup Details</h1>
-                <p className="text-sage-100 text-sm">{componentData.name}</p>
+            {/* How Does It Start - PatternSelector Style */}
+            <div>
+              <h2 className="text-xl font-semibold text-wool-700 mb-4">How does it start?</h2>
+              
+              {/* Start Type Selection in Card */}
+              <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
+                
+                {/* Start Type Grid */}
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  {startTypes.map((startType) => (
+                    <button
+                      key={startType.id}
+                      onClick={() => handleStartTypeSelect(startType.id)}
+                      className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${
+                        selectedStartType === startType.id
+                          ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                          : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
+                      }`}
+                    >
+                      <div className="text-xl mb-1">{startType.icon}</div>
+                      <div className="text-xs font-medium">{startType.name}</div>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Method Selection - Appears inline when start type selected */}
+                {selectedStartType && (
+                  <div className="border-t border-wool-200 pt-4">
+                    <div className="grid grid-cols-3 gap-2">
+                      {methodsByStartType[selectedStartType].map(method => (
+                        <button
+                          key={method.id}
+                          onClick={() => handleMethodSelect(selectedStartType, method.id)}
+                          className={`card-pattern-option ${
+                            componentData.startMethod === method.id
+                              ? 'border-sage-500 bg-sage-100 text-sage-700'
+                              : ''
+                          }`}
+                        >
+                          <div className="text-lg mb-1">{method.icon}</div>
+                          <div className="text-xs font-medium mb-0.5">{method.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Help Section */}
+            <div className="success-block">
+              <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Examples</h4>
+              <div className="text-sm text-sage-600 space-y-1">
+                <div>• <strong>Cast On:</strong> Starting a new sleeve or body panel</div>
+                <div>• <strong>Pick Up:</strong> Adding a collar or button band</div>
+                <div>• <strong>From Holder:</strong> Resuming shoulder or neck stitches</div>
               </div>
             </div>
           </div>
-
+        ) : (
+          // Screen 2: Configuration Fields - Standard Pattern
           <div className="p-6 bg-yarn-50 stack-lg relative">
             
             {/* Prep Note Button */}
@@ -343,41 +268,44 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               variant="ghost"
             />
             
+            {/* Standard Header Pattern */}
+            <div>
+              <h2 className="text-xl font-semibold text-wool-700 mb-3">Component Details</h2>
+              <p className="text-wool-500 mb-4">Configure your {componentData.startType?.replace('_', ' ').toLowerCase()} setup</p>
+            </div>
+
             {/* Summary */}
             <div className="success-block">
               <div className="text-sm text-sage-700">
-                <div className="font-semibold mb-1">{componentData.name}</div>
-                <div className="opacity-75">
-                  {startTypes.find(t => t.id === componentData.startType)?.name} using{' '}
-                  {selectedMethods.primary.find(m => m.id === componentData.startMethod)?.name ||
-                   selectedMethods.secondary.find(m => m.id === componentData.startMethod)?.name}
-                </div>
+                <div className="font-semibold mb-1">Selected Configuration:</div>
+                <div>• <strong>Component:</strong> {componentData.name}</div>
+                <div>• <strong>Start Type:</strong> {componentData.startType?.replace('_', ' ')}</div>
+                <div>• <strong>Method:</strong> {componentData.startMethod?.replace('_', ' ')}</div>
               </div>
             </div>
 
-            {/* Stitch Count */}
+            {/* Stitch Count - Standard Label Pattern */}
             <div>
               <label className="block text-sm font-semibold text-wool-700 mb-3">
-                Number of Stitches *
+                Starting Stitch Count
               </label>
               <input
                 type="number"
                 value={componentData.startStitches}
                 onChange={(e) => setComponentData(prev => ({ ...prev, startStitches: e.target.value }))}
                 placeholder="e.g., 80"
-                min="1"
                 className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                min="1"
               />
             </div>
 
-            {/* Description (conditional) */}
-            {(componentData.startType === 'pick_up' || 
-              componentData.startType === 'continue' || 
-              componentData.startType === 'other' ||
-              componentData.startMethod === 'other') && (
+            {/* Description - Only when needed */}
+            {needsDescription() && (
               <div>
                 <label className="block text-sm font-semibold text-wool-700 mb-3">
-                  Description {componentData.startMethod === 'other' ? '*' : '(optional)'}
+                  {componentData.startType === 'pick_up' ? 'Pick Up From' :
+                   componentData.startType === 'continue' ? 'Continue From' :
+                   'Method Description'} {componentData.startMethod === 'other' ? ' *' : ''}
                 </label>
                 <input
                   type="text"
@@ -386,8 +314,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                   placeholder={
                     componentData.startType === 'pick_up' ? 'e.g., From body armhole, along neckline edge' :
                     componentData.startType === 'continue' ? 'e.g., From front piece, from sleeve cuff' :
-                    componentData.startMethod === 'other' ? 'Describe your method' :
-                    'Additional details'
+                    'Describe your method'
                   }
                   className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
                 />
@@ -395,7 +322,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             )}
 
             {/* Create Button */}
-            <div className="pt-6 border-t border-wool-200">
+            <div className="pt-4">
               <div className="flex gap-3">
                 <button
                   onClick={() => setScreen(1)}
@@ -416,18 +343,18 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               </div>
             </div>
           </div>
-        </div>
-      </div>
+        )}
 
-      {/* Prep Note Overlay */}
-      <PrepStepOverlay
-        isOpen={isOverlayOpen}
-        onClose={handleCloseOverlay}
-        onSave={handleSaveNote}
-        existingNote={currentNote}
-        {...prepConfig}
-      />
-    </>
+        {/* Prep Note Overlay */}
+        <PrepStepOverlay
+          isOpen={isOverlayOpen}
+          onClose={handleCloseOverlay}
+          onSave={handleSaveNote}
+          existingNote={currentNote}
+          {...prepConfig}
+        />
+      </div>
+    </div>
   );
 };
 
