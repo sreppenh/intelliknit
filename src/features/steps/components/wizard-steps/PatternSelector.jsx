@@ -265,7 +265,7 @@ export const PatternSelector = ({
                   <button
                     key={pattern.name}
                     onClick={() => handlePatternSelect(selectedQuickCategory, pattern)}
-                    className="p-3 border border-wool-200 rounded-lg transition-all duration-200 text-center bg-wool-50 text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm"
+                    className="card-pattern-option"
                   >
                     <div className="text-lg mb-1">{pattern.icon}</div>
                     <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
@@ -299,7 +299,7 @@ export const PatternSelector = ({
         </div>
 
         {/* Compact help text */}
-        <div className="bg-sage-100 border border-sage-200 rounded-lg p-3">
+        <div className="help-block">
           <div className="text-xs text-sage-600 text-center">
             💡 <strong>Quick:</strong> Tap to see patterns • <strong>Advanced:</strong> Configure details • <strong>Custom:</strong> Any pattern + repeats
           </div>

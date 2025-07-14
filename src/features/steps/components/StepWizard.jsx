@@ -13,11 +13,15 @@ import DurationShapingChoice from './wizard-steps/DurationShapingChoice';
 import { createWizardNavigator, shouldSkipConfiguration, shouldShowNavigation } from './wizard-navigation/WizardNavigator';
 import { renderStep } from './wizard-navigation/StepRenderer';
 import { useWizardState } from './wizard-navigation/WizardState';
+import ShapingWizard from './ShapingWizard';
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
   const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
   const wizardState = useWizardState(wizard, onBack);
+  const [showShapingWizard, setShowShapingWizard] = useState(false);
+
+
 
   // Component validation
   if (!wizard.component) {
@@ -56,6 +60,21 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
       />
     );
   }
+
+// If showing shaping wizard
+if (showShapingWizard) {
+  return (
+    <ShapingWizard
+      wizardData={wizard.wizardData}
+      updateWizardData={wizard.updateWizardData}
+      currentStitches={wizard.currentStitches}
+      construction={wizard.construction}
+      setConstruction={wizard.setConstruction}
+      component={wizard.component}  
+      onBack={() => setShowShapingWizard(false)}
+    />
+  );
+}
 
   const renderCurrentStep = () => {
     const handlers = {
@@ -96,6 +115,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
             wizardData={wizard.wizardData}
             updateWizardData={wizard.updateWizardData}
             onAdvanceStep={() => wizard.navigation.goToStep(4)}
+            onShowShapingWizard={() => setShowShapingWizard(true)}
             existingPrepNote={wizard.wizardData.prepNote || ''}
             onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
           />

@@ -341,7 +341,7 @@ export const PatternDetails = ({ wizardData, updateWizardData, canHaveShaping, n
               </button>
             </div>
 
-            <div className="bg-wool-100 border border-wool-200 rounded-lg p-3">
+            <div className="warning-block">
               <p className="text-xs text-wool-600 text-center">
                 💡 <strong>Note:</strong> Shaping features are coming soon! For now, choose "Set Duration"
               </p>

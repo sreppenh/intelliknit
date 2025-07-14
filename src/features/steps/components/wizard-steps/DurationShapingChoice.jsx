@@ -15,12 +15,16 @@ const DurationShapingChoice = (props) => {
     }, 200);
   };
 
-  const handleShapingChoice = () => {
-    updateWizardData('hasShaping', true);
-    updateWizardData('choiceMade', true);
-    // Show coming soon message for now
-    alert('Shaping features coming soon! 🧶');
-  };
+const handleShapingChoice = () => {
+  updateWizardData('hasShaping', true);
+  updateWizardData('choiceMade', true);
+  // Navigate to shaping wizard
+  setTimeout(() => {
+    if (props.onShowShapingWizard) {
+      props.onShowShapingWizard();
+    }
+  }, 200);
+};
 
   return (
     <div className="stack-lg">

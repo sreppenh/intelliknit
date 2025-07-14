@@ -63,12 +63,15 @@ const getStepWizardNavigation = (currentStep, wizardData) => {
     flow.push(3); // Shaping/Duration choice
   }
   
-  if (wizardData.hasShaping === false) {
-    flow.push(4); // Duration config
-    flow.push(5); // Preview
-  } else {
-    flow.push(5); // Preview
-  }
+if (wizardData.hasShaping === false) {
+  flow.push(4); // Duration config
+  flow.push(5); // Preview
+} else if (wizardData.hasShaping === true) {
+  flow.push(4); // Shaping config (or shaping completed)
+  flow.push(5); // Preview
+} else {
+  flow.push(5); // Preview (hasShaping not set yet)
+}
   
   const currentIndex = flow.indexOf(currentStep);
   const stepName = getStepWizardStepName(currentStep, wizardData);

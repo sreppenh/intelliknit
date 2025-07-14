@@ -306,7 +306,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
         <div className="p-6 bg-yarn-50 stack-lg">
           {/* Component Summary */}
-          <div className="bg-wool-100 border border-wool-200 rounded-lg p-3">
+          <div className="warning-block">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <span className="text-sm">📋</span>

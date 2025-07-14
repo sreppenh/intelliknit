@@ -166,7 +166,7 @@ const DurationConfig = ({ wizardData, updateWizardData }) => {
 
               {/* Helpful context */}
               {wizardData.duration.type === 'rows' && (
-                <div className="bg-wool-100 border border-wool-200 rounded-lg p-3">
+                <div className="warning-block">
                   <p className="text-xs text-wool-600">
                     💡 <strong>Tip:</strong> This is the total number of rows to work for this section.
                   </p>
@@ -174,7 +174,7 @@ const DurationConfig = ({ wizardData, updateWizardData }) => {
               )}
 
               {wizardData.duration.type === 'measurement' && (
-                <div className="bg-wool-100 border border-wool-200 rounded-lg p-3">
+                <div className="warning-block">
                   <p className="text-xs text-wool-600">
                     💡 <strong>Tip:</strong> IntelliKnit will calculate the approximate rows needed based on your gauge.
                   </p>
