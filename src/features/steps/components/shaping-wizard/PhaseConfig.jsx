@@ -9,8 +9,9 @@ const PhaseConfig = ({
   onBack 
 }) => {
   const [phases, setPhases] = useState([]);
-  const [showPhaseSelector, setShowPhaseSelector] = useState(false);
-  const [editingPhase, setEditingPhase] = useState(null);
+  const [currentScreen, setCurrentScreen] = useState('summary'); // 'summary', 'type-select', 'configure'
+  const [editingPhaseId, setEditingPhaseId] = useState(null);
+  const [tempPhaseConfig, setTempPhaseConfig] = useState({});
 
   const phaseTypes = [
     {
@@ -30,32 +31,14 @@ const PhaseConfig = ({
       name: 'Setup Rows',
       icon: '📐',
       description: 'Work plain rows between shaping'
+    },
+    {
+      id: 'bind_off',
+      name: 'Bind Off',
+      icon: '📤',
+      description: 'Remove stitches by binding off'
     }
   ];
-
-  const addPhase = (type) => {
-    const newPhase = {
-      id: Date.now(),
-      type,
-      config: getDefaultConfigForType(type)
-    };
-    setPhases([...phases, newPhase]);
-    setShowPhaseSelector(false);
-    setEditingPhase(newPhase.id);
-  };
-
-  const deletePhase = (phaseId) => {
-    setPhases(phases.filter(p => p.id !== phaseId));
-    if (editingPhase === phaseId) {
-      setEditingPhase(null);
-    }
-  };
-
-  const updatePhase = (phaseId, config) => {
-    setPhases(phases.map(p => 
-      p.id === phaseId ? { ...p, config } : p
-    ));
-  };
 
   const getDefaultConfigForType = (type) => {
     switch (type) {
@@ -64,24 +47,79 @@ const PhaseConfig = ({
           amount: 1,
           frequency: 2, // every other row
           times: 5,
-          position: 'both_ends',
-          technique: 'auto'
+          position: 'both_ends'
         };
       case 'increase':
         return {
           amount: 1,
           frequency: 2, // every other row  
           times: 5,
-          position: 'both_ends',
-          technique: 'auto'
+          position: 'both_ends'
         };
       case 'setup':
         return {
           rows: 4
         };
+      case 'bind_off':
+        return {
+          amount: 3,
+          frequency: 2,
+          position: 'beginning' // Only beginning or end, not both
+        };
       default:
         return {};
     }
+  };
+
+  const handleAddPhase = () => {
+    setEditingPhaseId(null);
+    setCurrentScreen('type-select');
+  };
+
+  const handleEditPhase = (phaseId) => {
+    const phase = phases.find(p => p.id === phaseId);
+    setEditingPhaseId(phaseId);
+    setTempPhaseConfig(phase.config);
+    setCurrentScreen('configure');
+  };
+
+  const handleTypeSelect = (type) => {
+    if (editingPhaseId) {
+      // Editing existing phase - keep existing config but change type
+      const existingPhase = phases.find(p => p.id === editingPhaseId);
+      setTempPhaseConfig({ ...existingPhase.config, type });
+    } else {
+      // Adding new phase
+      setTempPhaseConfig({ type, ...getDefaultConfigForType(type) });
+    }
+    setCurrentScreen('configure');
+  };
+
+  const handleSavePhaseConfig = () => {
+    if (editingPhaseId) {
+      // Update existing phase
+      setPhases(phases.map(p => 
+        p.id === editingPhaseId 
+          ? { ...p, type: tempPhaseConfig.type, config: tempPhaseConfig }
+          : p
+      ));
+    } else {
+      // Add new phase
+      const newPhase = {
+        id: Date.now(),
+        type: tempPhaseConfig.type,
+        config: tempPhaseConfig
+      };
+      setPhases([...phases, newPhase]);
+    }
+    
+    setCurrentScreen('summary');
+    setEditingPhaseId(null);
+    setTempPhaseConfig({});
+  };
+
+  const handleDeletePhase = (phaseId) => {
+    setPhases(phases.filter(p => p.id !== phaseId));
   };
 
   const calculateSequentialPhases = () => {
@@ -92,7 +130,8 @@ const PhaseConfig = ({
         startingStitches: currentStitches,
         endingStitches: currentStitches,
         totalRows: 0,
-        netStitchChange: 0
+        netStitchChange: 0,
+        phases: []
       };
     }
 
@@ -100,6 +139,7 @@ const PhaseConfig = ({
     let totalRows = 0;
     let instructions = [];
     let netStitchChange = 0;
+    let phaseDetails = [];
 
     for (let i = 0; i < phases.length; i++) {
       const phase = phases[i];
@@ -108,49 +148,86 @@ const PhaseConfig = ({
       if (type === 'setup') {
         totalRows += config.rows;
         instructions.push(`work ${config.rows} plain rows`);
+        phaseDetails.push({
+          type: 'setup',
+          rows: config.rows,
+          startingStitches: currentStitchCount,
+          endingStitches: currentStitchCount
+        });
+      } else if (type === 'bind_off') {
+        const totalBindOff = config.amount * config.frequency;
+        const phaseRows = config.frequency;
+        
+        currentStitchCount -= totalBindOff;
+        totalRows += phaseRows;
+        netStitchChange -= totalBindOff;
+        
+        const positionText = config.position === 'beginning' ? 'at beginning' : 'at end';
+        instructions.push(`bind off ${config.amount} sts ${positionText} of next ${config.frequency} rows`);
+        
+        phaseDetails.push({
+          type: 'bind_off',
+          amount: config.amount,
+          frequency: config.frequency,
+          position: config.position,
+          rows: phaseRows,
+          stitchChange: -totalBindOff,
+          startingStitches: currentStitchCount + totalBindOff,
+          endingStitches: currentStitchCount
+        });
       } else if (type === 'decrease' || type === 'increase') {
         const isDecrease = type === 'decrease';
-        const stitchChange = config.amount * (isDecrease ? -1 : 1);
-        const totalChange = stitchChange * config.times;
         
-        if (config.position === 'both_ends') {
-          // 2 stitches changed per shaping row
-          const actualChange = totalChange * 2;
-          netStitchChange += actualChange;
-          currentStitchCount += actualChange;
-        } else {
-          // 1 stitch changed per shaping row
-          netStitchChange += totalChange;
-          currentStitchCount += totalChange;
-        }
-
-        totalRows += config.times * config.frequency;
-
+        // Calculate stitch change per shaping row
+        const stitchChangePerRow = config.position === 'both_ends' ? 
+          config.amount * 2 : config.amount;
+        
+        // Calculate total stitch change for this phase
+        const totalStitchChangeForPhase = stitchChangePerRow * config.times * (isDecrease ? -1 : 1);
+        
+        // Calculate total rows for this phase  
+        const phaseRows = config.times * config.frequency;
+        
+        // Update counters
+        currentStitchCount += totalStitchChangeForPhase;
+        totalRows += phaseRows;
+        netStitchChange += totalStitchChangeForPhase;
+        
         // Generate instruction text
-        const action = isDecrease ? 'decrease' : 'increase';
-        const technique = config.technique === 'auto' ? 
-          (isDecrease ? 'K2tog' : 'M1') : config.technique;
-        const positionText = config.position === 'both_ends' ? 
-          'at each end' : `at ${config.position}`;
-        const frequencyText = config.frequency === 1 ? 
-          'every row' : config.frequency === 2 ? 
-          'every other row' : `every ${config.frequency} rows`;
-
-        instructions.push(
-          `${action} ${config.amount} st ${positionText} ${frequencyText} ${config.times} times`
-        );
+        const actionText = isDecrease ? 'decrease' : 'increase';
+        const positionText = config.position === 'both_ends' ? 'at each end' : 
+                           config.position === 'beginning' ? 'at beginning' :
+                           config.position === 'end' ? 'at end' : 'at center';
+        const frequencyText = config.frequency === 1 ? 'every row' : 
+                             config.frequency === 2 ? 'every other row' :
+                             `every ${config.frequency} rows`;
+        
+        instructions.push(`${actionText} ${config.amount} st ${positionText} ${frequencyText} ${config.times} times`);
+        
+        phaseDetails.push({
+          type: type,
+          amount: config.amount,
+          frequency: config.frequency,
+          times: config.times,
+          position: config.position,
+          rows: phaseRows,
+          stitchChange: totalStitchChangeForPhase,
+          startingStitches: currentStitchCount - totalStitchChangeForPhase,
+          endingStitches: currentStitchCount
+        });
       }
     }
-
+    
     // Check for impossible scenarios
     if (currentStitchCount <= 0) {
       return {
-        error: `Impossible: Would result in ${currentStitchCount} stitches`,
+        error: `Calculation results in ${currentStitchCount} stitches - must end with at least 1 stitch`,
         instruction: '',
         startingStitches: currentStitches,
-        endingStitches: currentStitchCount,
-        totalRows,
-        netStitchChange
+        endingStitches: currentStitches,
+        totalRows: 0,
+        netStitchChange: 0,
+        phases: []
       };
     }
 
@@ -158,22 +235,11 @@ const PhaseConfig = ({
       instruction: instructions.join(', then '),
       startingStitches: currentStitches,
       endingStitches: currentStitchCount,
-      totalRows,
-      netStitchChange,
-      phases: phases.map(p => p.config)
+      totalRows: totalRows,
+      netStitchChange: netStitchChange,
+      phases: phaseDetails,
+      construction: construction
     };
-  };
-
-  const result = calculateSequentialPhases();
-
-  const handleComplete = () => {
-    if (result.error || phases.length === 0) return;
-    
-    onComplete({
-      phases: phases.map(p => p.config),
-      construction,
-      calculation: result
-    });
   };
 
   const getPhaseDescription = (phase) => {
@@ -184,275 +250,609 @@ const PhaseConfig = ({
         const decFreqText = config.frequency === 1 ? 'every row' : 
                            config.frequency === 2 ? 'every other row' :
                            `every ${config.frequency} rows`;
-        return `Dec ${config.amount} st at ${config.position} ${decFreqText} ${config.times} times`;
+        const decPosText = config.position === 'both_ends' ? 'at each end' :
+                          config.position === 'beginning' ? 'at beginning' :
+                          config.position === 'end' ? 'at end' : 'at center';
+        const decTotalRows = config.times * config.frequency;
+        return `Dec ${config.amount} st ${decPosText} ${decFreqText} ${config.times} times (${decTotalRows} rows)`;
       case 'increase':
         const incFreqText = config.frequency === 1 ? 'every row' : 
                            config.frequency === 2 ? 'every other row' :
                            `every ${config.frequency} rows`;
-        return `Inc ${config.amount} st at ${config.position} ${incFreqText} ${config.times} times`;
+        const incPosText = config.position === 'both_ends' ? 'at each end' :
+                          config.position === 'beginning' ? 'at beginning' :
+                          config.position === 'end' ? 'at end' : 'at center';
+        const incTotalRows = config.times * config.frequency;
+        return `Inc ${config.amount} st ${incPosText} ${incFreqText} ${config.times} times (${incTotalRows} rows)`;
       case 'setup':
-        return `Work ${config.rows} plain rows`;
+        return `Work ${config.rows} plain ${config.rows === 1 ? 'row' : 'rows'}`;
+      case 'bind_off':
+        const bindPosText = config.position === 'beginning' ? 'at beginning' : 'at end';
+        const bindTotalStitches = config.amount * config.frequency;
+        return `Bind off ${config.amount} sts ${bindPosText} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'} (${bindTotalStitches} sts total)`;
       default:
         return 'Unknown phase';
     }
   };
 
-  const renderPhaseConfig = (phase) => {
-    const { type, config } = phase;
-    
-    if (type === 'setup') {
-      return (
-        <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-2">
-            Number of Rows
-          </label>
-          <input
-            type="number"
-            min="1"
-            value={config.rows}
-            onChange={(e) => updatePhase(phase.id, { ...config, rows: parseInt(e.target.value) || 1 })}
-            className="w-24 border-2 border-wool-200 rounded-lg px-3 py-2 text-sm"
-          />
-        </div>
-      );
-    }
+  const result = calculateSequentialPhases();
 
+  const handleComplete = () => {
+    onComplete({
+      phases: phases,
+      construction: construction,
+      calculation: result
+    });
+  };
+
+  // Screen 1: Summary (main screen)
+  if (currentScreen === 'summary') {
     return (
-      <div className="space-y-4">
-        {/* Amount */}
+      <div className="p-6 stack-lg">
+        {/* Header */}
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-2">
-            Amount per Row
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="1"
-              value={config.amount}
-              onChange={(e) => updatePhase(phase.id, { ...config, amount: parseInt(e.target.value) || 1 })}
-              className="w-20 border-2 border-wool-200 rounded-lg px-3 py-2 text-sm"
-            />
-            <span className="text-sm text-wool-600">stitches</span>
-          </div>
+          <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">📈 Sequential Phases</h2>
+          <p className="text-wool-500 mb-4 text-left">
+            {phases.length === 0 ? 'Build your shaping sequence step by step' : 'Review and modify your sequence'}
+          </p>
         </div>
 
-        {/* Position */}
-        <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-2">
-            Position
-          </label>
-          <div className="grid grid-cols-2 gap-2">
-            {[
-              { value: 'both_ends', label: 'Both Ends' },
-              { value: 'beginning', label: 'Beginning' },
-              { value: 'end', label: 'End' },
-              { value: 'center', label: 'Center' }
-            ].map(option => (
+        {/* Phase List or Empty State */}
+        {phases.length === 0 ? (
+          <div className="text-center py-8">
+            <div className="text-4xl mb-4">🎯</div>
+            <h3 className="text-lg font-semibold text-wool-600 mb-2">Ready to build complex shaping?</h3>
+            <p className="text-wool-500 mb-4 px-4">Create sophisticated patterns like sleeve caps, shoulder shaping, or gradual waist decreases</p>
+            <div className="bg-sage-50 border-2 border-sage-200 rounded-lg p-3 mb-6 mx-4">
+              <div className="text-xs font-semibold text-sage-700 mb-1 text-left">Example: Sleeve Cap Shaping</div>
+              <div className="text-xs text-sage-600 text-left">
+                • Work 6 plain rows<br/>
+                • Dec 1 at each end every other row 5 times<br/>
+                • Work 2 plain rows<br/>
+                • Dec 1 at each end every row 3 times
+              </div>
+            </div>
+            <button
+              onClick={handleAddPhase}
+              className="btn-primary"
+            >
+              Add Your First Phase
+            </button>
+          </div>
+        ) : (
+          <>
+            {/* Phase Summary List */}
+            <div>
+              <h3 className="text-lg font-semibold text-wool-700 mb-3 text-left">Your Sequence</h3>
+              
+              <div className="space-y-3">
+                {phases.map((phase, index) => (
+                  <div key={phase.id} className="border-2 border-wool-200 rounded-xl">
+                    <div className="bg-wool-50 p-4 flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-sage-100 rounded-full flex items-center justify-center text-sm font-bold text-sage-700">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <div className="font-semibold text-wool-700 flex items-center gap-2">
+                            <span>{phaseTypes.find(t => t.id === phase.type)?.icon}</span>
+                            {phaseTypes.find(t => t.id === phase.type)?.name}
+                          </div>
+                          <div className="text-sm text-wool-500">
+                            {getPhaseDescription(phase)}
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => handleEditPhase(phase.id)}
+                          className="p-2 text-wool-500 hover:bg-wool-200 rounded-lg transition-colors"
+                        >
+                          ✏️
+                        </button>
+                        <button
+                          onClick={() => handleDeletePhase(phase.id)}
+                          className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Add Another Phase */}
+            <button
+              onClick={handleAddPhase}
+              className="w-full p-4 border-2 border-dashed border-wool-300 rounded-xl text-wool-500 hover:border-sage-400 hover:text-sage-600 transition-colors flex items-center justify-center gap-2"
+            >
+              <span className="text-xl">➕</span>
+              Add Another Phase
+            </button>
+
+            {/* Preview */}
+            {result.error ? (
+              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
+                <div className="text-sm text-red-600">
+                  {result.error}
+                </div>
+              </div>
+            ) : (
+              <div className="card-info">
+                <h4 className="text-sm font-semibold text-lavender-700 mb-3 text-left">Preview</h4>
+                
+                <div className="space-y-2 text-sm text-left">
+                  <div className="text-lavender-700">
+                    <span className="font-medium">Instruction:</span> {result.instruction}
+                  </div>
+                  <div className="text-lavender-600">
+                    {result.startingStitches} stitches → {result.endingStitches} stitches 
+                    ({Math.abs(result.netStitchChange)} {result.netStitchChange > 0 ? 'increases' : 'decreases'}, {result.totalRows} rows, {construction})
+                  </div>
+                  <div className="text-lavender-600">
+                    <span className="font-medium">Phases:</span> {phases.length} configured
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation */}
+            <div className="flex gap-3 pt-4">
               <button
-                key={option.value}
-                onClick={() => updatePhase(phase.id, { ...config, position: option.value })}
-                className={`p-2 text-sm border-2 rounded-lg transition-colors ${
-                  config.position === option.value
-                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                    : 'border-wool-200 hover:border-sage-300'
-                }`}
+                onClick={onBack}
+                className="btn-tertiary flex-1"
               >
-                {option.label}
+                Back
               </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Frequency */}
-        <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-2">
-            Frequency
-          </label>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { value: 1, label: 'Every Row' },
-              { value: 2, label: 'Every Other' },
-              { value: 4, label: 'Every 4th' }
-            ].map(option => (
               <button
-                key={option.value}
-                onClick={() => updatePhase(phase.id, { ...config, frequency: option.value })}
-                className={`p-2 text-sm border-2 rounded-lg transition-colors ${
-                  config.frequency === option.value
-                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                    : 'border-wool-200 hover:border-sage-300'
-                }`}
+                onClick={handleComplete}
+                disabled={!result.instruction || result.error || phases.length === 0}
+                className="btn-primary flex-1"
               >
-                {option.label}
+                Add Step
               </button>
-            ))}
-          </div>
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  // Screen 2: Type Selection
+  if (currentScreen === 'type-select') {
+    return (
+      <div className="p-6 stack-lg">
+        {/* Header */}
+        <div>
+          <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">Choose Phase Type</h2>
+          <p className="text-wool-500 mb-4 text-left">What kind of shaping do you want to add?</p>
         </div>
 
-        {/* Times */}
-        <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-2">
-            Times
-          </label>
-          <div className="flex items-center gap-2">
-            <input
-              type="number"
-              min="1"
-              value={config.times}
-              onChange={(e) => updatePhase(phase.id, { ...config, times: parseInt(e.target.value) || 1 })}
-              className="w-20 border-2 border-wool-200 rounded-lg px-3 py-2 text-sm"
-            />
-            <span className="text-sm text-wool-600">times</span>
-          </div>
+        {/* Phase Type Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          {phaseTypes.map((type) => (
+            <button
+              key={type.id}
+              onClick={() => handleTypeSelect(type.id)}
+              className="p-4 border-2 border-wool-200 rounded-xl hover:border-sage-400 hover:bg-sage-50 transition-colors text-left"
+            >
+              <div className="text-2xl mb-2">{type.icon}</div>
+              <div className="font-semibold text-wool-700 text-sm">{type.name}</div>
+              <div className="text-xs text-wool-500">{type.description}</div>
+            </button>
+          ))}
+        </div>
+
+        {/* Back Button */}
+        <div className="pt-4">
+          <button
+            onClick={() => setCurrentScreen('summary')}
+            className="btn-tertiary w-full"
+          >
+            ← Back to Summary
+          </button>
         </div>
       </div>
     );
-  };
+  }
 
-  return (
-    <div className="p-6 stack-lg">
-      {/* Header */}
-      <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">📈 Sequential Phases</h2>
-        <p className="text-wool-500 mb-4">Configure multiple shaping phases in sequence</p>
-      </div>
+  // Screen 3: Configure Phase
+  if (currentScreen === 'configure') {
+    const phaseType = phaseTypes.find(t => t.id === tempPhaseConfig.type);
+    
+    return (
+      <div className="p-6 stack-lg">
+        {/* Header */}
+        <div>
+          <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left flex items-center gap-2">
+            <span>{phaseType?.icon}</span>
+            {phaseType?.name}
+          </h2>
+          <p className="text-wool-500 mb-4 text-left">{phaseType?.description}</p>
+        </div>
 
-      {/* Phase List */}
-      <div className="space-y-3">
-        {phases.map((phase, index) => (
-          <div key={phase.id} className="border-2 border-wool-200 rounded-xl overflow-hidden">
-            <div className="bg-wool-50 p-4 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-sage-100 rounded-full flex items-center justify-center text-sm font-bold text-sage-700">
-                  {index + 1}
-                </div>
-                <div>
-                  <div className="font-semibold text-wool-700 flex items-center gap-2">
-                    <span>{phaseTypes.find(t => t.id === phase.type)?.icon}</span>
-                    {phaseTypes.find(t => t.id === phase.type)?.name}
-                  </div>
-                  <div className="text-sm text-wool-500">
-                    {getPhaseDescription(phase)}
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2">
+        {/* Configuration based on type */}
+        <div className="space-y-6">
+          {tempPhaseConfig.type === 'setup' ? (
+            // Setup Rows Configuration
+            <div>
+              <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                Number of Rows
+              </label>
+              <div className="increment-input-group">
                 <button
-                  onClick={() => setEditingPhase(editingPhase === phase.id ? null : phase.id)}
-                  className="p-2 text-wool-500 hover:bg-wool-200 rounded-lg transition-colors"
+                  onClick={() => setTempPhaseConfig(prev => ({ 
+                    ...prev, 
+                    rows: Math.max(1, prev.rows - 1) 
+                  }))}
+                  className="btn-increment-minus"
                 >
-                  ✏️
+                  −
                 </button>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={tempPhaseConfig.rows || 1}
+                  onChange={(e) => {
+                    const value = e.target.value.replace(/[^0-9]/g, '');
+                    setTempPhaseConfig(prev => ({ ...prev, rows: parseInt(value) || 1 }));
+                  }}
+                  className="input-numeric"
+                />
                 <button
-                  onClick={() => deletePhase(phase.id)}
-                  className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                  onClick={() => setTempPhaseConfig(prev => ({ 
+                    ...prev, 
+                    rows: (prev.rows || 1) + 1 
+                  }))}
+                  className="btn-increment-plus"
                 >
-                  ✕
+                  +
                 </button>
+                <span className="text-sm text-wool-600">rows</span>
               </div>
             </div>
-            
-            {/* Configuration Panel */}
-            {editingPhase === phase.id && (
-              <div className="p-4 bg-white border-t border-wool-200">
-                {renderPhaseConfig(phase)}
+          ) : tempPhaseConfig.type === 'bind_off' ? (
+            // Bind Off Configuration
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                  Amount Per Row
+                </label>
+                <div className="increment-input-group">
+                  <button
+                    onClick={() => setTempPhaseConfig(prev => ({ 
+                      ...prev, 
+                      amount: Math.max(1, prev.amount - 1) 
+                    }))}
+                    className="btn-increment-minus"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={tempPhaseConfig.amount || 1}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setTempPhaseConfig(prev => ({ ...prev, amount: parseInt(value) || 1 }));
+                    }}
+                    className="input-numeric"
+                  />
+                  <button
+                    onClick={() => setTempPhaseConfig(prev => ({ 
+                      ...prev, 
+                      amount: (prev.amount || 1) + 1 
+                    }))}
+                    className="btn-increment-plus"
+                  >
+                    +
+                  </button>
+                  <span className="text-sm text-wool-600">stitches</span>
+                </div>
               </div>
-            )}
-          </div>
-        ))}
-      </div>
 
-      {/* Add Phase Button */}
-      <button
-        onClick={() => setShowPhaseSelector(true)}
-        className="w-full p-4 border-2 border-dashed border-wool-300 rounded-xl text-wool-500 hover:border-sage-400 hover:text-sage-600 transition-colors flex items-center justify-center gap-2"
-      >
-        <span className="text-xl">➕</span>
-        Add Phase
-      </button>
-
-      {/* Preview */}
-      {phases.length > 0 && (
-        result.error ? (
-          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-            <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
-            <div className="text-sm text-red-600">
-              {result.error}
-            </div>
-          </div>
-        ) : (
-          <div className="card-info">
-            <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
-            
-            <div className="space-y-2 text-sm">
-              <div className="text-lavender-700">
-                <span className="font-medium">Instruction:</span> {result.instruction}
+              <div>
+                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                  Position
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'beginning', label: 'Beginning' },
+                    { value: 'end', label: 'End' }
+                  ].map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
+                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
+                        tempPhaseConfig.position === option.value
+                          ? 'border-sage-500 bg-sage-100 text-sage-700'
+                          : 'border-wool-200 hover:border-sage-300'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
               </div>
-              <div className="text-lavender-600">
-                {result.startingStitches} stitches → {result.endingStitches} stitches 
-                ({Math.abs(result.netStitchChange)} {result.netStitchChange > 0 ? 'increases' : 'decreases'}, {result.totalRows} rows, {construction})
-              </div>
-              <div className="text-lavender-600">
-                <span className="font-medium">Phases:</span> {phases.length} configured
-              </div>
-            </div>
-          </div>
-        )
-      )}
 
-      {/* Navigation */}
-      <div className="flex gap-3 pt-4">
-        <button
-          onClick={onBack}
-          className="btn-tertiary flex-1"
-        >
-          Back
-        </button>
-        <button
-          onClick={handleComplete}
-          disabled={!result.instruction || result.error || phases.length === 0}
-          className="btn-primary flex-1"
-        >
-          Add Step
-        </button>
-      </div>
-
-      {/* Phase Selector Modal */}
-      {showPhaseSelector && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-end z-50">
-          <div className="bg-white w-full rounded-t-xl p-6 space-y-4">
-            <div className="flex justify-between items-center">
-              <h3 className="text-lg font-semibold text-wool-700">Choose Phase Type</h3>
-              <button
-                onClick={() => setShowPhaseSelector(false)}
-                className="p-2 hover:bg-wool-100 rounded-lg"
-              >
-                ✕
-              </button>
-            </div>
-            
-            <div className="space-y-3">
-              {phaseTypes.map((type) => (
-                <button
-                  key={type.id}
-                  onClick={() => addPhase(type.id)}
-                  className="w-full p-4 text-left border-2 border-wool-200 rounded-xl hover:border-sage-400 hover:bg-sage-50 transition-colors"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl">{type.icon}</span>
-                    <div>
-                      <div className="font-semibold text-wool-700">{type.name}</div>
-                      <div className="text-sm text-wool-500">{type.description}</div>
+              <div>
+                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                  Number of Rows
+                </label>
+                
+                {/* Preset + Custom for Bind Offs */}
+                <div className="space-y-3">
+                  {/* Quick Presets for common bind off patterns */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 1, label: '1 Row' },
+                      { value: 2, label: '2 Rows' },
+                      { value: 3, label: '3 Rows' }
+                    ].map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
+                        className={`p-3 text-sm border-2 rounded-lg transition-colors ${
+                          tempPhaseConfig.frequency === option.value
+                            ? 'border-sage-500 bg-sage-100 text-sage-700'
+                            : 'border-wool-200 hover:border-sage-300'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Custom Row Count */}
+                  <div className="bg-wool-50 border-2 border-wool-200 rounded-lg p-3">
+                    <div className="text-xs font-semibold text-wool-700 mb-2 text-left">Custom Row Count</div>
+                    <div className="increment-input-group justify-center">
+                      <button
+                        onClick={() => setTempPhaseConfig(prev => ({ 
+                          ...prev, 
+                          frequency: Math.max(1, (prev.frequency || 1) - 1) 
+                        }))}
+                        className="btn-increment-minus"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={tempPhaseConfig.frequency || 1}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          setTempPhaseConfig(prev => ({ ...prev, frequency: parseInt(value) || 1 }));
+                        }}
+                        className="input-numeric"
+                      />
+                      <button
+                        onClick={() => setTempPhaseConfig(prev => ({ 
+                          ...prev, 
+                          frequency: (prev.frequency || 1) + 1 
+                        }))}
+                        className="btn-increment-plus"
+                      >
+                        +
+                      </button>
+                      <span className="text-sm text-wool-600">{tempPhaseConfig.frequency === 1 ? 'row' : 'rows'}</span>
                     </div>
                   </div>
-                </button>
-              ))}
-            </div>
-          </div>
+                </div>
+              </div>
+            </>
+          ) : (
+            // Increase/Decrease Configuration
+            <>
+              <div>
+                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                  Amount Per Position
+                </label>
+                <div className="increment-input-group">
+                  <button
+                    onClick={() => setTempPhaseConfig(prev => ({ 
+                      ...prev, 
+                      amount: Math.max(1, prev.amount - 1) 
+                    }))}
+                    className="btn-increment-minus"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={tempPhaseConfig.amount || 1}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setTempPhaseConfig(prev => ({ ...prev, amount: parseInt(value) || 1 }));
+                    }}
+                    className="input-numeric"
+                  />
+                  <button
+                    onClick={() => setTempPhaseConfig(prev => ({ 
+                      ...prev, 
+                      amount: (prev.amount || 1) + 1 
+                    }))}
+                    className="btn-increment-plus"
+                  >
+                    +
+                  </button>
+                  <span className="text-sm text-wool-600">stitches</span>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                  Position
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { value: 'both_ends', label: 'Both Ends' },
+                    { value: 'beginning', label: 'Beginning' },
+                    { value: 'end', label: 'End' },
+                    { value: 'center', label: 'Center' }
+                  ].map(option => (
+                    <button
+                      key={option.value}
+                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
+                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
+                        tempPhaseConfig.position === option.value
+                          ? 'border-sage-500 bg-sage-100 text-sage-700'
+                          : 'border-wool-200 hover:border-sage-300'
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                  Frequency
+                </label>
+                
+                {/* Preset + Custom Integrated Layout */}
+                <div className="space-y-3">
+                  {/* Quick Presets Row */}
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 1, label: 'Every Row' },
+                      { value: 2, label: 'Every Other' },
+                      { value: 4, label: 'Every 4th' }
+                    ].map(option => (
+                      <button
+                        key={option.value}
+                        onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
+                        className={`p-3 text-sm border-2 rounded-lg transition-colors ${
+                          tempPhaseConfig.frequency === option.value
+                            ? 'border-sage-500 bg-sage-100 text-sage-700'
+                            : 'border-wool-200 hover:border-sage-300'
+                        }`}
+                      >
+                        {option.label}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  {/* Custom Interval - Integrated Style */}
+                  <div className="bg-wool-50 border-2 border-wool-200 rounded-lg p-3">
+                    <div className="text-xs font-semibold text-wool-700 mb-2 text-left">Custom Interval</div>
+                    <div className="increment-input-group justify-center">
+                      <span className="text-sm text-wool-600">Every</span>
+                      <button
+                        onClick={() => setTempPhaseConfig(prev => ({ 
+                          ...prev, 
+                          frequency: Math.max(1, (prev.frequency || 1) - 1) 
+                        }))}
+                        className="btn-increment-minus"
+                      >
+                        −
+                      </button>
+                      <input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={tempPhaseConfig.frequency || 1}
+                        onChange={(e) => {
+                          const value = e.target.value.replace(/[^0-9]/g, '');
+                          setTempPhaseConfig(prev => ({ ...prev, frequency: parseInt(value) || 1 }));
+                        }}
+                        className="input-numeric"
+                      />
+                      <button
+                        onClick={() => setTempPhaseConfig(prev => ({ 
+                          ...prev, 
+                          frequency: (prev.frequency || 1) + 1 
+                        }))}
+                        className="btn-increment-plus"
+                      >
+                        +
+                      </button>
+                      <span className="text-sm text-wool-600">{tempPhaseConfig.frequency === 1 ? 'row' : 'rows'}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                  Times
+                </label>
+                <div className="increment-input-group">
+                  <button
+                    onClick={() => setTempPhaseConfig(prev => ({ 
+                      ...prev, 
+                      times: Math.max(1, prev.times - 1) 
+                    }))}
+                    className="btn-increment-minus"
+                  >
+                    −
+                  </button>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    value={tempPhaseConfig.times || 1}
+                    onChange={(e) => {
+                      const value = e.target.value.replace(/[^0-9]/g, '');
+                      setTempPhaseConfig(prev => ({ ...prev, times: parseInt(value) || 1 }));
+                    }}
+                    className="input-numeric"
+                  />
+                  <button
+                    onClick={() => setTempPhaseConfig(prev => ({ 
+                      ...prev, 
+                      times: (prev.times || 1) + 1 
+                    }))}
+                    className="btn-increment-plus"
+                  >
+                    +
+                  </button>
+                  <span className="text-sm text-wool-600">times</span>
+                </div>
+              </div>
+            </>
+          )}
         </div>
-      )}
-    </div>
-  );
+
+        {/* Navigation */}
+        <div className="flex gap-3 pt-6">
+          <button
+            onClick={() => {
+              if (editingPhaseId) {
+                // If editing existing phase, go back to summary
+                setCurrentScreen('summary');
+                setEditingPhaseId(null);
+                setTempPhaseConfig({});
+              } else {
+                // If adding new phase, go back to type selection
+                setCurrentScreen('type-select');
+              }
+            }}
+            className="btn-tertiary flex-1"
+          >
+            ← Back
+          </button>
+          <button
+            onClick={handleSavePhaseConfig}
+            className="btn-primary flex-1"
+          >
+            {editingPhaseId ? 'Update Phase' : 'Add Phase'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return null;
 };
 
 export default PhaseConfig;

@@ -14,7 +14,8 @@ const ShapingTypeSelector = ({ onTypeSelect, currentStitches }) => {
       name: 'Sequential Phases',
       icon: '📈',
       description: 'Multiple phases with different shaping rates',
-      examples: 'Shoulder shaping, armhole curves'
+      examples: 'Shoulder shaping, armhole curves',
+      comingSoon: false
     },
     {
       id: 'single_row_repeat',

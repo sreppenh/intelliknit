@@ -50,6 +50,8 @@ if (type === 'even_distribution' && config && config.calculation) {
     netStitchChange: config.calculation.changeCount * (config.action === 'increase' ? 1 : -1)
   };
 }
+
+// ADD THIS NEW BLOCK:
 else if (type === 'phases' && config && config.calculation) {
   return {
     success: true,
@@ -58,7 +60,8 @@ else if (type === 'phases' && config && config.calculation) {
     endingStitches: config.calculation.endingStitches,
     hasShaping: true,
     shapingMode: 'phases',
-    netStitchChange: config.calculation.netStitchChange
+    netStitchChange: config.calculation.netStitchChange,
+    phaseDetails: config.calculation.phases // Store phase breakdown for knitting mode
   };
 }
     

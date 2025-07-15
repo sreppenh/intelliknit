@@ -39,6 +39,61 @@
   @apply py-4 px-6 text-lg;
 }
 
+/* ===== NEW: Increment/Decrement Button System ===== */
+.btn-increment {
+  @apply w-10 h-10 rounded-lg flex items-center justify-center font-bold transition-colors;
+  @apply focus:ring-2 focus:ring-offset-1 focus:outline-none;
+  @apply disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-increment-plus {
+  @apply btn-increment;
+  @apply bg-sage-100 hover:bg-sage-200 text-sage-700;
+  @apply focus:ring-sage-300;
+  @apply active:bg-sage-300;
+}
+
+.btn-increment-minus {
+  @apply btn-increment;
+  @apply bg-rose-100 hover:bg-rose-200 text-rose-700;
+  @apply focus:ring-rose-300;
+  @apply active:bg-rose-300;
+}
+
+/* Small variants for compact spaces */
+.btn-increment-sm {
+  @apply w-8 h-8 text-sm;
+}
+
+/* Large variants for primary actions */
+.btn-increment-lg {
+  @apply w-12 h-12 text-lg;
+}
+
+/* ===== Number Input Field System ===== */
+.input-numeric {
+  @apply w-16 text-center border-2 border-wool-200 rounded-lg px-3 py-2 text-sm;
+  @apply focus:border-sage-500 focus:ring-0 transition-colors;
+  @apply bg-white;
+}
+
+.input-numeric-lg {
+  @apply input-numeric w-20 py-3 text-base;
+}
+
+.input-numeric-sm {
+  @apply input-numeric w-12 py-1 text-xs;
+}
+
+/* ===== Increment Input Group Pattern ===== */
+.increment-input-group {
+  @apply flex items-center gap-2;
+}
+
+.increment-input-group-vertical {
+  @apply flex flex-col items-center gap-1;
+}
+
 /* ===== Card System ===== */
 .card {
   @apply bg-white border-2 border-wool-200 rounded-xl p-5 shadow-sm;

@@ -158,11 +158,11 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
           <div className="flex items-center gap-3">
             <button
               onClick={screen === 1 ? onBack : () => setScreen(1)}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              className="text-white text-lg hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors flex-shrink-0"
             >
               ←
             </button>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h1 className="text-lg font-semibold">Add Component</h1>
               <p className="text-sage-100 text-sm">{screen === 1 ? 'Setup and method' : 'Final details'}</p>
             </div>
@@ -185,7 +185,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             
             {/* Component Name */}
             <div>
-              <h2 className="text-xl font-semibold text-wool-700 mb-3">Component Name</h2>
+              <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">Component Name</h2>
               <input
                 type="text"
                 value={componentData.name}
@@ -197,7 +197,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
             {/* How Does It Start - PatternSelector Style */}
             <div>
-              <h2 className="text-xl font-semibold text-wool-700 mb-4">How does it start?</h2>
+              <h2 className="text-xl font-semibold text-wool-700 mb-4 text-left">How does it start?</h2>
               
               {/* Start Type Selection in Card */}
               <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
@@ -246,8 +246,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
             {/* Help Section */}
             <div className="success-block">
-              <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Examples</h4>
-              <div className="text-sm text-sage-600 space-y-1">
+              <h4 className="text-sm font-semibold text-sage-700 mb-2 text-left">💡 Examples</h4>
+              <div className="text-sm text-sage-600 space-y-1 text-left">
                 <div>• <strong>Cast On:</strong> Starting a new sleeve or body panel</div>
                 <div>• <strong>Pick Up:</strong> Adding a collar or button band</div>
                 <div>• <strong>From Holder:</strong> Resuming shoulder or neck stitches</div>
@@ -270,14 +270,14 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             
             {/* Standard Header Pattern */}
             <div>
-              <h2 className="text-xl font-semibold text-wool-700 mb-3">Component Details</h2>
-              <p className="text-wool-500 mb-4">Configure your {componentData.startType?.replace('_', ' ').toLowerCase()} setup</p>
+              <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">Component Details</h2>
+              <p className="text-wool-500 mb-4 text-left">Configure your {componentData.startType?.replace('_', ' ').toLowerCase()} setup</p>
             </div>
 
             {/* Summary */}
             <div className="success-block">
-              <div className="text-sm text-sage-700">
-                <div className="font-semibold mb-1">Selected Configuration:</div>
+              <div className="text-sm text-sage-700 text-left">
+                <div className="font-semibold mb-1 text-left">Selected Configuration:</div>
                 <div>• <strong>Component:</strong> {componentData.name}</div>
                 <div>• <strong>Start Type:</strong> {componentData.startType?.replace('_', ' ')}</div>
                 <div>• <strong>Method:</strong> {componentData.startMethod?.replace('_', ' ')}</div>
@@ -286,7 +286,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
             {/* Stitch Count - Standard Label Pattern */}
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
                 Starting Stitch Count
               </label>
               <input
@@ -302,7 +302,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             {/* Description - Only when needed */}
             {needsDescription() && (
               <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3">
+                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
                   {componentData.startType === 'pick_up' ? 'Pick Up From' :
                    componentData.startType === 'continue' ? 'Continue From' :
                    'Method Description'} {componentData.startMethod === 'other' ? ' *' : ''}
