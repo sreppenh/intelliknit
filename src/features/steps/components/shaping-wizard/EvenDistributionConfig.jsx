@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 
+import IncrementInput from '../../../../shared/components/IncrementInput';
 const EvenDistributionConfig = ({ 
   shapingData, 
   setShapingData, 
@@ -136,16 +137,17 @@ const EvenDistributionConfig = ({
                 
                 {config.action === 'decrease' && (
                   <div className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={config.amount}
-                        onChange={(e) => setConfig(prev => ({ ...prev, amount: parseInt(e.target.value) || 0 }))}
-                        className="w-20 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                        placeholder="6"
-                      />
-                      <span className="text-sm text-sage-700">stitches</span>
-                    </div>
+              
+
+              <IncrementInput
+  value={config.amount}
+  onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
+  label="decrease amount"
+  unit="stitches"
+  min={1}
+  placeholder="6"
+  size="sm"
+/>
                     
                     {config.amount > 0 && (
                       <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
@@ -183,16 +185,18 @@ const EvenDistributionConfig = ({
                 
                 {config.action === 'increase' && (
                   <div className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={config.amount}
-                        onChange={(e) => setConfig(prev => ({ ...prev, amount: parseInt(e.target.value) || 0 }))}
-                        className="w-20 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                        placeholder="8"
-                      />
-                      <span className="text-sm text-sage-700">stitches</span>
-                    </div>
+                   
+<IncrementInput
+  value={config.amount}
+  onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
+  label="decrease amount"
+  unit="stitches"
+  min={1}
+  placeholder="6"
+  size="sm"
+/>
+
+
                     
                     {config.amount > 0 && (
                       <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">

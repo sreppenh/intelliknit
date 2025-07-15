@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
+import IncrementInput from '../../../shared/components/IncrementInput';
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
@@ -289,14 +290,14 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
                 Starting Stitch Count
               </label>
-              <input
-                type="number"
-                value={componentData.startStitches}
-                onChange={(e) => setComponentData(prev => ({ ...prev, startStitches: e.target.value }))}
-                placeholder="e.g., 80"
-                className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                min="1"
-              />
+              <IncrementInput
+  value={componentData.startStitches}
+  onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
+  label="starting stitches"
+  unit="stitches"
+  min={1}
+  placeholder="80"
+/>
             </div>
 
             {/* Description - Only when needed */}

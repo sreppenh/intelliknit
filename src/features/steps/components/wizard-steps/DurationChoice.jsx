@@ -1,4 +1,5 @@
 import React from 'react';
+import IncrementInput from '../../../../shared/components/IncrementInput';
 
 const DurationChoice = ({ wizardData, updateWizardData }) => {
   const { pattern } = wizardData.stitchPattern;
@@ -102,16 +103,18 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
                 
                 {wizardData.duration.type === 'rows' && (
                   <div className="mt-3 space-y-2">
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        value={wizardData.duration.value}
-                        onChange={(e) => updateWizardData('duration', { value: e.target.value })}
-                        placeholder="40"
-                        className="w-20 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                      />
-                      <span className="text-sm text-sage-700">rows</span>
-                    </div>
+                    <IncrementInput
+  value={wizardData.duration.value}
+  onChange={(value) => updateWizardData('duration', { value })}
+  label="number of rows"
+  unit="rows"
+  min={1}
+  size="sm"
+/>
+                      
+
+
+
                     <div className="text-xs text-sage-600">
                       💡 This is the total number of rows to work for this section
                     </div>
@@ -291,18 +294,19 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
                   
                   {wizardData.duration.type === 'repeats' && (
                     <div className="mt-3 space-y-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-sage-700">Repeat the pattern</span>
-                        <input
-                          type="number"
-                          value={wizardData.duration.value}
-                          onChange={(e) => updateWizardData('duration', { value: e.target.value })}
-                          placeholder="3"
-                          min="1"
-                          className="w-16 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                        />
-                        <span className="text-sm text-sage-700">times</span>
-                      </div>
+                      
+<div className="flex items-center gap-2">
+  <span className="text-sm text-sage-700">Repeat the pattern</span>
+  <IncrementInput
+    value={wizardData.duration.value}
+    onChange={(value) => updateWizardData('duration', { value })}
+    label="pattern repeats"
+    unit="times"
+    min={1}
+    size="sm"
+  />
+</div>
+
                       
                       {wizardData.duration.value && (
                         <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">

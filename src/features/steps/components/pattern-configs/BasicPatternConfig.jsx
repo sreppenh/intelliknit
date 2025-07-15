@@ -1,4 +1,5 @@
 import React from 'react';
+import IncrementInput from '../../../../shared/components/IncrementInput';
 
 const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
   const needsRowInput = ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes', 'Custom pattern'].includes(wizardData.stitchPattern.pattern);
@@ -17,7 +18,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
       {/* Pattern Description - For Lace, Cable, Colorwork patterns */}
       {needsDescription && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
+          <label className="form-label">
             Pattern Description
           </label>
           <textarea
@@ -53,20 +54,19 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
       {/* Lace/Cable/Colorwork - Required row input */}
       {needsRowInput && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
+            <label className="form-label">
             Rows in Pattern
           </label>
-          <input
-            type="number"
-            value={wizardData.stitchPattern.rowsInPattern}
-            onChange={(e) => updateWizardData('stitchPattern', { rowsInPattern: e.target.value })}
-            placeholder="6"
-            min="1"
-            className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-          />
-          <p className="text-xs text-wool-500 mt-2">
-            Number of rows in one complete pattern repeat
-          </p>
+<IncrementInput
+  value={wizardData.stitchPattern.rowsInPattern}
+  onChange={(value) => updateWizardData('stitchPattern', { rowsInPattern: value })}
+  label="rows in pattern"
+  unit="rows"
+  min={1}
+  placeholder="6"
+  className="justify-start"  // Add this line!
+/>
+          <p className="form-help">Number of rows in one complete pattern repeat</p>
         </div>
       )}
 
