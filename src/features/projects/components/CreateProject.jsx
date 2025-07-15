@@ -70,7 +70,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
           <div className="space-y-4">
             {/* Project Name */}
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-2">
+              <label className="form-label">
                 Project Name
               </label>
               <input
@@ -84,7 +84,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
 
             {/* Size - Optional */}
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-2">
+              <label className="form-label">
                 Size (optional)
               </label>
               <input
@@ -98,7 +98,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
 
             {/* Segmented Units Control */}
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-2">
+              <label className="form-label">
                 Preferred Units
               </label>
               <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">

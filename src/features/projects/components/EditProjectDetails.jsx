@@ -120,7 +120,7 @@ const EditProjectDetails = ({ onBack }) => {
             </h2>
             
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="form-label">
                 Project Name
               </label>
               <input
@@ -132,7 +132,7 @@ const EditProjectDetails = ({ onBack }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="form-label">
                 Size
               </label>
               <input
@@ -145,7 +145,7 @@ const EditProjectDetails = ({ onBack }) => {
             </div>
 
 <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="form-label">
                 Preferred Units
               </label>
               <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
@@ -210,7 +210,7 @@ const EditProjectDetails = ({ onBack }) => {
             
             {/* Yarns */}
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="form-label">
                 Yarns
               </label>
               {projectData.yarns.map((yarn, index) => (
@@ -242,7 +242,7 @@ const EditProjectDetails = ({ onBack }) => {
 
             {/* Needles */}
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="form-label">
                 Needles
               </label>
               {projectData.needles.map((needle, index) => (
@@ -280,7 +280,7 @@ const EditProjectDetails = ({ onBack }) => {
             </h2>
             
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="form-label">
                 Pattern Source
               </label>
               <input
@@ -293,7 +293,7 @@ const EditProjectDetails = ({ onBack }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="form-label">
                 Designer
               </label>
               <input
@@ -306,7 +306,7 @@ const EditProjectDetails = ({ onBack }) => {
             </div>
 
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+             <label className="form-label">
                 For Who?
               </label>
               <input
@@ -326,7 +326,7 @@ const EditProjectDetails = ({ onBack }) => {
             </h2>
             
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3">
+              <label className="form-label">
                 Project Notes
               </label>
               <textarea

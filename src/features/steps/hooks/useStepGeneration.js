@@ -82,47 +82,40 @@ export const useStepGeneration = () => {
       instruction += ` for ${wizardData.duration.value} repeats`;
     }
     
-// Add shaping description if applicable
-if (wizardData.hasShaping && wizardData.shapingConfig) {
-  const { shapingMode, shapingType, positions, frequency, times, comments, type, config } = wizardData.shapingConfig;
-  
-  // Check for new shaping structure first (from ShapingWizard)
-  if (type === 'even_distribution' && config && config.calculation && config.calculation.instruction) {
-    instruction += ` with ${config.calculation.instruction}`;
-  }
-  else if (type === 'phases' && config && config.calculation && config.calculation.instruction) {
-    instruction += ` with ${config.calculation.instruction}`;
-  }
-  // Fall back to old shaping structure
-  else if (shapingMode === 'raglan') {
-    instruction += ` with raglan ${shapingType}s every ${frequency === 2 ? 'other' : `${frequency}th`} row ${times} times`;
-  } else if (shapingMode === 'bindoff') {
-    instruction += ` with bind-off shaping`;
-  } else if (shapingMode === 'distribution') {
-    // Check for calculated instruction in the nested config
-    if (wizardData.shapingConfig.config && 
-        wizardData.shapingConfig.config.calculation && 
-        wizardData.shapingConfig.config.calculation.instruction) {
-      instruction += ` with ${wizardData.shapingConfig.config.calculation.instruction}`;
-    } else {
-      instruction += ` with even ${shapingType} distribution`;
+    // Add shaping description if applicable
+    if (wizardData.hasShaping && wizardData.shapingConfig) {
+      const { shapingMode, shapingType, positions, frequency, times, comments, type, config } = wizardData.shapingConfig;
+      
+      // Add debugging log
+      console.log('Shaping debug - type:', type, 'config exists:', !!config);
+      
+      // Check for new shaping structure first (from ShapingWizard)
+      if (type === 'even_distribution' && config && config.calculation && config.calculation.instruction) {
+        instruction += ` with ${config.calculation.instruction}`;
+      }
+      else if (type === 'phases' && config && config.calculation && config.calculation.instruction) {
+        instruction += ` with ${config.calculation.instruction}`;
+      }
+      // Fall back to old shaping structure
+      else if (shapingMode === 'raglan') {
+        instruction += ` with raglan ${shapingType}s every ${frequency === 2 ? 'other' : `${frequency}th`} row ${times} times`;
+      } else if (shapingMode === 'bindoff') {
+        instruction += ` with bind-off shaping`;
+      } 
+      // REMOVED: The redundant 'distribution' fallback block that was handling the same case as 'even_distribution'
+      else {
+        const positionText = positions.includes('both_ends') ? 'both ends' : positions.join(' and ');
+        instruction += ` with ${shapingType}s at ${positionText} every ${frequency === 2 ? 'other' : `${frequency}th`} row ${times} times`;
+      }
+      
+      if (comments) {
+        instruction += ` (${comments})`;
+      }
     }
-  } else {
-    const positionText = positions.includes('both_ends') ? 'both ends' : positions.join(' and ');
-    instruction += ` with ${shapingType}s at ${positionText} every ${frequency === 2 ? 'other' : `${frequency}th`} row ${times} times`;
-  }
-  
-  if (comments) {
-    instruction += ` (${comments})`;
-  }
-}
     
-console.log('Final instruction:', instruction);
+    console.log('Final instruction:', instruction);
     return instruction;
   }, []);
 
-
-
-  
   return { generateInstruction };
 };

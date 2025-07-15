@@ -33,41 +33,43 @@ export const useStepCalculation = () => {
       };
     }
     
-    // NEW: Handle patterns with advanced shaping using AdvancedPatternCalculator
-if (wizardData.hasShaping && wizardData.shapingConfig) {
-  try {
-    const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange, type, config } = wizardData.shapingConfig;
-    
-    // Check for new shaping structure first (from ShapingWizard)
-if (type === 'even_distribution' && config && config.calculation) {
-  return {
-    success: true,
-    totalRows: 1,
-    startingStitches: config.calculation.startingStitches,
-    endingStitches: config.calculation.endingStitches,
-    hasShaping: true,
-    shapingMode: 'distribution',
-    netStitchChange: config.calculation.changeCount * (config.action === 'increase' ? 1 : -1)
-  };
-}
+    // Handle patterns with advanced shaping using AdvancedPatternCalculator
+    if (wizardData.hasShaping && wizardData.shapingConfig) {
+      try {
+        const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange, type, config } = wizardData.shapingConfig;
+        
+        // Add debugging log
+        console.log('Calculation debug - type:', type, 'config exists:', !!config);
+        
+        // Check for new shaping structure first (from ShapingWizard)
+        if (type === 'even_distribution' && config && config.calculation) {
+          return {
+            success: true,
+            totalRows: 1,
+            startingStitches: config.calculation.startingStitches,
+            endingStitches: config.calculation.endingStitches,
+            hasShaping: true,
+            shapingMode: 'distribution',
+            netStitchChange: config.calculation.changeCount * (config.action === 'increase' ? 1 : -1)
+          };
+        }
 
-// ADD THIS NEW BLOCK:
-else if (type === 'phases' && config && config.calculation) {
-  return {
-    success: true,
-    totalRows: config.calculation.totalRows,
-    startingStitches: config.calculation.startingStitches,
-    endingStitches: config.calculation.endingStitches,
-    hasShaping: true,
-    shapingMode: 'phases',
-    netStitchChange: config.calculation.netStitchChange,
-    phaseDetails: config.calculation.phases // Store phase breakdown for knitting mode
-  };
-}
-    
-    // Stepped Bind-Off
-    else if (shapingMode === 'bindoff') {
-     
+        // Handle sequential phases shaping
+        else if (type === 'phases' && config && config.calculation) {
+          return {
+            success: true,
+            totalRows: config.calculation.totalRows,
+            startingStitches: config.calculation.startingStitches,
+            endingStitches: config.calculation.endingStitches,
+            hasShaping: true,
+            shapingMode: 'phases',
+            netStitchChange: config.calculation.netStitchChange,
+            phaseDetails: config.calculation.phases // Store phase breakdown for knitting mode
+          };
+        }
+        
+        // Stepped Bind-Off
+        else if (shapingMode === 'bindoff') {
           const bindOffResult = advancedCalculator.calculateSteppedBindOff(bindOffSequence, currentStitches, construction);
           if (bindOffResult.success) {
             return {
@@ -82,7 +84,7 @@ else if (type === 'phases' && config && config.calculation) {
           }
         } 
         
-        // Even Distribution
+        // Even Distribution (legacy fallback)
         else if (shapingMode === 'distribution') {
           const distributionResult = advancedCalculator.calculateEvenDistribution(
             currentStitches,
@@ -198,28 +200,26 @@ else if (type === 'phases' && config && config.calculation) {
     // Fallback for patterns we can't calculate yet
     return {
       success: false,
-      totalRows: wizardData.duration.type === 'rows' ? parseInt(wizardData.duration.value) : null,
+      totalRows: wizardData.duration.type === 'rows' ? parseInt(wizardData.duration.value) || 1 : 1,
       startingStitches: currentStitches,
       endingStitches: currentStitches
     };
   }, [detector, calculator, advancedCalculator]);
 
-  const generateInstructionForDetection = (wizardData) => {
-    // Simple instruction generation for pattern detection
-    const pattern = wizardData.stitchPattern.pattern === 'Other' ? 
-      wizardData.stitchPattern.customText : 
-      wizardData.stitchPattern.pattern;
-    
-    let instruction = pattern;
-    
-    if (wizardData.duration.type === 'rows') {
-      instruction += ` for ${wizardData.duration.value} rows`;
-    } else if (wizardData.duration.type === 'measurement') {
-      instruction += ` until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
-    }
-    
-    return instruction;
-  };
-
   return { calculateEffect };
 };
+
+// Helper function to generate instruction for pattern detection
+function generateInstructionForDetection(wizardData) {
+  const pattern = wizardData.stitchPattern.pattern === 'Other' ? 
+    wizardData.stitchPattern.customText : 
+    wizardData.stitchPattern.pattern;
+  
+  if (wizardData.duration.type === 'rows') {
+    return `${pattern} for ${wizardData.duration.value} rows`;
+  } else if (wizardData.duration.type === 'measurement') {
+    return `${pattern} until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
+  } else {
+    return pattern;
+  }
+}

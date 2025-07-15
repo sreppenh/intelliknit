@@ -54,7 +54,8 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
       {/* Lace/Cable/Colorwork - Required row input */}
       {needsRowInput && (
         <div>
-            <label className="form-label">
+          <label className="block text-sm font-semibold text-wool-700 mb-3">
+            <label className="form-label"></label>
             Rows in Pattern
           </label>
 <IncrementInput
@@ -66,7 +67,9 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
   placeholder="6"
   className="justify-start"  // Add this line!
 />
-          <p className="form-help">Number of rows in one complete pattern repeat</p>
+          <p className="text-xs text-wool-500 mt-2">
+            Number of rows in one complete pattern repeat
+          </p>
         </div>
       )}
 
