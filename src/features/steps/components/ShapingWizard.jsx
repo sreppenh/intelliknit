@@ -22,7 +22,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
   };
 
   const handleConfigComplete = (config) => {
-     console.log('Saving config:', config);  // Add this line
+     console.log('🔧 Saving config:', config);
     // Update wizard data with shaping configuration
     updateWizardData('shapingConfig', {
       type: shapingData.type,

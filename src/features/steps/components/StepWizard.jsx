@@ -139,8 +139,6 @@ if (showShapingWizard) {
         
       case 5:
         // Preview step (has custom buttons, no nav needed)
-        console.log('About to render StepPreview, wizard.wizardData.shapingConfig:', wizard.wizardData.shapingConfig); // Add this
-        console.log('Full shapingConfig structure:', JSON.stringify(wizard.wizardData.shapingConfig, null, 2));
         return (
           <StepPreview
             wizard={wizard}

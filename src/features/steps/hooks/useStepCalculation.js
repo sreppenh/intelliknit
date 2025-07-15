@@ -39,7 +39,7 @@ export const useStepCalculation = () => {
         const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange, type, config } = wizardData.shapingConfig;
         
         // Add debugging log
-        console.log('Calculation debug - type:', type, 'config exists:', !!config);
+        console.log('🔧 Calculation debug - type:', type, 'config exists:', !!config);
         
         // Check for new shaping structure first (from ShapingWizard)
         if (type === 'even_distribution' && config && config.calculation) {

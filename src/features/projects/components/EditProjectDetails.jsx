@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
+import PageHeader from '../../../shared/components/PageHeader';
 
 const EditProjectDetails = ({ onBack }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -96,20 +97,13 @@ const EditProjectDetails = ({ onBack }) => {
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
         
         {/* Header */}
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-            >
-              ←
-            </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">Edit Project Details</h1>
-              <p className="text-sage-100 text-sm">{currentProject.name}</p>
-            </div>
-          </div>
-        </div>
+        <PageHeader 
+  title="Edit Project Details" 
+  subtitle={currentProject.name} 
+  onBack={onBack} 
+/>
+
+
 
         <div className="p-6 bg-yarn-50 space-y-8">
           

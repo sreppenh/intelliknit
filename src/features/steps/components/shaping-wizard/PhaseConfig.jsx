@@ -41,6 +41,8 @@ const PhaseConfig = ({
     }
   ];
 
+
+
   const getDefaultConfigForType = (type) => {
     switch (type) {
       case 'decrease':
@@ -72,10 +74,10 @@ const PhaseConfig = ({
     }
   };
 
-  const handleAddPhase = () => {
-    setEditingPhaseId(null);
-    setCurrentScreen('type-select');
-  };
+const handleAddPhase = () => {
+  setEditingPhaseId(null);
+  setCurrentScreen('type-select');
+};
 
   const handleEditPhase = (phaseId) => {
     const phase = phases.find(p => p.id === phaseId);
@@ -85,16 +87,16 @@ const PhaseConfig = ({
   };
 
   const handleTypeSelect = (type) => {
-    if (editingPhaseId) {
-      // Editing existing phase - keep existing config but change type
-      const existingPhase = phases.find(p => p.id === editingPhaseId);
-      setTempPhaseConfig({ ...existingPhase.config, type });
-    } else {
-      // Adding new phase
-      setTempPhaseConfig({ type, ...getDefaultConfigForType(type) });
-    }
-    setCurrentScreen('configure');
-  };
+  if (editingPhaseId) {
+    // Editing existing phase - keep existing config but change type
+    const existingPhase = phases.find(p => p.id === editingPhaseId);
+    setTempPhaseConfig({ ...existingPhase.config, type });
+  } else {
+    // Adding new phase
+    setTempPhaseConfig({ type, ...getDefaultConfigForType(type) });
+  }
+  setCurrentScreen('configure');
+};
 
   const handleSavePhaseConfig = () => {
     if (editingPhaseId) {
@@ -120,8 +122,8 @@ const PhaseConfig = ({
   };
 
   const handleDeletePhase = (phaseId) => {
-    setPhases(phases.filter(p => p.id !== phaseId));
-  };
+  setPhases(phases.filter(p => p.id !== phaseId));
+};
 
   const calculateSequentialPhases = () => {
     if (phases.length === 0) {
@@ -460,310 +462,166 @@ const PhaseConfig = ({
     );
   }
 
-  // Screen 3: Configure Phase
-  if (currentScreen === 'configure') {
-    const phaseType = phaseTypes.find(t => t.id === tempPhaseConfig.type);
-    
-    return (
-      <div className="p-6 stack-lg">
-        {/* Header */}
-        <div>
-          <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left flex items-center gap-2">
-            <span>{phaseType?.icon}</span>
-            {phaseType?.name}
-          </h2>
-          <p className="text-wool-500 mb-4 text-left">{phaseType?.description}</p>
-        </div>
-
-        {/* Configuration based on type */}
-        <div className="space-y-6">
-          {tempPhaseConfig.type === 'setup' ? (
-            // Setup Rows Configuration
-           <div>
-  <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-    Number of Rows
-  </label>
-  <IncrementInput
-    value={tempPhaseConfig.rows}
-    onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
-    label="number of rows"
-    unit="rows"
-    min={1}
-  />
-</div>
-
-          ) : tempPhaseConfig.type === 'bind_off' ? (
-
-
-            // Bind Off Configuration
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-                  Amount Per Row
-                </label>
-                <div className="increment-input-group">
-                  <button
-                    onClick={() => setTempPhaseConfig(prev => ({ 
-                      ...prev, 
-                      amount: Math.max(1, prev.amount - 1) 
-                    }))}
-                    className="btn-increment-minus"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={tempPhaseConfig.amount || 1}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      setTempPhaseConfig(prev => ({ ...prev, amount: parseInt(value) || 1 }));
-                    }}
-                    className="input-numeric"
-                  />
-                  <button
-                    onClick={() => setTempPhaseConfig(prev => ({ 
-                      ...prev, 
-                      amount: (prev.amount || 1) + 1 
-                    }))}
-                    className="btn-increment-plus"
-                  >
-                    +
-                  </button>
-                  <span className="text-sm text-wool-600">stitches</span>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-                  Position
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: 'beginning', label: 'Beginning' },
-                    { value: 'end', label: 'End' }
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
-                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                        tempPhaseConfig.position === option.value
-                          ? 'border-sage-500 bg-sage-100 text-sage-700'
-                          : 'border-wool-200 hover:border-sage-300'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-                  Number of Rows
-                </label>
-                
-                {/* Preset + Custom for Bind Offs */}
-                <div className="space-y-3">
-                  {/* Quick Presets for common bind off patterns */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { value: 1, label: '1 Row' },
-                      { value: 2, label: '2 Rows' },
-                      { value: 3, label: '3 Rows' }
-                    ].map(option => (
-                      <button
-                        key={option.value}
-                        onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
-                        className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                          tempPhaseConfig.frequency === option.value
-                            ? 'border-sage-500 bg-sage-100 text-sage-700'
-                            : 'border-wool-200 hover:border-sage-300'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {/* Custom Row Count */}
-<div className="bg-wool-50 border-2 border-wool-200 rounded-lg p-3">
-  <div className="text-xs font-semibold text-wool-700 mb-2 text-left">Custom Interval</div>
-  <div className="flex items-center justify-center gap-2">
-    <span className="text-sm text-wool-600">Every</span>
-    <IncrementInput
-      value={tempPhaseConfig.frequency}
-      onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, frequency: value }))}
-      label="frequency interval"
-      unit={tempPhaseConfig.frequency === 1 ? 'row' : 'rows'}
-      min={1}
-      max={20}
-      size="sm"
-    />
-  </div>
-</div>
-                </div>
-              </div>
-            </>
-          ) : (
-            // Increase/Decrease Configuration
-            <>
-              
-              
-              
-              <div>
-  <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-    Amount Per Position
-  </label>
-  <IncrementInput
-    value={tempPhaseConfig.amount}
-    onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, amount: value }))}
-    label="amount per position"
-    unit="stitches"
-    min={1}
-  />
-</div>
-
-
-              <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-                  Position
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: 'both_ends', label: 'Both Ends' },
-                    { value: 'beginning', label: 'Beginning' },
-                    { value: 'end', label: 'End' },
-                    { value: 'center', label: 'Center' }
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
-                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                        tempPhaseConfig.position === option.value
-                          ? 'border-sage-500 bg-sage-100 text-sage-700'
-                          : 'border-wool-200 hover:border-sage-300'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-                  Frequency
-                </label>
-                
-                {/* Preset + Custom Integrated Layout */}
-                <div className="space-y-3">
-                  {/* Quick Presets Row */}
-                  <div className="grid grid-cols-3 gap-2">
-                    {[
-                      { value: 1, label: 'Every Row' },
-                      { value: 2, label: 'Every Other' },
-                      { value: 4, label: 'Every 4th' }
-                    ].map(option => (
-                      <button
-                        key={option.value}
-                        onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
-                        className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                          tempPhaseConfig.frequency === option.value
-                            ? 'border-sage-500 bg-sage-100 text-sage-700'
-                            : 'border-wool-200 hover:border-sage-300'
-                        }`}
-                      >
-                        {option.label}
-                      </button>
-                    ))}
-                  </div>
-                  
-                  {/* Custom Interval - Integrated Style */}
-                  <div className="bg-wool-50 border-2 border-wool-200 rounded-lg p-3">
-                    <div className="text-xs font-semibold text-wool-700 mb-2 text-left">Custom Interval</div>
-                    <div className="increment-input-group justify-center">
-                      <span className="text-sm text-wool-600">Every</span>
-                      <button
-                        onClick={() => setTempPhaseConfig(prev => ({ 
-                          ...prev, 
-                          frequency: Math.max(1, (prev.frequency || 1) - 1) 
-                        }))}
-                        className="btn-increment-minus"
-                      >
-                        −
-                      </button>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={tempPhaseConfig.frequency || 1}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          setTempPhaseConfig(prev => ({ ...prev, frequency: parseInt(value) || 1 }));
-                        }}
-                        className="input-numeric"
-                      />
-                      <button
-                        onClick={() => setTempPhaseConfig(prev => ({ 
-                          ...prev, 
-                          frequency: (prev.frequency || 1) + 1 
-                        }))}
-                        className="btn-increment-plus"
-                      >
-                        +
-                      </button>
-                      <span className="text-sm text-wool-600">{tempPhaseConfig.frequency === 1 ? 'row' : 'rows'}</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-<div>
-  <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-    Times
-  </label>
-  <IncrementInput
-    value={tempPhaseConfig.times}
-    onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, times: value }))}
-    label="number of times"
-    unit="times"
-    min={1}
-  />
-</div>
-            </>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <div className="flex gap-3 pt-6">
-          <button
-            onClick={() => {
-              if (editingPhaseId) {
-                // If editing existing phase, go back to summary
-                setCurrentScreen('summary');
-                setEditingPhaseId(null);
-                setTempPhaseConfig({});
-              } else {
-                // If adding new phase, go back to type selection
-                setCurrentScreen('type-select');
+// Screen 3: Configure Phase
+if (currentScreen === 'configure') {
+  const phaseType = phaseTypes.find(t => t.id === tempPhaseConfig.type);
+  const phaseNumber = editingPhaseId ? 
+    phases.findIndex(p => p.id === editingPhaseId) + 1 : 
+    phases.length + 1;
+  const isFirstPhase = phaseNumber === 1;
+  
+  return (
+    <div className="p-6 stack-lg">
+      {/* Header with Phase Context */}
+      <div>
+        <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">
+          {editingPhaseId ? 'Edit Phase' : isFirstPhase ? 'Configure Your First Phase' : `Configure Phase ${phaseNumber}`}
+        </h2>
+        <div className="flex items-center gap-2 mb-4">
+          <span className="text-2xl">{phaseType?.icon}</span>
+          <div>
+            <div className="font-semibold text-wool-700">{phaseType?.name}</div>
+            <div className="text-sm text-wool-500">
+              {editingPhaseId ? 
+                `Phase ${phaseNumber} of ${phases.length}` : 
+                isFirstPhase ? 
+                  'Phase 1 of your sequence' : 
+                  `Phase ${phaseNumber} of your sequence`
               }
-            }}
-            className="btn-tertiary flex-1"
-          >
-            ← Back
-          </button>
-          <button
-            onClick={handleSavePhaseConfig}
-            className="btn-primary flex-1"
-          >
-            {editingPhaseId ? 'Update Phase' : 'Add Phase'}
-          </button>
+            </div>
+          </div>
         </div>
+        <p className="text-wool-500 mb-4 text-left">{phaseType?.description}</p>
       </div>
-    );
-  }
+
+      {/* Configuration based on type */}
+      <div className="space-y-6">
+        {tempPhaseConfig.type === 'setup' ? (
+          /* Setup Rows Configuration */
+          <div>
+            <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+              Number of Rows
+            </label>
+            <IncrementInput
+              value={tempPhaseConfig.rows}
+              onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
+              label="plain rows"
+              unit="rows"
+              min={1}
+            />
+          </div>
+        ) : (
+          /* Shaping Configuration */
+          <>
+            <div>
+              <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                Amount per Row
+              </label>
+              <IncrementInput
+                value={tempPhaseConfig.amount}
+                onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, amount: value }))}
+                label="stitches"
+                unit="stitches"
+                min={1}
+              />
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                Position
+              </label>
+              <div className="grid grid-cols-2 gap-3">
+                {['both_ends', 'beginning', 'end', 'center'].map((pos) => (
+                  <button
+                    key={pos}
+                    onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: pos }))}
+                    className={`p-3 rounded-xl border-2 transition-colors text-center ${
+                      tempPhaseConfig.position === pos
+                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300'
+                    }`}
+                  >
+                    <div className="text-sm font-semibold capitalize">
+                      {pos.replace('_', ' ')}
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                Frequency
+              </label>
+              <div className="grid grid-cols-3 gap-3">
+                {[1, 2, 3, 4, 6, 8].map((freq) => (
+                  <button
+                    key={freq}
+                    onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: freq }))}
+                    className={`p-3 rounded-xl border-2 transition-colors text-center ${
+                      tempPhaseConfig.frequency === freq
+                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300'
+                    }`}
+                  >
+                    <div className="text-sm font-semibold">
+                      Every {freq === 1 ? '' : `${freq}${freq === 2 ? 'nd' : freq === 3 ? 'rd' : 'th'} `}
+                      {freq === 1 ? 'Row' : 'Row'}
+                    </div>
+                  </button>
+                ))}
+              </div>
+              <div className="text-xs text-wool-500 mt-2">
+                Selected: Every {tempPhaseConfig.frequency === 1 ? 'row' : 
+                  tempPhaseConfig.frequency === 2 ? 'other row' : 
+                  `${tempPhaseConfig.frequency} rows`}
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                Times
+              </label>
+              <IncrementInput
+                value={tempPhaseConfig.times}
+                onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, times: value }))}
+                label="number of times"
+                unit="times"
+                min={1}
+              />
+            </div>
+          </>
+        )}
+      </div>
+
+      {/* Navigation */}
+      <div className="flex gap-3 pt-6">
+        <button
+          onClick={() => {
+            if (editingPhaseId) {
+              // If editing existing phase, go back to summary
+              setCurrentScreen('summary');
+              setEditingPhaseId(null);
+              setTempPhaseConfig({});
+            } else {
+              // If adding new phase, go back to summary (which now shows type selection for first phase)
+              setCurrentScreen('summary');
+            }
+          }}
+          className="btn-tertiary flex-1"
+        >
+          ← Back
+        </button>
+        <button
+          onClick={handleSavePhaseConfig}
+          className="btn-primary flex-1"
+        >
+          {editingPhaseId ? 'Update Phase' : isFirstPhase ? 'Add First Phase' : 'Add Phase'}
+        </button>
+      </div>
+    </div>
+  );
+}
 
   return null;
 };

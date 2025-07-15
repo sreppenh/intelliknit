@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import StepWizard from './StepWizard';
 import ComponentEndingWizard from './ComponentEndingWizard';
+import PageHeader from '../../../shared/components/PageHeader';
 
 const ManageSteps = ({ componentIndex, onBack }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -289,20 +290,11 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
         {/* Header */}
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button 
-              onClick={onBack}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-            >
-              ←
-            </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">Manage Steps</h1>
-              <p className="text-sage-100 text-sm">{component.name}</p>
-            </div>
-          </div>
-        </div>
+<PageHeader 
+  title="Manage Steps"
+  subtitle={component.name} 
+  onBack={onBack} 
+/>
 
         <div className="p-6 bg-yarn-50 stack-lg">
           {/* Component Summary */}

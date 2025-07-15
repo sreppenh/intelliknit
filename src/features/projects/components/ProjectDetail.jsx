@@ -4,6 +4,7 @@ import ComponentCreatedCelebration from './ComponentCreatedCelebration';
 import CompleteProjectModal from './CompleteProjectModal';
 import SmartComponentCreation from './SmartComponentCreation';
 import CompactComponentCard from './CompactComponentCard';
+import PageHeader from '../../../shared/components/PageHeader';
 
 const ProjectOverview = ({ project, onEditProjectDetails }) => {
   const [openMenu, setOpenMenu] = useState(false);
@@ -243,22 +244,13 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        {/* Header - Clean navigation only */}
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-            >
-              ←
-            </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">{currentProject.name}</h1>
-              <p className="text-sage-100 text-sm">Edit Mode</p>
-            </div>
-          </div>
-        </div>
-
+        {/* Header */}
+        <PageHeader 
+          title={currentProject.name} 
+          subtitle="Edit Mode" 
+          onBack={onBack} 
+        />
+        
         <div className="p-6 bg-yarn-50">
           <div className="stack-lg">
             

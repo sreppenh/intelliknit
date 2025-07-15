@@ -4,6 +4,7 @@ import EndingTypeSelector from './ending-wizard/EndingTypeSelector';
 import BindOffConfig from './ending-wizard/BindOffConfig';
 import AttachmentConfig from './ending-wizard/AttachmentConfig';
 import OtherEndingConfig from './ending-wizard/OtherEndingConfig';
+import PageHeader from '../../../shared/components/PageHeader';
 
 const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   const [step, setStep] = useState(1);
@@ -155,20 +156,11 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
             
             {/* Header */}
-            <div className="bg-sage-500 text-white px-6 py-4">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={onBack}
-                  className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-                >
-                  ←
-                </button>
-                <div className="flex-1">
-                  <h1 className="text-lg font-semibold">Finish Component</h1>
-                  <p className="text-sage-100 text-sm">What happens to the {currentStitches} stitches?</p>
-                </div>
-              </div>
-            </div>
+             <PageHeader
+  title="Configure Ending"
+  subtitle="Set up the details"
+  onBack={() => setStep(1)}
+/>
 
             <div className="p-6 bg-yarn-50 stack-lg relative">
               

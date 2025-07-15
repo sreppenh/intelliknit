@@ -87,7 +87,7 @@ export const useStepGeneration = () => {
       const { shapingMode, shapingType, positions, frequency, times, comments, type, config } = wizardData.shapingConfig;
       
       // Add debugging log
-      console.log('Shaping debug - type:', type, 'config exists:', !!config);
+      console.log('🔧 Shaping debug - type:', type, 'config exists:', !!config);
       
       // Check for new shaping structure first (from ShapingWizard)
       if (type === 'even_distribution' && config && config.calculation && config.calculation.instruction) {
@@ -113,7 +113,6 @@ export const useStepGeneration = () => {
       }
     }
     
-    console.log('Final instruction:', instruction);
     return instruction;
   }, []);
 

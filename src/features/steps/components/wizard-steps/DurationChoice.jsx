@@ -8,7 +8,7 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
   if (pattern === 'Cast On') {
     return (
       <div className="stack-lg">
-        <div className="success-block text-center">
+        <div className="success-block-center">
           <div className="text-2xl mb-2">🏗️</div>
           <h3 className="text-lg font-semibold text-sage-700 mb-2">Cast On Ready!</h3>
           <p className="text-sm text-sage-600">Your cast on step is ready to add</p>

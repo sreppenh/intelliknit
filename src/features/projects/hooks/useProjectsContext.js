@@ -29,7 +29,7 @@ export const ProjectsProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('Failed to load projects:', error);
+        console.error('❌ IntelliKnit Error: Failed to load projects:', error);
       }
     };
     
@@ -40,7 +40,7 @@ export const ProjectsProvider = ({ children }) => {
   useEffect(() => {
     if (state.projects.length > 0) {
       StorageService.saveProjects(state.projects).catch(error => {
-        console.error('Failed to save projects:', error);
+        console.error('❌ IntelliKnit Error: Failed to save projects:', error);
       });
     }
   }, [state.projects]);

@@ -228,27 +228,76 @@
   @apply transition-all duration-300;
 }
 
-/* ===== Info/Tip Blocks ===== */
+/* Complete colored box classes for src/styles/components.css */
+
+/* ===== Default Variants (Left-Aligned) - For multi-line content, lists, instructions ===== */
 .info-block {
-  @apply bg-lavender-100 border-2 border-lavender-200 rounded-xl p-4;
+  @apply bg-lavender-100 border-2 border-lavender-200 rounded-xl p-4 text-left;
 }
 
 .tip-block {
-  @apply bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4;
+  @apply bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4 text-left;
 }
 
 .success-block {
-  @apply bg-sage-100 border-2 border-sage-200 rounded-xl p-4;
+  @apply bg-sage-100 border-2 border-sage-200 rounded-xl p-4 text-left;
 }
 
-/* NEW: Warning and note blocks */
 .warning-block {
-  @apply bg-wool-100 border border-wool-200 rounded-lg p-3;
+  @apply bg-wool-100 border border-wool-200 rounded-lg p-3 text-left;
 }
 
 .help-block {
-  @apply bg-sage-100 border border-sage-200 rounded-lg p-3;
+  @apply bg-sage-100 border border-sage-200 rounded-lg p-3 text-left;
 }
+
+/* ===== Centered Variants - For short UI tips, status messages, single lines ===== */
+.info-block-center {
+  @apply bg-lavender-100 border-2 border-lavender-200 rounded-xl p-4 text-center;
+}
+
+.tip-block-center {
+  @apply bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4 text-center;
+}
+
+.success-block-center {
+  @apply bg-sage-100 border-2 border-sage-200 rounded-xl p-4 text-center;
+}
+
+.warning-block-center {
+  @apply bg-wool-100 border border-wool-200 rounded-lg p-3 text-center;
+}
+
+.help-block-center {
+  @apply bg-sage-100 border border-sage-200 rounded-lg p-3 text-center;
+}
+
+/* ===== Card System (keep existing alignment) ===== */
+.card-info {
+  @apply bg-lavender-100 border-2 border-lavender-200 rounded-xl p-5 text-left;
+}
+
+/* Keep selection cards centered since they're for UI interaction */
+.card-selectable {
+  @apply border-2 rounded-xl p-4 transition-all duration-200 text-center cursor-pointer;
+  @apply border-wool-200 bg-white text-wool-700;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm;
+}
+
+.card-interactive {
+  @apply bg-white border-2 border-wool-200 rounded-xl p-6 text-center transition-all duration-200;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02];
+  @apply active:scale-95 cursor-pointer;
+}
+
+.card-pattern-option {
+  @apply border border-wool-200 rounded-lg p-3 transition-all duration-200 text-center;
+  @apply bg-wool-50 text-wool-700;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm;
+}
+
+
+
 
 /* ===== Layout Patterns ===== */
 .grid-2-equal {
@@ -333,3 +382,4 @@
 .badge-success {
   @apply bg-sage-500 text-white;
 }
+

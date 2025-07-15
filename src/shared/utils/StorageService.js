@@ -8,7 +8,7 @@ class LocalStorageAdapter {
       const savedProjects = localStorage.getItem('intelliknit-projects');
       return savedProjects ? JSON.parse(savedProjects) : [];
     } catch (error) {
-      console.error('Error reading from localStorage:', error);
+      console.error('❌ IntelliKnit Error: Error reading from localStorage:', error);
       return [];
     }
   }
@@ -18,7 +18,7 @@ class LocalStorageAdapter {
       localStorage.setItem('intelliknit-projects', JSON.stringify(projects));
       return true;
     } catch (error) {
-      console.error('Error saving to localStorage:', error);
+      console.error('❌ IntelliKnit Error: Error saving to localStorage:', error);
       return false;
     }
   }
@@ -29,7 +29,7 @@ class LocalStorageAdapter {
       const filteredProjects = projects.filter(p => p.id !== projectId);
       return await this.saveProjects(filteredProjects);
     } catch (error) {
-      console.error('Error deleting project:', error);
+      console.error('❌ IntelliKnit Error: Error deleting project:', error);
       return false;
     }
   }
@@ -39,7 +39,7 @@ class LocalStorageAdapter {
       localStorage.removeItem('intelliknit-projects');
       return true;
     } catch (error) {
-      console.error('Error clearing localStorage:', error);
+      console.error('❌ IntelliKnit Error: Error clearing localStorage:', error);
       return false;
     }
   }

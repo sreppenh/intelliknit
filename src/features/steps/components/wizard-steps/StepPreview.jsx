@@ -10,9 +10,6 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
   const instruction = generateInstruction(wizard.wizardData);
   const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
 
-  console.log('StepPreview instruction from generateInstruction:', instruction);
-console.log('StepPreview effect:', effect);
-
   // Calculate current step number
   const currentStepNumber = (wizard.component?.steps?.length || 0) + 1;
 
