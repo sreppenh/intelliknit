@@ -37,11 +37,11 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
     const copiedComponent = {
       ...component,
       name: `${component.name} Copy`,
-      id: Date.now(), // Simple ID generation
+      id: crypto.randomUUID(), // Simple ID generation
       currentStep: 0,
       steps: component.steps.map(step => ({
         ...step,
-        id: Date.now() + Math.random(), // New IDs for copied steps
+        id: crypto.randomUUID() + Math.random(), // New IDs for copied steps
         completed: false // Reset completion status
       }))
     };

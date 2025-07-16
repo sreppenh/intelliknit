@@ -110,7 +110,7 @@ const handleTypeSelect = (type) => {
     } else {
       // Add new phase
       const newPhase = {
-        id: Date.now(),
+        id: crypto.randomUUID(),
         type: tempPhaseConfig.type,
         config: tempPhaseConfig
       };

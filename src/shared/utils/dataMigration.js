@@ -17,7 +17,7 @@ export const migrateComponentToNewArchitecture = (component) => {
 
     if (!hasCastOnStep) {
       const castOnStep = {
-        id: `step-migration-cast-on-${Date.now()}`,
+        id: `step-migration-cast-on-${crypto.randomUUID()}`,
         description: `Cast on ${component.startingStitches} stitches`,
         type: 'calculated',
         wizardConfig: {
@@ -56,7 +56,7 @@ export const migrateComponentToNewArchitecture = (component) => {
       const startingStitches = lastStep?.endingStitches || lastStep?.expectedStitches || 0;
 
       const bindOffStep = {
-        id: `step-migration-bind-off-${Date.now()}`,
+        id: `step-migration-bind-off-${crypto.randomUUID()}`,
         description: component.endingStep.description || 'Bind off all stitches',
         type: 'calculated',
         wizardConfig: {

@@ -30,7 +30,7 @@ export const projectsReducer = (state, action) => {
 
     case 'CREATE_PROJECT':
       const newProject = {
-        id: `project-${Date.now()}`,
+        id: `project-${crypto.randomUUID()}`,
         name: action.payload.name.trim(),
         size: action.payload.size?.trim() || 'Not specified',
         defaultUnits: action.payload.defaultUnits || 'inches',
@@ -84,7 +84,7 @@ export const projectsReducer = (state, action) => {
       }
       
       const newComponent = {
-        id: `comp-${Date.now()}`,
+        id: `comp-${crypto.randomUUID()}`,
         name: action.payload.name.trim(),
         steps: [],
         currentStep: 0
@@ -111,7 +111,7 @@ export const projectsReducer = (state, action) => {
       
       // Create enhanced component with automatic Cast On step
       const enhancedComponent = {
-        id: `comp-${Date.now()}`,
+        id: `comp-${crypto.randomUUID()}`,
         ...action.payload,
         steps: [],
         currentStep: 0
@@ -120,7 +120,7 @@ export const projectsReducer = (state, action) => {
       // Auto-add Cast On step if startingStitches provided
       if (action.payload.startingStitches && action.payload.startingStitches > 0) {
         const castOnStep = {
-          id: `step-${Date.now()}-cast-on`,
+          id: `step-${crypto.randomUUID()}-cast-on`,
           description: `Cast on ${action.payload.startingStitches} stitches`,
           type: 'calculated',
           wizardConfig: {
@@ -197,11 +197,11 @@ export const projectsReducer = (state, action) => {
       }
 
       const copiedComponent = {
-        id: `comp-${Date.now()}`,
+        id: `comp-${crypto.randomUUID()}`,
         name: newName.trim(),
         steps: originalComponent.steps.map((step, index) => ({
           ...step,
-          id: `step-copy-${Date.now()}-${Math.random().toString(36).substr(2, 9)}-${index}`,
+          id: crypto.randomUUID(),
           completed: false
         })),
         currentStep: 0
@@ -238,7 +238,7 @@ export const projectsReducer = (state, action) => {
       }
 
       const newCalculatedStep = {
-        id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `step-${crypto.randomUUID()}-${Math.random().toString(36).substr(2, 9)}`,
         description: calcStep.description.trim(),
         type: calcStep.type,
         patternType: calcStep.patternType,
@@ -295,7 +295,7 @@ export const projectsReducer = (state, action) => {
       }
 
       const newStep = {
-        id: `step-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        id: `step-${crypto.randomUUID()}-${Math.random().toString(36).substr(2, 9)}`,
         description: step.description.trim(),
         expectedStitches: parseInt(step.expectedStitches) || 0,
         type: step.type || 'manual',
