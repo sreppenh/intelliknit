@@ -28,16 +28,17 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
             rows={3}
             className="input-field-lg resize-none"
           />
-          <p className="text-xs text-wool-500 mt-2">
+          <label className="form-help">
+
             Describe the pattern sequence, special techniques, or any important notes
-          </p>
+          </label>
         </div>
       )}
 
       {/* Custom pattern input */}
       {isCustomPattern && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
+          <label className="form-label">
             Pattern Description
           </label>
           <textarea
@@ -54,8 +55,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
       {/* Lace/Cable/Colorwork - Required row input */}
       {needsRowInput && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
-            <label className="form-label"></label>
+            <label className="form-label">
             Rows in Pattern
           </label>
 <IncrementInput
@@ -64,9 +64,9 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
   label="rows in pattern"
   unit="rows"
 />
-          <p className="text-xs text-wool-500 mt-2">
+          <label className="form-help">
             Number of rows in one complete pattern repeat
-          </p>
+          </label>
         </div>
       )}
 
@@ -106,6 +106,8 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
           />
         </div>
       )}
+
+
 
       {/* Helper info for complex patterns */}
       {needsDescription && (

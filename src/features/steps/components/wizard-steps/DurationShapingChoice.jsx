@@ -84,20 +84,16 @@ const handleShapingChoice = () => {
               </div>
             </div>
           </div>
-          
-          {/* Coming Soon Badge */}
-          <div className="absolute top-3 right-3 badge badge-next-step">
-            Coming Soon
-          </div>
+
         </button>
       </div>
 
       {/* Info Section */}
-      <div className="success-block">
+      <div className="success-block-center">
         <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Quick Guide</h4>
         <div className="text-sm text-sage-600 space-y-1">
-          <div>• <strong>Set Duration:</strong> Perfect for straightforward sections like "work stockinette for 6 inches"</div>
-          <div>• <strong>Add Shaping:</strong> Great for sleeves, waist shaping, necklines, and armholes</div>
+          <div><strong>Set Duration:</strong> Perfect for straightforward sections like "work stockinette for 6 inches"</div>
+          <div><strong>Add Shaping:</strong> Great for sleeves, waist shaping, necklines, and armholes</div>
         </div>
       </div>
     </div>

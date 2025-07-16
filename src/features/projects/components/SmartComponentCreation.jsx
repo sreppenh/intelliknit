@@ -287,7 +287,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
             {/* Stitch Count - Standard Label Pattern */}
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+              <label className="form-label">
                 Starting Stitch Count
               </label>
               <IncrementInput
@@ -303,10 +303,10 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             {/* Description - Only when needed */}
             {needsDescription() && (
               <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                <label className="form-label">
                   {componentData.startType === 'pick_up' ? 'Pick Up From' :
                    componentData.startType === 'continue' ? 'Continue From' :
-                   'Method Description'} {componentData.startMethod === 'other' ? ' *' : ''}
+                   'Method Description'} {componentData.startMethod === 'other' ? ' ' : ''}
                 </label>
                 <input
                   type="text"
