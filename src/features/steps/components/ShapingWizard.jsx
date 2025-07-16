@@ -103,7 +103,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
               onClick={() => setStep(1)}
               className="btn-tertiary btn-sm"
             >
-              Back to Types
+              ← Back
             </button>
           </div>
         );

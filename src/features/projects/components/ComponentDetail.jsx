@@ -16,7 +16,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
             onClick={onBack}
             className="btn-primary btn-sm"
           >
-            Go Back
+            ← Back
           </button>
         </div>
       </div>

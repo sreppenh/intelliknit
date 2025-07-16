@@ -28,7 +28,7 @@ const EditProjectDetails = ({ onBack }) => {
             onClick={onBack}
             className="btn-primary btn-sm"
           >
-            Go Back
+            ← Back
           </button>
         </div>
       </div>

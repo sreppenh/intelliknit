@@ -257,7 +257,7 @@ const EvenDistributionConfig = ({
           onClick={onBack}
           className="btn-tertiary flex-1"
         >
-          Back
+          ← Back
         </button>
         <button
           onClick={handleComplete}

@@ -144,7 +144,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
                 onClick={onBack}
                 className="flex-1 btn-tertiary"
               >
-                Back
+                ← Back
               </button>
               
               <button

@@ -461,7 +461,7 @@ if (currentScreen === 'summary') {
             onClick={() => setCurrentScreen('summary')}
             className="btn-tertiary w-full"
           >
-            ← Back to Summary
+            ← Back
           </button>
         </div>
       </div>

@@ -22,7 +22,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             onClick={onBack}
             className="btn-primary btn-sm"
           >
-            Go Back
+            ← Back
           </button>
         </div>
       </div>
@@ -461,7 +461,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                 onClick={onBack}
                 className="bg-wool-100 text-wool-700 py-4 px-8 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
               >
-                ← Back to Components
+                ← Back
               </button>
             </div>
           )}
