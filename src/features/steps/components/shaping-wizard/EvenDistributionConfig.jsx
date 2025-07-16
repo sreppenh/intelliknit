@@ -47,7 +47,17 @@ const EvenDistributionConfig = ({
       };
     }
     
-    const avgSectionSize = totalStitchesInSections / numSections;
+    // Calculate stitches available for K sections using correct formulas
+let totalStitchesForSections;
+if (stitchChange < 0) {
+  // For decreases: Starting = 2D + N×(sections), so N×(sections) = Starting - 2D
+  totalStitchesForSections = currentStitches - (2 * numChanges);
+} else {
+  // For increases: all starting stitches go into sections
+  totalStitchesForSections = currentStitches;
+}
+
+const avgSectionSize = totalStitchesForSections / numSections;
     
     // Check if sections would be too small
     if (avgSectionSize < 1) {
@@ -61,12 +71,25 @@ const EvenDistributionConfig = ({
     // Create sections with varying sizes
     const sections = [];
     const baseSize = Math.floor(avgSectionSize);
-    const remainder = totalStitchesInSections % numSections;
+    const remainder = totalStitchesForSections % numSections;
     
-    for (let i = 0; i < numSections; i++) {
-      const sectionSize = i < remainder ? baseSize + 1 : baseSize;
-      sections.push(sectionSize);
-    }
+// Distribute larger sections more evenly
+if (construction === 'round') {
+  // Circular: spread larger sections evenly around the circle
+  for (let i = 0; i < numSections; i++) {
+    const interval = remainder > 0 ? Math.ceil(numSections / remainder) : 1;
+    const shouldBeLarger = remainder > 0 && (i % interval) === 0 && sections.filter(s => s === baseSize + 1).length < remainder;
+    sections.push(shouldBeLarger ? baseSize + 1 : baseSize);
+  }
+} else {
+  // Flat: center-weight the larger sections  
+  for (let i = 0; i < numSections; i++) {
+    const center = Math.floor(numSections / 2);
+    const distanceFromCenter = Math.abs(i - center);
+    const shouldBeLarger = remainder > 0 && distanceFromCenter < Math.ceil(remainder / 2);
+    sections.push(shouldBeLarger ? baseSize + 1 : baseSize);
+  }
+}
     
     // Generate instruction
     const changeType = stitchChange > 0 ? 'inc' : 'K2tog';
