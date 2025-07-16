@@ -2,6 +2,7 @@ import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import { projectsReducer, initialState } from './projectsReducer';
 import { StorageService } from '../../../shared/utils/StorageService';
 import { migrateAllProjectsToNewArchitecture } from '../../../shared/utils/dataMigration';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const ProjectsContext = createContext();
 
@@ -18,7 +19,7 @@ export const ProjectsProvider = ({ children }) => {
           const { projects: migratedProjects, migratedCount } = migrateAllProjectsToNewArchitecture(savedProjects);
           
           if (migratedCount > 0) {
-            console.log(`✅ Migrated ${migratedCount} projects to new architecture`);
+            IntelliKnitLogger.success(`Migrated ${migratedCount} projects to new architecture`);
           }
           
           dispatch({ type: 'LOAD_PROJECTS', payload: migratedProjects });
@@ -29,7 +30,7 @@ export const ProjectsProvider = ({ children }) => {
           }
         }
       } catch (error) {
-        console.error('❌ IntelliKnit Error: Failed to load projects:', error);
+        IntelliKnitLogger.error('IntelliKnit Error: Failed to load projects', error);
       }
     };
     
@@ -40,7 +41,7 @@ export const ProjectsProvider = ({ children }) => {
   useEffect(() => {
     if (state.projects.length > 0) {
       StorageService.saveProjects(state.projects).catch(error => {
-        console.error('❌ IntelliKnit Error: Failed to save projects:', error);
+        IntelliKnitLogger.error('IntelliKnit Error: Failed to save projects', error);
       });
     }
   }, [state.projects]);

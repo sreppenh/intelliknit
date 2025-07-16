@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import PatternDetector, { PATTERN_TYPES } from '../../../shared/utils/PatternDetector';
 import PatternCalculator from '../../../shared/utils/PatternCalculator';
 import { AdvancedPatternCalculator, ADVANCED_PATTERN_TYPES } from '../../../shared/utils/AdvancedPatternCalculator';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 export const useStepCalculation = () => {
   const detector = useMemo(() => new PatternDetector(), []);
@@ -39,7 +40,7 @@ export const useStepCalculation = () => {
         const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange, type, config } = wizardData.shapingConfig;
         
         // Add debugging log
-        console.log('🔧 Calculation debug - type:', type, 'config exists:', !!config);
+        IntelliKnitLogger.debug('Calculation debug - type', type, 'config exists:', !!config);
         
         // Check for new shaping structure first (from ShapingWizard)
         if (type === 'even_distribution' && config && config.calculation) {
@@ -152,7 +153,7 @@ export const useStepCalculation = () => {
           }
         }
       } catch (error) {
-        console.error('Advanced shaping calculation error:', error);
+        IntelliKnitLogger.error('Advanced shaping calculation error', error);
       }
     }
     
@@ -194,7 +195,7 @@ export const useStepCalculation = () => {
         };
       }
     } catch (error) {
-      console.error('Calculation error:', error);
+      IntelliKnitLogger.error('Calculation error', error);
     }
     
     // Fallback for patterns we can't calculate yet

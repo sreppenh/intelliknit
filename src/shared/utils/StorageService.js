@@ -2,13 +2,15 @@
  * Abstract storage layer - easily swappable for different storage backends
  */
 
+import IntelliKnitLogger from '../../shared/utils/ConsoleLogging';
+
 class LocalStorageAdapter {
   async getProjects() {
     try {
       const savedProjects = localStorage.getItem('intelliknit-projects');
       return savedProjects ? JSON.parse(savedProjects) : [];
     } catch (error) {
-      console.error('❌ IntelliKnit Error: Error reading from localStorage:', error);
+      IntelliKnitLogger.error('IntelliKnit Error: Error reading from localStorage', error);
       return [];
     }
   }
@@ -18,7 +20,7 @@ class LocalStorageAdapter {
       localStorage.setItem('intelliknit-projects', JSON.stringify(projects));
       return true;
     } catch (error) {
-      console.error('❌ IntelliKnit Error: Error saving to localStorage:', error);
+      IntelliKnitLogger.error('IntelliKnit Error: Error saving to localStorage', error);
       return false;
     }
   }
@@ -29,7 +31,7 @@ class LocalStorageAdapter {
       const filteredProjects = projects.filter(p => p.id !== projectId);
       return await this.saveProjects(filteredProjects);
     } catch (error) {
-      console.error('❌ IntelliKnit Error: Error deleting project:', error);
+      IntelliKnitLogger.error('IntelliKnit Error: Error deleting project', error);
       return false;
     }
   }
@@ -39,7 +41,7 @@ class LocalStorageAdapter {
       localStorage.removeItem('intelliknit-projects');
       return true;
     } catch (error) {
-      console.error('❌ IntelliKnit Error: Error clearing localStorage:', error);
+      IntelliKnitLogger.error('IntelliKnit Error: Error clearing localStorage', error);
       return false;
     }
   }
@@ -115,7 +117,7 @@ class StorageServiceClass {
       }
       throw new Error('Invalid projects format');
     } catch (error) {
-      console.error('Error importing projects:', error);
+      IntelliKnitLogger.error('Error importing projects', error);
       return false;
     }
   }

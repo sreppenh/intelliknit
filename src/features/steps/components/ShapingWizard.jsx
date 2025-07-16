@@ -4,6 +4,7 @@ import WizardHeader from './wizard-layout/WizardHeader';
 import ShapingTypeSelector from './shaping-wizard/ShapingTypeSelector';
 import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack, setConstruction, component }) => {
   const [step, setStep] = useState(1);
@@ -22,7 +23,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
   };
 
   const handleConfigComplete = (config) => {
-     console.log('🔧 Saving config:', config);
+     IntelliKnitLogger.success('Saving config', config);
     // Update wizard data with shaping configuration
     updateWizardData('shapingConfig', {
       type: shapingData.type,
