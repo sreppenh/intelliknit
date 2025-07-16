@@ -53,7 +53,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
   const renderConfigStep = () => {
     switch (shapingData.type) {
       case 'even_distribution':
-        return (
+      return (
           <EvenDistributionConfig
             shapingData={shapingData}
             setShapingData={setShapingData}
@@ -73,6 +73,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             construction={construction}
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
+            
           />
         );
       
