@@ -2,14 +2,14 @@
 import React from 'react';
 
 /**
- * AA Compliant Increment Input Component
+ * Enhanced IncrementInput Component with proper value handling
  * 
  * Features:
- * - 44px minimum touch targets
- * - Proper ARIA labels
- * - Keyboard accessible
- * - High contrast colors from IntelliKnit palette
- * - Mobile-optimized numeric input
+ * - Always defaults to min value (never empty)
+ * - Proper max limits with reasonable defaults
+ * - Consistent increment/decrement behavior
+ * - Mobile-optimized with AA compliance
+ * - Surgical fix for empty field issue
  */
 const IncrementInput = ({ 
   value, 
@@ -22,40 +22,82 @@ const IncrementInput = ({
   className = '',
   disabled = false,
   placeholder = '',
+  contextualMax = undefined, // For context-aware max limits
   ...props 
 }) => {
+  // Determine appropriate max based on context
+  const getContextualMax = () => {
+    if (max !== undefined) return max;
+    if (contextualMax !== undefined) return contextualMax;
+    
+    // Smart defaults based on typical knitting values
+    if (unit === 'rows' || label.includes('row')) return 999;
+    if (unit === 'times' || label.includes('time')) return 999;
+    if (unit === 'stitches' || label.includes('stitch')) return 999;
+    if (label.includes('amount') || label.includes('count')) return 20;
+    
+    return 999; // Fallback for edge cases
+  };
+
+  const effectiveMax = getContextualMax();
+
+  // Enhanced value handling - always ensure valid number
+  const getCurrentValue = () => {
+    const parsed = parseInt(value);
+    if (isNaN(parsed) || parsed < min) return min;
+    if (parsed > effectiveMax) return effectiveMax;
+    return parsed;
+  };
+
   const handleIncrement = () => {
-    const currentValue = parseInt(value) || min;
-    const newValue = currentValue + 1;
-    if (!max || newValue <= max) {
-      onChange(newValue);
-    }
+    const currentValue = getCurrentValue();
+    const newValue = Math.min(effectiveMax, currentValue + 1);
+    onChange(newValue);
   };
 
   const handleDecrement = () => {
-    const currentValue = parseInt(value) || min;
+    const currentValue = getCurrentValue();
     const newValue = Math.max(min, currentValue - 1);
     onChange(newValue);
   };
 
   const handleInputChange = (e) => {
     const inputValue = e.target.value.replace(/[^0-9]/g, '');
+    
+    // FIXED: Never allow empty state - always default to min
     if (inputValue === '') {
-      onChange('');
+      onChange(min);
       return;
     }
+    
     const numValue = parseInt(inputValue);
-    const clampedValue = Math.min(max || Infinity, Math.max(min, numValue));
-    onChange(clampedValue);
+    
+    // Validate against min/max bounds
+    if (numValue < min) {
+      onChange(min);
+      return;
+    }
+    
+    if (numValue > effectiveMax) {
+      onChange(effectiveMax);
+      return;
+    }
+    
+    onChange(numValue);
   };
 
   const handleInputBlur = () => {
-    // If empty on blur, set to minimum value
-    if (!value || value === '') {
-      onChange(min);
-    }
+    // FIXED: Always ensure we have a valid value on blur
+    const currentValue = getCurrentValue();
+    onChange(currentValue);
   };
 
+  const handleInputFocus = (e) => {
+    // Select all text on focus for easy editing
+    e.target.select();
+  };
+
+  // Size classes
   const sizeClasses = {
     sm: { button: 'btn-increment-sm', input: 'input-numeric-sm' },
     default: { button: 'btn-increment', input: 'input-numeric' },
@@ -64,15 +106,20 @@ const IncrementInput = ({
 
   const { button: buttonClass, input: inputClass } = sizeClasses[size];
 
-  const isAtMin = (parseInt(value) || min) <= min;
-  const isAtMax = max && (parseInt(value) || 0) >= max;
+  // Button state logic
+  const currentValue = getCurrentValue();
+  const isAtMin = currentValue <= min;
+  const isAtMax = currentValue >= effectiveMax;
+
+  // Display value - always show the current valid value
+  const displayValue = currentValue.toString();
 
   return (
-    <div className={`increment-input-group justify-start ${className}`}>
+    <div className={`increment-input-group ${className}`}>
       <button
         onClick={handleDecrement}
         disabled={disabled || isAtMin}
-        className={`${buttonClass} btn-increment-minus`}
+        className={`${buttonClass} btn-increment-minus ${isAtMin ? 'opacity-50 cursor-not-allowed' : ''}`}
         aria-label={`Decrease ${label}`}
         type="button"
       >
@@ -83,20 +130,23 @@ const IncrementInput = ({
         type="text"
         inputMode="numeric"
         pattern="[0-9]*"
-        value={value === 0 ? '0' : (value || '')}
+        value={displayValue}
         onChange={handleInputChange}
         onBlur={handleInputBlur}
-        className={inputClass}
+        onFocus={handleInputFocus}
+        className={`${inputClass} text-center`}
         disabled={disabled}
-        aria-label={label}
-        placeholder={placeholder}
+        aria-label={`${label} (${min} to ${effectiveMax})`}
+        placeholder={placeholder || min.toString()}
+        min={min}
+        max={effectiveMax}
         {...props}
       />
       
       <button
         onClick={handleIncrement}
         disabled={disabled || isAtMax}
-        className={`${buttonClass} btn-increment-plus`}
+        className={`${buttonClass} btn-increment-plus ${isAtMax ? 'opacity-50 cursor-not-allowed' : ''}`}
         aria-label={`Increase ${label}`}
         type="button"
       >
@@ -104,8 +154,10 @@ const IncrementInput = ({
       </button>
       
       {unit && (
-        <span className="text-sm text-wool-600 ml-1">{unit}</span>
+        <span className="text-sm text-wool-600 ml-2 whitespace-nowrap min-w-0 flex-shrink-0">{unit}</span>
       )}
+      
+
     </div>
   );
 };

@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import IncrementInput from '../../../../shared/components/IncrementInput';
+
 
 const PhaseConfig = ({ 
   shapingData, 
@@ -482,38 +484,14 @@ const PhaseConfig = ({
               <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
                 Number of Rows
               </label>
-              <div className="increment-input-group">
-                <button
-                  onClick={() => setTempPhaseConfig(prev => ({ 
-                    ...prev, 
-                    rows: Math.max(1, prev.rows - 1) 
-                  }))}
-                  className="btn-increment-minus"
-                >
-                  −
-                </button>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
-                  value={tempPhaseConfig.rows || 1}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^0-9]/g, '');
-                    setTempPhaseConfig(prev => ({ ...prev, rows: parseInt(value) || 1 }));
-                  }}
-                  className="input-numeric"
-                />
-                <button
-                  onClick={() => setTempPhaseConfig(prev => ({ 
-                    ...prev, 
-                    rows: (prev.rows || 1) + 1 
-                  }))}
-                  className="btn-increment-plus"
-                >
-                  +
-                </button>
-                <span className="text-sm text-wool-600">rows</span>
-              </div>
+             
+<IncrementInput
+  value={tempPhaseConfig.rows}
+  onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
+  label="rows"
+  unit="rows"
+/>
+
             </div>
           ) : tempPhaseConfig.type === 'bind_off' ? (
             // Bind Off Configuration
@@ -522,38 +500,16 @@ const PhaseConfig = ({
                 <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
                   Amount Per Row
                 </label>
-                <div className="increment-input-group">
-                  <button
-                    onClick={() => setTempPhaseConfig(prev => ({ 
-                      ...prev, 
-                      amount: Math.max(1, prev.amount - 1) 
-                    }))}
-                    className="btn-increment-minus"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={tempPhaseConfig.amount || 1}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      setTempPhaseConfig(prev => ({ ...prev, amount: parseInt(value) || 1 }));
-                    }}
-                    className="input-numeric"
-                  />
-                  <button
-                    onClick={() => setTempPhaseConfig(prev => ({ 
-                      ...prev, 
-                      amount: (prev.amount || 1) + 1 
-                    }))}
-                    className="btn-increment-plus"
-                  >
-                    +
-                  </button>
-                  <span className="text-sm text-wool-600">stitches</span>
-                </div>
+           
+<IncrementInput
+  value={tempPhaseConfig.times}
+  onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, times: value }))}
+  label="number of times"
+  unit="times"
+/>
+
+
+
               </div>
 
               <div>
@@ -611,38 +567,15 @@ const PhaseConfig = ({
                   {/* Custom Row Count */}
                   <div className="bg-wool-50 border-2 border-wool-200 rounded-lg p-3">
                     <div className="text-xs font-semibold text-wool-700 mb-2 text-left">Custom Row Count</div>
-                    <div className="increment-input-group justify-center">
-                      <button
-                        onClick={() => setTempPhaseConfig(prev => ({ 
-                          ...prev, 
-                          frequency: Math.max(1, (prev.frequency || 1) - 1) 
-                        }))}
-                        className="btn-increment-minus"
-                      >
-                        −
-                      </button>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={tempPhaseConfig.frequency || 1}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          setTempPhaseConfig(prev => ({ ...prev, frequency: parseInt(value) || 1 }));
-                        }}
-                        className="input-numeric"
-                      />
-                      <button
-                        onClick={() => setTempPhaseConfig(prev => ({ 
-                          ...prev, 
-                          frequency: (prev.frequency || 1) + 1 
-                        }))}
-                        className="btn-increment-plus"
-                      >
-                        +
-                      </button>
-                      <span className="text-sm text-wool-600">{tempPhaseConfig.frequency === 1 ? 'row' : 'rows'}</span>
-                    </div>
+                    
+<IncrementInput
+  value={tempPhaseConfig.frequency}
+  onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, frequency: value }))}
+  label="frequency"
+  unit="rows"
+/>
+
+
                   </div>
                 </div>
               </div>
@@ -746,38 +679,16 @@ const PhaseConfig = ({
                   <div className="bg-wool-50 border-2 border-wool-200 rounded-lg p-3">
                     <div className="text-xs font-semibold text-wool-700 mb-2 text-left">Custom Interval</div>
                     <div className="increment-input-group justify-center">
-                      <span className="text-sm text-wool-600">Every</span>
-                      <button
-                        onClick={() => setTempPhaseConfig(prev => ({ 
-                          ...prev, 
-                          frequency: Math.max(1, (prev.frequency || 1) - 1) 
-                        }))}
-                        className="btn-increment-minus"
-                      >
-                        −
-                      </button>
-                      <input
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
-                        value={tempPhaseConfig.frequency || 1}
-                        onChange={(e) => {
-                          const value = e.target.value.replace(/[^0-9]/g, '');
-                          setTempPhaseConfig(prev => ({ ...prev, frequency: parseInt(value) || 1 }));
-                        }}
-                        className="input-numeric"
-                      />
-                      <button
-                        onClick={() => setTempPhaseConfig(prev => ({ 
-                          ...prev, 
-                          frequency: (prev.frequency || 1) + 1 
-                        }))}
-                        className="btn-increment-plus"
-                      >
-                        +
-                      </button>
-                      <span className="text-sm text-wool-600">{tempPhaseConfig.frequency === 1 ? 'row' : 'rows'}</span>
-                    </div>
+  <span className="text-sm text-wool-600">Every</span>
+  <IncrementInput
+    value={tempPhaseConfig.frequency}
+    onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, frequency: value }))}
+    label="frequency"
+    unit="rows"
+    min={1}
+    className="mx-2"
+  />
+</div>
                   </div>
                 </div>
               </div>
@@ -786,38 +697,12 @@ const PhaseConfig = ({
                 <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
                   Times
                 </label>
-                <div className="increment-input-group">
-                  <button
-                    onClick={() => setTempPhaseConfig(prev => ({ 
-                      ...prev, 
-                      times: Math.max(1, prev.times - 1) 
-                    }))}
-                    className="btn-increment-minus"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={tempPhaseConfig.times || 1}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      setTempPhaseConfig(prev => ({ ...prev, times: parseInt(value) || 1 }));
-                    }}
-                    className="input-numeric"
-                  />
-                  <button
-                    onClick={() => setTempPhaseConfig(prev => ({ 
-                      ...prev, 
-                      times: (prev.times || 1) + 1 
-                    }))}
-                    className="btn-increment-plus"
-                  >
-                    +
-                  </button>
-                  <span className="text-sm text-wool-600">times</span>
-                </div>
+                <IncrementInput
+  value={tempPhaseConfig.times}
+  onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, times: value }))}
+  label="number of times"
+  unit="times"
+/>
               </div>
             </>
           )}

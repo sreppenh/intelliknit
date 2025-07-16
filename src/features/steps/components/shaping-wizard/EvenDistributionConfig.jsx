@@ -139,14 +139,11 @@ const EvenDistributionConfig = ({
                   <div className="mt-3 space-y-2">
               
 
-              <IncrementInput
+             <IncrementInput
   value={config.amount}
   onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
-  label="decrease amount"
+  label="amount to change"
   unit="stitches"
-  min={1}
-  placeholder="6"
-  size="sm"
 />
                     
                     {config.amount > 0 && (

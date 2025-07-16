@@ -63,9 +63,6 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
   onChange={(value) => updateWizardData('stitchPattern', { rowsInPattern: value })}
   label="rows in pattern"
   unit="rows"
-  min={1}
-  placeholder="6"
-  className="justify-start"  // Add this line!
 />
           <p className="text-xs text-wool-500 mt-2">
             Number of rows in one complete pattern repeat
