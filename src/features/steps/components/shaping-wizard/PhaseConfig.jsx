@@ -199,7 +199,7 @@ const handleSavePhaseConfig = () => {
         const actionText = isDecrease ? 'decrease' : 'increase';
         const positionText = config.position === 'both_ends' ? 'at each end' : 
                            config.position === 'beginning' ? 'at beginning' :
-                           config.position === 'end' ? 'at end' : 'at center';
+                           'at end';
         const frequencyText = config.frequency === 1 ? 'every row' : 
                              config.frequency === 2 ? 'every other row' :
                              `every ${config.frequency} rows`;
@@ -254,7 +254,7 @@ const handleSavePhaseConfig = () => {
                            `every ${config.frequency} rows`;
         const decPosText = config.position === 'both_ends' ? 'at each end' :
                           config.position === 'beginning' ? 'at beginning' :
-                          config.position === 'end' ? 'at end' : 'at center';
+                          'at end';
         const decTotalRows = config.times * config.frequency;
         return `Dec ${config.amount} st ${decPosText} ${decFreqText} ${config.times} times (${decTotalRows} rows)`;
       case 'increase':
@@ -263,7 +263,7 @@ const handleSavePhaseConfig = () => {
                            `every ${config.frequency} rows`;
         const incPosText = config.position === 'both_ends' ? 'at each end' :
                           config.position === 'beginning' ? 'at beginning' :
-                          config.position === 'end' ? 'at end' : 'at center';
+                          'at end';
         const incTotalRows = config.times * config.frequency;
         return `Inc ${config.amount} st ${incPosText} ${incFreqText} ${config.times} times (${incTotalRows} rows)`;
       case 'setup':
@@ -589,13 +589,12 @@ const handleSavePhaseConfig = () => {
     <label className="form-label">
       Position
     </label>
-    <div className="grid grid-cols-2 gap-2">
-      {[
-        { value: 'beginning', label: 'Beginning' },
-        { value: 'end', label: 'End' },
-        { value: 'both_ends', label: 'Both Ends' },
-        { value: 'center', label: 'Center' }
-      ].map(option => (
+<div className="grid grid-cols-3 gap-2">
+  {[
+    { value: 'beginning', label: 'Beginning' },
+    { value: 'end', label: 'End' },
+    { value: 'both_ends', label: 'Both Ends' }
+  ].map(option => (
         <button
           key={option.value}
           onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
@@ -610,21 +609,6 @@ const handleSavePhaseConfig = () => {
       ))}
     </div>
   </div>
-
-  <div>
-    <label className="form-label">
-      Amount Per Position
-    </label>
-    <IncrementInput
-      value={tempPhaseConfig.amount}
-      onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, amount: value }))}
-      label="amount per position"
-      unit="stitches"
-      min={1}
-      contextualMax={tempPhaseConfig.position === 'both_ends' ? Math.floor(currentStitches / 2) : currentStitches}
-    />
-  </div>
-
 
               <div>
                 <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
