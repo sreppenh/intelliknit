@@ -14,14 +14,13 @@ import { createWizardNavigator, shouldSkipConfiguration, shouldShowNavigation } 
 import { renderStep } from './wizard-navigation/StepRenderer';
 import { useWizardState } from './wizard-navigation/WizardState';
 import ShapingWizard from './ShapingWizard';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
   const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
   const wizardState = useWizardState(wizard, onBack);
   const [showShapingWizard, setShowShapingWizard] = useState(false);
-
-
 
   // Component validation
   if (!wizard.component) {
@@ -44,11 +43,11 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
 
   const customNavigation = {
-    canProceed: navigator.canProceed,
-    nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
-    previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
-    goToStep: wizard.navigation.goToStep
-  };
+  canProceed: navigator.canProceed,
+  nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
+  previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
+  goToStep: wizard.navigation.goToStep
+};
 
   // If showing ending wizard
   if (wizardState.showEndingWizard) {
@@ -70,6 +69,7 @@ if (showShapingWizard) {
       currentStitches={wizard.currentStitches}
       construction={wizard.construction}
       setConstruction={wizard.setConstruction}
+      setCurrentStitches={wizard.setCurrentStitches}  // ← ADD THIS LINE
       component={wizard.component}  
       onBack={(targetStep) => {
   setShowShapingWizard(false);

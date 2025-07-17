@@ -6,7 +6,7 @@ import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
-const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack, setConstruction, component }) => {
+const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack, setConstruction, setCurrentStitches, component }) => {
   const [step, setStep] = useState(1);
   const [shapingData, setShapingData] = useState({
     type: null,
@@ -22,22 +22,26 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
     setStep(2);
   };
 
-  const handleConfigComplete = (config) => {
-     IntelliKnitLogger.success('Saving config', config);
-    // Update wizard data with shaping configuration
-    updateWizardData('shapingConfig', {
-      type: shapingData.type,
-      config: config,
-      description: shapingData.description
-    });
-    updateWizardData('hasShaping', true);
-    
-    // Navigate back to main wizard flow and go to step 5 (Preview)
-    onBack(5);
-  };
+ const handleConfigComplete = (config) => {
+  IntelliKnitLogger.success('Saving config', config);
+  // Update wizard data with shaping configuration
+  updateWizardData('shapingConfig', {
+    type: shapingData.type,
+    config: config,
+    description: shapingData.description
+  });
+  updateWizardData('hasShaping', true);
 
-  // Create a wizard-like object for the header - include ALL required functions
-  const shapingWizard = {
+  if (config.calculation && config.calculation.endingStitches) {
+    setCurrentStitches(config.calculation.endingStitches);
+  }
+
+  // Navigate back to main wizard flow and go to step 5 (Preview)
+  onBack(5);
+};
+
+// Create a wizard-like object for the header - include ALL required functions
+const shapingWizard = {
   wizardStep: step,
   wizardData: { ...wizardData, isShapingWizard: true },
   construction,
@@ -49,6 +53,9 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
     goToStep: (step) => setStep(step)
   }
 };
+
+
+
 
   const renderConfigStep = () => {
     switch (shapingData.type) {

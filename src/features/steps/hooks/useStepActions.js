@@ -2,6 +2,8 @@
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import { useStepCalculation } from './useStepCalculation';
 import { useStepGeneration } from './useStepGeneration';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+
 
 export const useStepActions = (wizard, onBack) => {
   const { dispatch } = useProjectsContext();
@@ -9,9 +11,10 @@ export const useStepActions = (wizard, onBack) => {
   const { generateInstruction } = useStepGeneration();
 
   const handleAddStep = () => {
+    
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
-    
+    IntelliKnitLogger.debug('Step Actions', 'handleAddStep called');
     if (wizard.isEditing) {
       // Update existing step
       dispatch({
@@ -92,6 +95,7 @@ export const useStepActions = (wizard, onBack) => {
   };
 
   const handleAddStepAndContinue = () => {
+    IntelliKnitLogger.debug('Step Actions', 'handleAddStepAndContinue called');
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
     
@@ -141,9 +145,13 @@ export const useStepActions = (wizard, onBack) => {
       });
     }
 
-    // Reset wizard for next step but stay in wizard
-    wizard.navigation.goToStep(1);
-    wizard.resetWizardData();
+// 🎯 FIX: Update stitch count BEFORE reset
+wizard.setCurrentStitches(effect.endingStitches);
+
+// Reset wizard for next step but stay in wizard
+wizard.navigation.goToStep(1);
+wizard.resetWizardData();
+
   };
 
   return {

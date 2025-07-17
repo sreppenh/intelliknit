@@ -218,6 +218,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     setConstruction,
     canHaveShaping,
     resetWizardData,
+    setCurrentStitches,
     
     // Navigation
     navigation
