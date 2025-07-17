@@ -583,76 +583,48 @@ const handleSavePhaseConfig = () => {
             </>
           ) : (
 
-
-
-
-
-
             // Increase/Decrease Configuration
-            <>
-              <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-                  Amount Per Position
-                </label>
-                <div className="increment-input-group">
-                  <button
-                    onClick={() => setTempPhaseConfig(prev => ({ 
-                      ...prev, 
-                      amount: Math.max(1, prev.amount - 1) 
-                    }))}
-                    className="btn-increment-minus"
-                  >
-                    −
-                  </button>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    pattern="[0-9]*"
-                    value={tempPhaseConfig.amount || 1}
-                    onChange={(e) => {
-                      const value = e.target.value.replace(/[^0-9]/g, '');
-                      setTempPhaseConfig(prev => ({ ...prev, amount: parseInt(value) || 1 }));
-                    }}
-                    className="input-numeric"
-                  />
-                  <button
-                    onClick={() => setTempPhaseConfig(prev => ({ 
-                      ...prev, 
-                      amount: (prev.amount || 1) + 1 
-                    }))}
-                    className="btn-increment-plus"
-                  >
-                    +
-                  </button>
-                  <span className="text-sm text-wool-600">stitches</span>
-                </div>
-              </div>
+<>
+  <div>
+    <label className="form-label">
+      Position
+    </label>
+    <div className="grid grid-cols-2 gap-2">
+      {[
+        { value: 'beginning', label: 'Beginning' },
+        { value: 'end', label: 'End' },
+        { value: 'both_ends', label: 'Both Ends' },
+        { value: 'center', label: 'Center' }
+      ].map(option => (
+        <button
+          key={option.value}
+          onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
+          className={`p-3 text-sm border-2 rounded-lg transition-colors ${
+            tempPhaseConfig.position === option.value
+              ? 'border-sage-500 bg-sage-100 text-sage-700'
+              : 'border-wool-200 hover:border-sage-300'
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+  </div>
 
-              <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-                  Position
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: 'both_ends', label: 'Both Ends' },
-                    { value: 'beginning', label: 'Beginning' },
-                    { value: 'end', label: 'End' },
-                    { value: 'center', label: 'Center' }
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
-                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                        tempPhaseConfig.position === option.value
-                          ? 'border-sage-500 bg-sage-100 text-sage-700'
-                          : 'border-wool-200 hover:border-sage-300'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
+  <div>
+    <label className="form-label">
+      Amount Per Position
+    </label>
+    <IncrementInput
+      value={tempPhaseConfig.amount}
+      onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, amount: value }))}
+      label="amount per position"
+      unit="stitches"
+      min={1}
+      contextualMax={tempPhaseConfig.position === 'both_ends' ? Math.floor(currentStitches / 2) : currentStitches}
+    />
+  </div>
+
 
               <div>
                 <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
