@@ -221,9 +221,9 @@ const handleSavePhaseConfig = () => {
     }
     
     // Check for impossible scenarios
-    if (currentStitchCount <= 0) {
+    if (currentStitchCount < 0) {
       return {
-        error: `Calculation results in ${currentStitchCount} stitches - must end with at least 1 stitch`,
+        error: `Calculation results in ${currentStitchCount} stitches - cannot bind off more stitches than available`,
         instruction: '',
         startingStitches: currentStitches,
         endingStitches: currentStitches,
