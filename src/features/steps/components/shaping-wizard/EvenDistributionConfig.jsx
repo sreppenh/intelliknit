@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
 import IncrementInput from '../../../../shared/components/IncrementInput';
 const EvenDistributionConfig = ({ 
@@ -36,7 +37,9 @@ const EvenDistributionConfig = ({
     
     // Calculate sections: circular = numChanges, flat = numChanges + 1
     const numSections = construction === 'round' ? numChanges : numChanges + 1;
-    const totalStitchesInSections = construction === 'round' ? currentStitches : targetStitches;
+    // Updating to prevent error from being displayed for decreases
+    //const totalStitchesInSections = construction === 'round' ? currentStitches : targetStitches;
+    const totalStitchesInSections = currentStitches;
     
     // Check if we have enough stitches for the sections
     if (totalStitchesInSections < numSections) {
@@ -60,13 +63,16 @@ if (stitchChange < 0) {
 const avgSectionSize = totalStitchesForSections / numSections;
     
     // Check if sections would be too small
-    if (avgSectionSize < 1) {
-      return {
-        error: `Impossible: Each section would need ${avgSectionSize.toFixed(1)} stitches - must be at least 1 stitch per section`,
-        instruction: '',
-        sections: []
-      };
-    }
+  //  if (avgSectionSize < 1) {
+    // return {
+    //    error: `Impossible: Each section would need ${avgSectionSize.toFixed(1)} stitches - must be at least 1 stitch per section`,
+      //  instruction: '',
+     //   sections: []
+     // };
+    //}
+
+    // Allow 0-stitch sections - they're valid in even distribution
+// (The instruction generation will handle skipping K0s)
     
     // Create sections with varying sizes
     const sections = [];
@@ -86,7 +92,7 @@ if (construction === 'round') {
   for (let i = 0; i < numSections; i++) {
     const center = Math.floor(numSections / 2);
     const distanceFromCenter = Math.abs(i - center);
-    const shouldBeLarger = remainder > 0 && distanceFromCenter < Math.ceil(remainder / 2);
+    const shouldBeLarger = remainder > 0 && distanceFromCenter <= Math.floor(remainder / 2);
     sections.push(shouldBeLarger ? baseSize + 1 : baseSize);
   }
 }
@@ -96,14 +102,27 @@ if (construction === 'round') {
     const parts = [];
     
     for (let i = 0; i < sections.length; i++) {
-      if (sections[i] > 0) {  // Only add if section has stitches
-        parts.push(`K${sections[i]}`);
-      }
-      if (i < sections.length - 1 || construction === 'round') {
-        parts.push(changeType);
-      }
-    }
-    
+  if (sections[i] > 0) {  // Only add if section has stitches
+    parts.push(`K${sections[i]}`);
+  }
+  // Add decrease after each section except the last one for flat construction
+  if (i < sections.length - 1) {
+    parts.push(changeType);
+  }
+  // For round construction, add decrease after every section (including last)
+  if (construction === 'round' && i === sections.length - 1) {
+    parts.push(changeType);
+  }
+}
+    // Right after sections are created, add this line:
+console.log('Sections for debugging:', sections);
+IntelliKnitLogger.debug('Stitch Math', {
+  totalStitchesForSections: totalStitchesForSections,
+  avgSectionSize: avgSectionSize,
+  baseSize: baseSize,
+  remainder: remainder
+});
+
     return {
       instruction: parts.join(', '),
       sections,
@@ -168,7 +187,7 @@ if (construction === 'round') {
   label="amount to change"
   unit="stitches"
   min={1}
-  contextualMax={currentStitches - 1}
+  contextualMax={Math.floor(currentStitches / 2)}
 />
                     
                     {config.amount > 0 && (
@@ -211,9 +230,10 @@ if (construction === 'round') {
 <IncrementInput
   value={config.amount}
   onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
-  label="decrease amount"
+  label="increase amount"
   unit="stitches"
   min={1}
+  contextualMax={construction === 'round' ? currentStitches : currentStitches - 1}
   placeholder="6"
   size="sm"
 />
