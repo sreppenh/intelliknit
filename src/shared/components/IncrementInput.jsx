@@ -64,11 +64,11 @@ const IncrementInput = ({
   const handleInputChange = (e) => {
     const inputValue = e.target.value.replace(/[^0-9]/g, '');
     
-    // FIXED: Never allow empty state - always default to min
-    if (inputValue === '') {
-      onChange(min);
-      return;
-    }
+    // FIXED: Temporarily allow the empty state
+if (inputValue === '') {
+  onChange('');  
+  return;
+}
     
     const numValue = parseInt(inputValue);
     
@@ -86,11 +86,13 @@ const IncrementInput = ({
     onChange(numValue);
   };
 
-  const handleInputBlur = () => {
-    // FIXED: Always ensure we have a valid value on blur
-    const currentValue = getCurrentValue();
-    onChange(currentValue);
-  };
+const handleInputBlur = () => {
+  // FIXED: Always ensure we have a valid value on blur
+  const currentValue = getCurrentValue();
+  if (currentValue === '' || isNaN(currentValue)) {
+    onChange(min);
+  }
+};
 
   const handleInputFocus = (e) => {
     // Select all text on focus for easy editing
