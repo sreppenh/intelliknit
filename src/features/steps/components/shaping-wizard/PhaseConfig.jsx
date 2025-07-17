@@ -47,25 +47,25 @@ const PhaseConfig = ({
       case 'decrease':
         return {
           amount: 1,
-          frequency: 2, // every other row
-          times: 5,
+          frequency: 1, // every other row
+          times: 1,
           position: 'both_ends'
         };
       case 'increase':
         return {
           amount: 1,
-          frequency: 2, // every other row  
-          times: 5,
+          frequency: 1, // every other row  
+          times: 1,
           position: 'both_ends'
         };
       case 'setup':
         return {
-          rows: 4
+          rows: 1
         };
       case 'bind_off':
         return {
-          amount: 3,
-          frequency: 2,
+          amount: 1,
+          frequency: 1,
           position: 'beginning' // Only beginning for bind-offs
         };
       default:

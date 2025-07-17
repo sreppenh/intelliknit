@@ -11,7 +11,7 @@ const EvenDistributionConfig = ({
 }) => {
   const [config, setConfig] = useState({
     action: 'decrease',
-    amount: 6,
+    amount: 1,
     description: ''
   });
 
