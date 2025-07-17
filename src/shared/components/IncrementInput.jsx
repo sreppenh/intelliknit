@@ -88,8 +88,7 @@ if (inputValue === '') {
 
 const handleInputBlur = () => {
   // FIXED: Always ensure we have a valid value on blur
-  const currentValue = getCurrentValue();
-  if (currentValue === '' || isNaN(currentValue)) {
+  if (value === '' || value === undefined || value === null) {
     onChange(min);
   }
 };
@@ -114,7 +113,7 @@ const handleInputBlur = () => {
   const isAtMax = currentValue >= effectiveMax;
 
   // Display value - always show the current valid value
-  const displayValue = currentValue.toString();
+  const displayValue = value === '' ? '' : getCurrentValue().toString();
 
   return (
     <div className={`increment-input-group ${className}`}>
