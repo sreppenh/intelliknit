@@ -262,11 +262,6 @@ if (construction === 'round') {
               {result.startingStitches} stitches → {result.endingStitches} stitches 
               ({result.changeCount} {config.action}s, {result.construction})
             </div>
-            {result.sections && (
-              <div className="text-lavender-600">
-                <span className="font-medium">Sections:</span> {result.sections.join(', ')} stitches
-              </div>
-            )}
           </div>
         </div>
       )}
