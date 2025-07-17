@@ -66,7 +66,7 @@ const PhaseConfig = ({
         return {
           amount: 3,
           frequency: 2,
-          position: 'beginning' // Only beginning or end, not both
+          position: 'beginning' // Only beginning for bind-offs
         };
       default:
         return {};
@@ -510,30 +510,6 @@ const PhaseConfig = ({
 
 
 
-              </div>
-
-              <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
-                  Position
-                </label>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { value: 'beginning', label: 'Beginning' },
-                    { value: 'end', label: 'End' }
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
-                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                        tempPhaseConfig.position === option.value
-                          ? 'border-sage-500 bg-sage-100 text-sage-700'
-                          : 'border-wool-200 hover:border-sage-300'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
               </div>
 
               <div>

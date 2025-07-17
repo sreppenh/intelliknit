@@ -260,7 +260,7 @@ if (construction === 'round') {
             </div>
             <div className="text-lavender-600">
               {result.startingStitches} stitches → {result.endingStitches} stitches 
-              ({result.changeCount} {config.action}s, {result.construction})
+              ({result.construction})
             </div>
           </div>
         </div>
