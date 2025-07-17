@@ -162,11 +162,13 @@ if (construction === 'round') {
                   <div className="mt-3 space-y-2">
               
 
-             <IncrementInput
+<IncrementInput
   value={config.amount}
   onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
   label="amount to change"
   unit="stitches"
+  min={1}
+  contextualMax={currentStitches - 1}
 />
                     
                     {config.amount > 0 && (
