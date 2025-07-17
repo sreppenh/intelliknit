@@ -97,28 +97,28 @@ const PhaseConfig = ({
     setCurrentScreen('configure');
   };
 
-  const handleSavePhaseConfig = () => {
-    if (editingPhaseId) {
-      // Update existing phase
-      setPhases(phases.map(p => 
-        p.id === editingPhaseId 
-          ? { ...p, type: tempPhaseConfig.type, config: tempPhaseConfig }
-          : p
-      ));
-    } else {
-      // Add new phase
-      const newPhase = {
-        id: crypto.randomUUID(),
-        type: tempPhaseConfig.type,
-        config: tempPhaseConfig
-      };
-      setPhases([...phases, newPhase]);
-    }
-    
-    setCurrentScreen('summary');
-    setEditingPhaseId(null);
-    setTempPhaseConfig({});
-  };
+const handleSavePhaseConfig = () => {
+  if (editingPhaseId) {
+    // Update existing phase
+    setPhases(phases.map(p => 
+      p.id === editingPhaseId 
+        ? { ...p, type: tempPhaseConfig.type, config: tempPhaseConfig }
+        : p
+    ));
+  } else {
+    // Add new phase
+    const newPhase = {
+      id: crypto.randomUUID(),
+      type: tempPhaseConfig.type,
+      config: tempPhaseConfig
+    };
+    setPhases([...phases, newPhase]);
+  }
+  
+  setCurrentScreen('summary');
+  setEditingPhaseId(null);
+  setTempPhaseConfig({});
+};
 
   const handleDeletePhase = (phaseId) => {
     setPhases(phases.filter(p => p.id !== phaseId));
@@ -484,6 +484,7 @@ const PhaseConfig = ({
               <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
                 Number of Rows
               </label>
+          
              
 <IncrementInput
   value={tempPhaseConfig.rows}
@@ -502,13 +503,11 @@ const PhaseConfig = ({
                 </label>
            
 <IncrementInput
-  value={tempPhaseConfig.times}
-  onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, times: value }))}
-  label="number of times"
-  unit="times"
+  value={tempPhaseConfig.amount}  // ← CORRECT FIELD
+  onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, amount: value }))}
+  label="amount per row"  // ← CORRECT LABEL
+  unit="stitches"  // ← CORRECT UNIT
 />
-
-
 
               </div>
 
@@ -550,13 +549,45 @@ const PhaseConfig = ({
   label="frequency"
   unit="rows"
 />
-
-
                   </div>
-                </div>
+
+
+
+
+</div>
               </div>
+
+              {/* Real-time validation for bind offs */}
+              {tempPhaseConfig.type === 'bind_off' && tempPhaseConfig.amount && tempPhaseConfig.frequency && (() => {
+                const totalBindOff = tempPhaseConfig.amount * tempPhaseConfig.frequency;
+                let stitchesAfterPreviousPhases = currentStitches;
+                for (const phase of phases) {
+                  if (phase.type === 'bind_off') {
+                    stitchesAfterPreviousPhases -= (phase.config.amount * phase.config.frequency);
+                  }
+                }
+                
+                if (totalBindOff > stitchesAfterPreviousPhases) {
+                  return (
+                    <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+                      <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
+                      <div className="text-sm text-red-600">
+                        Cannot bind off {totalBindOff} stitches - only {stitchesAfterPreviousPhases} stitches available
+                      </div>
+                    </div>
+                  );
+                }
+                return null;
+              })()}
+
             </>
           ) : (
+
+
+
+
+
+
             // Increase/Decrease Configuration
             <>
               <div>
