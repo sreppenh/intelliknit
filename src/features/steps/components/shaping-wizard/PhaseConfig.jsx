@@ -72,6 +72,8 @@ const PhaseConfig = ({
     setCurrentScreen('configure');
   };
 
+  
+
 const handleSavePhaseConfig = () => {
   if (editingPhaseId) {
     // Update existing phase
@@ -109,6 +111,78 @@ const getPhaseDescription = (phase) => {
 
 const getStitchContext = () => {
   return PhaseCalculationService.calculateStitchContext(phases, editingPhaseId, currentStitches);
+};
+
+const getPhasePreview = (config) => {
+  if (!config.type) return 'Select options above';
+  
+  switch (config.type) {
+    case 'decrease':
+      if (!config.amount || !config.frequency || !config.times || !config.position) {
+        return 'Configure decrease options above';
+      }
+      const decFreq = config.frequency === 1 ? 'every row' : 
+                     config.frequency === 2 ? 'every other row' :
+                     `every ${config.frequency} rows`;
+      const decPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
+      const decRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
+      return `Dec ${config.amount} st ${decPos} ${decFreq} ${config.times} times (${decRows} rows)`;
+      
+    case 'increase':
+      if (!config.amount || !config.frequency || !config.times || !config.position) {
+        return 'Configure increase options above';
+      }
+      const incFreq = config.frequency === 1 ? 'every row' : 
+                     config.frequency === 2 ? 'every other row' :
+                     `every ${config.frequency} rows`;
+      const incPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
+      const incRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
+      return `Inc ${config.amount} st ${incPos} ${incFreq} ${config.times} times (${incRows} rows)`;
+      
+    case 'setup':
+      if (!config.rows) return 'Configure row count above';
+      return `Work ${config.rows} plain ${config.rows === 1 ? 'row' : 'rows'}`;
+      
+    case 'bind_off':
+      if (!config.amount || !config.frequency) return 'Configure bind off options above';
+      const bindPos = config.position === 'beginning' ? 'at beginning' : 'at end';
+      return `Bind off ${config.amount} sts ${bindPos} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'}`;
+      
+    default:
+      return 'Unknown phase type';
+  }
+};
+
+const calculatePhaseEndingStitches = () => {
+  if (!tempPhaseConfig.type) return getStitchContext().availableStitches;
+  
+  const startingStitches = getStitchContext().availableStitches;
+  
+  switch (tempPhaseConfig.type) {
+    case 'decrease':
+      if (!tempPhaseConfig.amount || !tempPhaseConfig.times || !tempPhaseConfig.position) return startingStitches;
+      const decChange = tempPhaseConfig.position === 'both_ends' ? 
+        tempPhaseConfig.amount * 2 * tempPhaseConfig.times : 
+        tempPhaseConfig.amount * tempPhaseConfig.times;
+      return startingStitches - decChange;
+      
+    case 'increase':
+      if (!tempPhaseConfig.amount || !tempPhaseConfig.times || !tempPhaseConfig.position) return startingStitches;
+      const incChange = tempPhaseConfig.position === 'both_ends' ? 
+        tempPhaseConfig.amount * 2 * tempPhaseConfig.times : 
+        tempPhaseConfig.amount * tempPhaseConfig.times;
+      return startingStitches + incChange;
+      
+    case 'bind_off':
+      if (!tempPhaseConfig.amount || !tempPhaseConfig.frequency) return startingStitches;
+      return startingStitches - (tempPhaseConfig.amount * tempPhaseConfig.frequency);
+      
+    case 'setup':
+      return startingStitches; // No stitch change
+      
+    default:
+      return startingStitches;
+  }
 };
 
 
@@ -312,26 +386,7 @@ const getStitchContext = () => {
           <p className="text-wool-500 mb-4 text-left">{phaseType?.description}</p>
         </div>
 
-        <div className="info-block">
-        <div className="flex items-center justify-between">
-          <div>
-            <div className="text-sm font-semibold text-lavender-700">
-              Phase {getStitchContext().phaseNumber} of {getStitchContext().totalPhases}
-            </div>
-            <div className="text-xs text-lavender-600">
-              {editingPhaseId ? 'Editing existing phase' : 'Adding new phase'}
-            </div>
-          </div>
-          <div className="text-right">
-            <div className="text-lg font-bold text-lavender-700">
-              {getStitchContext().availableStitches} stitches
-            </div>
-            <div className="text-xs text-lavender-600">available</div>
-          </div>
-        </div>
-      </div>
-
-
+    
 
         {/* Configuration based on type */}
         <div className="stack-lg"></div>
@@ -531,6 +586,24 @@ const getStitchContext = () => {
             </>
           )}
         </div>
+
+
+
+       {/* Live Preview Box - Consistent Format */}
+{tempPhaseConfig.type && (
+  <div className="card-info">
+    <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
+    
+    <div className="space-y-2 text-sm">
+      <div className="text-lavender-700">
+        <span className="font-medium">Instruction:</span> {getPhasePreview(tempPhaseConfig)}
+      </div>
+      <div className="text-lavender-600">
+        {getStitchContext().availableStitches} stitches → {calculatePhaseEndingStitches()} stitches ({construction})
+      </div>
+    </div>
+  </div>
+)}
 
         {/* Navigation */}
         <div className="flex gap-3 pt-6">
