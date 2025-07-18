@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
+import { PhaseCalculationService } from '../../../../shared/utils/PhaseCalculationService';
+import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
 
 const PhaseConfig = ({ 
@@ -43,35 +45,8 @@ const PhaseConfig = ({
   ];
 
   const getDefaultConfigForType = (type) => {
-    switch (type) {
-      case 'decrease':
-        return {
-          amount: 1,
-          frequency: 1, // every other row
-          times: 1,
-          position: 'both_ends'
-        };
-      case 'increase':
-        return {
-          amount: 1,
-          frequency: 1, // every other row  
-          times: 1,
-          position: 'both_ends'
-        };
-      case 'setup':
-        return {
-          rows: 1
-        };
-      case 'bind_off':
-        return {
-          amount: 1,
-          frequency: 1,
-          position: 'beginning' // Only beginning for bind-offs
-        };
-      default:
-        return {};
-    }
-  };
+  return PhaseCalculationService.getDefaultConfigForType(type);
+};
 
   const handleAddPhase = () => {
     setEditingPhaseId(null);
@@ -125,160 +100,20 @@ const handleSavePhaseConfig = () => {
   };
 
   const calculateSequentialPhases = () => {
-    if (phases.length === 0) {
-      return {
-        error: 'Please add at least one phase',
-        instruction: '',
-        startingStitches: currentStitches,
-        endingStitches: currentStitches,
-        totalRows: 0,
-        netStitchChange: 0,
-        phases: []
-      };
-    }
+  return PhaseCalculationService.calculateSequentialPhases(phases, currentStitches, construction);
+};
 
-    let currentStitchCount = currentStitches;
-    let totalRows = 0;
-    let instructions = [];
-    let netStitchChange = 0;
-    let phaseDetails = [];
+const getPhaseDescription = (phase) => {
+  return PhaseCalculationService.getPhaseDescription(phase);
+};
 
-    for (let i = 0; i < phases.length; i++) {
-      const phase = phases[i];
-      const { type, config } = phase;
+const getStitchContext = () => {
+  return PhaseCalculationService.calculateStitchContext(phases, editingPhaseId, currentStitches);
+};
 
-      if (type === 'setup') {
-        totalRows += config.rows;
-        instructions.push(`work ${config.rows} plain rows`);
-        phaseDetails.push({
-          type: 'setup',
-          rows: config.rows,
-          startingStitches: currentStitchCount,
-          endingStitches: currentStitchCount
-        });
-      } else if (type === 'bind_off') {
-        const totalBindOff = config.amount * config.frequency;
-        const phaseRows = config.frequency;
-        
-        currentStitchCount -= totalBindOff;
-        totalRows += phaseRows;
-        netStitchChange -= totalBindOff;
-        
-        const positionText = config.position === 'beginning' ? 'at beginning' : 'at end';
-        instructions.push(`bind off ${config.amount} sts ${positionText} of next ${config.frequency} rows`);
-        
-        phaseDetails.push({
-          type: 'bind_off',
-          amount: config.amount,
-          frequency: config.frequency,
-          position: config.position,
-          rows: phaseRows,
-          stitchChange: -totalBindOff,
-          startingStitches: currentStitchCount + totalBindOff,
-          endingStitches: currentStitchCount
-        });
-      } else if (type === 'decrease' || type === 'increase') {
-        const isDecrease = type === 'decrease';
-        
-        // Calculate stitch change per shaping row
-        const stitchChangePerRow = config.position === 'both_ends' ? 
-          config.amount * 2 : config.amount;
-        
-        // Calculate total stitch change for this phase
-        const totalStitchChangeForPhase = stitchChangePerRow * config.times * (isDecrease ? -1 : 1);
-        
-        // Calculate total rows for this phase  
-        const phaseRows = config.times * config.frequency;
-        
-        // Update counters
-        currentStitchCount += totalStitchChangeForPhase;
-        totalRows += phaseRows;
-        netStitchChange += totalStitchChangeForPhase;
-        
-        // Generate instruction text
-        const actionText = isDecrease ? 'decrease' : 'increase';
-        const positionText = config.position === 'both_ends' ? 'at each end' : 
-                           config.position === 'beginning' ? 'at beginning' :
-                           'at end';
-        const frequencyText = config.frequency === 1 ? 'every row' : 
-                             config.frequency === 2 ? 'every other row' :
-                             `every ${config.frequency} rows`;
-        
-        instructions.push(`${actionText} ${config.amount} st ${positionText} ${frequencyText} ${config.times} times`);
-        
-        phaseDetails.push({
-          type: type,
-          amount: config.amount,
-          frequency: config.frequency,
-          times: config.times,
-          position: config.position,
-          rows: phaseRows,
-          stitchChange: totalStitchChangeForPhase,
-          startingStitches: currentStitchCount - totalStitchChangeForPhase,
-          endingStitches: currentStitchCount
-        });
-      }
-    }
-    
-    // Check for impossible scenarios
-    if (currentStitchCount < 0) {
-      return {
-        error: `Calculation results in ${currentStitchCount} stitches - cannot bind off more stitches than available`,
-        instruction: '',
-        startingStitches: currentStitches,
-        endingStitches: currentStitches,
-        totalRows: 0,
-        netStitchChange: 0,
-        phases: []
-      };
-    }
-
-    return {
-      instruction: instructions.join(', then '),
-      startingStitches: currentStitches,
-      endingStitches: currentStitchCount,
-      totalRows: totalRows,
-      netStitchChange: netStitchChange,
-      phases: phaseDetails,
-      construction: construction
-    };
-  };
-
-  const getPhaseDescription = (phase) => {
-    const { type, config } = phase;
-    
-    switch (type) {
-      case 'decrease':
-        const decFreqText = config.frequency === 1 ? 'every row' : 
-                           config.frequency === 2 ? 'every other row' :
-                           `every ${config.frequency} rows`;
-        const decPosText = config.position === 'both_ends' ? 'at each end' :
-                          config.position === 'beginning' ? 'at beginning' :
-                          'at end';
-        const decTotalRows = config.times * config.frequency;
-        return `Dec ${config.amount} st ${decPosText} ${decFreqText} ${config.times} times (${decTotalRows} rows)`;
-      case 'increase':
-        const incFreqText = config.frequency === 1 ? 'every row' : 
-                           config.frequency === 2 ? 'every other row' :
-                           `every ${config.frequency} rows`;
-        const incPosText = config.position === 'both_ends' ? 'at each end' :
-                          config.position === 'beginning' ? 'at beginning' :
-                          'at end';
-        const incTotalRows = config.times * config.frequency;
-        return `Inc ${config.amount} st ${incPosText} ${incFreqText} ${config.times} times (${incTotalRows} rows)`;
-      case 'setup':
-        return `Work ${config.rows} plain ${config.rows === 1 ? 'row' : 'rows'}`;
-      case 'bind_off':
-        const bindPosText = config.position === 'beginning' ? 'at beginning' : 'at end';
-        const bindTotalStitches = config.amount * config.frequency;
-        return `Bind off ${config.amount} sts ${bindPosText} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'} (${bindTotalStitches} sts total)`;
-      default:
-        return 'Unknown phase';
-    }
-  };
 
   const result = calculateSequentialPhases();
-
+  
   const handleComplete = () => {
     onComplete({
       phases: phases,
@@ -305,7 +140,7 @@ const handleSavePhaseConfig = () => {
             <div className="text-4xl mb-4">🎯</div>
             <h3 className="text-lg font-semibold text-wool-600 mb-2">Ready to build complex shaping?</h3>
             <p className="text-wool-500 mb-4 px-4">Create sophisticated patterns like sleeve caps, shoulder shaping, or gradual waist decreases</p>
-            <div className="bg-sage-50 border-2 border-sage-200 rounded-lg p-3 mb-6 mx-4">
+            <div className="help-block mb-6 mx-4">
               <div className="text-xs font-semibold text-sage-700 mb-1 text-left">Example: Sleeve Cap Shaping</div>
               <div className="text-xs text-sage-600 text-left">
                 • Work 6 plain rows<br/>
@@ -327,9 +162,9 @@ const handleSavePhaseConfig = () => {
             <div>
               <h3 className="text-lg font-semibold text-wool-700 mb-3 text-left">Your Sequence</h3>
               
-              <div className="space-y-3">
+              <div className="stack-sm">
                 {phases.map((phase, index) => (
-                  <div key={phase.id} className="border-2 border-wool-200 rounded-xl">
+                  <div key={phase.id} className="card">
                     <div className="bg-wool-50 p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="w-8 h-8 bg-sage-100 rounded-full flex items-center justify-center text-sm font-bold text-sage-700">
@@ -386,7 +221,7 @@ const handleSavePhaseConfig = () => {
               <div className="card-info">
                 <h4 className="text-sm font-semibold text-lavender-700 mb-3 text-left">Preview</h4>
                 
-                <div className="space-y-2 text-sm text-left">
+                <div className="stack-sm text-sm text-left">
                   <div className="text-lavender-700">
                     <span className="font-medium">Instruction:</span> {result.instruction}
                   </div>
@@ -434,12 +269,12 @@ const handleSavePhaseConfig = () => {
         </div>
 
         {/* Phase Type Grid */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid-2-equal">
           {phaseTypes.map((type) => (
             <button
               key={type.id}
               onClick={() => handleTypeSelect(type.id)}
-              className="p-4 border-2 border-wool-200 rounded-xl hover:border-sage-400 hover:bg-sage-50 transition-colors text-left"
+              className="card-selectable text-left"
             >
               <div className="text-2xl mb-2">{type.icon}</div>
               <div className="font-semibold text-wool-700 text-sm">{type.name}</div>
@@ -467,21 +302,47 @@ const handleSavePhaseConfig = () => {
     
     return (
       <div className="p-6 stack-lg">
-        {/* Header */}
+        
+{/* Header */}
         <div>
-          <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left flex items-center gap-2">
+          <h2 className="text-lg font-semibold text-wool-700 mb-3 text-left flex items-center gap-2">
             <span>{phaseType?.icon}</span>
             {phaseType?.name}
           </h2>
           <p className="text-wool-500 mb-4 text-left">{phaseType?.description}</p>
         </div>
 
+        <div className="info-block">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-sm font-semibold text-lavender-700">
+              Phase {getStitchContext().phaseNumber} of {getStitchContext().totalPhases}
+            </div>
+            <div className="text-xs text-lavender-600">
+              {editingPhaseId ? 'Editing existing phase' : 'Adding new phase'}
+            </div>
+          </div>
+          <div className="text-right">
+            <div className="text-lg font-bold text-lavender-700">
+              {getStitchContext().availableStitches} stitches
+            </div>
+            <div className="text-xs text-lavender-600">available</div>
+          </div>
+        </div>
+      </div>
+
+
+
         {/* Configuration based on type */}
-        <div className="space-y-6">
+        <div className="stack-lg"></div>
+
+
+        {/* Configuration based on type */}
+        <div className="stack-lg">
           {tempPhaseConfig.type === 'setup' ? (
             // Setup Rows Configuration
             <div>
-              <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+              <label className="form-label">
                 Number of Rows
               </label>
           
@@ -498,7 +359,7 @@ const handleSavePhaseConfig = () => {
             // Bind Off Configuration
             <>
               <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                <label className="form-label">
                   Amount Per Row
                 </label>
            
@@ -512,12 +373,12 @@ const handleSavePhaseConfig = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                <label className="form-label">
                   Number of Rows
                 </label>
                 
                 {/* Preset + Custom for Bind Offs */}
-                <div className="space-y-3">
+                <div className="stack-sm">
                   {/* Quick Presets for common bind off patterns */}
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -540,8 +401,8 @@ const handleSavePhaseConfig = () => {
                   </div>
                   
                   {/* Custom Row Count */}
-                  <div className="bg-wool-50 border-2 border-wool-200 rounded-lg p-3">
-                    <div className="text-xs font-semibold text-wool-700 mb-2 text-left">Custom Row Count</div>
+                  <div className="card-compact bg-wool-50">
+                    <div className="form-label-sm">Custom Row Count</div>
                     
 <IncrementInput
   value={tempPhaseConfig.frequency}
@@ -611,12 +472,12 @@ const handleSavePhaseConfig = () => {
   </div>
 
               <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                <label className="form-label">
                   Frequency
                 </label>
                 
                 {/* Preset + Custom Integrated Layout */}
-                <div className="space-y-3">
+                <div className="stack-sm">
                   {/* Quick Presets Row */}
                   <div className="grid grid-cols-3 gap-2">
                     {[
@@ -639,8 +500,8 @@ const handleSavePhaseConfig = () => {
                   </div>
                   
                   {/* Custom Interval - Integrated Style */}
-                  <div className="bg-wool-50 border-2 border-wool-200 rounded-lg p-3">
-                    <div className="text-xs font-semibold text-wool-700 mb-2 text-left">Custom Interval</div>
+                  <div className="card-compact bg-wool-50">
+                    <div className="form-label-sm">Custom Interval</div>
                     <div className="increment-input-group justify-center">
   <span className="text-sm text-wool-600">Every</span>
   <IncrementInput
@@ -657,7 +518,7 @@ const handleSavePhaseConfig = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+                <label className="form-label">
                   Times
                 </label>
                 <IncrementInput
