@@ -152,9 +152,10 @@ export class PhaseCalculationService {
         // FIX: Calculate total rows for this phase correctly
         // If you do something "every other row" 5 times, that's:
         // Row 1 (shaping), Row 2 (plain), Row 3 (shaping), Row 4 (plain), Row 5 (shaping) = 9 rows total
-        const phaseRows = config.frequency === 1 ? 
-            config.times : // Every row = times
-            (config.times - 1) * config.frequency + 1; // Every other/nth row             
+       // const phaseRows = config.frequency === 1 ? 
+          //  config.times : // Every row = times
+         //   (config.times - 1) * config.frequency + 1; // Every other/nth row
+         const phaseRows = config.times * config.frequency;             
         
         // Update counters
         currentStitchCount += totalStitchChangeForPhase;

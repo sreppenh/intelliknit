@@ -156,7 +156,8 @@ const handleSavePhaseConfig = () => {
                        config.frequency === 2 ? 'every other row' :
                        `every ${config.frequency} rows`;
         const decPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
-        const decRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
+        //const decRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
+        const decRows = config.times * config.frequency;
         return `Dec ${amount} st ${decPos} ${decFreq} ${config.times} times (${decRows} rows)`;
         
       case 'increase':
