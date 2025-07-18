@@ -1,5 +1,5 @@
 // src/features/steps/hooks/usePhaseManager.js
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { PhaseCalculationService } from '../../../shared/utils/PhaseCalculationService';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
@@ -12,6 +12,14 @@ export const usePhaseManager = (currentStitches, construction) => {
   const [currentScreen, setCurrentScreen] = useState('summary');
   const [editingPhaseId, setEditingPhaseId] = useState(null);
   const [tempPhaseConfig, setTempPhaseConfig] = useState({});
+
+// Fix empty state: Start with type selection when no phases exist
+useEffect(() => {
+  if (phases.length === 0 && currentScreen === 'summary') {
+    setCurrentScreen('type-select');
+    IntelliKnitLogger.debug('Phase Management', 'Empty state detected - starting with type selection');
+  }
+}, [phases.length, currentScreen]);
 
   const phaseTypes = [
     {

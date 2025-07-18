@@ -44,6 +44,17 @@ const PhaseConfig = ({
 
   // Calculate result for completion
   const result = calculateSequentialPhases();
+
+  // Handle back navigation from type selector when no phases exist
+  const handleTypeSelectBack = () => {
+  if (phases.length === 0) {
+    // No phases configured yet - exit Sequential Shaping entirely
+    onBack();
+  } else {
+    // Phases exist - go back to summary
+    phaseManager.goToSummary();
+  }
+  };
   
   const handleComplete = () => {
     onComplete({
@@ -75,10 +86,11 @@ const PhaseConfig = ({
   if (currentScreen === 'type-select') {
     return (
       <PhaseConfigTypeSelector
-        phaseTypes={phaseTypes}
-        onTypeSelect={handleTypeSelect}
-        onBackToSummary={() => phaseManager.goToSummary()}
-      />
+  phaseTypes={phaseTypes}
+  onTypeSelect={handleTypeSelect}
+  onBackToSummary={handleTypeSelectBack}
+  phases={phases}
+/>
     );
   }
 

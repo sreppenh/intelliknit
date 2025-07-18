@@ -4,7 +4,8 @@ import React from 'react';
 const PhaseConfigTypeSelector = ({ 
   phaseTypes,
   onTypeSelect,
-  onBackToSummary
+  onBackToSummary,
+  phases = [] // Add prop to determine back navigation
 }) => {
   return (
     <div className="p-6 stack-lg">
@@ -30,14 +31,12 @@ const PhaseConfigTypeSelector = ({
       </div>
 
       {/* Back Button */}
-      <div className="pt-4">
-        <button
-          onClick={onBackToSummary}
-          className="btn-tertiary w-full"
-        >
-          ← Back to Summary
-        </button>
-      </div>
+      <button
+  onClick={onBackToSummary}
+  className="btn-tertiary w-full"
+>
+  {phases.length === 0 ? '← Back' : '← Back to Summary'}
+</button>
     </div>
   );
 };
