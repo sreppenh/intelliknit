@@ -17,6 +17,25 @@ const PhaseConfigForm = ({
   calculatePhaseEndingStitches
 }) => {
   const phaseType = phaseTypes.find(t => t.id === tempPhaseConfig.type);
+
+  // Calculate contextual max for Times input
+const getMaxTimes = () => {
+  if (tempPhaseConfig.type !== 'decrease') {
+    return 999; // No limits for increases, setup, bind_off
+  }
+  
+  const availableStitches = getStitchContext().availableStitches;
+  const position = tempPhaseConfig.position;
+  
+  if (!position || availableStitches <= 2) {
+    return 1; // Minimum safe value
+  }
+  
+  const stitchesPerRow = position === 'both_ends' ? 2 : 1;
+  const maxTimes = Math.floor((availableStitches - 2) / stitchesPerRow);
+  
+  return Math.max(1, maxTimes);
+};
   
   return (
     <div className="p-6 stack-lg">
@@ -42,6 +61,7 @@ const PhaseConfigForm = ({
               onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
               label="rows"
               unit="rows"
+              min={1}
             />
           </div>
         ) : tempPhaseConfig.type === 'bind_off' ? (
@@ -56,6 +76,7 @@ const PhaseConfigForm = ({
                 onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, amount: value }))}
                 label="amount per row"
                 unit="stitches"
+                min={1}
               />
             </div>
 
@@ -185,13 +206,16 @@ const PhaseConfigForm = ({
                   <div className="increment-input-group justify-center">
                     <span className="text-sm text-wool-600">Every</span>
                     <IncrementInput
-                      value={tempPhaseConfig.frequency}
-                      onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, frequency: value }))}
-                      label="frequency"
-                      unit="rows"
-                      min={1}
-                      className="mx-2"
-                    />
+  value={tempPhaseConfig.frequency}
+  onChange={(value) => {
+    const correctedValue = Math.max(value, 1);
+    setTempPhaseConfig(prev => ({ ...prev, frequency: correctedValue }));
+  }}
+  label="frequency"
+  unit="rows"
+  min={1}
+  className="mx-2"
+/>
                   </div>
                 </div>
               </div>
@@ -201,12 +225,18 @@ const PhaseConfigForm = ({
               <label className="form-label">
                 Times
               </label>
-              <IncrementInput
-                value={tempPhaseConfig.times}
-                onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, times: value }))}
-                label="number of times"
-                unit="times"
-              />
+<IncrementInput
+  value={tempPhaseConfig.times}
+  onChange={(value) => {
+    const maxTimes = getMaxTimes();
+    const correctedValue = Math.min(Math.max(value, 1), maxTimes);
+    setTempPhaseConfig(prev => ({ ...prev, times: correctedValue }));
+  }}
+  label="number of times"
+  unit="times"
+  min={1}
+  max={getMaxTimes()}
+/>
             </div>
           </>
         )}

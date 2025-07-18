@@ -48,8 +48,8 @@ const PhaseConfig = ({
   ];
 
   const getDefaultConfigForType = (type) => {
-  return PhaseCalculationService.getDefaultConfigForType(type);
-};
+    return PhaseCalculationService.getDefaultConfigForType(type);
+  };
 
   const handleAddPhase = () => {
     setEditingPhaseId(null);
@@ -75,119 +75,127 @@ const PhaseConfig = ({
     setCurrentScreen('configure');
   };
 
-  
-
-const handleSavePhaseConfig = () => {
-  if (editingPhaseId) {
-    // Update existing phase
-    setPhases(phases.map(p => 
-      p.id === editingPhaseId 
-        ? { ...p, type: tempPhaseConfig.type, config: tempPhaseConfig }
-        : p
-    ));
-  } else {
-    // Add new phase
-    const newPhase = {
-      id: crypto.randomUUID(),
-      type: tempPhaseConfig.type,
-      config: tempPhaseConfig
-    };
-    setPhases([...phases, newPhase]);
-  }
-  
-  setCurrentScreen('summary');
-  setEditingPhaseId(null);
-  setTempPhaseConfig({});
-};
+  const handleSavePhaseConfig = () => {
+    if (editingPhaseId) {
+      // Update existing phase
+      setPhases(phases.map(p => 
+        p.id === editingPhaseId 
+          ? { ...p, type: tempPhaseConfig.type, config: tempPhaseConfig }
+          : p
+      ));
+    } else {
+      // Add new phase
+      const newPhase = {
+        id: crypto.randomUUID(),
+        type: tempPhaseConfig.type,
+        config: tempPhaseConfig
+      };
+      setPhases([...phases, newPhase]);
+    }
+    
+    setCurrentScreen('summary');
+    setEditingPhaseId(null);
+    setTempPhaseConfig({});
+  };
 
   const handleDeletePhase = (phaseId) => {
     setPhases(phases.filter(p => p.id !== phaseId));
   };
 
   const calculateSequentialPhases = () => {
-  return PhaseCalculationService.calculateSequentialPhases(phases, currentStitches, construction);
-};
+    return PhaseCalculationService.calculateSequentialPhases(phases, currentStitches, construction);
+  };
 
-const getPhaseDescription = (phase) => {
-  return PhaseCalculationService.getPhaseDescription(phase);
-};
+  const getPhaseDescription = (phase) => {
+    return PhaseCalculationService.getPhaseDescription(phase);
+  };
 
-const getStitchContext = () => {
-  return PhaseCalculationService.calculateStitchContext(phases, editingPhaseId, currentStitches);
-};
+  const getStitchContext = () => {
+    return PhaseCalculationService.calculateStitchContext(phases, editingPhaseId, currentStitches);
+  };
 
-const getPhasePreview = (config) => {
-  if (!config.type) return 'Select options above';
+  const getPhasePreview = (config) => {
+    if (!config.type) return 'Select options above';
+    
+    switch (config.type) {
+      case 'decrease':
+        if (!config.frequency || !config.times || !config.position) {
+          return 'Configure decrease options above';
+        }
+        const amount = config.amount || 1; // Default to 1 for simplified model
+        const decFreq = config.frequency === 1 ? 'every row' : 
+                       config.frequency === 2 ? 'every other row' :
+                       `every ${config.frequency} rows`;
+        const decPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
+        const decRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
+        return `Dec ${amount} st ${decPos} ${decFreq} ${config.times} times (${decRows} rows)`;
+        
+      case 'increase':
+        if (!config.frequency || !config.times || !config.position) {
+          return 'Configure increase options above';
+        }
+        const incAmount = config.amount || 1; // Default to 1 for simplified model
+        const incFreq = config.frequency === 1 ? 'every row' : 
+                       config.frequency === 2 ? 'every other row' :
+                       `every ${config.frequency} rows`;
+        const incPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
+        const incRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
+        return `Inc ${incAmount} st ${incPos} ${incFreq} ${config.times} times (${incRows} rows)`;
+        
+      case 'setup':
+        if (!config.rows) return 'Configure row count above';
+        return `Work ${config.rows} plain ${config.rows === 1 ? 'row' : 'rows'}`;
+        
+      case 'bind_off':
+        if (!config.amount || !config.frequency) return 'Configure bind off options above';
+        const bindPos = config.position === 'beginning' ? 'at beginning' : 'at end';
+        return `Bind off ${config.amount} sts ${bindPos} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'}`;
+        
+      default:
+        return 'Unknown phase type';
+    }
+  };
+
+  const calculatePhaseEndingStitches = () => {
+    if (!tempPhaseConfig.type) return getStitchContext().availableStitches;
+    
+    const startingStitches = getStitchContext().availableStitches;
+    
+    switch (tempPhaseConfig.type) {
+      case 'decrease':
+  if (!tempPhaseConfig.times || !tempPhaseConfig.position) return startingStitches;
+  const amount = tempPhaseConfig.amount || 1; // Default to 1 for simplified model
   
-  switch (config.type) {
-    case 'decrease':
-      if (!config.amount || !config.frequency || !config.times || !config.position) {
-        return 'Configure decrease options above';
-      }
-      const decFreq = config.frequency === 1 ? 'every row' : 
-                     config.frequency === 2 ? 'every other row' :
-                     `every ${config.frequency} rows`;
-      const decPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
-      const decRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
-      return `Dec ${config.amount} st ${decPos} ${decFreq} ${config.times} times (${decRows} rows)`;
-      
-    case 'increase':
-      if (!config.amount || !config.frequency || !config.times || !config.position) {
-        return 'Configure increase options above';
-      }
-      const incFreq = config.frequency === 1 ? 'every row' : 
-                     config.frequency === 2 ? 'every other row' :
-                     `every ${config.frequency} rows`;
-      const incPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
-      const incRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
-      return `Inc ${config.amount} st ${incPos} ${incFreq} ${config.times} times (${incRows} rows)`;
-      
-    case 'setup':
-      if (!config.rows) return 'Configure row count above';
-      return `Work ${config.rows} plain ${config.rows === 1 ? 'row' : 'rows'}`;
-      
-    case 'bind_off':
-      if (!config.amount || !config.frequency) return 'Configure bind off options above';
-      const bindPos = config.position === 'beginning' ? 'at beginning' : 'at end';
-      return `Bind off ${config.amount} sts ${bindPos} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'}`;
-      
-    default:
-      return 'Unknown phase type';
-  }
-};
-
-const calculatePhaseEndingStitches = () => {
-  if (!tempPhaseConfig.type) return getStitchContext().availableStitches;
+  // Apply the same max constraint logic as the input
+  const availableStitches = getStitchContext().availableStitches;
+  const stitchesPerRow = tempPhaseConfig.position === 'both_ends' ? 2 : 1;
+  const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
+  const correctedTimes = Math.min(tempPhaseConfig.times, maxTimes);
   
-  const startingStitches = getStitchContext().availableStitches;
-  
-  switch (tempPhaseConfig.type) {
-    case 'decrease':
-      if (!tempPhaseConfig.amount || !tempPhaseConfig.times || !tempPhaseConfig.position) return startingStitches;
-      const decChange = tempPhaseConfig.position === 'both_ends' ? 
-        tempPhaseConfig.amount * 2 * tempPhaseConfig.times : 
-        tempPhaseConfig.amount * tempPhaseConfig.times;
-      return startingStitches - decChange;
-      
-    case 'increase':
-      if (!tempPhaseConfig.amount || !tempPhaseConfig.times || !tempPhaseConfig.position) return startingStitches;
-      const incChange = tempPhaseConfig.position === 'both_ends' ? 
-        tempPhaseConfig.amount * 2 * tempPhaseConfig.times : 
-        tempPhaseConfig.amount * tempPhaseConfig.times;
-      return startingStitches + incChange;
-      
-    case 'bind_off':
-      if (!tempPhaseConfig.amount || !tempPhaseConfig.frequency) return startingStitches;
-      return startingStitches - (tempPhaseConfig.amount * tempPhaseConfig.frequency);
-      
-    case 'setup':
-      return startingStitches; // No stitch change
-      
-    default:
-      return startingStitches;
-  }
-};
-
+  const decChange = tempPhaseConfig.position === 'both_ends' ? 
+    amount * 2 * correctedTimes : 
+    amount * correctedTimes;
+  return startingStitches - decChange;
+        
+      case 'increase':
+        if (!tempPhaseConfig.times || !tempPhaseConfig.position) return startingStitches;
+        const incAmount = tempPhaseConfig.amount || 1; // Default to 1 for simplified model
+        const incChange = tempPhaseConfig.position === 'both_ends' ? 
+          incAmount * 2 * tempPhaseConfig.times : 
+          incAmount * tempPhaseConfig.times;
+        return startingStitches + incChange;
+        
+      case 'bind_off':
+        if (!tempPhaseConfig.amount || !tempPhaseConfig.frequency) return startingStitches;
+        return startingStitches - (tempPhaseConfig.amount * tempPhaseConfig.frequency);
+        
+      case 'setup':
+        return startingStitches; // No stitch change
+        
+      default:
+        return startingStitches;
+    }
+  };
 
   const result = calculateSequentialPhases();
   
@@ -200,61 +208,61 @@ const calculatePhaseEndingStitches = () => {
   };
 
   // Screen 1: Summary (main screen)
-if (currentScreen === 'summary') {
-  return (
-    <PhaseConfigSummary
-      phases={phases}
-      phaseTypes={phaseTypes}
-      result={result}
-      construction={construction}
-      onAddPhase={handleAddPhase}
-      onEditPhase={handleEditPhase}
-      onDeletePhase={handleDeletePhase}
-      onBack={onBack}
-      onComplete={handleComplete}
-      getPhaseDescription={getPhaseDescription}
-    />
-  );
-}
+  if (currentScreen === 'summary') {
+    return (
+      <PhaseConfigSummary
+        phases={phases}
+        phaseTypes={phaseTypes}
+        result={result}
+        construction={construction}
+        onAddPhase={handleAddPhase}
+        onEditPhase={handleEditPhase}
+        onDeletePhase={handleDeletePhase}
+        onBack={onBack}
+        onComplete={handleComplete}
+        getPhaseDescription={getPhaseDescription}
+      />
+    );
+  }
 
   // Screen 2: Type Selection
-if (currentScreen === 'type-select') {
-  return (
-    <PhaseConfigTypeSelector
-      phaseTypes={phaseTypes}
-      onTypeSelect={handleTypeSelect}
-      onBackToSummary={() => setCurrentScreen('summary')}
-    />
-  );
-}
+  if (currentScreen === 'type-select') {
+    return (
+      <PhaseConfigTypeSelector
+        phaseTypes={phaseTypes}
+        onTypeSelect={handleTypeSelect}
+        onBackToSummary={() => setCurrentScreen('summary')}
+      />
+    );
+  }
 
   // Screen 3: Configure Phase
-if (currentScreen === 'configure') {
-  return (
-    <PhaseConfigForm
-      tempPhaseConfig={tempPhaseConfig}
-      setTempPhaseConfig={setTempPhaseConfig}
-      phaseTypes={phaseTypes}
-      phases={phases}
-      currentStitches={currentStitches}
-      construction={construction}
-      editingPhaseId={editingPhaseId}
-      onSave={handleSavePhaseConfig}
-      onBack={() => {
-        if (editingPhaseId) {
-          setCurrentScreen('summary');
-          setEditingPhaseId(null);
-          setTempPhaseConfig({});
-        } else {
-          setCurrentScreen('type-select');
-        }
-      }}
-      getPhasePreview={getPhasePreview}
-      getStitchContext={getStitchContext}
-      calculatePhaseEndingStitches={calculatePhaseEndingStitches}
-    />
-  );
-}
+  if (currentScreen === 'configure') {
+    return (
+      <PhaseConfigForm
+        tempPhaseConfig={tempPhaseConfig}
+        setTempPhaseConfig={setTempPhaseConfig}
+        phaseTypes={phaseTypes}
+        phases={phases}
+        currentStitches={currentStitches}
+        construction={construction}
+        editingPhaseId={editingPhaseId}
+        onSave={handleSavePhaseConfig}
+        onBack={() => {
+          if (editingPhaseId) {
+            setCurrentScreen('summary');
+            setEditingPhaseId(null);
+            setTempPhaseConfig({});
+          } else {
+            setCurrentScreen('type-select');
+          }
+        }}
+        getPhasePreview={getPhasePreview}
+        getStitchContext={getStitchContext}
+        calculatePhaseEndingStitches={calculatePhaseEndingStitches}
+      />
+    );
+  }
 
   return null;
 };
