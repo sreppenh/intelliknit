@@ -5,14 +5,16 @@ const PhaseConfigTypeSelector = ({
   phaseTypes,
   onTypeSelect,
   onBackToSummary,
-  phases = [] // Add prop to determine back navigation
+  phases = [], // Add prop to determine back navigation
+  phaseNumber
+
 }) => {
   return (
     <div className="p-6 stack-lg">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">Choose Phase Type</h2>
-        <p className="text-wool-500 mb-4 text-left">What kind of shaping do you want to add?</p>
+        <h2 className="content-header-primary">Phase {phaseNumber}: Choose Phase Type</h2>
+        <p className="content-subtitle">What kind of shaping do you want to add?</p>
       </div>
 
       {/* Phase Type Grid */}

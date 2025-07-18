@@ -15,7 +15,8 @@ const PhaseConfigForm = ({
   onBack,
   getPhasePreview,
   getStitchContext,
-  calculatePhaseEndingStitches
+  calculatePhaseEndingStitches,
+  phaseNumber
 }) => {
   const phaseType = phaseTypes.find(t => t.id === tempPhaseConfig.type);
 
@@ -42,10 +43,10 @@ const getMaxTimes = () => {
     <div className="p-6 stack-lg">
       {/* Header */}
       <div>
-        <h2 className="text-lg font-semibold text-wool-700 mb-3 text-left flex items-center gap-2">
-          <span>{phaseType?.icon}</span>
-          {phaseType?.name}
-        </h2>
+        <h2 className="content-header-primary flex items-center gap-2">
+       <span>{phaseType?.icon}</span>
+       Phase {phaseNumber}: {phaseType?.name}
+      </h2>
         <p className="text-wool-500 mb-4 text-left">{phaseType?.description}</p>
       </div>
 

@@ -45,6 +45,18 @@ const PhaseConfig = ({
   // Calculate result for completion
   const result = calculateSequentialPhases();
 
+  // Calculate current phase number
+  const getCurrentPhaseNumber = () => {
+  if (editingPhaseId) {
+    // Editing existing phase - find its position
+    const phaseIndex = phases.findIndex(p => p.id === editingPhaseId);
+    return phaseIndex + 1;
+  } else {
+    // Adding new phase - next number in sequence
+    return phases.length + 1;
+  }
+};
+
   // Handle back navigation from type selector when no phases exist
   const handleTypeSelectBack = () => {
   if (phases.length === 0) {
@@ -90,6 +102,7 @@ const PhaseConfig = ({
   onTypeSelect={handleTypeSelect}
   onBackToSummary={handleTypeSelectBack}
   phases={phases}
+  phaseNumber={getCurrentPhaseNumber()}
 />
     );
   }
@@ -110,6 +123,7 @@ const PhaseConfig = ({
         getPhasePreview={getPhasePreview}
         getStitchContext={getStitchContext}
         calculatePhaseEndingStitches={calculatePhaseEndingStitches}
+        phaseNumber={getCurrentPhaseNumber()}
       />
     );
   }

@@ -322,6 +322,18 @@
   @apply bg-yarn-600 text-white px-6 py-4;
 }
 
+.content-header-primary {
+  @apply text-xl font-semibold text-wool-700 mb-3 text-left;
+}
+
+.content-header-secondary {
+  @apply text-lg font-semibold text-wool-700 mb-3 text-left;
+}
+
+.content-subtitle {
+  @apply text-wool-500 mb-4 text-left;
+}
+
 /* ===== Progress Indicators ===== */
 .progress-bar {
   @apply bg-wool-100 rounded-full h-2 border border-wool-200;
