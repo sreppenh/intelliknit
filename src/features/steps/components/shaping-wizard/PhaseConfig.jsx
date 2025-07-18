@@ -75,28 +75,57 @@ const PhaseConfig = ({
     setCurrentScreen('configure');
   };
 
-  const handleSavePhaseConfig = () => {
-    if (editingPhaseId) {
-      // Update existing phase
-      setPhases(phases.map(p => 
-        p.id === editingPhaseId 
-          ? { ...p, type: tempPhaseConfig.type, config: tempPhaseConfig }
-          : p
-      ));
-    } else {
-      // Add new phase
-      const newPhase = {
-        id: crypto.randomUUID(),
-        type: tempPhaseConfig.type,
-        config: tempPhaseConfig
-      };
-      setPhases([...phases, newPhase]);
+const handleSavePhaseConfig = () => {
+  // Create corrected config with validated values
+  const correctedConfig = { ...tempPhaseConfig };
+  
+  // Apply corrections for decrease/increase phases
+  if (tempPhaseConfig.type === 'decrease' || tempPhaseConfig.type === 'increase') {
+    if (tempPhaseConfig.times && tempPhaseConfig.position) {
+      const availableStitches = getStitchContext().availableStitches;
+      const stitchesPerRow = tempPhaseConfig.position === 'both_ends' ? 2 : 1;
+      const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
+      correctedConfig.times = Math.min(tempPhaseConfig.times, maxTimes);
     }
-    
-    setCurrentScreen('summary');
-    setEditingPhaseId(null);
-    setTempPhaseConfig({});
-  };
+    if (tempPhaseConfig.frequency) {
+      correctedConfig.frequency = Math.max(tempPhaseConfig.frequency, 1);
+    }
+  }
+  
+  // Apply corrections for other phase types
+  if (tempPhaseConfig.type === 'setup' && tempPhaseConfig.rows) {
+    correctedConfig.rows = Math.max(tempPhaseConfig.rows, 1);
+  }
+  if (tempPhaseConfig.type === 'bind_off') {
+    if (tempPhaseConfig.amount) {
+      correctedConfig.amount = Math.max(tempPhaseConfig.amount, 1);
+    }
+    if (tempPhaseConfig.frequency) {
+      correctedConfig.frequency = Math.max(tempPhaseConfig.frequency, 1);
+    }
+  }
+
+  if (editingPhaseId) {
+    // Update existing phase
+    setPhases(phases.map(p => 
+      p.id === editingPhaseId 
+        ? { ...p, type: tempPhaseConfig.type, config: correctedConfig }
+        : p
+    ));
+  } else {
+    // Add new phase
+    const newPhase = {
+      id: crypto.randomUUID(),
+      type: tempPhaseConfig.type,
+      config: correctedConfig
+    };
+    setPhases([...phases, newPhase]);
+  }
+  
+  setCurrentScreen('summary');
+  setEditingPhaseId(null);
+  setTempPhaseConfig({});
+};
 
   const handleDeletePhase = (phaseId) => {
     setPhases(phases.filter(p => p.id !== phaseId));

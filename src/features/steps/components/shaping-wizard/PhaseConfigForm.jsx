@@ -1,6 +1,7 @@
 // src/features/steps/components/shaping-wizard/PhaseConfigForm.jsx
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
+import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
 const PhaseConfigForm = ({ 
   tempPhaseConfig,
@@ -152,24 +153,42 @@ const getMaxTimes = () => {
                 Position
               </label>
               <div className="grid grid-cols-3 gap-2">
-                {[
-                  { value: 'beginning', label: 'Beginning' },
-                  { value: 'end', label: 'End' },
-                  { value: 'both_ends', label: 'Both Ends' }
-                ].map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => setTempPhaseConfig(prev => ({ ...prev, position: option.value }))}
-                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                      tempPhaseConfig.position === option.value
-                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                        : 'border-wool-200 hover:border-sage-300'
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
+  {[
+    { value: 'beginning', label: 'Beginning' },
+    { value: 'end', label: 'End' },
+    { value: 'both_ends', label: 'Both Ends' }
+  ].map(option => (
+    <button
+      key={option.value}
+      onClick={() => {
+        setTempPhaseConfig(prev => {
+          const newConfig = { ...prev, position: option.value };
+          
+          // Force correction of times value with new position
+          if (newConfig.type === 'decrease' && newConfig.times) {
+            const availableStitches = getStitchContext().availableStitches;
+            const stitchesPerRow = option.value === 'both_ends' ? 2 : 1;
+            const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
+            const correctedTimes = Math.min(newConfig.times, maxTimes);
+            
+            IntelliKnitLogger.debug('Position Change', `Position: ${option.value}, Times: ${newConfig.times} → ${correctedTimes}`);
+            
+            newConfig.times = correctedTimes;
+          }
+          
+          return newConfig;
+        });
+      }}
+      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
+        tempPhaseConfig.position === option.value
+          ? 'border-sage-500 bg-sage-100 text-sage-700'
+          : 'border-wool-200 hover:border-sage-300'
+      }`}
+    >
+      {option.label}
+    </button>
+  ))}
+</div>
             </div>
 
             <div>
@@ -230,6 +249,7 @@ const getMaxTimes = () => {
   onChange={(value) => {
     const maxTimes = getMaxTimes();
     const correctedValue = Math.min(Math.max(value, 1), maxTimes);
+    IntelliKnitLogger.debug('Times Input', `Original: ${value}, Corrected: ${correctedValue}, Max: ${maxTimes}`);
     setTempPhaseConfig(prev => ({ ...prev, times: correctedValue }));
   }}
   label="number of times"
