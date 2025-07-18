@@ -79,18 +79,22 @@ const handleSavePhaseConfig = () => {
   // Create corrected config with validated values
   const correctedConfig = { ...tempPhaseConfig };
   
-  // Apply corrections for decrease/increase phases
-  if (tempPhaseConfig.type === 'decrease' || tempPhaseConfig.type === 'increase') {
-    if (tempPhaseConfig.times && tempPhaseConfig.position) {
-      const availableStitches = getStitchContext().availableStitches;
-      const stitchesPerRow = tempPhaseConfig.position === 'both_ends' ? 2 : 1;
-      const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
-      correctedConfig.times = Math.min(tempPhaseConfig.times, maxTimes);
-    }
-    if (tempPhaseConfig.frequency) {
-      correctedConfig.frequency = Math.max(tempPhaseConfig.frequency, 1);
-    }
+  // Apply corrections for decrease phases only
+if (tempPhaseConfig.type === 'decrease') {
+  if (tempPhaseConfig.times && tempPhaseConfig.position) {
+    const availableStitches = getStitchContext().availableStitches;
+    const stitchesPerRow = tempPhaseConfig.position === 'both_ends' ? 2 : 1;
+    const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
+    correctedConfig.times = Math.min(tempPhaseConfig.times, maxTimes);
   }
+}
+
+// Apply frequency corrections for both decreases and increases
+if (tempPhaseConfig.type === 'decrease' || tempPhaseConfig.type === 'increase') {
+  if (tempPhaseConfig.frequency) {
+    correctedConfig.frequency = Math.max(tempPhaseConfig.frequency, 1);
+  }
+}
   
   // Apply corrections for other phase types
   if (tempPhaseConfig.type === 'setup' && tempPhaseConfig.rows) {
@@ -169,7 +173,8 @@ const handleSavePhaseConfig = () => {
                        config.frequency === 2 ? 'every other row' :
                        `every ${config.frequency} rows`;
         const incPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
-        const incRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
+        //const incRows = config.frequency === 1 ? config.times : (config.times - 1) * config.frequency + 1;
+        const incRows = config.times * config.frequency;
         return `Inc ${incAmount} st ${incPos} ${incFreq} ${config.times} times (${incRows} rows)`;
         
       case 'setup':
