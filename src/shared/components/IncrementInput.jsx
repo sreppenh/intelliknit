@@ -18,6 +18,7 @@ const IncrementInput = ({
   max = undefined,
   label = 'value',
   unit = '',
+  construction = null,
   size = 'default', // 'sm', 'default', 'lg'
   className = '',
   disabled = false,
@@ -25,6 +26,14 @@ const IncrementInput = ({
   contextualMax = undefined, // For context-aware max limits
   ...props 
 }) => {
+
+  
+  // NEW: Add this function to make units construction-aware
+  const getConstructionAwareUnit = (baseUnit) => {
+    if (!construction || baseUnit !== 'rows') return baseUnit;
+    return construction === 'round' ? 'rounds' : 'rows';
+  };
+
   // Determine appropriate max based on context
   const getContextualMax = () => {
     if (max !== undefined) return max;
@@ -38,6 +47,8 @@ const IncrementInput = ({
     
     return 999; // Fallback for edge cases
   };
+
+  
 
   const effectiveMax = getContextualMax();
 
@@ -105,6 +116,7 @@ const handleInputBlur = () => {
     lg: { button: 'btn-increment-lg', input: 'input-numeric-lg' }
   };
 
+
   const { button: buttonClass, input: inputClass } = sizeClasses[size];
 
   // Button state logic
@@ -114,6 +126,9 @@ const handleInputBlur = () => {
 
   // Display value - always show the current valid value
   const displayValue = value === '' ? '' : getCurrentValue().toString();
+
+  // NEW: Get construction-aware unit for display
+  const displayUnit = getConstructionAwareUnit(unit);
 
   return (
     <div className={`increment-input-group ${className}`}>
@@ -155,7 +170,7 @@ const handleInputBlur = () => {
       </button>
       
       {unit && (
-        <span className="text-sm text-wool-600 ml-2 whitespace-nowrap min-w-0 flex-shrink-0">{unit}</span>
+        <span className="text-sm text-wool-600 ml-2 whitespace-nowrap min-w-0 flex-shrink-0">{displayUnit}</span>
       )}
       
 

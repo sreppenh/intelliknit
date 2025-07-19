@@ -63,6 +63,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
   onChange={(value) => updateWizardData('stitchPattern', { rowsInPattern: value })}
   label="rows in pattern"
   unit="rows"
+  construction={construction}
 />
           <label className="form-help">
             Number of rows in one complete pattern repeat

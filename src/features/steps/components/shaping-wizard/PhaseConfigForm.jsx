@@ -97,6 +97,7 @@ const PhaseConfigForm = ({
               onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
               label="rows"
               unit="rows"
+              construction={construction}
               min={1}
             />
           </div>
@@ -242,7 +243,7 @@ const PhaseConfigForm = ({
   {[
     { value: 'beginning', label: 'Beginning' },
     { value: 'end', label: 'End' },
-    { value: 'both_ends', label: 'Both Ends' }
+    { value: 'both_ends', label: construction === 'round' ? 'Both' : 'Both Ends' }
   ].map(option => (
     <button
       key={option.value}

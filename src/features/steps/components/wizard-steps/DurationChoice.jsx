@@ -108,6 +108,7 @@ const DurationChoice = ({ wizardData, updateWizardData }) => {
   onChange={(value) => updateWizardData('duration', { value })}
   label="number of rows"
   unit="rows"
+  construction={construction}
   min={1}
   size="sm"
 />
