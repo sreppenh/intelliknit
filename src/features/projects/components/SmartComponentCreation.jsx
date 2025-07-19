@@ -2,13 +2,17 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IncrementInput from '../../../shared/components/IncrementInput';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
-  
+
   const [screen, setScreen] = useState(1);
+  // REPLACE WITH:
   const [componentData, setComponentData] = useState({
     name: '',
+    setupNotes: '',           // ADD THIS
+    construction: null,       // ADD THIS  
     startType: null,
     startMethod: null,
     startStitches: '',
@@ -41,19 +45,14 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       { id: 'cable', name: 'Cable', icon: '🔗' },
       { id: 'provisional', name: 'Provisional', icon: '📎' },
       { id: 'tubular', name: 'Tubular', icon: '🌊' },
-      { id: 'german_twisted', name: 'German Twisted', icon: '🌀' },
       { id: 'backward_loop', name: 'Backward Loop', icon: '↪️' },
       { id: 'other', name: 'Other', icon: '📝' }
     ],
     pick_up: [
-      { id: 'pick_up_knit', name: 'Pick Up & Knit', icon: '🧶' },
-      { id: 'standard', name: 'Standard Pick Up', icon: '📌' },
-      { id: 'other', name: 'Other', icon: '📝' }
+      { id: 'pick_up_knit', name: 'Pick Up & Knit', icon: '🧶' }
     ],
     continue: [
-      { id: 'from_holder', name: 'From Holder', icon: '📎' },
-      { id: 'from_previous', name: 'From Previous', icon: '↗️' },
-      { id: 'other', name: 'Other', icon: '📝' }
+      { id: 'from_stitches', name: 'From Live Stitches', icon: '📎' }
     ],
     other: [
       { id: 'custom', name: 'Custom Setup', icon: '📝' }
@@ -85,7 +84,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       startType: startTypeId,
       startMethod: methodId
     }));
-    
+
     // Auto-advance to screen 2 after a brief delay (like PatternSelector)
     setTimeout(() => {
       setScreen(2);
@@ -93,26 +92,26 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   };
 
   const needsDescription = () => {
-    return componentData.startType === 'pick_up' || 
-           componentData.startType === 'continue' || 
-           componentData.startMethod === 'other';
+    return componentData.startType === 'pick_up' ||
+      componentData.startType === 'continue' ||
+      componentData.startMethod === 'other';
   };
 
   const canProceedToDetails = () => {
-    return componentData.name.trim() && 
-           componentData.startType && 
-           componentData.startMethod;
+    return componentData.name.trim() &&
+      componentData.startType &&
+      componentData.startMethod;
   };
 
   const canCreateComponent = () => {
     if (!componentData.startStitches || parseInt(componentData.startStitches) <= 0) {
       return false;
     }
-    
+
     if (needsDescription() && !componentData.startDescription?.trim()) {
       return false;
     }
-    
+
     return true;
   };
 
@@ -132,9 +131,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       prepNote: componentData.prepNote
     };
 
-    dispatch({ 
-      type: 'ADD_ENHANCED_COMPONENT', 
-      payload: newComponent 
+    dispatch({
+      type: 'ADD_ENHANCED_COMPONENT',
+      payload: newComponent
     });
 
     onComponentCreated(newComponent);
@@ -153,7 +152,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        
+
         {/* Header */}
         <div className="bg-sage-500 text-white px-6 py-4">
           <div className="flex items-center gap-3">
@@ -165,28 +164,21 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             </button>
             <div className="flex-1 min-w-0">
               <h1 className="text-lg font-semibold">Add Component</h1>
-              <p className="text-sage-100 text-sm">{screen === 1 ? 'Setup and method' : 'Final details'}</p>
+              <p className="text-sage-100 text-sm">{screen === 1 ? 'Component Identity & Setup' : 'Method & Configuration'}</p>
             </div>
           </div>
         </div>
 
         {screen === 1 ? (
-          // Screen 1: Name + Integrated Start Type & Method Selection
+          // Screen 1: Component Identity & Setup
           <div className="p-6 bg-yarn-50 space-y-6 relative">
-            
-            {/* Prep Note Button */}
-            <PrepStepButton 
-              onClick={handleOpenOverlay}
-              hasNote={hasNote}
-              notePreview={notePreview}
-              position="top-right"
-              size="normal"
-              variant="ghost"
-            />
-            
+
+            {/* Page Title */}
+            <h1 className="page-title">Setup Component</h1>
+
             {/* Component Name */}
             <div>
-              <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">Component Name</h2>
+              <label className="form-label">Component Name</label>
               <input
                 type="text"
                 value={componentData.name}
@@ -196,153 +188,243 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               />
             </div>
 
-            {/* How Does It Start - PatternSelector Style */}
-            <div>
-              <h2 className="text-xl font-semibold text-wool-700 mb-4 text-left">How does it start?</h2>
-              
-              {/* Start Type Selection in Card */}
-              <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
-                
-                {/* Start Type Grid */}
-                <div className="grid grid-cols-2 gap-3 mb-4">
-                  {startTypes.map((startType) => (
-                    <button
-                      key={startType.id}
-                      onClick={() => handleStartTypeSelect(startType.id)}
-                      className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${
-                        selectedStartType === startType.id
-                          ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                          : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="text-xl mb-1">{startType.icon}</div>
-                      <div className="text-xs font-medium">{startType.name}</div>
-                    </button>
-                  ))}
-                </div>
-
-                {/* Method Selection - Appears inline when start type selected */}
-                {selectedStartType && (
-                  <div className="border-t border-wool-200 pt-4">
-                    <div className="grid grid-cols-3 gap-2">
-                      {methodsByStartType[selectedStartType].map(method => (
-                        <button
-                          key={method.id}
-                          onClick={() => handleMethodSelect(selectedStartType, method.id)}
-                          className={`card-pattern-option ${
-                            componentData.startMethod === method.id
-                              ? 'border-sage-500 bg-sage-100 text-sage-700'
-                              : ''
-                          }`}
-                        >
-                          <div className="text-lg mb-1">{method.icon}</div>
-                          <div className="text-xs font-medium mb-0.5">{method.name}</div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Help Section */}
-            <div className="success-block">
-              <h4 className="text-sm font-semibold text-sage-700 mb-2 text-left">💡 Examples</h4>
-              <div className="text-sm text-sage-600 space-y-1 text-left">
-                <div>• <strong>Cast On:</strong> Starting a new sleeve or body panel</div>
-                <div>• <strong>Pick Up:</strong> Adding a collar or button band</div>
-                <div>• <strong>From Holder:</strong> Resuming shoulder or neck stitches</div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          // Screen 2: Configuration Fields - Standard Pattern
-          <div className="p-6 bg-yarn-50 stack-lg relative">
-            
-            {/* Prep Note Button */}
-            <PrepStepButton 
-              onClick={handleOpenOverlay}
-              hasNote={hasNote}
-              notePreview={notePreview}
-              position="top-right"
-              size="normal"
-              variant="ghost"
-            />
-            
-            {/* Standard Header Pattern */}
-            <div>
-              <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">Component Details</h2>
-              <p className="text-wool-500 mb-4 text-left">Configure your {componentData.startType?.replace('_', ' ').toLowerCase()} setup</p>
-            </div>
-
-            {/* Summary */}
-            <div className="success-block">
-              <div className="text-sm text-sage-700 text-left">
-                <div className="font-semibold mb-1 text-left">Selected Configuration:</div>
-                <div>• <strong>Component:</strong> {componentData.name}</div>
-                <div>• <strong>Start Type:</strong> {componentData.startType?.replace('_', ' ')}</div>
-                <div>• <strong>Method:</strong> {componentData.startMethod?.replace('_', ' ')}</div>
-              </div>
-            </div>
-
-            {/* Stitch Count - Standard Label Pattern */}
+            {/* Setup Notes */}
             <div>
               <label className="form-label">
-                Starting Stitch Count
+                Setup Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
               </label>
-              <IncrementInput
-  value={componentData.startStitches}
-  onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
-  label="starting stitches"
-  unit="stitches"
-  min={1}
-  placeholder="80"
-/>
+              <textarea
+                value={componentData.setupNotes || ''}
+                onChange={(e) => setComponentData(prev => ({ ...prev, setupNotes: e.target.value }))}
+                placeholder="e.g., Switch to US 6 circular needles, place stitch markers, check measurements"
+                rows={3}
+                className="input-field-lg resize-none"
+              />
             </div>
 
-            {/* Description - Only when needed */}
-            {needsDescription() && (
-              <div>
-                <label className="form-label">
-                  {componentData.startType === 'pick_up' ? 'Pick Up From' :
-                   componentData.startType === 'continue' ? 'Continue From' :
-                   'Method Description'} {componentData.startMethod === 'other' ? ' ' : ''}
-                </label>
-                <input
-                  type="text"
-                  value={componentData.startDescription}
-                  onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
-                  placeholder={
-                    componentData.startType === 'pick_up' ? 'e.g., From body armhole, along neckline edge' :
-                    componentData.startType === 'continue' ? 'e.g., From front piece, from sleeve cuff' :
-                    'Describe your method'
-                  }
-                  className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-                />
-              </div>
-            )}
 
-            {/* Create Button */}
+            {/* Construction Selection */}
+            <div>
+              <label className="form-label">Construction</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'flat', label: 'Flat' },
+                  { value: 'round', label: 'Round' }
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      IntelliKnitLogger.debug('Construction', `${option.value} button clicked`);
+                      setComponentData(prev => ({ ...prev, construction: option.value }));
+                    }}
+                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${componentData.construction === option.value
+                      ? 'border-sage-500 bg-sage-100 text-sage-700'
+                      : 'border-wool-200 hover:border-sage-300'
+                      }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* How Does It Start */}
+            <div>
+              <label className="form-label">How Does It Start</label>
+              <div className="grid grid-cols-2 gap-2">
+                {[
+                  { value: 'cast_on', label: 'Cast On', icon: '🏗️' },
+                  { value: 'pick_up', label: 'Pick Up & Knit', icon: '🧶' },
+                  { value: 'continue', label: 'Continue from Stitches', icon: '📎' },
+                  { value: 'other', label: 'Other', icon: '📝' }
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setComponentData(prev => ({ ...prev, startType: option.value }))}
+                    className={`p-3 text-sm border-2 rounded-lg transition-colors text-center ${componentData.startType === option.value
+                      ? 'border-sage-500 bg-sage-100 text-sage-700'
+                      : 'border-wool-200 hover:border-sage-300'
+                      }`}
+                  >
+                    <div className="text-xl mb-1">{option.icon}</div>
+                    <div className="text-xs font-medium">{option.label}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Navigation Buttons */}
             <div className="pt-4">
               <div className="flex gap-3">
                 <button
-                  onClick={() => setScreen(1)}
+                  onClick={onBack}
                   className="flex-1 btn-tertiary"
                 >
                   ← Back
                 </button>
-                
+
                 <button
-                  onClick={handleCreateComponent}
-                  disabled={!canCreateComponent()}
-                  className="flex-2 bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
-                  style={{flexGrow: 2}}
+                  onClick={() => setScreen(2)}
+                  disabled={!componentData.name.trim() || !componentData.construction || !componentData.startType}
+                  className="flex-2 bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  style={{ flexGrow: 2 }}
                 >
-                  <span className="text-lg">🧶</span>
-                  Create Component
+                  Continue
                 </button>
               </div>
             </div>
+
+          </div>
+        ) : (
+          // Screen 2: Method Selection & Configuration (Conditional Layout)
+          <div className="p-6 bg-yarn-50 stack-lg">
+
+            {componentData.startType === 'cast_on' ? (
+              // Cast On: Show method selection
+              <>
+                {/* Header */}
+                <div>
+                  <h2 className="content-header-primary">Select Cast On Method</h2>
+                  <p className="content-subtitle">Choose your preferred cast on technique</p>
+                </div>
+
+                {/* Method Selection Grid */}
+                <div>
+                  <label className="form-label">Method</label>
+                  <div className="grid grid-cols-3 gap-3">
+                    {methodsByStartType[componentData.startType]?.map(method => (
+                      <button
+                        key={method.id}
+                        onClick={() => setComponentData(prev => ({ ...prev, startMethod: method.id }))}
+                        className={`selection-button ${componentData.startMethod === method.id ? 'selection-button-selected' : ''
+                          }`}
+                      >
+                        <div className="text-xl mb-1">{method.icon}</div>
+                        <div className="text-xs font-medium">{method.name}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Configuration Fields - Only show when method selected */}
+                {componentData.startMethod && (
+                  <>
+                    {/* Description for "other" method */}
+                    {componentData.startMethod === 'other' && (
+                      <div>
+                        <label className="form-label">Describe Your Cast On Method</label>
+                        <input
+                          type="text"
+                          value={componentData.startDescription}
+                          onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
+                          placeholder="e.g., Italian cast on, Judy's magic cast on"
+                          className="input-field-lg"
+                        />
+                      </div>
+                    )}
+
+                    {/* Stitch Count */}
+                    <div>
+                      <label className="form-label">Starting Stitch Count</label>
+                      <IncrementInput
+                        value={componentData.startStitches}
+                        onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
+                        label="starting stitches"
+                        unit="stitches"
+                        min={1}
+                        placeholder="80"
+                      />
+                    </div>
+                  </>
+                )}
+              </>
+            ) : (
+              // Pick Up, Continue, Other: Direct configuration
+              <>
+                {/* Header */}
+                <div>
+                  <h2 className="content-header-primary">
+                    {componentData.startType === 'pick_up' ? 'Pick Up & Knit' :
+                      componentData.startType === 'continue' ? 'Continue From Stitches' :
+                        'Custom Setup'}
+                  </h2>
+                  <p className="content-subtitle">
+                    {//componentData.startType === 'pick_up' ? 'Configure your pick up details' :
+                      //componentData.startType === 'continue' ? 'Configure where to continue from' :
+                      'Describe your custom setup'}
+                  </p>
+                </div>
+
+                {/* Auto-set method and show configuration */}
+                {(() => {
+                  // Auto-set the method if not already set
+                  if (!componentData.startMethod) {
+                    const autoMethod = componentData.startType === 'pick_up' ? 'pick_up_knit' :
+                      componentData.startType === 'continue' ? 'from_stitches' :
+                        'custom';
+                    setComponentData(prev => ({ ...prev, startMethod: autoMethod }));
+                  }
+                  return null;
+                })()}
+
+                {/* Description Field */}
+                <div>
+                  <label className="form-label">
+                    {componentData.startType === 'pick_up' ? 'Pick Up From Where' :
+                      componentData.startType === 'continue' ? 'Continue From Where' :
+                        'Describe Your Setup'}
+                  </label>
+                  <input
+                    type="text"
+                    value={componentData.startDescription}
+                    onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
+                    placeholder={
+                      componentData.startType === 'pick_up' ? 'e.g., neckline, front edge, armhole' :
+                        componentData.startType === 'continue' ? 'e.g., from underarm, from previous section' :
+                          'Describe your custom setup method'
+                    }
+                    className="input-field-lg"
+                  />
+                </div>
+
+                {/* Stitch Count */}
+                <div>
+                  <label className="form-label">Starting Stitch Count</label>
+                  <IncrementInput
+                    value={componentData.startStitches}
+                    onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
+                    label="starting stitches"
+                    unit="stitches"
+                    min={1}
+                    placeholder="80"
+                  />
+                </div>
+              </>
+            )}
+
+            {/* Navigation - Show when ready */}
+            {(componentData.startType === 'cast_on' ? componentData.startMethod : true) && (
+              <div className="pt-4">
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => setScreen(1)}
+                    className="flex-1 btn-tertiary"
+                  >
+                    ← Back
+                  </button>
+
+                  <button
+                    onClick={handleCreateComponent}
+                    disabled={!canCreateComponent()}
+                    className="flex-2 bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
+                    style={{ flexGrow: 2 }}
+                  >
+                    <span className="text-lg">🧶</span>
+                    Create Component
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         )}
 
