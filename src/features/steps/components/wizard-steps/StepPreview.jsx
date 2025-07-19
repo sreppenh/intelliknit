@@ -5,7 +5,7 @@ import { useStepGeneration } from '../../hooks/useStepGeneration';
 
 const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinishComponent }) => {
   const { calculateEffect } = useStepCalculation();
-  const { generateInstruction } = useStepGeneration();
+  const { generateInstruction } = useStepGeneration(wizard.construction);
 
   const instruction = generateInstruction(wizard.wizardData);
   const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
@@ -32,7 +32,7 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
 
       {/* Visual Step Summary - Clean and Scannable */}
       <div className="bg-gradient-to-r from-sage-50 to-yarn-50 border-2 border-sage-200 rounded-2xl p-5 shadow-sm">
-        
+
         {/* Pattern Name */}
         <div className="text-center mb-4">
           <h3 className="text-lg font-semibold text-sage-700">{wizard.wizardData.stitchPattern.pattern}</h3>
@@ -45,13 +45,13 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
             <div className="text-xl font-bold text-sage-700">{effect.startingStitches}</div>
             <div className="text-xs text-sage-600">start</div>
           </div>
-          
+
           <div className="flex items-center gap-1">
             <div className="h-0.5 w-4 bg-sage-400"></div>
             <span className="text-sage-600 text-lg">→</span>
             <div className="h-0.5 w-4 bg-sage-400"></div>
           </div>
-          
+
           <div className="bg-white rounded-lg px-4 py-3 text-center shadow-sm border border-sage-200">
             <div className="text-xl font-bold text-sage-700">{effect.endingStitches}</div>
             <div className="text-xs text-sage-600">end</div>
@@ -66,7 +66,7 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
 
       {/* Action Buttons - Prioritized */}
       <div className="stack-sm">
-        
+
         {/* Primary Action - Add Another (Most Common) */}
         <button
           onClick={onAddStepAndContinue}
@@ -76,7 +76,7 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
           <span>Add Another Step</span>
           <div className="text-xs bg-yarn-500 px-2 py-1 rounded-full">Most common</div>
         </button>
-        
+
         {/* Secondary Actions Row */}
         <div className="grid grid-cols-2 gap-3">
           <button
@@ -86,7 +86,7 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
             <span className="text-lg">🏁</span>
             <span>Finish {wizard.component?.name}</span>
           </button>
-          
+
           <button
             onClick={onBack}
             className="btn-tertiary flex items-center justify-center gap-2"

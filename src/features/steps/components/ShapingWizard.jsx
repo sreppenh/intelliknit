@@ -7,6 +7,7 @@ import PhaseConfig from './shaping-wizard/PhaseConfig';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack, setConstruction, setCurrentStitches, component }) => {
+  IntelliKnitLogger.debug('ShapingWizard props', { construction, currentStitches });
   const [step, setStep] = useState(1);
   const [shapingData, setShapingData] = useState({
     type: null,
@@ -16,43 +17,43 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
 
   const handleShapingTypeSelect = (type) => {
     setShapingData(prev => ({ ...prev, type }));
-    
+
     // Some types might auto-complete (future feature)
     // For now, all types go to step 2
     setStep(2);
   };
 
- const handleConfigComplete = (config) => {
-  IntelliKnitLogger.success('Saving config', config);
-  // Update wizard data with shaping configuration
-  updateWizardData('shapingConfig', {
-    type: shapingData.type,
-    config: config,
-    description: shapingData.description
-  });
-  updateWizardData('hasShaping', true);
+  const handleConfigComplete = (config) => {
+    IntelliKnitLogger.success('Saving config', config);
+    // Update wizard data with shaping configuration
+    updateWizardData('shapingConfig', {
+      type: shapingData.type,
+      config: config,
+      description: shapingData.description
+    });
+    updateWizardData('hasShaping', true);
 
-  if (config.calculation && config.calculation.endingStitches) {
-    setCurrentStitches(config.calculation.endingStitches);
-  }
+    if (config.calculation && config.calculation.endingStitches) {
+      setCurrentStitches(config.calculation.endingStitches);
+    }
 
-  // Navigate back to main wizard flow and go to step 5 (Preview)
-  onBack(5);
-};
+    // Navigate back to main wizard flow and go to step 5 (Preview)
+    onBack(5);
+  };
 
-// Create a wizard-like object for the header - include ALL required functions
-const shapingWizard = {
-  wizardStep: step,
-  wizardData: { ...wizardData, isShapingWizard: true },
-  construction,
-  currentStitches,
-  component,
-  setConstruction,
-  updateWizardData, // Pass through the real function
-  navigation: {
-    goToStep: (step) => setStep(step)
-  }
-};
+  // Create a wizard-like object for the header - include ALL required functions
+  const shapingWizard = {
+    wizardStep: step,
+    wizardData: { ...wizardData, isShapingWizard: true },
+    construction,
+    currentStitches,
+    component,
+    setConstruction,
+    updateWizardData, // Pass through the real function
+    navigation: {
+      goToStep: (step) => setStep(step)
+    }
+  };
 
 
 
@@ -60,7 +61,7 @@ const shapingWizard = {
   const renderConfigStep = () => {
     switch (shapingData.type) {
       case 'even_distribution':
-      return (
+        return (
           <EvenDistributionConfig
             shapingData={shapingData}
             setShapingData={setShapingData}
@@ -70,7 +71,7 @@ const shapingWizard = {
             onBack={() => setStep(1)}
           />
         );
-      
+
       case 'phases':
         return (
           <PhaseConfig
@@ -80,10 +81,10 @@ const shapingWizard = {
             construction={construction}
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
-            
+
           />
         );
-      
+
       case 'single_row_repeat':
         // Future implementation
         return (
@@ -91,7 +92,7 @@ const shapingWizard = {
             <div className="text-4xl mb-4">🚧</div>
             <h3 className="text-lg font-semibold text-wool-700 mb-2">Coming Soon!</h3>
             <p className="text-wool-500 mb-4">Single row repeat shaping is in development.</p>
-            <button 
+            <button
               onClick={() => setStep(1)}
               className="btn-tertiary btn-sm"
             >
@@ -99,7 +100,7 @@ const shapingWizard = {
             </button>
           </div>
         );
-      
+
       case 'marker_based':
         // Future implementation  
         return (
@@ -107,7 +108,7 @@ const shapingWizard = {
             <div className="text-4xl mb-4">🚧</div>
             <h3 className="text-lg font-semibold text-wool-700 mb-2">Coming Soon!</h3>
             <p className="text-wool-500 mb-4">Marker-based shaping is in development.</p>
-            <button 
+            <button
               onClick={() => setStep(1)}
               className="btn-tertiary btn-sm"
             >
@@ -115,7 +116,7 @@ const shapingWizard = {
             </button>
           </div>
         );
-      
+
       default:
         return null;
     }
@@ -123,19 +124,20 @@ const shapingWizard = {
 
   return (
     <WizardLayout>
-      <WizardHeader 
-        wizard={shapingWizard} 
-        onBack={step === 1 ? onBack : () => setStep(1)} 
-        onCancel={onBack} 
+      <WizardHeader
+        wizard={shapingWizard}
+        onBack={step === 1 ? onBack : () => setStep(1)}
+        onCancel={onBack}
       />
       <div className="p-6 bg-yarn-50 min-h-screen">
         <div className="stack-lg">
           {step === 1 ? (
-            <ShapingTypeSelector 
+            <ShapingTypeSelector
               onTypeSelect={handleShapingTypeSelect}
               currentStitches={currentStitches}
             />
           ) : (
+            IntelliKnitLogger.debug('Rendering config step', { step }),
             renderConfigStep()
           )}
         </div>

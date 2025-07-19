@@ -8,10 +8,10 @@ import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 export const useStepActions = (wizard, onBack) => {
   const { dispatch } = useProjectsContext();
   const { calculateEffect } = useStepCalculation();
-  const { generateInstruction } = useStepGeneration();
+  const { generateInstruction } = useStepGeneration(wizard.construction);
 
   const handleAddStep = () => {
-    
+
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
     IntelliKnitLogger.debug('Step Actions', 'handleAddStep called');
@@ -34,9 +34,9 @@ export const useStepActions = (wizard, onBack) => {
             totalRows: effect.totalRows,
             expectedStitches: effect.endingStitches,
             wizardConfig: wizard.wizardData,
-            advancedWizardConfig: { 
-              hasShaping: wizard.wizardData.hasShaping, 
-              shapingConfig: wizard.wizardData.shapingConfig 
+            advancedWizardConfig: {
+              hasShaping: wizard.wizardData.hasShaping,
+              shapingConfig: wizard.wizardData.shapingConfig
             }
           }
         }
@@ -59,9 +59,9 @@ export const useStepActions = (wizard, onBack) => {
               endingStitches: effect.endingStitches,
               totalRows: effect.totalRows,
               wizardConfig: wizard.wizardData,
-              advancedWizardConfig: { 
-                hasShaping: wizard.wizardData.hasShaping, 
-                shapingConfig: wizard.wizardData.shapingConfig 
+              advancedWizardConfig: {
+                hasShaping: wizard.wizardData.hasShaping,
+                shapingConfig: wizard.wizardData.shapingConfig
               }
             }
           }
@@ -80,9 +80,9 @@ export const useStepActions = (wizard, onBack) => {
               endingStitches: effect.endingStitches,
               totalRows: effect.totalRows,
               wizardConfig: wizard.wizardData,
-              advancedWizardConfig: { 
-                hasShaping: wizard.wizardData.hasShaping, 
-                shapingConfig: wizard.wizardData.shapingConfig 
+              advancedWizardConfig: {
+                hasShaping: wizard.wizardData.hasShaping,
+                shapingConfig: wizard.wizardData.shapingConfig
               }
             }
           }
@@ -98,7 +98,7 @@ export const useStepActions = (wizard, onBack) => {
     IntelliKnitLogger.debug('Step Actions', 'handleAddStepAndContinue called');
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
-    
+
     if (effect.success) {
       dispatch({
         type: 'ADD_CALCULATED_STEP',
@@ -115,9 +115,9 @@ export const useStepActions = (wizard, onBack) => {
             endingStitches: effect.endingStitches,
             totalRows: effect.totalRows,
             wizardConfig: wizard.wizardData,
-            advancedWizardConfig: { 
-              hasShaping: wizard.wizardData.hasShaping, 
-              shapingConfig: wizard.wizardData.shapingConfig 
+            advancedWizardConfig: {
+              hasShaping: wizard.wizardData.hasShaping,
+              shapingConfig: wizard.wizardData.shapingConfig
             }
           }
         }
@@ -136,21 +136,21 @@ export const useStepActions = (wizard, onBack) => {
             endingStitches: effect.endingStitches,
             totalRows: effect.totalRows,
             wizardConfig: wizard.wizardData,
-            advancedWizardConfig: { 
-              hasShaping: wizard.wizardData.hasShaping, 
-              shapingConfig: wizard.wizardData.shapingConfig 
+            advancedWizardConfig: {
+              hasShaping: wizard.wizardData.hasShaping,
+              shapingConfig: wizard.wizardData.shapingConfig
             }
           }
         }
       });
     }
 
-// 🎯 FIX: Update stitch count BEFORE reset
-wizard.setCurrentStitches(effect.endingStitches);
+    // 🎯 FIX: Update stitch count BEFORE reset
+    wizard.setCurrentStitches(effect.endingStitches);
 
-// Reset wizard for next step but stay in wizard
-wizard.navigation.goToStep(1);
-wizard.resetWizardData();
+    // Reset wizard for next step but stay in wizard
+    wizard.navigation.goToStep(1);
+    wizard.resetWizardData();
 
   };
 

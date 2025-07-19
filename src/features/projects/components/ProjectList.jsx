@@ -7,25 +7,25 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
   const handleProjectEdit = (project) => {
     setOpenMenuId(null);
-    
+
     // Update last activity when opening project for editing
     const updatedProject = {
       ...project,
       lastActivityAt: new Date().toISOString()
     };
-    
+
     dispatch({
       type: 'UPDATE_PROJECT',
       payload: updatedProject
     });
-    
+
     onOpenProject(updatedProject);
   };
 
   const handleProjectKnitting = (project) => {
     setOpenMenuId(null);
     // TODO: Navigate to knitting mode when implemented
-    console.log('Starting knitting mode for:', project.name);
+
     // For now, could go to tracking or show coming soon
   };
 
@@ -37,7 +37,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const handleDeleteProject = (projectId, projectName, event) => {
     event.stopPropagation();
     const confirmed = window.confirm(`Delete "${projectName}"? This cannot be undone.`);
-    
+
     if (confirmed) {
       dispatch({
         type: 'DELETE_PROJECT',
@@ -50,10 +50,10 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const handleCopyPattern = (project, event) => {
     event.stopPropagation();
     const newName = window.prompt(`Copy "${project.name}" as:`, `${project.name} Copy`);
-    
+
     if (newName && newName.trim() !== '') {
       // TODO: Implement copy pattern functionality
-      console.log('Copying pattern:', project.name, 'as:', newName);
+
       alert(`Pattern copying coming soon! Would copy "${project.name}" as "${newName.trim()}"`);
     }
     setOpenMenuId(null);
@@ -63,11 +63,11 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const getProjectStatus = (project) => {
     if (project.completed) return 'completed';
     if (project.components.length === 0) return 'planning';
-    
+
     const totalSteps = project.components.reduce((total, comp) => total + comp.steps.length, 0);
-    const completedSteps = project.components.reduce((total, comp) => 
+    const completedSteps = project.components.reduce((total, comp) =>
       total + comp.steps.filter(s => s.completed).length, 0);
-    
+
     if (totalSteps === 0) return 'planning';
     if (completedSteps === 0) return 'ready';
     if (completedSteps === totalSteps) return 'completed';
@@ -77,15 +77,15 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   // NEW: Smart project sorting with featured top project
   const getSortedProjects = () => {
     if (projects.length === 0) return [];
-    
+
     const sorted = [...projects].sort((a, b) => {
       // First priority: Most recent activity
       const activityA = new Date(a.lastActivityAt || a.createdAt);
       const activityB = new Date(b.lastActivityAt || b.createdAt);
-      
+
       if (activityA > activityB) return -1;
       if (activityA < activityB) return 1;
-      
+
       // Second priority: Status-based ordering
       const statusOrder = {
         'in_progress': 1,
@@ -93,18 +93,18 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         'planning': 3,
         'completed': 4
       };
-      
+
       const statusA = getProjectStatus(a);
       const statusB = getProjectStatus(b);
-      
+
       if (statusOrder[statusA] !== statusOrder[statusB]) {
         return statusOrder[statusA] - statusOrder[statusB];
       }
-      
+
       // Final: Creation date (newest first)
       return new Date(b.createdAt) - new Date(a.createdAt);
     });
-    
+
     return sorted;
   };
 
@@ -138,13 +138,13 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     const date = new Date(dateString);
     const now = new Date();
     const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-    
+
     if (diffDays === 0) return 'Today';
     if (diffDays === 1) return 'Yesterday';
     if (diffDays < 7) return `${diffDays} days ago`;
-    
-    return date.toLocaleDateString('en-US', { 
-      month: 'short', 
+
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
       day: 'numeric'
     });
   };
@@ -159,29 +159,29 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        
-<div className="bg-sage-500 text-white px-6 py-4">
-  <div className="flex items-center gap-3">
-    {onBack && (
-      <button
-        onClick={onBack}
-        className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-      >
-        ←
-      </button>
-    )}
-    <div className="flex-1 text-center">
-      <div className="text-2xl mb-1">🧶</div>
-      <h1 className="text-xl font-bold mb-0.5">IntelliKnit</h1>
-      <p className="text-sage-100 text-xs">Ready to knit something amazing?</p>
-    </div>
-    {/* Spacer to center the content when back button is present */}
-    {onBack && <div className="w-10"></div>}
-  </div>
-</div>
+
+        <div className="bg-sage-500 text-white px-6 py-4">
+          <div className="flex items-center gap-3">
+            {onBack && (
+              <button
+                onClick={onBack}
+                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              >
+                ←
+              </button>
+            )}
+            <div className="flex-1 text-center">
+              <div className="text-2xl mb-1">🧶</div>
+              <h1 className="text-xl font-bold mb-0.5">IntelliKnit</h1>
+              <p className="text-sage-100 text-xs">Ready to knit something amazing?</p>
+            </div>
+            {/* Spacer to center the content when back button is present */}
+            {onBack && <div className="w-10"></div>}
+          </div>
+        </div>
 
         <div className="p-4 bg-yarn-50">
-          
+
           {/* Project List or Welcome Screen */}
           {projects.length === 0 ? (
             <div className="text-center py-4">
@@ -191,7 +191,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                 <p className="text-wool-500 mb-4 leading-relaxed text-sm">
                   Ready to start your knitting journey? Create your first project and let's get those needles clicking!
                 </p>
-                
+
                 <div className="grid grid-cols-1 gap-2 text-left mb-4">
                   <div className="flex items-center gap-3 p-2.5 bg-sage-50 rounded-lg border border-sage-200">
                     <div className="text-xl">🎯</div>
@@ -200,7 +200,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                       <div className="text-xs text-sage-600">Never lose your place again</div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-2.5 bg-yarn-100 rounded-lg border border-yarn-200">
                     <div className="text-xl">🧮</div>
                     <div>
@@ -208,7 +208,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                       <div className="text-xs text-yarn-600">Guided step creation</div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-2.5 bg-wool-100 rounded-lg border border-wool-200">
                     <div className="text-xl">🧶</div>
                     <div>
@@ -227,15 +227,15 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                   {projects.length} project{projects.length !== 1 ? 's' : ''}
                 </span>
               </div>
-              
+
               <div className="stack-sm">
                 {getSortedProjects().map((project, index) => {
                   const isTopProject = index === 0 && projects.length > 1;
                   const status = getProjectStatus(project);
                   const totalSteps = project.components.reduce((total, comp) => total + comp.steps.length, 0);
-                  const completedSteps = project.components.reduce((total, comp) => 
+                  const completedSteps = project.components.reduce((total, comp) =>
                     total + comp.steps.filter(s => s.completed).length, 0);
-                  const completedComponents = project.components.filter(comp => 
+                  const completedComponents = project.components.filter(comp =>
                     comp.steps.length > 0 && comp.steps.every(step => step.completed)
                   ).length;
                   const progressPercent = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
@@ -244,11 +244,10 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                     <div
                       key={project.id}
                       onClick={() => handleCardClick(project)}
-                      className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 relative ${
-                        isTopProject 
-                          ? 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02]' 
+                      className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 relative ${isTopProject
+                          ? 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02]'
                           : 'bg-white border-wool-200'
-                      }`}
+                        }`}
                     >
                       {/* Project Header */}
                       <div className="flex items-start justify-between mb-3">
@@ -258,9 +257,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                             {isTopProject && (
                               <span className="text-sm">⭐</span>
                             )}
-                            <h3 className={`font-bold text-base ${
-                              isTopProject ? 'text-sage-700' : 'text-wool-700'
-                            }`}>
+                            <h3 className={`font-bold text-base ${isTopProject ? 'text-sage-700' : 'text-wool-700'
+                              }`}>
                               {project.name}
                             </h3>
                             {status === 'completed' && (
@@ -273,7 +271,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                             <span>Started {formatDate(project.createdAt)}</span>
                           </div>
                         </div>
-                        
+
                         {/* Three-dot menu */}
                         <div className="relative">
                           <button
@@ -281,9 +279,9 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                             className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-100 rounded-full transition-colors"
                           >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                              <circle cx="8" cy="3" r="1.5"/>
-                              <circle cx="8" cy="8" r="1.5"/>
-                              <circle cx="8" cy="13" r="1.5"/>
+                              <circle cx="8" cy="3" r="1.5" />
+                              <circle cx="8" cy="8" r="1.5" />
+                              <circle cx="8" cy="13" r="1.5" />
                             </svg>
                           </button>
 
@@ -318,10 +316,9 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                         <div className="mb-4">
                           <div className="flex items-center gap-3 mb-2">
                             <div className="flex-1 bg-wool-100 rounded-full h-2 border border-wool-200">
-                              <div 
-                                className={`h-2 rounded-full transition-all duration-300 ${
-                                  status === 'completed' ? 'bg-sage-500' : 'bg-yarn-500'
-                                }`}
+                              <div
+                                className={`h-2 rounded-full transition-all duration-300 ${status === 'completed' ? 'bg-sage-500' : 'bg-yarn-500'
+                                  }`}
                                 style={{ width: `${progressPercent}%` }}
                               ></div>
                             </div>
@@ -347,13 +344,12 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                                 handleProjectKnitting(project);
                               }
                             }}
-                            className={`w-full py-3 px-4 rounded-xl font-semibold text-base transition-colors shadow-sm flex items-center justify-center gap-2 ${
-                              status === 'completed' 
+                            className={`w-full py-3 px-4 rounded-xl font-semibold text-base transition-colors shadow-sm flex items-center justify-center gap-2 ${status === 'completed'
                                 ? 'bg-sage-500 text-white hover:bg-sage-600'
                                 : isTopProject
-                                ? 'bg-sage-600 text-white hover:bg-sage-700 shadow-md'
-                                : 'bg-yarn-600 text-white hover:bg-yarn-700'
-                            }`}
+                                  ? 'bg-sage-600 text-white hover:bg-sage-700 shadow-md'
+                                  : 'bg-yarn-600 text-white hover:bg-yarn-700'
+                              }`}
                           >
                             <span className="text-lg">{getKnittingButtonIcon(project)}</span>
                             {getKnittingButtonText(project)}
@@ -377,7 +373,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               </div>
             </div>
           )}
-          
+
           {/* Create Project Button */}
           <div className="pt-4">
             <button
@@ -388,7 +384,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               {projects.length === 0 ? 'Start Your First Project' : 'Create New Project'}
             </button>
           </div>
-          
+
           {/* Footer */}
           <div className="text-center pt-4 pb-2">
             <p className="text-xs text-wool-400">Happy knitting! 🧶</p>

@@ -1,12 +1,14 @@
 import React from 'react';
+import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
-const ShapingTypeSelector = ({ onTypeSelect, currentStitches }) => {
+const ShapingTypeSelector = ({ onTypeSelect, currentStitches, construction }) => {
+  IntelliKnitLogger.debug('ShapingTypeSelector', { construction, currentStitches });
   const shapingTypes = [
     {
       id: 'even_distribution',
       name: 'Even Distribution',
       icon: '⚖️',
-      description: 'Distribute increases/decreases evenly across row',
+      description: `Distribute increases/decreases evenly across ${construction === 'round' ? 'round' : 'row'}`,
       examples: 'Yoke shaping, hat crowns'
     },
     {
@@ -49,11 +51,10 @@ const ShapingTypeSelector = ({ onTypeSelect, currentStitches }) => {
             key={type.id}
             onClick={() => !type.comingSoon && onTypeSelect(type.id)}
             disabled={type.comingSoon}
-            className={`w-full p-4 border-2 rounded-xl transition-all duration-200 text-left ${
-              type.comingSoon
-                ? 'border-wool-200 bg-wool-100 text-wool-400 cursor-not-allowed'
-                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02] cursor-pointer'
-            }`}
+            className={`w-full p-4 border-2 rounded-xl transition-all duration-200 text-left ${type.comingSoon
+              ? 'border-wool-200 bg-wool-100 text-wool-400 cursor-not-allowed'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02] cursor-pointer'
+              }`}
           >
             <div className="flex items-start gap-4">
               <div className="text-3xl flex-shrink-0">{type.icon}</div>
