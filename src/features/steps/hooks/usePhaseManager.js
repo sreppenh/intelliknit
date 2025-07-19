@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react';
 import { PhaseCalculationService } from '../../../shared/utils/PhaseCalculationService';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminology';
 
 /**
  * Custom hook for managing sequential phase state and operations
@@ -66,9 +67,11 @@ useEffect(() => {
     return PhaseCalculationService.getPhaseDescription(phase);
   };
 
-  // Preview and calculation functions
+ // Preview and calculation functions
   const getPhasePreview = (config) => {
     if (!config.type) return 'Select options above';
+    
+    const terms = getConstructionTerms(construction);
     
     switch (config.type) {
       case 'decrease':
@@ -76,33 +79,33 @@ useEffect(() => {
           return 'Configure decrease options above';
         }
         const amount = config.amount || 1;
-        const decFreq = config.frequency === 1 ? 'every row' : 
-                       config.frequency === 2 ? 'every other row' :
-                       `every ${config.frequency} rows`;
-        const decPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
+        const decFreq = config.frequency === 1 ? terms.everyRow : 
+                       config.frequency === 2 ? terms.everyOtherRow :
+                       terms.everyNthRow(config.frequency);
+        const decPos = config.position === 'both_ends' ? terms.atBothEnds : `at ${config.position}`;
         const decRows = config.times * config.frequency;
-        return `Dec ${amount} st ${decPos} ${decFreq} ${config.times} times (${decRows} rows)`;
+        return `Dec ${amount} st ${decPos} ${decFreq} ${config.times} times (${decRows} ${terms.rows})`;
         
       case 'increase':
         if (!config.frequency || !config.times || !config.position) {
           return 'Configure increase options above';
         }
         const incAmount = config.amount || 1;
-        const incFreq = config.frequency === 1 ? 'every row' : 
-                       config.frequency === 2 ? 'every other row' :
-                       `every ${config.frequency} rows`;
-        const incPos = config.position === 'both_ends' ? 'at each end' : `at ${config.position}`;
+        const incFreq = config.frequency === 1 ? terms.everyRow : 
+                       config.frequency === 2 ? terms.everyOtherRow :
+                       terms.everyNthRow(config.frequency);
+        const incPos = config.position === 'both_ends' ? terms.atBothEnds : `at ${config.position}`;
         const incRows = config.times * config.frequency;
-        return `Inc ${incAmount} st ${incPos} ${incFreq} ${config.times} times (${incRows} rows)`;
+        return `Inc ${incAmount} st ${incPos} ${incFreq} ${config.times} times (${incRows} ${terms.rows})`;
         
       case 'setup':
         if (!config.rows) return 'Configure row count above';
-        return `Work ${config.rows} plain ${config.rows === 1 ? 'row' : 'rows'}`;
+        return `Work ${config.rows} plain ${config.rows === 1 ? terms.row : terms.rows}`;
         
       case 'bind_off':
         if (!config.amount || !config.frequency) return 'Configure bind off options above';
         const bindPos = config.position === 'beginning' ? 'at beginning' : 'at end';
-        return `Bind off ${config.amount} sts ${bindPos} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'}`;
+        return `Bind off ${config.amount} sts ${bindPos} of next ${config.frequency} ${config.frequency === 1 ? terms.row : terms.rows}`;
         
       default:
         return 'Unknown phase type';

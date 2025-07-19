@@ -1,7 +1,7 @@
 import React from 'react';
 
 const DurationShapingChoice = (props) => {
-  const { wizardData, updateWizardData } = props;
+  const { wizardData, updateWizardData, construction } = props;
   const { pattern } = wizardData.stitchPattern;
 
   const handleDurationChoice = () => {
@@ -15,16 +15,16 @@ const DurationShapingChoice = (props) => {
     }, 200);
   };
 
-const handleShapingChoice = () => {
-  updateWizardData('hasShaping', true);
-  updateWizardData('choiceMade', true);
-  // Navigate to shaping wizard
-  setTimeout(() => {
-    if (props.onShowShapingWizard) {
-      props.onShowShapingWizard();
-    }
-  }, 200);
-};
+  const handleShapingChoice = () => {
+    updateWizardData('hasShaping', true);
+    updateWizardData('choiceMade', true);
+    // Navigate to shaping wizard
+    setTimeout(() => {
+      if (props.onShowShapingWizard) {
+        props.onShowShapingWizard();
+      }
+    }, 200);
+  };
 
   return (
     <div className="stack-lg">
@@ -35,25 +35,24 @@ const handleShapingChoice = () => {
 
       {/* Two main choice buttons */}
       <div className="grid grid-cols-1 gap-4">
-        
+
         {/* Set Duration Button */}
         <button
           onClick={handleDurationChoice}
-          className={`card-selectable p-6 text-left ${
-            wizardData.hasShaping === false && wizardData.choiceMade
-              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-lg transform scale-[1.02]'
-              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.01]'
-          }`}
+          className={`card-selectable p-6 text-left ${wizardData.hasShaping === false && wizardData.choiceMade
+            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-lg transform scale-[1.02]'
+            : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.01]'
+            }`}
         >
           <div className="flex items-start gap-4">
             <div className="text-4xl flex-shrink-0">⏱️</div>
             <div className="flex-1">
               <h3 className="text-lg font-semibold mb-2">Set Duration</h3>
               <p className="text-sm opacity-75 mb-3">
-                Work the pattern for a specific number of rows or until a certain length
+                Work the pattern for a specific number of {construction === 'round' ? 'rounds' : 'rows'} or until a certain length
               </p>
               <div className="flex gap-3 text-xs">
-                <span className="bg-white bg-opacity-50 px-2 py-1 rounded">Rows</span>
+                <span className="bg-white bg-opacity-50 px-2 py-1 rounded">{construction === 'round' ? 'Rounds' : 'Rows'}</span>
                 <span className="bg-white bg-opacity-50 px-2 py-1 rounded">Length</span>
                 <span className="bg-white bg-opacity-50 px-2 py-1 rounded">Repeats</span>
               </div>
@@ -64,11 +63,10 @@ const handleShapingChoice = () => {
         {/* Add Shaping Button */}
         <button
           onClick={handleShapingChoice}
-          className={`card-selectable p-6 text-left relative ${
-            wizardData.hasShaping === true && wizardData.choiceMade
-              ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-lg transform scale-[1.02]'
-              : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-md hover:transform hover:scale-[1.01]'
-          }`}
+          className={`card-selectable p-6 text-left relative ${wizardData.hasShaping === true && wizardData.choiceMade
+            ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-lg transform scale-[1.02]'
+            : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-md hover:transform hover:scale-[1.01]'
+            }`}
         >
           <div className="flex items-start gap-4">
             <div className="text-4xl flex-shrink-0">📐</div>

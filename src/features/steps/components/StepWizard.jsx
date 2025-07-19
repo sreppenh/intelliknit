@@ -29,7 +29,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
           <div className="text-4xl mb-4">❌</div>
           <h3 className="text-lg font-medium text-wool-600 mb-2">Component not found</h3>
-          <button 
+          <button
             onClick={onBack}
             className="btn-primary btn-sm"
           >
@@ -43,11 +43,11 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
 
   const customNavigation = {
-  canProceed: navigator.canProceed,
-  nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
-  previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
-  goToStep: wizard.navigation.goToStep
-};
+    canProceed: navigator.canProceed,
+    nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
+    previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
+    goToStep: wizard.navigation.goToStep
+  };
 
   // If showing ending wizard
   if (wizardState.showEndingWizard) {
@@ -60,35 +60,35 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     );
   }
 
-// If showing shaping wizard
-if (showShapingWizard) {
-  return (
-    <ShapingWizard
-      wizardData={wizard.wizardData}
-      updateWizardData={wizard.updateWizardData}
-      currentStitches={wizard.currentStitches}
-      construction={wizard.construction}
-      setConstruction={wizard.setConstruction}
-      setCurrentStitches={wizard.setCurrentStitches}  // ← ADD THIS LINE
-      component={wizard.component}  
-      onBack={(targetStep) => {
-  setShowShapingWizard(false);
-  if (targetStep) {
-    wizard.navigation.goToStep(targetStep);
+  // If showing shaping wizard
+  if (showShapingWizard) {
+    return (
+      <ShapingWizard
+        wizardData={wizard.wizardData}
+        updateWizardData={wizard.updateWizardData}
+        currentStitches={wizard.currentStitches}
+        construction={wizard.construction}
+        setConstruction={wizard.setConstruction}
+        setCurrentStitches={wizard.setCurrentStitches}  // ← ADD THIS LINE
+        component={wizard.component}
+        onBack={(targetStep) => {
+          setShowShapingWizard(false);
+          if (targetStep) {
+            wizard.navigation.goToStep(targetStep);
+          }
+        }}
+      />
+    );
   }
-}}
-    />
-  );
-}
 
   const renderCurrentStep = () => {
     const handlers = {
       handleAddStep: wizardState.handleAddStep,
-      handleAddStepAndContinue: wizardState.handleAddStepAndContinue, 
+      handleAddStepAndContinue: wizardState.handleAddStepAndContinue,
       handleFinishComponent: wizardState.handleFinishComponent,
       onBack
     };
-    
+
     // Enhanced step rendering with prep note support
     switch (wizard.wizardStep) {
       case 1:
@@ -101,7 +101,7 @@ if (showShapingWizard) {
             onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
           />
         );
-        
+
       case 2:
         return (
           <PatternConfiguration
@@ -112,31 +112,33 @@ if (showShapingWizard) {
             onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
           />
         );
-        
+
       case 3:
         // Duration/Shaping choice - no nav buttons needed (auto-advances)
         return (
           <DurationShapingChoice
             wizardData={wizard.wizardData}
             updateWizardData={wizard.updateWizardData}
+            construction={wizard.construction}
             onAdvanceStep={() => wizard.navigation.goToStep(4)}
             onShowShapingWizard={() => setShowShapingWizard(true)}
             existingPrepNote={wizard.wizardData.prepNote || ''}
             onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
           />
         );
-        
+
       case 4:
         // Duration Choice - our new single page that NEEDS nav buttons
         return (
           <DurationChoice
             wizardData={wizard.wizardData}
             updateWizardData={wizard.updateWizardData}
+            construction={wizard.construction}
             existingPrepNote={wizard.wizardData.prepNote || ''}
             onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
           />
         );
-        
+
       case 5:
         // Preview step (has custom buttons, no nav needed)
         return (
@@ -149,7 +151,7 @@ if (showShapingWizard) {
             prepNote={wizard.wizardData.prepNote || ''}
           />
         );
-        
+
       default:
         return <div>Step not found</div>;
     }
@@ -160,7 +162,7 @@ if (showShapingWizard) {
       <WizardHeader wizard={wizard} onBack={onBack} onCancel={onBack} />
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}
-        
+
         {(wizard.wizardStep === 2 || wizard.wizardStep === 4) && (
           <WizardNavigation wizard={{ ...wizard, navigation: customNavigation }} onBack={onBack} />
         )}

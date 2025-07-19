@@ -90,8 +90,8 @@ const PhaseConfigForm = ({
           // Setup Rows Configuration
           <div>
             <label className="form-label">
-              Number of Rows
-            </label>
+  Number of {construction === 'round' ? 'Rounds' : 'Rows'}
+</label>
             <IncrementInput
               value={tempPhaseConfig.rows}
               onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
@@ -156,8 +156,8 @@ const PhaseConfigForm = ({
 
             <div>
               <label className="form-label">
-                Number of Rows
-              </label>
+  Number of {construction === 'round' ? 'Rounds' : 'Rows'}
+</label>
               
               {/* Unified Number of Rows Selection */}
 <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
@@ -165,9 +165,9 @@ const PhaseConfigForm = ({
                 <div className="grid grid-cols-3 gap-2">
                   
 {[
-  { value: 1, label: '1 Row' },
-  { value: 2, label: '2 Rows' },
-  { value: 3, label: '3 Rows' }
+  { value: 1, label: `1 ${construction === 'round' ? 'Round' : 'Row'}` },
+  { value: 2, label: `2 ${construction === 'round' ? 'Rounds' : 'Rows'}` },
+  { value: 3, label: `3 ${construction === 'round' ? 'Rounds' : 'Rows'}` }
 ].map(option => {
   const wouldBeValid = (tempPhaseConfig.amount || 1) * option.value <= getStitchContext().availableStitches;
   
@@ -202,6 +202,7 @@ const PhaseConfigForm = ({
   }}
   label="frequency"
   unit="rows"
+  construction={construction}
   min={1}
   max={getMaxFrequency()}
 />
@@ -290,7 +291,7 @@ const PhaseConfigForm = ({
     {/* Preset Buttons */}
     <div className="grid grid-cols-3 gap-2 mb-4">
       {[
-        { value: 1, label: 'Every Row' },
+        { value: 1, label: `Every ${construction === 'round' ? 'Round' : 'Row'}` },
         { value: 2, label: 'Every Other' },
         { value: 4, label: 'Every 4th' }
       ].map(option => (

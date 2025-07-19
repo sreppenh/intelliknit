@@ -1,12 +1,13 @@
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
-const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
+const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
   const needsRowInput = ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes', 'Custom pattern'].includes(wizardData.stitchPattern.pattern);
   const needsDescription = ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern);
   const isCustomPattern = wizardData.stitchPattern.pattern === 'Custom pattern';
   const isOtherPattern = wizardData.stitchPattern.pattern === 'Other';
-  
+
   // Check if this is a Basic/Rib/Textured pattern that can have optional repeats
   const canHaveOptionalRepeats = () => {
     if (!wizardData.stitchPattern.category) return false;
@@ -55,18 +56,18 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
       {/* Lace/Cable/Colorwork - Required row input */}
       {needsRowInput && (
         <div>
-            <label className="form-label">
+          <label className="form-label">
             Rows in Pattern
           </label>
-<IncrementInput
-  value={wizardData.stitchPattern.rowsInPattern}
-  onChange={(value) => updateWizardData('stitchPattern', { rowsInPattern: value })}
-  label="rows in pattern"
-  unit="rows"
-  construction={construction}
-/>
+          <IncrementInput
+            value={wizardData.stitchPattern.rowsInPattern}
+            onChange={(value) => updateWizardData('stitchPattern', { rowsInPattern: value })}
+            label="rows in pattern"
+            unit="rows"
+            construction={construction}
+          />
           <label className="form-help">
-            Number of rows in one complete pattern repeat
+            Number of {construction === 'round' ? 'rounds' : 'rows'} in one complete pattern repeat
           </label>
         </div>
       )}
@@ -86,7 +87,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData }) => {
             className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
           />
           <p className="text-xs text-wool-500 mt-2">
-            Leave blank for simple patterns, or enter the number of rows in your pattern repeat
+            Leave blank for simple patterns, or enter the number of {construction === 'round' ? 'rounds' : 'rows'} in your pattern repeat
           </p>
         </div>
       )}

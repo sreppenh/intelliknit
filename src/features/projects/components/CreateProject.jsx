@@ -41,7 +41,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        
+
         {/* Compact Header */}
         <div className="bg-sage-500 text-white px-6 py-4">
           <div className="flex items-center gap-3">
@@ -59,7 +59,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
         </div>
 
         <div className="p-4 bg-yarn-50 space-y-4">
-          
+
           {/* Compact Welcome Message */}
           <div className="text-center">
             <div className="text-2xl mb-2">🧶</div>
@@ -105,24 +105,22 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
                 <div className="grid grid-cols-2 gap-1">
                   <button
                     onClick={() => handleInputChange('defaultUnits', 'inches')}
-                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                      projectData.defaultUnits === 'inches'
+                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'inches'
                         ? 'bg-sage-500 text-white shadow-sm'
                         : 'text-wool-600 hover:text-sage-600'
-                    }`}
+                      }`}
                   >
                     🇺🇸 Inches
                   </button>
-                  
+
                   <button
                     onClick={() => handleInputChange('defaultUnits', 'cm')}
-                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                      projectData.defaultUnits === 'cm'
+                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'cm'
                         ? 'bg-sage-500 text-white shadow-sm'
                         : 'text-wool-600 hover:text-sage-600'
-                    }`}
+                      }`}
                   >
-                    🇬🇧 Centimeters
+                    🇪🇺 Centimeters
                   </button>
                 </div>
               </div>
@@ -146,12 +144,12 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
               >
                 ← Back
               </button>
-              
+
               <button
                 onClick={handleCreateProject}
                 disabled={!canCreateProject()}
                 className="flex-2 bg-yarn-600 text-white py-3 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
-                style={{flexGrow: 2}}
+                style={{ flexGrow: 2 }}
               >
                 <span className="text-lg">🧶</span>
                 Create Project

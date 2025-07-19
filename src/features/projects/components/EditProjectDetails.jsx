@@ -4,7 +4,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 
 const EditProjectDetails = ({ onBack }) => {
   const { currentProject, dispatch } = useProjectsContext();
-  
+
   const [projectData, setProjectData] = useState({
     name: currentProject?.name || '',
     size: currentProject?.size || '',
@@ -24,7 +24,7 @@ const EditProjectDetails = ({ onBack }) => {
         <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
           <div className="text-4xl mb-4">❌</div>
           <h3 className="text-lg font-medium text-wool-600 mb-2">No project selected</h3>
-          <button 
+          <button
             onClick={onBack}
             className="btn-primary btn-sm"
           >
@@ -95,24 +95,24 @@ const EditProjectDetails = ({ onBack }) => {
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        
+
         {/* Header */}
-        <PageHeader 
-  title="Edit Project Details" 
-  subtitle={currentProject.name} 
-  onBack={onBack} 
-/>
+        <PageHeader
+          title="Edit Project Details"
+          subtitle={currentProject.name}
+          onBack={onBack}
+        />
 
 
 
         <div className="p-6 bg-yarn-50 space-y-8">
-          
+
           {/* Basic Info Section */}
           <div className="space-y-4">
             <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
               📋 Basic Info
             </h2>
-            
+
             <div>
               <label className="form-label">
                 Project Name
@@ -138,7 +138,7 @@ const EditProjectDetails = ({ onBack }) => {
               />
             </div>
 
-<div>
+            <div>
               <label className="form-label">
                 Preferred Units
               </label>
@@ -146,24 +146,22 @@ const EditProjectDetails = ({ onBack }) => {
                 <div className="grid grid-cols-2 gap-1">
                   <button
                     onClick={() => handleInputChange('defaultUnits', 'inches')}
-                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                      projectData.defaultUnits === 'inches'
+                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'inches'
                         ? 'bg-sage-500 text-white shadow-sm'
                         : 'text-wool-600 hover:text-sage-600'
-                    }`}
+                      }`}
                   >
                     🇺🇸 Inches
                   </button>
-                  
+
                   <button
                     onClick={() => handleInputChange('defaultUnits', 'cm')}
-                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${
-                      projectData.defaultUnits === 'cm'
+                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'cm'
                         ? 'bg-sage-500 text-white shadow-sm'
                         : 'text-wool-600 hover:text-sage-600'
-                    }`}
+                      }`}
                   >
-                    🇬🇧 Centimeters
+                    🇪🇺 Centimeters
                   </button>
                 </div>
               </div>
@@ -175,7 +173,7 @@ const EditProjectDetails = ({ onBack }) => {
             <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
               📐 Gauge
             </h2>
-            
+
             <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
               <div className="mb-3">
                 <label className="block text-sm font-semibold text-yarn-700 mb-2">
@@ -189,7 +187,7 @@ const EditProjectDetails = ({ onBack }) => {
                   className="w-full border-2 border-yarn-300 rounded-lg px-4 py-3 text-base focus:border-yarn-500 focus:ring-0 transition-colors bg-white"
                 />
               </div>
-              
+
               <div className="text-xs text-yarn-600">
                 💡 <strong>Pro tip:</strong> Accurate gauge helps with length calculations in your pattern steps
               </div>
@@ -201,7 +199,7 @@ const EditProjectDetails = ({ onBack }) => {
             <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
               🧶 Materials
             </h2>
-            
+
             {/* Yarns */}
             <div>
               <label className="form-label">
@@ -272,7 +270,7 @@ const EditProjectDetails = ({ onBack }) => {
             <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
               📝 Project Details
             </h2>
-            
+
             <div>
               <label className="form-label">
                 Pattern Source
@@ -300,7 +298,7 @@ const EditProjectDetails = ({ onBack }) => {
             </div>
 
             <div>
-             <label className="form-label">
+              <label className="form-label">
                 For Who?
               </label>
               <input
@@ -318,7 +316,7 @@ const EditProjectDetails = ({ onBack }) => {
             <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
               💭 Notes
             </h2>
-            
+
             <div>
               <label className="form-label">
                 Project Notes
@@ -342,12 +340,12 @@ const EditProjectDetails = ({ onBack }) => {
               >
                 Cancel
               </button>
-              
+
               <button
                 onClick={handleSave}
                 disabled={!projectData.name.trim()}
                 className="flex-2 bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
-                style={{flexGrow: 2}}
+                style={{ flexGrow: 2 }}
               >
                 <span className="text-lg">💾</span>
                 {hasChanges() ? 'Save Changes' : 'Done'}

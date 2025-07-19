@@ -1,5 +1,6 @@
 // src/shared/utils/PhaseCalculationService.js
 import IntelliKnitLogger from './ConsoleLogging';
+import { getConstructionTerms } from './ConstructionTerminology';
 
 /**
  * Phase Calculation Service
@@ -167,9 +168,10 @@ export class PhaseCalculationService {
         const positionText = config.position === 'both_ends' ? 'at each end' : 
                            config.position === 'beginning' ? 'at beginning' :
                            'at end';
-        const frequencyText = config.frequency === 1 ? 'every row' : 
-                             config.frequency === 2 ? 'every other row' :
-                             `every ${config.frequency} rows`;
+        const terms = getConstructionTerms(construction);
+        const frequencyText = config.frequency === 1 ? terms.everyRow : 
+                             config.frequency === 2 ? terms.everyOtherRow :
+                             terms.everyNthRow(config.frequency);
         
         instructions.push(`${actionText} ${config.amount} st ${positionText} ${frequencyText} ${config.times} times`);
         
@@ -222,39 +224,41 @@ export class PhaseCalculationService {
   /**
    * Generate human-readable description for a phase
    * @param {Object} phase - Phase object with type and config
+   * @param {string} construction - Construction type ('flat' or 'round')
    * @returns {string} - Formatted description
    */
-  static getPhaseDescription(phase) {
+  static getPhaseDescription(phase, construction = 'flat') {
     const { type, config } = phase;
+    const terms = getConstructionTerms(construction);
     
     switch (type) {
       case 'decrease':
-        const decFreqText = config.frequency === 1 ? 'every row' : 
-                           config.frequency === 2 ? 'every other row' :
-                           `every ${config.frequency} rows`;
-        const decPosText = config.position === 'both_ends' ? 'at each end' :
+        const decFreqText = config.frequency === 1 ? terms.everyRow : 
+                           config.frequency === 2 ? terms.everyOtherRow :
+                           terms.everyNthRow(config.frequency);
+        const decPosText = config.position === 'both_ends' ? terms.atBothEnds :
                           config.position === 'beginning' ? 'at beginning' :
                           'at end';
         const decTotalRows = config.times * config.frequency;
-        return `Dec ${config.amount} st ${decPosText} ${decFreqText} ${config.times} times (${decTotalRows} rows)`;
+        return `Dec ${config.amount} st ${decPosText} ${decFreqText} ${config.times} times (${decTotalRows} ${terms.rows})`;
         
       case 'increase':
-        const incFreqText = config.frequency === 1 ? 'every row' : 
-                           config.frequency === 2 ? 'every other row' :
-                           `every ${config.frequency} rows`;
-        const incPosText = config.position === 'both_ends' ? 'at each end' :
+        const incFreqText = config.frequency === 1 ? terms.everyRow : 
+                           config.frequency === 2 ? terms.everyOtherRow :
+                           terms.everyNthRow(config.frequency);
+        const incPosText = config.position === 'both_ends' ? terms.atBothEnds :
                           config.position === 'beginning' ? 'at beginning' :
                           'at end';
         const incTotalRows = config.times * config.frequency;
-        return `Inc ${config.amount} st ${incPosText} ${incFreqText} ${config.times} times (${incTotalRows} rows)`;
+        return `Inc ${config.amount} st ${incPosText} ${incFreqText} ${config.times} times (${incTotalRows} ${terms.rows})`;
         
       case 'setup':
-        return `Work ${config.rows} plain ${config.rows === 1 ? 'row' : 'rows'}`;
+        return `Work ${config.rows} plain ${config.rows === 1 ? terms.row : terms.rows}`;
         
       case 'bind_off':
         const bindPosText = config.position === 'beginning' ? 'at beginning' : 'at end';
         const bindTotalStitches = config.amount * config.frequency;
-        return `Bind off ${config.amount} sts ${bindPosText} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'} (${bindTotalStitches} sts total)`;
+        return `Bind off ${config.amount} sts ${bindPosText} of next ${config.frequency} ${config.frequency === 1 ? terms.row : terms.rows} (${bindTotalStitches} sts total)`;
         
       default:
         return 'Unknown phase';
