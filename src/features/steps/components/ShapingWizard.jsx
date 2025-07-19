@@ -135,6 +135,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             <ShapingTypeSelector
               onTypeSelect={handleShapingTypeSelect}
               currentStitches={currentStitches}
+              construction={construction}
             />
           ) : (
             IntelliKnitLogger.debug('Rendering config step', { step }),
