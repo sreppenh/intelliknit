@@ -29,6 +29,8 @@ const PhaseConfig = ({
     tempPhaseConfig,
     setTempPhaseConfig,
     editingPhaseId,
+    stepDescription,          // NEW: Add this line
+    setStepDescription,       // NEW: Add this line
     calculateSequentialPhases,
     getPhaseDescription,
     getPhasePreview,
@@ -72,7 +74,8 @@ const PhaseConfig = ({
     onComplete({
       phases: phases,
       construction: construction,
-      calculation: result
+      calculation: result,
+      description: stepDescription  // NEW: Add this line
     });
   };
 
@@ -84,6 +87,8 @@ const PhaseConfig = ({
         phaseTypes={phaseTypes}
         result={result}
         construction={construction}
+        stepDescription={stepDescription}        // NEW: Add this line
+        setStepDescription={setStepDescription}  // NEW: Add this line
         onAddPhase={handleAddPhase}
         onEditPhase={handleEditPhase}
         onDeletePhase={handleDeletePhase}

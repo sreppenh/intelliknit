@@ -6,6 +6,8 @@ const PhaseConfigSummary = ({
   phaseTypes,
   result,
   construction,
+  stepDescription,        // NEW: Add this line
+  setStepDescription,     // NEW: Add this line
   onAddPhase,
   onEditPhase,
   onDeletePhase,
@@ -98,32 +100,35 @@ const PhaseConfigSummary = ({
             Add Another Phase
           </button>
 
-          {/* Preview */}
-          {result.error ? (
-            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-              <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
-              <div className="text-sm text-red-600">
-                {result.error}
-              </div>
-            </div>
-          ) : (
-            <div className="card-info">
-              <h4 className="text-sm font-semibold text-lavender-700 mb-3 text-left">Preview</h4>
-              
-              <div className="stack-sm text-sm text-left">
-                <div className="text-lavender-700">
-                  <span className="font-medium">Instruction:</span> {result.instruction}
-                </div>
-                <div className="text-lavender-600">
-                  {result.startingStitches} stitches → {result.endingStitches} stitches 
-                  ({Math.abs(result.netStitchChange)} {result.netStitchChange > 0 ? 'increases' : 'decreases'}, {result.totalRows} rows, {construction})
-                </div>
-                <div className="text-lavender-600">
-                  <span className="font-medium">Phases:</span> {phases.length} configured
-                </div>
-              </div>
-            </div>
-          )}
+{/* Error Display */}
+{result.error && (
+  <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+    <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
+    <div className="text-sm text-red-600">
+      {result.error}
+    </div>
+  </div>
+)}
+
+{/* Step Description */}
+<div>
+  <label className="form-label">
+    Step Description <span className="text-wool-400">(Optional)</span>
+  </label>
+  <textarea
+    value={stepDescription}
+    onChange={(e) => setStepDescription(e.target.value)}
+    placeholder="e.g., sleeve decrease shaping, waist shaping, shoulder cap decreases..."
+    rows={3}
+    className="input-field-lg resize-none"
+  />
+  <div className="form-help">
+    Add a meaningful description to help identify this shaping sequence in your step list
+  </div>
+</div>
+
+
+
 
           {/* Navigation */}
           <div className="flex gap-3 pt-4">
@@ -131,7 +136,7 @@ const PhaseConfigSummary = ({
               onClick={onBack}
               className="btn-tertiary flex-1"
             >
-              Back
+              ← Back
             </button>
             <button
               onClick={onComplete}

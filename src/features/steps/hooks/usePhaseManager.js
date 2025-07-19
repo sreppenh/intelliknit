@@ -12,6 +12,7 @@ export const usePhaseManager = (currentStitches, construction) => {
   const [currentScreen, setCurrentScreen] = useState('summary');
   const [editingPhaseId, setEditingPhaseId] = useState(null);
   const [tempPhaseConfig, setTempPhaseConfig] = useState({});
+  const [stepDescription, setStepDescription] = useState('');
 
 // Fix empty state: Start with type selection when no phases exist
 useEffect(() => {
@@ -263,9 +264,11 @@ useEffect(() => {
     editingPhaseId,
     tempPhaseConfig,
     phaseTypes,
+    stepDescription,      // NEW: Add this line
     
     // State setters (for PhaseConfigForm)
     setTempPhaseConfig,
+    setStepDescription,   // NEW: Add this line
     
     // Calculation functions
     getStitchContext,
