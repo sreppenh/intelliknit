@@ -21,23 +21,57 @@ const PhaseConfigForm = ({
   const phaseType = phaseTypes.find(t => t.id === tempPhaseConfig.type);
 
   // Calculate contextual max for Times input
-const getMaxTimes = () => {
-  if (tempPhaseConfig.type !== 'decrease') {
-    return 999; // No limits for increases, setup, bind_off
-  }
-  
-  const availableStitches = getStitchContext().availableStitches;
-  const position = tempPhaseConfig.position;
-  
-  if (!position || availableStitches <= 2) {
-    return 1; // Minimum safe value
-  }
-  
-  const stitchesPerRow = position === 'both_ends' ? 2 : 1;
-  const maxTimes = Math.floor((availableStitches - 2) / stitchesPerRow);
-  
-  return Math.max(1, maxTimes);
-};
+  const getMaxTimes = () => {
+    if (tempPhaseConfig.type !== 'decrease') {
+      return 999; // No limits for increases, setup, bind_off
+    }
+    
+    const availableStitches = getStitchContext().availableStitches;
+    const position = tempPhaseConfig.position;
+    
+    if (!position || availableStitches <= 2) {
+      return 1; // Minimum safe value
+    }
+    
+    const stitchesPerRow = position === 'both_ends' ? 2 : 1;
+    const maxTimes = Math.floor((availableStitches - 2) / stitchesPerRow);
+    
+    return Math.max(1, maxTimes);
+  };
+
+  // Calculate contextual max for Amount Per Row input
+  const getMaxAmountPerRow = () => {
+    if (tempPhaseConfig.type !== 'bind_off') {
+      return 999; // No limits for other types
+    }
+    
+    const availableStitches = getStitchContext().availableStitches;
+    const frequency = tempPhaseConfig.frequency || 1;
+    
+    if (availableStitches <= 0) {
+      return 1; // Minimum safe value
+    }
+    
+    const maxAmount = Math.floor(availableStitches / frequency);
+    return Math.max(1, maxAmount);
+  };
+
+  // Calculate contextual max for Number of Rows input  
+  const getMaxFrequency = () => {
+    if (tempPhaseConfig.type !== 'bind_off') {
+      return 999; // No limits for other types
+    }
+    
+    const availableStitches = getStitchContext().availableStitches;
+    const amount = tempPhaseConfig.amount || 1;
+    
+    if (availableStitches <= 0) {
+      return 1; // Minimum safe value
+    }
+    
+    const maxFrequency = Math.floor(availableStitches / amount);
+    return Math.max(1, maxFrequency);
+  };
   
   return (
     <div className="p-6 stack-lg">
@@ -69,56 +103,107 @@ const getMaxTimes = () => {
         ) : tempPhaseConfig.type === 'bind_off' ? (
           // Bind Off Configuration
           <>
-            <div>
-              <label className="form-label">
-                Amount Per Row
-              </label>
-              <IncrementInput
-                value={tempPhaseConfig.amount}
-                onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, amount: value }))}
-                label="amount per row"
-                unit="stitches"
-                min={1}
-              />
-            </div>
+
+{/* Unified Amount Per Row Selection */}
+<div>
+  <label className="form-label">
+    Amount Per Row
+  </label>
+  
+  {/* Unified Amount Container */}
+  <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+    
+{/* Bind Off All - Top Position */}
+<div className="mb-4">
+  <button
+    onClick={() => {
+      const availableStitches = getStitchContext().availableStitches;
+      setTempPhaseConfig(prev => ({ 
+        ...prev, 
+        amount: availableStitches,
+        frequency: 1 
+      }));
+    }}
+    className={`w-full p-3 text-sm border-2 rounded-lg transition-colors ${
+      tempPhaseConfig.amount === getStitchContext().availableStitches && tempPhaseConfig.frequency === 1
+        ? 'border-sage-500 bg-sage-100 text-sage-700'
+        : 'border-wool-200 hover:border-sage-300'
+    }`}
+  >
+    Bind Off All Remaining ({getStitchContext().availableStitches} stitches)
+  </button>
+</div>
+
+{/* Custom Amount Input - Connected Visual Treatment */}
+<div className="border-t border-wool-100 pt-3">
+  <div className="form-label-sm mb-2">Custom Amount</div>
+  <IncrementInput
+    value={tempPhaseConfig.amount}
+    onChange={(value) => {
+      const maxAmount = getMaxAmountPerRow();
+      const correctedValue = Math.min(Math.max(value, 1), maxAmount);
+      setTempPhaseConfig(prev => ({ ...prev, amount: correctedValue }));
+    }}
+    label="amount per row"
+    unit="stitches"
+    min={1}
+    max={getMaxAmountPerRow()}
+  />
+</div>
+  </div>
+</div>
 
             <div>
               <label className="form-label">
                 Number of Rows
               </label>
               
-              {/* Preset + Custom for Bind Offs */}
-              <div className="stack-sm">
+              {/* Unified Number of Rows Selection */}
+<div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                 {/* Quick Presets for common bind off patterns */}
                 <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { value: 1, label: '1 Row' },
-                    { value: 2, label: '2 Rows' },
-                    { value: 3, label: '3 Rows' }
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
-                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                        tempPhaseConfig.frequency === option.value
-                          ? 'border-sage-500 bg-sage-100 text-sage-700'
-                          : 'border-wool-200 hover:border-sage-300'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
+                  
+{[
+  { value: 1, label: '1 Row' },
+  { value: 2, label: '2 Rows' },
+  { value: 3, label: '3 Rows' }
+].map(option => {
+  const wouldBeValid = (tempPhaseConfig.amount || 1) * option.value <= getStitchContext().availableStitches;
+  
+  return (
+    <button
+      key={option.value}
+      onClick={() => wouldBeValid && setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
+      disabled={!wouldBeValid}
+      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
+        !wouldBeValid 
+          ? 'border-wool-200 bg-wool-100 text-wool-400 cursor-not-allowed'
+          : tempPhaseConfig.frequency === option.value
+            ? 'border-sage-500 bg-sage-100 text-sage-700'
+            : 'border-wool-200 hover:border-sage-300'
+      }`}
+    >
+      {option.label}
+    </button>
+  );
+})}
                 </div>
                 
-                {/* Custom Row Count */}
-                <div className="card-compact bg-wool-50">
+               {/* Custom Row Count - Connected Visual Treatment */}
+<div className="border-t border-wool-100 pt-3">
                   <div className="form-label-sm">Custom Row Count</div>
-                  <IncrementInput
-                    value={tempPhaseConfig.frequency}
-                    onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, frequency: value }))}
-                    label="frequency"
-                    unit="rows"
-                  />
+                 <IncrementInput
+  value={tempPhaseConfig.frequency}
+  onChange={(value) => {
+    const maxFrequency = getMaxFrequency();
+    const correctedValue = Math.min(Math.max(value, 1), maxFrequency);
+    setTempPhaseConfig(prev => ({ ...prev, frequency: correctedValue }));
+  }}
+  label="frequency"
+  unit="rows"
+  min={1}
+  max={getMaxFrequency()}
+/>
                 </div>
               </div>
             </div>
@@ -239,7 +324,6 @@ const getMaxTimes = () => {
           className="mx-2"
           size="sm"
         />
-        {/* <span className="text-sm text-wool-600">rows</span> */}
       </div>
     </div>
   </div>
