@@ -37,8 +37,8 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
       setCurrentStitches(config.calculation.endingStitches);
     }
 
-    // Navigate back to main wizard flow and go to step 5 (Preview)
-    onBack(5);
+    // Simple return to parent - let parent handle step management
+    onBack();
   };
 
   // Create a wizard-like object for the header - include ALL required functions

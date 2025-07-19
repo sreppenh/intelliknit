@@ -71,11 +71,17 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         setConstruction={wizard.setConstruction}
         setCurrentStitches={wizard.setCurrentStitches}  // ← ADD THIS LINE
         component={wizard.component}
-        onBack={(targetStep) => {
+        onBack={() => {
           setShowShapingWizard(false);
-          if (targetStep) {
-            wizard.navigation.goToStep(targetStep);
+          // If shaping was completed (hasShaping=true), advance to next step
+          // Otherwise, just return to previous step
+          if (wizard.wizardData.hasShaping === true) {
+            // Shaping completed - advance to next step in flow
+            const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
+            const nextStep = navigator.getNextStep();
+            wizard.navigation.goToStep(nextStep);
           }
+          // If hasShaping is still undefined/false, just return to where we came from
         }}
       />
     );
