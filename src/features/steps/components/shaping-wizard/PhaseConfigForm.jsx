@@ -192,54 +192,58 @@ const getMaxTimes = () => {
 </div>
             </div>
 
-            <div>
-              <label className="form-label">
-                Frequency
-              </label>
-              
-              {/* Preset + Custom Integrated Layout */}
-              <div className="stack-sm">
-                {/* Quick Presets Row */}
-                <div className="grid grid-cols-3 gap-2">
-                  {[
-                    { value: 1, label: 'Every Row' },
-                    { value: 2, label: 'Every Other' },
-                    { value: 4, label: 'Every 4th' }
-                  ].map(option => (
-                    <button
-                      key={option.value}
-                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
-                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${
-                        tempPhaseConfig.frequency === option.value
-                          ? 'border-sage-500 bg-sage-100 text-sage-700'
-                          : 'border-wool-200 hover:border-sage-300'
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-                
-                {/* Custom Interval - Integrated Style */}
-                <div className="card-compact bg-wool-50">
-                  <div className="form-label-sm">Custom Interval</div>
-                  <div className="increment-input-group justify-center">
-                    <span className="text-sm text-wool-600">Every</span>
-                    <IncrementInput
-  value={tempPhaseConfig.frequency}
-  onChange={(value) => {
-    const correctedValue = Math.max(value, 1);
-    setTempPhaseConfig(prev => ({ ...prev, frequency: correctedValue }));
-  }}
-  label="frequency"
-  unit="rows"
-  min={1}
-  className="mx-2"
-/>
-                  </div>
-                </div>
-              </div>
-            </div>
+           {/* Unified Frequency Selection */}
+<div>
+  <label className="form-label">
+    Frequency
+  </label>
+  
+  {/* Unified Frequency Card */}
+  <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+    
+    {/* Preset Buttons */}
+    <div className="grid grid-cols-3 gap-2 mb-4">
+      {[
+        { value: 1, label: 'Every Row' },
+        { value: 2, label: 'Every Other' },
+        { value: 4, label: 'Every 4th' }
+      ].map(option => (
+        <button
+          key={option.value}
+          onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
+          className={`p-3 text-sm border-2 rounded-lg transition-colors ${
+            tempPhaseConfig.frequency === option.value
+              ? 'border-sage-500 bg-sage-100 text-sage-700'
+              : 'border-wool-200 hover:border-sage-300'
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+    
+    {/* Custom Interval - Connected Visual Treatment */}
+    <div className="border-t border-wool-100 pt-3">
+      <div className="form-label-sm mb-2">Custom Interval</div>
+      <div className="flex items-center gap-2">
+        <span className="text-sm text-wool-600">Every</span>
+        <IncrementInput
+          value={tempPhaseConfig.frequency}
+          onChange={(value) => {
+            const correctedValue = Math.max(value, 1);
+            setTempPhaseConfig(prev => ({ ...prev, frequency: correctedValue }));
+          }}
+          label="frequency"
+          unit="rows"
+          min={1}
+          className="mx-2"
+          size="sm"
+        />
+        {/* <span className="text-sm text-wool-600">rows</span> */}
+      </div>
+    </div>
+  </div>
+</div>
 
             <div>
               <label className="form-label">
