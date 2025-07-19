@@ -128,7 +128,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       endMethod: '',
       steps: [],
       currentStep: 0,
-      prepNote: componentData.prepNote
+      prepNote: componentData.prepNote,
+      construction: componentData.construction,           // ADD THIS
+      setupNotes: componentData.setupNotes,             // ADD THIS
     };
 
     dispatch({
