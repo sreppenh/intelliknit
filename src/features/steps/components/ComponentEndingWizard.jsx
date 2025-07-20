@@ -44,7 +44,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
 
   const handleEndingTypeSelect = (type) => {
     setEndingData(prev => ({ ...prev, type }));
-    
+
     // Put on Holder is instant - no configuration needed
     if (type === 'put_on_holder') {
       handleComplete({
@@ -55,7 +55,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
       });
       return;
     }
-    
+
     // Bind Off All gets smart defaults and skips to method selection
     if (type === 'bind_off_all') {
       setEndingData(prev => ({
@@ -63,7 +63,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
         stitchCount: currentStitches // Auto-populate with current count
       }));
     }
-    
+
     // All other types need configuration
     setStep(2);
   };
@@ -75,7 +75,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
 
   const generateEndingStep = () => {
     const { type, method, targetComponent, customText, customMethod, stitchCount, prepNote } = endingData;
-    
+
     switch (type) {
       case 'bind_off_all':
         const methodName = method === 'other' ? customMethod : getMethodName(method);
@@ -87,7 +87,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           description: `Bind off all ${actualCount} stitches${methodName ? ` using ${methodName}` : ''}`,
           prepNote // NEW: Include prep note
         };
-        
+
       case 'attach_to_piece':
         const attachMethod = method === 'other' ? customMethod : getMethodName(method);
         const target = targetComponent === 'Other...' ? customText : targetComponent;
@@ -99,7 +99,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           description: `Attach to ${target}${attachMethod ? ` using ${attachMethod}` : ''}`,
           prepNote // NEW: Include prep note
         };
-        
+
       case 'other':
         return {
           type,
@@ -108,11 +108,11 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           stitchCount: currentStitches,
           prepNote // NEW: Include prep note
         };
-        
+
       default:
-        return { 
-          type, 
-          description: 'Unknown ending', 
+        return {
+          type,
+          description: 'Unknown ending',
           stitchCount: currentStitches,
           prepNote // NEW: Include prep note
         };
@@ -122,7 +122,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   const getMethodName = (methodId) => {
     const methodNames = {
       'standard': 'standard bind off',
-      'stretchy': 'stretchy bind off', 
+      'stretchy': 'stretchy bind off',
       'picot': 'picot bind off',
       'three_needle': 'three needle bind off',
       'mattress_stitch': 'mattress stitch',
@@ -133,9 +133,14 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     return methodNames[methodId] || methodId;
   };
 
+  // Direct exit to component steps (bypasses smart back logic)
+  const handleExitToComponentSteps = () => {
+    onBack();
+  };
+
   const canComplete = () => {
     const { type, method, targetComponent, customText, customMethod } = endingData;
-    
+
     switch (type) {
       case 'bind_off_all':
         return true; // Method is optional, stitch count is auto-populated
@@ -154,18 +159,20 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
       <>
         <div className="min-h-screen bg-yarn-50">
           <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-            
+
             {/* Header */}
-             <PageHeader
-  title="Configure Ending"
-  subtitle="Set up the details"
-  onBack={() => setStep(1)}
-/>
+            <PageHeader
+              title="Configure Ending"
+              subtitle="Set up the details"
+              onBack={() => setStep(1)}
+              showCancelButton={true}
+              onCancel={handleExitToComponentSteps}
+            />
 
             <div className="p-6 bg-yarn-50 stack-lg relative">
-              
+
               {/* Prep Note Button */}
-              <PrepStepButton 
+              <PrepStepButton
                 onClick={handleOpenOverlay}
                 hasNote={hasNote}
                 notePreview={notePreview}
@@ -174,7 +181,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
                 variant="ghost"
               />
 
-              <EndingTypeSelector 
+              <EndingTypeSelector
                 onTypeSelect={handleEndingTypeSelect}
                 component={component}
                 currentStitches={currentStitches}
@@ -200,27 +207,20 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     <>
       <div className="min-h-screen bg-yarn-50">
         <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-          
+
           {/* Header */}
-          <div className="bg-sage-500 text-white px-6 py-4">
-            <div className="flex items-center gap-3">
-              <button
-                onClick={() => setStep(1)}
-                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-              >
-                ←
-              </button>
-              <div className="flex-1">
-                <h1 className="text-lg font-semibold">Configure Ending</h1>
-                <p className="text-sage-100 text-sm">Set up the details</p>
-              </div>
-            </div>
-          </div>
+          <PageHeader
+            title="Configure Ending"
+            subtitle="Set up the details"
+            onBack={() => setStep(1)}
+            showCancelButton={true}
+            onCancel={handleExitToComponentSteps}
+          />
 
           <div className="p-6 bg-yarn-50 stack-lg relative">
-            
+
             {/* Prep Note Button */}
-            <PrepStepButton 
+            <PrepStepButton
               onClick={handleOpenOverlay}
               hasNote={hasNote}
               notePreview={notePreview}
@@ -228,10 +228,10 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
               size="normal"
               variant="ghost"
             />
-            
+
             {/* Render appropriate configuration component */}
             {endingData.type === 'bind_off_all' && (
-              <BindOffConfig 
+              <BindOffConfig
                 endingData={endingData}
                 setEndingData={setEndingData}
                 currentStitches={currentStitches}
@@ -240,7 +240,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             )}
 
             {endingData.type === 'attach_to_piece' && (
-              <AttachmentConfig 
+              <AttachmentConfig
                 endingData={endingData}
                 setEndingData={setEndingData}
                 currentStitches={currentStitches}
@@ -248,7 +248,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             )}
 
             {endingData.type === 'other' && (
-              <OtherEndingConfig 
+              <OtherEndingConfig
                 endingData={endingData}
                 setEndingData={setEndingData}
                 currentStitches={currentStitches}

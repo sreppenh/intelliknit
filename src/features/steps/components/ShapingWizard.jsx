@@ -5,6 +5,7 @@ import ShapingTypeSelector from './shaping-wizard/ShapingTypeSelector';
 import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 
 const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack, setConstruction, setCurrentStitches,
   component, onExitToComponentSteps }) => {
@@ -16,6 +17,8 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
     description: ''
   });
 
+  const [showExitModal, setShowExitModal] = useState(false);
+
   const handleShapingTypeSelect = (type) => {
     setShapingData(prev => ({ ...prev, type }));
 
@@ -23,6 +26,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
     // For now, all types go to step 2
     setStep(2);
   };
+
 
   const handleConfigComplete = (config) => {
     IntelliKnitLogger.success('Saving config', config);
@@ -40,6 +44,38 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
 
     // Simple return to parent - let parent handle step management
     onBack();
+  };
+
+  // Check for unsaved data to show warning modal
+  const hasUnsavedData = () => {
+    // Step 1: Has selected a shaping type
+    if (step === 1) {
+      return true; // No unsaved data on type selection screen
+    }
+
+    // Step 2: Has shaping type selected and potentially config in progress
+    if (step === 2) {
+      return shapingData.type !== null; // Has selected a type, potentially configuring
+    }
+
+    return false;
+  };
+
+  const handleShapingWizardExit = () => {
+    if (hasUnsavedData()) {
+      setShowExitModal(true);
+    } else {
+      onExitToComponentSteps();
+    }
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitModal(false);
+    onExitToComponentSteps();
+  };
+
+  const handleCancelExit = () => {
+    setShowExitModal(false);
   };
 
   // Create a wizard-like object for the header - include ALL required functions
@@ -128,7 +164,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
       <WizardHeader
         wizard={shapingWizard}
         onBack={step === 1 ? onBack : () => setStep(1)}
-        onCancel={onExitToComponentSteps}
+        onCancel={handleShapingWizardExit}
       />
       <div className="p-6 bg-yarn-50 min-h-screen">
         <div className="stack-lg">
@@ -144,6 +180,12 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
           )}
         </div>
       </div>
+
+      <UnsavedChangesModal
+        isOpen={showExitModal}
+        onConfirmExit={handleConfirmExit}
+        onCancel={handleCancelExit}
+      />
     </WizardLayout>
   );
 };

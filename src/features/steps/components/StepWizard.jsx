@@ -104,6 +104,12 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
       case 3: // Duration/Shaping Choice
         return wizardData.hasShaping !== undefined || wizardData.choiceMade;
 
+      case 4: // Set Duration - How Long
+        return true; // Always show warning - user is in step creation flow
+
+      case 5: // Preview
+        return true; // Always show warning - user has complete step data 
+
       default:
         return false;
     }
