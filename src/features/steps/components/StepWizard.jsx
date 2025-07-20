@@ -85,6 +85,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
           }
           // If hasShaping is still undefined/false, just return to where we came from
         }}
+        onExitToComponentSteps={onBack}
       />
     );
   }

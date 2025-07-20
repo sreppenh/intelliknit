@@ -6,7 +6,8 @@ import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
-const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack, setConstruction, setCurrentStitches, component }) => {
+const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack, setConstruction, setCurrentStitches,
+  component, onExitToComponentSteps }) => {
   IntelliKnitLogger.debug('ShapingWizard props', { construction, currentStitches });
   const [step, setStep] = useState(1);
   const [shapingData, setShapingData] = useState({
@@ -127,7 +128,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
       <WizardHeader
         wizard={shapingWizard}
         onBack={step === 1 ? onBack : () => setStep(1)}
-        onCancel={onBack}
+        onCancel={onExitToComponentSteps}
       />
       <div className="p-6 bg-yarn-50 min-h-screen">
         <div className="stack-lg">
