@@ -15,12 +15,14 @@ import { renderStep } from './wizard-navigation/StepRenderer';
 import { useWizardState } from './wizard-navigation/WizardState';
 import ShapingWizard from './ShapingWizard';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
   const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
   const wizardState = useWizardState(wizard, onBack);
   const [showShapingWizard, setShowShapingWizard] = useState(false);
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Component validation
   if (!wizard.component) {
@@ -87,6 +89,46 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     );
   }
 
+  // AFTER existing helper functions, ADD:
+  const hasUnsavedData = () => {
+    const { wizardStep, wizardData } = wizard;
+
+    switch (wizardStep) {
+      case 1: // Pattern Selection
+        return wizardData.stitchPattern?.pattern || wizardData.stitchPattern?.category;
+
+      case 2: // Pattern Configuration
+        return true; // Always has pattern data from step 1
+
+      case 3: // Duration/Shaping Choice
+        return wizardData.hasShaping !== undefined || wizardData.choiceMade;
+
+      default:
+        return false;
+    }
+  };
+
+  const handleXButtonClick = () => {
+    if (hasUnsavedData()) {
+      setShowExitModal(true);
+    } else {
+      onBack();
+    }
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitModal(false);
+    onBack();
+  };
+
+  const handleCancelExit = () => {
+    setShowExitModal(false);
+  };
+
+
+
+
+
   const renderCurrentStep = () => {
     const handlers = {
       handleAddStep: wizardState.handleAddStep,
@@ -94,6 +136,8 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
       handleFinishComponent: wizardState.handleFinishComponent,
       onBack
     };
+
+
 
     // Enhanced step rendering with prep note support
     switch (wizard.wizardStep) {
@@ -227,12 +271,20 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
 
   return (
     <WizardLayout>
-      <WizardHeader wizard={wizard} onBack={onBack} onCancel={onBack} />
+      <WizardHeader wizard={wizard} onBack={onBack} onCancel={handleXButtonClick} />
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}
 
         {/* ❌ REMOVED: WizardNavigation component - no more conflicts! */}
       </div>
+
+      <UnsavedChangesModal
+        isOpen={showExitModal}
+        onConfirmExit={handleConfirmExit}
+        onCancel={handleCancelExit}
+      />
+
+
     </WizardLayout>
   );
 };
