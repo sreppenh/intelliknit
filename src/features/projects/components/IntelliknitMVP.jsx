@@ -17,55 +17,55 @@ const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing'); // Changed from 'project-list'
   const { dispatch, selectedComponentIndex } = useProjectsContext();
   const [selectedProjectType, setSelectedProjectType] = useState(null);
-  
+
   // Landing Page Actions
   const handleAddNewProject = () => {
     setCurrentView('project-type-selector');
   };
-  
+
   const handleViewProjects = () => {
     setCurrentView('project-list');
   };
-  
+
   const handleContinueKnitting = () => {
     // TODO: Implement smart session resume
     // For now, go to project list
     setCurrentView('project-list');
   };
-  
+
   const handleNotepad = () => {
     // TODO: Implement notepad feature
     alert('Notepad feature coming soon!');
   };
-  
+
   const handleCreateProject = () => {
     setCurrentView('project-type-selector');
   };
-  
+
   const handleProjectCreated = () => {
     setCurrentView('project-detail');
   };
-  
+
   const handleOpenProject = (project) => {
     dispatch({ type: 'SET_CURRENT_PROJECT', payload: project });
     setCurrentView('project-detail');
   };
-  
+
   const handleViewComponent = (componentIndex) => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('component-detail');
   };
-  
+
   const handleEditSteps = (componentIndex) => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('step-wizard');
   };
-  
+
   const handleManageSteps = (componentIndex) => {
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('manage-steps');
   };
-  
+
   const handleStartKnitting = (componentIndex) => {
     dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
     setCurrentView('tracking');
@@ -74,17 +74,25 @@ const IntelliknitMVPContent = () => {
   const handleEditProjectDetails = () => {
     setCurrentView('edit-project-details');
   };
-  
+
   const handleBackToLanding = () => {
     setCurrentView('landing');
     dispatch({ type: 'SET_CURRENT_PROJECT', payload: null });
   };
-  
+
   const handleBackToProjectList = () => {
     setCurrentView('project-list');
     dispatch({ type: 'SET_CURRENT_PROJECT', payload: null });
   };
-  
+
+  const handleExitProjectCreationToProjectList = () => {
+    setCurrentView('project-list');
+    // Clear any project creation state
+    setSelectedProjectType(null);
+    dispatch({ type: 'SET_CURRENT_PROJECT', payload: null });
+  };
+
+
   const handleBackToProjectDetail = () => {
     setCurrentView('project-detail');
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: null });
@@ -101,7 +109,7 @@ const IntelliknitMVPContent = () => {
           onNotepad={handleNotepad}
         />
       );
-      
+
     case 'project-list':
       return (
         <ProjectList
@@ -110,26 +118,28 @@ const IntelliknitMVPContent = () => {
           onBack={handleBackToLanding} // NEW: Add back to landing
         />
       );
-      
+
     case 'create-project':
       return (
         <CreateProject
           onBack={() => setCurrentView('project-type-selector')}
           onProjectCreated={handleProjectCreated}
           selectedProjectType={selectedProjectType}
+          onExitToProjectList={handleExitProjectCreationToProjectList}
         />
       );
 
     case 'project-type-selector':
       return (
         <ProjectTypeSelector
-          onBack={handleBackToLanding} // Changed from handleBackToProjectList
+          onBack={handleBackToLanding}
           onContinue={() => setCurrentView('create-project')}
           selectedType={selectedProjectType}
           onTypeSelect={setSelectedProjectType}
+          onExitToProjectList={handleExitProjectCreationToProjectList}
         />
       );
-      
+
     case 'project-detail':
       return (
         <ProjectDetail
@@ -141,14 +151,14 @@ const IntelliknitMVPContent = () => {
           onEditProjectDetails={handleEditProjectDetails}
         />
       );
-      
+
     case 'edit-project-details':
       return (
         <EditProjectDetails
           onBack={handleBackToProjectDetail}
         />
       );
-      
+
     case 'component-detail':
       return (
         <ComponentDetail
@@ -158,7 +168,7 @@ const IntelliknitMVPContent = () => {
           onStartKnitting={handleStartKnitting}
         />
       );
-      
+
     case 'step-wizard':
       return (
         <StepWizard
@@ -166,7 +176,7 @@ const IntelliknitMVPContent = () => {
           onBack={handleBackToProjectDetail}
         />
       );
-      
+
     case 'manage-steps':
       return (
         <ManageSteps
@@ -174,7 +184,7 @@ const IntelliknitMVPContent = () => {
           onBack={handleBackToProjectDetail}
         />
       );
-      
+
     case 'tracking':
       return (
         <Tracking
@@ -182,7 +192,7 @@ const IntelliknitMVPContent = () => {
           onEditSteps={handleEditSteps}
         />
       );
-      
+
     default:
       return <div>View not found</div>;
   }

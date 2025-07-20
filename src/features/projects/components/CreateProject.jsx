@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 
-const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
+const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitToProjectList }) => {
   const { dispatch } = useProjectsContext();
   const [projectData, setProjectData] = useState({
     name: '',
@@ -9,9 +11,37 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
     defaultUnits: 'inches'
   });
 
+  // Check if user has entered any data (unsaved data)
+  const hasUnsavedData = () => {
+    return projectData.name.trim().length > 0 ||
+      projectData.size.trim().length > 0 ||
+      projectData.defaultUnits !== 'inches'; // default changed
+  };
+
+  const handleXButtonClick = () => {
+    if (hasUnsavedData()) {
+      setShowExitModal(true);
+    } else {
+      // Exit directly to Project List
+      onExitToProjectList();
+    }
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitModal(false);
+    onExitToProjectList();
+  };
+
+  const handleCancelExit = () => {
+    setShowExitModal(false);
+    // Stay on current screen, preserve form data
+  };
+
   const handleInputChange = (field, value) => {
     setProjectData(prev => ({ ...prev, [field]: value }));
   };
+
+  const [showExitModal, setShowExitModal] = useState(false);
 
   const canCreateProject = () => {
     return projectData.name.trim().length > 0 && projectData.defaultUnits;
@@ -55,6 +85,13 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
               <h1 className="text-lg font-semibold">Create New Project</h1>
               <p className="text-sage-100 text-sm">Just the essentials</p>
             </div>
+            <button
+              onClick={handleXButtonClick}
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              title="Exit Project Creation"
+            >
+              ✕
+            </button>
           </div>
         </div>
 
@@ -106,8 +143,8 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
                   <button
                     onClick={() => handleInputChange('defaultUnits', 'inches')}
                     className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'inches'
-                        ? 'bg-sage-500 text-white shadow-sm'
-                        : 'text-wool-600 hover:text-sage-600'
+                      ? 'bg-sage-500 text-white shadow-sm'
+                      : 'text-wool-600 hover:text-sage-600'
                       }`}
                   >
                     🇺🇸 Inches
@@ -116,8 +153,8 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
                   <button
                     onClick={() => handleInputChange('defaultUnits', 'cm')}
                     className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'cm'
-                        ? 'bg-sage-500 text-white shadow-sm'
-                        : 'text-wool-600 hover:text-sage-600'
+                      ? 'bg-sage-500 text-white shadow-sm'
+                      : 'text-wool-600 hover:text-sage-600'
                       }`}
                   >
                     🇪🇺 Centimeters
@@ -157,6 +194,14 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType }) => {
             </div>
           </div>
         </div>
+
+
+        {/* Unsaved Changes Modal */}
+        <UnsavedChangesModal
+          isOpen={showExitModal}
+          onConfirmExit={handleConfirmExit}
+          onCancel={handleCancelExit}
+        />
       </div>
     </div>
   );

@@ -1,29 +1,60 @@
-import React from 'react';
+import React, { useState } from 'react';
+import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
-const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect }) => {
+const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect, onExitToProjectList }) => {
+  const [showExitModal, setShowExitModal] = useState(false);
+
   const projectTypes = [
     // Clothing
     { id: 'sweater', name: 'Sweater', icon: '🧥' },
     { id: 'shawl', name: 'Shawl', icon: '🌙' },
-    
+
     // Accessories
     { id: 'hat', name: 'Hat', icon: '🎩' },
     { id: 'scarf_cowl', name: 'Scarf & Cowl', icon: '🧣' },
     { id: 'socks', name: 'Socks', icon: '🧦' },
-    
+
     // Non-wearables
     { id: 'blanket', name: 'Blanket', icon: '🛏️' },
     { id: 'toys', name: 'Toys', icon: '🧸' },
-    
+
     // Other
     { id: 'other', name: 'Other', icon: '✨' }
   ];
 
+
+  // Check if user has made a selection (unsaved data)
+  const hasUnsavedData = () => {
+    return selectedType !== null;
+  };
+
+  const handleXButtonClick = () => {
+    if (hasUnsavedData()) {
+      setShowExitModal(true);
+    } else {
+      // Exit directly to Project List
+      onExitToProjectList();
+    }
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitModal(false);
+    onExitToProjectList();
+  };
+
+  const handleCancelExit = () => {
+    setShowExitModal(false);
+    // Stay on current screen
+  };
+
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        
+
         {/* Compact Header */}
+
         <div className="bg-sage-500 text-white px-6 py-4">
           <div className="flex items-center gap-3">
             <button
@@ -36,6 +67,13 @@ const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect })
               <h1 className="text-lg font-semibold">What are you making?</h1>
               <p className="text-sage-100 text-sm">Choose your project type</p>
             </div>
+            <button
+              onClick={handleXButtonClick}
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              title="Exit Project Creation"
+            >
+              ✕
+            </button>
           </div>
         </div>
 
@@ -68,8 +106,21 @@ const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect })
           <div className="text-center pt-2">
             <p className="text-xs text-wool-400">You can change this later! 🎉</p>
           </div>
+
+
         </div>
+
+
       </div>
+
+      {/* Unsaved Changes Modal */}
+      <UnsavedChangesModal
+        isOpen={showExitModal}
+        onConfirmExit={handleConfirmExit}
+        onCancel={handleCancelExit}
+      />
+
+
     </div>
   );
 };
