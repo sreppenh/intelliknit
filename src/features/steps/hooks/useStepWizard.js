@@ -14,28 +14,18 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
 
   // Helper function to get initial wizard data
   const getInitialWizardData = (defaultUnits = 'inches') => ({
-    stitchPattern: { 
-      category: null, 
-      pattern: null, 
-      customText: '', 
+    stitchPattern: {
+      category: null,
+      pattern: null,
+      customText: '',
       method: '',
-      rowsInPattern: '', 
-      stitchCount: '', 
-      customDetails: '' 
+      rowsInPattern: '',
+      stitchCount: '',
+      customDetails: ''
     },
     duration: { type: '', value: '', units: defaultUnits },
     hasShaping: false,
-    shapingConfig: {
-      shapingType: 'increase',
-      positions: ['end'],
-      frequency: 4,
-      times: 6,
-      targetChange: 20,
-      technique: 'auto',
-      shapingMode: 'regular',
-      bindOffSequence: [3, 2, 2, 1, 1],
-      comments: ''
-    },
+    shapingConfig: {},
     prepNote: '' // NEW: Add prep note to wizard data
   });
 
@@ -45,14 +35,6 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
         ...editingStep.wizardConfig,
         hasShaping: editingStep.advancedWizardConfig?.hasShaping || false,
         shapingConfig: {
-          shapingType: 'increase',
-          positions: ['end'],
-          frequency: 4,
-          times: 6,
-          technique: 'auto',
-          shapingMode: 'regular',
-          bindOffSequence: [3, 2, 2, 1, 1],
-          comments: '',
           ...(editingStep.advancedWizardConfig?.shapingConfig || {})
         },
         prepNote: editingStep.prepNote || '' // NEW: Include existing prep note when editing
@@ -74,18 +56,18 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
   // Get current stitch count from the step chain
   useEffect(() => {
     if (!component) return;
-    
+
     if (component.steps.length === 0) {
       // No steps yet - start with 0
       setCurrentStitches(0);
       return;
     }
-    
+
     // Get the ending stitch count from the last step
     const lastStep = component.steps[component.steps.length - 1];
     const stitchCount = lastStep.endingStitches || lastStep.expectedStitches || 0;
     setCurrentStitches(stitchCount);
-    
+
   }, [component?.steps, componentIndex]);
 
   const updateWizardData = (sectionOrKey, dataOrValue) => {
@@ -97,7 +79,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
           [sectionOrKey]: dataOrValue
         };
       }
-      
+
       // Handle nested sections (like stitchPattern, duration, shapingConfig)
       return {
         ...prev,
@@ -138,38 +120,38 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     switch (step) {
       case 1:
         return wizardData.stitchPattern.category;
-        
+
       case 2:
         // Must have pattern selected
         if (!wizardData.stitchPattern.pattern) return false;
-        
+
         // Cast On needs stitch count
         if (wizardData.stitchPattern.pattern === 'Cast On') {
           return wizardData.stitchPattern.stitchCount && parseInt(wizardData.stitchPattern.stitchCount) > 0;
         }
-        
+
         // Patterns that require rowsInPattern
         if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern)) {
-          return wizardData.stitchPattern.rowsInPattern && 
-                 parseInt(wizardData.stitchPattern.rowsInPattern) > 0 && 
-                 wizardData.hasShaping !== undefined;
+          return wizardData.stitchPattern.rowsInPattern &&
+            parseInt(wizardData.stitchPattern.rowsInPattern) > 0 &&
+            wizardData.hasShaping !== undefined;
         }
-        
+
         // Custom pattern needs description
         if (wizardData.stitchPattern.pattern === 'Custom pattern') {
           return wizardData.stitchPattern.customText && wizardData.hasShaping !== undefined;
         }
-        
+
         // Other patterns need to choose shaping
-        return wizardData.stitchPattern.pattern && 
-               (wizardData.stitchPattern.pattern !== 'Other' || wizardData.stitchPattern.customText) &&
-               wizardData.hasShaping !== undefined;
-        
+        return wizardData.stitchPattern.pattern &&
+          (wizardData.stitchPattern.pattern !== 'Other' || wizardData.stitchPattern.customText) &&
+          wizardData.hasShaping !== undefined;
+
       case 3:
         if (wizardData.hasShaping) {
           // Validate shaping config
           const { shapingMode, shapingType, positions, bindOffSequence, targetChange } = wizardData.shapingConfig;
-          
+
           if (shapingMode === 'bindoff') {
             return bindOffSequence && bindOffSequence.length > 0;
           } else if (shapingMode === 'distribution') {
@@ -186,10 +168,10 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
           }
           return wizardData.duration.type && wizardData.duration.value;
         }
-        
+
       case 4:
         return true; // Preview step is always valid if we got here
-        
+
       default:
         return false;
     }
@@ -212,14 +194,14 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     componentIndex,
     isEditing,
     editingStep,
-    
+
     // Actions
     updateWizardData,
     setConstruction,
     canHaveShaping,
     resetWizardData,
     setCurrentStitches,
-    
+
     // Navigation
     navigation
   };

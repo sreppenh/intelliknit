@@ -108,12 +108,13 @@ export const useStepGeneration = (construction = 'flat') => {
         instruction += ` with bind-off shaping`;
       }
       // REMOVED: The redundant 'distribution' fallback block that was handling the same case as 'even_distribution'
-      else {
+      else if (positions && shapingType && frequency && times) {
         const terms = getConstructionTerms(construction);
         const positionText = positions.includes('both_ends') ? terms.atBothEnds : positions.join(' and ');
         const freqText = frequency === 2 ? terms.everyOtherRow.replace('every ', '') : `${frequency}th ${terms.row}`;
         instruction += ` with ${shapingType}s at ${positionText} ${freqText} ${times} times`;
       }
+      // If no valid legacy data, just skip the shaping text entirely
 
       if (comments) {
         instruction += ` (${comments})`;
