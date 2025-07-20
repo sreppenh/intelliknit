@@ -75,13 +75,20 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         component={wizard.component}
         onBack={() => {
           setShowShapingWizard(false);
-          // If shaping was completed (hasShaping=true), advance to next step
-          // Otherwise, just return to previous step
-          if (wizard.wizardData.hasShaping === true) {
-            // Shaping completed - advance to next step in flow
+          // Check if shaping was actually COMPLETED (has config with calculation)
+          // vs just SELECTED (hasShaping=true but no actual config)
+          const hasCompletedShaping = wizard.wizardData.hasShaping === true &&
+            wizard.wizardData.shapingConfig?.config?.calculation;
+
+          if (hasCompletedShaping) {
+            // Shaping was completed - advance to next step
             const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
             const nextStep = navigator.getNextStep();
             wizard.navigation.goToStep(nextStep);
+          } else {
+            // Shaping was not completed - clear the selection and stay on current step
+            wizard.updateWizardData('hasShaping', false);
+            wizard.updateWizardData('choiceMade', false); // ← Optional cleanup
           }
           // If hasShaping is still undefined/false, just return to where we came from
         }}
