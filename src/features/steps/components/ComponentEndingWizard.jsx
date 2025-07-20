@@ -196,7 +196,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             <PageHeader
               title="Configure Ending"
               subtitle="Set up the details"
-              onBack={() => setStep(1)}
+              onBack={onBack}
               showCancelButton={true}
               onCancel={handleExitToComponentSteps}
             />
