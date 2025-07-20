@@ -3,6 +3,7 @@ import { useProjectsContext } from '../hooks/useProjectsContext';
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IncrementInput from '../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
@@ -22,6 +23,39 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
   // State for which start type is expanded (like selectedQuickCategory)
   const [selectedStartType, setSelectedStartType] = useState(null);
+
+
+  const [showExitModal, setShowExitModal] = useState(false);
+
+  // Check if user has entered any component data (across both screens)
+  const hasUnsavedData = () => {
+    return componentData.name.trim().length > 0 ||
+      componentData.setupNotes?.trim().length > 0 ||
+      componentData.construction !== null ||
+      componentData.startType !== null ||
+      componentData.startMethod !== null ||
+      componentData.startStitches?.trim().length > 0 ||
+      componentData.startDescription?.trim().length > 0;
+  };
+
+  const handleXButtonClick = () => {
+    if (hasUnsavedData()) {
+      setShowExitModal(true);
+    } else {
+      // Exit directly to Project Detail
+      onBack();
+    }
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitModal(false);
+    onBack();
+  };
+
+  const handleCancelExit = () => {
+    setShowExitModal(false);
+    // Stay on current screen
+  };
 
   // Prep note management
   const {
@@ -168,6 +202,13 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               <h1 className="text-lg font-semibold">Add Component</h1>
               <p className="text-sage-100 text-sm">{screen === 1 ? 'Component Identity & Setup' : 'Method & Configuration'}</p>
             </div>
+            <button
+              onClick={handleXButtonClick}
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              title="Exit Component Creation"
+            >
+              ✕
+            </button>
           </div>
         </div>
 
@@ -438,6 +479,15 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
           existingNote={currentNote}
           {...prepConfig}
         />
+
+        {/* Unsaved Changes Modal */}
+        <UnsavedChangesModal
+          isOpen={showExitModal}
+          onConfirmExit={handleConfirmExit}
+          onCancel={handleCancelExit}
+        />
+
+
       </div>
     </div>
   );

@@ -57,7 +57,13 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
             <div className="flex-1 text-center">
               <h1 className="text-lg font-semibold">Component Created!</h1>
             </div>
-            <div className="w-10"></div>
+            <button
+              onClick={onClose}
+              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+              title="Exit to Project Detail"
+            >
+              ✕
+            </button>
           </div>
         </div>
 
