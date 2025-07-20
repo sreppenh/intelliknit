@@ -125,6 +125,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
 
   const handleConfirmExit = () => {
     setShowExitModal(false);
+    wizard.resetWizardData(); // ✅ Clean data before exit
     onBack();
   };
 
