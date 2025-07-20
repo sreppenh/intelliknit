@@ -24,6 +24,15 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const [showShapingWizard, setShowShapingWizard] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 
+  IntelliKnitLogger.debug('StepWizard Main State', {
+    step: wizard.wizardStep,
+    hasShaping: wizard.wizardData.hasShaping,
+    choiceMade: wizard.wizardData.choiceMade,
+    pattern: wizard.wizardData.stitchPattern.pattern,
+    currentScreen: `Step ${wizard.wizardStep}`,
+    showShapingWizard: showShapingWizard
+  });
+
   // Component validation
   if (!wizard.component) {
     return (
@@ -77,8 +86,19 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
           setShowShapingWizard(false);
           // Check if shaping was actually COMPLETED (has config with calculation)
           // vs just SELECTED (hasShaping=true but no actual config)
-          const hasCompletedShaping = wizard.wizardData.hasShaping === true &&
+          const hasCompletedShaping = wizard.wizardData.shapingConfig?.type &&
             wizard.wizardData.shapingConfig?.config?.calculation;
+
+          IntelliKnitLogger.debug('ShapingWizard onBack Logic', {
+            hasCompletedShaping: hasCompletedShaping,
+            hasShapingFlag: wizard.wizardData.hasShaping,
+            shapingConfigType: wizard.wizardData.shapingConfig?.type,
+            hasCalculation: !!wizard.wizardData.shapingConfig?.config?.calculation,
+            currentStep: wizard.wizardStep
+          });
+
+
+
 
           if (hasCompletedShaping) {
             // Shaping was completed - advance to next step

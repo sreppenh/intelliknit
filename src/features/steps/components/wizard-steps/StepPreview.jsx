@@ -78,21 +78,13 @@ const StepPreview = ({ wizard, onAddStep, onAddStepAndContinue, onBack, onFinish
         </button>
 
         {/* Secondary Actions Row */}
-        <div className="grid grid-cols-2 gap-3">
+        <div className="flex justify-center">
           <button
             onClick={handleFinishComponent}
             className="bg-sage-500 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-sage-600 transition-colors flex items-center justify-center gap-2"
           >
             <span className="text-lg">🏁</span>
             <span>Finish {wizard.component?.name}</span>
-          </button>
-
-          <button
-            onClick={onBack}
-            className="btn-tertiary flex items-center justify-center gap-2"
-          >
-            <span className="text-lg">📋</span>
-            <span>View All Steps</span>
           </button>
         </div>
       </div>

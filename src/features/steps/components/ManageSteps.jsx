@@ -292,8 +292,9 @@ const ManageSteps = ({ componentIndex, onBack }) => {
         {/* Header */}
         <PageHeader
           title="Manage Steps"
-          subtitle={component.name}
+          subtitle={isComponentFinished() ? "Completed" : component.name}
           onBack={onBack}
+          showBackButton={!isComponentFinished()}
           showCancelButton={true}
           onCancel={onBack}
         />
@@ -435,8 +436,8 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             </div>
           )}
 
-          {/* Action Buttons - Only show if component not finished, otherwise show Back button */}
-          {!isComponentFinished() ? (
+          {/* Action Buttons - Only show if component not finished */}
+          {!isComponentFinished() && (
             <div className="flex gap-3">
               <button
                 onClick={handleAddNewStep}
@@ -455,15 +456,6 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                   Finish
                 </button>
               )}
-            </div>
-          ) : (
-            <div className="flex justify-center">
-              <button
-                onClick={onBack}
-                className="bg-wool-100 text-wool-700 py-4 px-8 rounded-xl font-semibold text-base hover:bg-wool-200 transition-colors border border-wool-200"
-              >
-                ← Back
-              </button>
             </div>
           )}
         </div>
