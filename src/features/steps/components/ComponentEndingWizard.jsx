@@ -5,6 +5,8 @@ import BindOffConfig from './ending-wizard/BindOffConfig';
 import AttachmentConfig from './ending-wizard/AttachmentConfig';
 import OtherEndingConfig from './ending-wizard/OtherEndingConfig';
 import PageHeader from '../../../shared/components/PageHeader';
+import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   const [step, setStep] = useState(1);
@@ -16,6 +18,8 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     customMethod: '',
     prepNote: '' // NEW: Add prep note to ending data
   });
+
+  const [showExitModal, setShowExitModal] = useState(false);
 
   // Prep note management
   const {
@@ -133,9 +137,37 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     return methodNames[methodId] || methodId;
   };
 
-  // Direct exit to component steps (bypasses smart back logic)
+  // Check for unsaved data - PM Claude specified: "validation for first screen only"
+  const hasUnsavedData = () => {
+    // Step 1: Check if user has selected an ending type
+    if (step === 1) {
+      return endingData.type !== null;
+    }
+
+    // Step 2: Always show warning (subsequent screens always have data)
+    if (step === 2) {
+      return true;
+    }
+
+    return false;
+  };
+
+  // Handle exit with warning validation
   const handleExitToComponentSteps = () => {
+    if (hasUnsavedData()) {
+      setShowExitModal(true);
+    } else {
+      onBack();
+    }
+  };
+
+  const handleConfirmExit = () => {
+    setShowExitModal(false);
     onBack();
+  };
+
+  const handleCancelExit = () => {
+    setShowExitModal(false);
   };
 
   const canComplete = () => {
@@ -277,6 +309,12 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
         onSave={handleSaveNote}
         existingNote={currentNote}
         {...prepConfig}
+      />
+
+      <UnsavedChangesModal
+        isOpen={showExitModal}
+        onConfirmExit={handleConfirmExit}
+        onCancel={handleCancelExit}
       />
     </>
   );
