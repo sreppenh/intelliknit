@@ -8,7 +8,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 
 const ProjectOverview = ({ project, onEditProjectDetails }) => {
   const [openMenu, setOpenMenu] = useState(false);
-  
+
   // Project type icons mapping
   const getProjectIcon = (projectType) => {
     const icons = {
@@ -26,8 +26,8 @@ const ProjectOverview = ({ project, onEditProjectDetails }) => {
 
   // Calculate project stats
   const totalComponents = project.components?.length || 0;
-  const completedComponents = project.components?.filter(comp => 
-    comp.steps?.some(step => 
+  const completedComponents = project.components?.filter(comp =>
+    comp.steps?.some(step =>
       step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
       step.description?.toLowerCase().includes('bind off')
     )
@@ -45,7 +45,7 @@ const ProjectOverview = ({ project, onEditProjectDetails }) => {
   return (
     <div className="bg-white border-2 border-wool-200 rounded-xl p-4 shadow-sm">
       <div className="flex items-start gap-3">
-        
+
         {/* Project Icon */}
         <div className="flex-shrink-0">
           <div className="w-12 h-12 bg-sage-100 rounded-lg flex items-center justify-center text-2xl border-2 border-sage-200">
@@ -60,7 +60,7 @@ const ProjectOverview = ({ project, onEditProjectDetails }) => {
               <h2 className="text-lg font-semibold text-wool-800 truncate">{project.name}</h2>
               <p className="text-wool-500 text-sm">Size: {project.size || 'Not specified'}</p>
             </div>
-            
+
             {/* Three-dot Menu */}
             <div className="relative flex-shrink-0">
               <button
@@ -68,9 +68,9 @@ const ProjectOverview = ({ project, onEditProjectDetails }) => {
                 className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-100 rounded-full transition-colors"
               >
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                  <circle cx="8" cy="3" r="1.5"/>
-                  <circle cx="8" cy="8" r="1.5"/>
-                  <circle cx="8" cy="13" r="1.5"/>
+                  <circle cx="8" cy="3" r="1.5" />
+                  <circle cx="8" cy="8" r="1.5" />
+                  <circle cx="8" cy="13" r="1.5" />
                 </svg>
               </button>
 
@@ -172,24 +172,24 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
   const handleComponentMenuAction = (action, componentId) => {
     const componentIndex = currentProject.components.findIndex(c => c.id === componentId);
     const component = currentProject.components[componentIndex];
-    
+
     if (action === 'manage') {
       onEditSteps(componentIndex);
     } else if (action === 'rename') {
       const newName = window.prompt(`Rename "${component.name}" to:`, component.name);
-      
+
       if (newName && newName.trim() !== '' && newName !== component.name) {
         const updatedComponents = [...currentProject.components];
         updatedComponents[componentIndex] = {
           ...component,
           name: newName.trim()
         };
-        
+
         const updatedProject = {
           ...currentProject,
           components: updatedComponents
         };
-        
+
         dispatch({
           type: 'UPDATE_PROJECT',
           payload: updatedProject
@@ -197,7 +197,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
       }
     } else if (action === 'copy') {
       const newName = window.prompt(`Copy "${component.name}" as:`, `${component.name} Copy`);
-      
+
       if (newName && newName.trim() !== '') {
         dispatch({
           type: 'COPY_COMPONENT',
@@ -206,7 +206,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
       }
     } else if (action === 'delete') {
       const confirmed = window.confirm(`Delete "${component.name}"? This cannot be undone.`);
-      
+
       if (confirmed) {
         dispatch({
           type: 'DELETE_COMPONENT',
@@ -245,23 +245,25 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
         {/* Header */}
-        <PageHeader 
-          title={currentProject.name} 
-          subtitle="Edit Mode" 
-          onBack={onBack} 
+        <PageHeader
+          title={currentProject.name}
+          subtitle="Edit Mode"
+          onBack={onBack}
+          showCancelButton={true}
+          onCancel={onBack}
         />
-        
+
         <div className="p-6 bg-yarn-50">
           <div className="stack-lg">
-            
+
             {/* Project Overview Section */}
-            <ProjectOverview 
+            <ProjectOverview
               project={currentProject}
               onEditProjectDetails={onEditProjectDetails}
             />
 
             <h2 className="text-xl font-semibold text-wool-700 text-left">Components</h2>
-            
+
             {/* Components section */}
             <div className="stack-lg">
               {currentProject.components.length === 0 ? (
@@ -284,7 +286,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
                   ))}
                 </div>
               )}
-              
+
               {/* Add Component button */}
               <button
                 onClick={() => setShowEnhancedCreation(true)}
@@ -294,7 +296,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
                 Add Component
               </button>
             </div>
-            
+
             {/* Completed project display */}
             {currentProject.completed && (
               <div className="mt-8 pt-6 border-t border-wool-200">
@@ -309,7 +311,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
             )}
           </div>
         </div>
-        
+
         {/* Modals */}
         {showCompleteProjectModal && (
           <CompleteProjectModal

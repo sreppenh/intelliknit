@@ -18,7 +18,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
         <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
           <div className="text-4xl mb-4">❌</div>
           <h3 className="text-lg font-medium text-wool-600 mb-2">Component not found</h3>
-          <button 
+          <button
             onClick={onBack}
             className="btn-primary btn-sm"
           >
@@ -34,23 +34,23 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   // Helper functions for step display
   const getPatternDisplay = (step) => {
     let pattern = null;
-    
+
     // Check wizard config stitchPattern
     if (step.wizardConfig?.stitchPattern) {
-      pattern = step.wizardConfig.stitchPattern.pattern || 
-               step.wizardConfig.stitchPattern.category;
+      pattern = step.wizardConfig.stitchPattern.pattern ||
+        step.wizardConfig.stitchPattern.category;
     }
-    
+
     // Check advanced wizard config
     if (!pattern && step.advancedWizardConfig?.stitchPattern) {
-      pattern = step.advancedWizardConfig.stitchPattern.pattern || 
-               step.advancedWizardConfig.stitchPattern.category;
+      pattern = step.advancedWizardConfig.stitchPattern.pattern ||
+        step.advancedWizardConfig.stitchPattern.category;
     }
-    
+
     // Parse from description as fallback
     if (!pattern) {
       const desc = step.description.toLowerCase();
-      
+
       if (desc.includes('cast on')) pattern = 'Cast On';
       else if (desc.includes('bind off')) pattern = 'Bind Off';
       else if (desc.includes('stockinette')) pattern = 'Stockinette';
@@ -63,27 +63,27 @@ const ManageSteps = ({ componentIndex, onBack }) => {
         pattern = words.slice(0, 2).join(' ');
       }
     }
-    
+
     // Add shaping info if applicable
     const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
-    
+
     if (hasShaping && pattern !== 'Cast On' && pattern !== 'Bind Off') {
-      const shapingType = step.wizardConfig?.shapingConfig?.shapingType || 
-                         step.advancedWizardConfig?.shapingConfig?.shapingType || 'changes';
+      const shapingType = step.wizardConfig?.shapingConfig?.shapingType ||
+        step.advancedWizardConfig?.shapingConfig?.shapingType || 'changes';
       return `${pattern} with ${shapingType}s`;
     }
-    
+
     return pattern || 'Unknown Pattern';
   };
 
   const getMethodDisplay = (step) => {
     const pattern = getPatternDisplay(step);
-    
+
     if (pattern === 'Cast On' && step.wizardConfig?.stitchPattern?.method) {
       const methodId = step.wizardConfig.stitchPattern.method;
       const methodMap = {
         'long_tail': 'Long Tail',
-        'cable': 'Cable Cast On', 
+        'cable': 'Cable Cast On',
         'provisional': 'Provisional',
         'german_twisted': 'German Twisted',
         'backward_loop': 'Backward Loop',
@@ -91,7 +91,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
       };
       return ` - ${methodMap[methodId] || methodId}`;
     }
-    
+
     if (pattern === 'Bind Off' && step.wizardConfig?.stitchPattern?.method) {
       const methodId = step.wizardConfig.stitchPattern.method;
       const methodMap = {
@@ -104,7 +104,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
       };
       return ` - ${methodMap[methodId] || methodId}`;
     }
-    
+
     return '';
   };
 
@@ -124,7 +124,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   // BUT only if component is not finished
   const getEditableStepIndex = () => {
     if (isComponentFinished()) return -1; // No editing if component is finished
-    
+
     for (let i = component.steps.length - 1; i >= 0; i--) {
       if (!component.steps[i].completed) {
         return i;
@@ -137,10 +137,10 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
   const handleDeleteStep = () => {
     if (editableStepIndex === -1) return;
-    
+
     const stepToDelete = component.steps[editableStepIndex];
     const confirmed = window.confirm(`Delete "${stepToDelete.description}"? This cannot be undone.`);
-    
+
     if (confirmed) {
       dispatch({
         type: 'DELETE_STEP',
@@ -171,7 +171,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     event.stopPropagation();
     const stepToDelete = component.steps[stepIndex];
     const confirmed = window.confirm(`Delete "${stepToDelete.description}"? This cannot be undone.`);
-    
+
     if (confirmed) {
       dispatch({
         type: 'DELETE_STEP',
@@ -184,17 +184,17 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const handleCopyStepPattern = (stepIndex, event) => {
     event.stopPropagation();
     const step = component.steps[stepIndex];
-    
+
     // Create a simplified pattern description for copying
     let patternDescription = '';
     if (step.wizardConfig?.stitchPattern) {
       const pattern = step.wizardConfig.stitchPattern.pattern || step.wizardConfig.stitchPattern.category;
       patternDescription = pattern;
-      
+
       if (step.wizardConfig.duration?.type === 'rows' && step.wizardConfig.duration?.value) {
         patternDescription += ` for ${step.wizardConfig.duration.value} rows`;
       }
-      
+
       if (step.advancedWizardConfig?.hasShaping) {
         const shaping = step.advancedWizardConfig.shapingConfig;
         patternDescription += ` with ${shaping.shapingType}s`;
@@ -203,17 +203,17 @@ const ManageSteps = ({ componentIndex, onBack }) => {
       // Fallback to step description
       patternDescription = step.description;
     }
-    
+
     const copied = window.prompt(
-      'Copy this pattern for reuse:\n\n(You can modify this before using it in a new step)', 
+      'Copy this pattern for reuse:\n\n(You can modify this before using it in a new step)',
       patternDescription
     );
-    
+
     if (copied && copied.trim() !== '') {
       // For now, just show success - in the future this could auto-populate the step wizard
       alert(`Pattern copied: "${copied.trim()}"\n\nYou can use this when creating your next step!`);
     }
-    
+
     setOpenMenuId(null);
   };
 
@@ -245,8 +245,8 @@ const ManageSteps = ({ componentIndex, onBack }) => {
         }
       },
       construction: 'flat',
-      startingStitches: component.steps.length > 0 ? 
-        component.steps[component.steps.length - 1]?.endingStitches || 
+      startingStitches: component.steps.length > 0 ?
+        component.steps[component.steps.length - 1]?.endingStitches ||
         component.steps[component.steps.length - 1]?.expectedStitches || 0 : 0,
       endingStitches: 0,
       totalRows: 1
@@ -256,7 +256,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
       type: 'ADD_CALCULATED_STEP',
       payload: { componentIndex, step: bindOffStep }
     });
-    
+
     setShowEndingWizard(false);
   };
 
@@ -290,11 +290,13 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
         {/* Header */}
-<PageHeader 
-  title="Manage Steps"
-  subtitle={component.name} 
-  onBack={onBack} 
-/>
+        <PageHeader
+          title="Manage Steps"
+          subtitle={component.name}
+          onBack={onBack}
+          showCancelButton={true}
+          onCancel={onBack}
+        />
 
         <div className="p-6 bg-yarn-50 stack-lg">
           {/* Component Summary */}
@@ -308,7 +310,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                 <span>{component.steps.length} steps</span>
                 <span>{component.steps.filter(s => s.completed).length} completed</span>
                 <span>
-                  {component.steps.length > 0 ? 
+                  {component.steps.length > 0 ?
                     `${component.steps[0]?.startingStitches || 0} → ${component.steps[component.steps.length - 1]?.endingStitches || 0} sts` :
                     '0 → 0 sts'
                   }
@@ -326,14 +328,14 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                   {component.steps.filter(s => s.completed).length} of {component.steps.length}
                 </span>
               </div>
-              
+
               {component.steps.map((step, stepIndex) => {
                 const isEditable = stepIndex === editableStepIndex;
                 const isCompleted = step.completed;
                 const isSpecial = isSpecialStep(step);
-                
+
                 return (
-                  <div 
+                  <div
                     key={step.id}
                     className="bg-sage-50 border-sage-300 border-2 rounded-xl p-4 transition-all duration-200"
                   >
@@ -341,16 +343,15 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                       <div className="w-7 h-7 rounded-full bg-sage-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                         {stepIndex + 1}
                       </div>
-                      
+
                       <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0 flex-1 text-left">
-                            <h4 className={`text-sm font-semibold mb-1 text-left ${
-                              isCompleted ? 'text-wool-600' : 'text-wool-700'
-                            }`}>
+                            <h4 className={`text-sm font-semibold mb-1 text-left ${isCompleted ? 'text-wool-600' : 'text-wool-700'
+                              }`}>
                               {getPatternDisplay(step)}{getMethodDisplay(step)}
                             </h4>
-                            
+
                             <div className="flex items-center gap-3 text-xs text-wool-500 text-left">
                               <span>
                                 {step.startingStitches || 0} → {step.endingStitches || step.expectedStitches || 0} sts
@@ -361,7 +362,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                               <span>{step.construction || 'flat'}</span>
                             </div>
                           </div>
-                          
+
                           {/* NEW: Three-dot menu for editable steps OR bind-off steps */}
                           {(isEditable && !isComponentFinished()) || (isSpecial && getPatternDisplay(step) === 'Bind Off') ? (
                             <div className="relative flex-shrink-0">
@@ -370,9 +371,9 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                                 className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-100 rounded-full transition-colors"
                               >
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                  <circle cx="8" cy="3" r="1.5"/>
-                                  <circle cx="8" cy="8" r="1.5"/>
-                                  <circle cx="8" cy="13" r="1.5"/>
+                                  <circle cx="8" cy="3" r="1.5" />
+                                  <circle cx="8" cy="8" r="1.5" />
+                                  <circle cx="8" cy="13" r="1.5" />
                                 </svg>
                               </button>
 
@@ -395,7 +396,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                                       </button>
                                     </>
                                   )}
-                                  
+
                                   {/* Special case for Bind Off steps */}
                                   {isSpecial && getPatternDisplay(step) === 'Bind Off' && (
                                     <button
