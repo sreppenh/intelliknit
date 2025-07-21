@@ -7,8 +7,8 @@ import PhaseConfig from './shaping-wizard/PhaseConfig';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 
-const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack, setConstruction, setCurrentStitches,
-  component, onExitToComponentSteps }) => {
+const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack,
+  setConstruction, setCurrentStitches, component, componentIndex, onExitToComponentSteps }) => {
   IntelliKnitLogger.debug('ShapingWizard props', { construction, currentStitches });
   const [step, setStep] = useState(1);
   const [shapingData, setShapingData] = useState({
@@ -104,6 +104,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             setShapingData={setShapingData}
             currentStitches={currentStitches}
             construction={construction}
+            componentIndex={componentIndex} // ← ADD THIS LINE
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
           />
@@ -116,6 +117,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             setShapingData={setShapingData}
             currentStitches={currentStitches}
             construction={construction}
+            componentIndex={componentIndex} // ← ADD THIS LINE
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
 

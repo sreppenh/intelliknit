@@ -1,12 +1,15 @@
 import React, { useState } from 'react';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
-
 import IncrementInput from '../../../../shared/components/IncrementInput';
+import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+
 const EvenDistributionConfig = ({
   shapingData,
   setShapingData,
   currentStitches,
   construction,
+  componentIndex,
   onComplete,
   onBack
 }) => {
@@ -15,6 +18,10 @@ const EvenDistributionConfig = ({
     amount: 1,
     description: ''
   });
+
+  // These are added to accommodate for the new StepSaveHelper function
+  const { dispatch } = useProjectsContext();
+  const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
 
   // Even distribution calculator (simplified - always uses construction from header)
   const calculateEvenDistribution = () => {
@@ -134,6 +141,8 @@ const EvenDistributionConfig = ({
 
   const result = calculateEvenDistribution();
 
+
+  /*
   const handleComplete = () => {
     onComplete({
       ...config,
@@ -141,6 +150,47 @@ const EvenDistributionConfig = ({
       calculation: result
     });
   };
+  */
+
+  const handleComplete = async () => {
+    console.log('🔧 HANDLE COMPLETE CALLED');
+    // 🎯 PRESERVE: Original data structure and flow - EXACTLY as before
+    const originalShapingData = {
+      ...config,
+      construction,
+      calculation: result
+    };
+
+    // ✅ ADD: Save the step (but don't interfere with anything else)
+    const saveResult = await saveStepAndNavigate({
+      instruction: result.instruction,
+      effect: {
+        success: !result.error,
+        endingStitches: result.endingStitches,
+        startingStitches: result.startingStitches,
+        totalRows: 1,
+        error: result.error
+      },
+      wizardData: {
+        stitchPattern: { pattern: 'Even Distribution' },
+        hasShaping: true,
+        shapingConfig: {
+          type: 'even_distribution',
+          config: originalShapingData
+        }
+      },
+      currentStitches,
+      construction,
+      componentIndex,
+      dispatch,
+      skipNavigation: true // Don't interfere with existing navigation
+    });
+
+    // 🔧 PRESERVE: Call original onComplete - EXACTLY as before
+    onComplete(originalShapingData);
+  };
+
+
 
   return (
     <div className="p-6 stack-lg">
@@ -295,12 +345,18 @@ const EvenDistributionConfig = ({
         </button>
         <button
           onClick={handleComplete}
-          disabled={!result.instruction || result.changeCount === 0 || result.error}
+          disabled={!result.instruction || result.changeCount === 0 || result.error || isLoading}
           className="btn-primary flex-1"
         >
-          Complete Step
+          {isLoading ? 'Saving...' : 'Complete Step'}
         </button>
       </div>
+      <StepSaveErrorModal
+        isOpen={!!error}
+        error={error}
+        onClose={clearError}
+        onRetry={handleComplete}
+      />
     </div>
   );
 };
