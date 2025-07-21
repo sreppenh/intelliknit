@@ -143,7 +143,7 @@ const PhaseConfigSummary = ({
               disabled={!result.instruction || result.error || phases.length === 0}
               className="btn-primary flex-1"
             >
-              Create Step
+              Complete Step
             </button>
           </div>
         </>

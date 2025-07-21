@@ -252,7 +252,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
                 >
-                  Create Step
+                  Complete Step
                 </button>
               </div>
             </div>
