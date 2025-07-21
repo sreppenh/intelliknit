@@ -298,7 +298,7 @@ const EvenDistributionConfig = ({
           disabled={!result.instruction || result.changeCount === 0 || result.error}
           className="btn-primary flex-1"
         >
-          Add Step
+          Create Step
         </button>
       </div>
     </div>

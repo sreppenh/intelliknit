@@ -1,7 +1,7 @@
 // src/features/steps/components/shaping-wizard/PhaseConfigSummary.jsx
 import React from 'react';
 
-const PhaseConfigSummary = ({ 
+const PhaseConfigSummary = ({
   phases,
   phaseTypes,
   result,
@@ -34,9 +34,9 @@ const PhaseConfigSummary = ({
           <div className="help-block mb-6 mx-4">
             <div className="text-xs font-semibold text-sage-700 mb-1 text-left">Example: Sleeve Cap Shaping</div>
             <div className="text-xs text-sage-600 text-left">
-              • Work 6 plain rows<br/>
-              • Dec 1 at each end every other row 5 times<br/>
-              • Work 2 plain rows<br/>
+              • Work 6 plain rows<br />
+              • Dec 1 at each end every other row 5 times<br />
+              • Work 2 plain rows<br />
               • Dec 1 at each end every row 3 times
             </div>
           </div>
@@ -52,7 +52,7 @@ const PhaseConfigSummary = ({
           {/* Phase Summary List */}
           <div>
             <h3 className="text-lg font-semibold text-wool-700 mb-3 text-left">Your Sequence</h3>
-            
+
             <div className="stack-sm">
               {phases.map((phase, index) => (
                 <div key={phase.id} className="card">
@@ -100,32 +100,32 @@ const PhaseConfigSummary = ({
             Add Another Phase
           </button>
 
-{/* Error Display */}
-{result.error && (
-  <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-    <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
-    <div className="text-sm text-red-600">
-      {result.error}
-    </div>
-  </div>
-)}
+          {/* Error Display */}
+          {result.error && (
+            <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+              <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
+              <div className="text-sm text-red-600">
+                {result.error}
+              </div>
+            </div>
+          )}
 
-{/* Step Description */}
-<div>
-  <label className="form-label">
-    Step Description <span className="text-wool-400">(Optional)</span>
-  </label>
-  <textarea
-    value={stepDescription}
-    onChange={(e) => setStepDescription(e.target.value)}
-    placeholder="e.g., sleeve decrease shaping, waist shaping, shoulder cap decreases..."
-    rows={3}
-    className="input-field-lg resize-none"
-  />
-  <div className="form-help">
-    Add a meaningful description to help identify this shaping sequence in your step list
-  </div>
-</div>
+          {/* Step Description */}
+          <div>
+            <label className="form-label">
+              Step Description <span className="text-wool-400">(Optional)</span>
+            </label>
+            <textarea
+              value={stepDescription}
+              onChange={(e) => setStepDescription(e.target.value)}
+              placeholder="e.g., sleeve decrease shaping, waist shaping, shoulder cap decreases..."
+              rows={3}
+              className="input-field-lg resize-none"
+            />
+            <div className="form-help">
+              Add a meaningful description to help identify this shaping sequence in your step list
+            </div>
+          </div>
 
 
 
@@ -143,7 +143,7 @@ const PhaseConfigSummary = ({
               disabled={!result.instruction || result.error || phases.length === 0}
               className="btn-primary flex-1"
             >
-              Add Step
+              Create Step
             </button>
           </div>
         </>
