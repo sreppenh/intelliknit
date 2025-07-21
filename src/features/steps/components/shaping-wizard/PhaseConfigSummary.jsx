@@ -1,13 +1,18 @@
 // src/features/steps/components/shaping-wizard/PhaseConfigSummary.jsx
 import React from 'react';
+import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
 const PhaseConfigSummary = ({
   phases,
   phaseTypes,
   result,
   construction,
+  currentStitches, //NEW
   stepDescription,        // NEW: Add this line
   setStepDescription,     // NEW: Add this line
+  componentIndex,
   onAddPhase,
   onEditPhase,
   onDeletePhase,
@@ -15,6 +20,57 @@ const PhaseConfigSummary = ({
   onComplete,
   getPhaseDescription
 }) => {
+
+  // ✅ ADD THE HELPER HOOKS RIGHT HERE:
+  const { dispatch } = useProjectsContext();
+  const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
+
+  // ✅ ADD THIS FUNCTION RIGHT HERE:
+  const handleCompleteStep = async () => {
+
+    console.log('🔧 PHASE HANDLE COMPLETE CALLED');
+    console.log('🔧 PHASE DATA:', { phases, result, currentStitches, componentIndex });
+
+
+    // 🎯 PRESERVE: Original data structure that parent expects
+    const originalPhaseData = {
+      phases: phases,
+      construction: construction,
+      calculation: result,
+      description: stepDescription
+    };
+
+    // ✅ ADD: Save the step using our helper
+    const saveResult = await saveStepAndNavigate({
+      instruction: result.instruction,
+      effect: {
+        success: !result.error,
+        endingStitches: result.calculation?.endingStitches || currentStitches,
+        startingStitches: result.calculation?.startingStitches || currentStitches,
+        totalRows: result.calculation?.totalRows || 1,
+        error: result.error
+      },
+      wizardData: {
+        stitchPattern: { pattern: 'Sequential Phases' },
+        hasShaping: true,
+        shapingConfig: {
+          type: 'phases',
+          config: originalPhaseData
+        }
+      },
+      currentStitches,
+      construction,
+      componentIndex,
+      dispatch,
+      skipNavigation: true
+    });
+
+    if (saveResult.success) {
+      // 🔧 PRESERVE: Call original onComplete to maintain parent logic
+      onComplete(originalPhaseData);
+    }
+  };
+
   return (
     <div className="p-6 stack-lg">
       {/* Header */}
@@ -139,15 +195,24 @@ const PhaseConfigSummary = ({
               ← Back
             </button>
             <button
-              onClick={onComplete}
+              onClick={handleCompleteStep}
               disabled={!result.instruction || result.error || phases.length === 0}
               className="btn-primary flex-1"
             >
-              Complete Step
+
+              {isLoading ? 'Saving...' : 'Complete Step'}
             </button>
           </div>
         </>
       )}
+
+
+      <StepSaveErrorModal
+        isOpen={!!error}
+        error={error}
+        onClose={clearError}
+        onRetry={handleCompleteStep}
+      />
     </div>
   );
 };
