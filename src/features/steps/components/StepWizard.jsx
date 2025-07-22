@@ -7,7 +7,7 @@ import WizardHeader from './wizard-layout/WizardHeader';
 import PatternSelector from './wizard-steps/PatternSelector';
 import PatternConfiguration from './wizard-steps/PatternConfiguration';
 import DurationChoice from './wizard-steps/DurationChoice';
-import StepPreview from './wizard-steps/StepPreview';
+// import StepPreview from './wizard-steps/StepPreview';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import DurationShapingChoice from './wizard-steps/DurationShapingChoice';
 import { createWizardNavigator, shouldSkipConfiguration, shouldShowNavigation } from './wizard-navigation/WizardNavigator';
@@ -239,18 +239,18 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
           />
         );
 
-      case 5:
-        // Preview step (has custom buttons, no nav needed)
-        return (
-          <StepPreview
-            wizard={wizard}
-            onAddStep={handleAddStep}
-            onAddStepAndContinue={handleAddStepAndContinue}
-            onFinishComponent={wizardState.handleFinishComponent}
-            onBack={onBack}
-            prepNote={wizard.wizardData.prepNote || ''}
-          />
-        );
+      /*   case 5:
+          // Preview step (has custom buttons, no nav needed)
+          return (
+            <StepPreview
+              wizard={wizard}
+              onAddStep={handleAddStep}
+              onAddStepAndContinue={handleAddStepAndContinue}
+              onFinishComponent={wizardState.handleFinishComponent}
+              onBack={onBack}
+              prepNote={wizard.wizardData.prepNote || ''}
+            />
+          ); */
 
       default:
         return <div>Step not found</div>;
