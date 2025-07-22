@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
+import PageHeader from '../../../shared/components/PageHeader';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const { projects, dispatch } = useProjectsContext();
@@ -160,25 +162,12 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
 
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-              >
-                ←
-              </button>
-            )}
-            <div className="flex-1 text-center">
-              <div className="text-2xl mb-1">🧶</div>
-              <h1 className="text-xl font-bold mb-0.5">IntelliKnit</h1>
-              <p className="text-sage-100 text-xs">Ready to knit something amazing?</p>
-            </div>
-            {/* Spacer to center the content when back button is present */}
-            {onBack && <div className="w-10"></div>}
-          </div>
-        </div>
+        <PageHeader
+          title="🧶 IntelliKnit"
+          subtitle="Ready to knit something amazing?"
+          onBack={onBack}
+          showBackButton={!!onBack}
+        />
 
         <div className="p-4 bg-yarn-50">
 
@@ -245,8 +234,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                       key={project.id}
                       onClick={() => handleCardClick(project)}
                       className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 relative ${isTopProject
-                          ? 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02]'
-                          : 'bg-white border-wool-200'
+                        ? 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02]'
+                        : 'bg-white border-wool-200'
                         }`}
                     >
                       {/* Project Header */}
@@ -345,10 +334,10 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                               }
                             }}
                             className={`w-full py-3 px-4 rounded-xl font-semibold text-base transition-colors shadow-sm flex items-center justify-center gap-2 ${status === 'completed'
-                                ? 'bg-sage-500 text-white hover:bg-sage-600'
-                                : isTopProject
-                                  ? 'bg-sage-600 text-white hover:bg-sage-700 shadow-md'
-                                  : 'bg-yarn-600 text-white hover:bg-yarn-700'
+                              ? 'bg-sage-500 text-white hover:bg-sage-600'
+                              : isTopProject
+                                ? 'bg-sage-600 text-white hover:bg-sage-700 shadow-md'
+                                : 'bg-yarn-600 text-white hover:bg-yarn-700'
                               }`}
                           >
                             <span className="text-lg">{getKnittingButtonIcon(project)}</span>

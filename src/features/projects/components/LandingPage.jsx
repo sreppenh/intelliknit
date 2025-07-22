@@ -1,11 +1,13 @@
 import React from 'react';
+import PageHeader from '../../../shared/components/PageHeader';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNotepad }) => {
-  
+
   // Smart greeting based on time of day
   const getGreeting = () => {
     const hour = new Date().getHours();
-    
+
     if (hour < 12) {
       return "Good morning! Ready to knit?";
     } else if (hour < 17) {
@@ -28,15 +30,12 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        
-        {/* Header with app branding */}
-        <div className="bg-sage-500 text-white px-6 py-6">
-          <div className="text-center">
-            <div className="text-3xl mb-2">🧶</div>
-            <h1 className="text-xl font-bold">IntelliKnit</h1>
-          </div>
-        </div>
 
+        {/* Header with app branding */}
+        <PageHeader
+          title="🧶 IntelliKnit"
+          showBackButton={false}
+        />
         {/* Greeting Section */}
         <div className="px-6 py-6 bg-gradient-to-b from-sage-100 to-yarn-50">
           <div className="text-center">
@@ -51,10 +50,10 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
 
         {/* Action Cards - 2x2 Grid */}
         <div className="p-6 space-y-4">
-          
+
           {/* Top Row */}
           <div className="grid-2-equal">
-            
+
             {/* Add New Project - Top Left */}
             <button
               onClick={onAddNewProject}
@@ -78,7 +77,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
 
           {/* Bottom Row */}
           <div className="grid-2-equal">
-            
+
             {/* View Projects - Bottom Left */}
             <button
               onClick={onViewProjects}
@@ -97,7 +96,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
               <div className="text-4xl mb-3">📝</div>
               <div className="font-semibold text-base text-wool-700 mb-1">Notepad</div>
               <div className="text-xs text-wool-500">Quick notes & calculations</div>
-              
+
               {/* Coming Soon Badge */}
               <div className="absolute top-2 right-2 badge badge-coming-soon">
                 Soon
