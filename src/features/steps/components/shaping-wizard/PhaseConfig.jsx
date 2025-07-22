@@ -17,6 +17,7 @@ const PhaseConfig = ({
   currentStitches,
   construction,
   componentIndex, // ADDED
+  onExitToComponentSteps,
   onComplete,
   onBack
 }) => {
@@ -92,6 +93,7 @@ const PhaseConfig = ({
         stepDescription={stepDescription}        // NEW: Add this line
         setStepDescription={setStepDescription}  // NEW: Add this line
         componentIndex={componentIndex} // also added
+        onExitToComponentSteps={onExitToComponentSteps}
         onAddPhase={handleAddPhase}
         onEditPhase={handleEditPhase}
         onDeletePhase={handleDeletePhase}

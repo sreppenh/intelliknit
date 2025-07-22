@@ -10,6 +10,7 @@ const EvenDistributionConfig = ({
   currentStitches,
   construction,
   componentIndex,
+  onExitToComponentSteps,
   onComplete,
   onBack
 }) => {
@@ -187,7 +188,9 @@ const EvenDistributionConfig = ({
     });
 
     // 🔧 PRESERVE: Call original onComplete - EXACTLY as before
-    onComplete(originalShapingData);
+    //onComplete(originalShapingData);
+    onExitToComponentSteps(); // You'll need to pass this prop down
+
   };
 
 

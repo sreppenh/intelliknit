@@ -105,6 +105,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             currentStitches={currentStitches}
             construction={construction}
             componentIndex={componentIndex} // ← ADD THIS LINE
+            onExitToComponentSteps={onExitToComponentSteps} // ← ADD THIS LINE
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
           />
@@ -118,6 +119,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             currentStitches={currentStitches}
             construction={construction}
             componentIndex={componentIndex} // ← ADD THIS LINE
+            onExitToComponentSteps={onExitToComponentSteps} // ← ADD THIS LINE
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
 

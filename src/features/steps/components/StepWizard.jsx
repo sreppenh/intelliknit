@@ -76,6 +76,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         setCurrentStitches={wizard.setCurrentStitches}
         component={wizard.component}
         componentIndex={wizard.componentIndex} // ← ADD THIS LINE
+        onExitToComponentSteps={onBack} // ← ADD THIS LINE
         onBack={() => {
           setShowShapingWizard(false);
           // If shaping was completed (hasShaping=true), advance to next step
@@ -88,7 +89,6 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
           }
           // If hasShaping is still undefined/false, just return to where we came from
         }}
-        onExitToComponentSteps={onBack}
       />
     );
   }

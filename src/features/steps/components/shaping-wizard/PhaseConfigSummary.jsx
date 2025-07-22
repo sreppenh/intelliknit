@@ -13,6 +13,7 @@ const PhaseConfigSummary = ({
   stepDescription,        // NEW: Add this line
   setStepDescription,     // NEW: Add this line
   componentIndex,
+  onExitToComponentSteps,
   onAddPhase,
   onEditPhase,
   onDeletePhase,
@@ -67,7 +68,8 @@ const PhaseConfigSummary = ({
 
     if (saveResult.success) {
       // 🔧 PRESERVE: Call original onComplete to maintain parent logic
-      onComplete(originalPhaseData);
+      onExitToComponentSteps(); // You'll need to pass this prop down
+      //onComplete(originalPhaseData);
     }
   };
 
