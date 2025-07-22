@@ -40,8 +40,8 @@ const ShapingTypeSelector = ({ onTypeSelect, currentStitches, construction }) =>
   return (
     <div className="stack-lg">
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">Choose Shaping Method</h2>
-        <p className="text-wool-500 mb-4">How do you want to shape your {currentStitches} stitches?</p>
+        <h2 className="content-header-primary">Choose Shaping Method</h2>
+        <p className="content-subheader">How do you want to shape your {currentStitches} stitches?</p>
       </div>
 
       {/* Shaping Type Cards */}

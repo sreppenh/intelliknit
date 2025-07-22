@@ -1,7 +1,7 @@
 // src/features/steps/components/shaping-wizard/PhaseConfigTypeSelector.jsx
 import React from 'react';
 
-const PhaseConfigTypeSelector = ({ 
+const PhaseConfigTypeSelector = ({
   phaseTypes,
   onTypeSelect,
   onBackToSummary,
@@ -14,7 +14,7 @@ const PhaseConfigTypeSelector = ({
       {/* Header */}
       <div>
         <h2 className="content-header-primary">Phase {phaseNumber}: Choose Phase Type</h2>
-        <p className="content-subtitle">What kind of shaping do you want to add?</p>
+        <p className="content-subheader">What kind of shaping do you want to add?</p>
       </div>
 
       {/* Phase Type Grid */}
@@ -34,11 +34,11 @@ const PhaseConfigTypeSelector = ({
 
       {/* Back Button */}
       <button
-  onClick={onBackToSummary}
-  className="btn-tertiary w-full"
->
-  {phases.length === 0 ? '← Back' : '← Back to Summary'}
-</button>
+        onClick={onBackToSummary}
+        className="btn-tertiary w-full"
+      >
+        {phases.length === 0 ? '← Back' : '← Back to Summary'}
+      </button>
     </div>
   );
 };

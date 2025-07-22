@@ -3,8 +3,8 @@ import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig 
 
 const PATTERN_CATEGORIES = {
   // Quick Selection Categories
-  basic: { 
-    name: 'Basic Stitches', 
+  basic: {
+    name: 'Basic Stitches',
     icon: '📐',
     type: 'quick',
     patterns: [
@@ -13,8 +13,8 @@ const PATTERN_CATEGORIES = {
       { name: 'Reverse Stockinette', icon: '⬛', desc: 'Purl side showing' }
     ]
   },
-  rib: { 
-    name: 'Ribbing', 
+  rib: {
+    name: 'Ribbing',
     icon: '〰️',
     type: 'quick',
     patterns: [
@@ -41,26 +41,26 @@ const PATTERN_CATEGORIES = {
       { name: 'Broken Rib', icon: '💔', desc: 'Interrupted ribbing pattern' }
     ]
   },
-  
+
   // Advanced Categories
-  lace: { 
-    name: 'Lace', 
+  lace: {
+    name: 'Lace',
     icon: '🕸️',
     type: 'advanced',
     patterns: [
       { name: 'Lace Pattern', icon: '🕸️', desc: 'Define your lace pattern' }
     ]
   },
-  cable: { 
-    name: 'Cables', 
+  cable: {
+    name: 'Cables',
     icon: '🔗',
     type: 'advanced',
     patterns: [
       { name: 'Cable Pattern', icon: '🔗', desc: 'Define your cable pattern' }
     ]
   },
-  colorwork: { 
-    name: 'Colorwork', 
+  colorwork: {
+    name: 'Colorwork',
     icon: '🌈',
     type: 'advanced',
     patterns: [
@@ -81,10 +81,10 @@ const PATTERN_CATEGORIES = {
   }
 };
 
-export const PatternSelector = ({ 
-  wizardData, 
-  updateWizardData, 
-  navigation, 
+export const PatternSelector = ({
+  wizardData,
+  updateWizardData,
+  navigation,
   onCreatePrepStep,
   existingPrepNote = '', // NEW: prop for existing note
   onSavePrepNote // NEW: callback to save note to wizard state
@@ -115,9 +115,9 @@ export const PatternSelector = ({
 
   const handleAdvancedCategorySelect = (categoryKey) => {
     const category = PATTERN_CATEGORIES[categoryKey];
-    
+
     if (category.patterns.length === 1) {
-      updateWizardData('stitchPattern', { 
+      updateWizardData('stitchPattern', {
         category: categoryKey,
         pattern: category.patterns[0].name,
         customText: '',
@@ -126,7 +126,7 @@ export const PatternSelector = ({
       });
       navigation.nextStep();
     } else {
-      updateWizardData('stitchPattern', { 
+      updateWizardData('stitchPattern', {
         category: categoryKey,
         pattern: null,
         customText: '',
@@ -137,14 +137,14 @@ export const PatternSelector = ({
   };
 
   const handlePatternSelect = (categoryKey, pattern) => {
-    updateWizardData('stitchPattern', { 
+    updateWizardData('stitchPattern', {
       category: categoryKey,
       pattern: pattern.name,
       customText: '',
       rowsInPattern: '',
       method: ''
     });
-    
+
     setTimeout(() => {
       navigation.goToStep(3);
     }, 10);
@@ -163,13 +163,13 @@ export const PatternSelector = ({
   // Show pattern selection screen for advanced categories
   if (selectedCategory && !selectedPattern && PATTERN_CATEGORIES[selectedCategory]?.type === 'advanced') {
     const category = PATTERN_CATEGORIES[selectedCategory];
-    
+
     return (
       <>
         <div className="space-y-4 relative">
-          
+
           {/* Prep Note Button - Enhanced with state */}
-          <PrepStepButton 
+          <PrepStepButton
             onClick={handleOpenOverlay}
             hasNote={hasNote}
             notePreview={notePreview}
@@ -179,7 +179,7 @@ export const PatternSelector = ({
           />
 
           <div>
-            <h2 className="text-lg font-semibold text-wool-700 mb-1">Configure {category.name}</h2>
+            <h2 className="content-header-secondary mb-1">Configure {category.name}</h2>
             <p className="text-sm text-wool-500">Define your pattern details</p>
           </div>
 
@@ -221,20 +221,20 @@ export const PatternSelector = ({
   return (
     <>
       <div className="space-y-4 relative">
-        
+
         {/* Prep Note Button - Enhanced with state indicator */}
-        <PrepStepButton 
+        {/*}    <PrepStepButton
           onClick={handleOpenOverlay}
           hasNote={hasNote}
           notePreview={notePreview}
           position="top-right"
           size="normal"
           variant="ghost"
-        />
+        /> */}
 
         {/* Compact Header */}
         <div className="text-center">
-          <h2 className="text-lg font-semibold text-wool-700">Choose Pattern</h2>
+          <h2 className="content-header-primary">Choose Pattern</h2>
         </div>
 
         {/* Basic Patterns Section with Drawer */}
@@ -246,11 +246,10 @@ export const PatternSelector = ({
                 <button
                   key={key}
                   onClick={() => handleQuickCategorySelect(key)}
-                  className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${
-                    selectedQuickCategory === key
-                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                      : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
-                  }`}
+                  className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${selectedQuickCategory === key
+                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                    : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
+                    }`}
                 >
                   <div className="text-xl mb-1">{category.icon}</div>
                   <div className="text-xs font-medium">{category.name}</div>
@@ -285,11 +284,10 @@ export const PatternSelector = ({
               <button
                 key={key}
                 onClick={() => handleAdvancedCategorySelect(key)}
-                className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${
-                  selectedCategory === key
-                    ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                    : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
-                }`}
+                className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${selectedCategory === key
+                  ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
+                  : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
+                  }`}
               >
                 <div className="text-xl mb-1">{category.icon}</div>
                 <div className="text-xs font-medium">{category.name}</div>

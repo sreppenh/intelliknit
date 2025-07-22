@@ -102,11 +102,11 @@ const ProjectOverview = ({ project, onEditProjectDetails }) => {
           {/* Project Stats */}
           <div className="mt-3">
             {/* Components Count */}
-            <div className="flex items-center text-sm">
+            {/*} <div className="flex items-center text-sm">
               <span className="text-wool-500 ml-auto">
                 {completedComponents} of {totalComponents} components complete
-              </span>
-            </div>
+              </span>  
+          </div> */}
 
             {/* Additional Project Details (if available) */}
             {(project.recipient || project.gauge || project.yarns?.length > 0) && (
@@ -127,7 +127,7 @@ const ProjectOverview = ({ project, onEditProjectDetails }) => {
           </div>
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 
@@ -261,8 +261,8 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               project={currentProject}
               onEditProjectDetails={onEditProjectDetails}
             />
-
-            <h2 className="text-xl font-semibold text-wool-700 text-left">Components</h2>
+            {/* <div className="stack-lg"></div>
+            <h2 className="content-header-secondary">Components</h2> */}
 
             {/* Components section */}
             <div className="stack-lg">
@@ -286,7 +286,6 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
                   ))}
                 </div>
               )}
-
               {/* Add Component button */}
               <button
                 onClick={() => setShowEnhancedCreation(true)}

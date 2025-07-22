@@ -57,7 +57,7 @@ export const ErrorMessage = ({ message, type = 'error', onDismiss }) => {
 // Form Validation Message
 export const ValidationError = ({ message }) => {
   if (!message) return null;
-  
+
   return (
     <div className="mt-2 flex items-center gap-2">
       <span className="text-sm">⚠️</span>
@@ -77,16 +77,16 @@ export const LoadingSpinner = ({ message = 'Working on it...' }) => (
 );
 
 // Empty State Component
-export const EmptyState = ({ 
-  icon = '📝', 
-  title = 'Nothing here yet', 
+export const EmptyState = ({
+  icon = '📝',
+  title = 'Nothing here yet',
   description = 'Get started by adding something new',
-  action 
+  action
 }) => (
   <div className="text-center py-12 bg-white rounded-xl border-2 border-wool-200 shadow-sm">
     <div className="text-4xl mb-4">{icon}</div>
     <h3 className="text-lg font-semibold text-wool-600 mb-2">{title}</h3>
-    <p className="text-wool-500 mb-4">{description}</p>
+    <p className="content-subheader">{description}</p>
     {action && action}
   </div>
 );
@@ -123,7 +123,7 @@ export const ErrorFallback = ({ error, resetError }) => (
           <p className="text-red-100 text-sm">We're sorry about that!</p>
         </div>
       </div>
-      
+
       <div className="p-6 bg-yarn-50">
         <div className="text-center mb-6">
           <p className="text-wool-600 mb-4">
@@ -146,7 +146,7 @@ export const ErrorFallback = ({ error, resetError }) => (
           >
             Try Again
           </button>
-          
+
           <button
             onClick={() => window.location.reload()}
             className="w-full btn-tertiary"

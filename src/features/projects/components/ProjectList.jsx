@@ -177,7 +177,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-wool-200 mb-4">
                 <div className="text-4xl mb-3">🏠</div>
                 <h2 className="text-xl font-bold text-wool-700 mb-2">Welcome to Your Craft Room!</h2>
-                <p className="text-wool-500 mb-4 leading-relaxed text-sm">
+                <p className="content-subheader leading-relaxed text-sm">
                   Ready to start your knitting journey? Create your first project and let's get those needles clicking!
                 </p>
 
@@ -211,7 +211,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           ) : (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-wool-700">Your Projects</h2>
+                <h2 className="content-header-primary">Your Projects</h2>
                 <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
                   {projects.length} project{projects.length !== 1 ? 's' : ''}
                 </span>

@@ -17,7 +17,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
     switch (pattern) {
       case 'Cast On':
         return (
-          <CastOnConfig 
+          <CastOnConfig
             wizardData={wizardData}
             updateWizardData={updateWizardData}
           />
@@ -25,7 +25,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
 
       case 'Bind Off':
         return (
-          <BindOffConfig 
+          <BindOffConfig
             wizardData={wizardData}
             updateWizardData={updateWizardData}
           />
@@ -33,7 +33,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
 
       default:
         return (
-          <BasicPatternConfig 
+          <BasicPatternConfig
             wizardData={wizardData}
             updateWizardData={updateWizardData}
           />
@@ -44,8 +44,8 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
   return (
     <div className="stack-lg">
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">Configure {pattern}</h2>
-      {/*  <p className="text-wool-500 mb-4">Set up the details for your {pattern.toLowerCase()}</p> */}
+        <h2 className="content-header-primary">Configure {pattern}</h2>
+        {/*  <p className="content-subheader">Set up the details for your {pattern.toLowerCase()}</p> */}
       </div>
 
       {renderPatternConfig()}

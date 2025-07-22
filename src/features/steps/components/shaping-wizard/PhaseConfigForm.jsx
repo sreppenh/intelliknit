@@ -81,7 +81,7 @@ const PhaseConfigForm = ({
           <span>{phaseType?.icon}</span>
           Phase {phaseNumber}: {phaseType?.name}
         </h2>
-        <p className="text-wool-500 mb-4 text-left">{phaseType?.description}</p>
+        <p className="content-subheader text-left">{phaseType?.description}</p>
       </div>
 
       {/* Configuration based on type */}
@@ -126,8 +126,8 @@ const PhaseConfigForm = ({
                       }));
                     }}
                     className={`w-full p-3 text-sm border-2 rounded-lg transition-colors ${tempPhaseConfig.amount === getStitchContext().availableStitches && tempPhaseConfig.frequency === 1
-                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                        : 'border-wool-200 hover:border-sage-300'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700'
+                      : 'border-wool-200 hover:border-sage-300'
                       }`}
                   >
                     Bind Off All Remaining ({getStitchContext().availableStitches} stitches)
@@ -176,10 +176,10 @@ const PhaseConfigForm = ({
                         onClick={() => wouldBeValid && setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
                         disabled={!wouldBeValid}
                         className={`p-3 text-sm border-2 rounded-lg transition-colors ${!wouldBeValid
-                            ? 'border-wool-200 bg-wool-100 text-wool-400 cursor-not-allowed'
-                            : tempPhaseConfig.frequency === option.value
-                              ? 'border-sage-500 bg-sage-100 text-sage-700'
-                              : 'border-wool-200 hover:border-sage-300'
+                          ? 'border-wool-200 bg-wool-100 text-wool-400 cursor-not-allowed'
+                          : tempPhaseConfig.frequency === option.value
+                            ? 'border-sage-500 bg-sage-100 text-sage-700'
+                            : 'border-wool-200 hover:border-sage-300'
                           }`}
                       >
                         {option.label}
@@ -266,8 +266,8 @@ const PhaseConfigForm = ({
                       });
                     }}
                     className={`p-3 text-sm border-2 rounded-lg transition-colors ${tempPhaseConfig.position === option.value
-                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                        : 'border-wool-200 hover:border-sage-300'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700'
+                      : 'border-wool-200 hover:border-sage-300'
                       }`}
                   >
                     {option.label}
@@ -296,8 +296,8 @@ const PhaseConfigForm = ({
                       key={option.value}
                       onClick={() => setTempPhaseConfig(prev => ({ ...prev, frequency: option.value }))}
                       className={`p-3 text-sm border-2 rounded-lg transition-colors ${tempPhaseConfig.frequency === option.value
-                          ? 'border-sage-500 bg-sage-100 text-sage-700'
-                          : 'border-wool-200 hover:border-sage-300'
+                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                        : 'border-wool-200 hover:border-sage-300'
                         }`}
                     >
                       {option.label}

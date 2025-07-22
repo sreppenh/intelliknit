@@ -68,7 +68,7 @@ const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect, o
           {/* Compact Welcome Message */}
           <div className="text-center">
             <div className="text-2xl mb-2">🧶</div>
-            <h2 className="text-lg font-semibold text-wool-700 mb-1">Let's Get Started!</h2>
+            <h2 className="content-header-secondary mb-1">Let's Get Started!</h2>
             <p className="text-wool-500 text-sm">What are you excited to create?</p>
           </div>
 

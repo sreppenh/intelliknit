@@ -194,13 +194,12 @@ const EvenDistributionConfig = ({
   };
 
 
-
   return (
     <div className="p-6 stack-lg">
       {/* Page Header */}
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">⚖️ Even Distribution</h2>
-        <p className="text-wool-500 mb-4">Spread increases or decreases evenly across the {construction === 'round' ? 'round' : 'row'}</p>
+        <h2 className="content-header-primary">⚖️ Even Distribution</h2>
+        <p className="content-subheader">Spread increases or decreases evenly across the {construction === 'round' ? 'round' : 'row'}</p>
       </div>
 
       {/* Action Selection - Radio button style with integrated input */}

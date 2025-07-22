@@ -334,16 +334,53 @@
 }
 
 .content-header-primary {
-  @apply text-xl font-semibold text-wool-700 mb-5 text-center;
+  @apply text-xl font-semibold text-wool-700 mb-3 text-center;
+  margin-top: 0 !important;
+  /* Override wrapper conflicts */
 }
 
 .content-header-secondary {
-  @apply text-lg font-semibold text-wool-700 mb-3 text-left;
+  @apply text-lg font-semibold text-wool-700 mb-3 text-center;
+  margin-top: 0 !important;
 }
 
 .content-subtitle {
-  @apply text-wool-500 mb-4 text-left;
+  @apply text-wool-500 mb-4 text-center;
+  margin-top: 0 !important;
 }
+
+/* ===== WRAPPER SPACING FIXES ===== */
+
+/* Fix: Remove space-y spacing from first content headers specifically */
+.space-y-4>div:first-child .content-header-primary,
+.space-y-4>div:first-child .content-header-secondary,
+.space-y-6>div:first-child .content-header-primary,
+.space-y-6>div:first-child .content-header-secondary,
+.stack-lg>div:first-child .content-header-primary,
+.stack-lg>div:first-child .content-header-secondary {
+  margin-top: 0 !important;
+}
+
+/* Fix: When the wrapper itself has space-y, the first div gets margin-top from Tailwind */
+.space-y-4>div:first-child {
+  margin-top: 0 !important;
+}
+
+.space-y-6>div:first-child {
+  margin-top: 0 !important;
+}
+
+.stack-lg>div:first-child {
+  margin-top: 0 !important;
+}
+
+/* Fix: Also handle when headers are direct children */
+.space-y-4>.content-header-primary:first-child,
+.space-y-6>.content-header-primary:first-child,
+.stack-lg>.content-header-primary:first-child {
+  margin-top: 0 !important;
+}
+
 
 /* Standard spacing after header sections to match current spacing patterns */
 .section-header {

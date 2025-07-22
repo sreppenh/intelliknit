@@ -109,7 +109,7 @@ const EditProjectDetails = ({ onBack }) => {
 
           {/* Basic Info Section */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
+            <h2 className="content-header-secondary flex items-center gap-2">
               📋 Basic Info
             </h2>
 
@@ -147,8 +147,8 @@ const EditProjectDetails = ({ onBack }) => {
                   <button
                     onClick={() => handleInputChange('defaultUnits', 'inches')}
                     className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'inches'
-                        ? 'bg-sage-500 text-white shadow-sm'
-                        : 'text-wool-600 hover:text-sage-600'
+                      ? 'bg-sage-500 text-white shadow-sm'
+                      : 'text-wool-600 hover:text-sage-600'
                       }`}
                   >
                     🇺🇸 Inches
@@ -157,8 +157,8 @@ const EditProjectDetails = ({ onBack }) => {
                   <button
                     onClick={() => handleInputChange('defaultUnits', 'cm')}
                     className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'cm'
-                        ? 'bg-sage-500 text-white shadow-sm'
-                        : 'text-wool-600 hover:text-sage-600'
+                      ? 'bg-sage-500 text-white shadow-sm'
+                      : 'text-wool-600 hover:text-sage-600'
                       }`}
                   >
                     🇪🇺 Centimeters
@@ -170,7 +170,7 @@ const EditProjectDetails = ({ onBack }) => {
 
           {/* Gauge Section - Prominent! */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
+            <h2 className="content-header-secondary flex items-center gap-2">
               📐 Gauge
             </h2>
 
@@ -196,7 +196,7 @@ const EditProjectDetails = ({ onBack }) => {
 
           {/* Materials Section */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
+            <h2 className="content-header-secondary flex items-center gap-2">
               🧶 Materials
             </h2>
 
@@ -267,7 +267,7 @@ const EditProjectDetails = ({ onBack }) => {
 
           {/* Project Details Section */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
+            <h2 className="content-header-secondary flex items-center gap-2">
               📝 Project Details
             </h2>
 
@@ -313,7 +313,7 @@ const EditProjectDetails = ({ onBack }) => {
 
           {/* Notes Section */}
           <div className="space-y-4">
-            <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
+            <h2 className="content-header-secondary flex items-center gap-2">
               💭 Notes
             </h2>
 

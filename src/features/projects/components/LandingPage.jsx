@@ -39,7 +39,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
         {/* Greeting Section */}
         <div className="px-6 py-6 bg-gradient-to-b from-sage-100 to-yarn-50">
           <div className="text-center">
-            <h2 className="text-xl font-semibold text-wool-700 mb-2">
+            <h2 className="content-header-primary">
               {getGreeting()}
             </h2>
             <p className="text-wool-500 text-sm">

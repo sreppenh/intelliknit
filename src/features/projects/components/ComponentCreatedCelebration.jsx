@@ -72,7 +72,7 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
           {/* Celebration Header */}
           <div className="text-center">
             <div className="text-4xl mb-3">🎉</div>
-            <h2 className="text-xl font-semibold text-sage-700 mb-1">{component.name} Ready!</h2>
+            <h2 className="content-header-primary">{component.name} Ready!</h2>
             <p className="text-wool-500 text-sm">Component successfully created</p>
           </div>
 
@@ -80,7 +80,7 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
           <div className="bg-gradient-to-r from-sage-50 to-yarn-50 border-2 border-sage-200 rounded-2xl p-5 shadow-sm">
 
             <div className="text-center mb-4">
-              <h3 className="text-lg font-semibold text-sage-700">{component.name}</h3>
+              <h3 className="content-header-secondary">{component.name}</h3>
               <p className="text-sage-600 text-sm">{component.startType?.replace('_', ' ')}</p>
             </div>
 

@@ -87,7 +87,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
           {/* Compact Welcome Message */}
           <div className="text-center">
             <div className="text-2xl mb-2">🧶</div>
-            <h2 className="text-lg font-semibold text-wool-700 mb-1">Project Details</h2>
+            <h2 className="content-header-secondary mb-1">Project Details</h2>
             <p className="text-wool-500 text-sm">Add more details later!</p>
           </div>
 

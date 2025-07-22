@@ -131,8 +131,8 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
         return (
           <div className="p-6 text-center">
             <div className="text-4xl mb-4">🚧</div>
-            <h3 className="text-lg font-semibold text-wool-700 mb-2">Coming Soon!</h3>
-            <p className="text-wool-500 mb-4">Single row repeat shaping is in development.</p>
+            <h3 className="content-header-secondary mb-2">Coming Soon!</h3>
+            <p className="content-subheader">Single row repeat shaping is in development.</p>
             <button
               onClick={() => setStep(1)}
               className="btn-tertiary btn-sm"
@@ -147,8 +147,8 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
         return (
           <div className="p-6 text-center">
             <div className="text-4xl mb-4">🚧</div>
-            <h3 className="text-lg font-semibold text-wool-700 mb-2">Coming Soon!</h3>
-            <p className="text-wool-500 mb-4">Marker-based shaping is in development.</p>
+            <h3 className="content-header-secondary mb-2">Coming Soon!</h3>
+            <p className="content-subheader">Marker-based shaping is in development.</p>
             <button
               onClick={() => setStep(1)}
               className="btn-tertiary btn-sm"

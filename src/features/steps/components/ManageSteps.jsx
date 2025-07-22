@@ -323,7 +323,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           {component.steps.length > 0 ? (
             <div className="stack-sm">
               <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-wool-700">Pattern Steps</h3>
+                <h3 className="content-header-secondary">Pattern Steps</h3>
                 <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
                   {component.steps.filter(s => s.completed).length} of {component.steps.length}
                 </span>
@@ -422,7 +422,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             <div className="text-center py-8 bg-white rounded-xl border-2 border-wool-200 shadow-sm">
               <div className="text-4xl mb-3">📝</div>
               <h3 className="text-lg font-semibold text-wool-600 mb-2">No Steps Yet</h3>
-              <p className="text-wool-500 mb-4">Add your first step to get started</p>
+              <p className="content-subheader">Add your first step to get started</p>
             </div>
           )}
 

@@ -6,39 +6,39 @@ const CastOnConfig = ({ wizardData, updateWizardData }) => {
   };
 
   const methods = [
-    { 
-      id: 'long_tail', 
-      name: 'Long Tail', 
+    {
+      id: 'long_tail',
+      name: 'Long Tail',
       icon: '🪢',
       description: 'Most common, stretchy edge'
     },
-    { 
-      id: 'cable', 
-      name: 'Cable Cast On', 
+    {
+      id: 'cable',
+      name: 'Cable Cast On',
       icon: '🔗',
       description: 'Firm, decorative edge'
     },
-    { 
-      id: 'provisional', 
-      name: 'Provisional', 
+    {
+      id: 'provisional',
+      name: 'Provisional',
       icon: '📎',
       description: 'Removable, for later picking up'
     },
-    { 
-      id: 'german_twisted', 
-      name: 'German Twisted', 
+    {
+      id: 'german_twisted',
+      name: 'German Twisted',
       icon: '🌀',
       description: 'Very stretchy, great for ribbing'
     },
-    { 
-      id: 'backward_loop', 
-      name: 'Backward Loop', 
+    {
+      id: 'backward_loop',
+      name: 'Backward Loop',
       icon: '↪️',
       description: 'Quick and simple'
     },
-    { 
-      id: 'other', 
-      name: 'Other Method', 
+    {
+      id: 'other',
+      name: 'Other Method',
       icon: '📝',
       description: 'Specify your own'
     }
@@ -47,13 +47,13 @@ const CastOnConfig = ({ wizardData, updateWizardData }) => {
   return (
     <div className="stack-lg">
       <div>
-        <h3 className="text-lg font-semibold text-wool-700 mb-3">Cast On Method</h3>
-        <p className="text-wool-500 mb-4">Choose your preferred cast on technique</p>
+        <h3 className="content-header-secondary mb-3">Cast On Method</h3>
+        <p className="content-subheader">Choose your preferred cast on technique</p>
       </div>
 
       {/* Stitch Count Input */}
       <div>
-        <label className="block text-sm font-semibold text-wool-700 mb-3">
+        <label className="form-label">
           Number of Stitches to Cast On
         </label>
         <input
@@ -68,7 +68,7 @@ const CastOnConfig = ({ wizardData, updateWizardData }) => {
 
       {/* Method Selection - Grid Layout */}
       <div>
-        <label className="block text-sm font-semibold text-wool-700 mb-3">
+        <label className="form-label">
           Cast On Method (optional)
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -76,11 +76,10 @@ const CastOnConfig = ({ wizardData, updateWizardData }) => {
             <button
               key={method.id}
               onClick={() => handleMethodSelect(method.id)}
-              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                wizardData.stitchPattern.method === method.id
-                  ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
-              }`}
+              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${wizardData.stitchPattern.method === method.id
+                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
+                }`}
             >
               <div className="text-2xl mb-2">{method.icon}</div>
               <div className="font-semibold text-sm mb-1">{method.name}</div>
@@ -93,7 +92,7 @@ const CastOnConfig = ({ wizardData, updateWizardData }) => {
       {/* Custom Method Input */}
       {wizardData.stitchPattern.method === 'other' && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
+          <label className="form-label">
             Describe Your Cast On Method
           </label>
           <input

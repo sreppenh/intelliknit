@@ -77,8 +77,8 @@ const PhaseConfigSummary = ({
     <div className="p-6 stack-lg">
       {/* Header */}
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3 text-left">📈 Sequential Phases</h2>
-        <p className="text-wool-500 mb-4 text-left">
+        <h2 className="content-header-primary text-left">📈 Sequential Phases</h2>
+        <p className="content-subheader text-left">
           {phases.length === 0 ? 'Build your shaping sequence step by step' : 'Review and modify your sequence'}
         </p>
       </div>
@@ -88,7 +88,7 @@ const PhaseConfigSummary = ({
         <div className="text-center py-8">
           <div className="text-4xl mb-4">🎯</div>
           <h3 className="text-lg font-semibold text-wool-600 mb-2">Ready to build complex shaping?</h3>
-          <p className="text-wool-500 mb-4 px-4">Create sophisticated patterns like sleeve caps, shoulder shaping, or gradual waist decreases</p>
+          <p className="content-subheader px-4">Create sophisticated patterns like sleeve caps, shoulder shaping, or gradual waist decreases</p>
           <div className="help-block mb-6 mx-4">
             <div className="text-xs font-semibold text-sage-700 mb-1 text-left">Example: Sleeve Cap Shaping</div>
             <div className="text-xs text-sage-600 text-left">
@@ -109,7 +109,7 @@ const PhaseConfigSummary = ({
         <>
           {/* Phase Summary List */}
           <div>
-            <h3 className="text-lg font-semibold text-wool-700 mb-3 text-left">Your Sequence</h3>
+            <h3 className="content-header-secondary mb-3 text-left">Your Sequence</h3>
 
             <div className="stack-sm">
               {phases.map((phase, index) => (

@@ -217,7 +217,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
           <div className="p-6 bg-yarn-50 space-y-6 relative">
 
             {/* Page Title */}
-            <h1 className="page-title">Setup Component</h1>
+            <h1 className="page-title">Create Component</h1>
 
             {/* Component Name */}
             <div>
@@ -327,8 +327,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               <>
                 {/* Header */}
                 <div>
-                  <h2 className="content-header-primary">Select Cast On Method</h2>
-                  <p className="content-subtitle">Choose your preferred cast on technique</p>
+                  <h2 className="content-header-primary">Select Cast On</h2>
+                  <p className="content-subheader">Provide method and starting number of stitches</p>
                 </div>
 
                 {/* Method Selection Grid */}
@@ -391,7 +391,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                       componentData.startType === 'continue' ? 'Continue From Stitches' :
                         'Custom Setup'}
                   </h2>
-                  <p className="content-subtitle">
+                  <p className="content-subheader">
                     {//componentData.startType === 'pick_up' ? 'Configure your pick up details' :
                       //componentData.startType === 'continue' ? 'Configure where to continue from' :
                       'Describe your custom setup'}

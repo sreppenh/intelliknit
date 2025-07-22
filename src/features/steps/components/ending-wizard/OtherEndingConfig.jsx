@@ -4,12 +4,12 @@ const OtherEndingConfig = ({ endingData, setEndingData }) => {
   return (
     <div className="stack-lg">
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">Describe Your Ending</h2>
-        <p className="text-wool-500 mb-4">What happens to complete this component?</p>
+        <h2 className="content-header-primary">Describe Your Ending</h2>
+        <p className="content-subheader">What happens to complete this component?</p>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+        <label className="form-label">
           Ending Description
         </label>
         <textarea

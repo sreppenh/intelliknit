@@ -4,7 +4,7 @@ const AttachmentConfig = ({ endingData, setEndingData }) => {
   // Get existing components for the dropdown (mock data for now)
   const availableComponents = [
     'Left Sleeve',
-    'Right Sleeve', 
+    'Right Sleeve',
     'Back Panel',
     'Front Panel',
     'Collar',
@@ -12,27 +12,27 @@ const AttachmentConfig = ({ endingData, setEndingData }) => {
   ];
 
   const methods = [
-    { 
-      id: 'mattress_stitch', 
-      name: 'Mattress Stitch', 
+    {
+      id: 'mattress_stitch',
+      name: 'Mattress Stitch',
       icon: '🧵',
       description: 'Invisible side seam'
     },
-    { 
-      id: 'backstitch', 
-      name: 'Backstitch', 
+    {
+      id: 'backstitch',
+      name: 'Backstitch',
       icon: '⬅️',
       description: 'Strong, visible seam'
     },
-    { 
-      id: 'kitchener_stitch', 
-      name: 'Kitchener Stitch', 
+    {
+      id: 'kitchener_stitch',
+      name: 'Kitchener Stitch',
       icon: '🪡',
       description: 'Invisible graft'
     },
-    { 
-      id: 'other', 
-      name: 'Other Method', 
+    {
+      id: 'other',
+      name: 'Other Method',
       icon: '📝',
       description: 'Specify your own'
     }
@@ -41,8 +41,8 @@ const AttachmentConfig = ({ endingData, setEndingData }) => {
   return (
     <div className="stack-lg">
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">Attachment Details</h2>
-        <p className="text-wool-500 mb-4">Choose method and target component</p>
+        <h2 className="content-header-primary">Attachment Details</h2>
+        <p className="content-subheader">Choose method and target component</p>
       </div>
 
       {/* Attachment Method - Oval Radio List */}
@@ -50,13 +50,12 @@ const AttachmentConfig = ({ endingData, setEndingData }) => {
         <h3 className="text-sm font-semibold text-wool-700 mb-3 text-left">Attachment Method</h3>
         <div className="stack-sm">
           {methods.map((method) => (
-            <label 
+            <label
               key={method.id}
-              className={`flex items-center cursor-pointer p-4 rounded-2xl border-2 transition-all duration-200 ${
-                endingData.method === method.id
-                  ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-              }`}
+              className={`flex items-center cursor-pointer p-4 rounded-2xl border-2 transition-all duration-200 ${endingData.method === method.id
+                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                }`}
             >
               <input
                 type="radio"
@@ -92,7 +91,7 @@ const AttachmentConfig = ({ endingData, setEndingData }) => {
 
       {/* Component Dropdown */}
       <div>
-        <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+        <label className="form-label">
           Attach to Component
         </label>
         <select
