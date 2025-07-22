@@ -30,7 +30,7 @@ const DurationShapingChoice = (props) => {
     <div className="stack-lg">
       <div>
         <h2 className="text-xl font-semibold text-wool-700 mb-3">How do you want to work this {pattern?.toLowerCase()}?</h2>
-        <p className="text-wool-500 mb-4">Choose how you want to specify your pattern</p>
+        {/* <p className="text-wool-500 mb-4">Choose how you want to specify your pattern</p> */}
       </div>
 
       {/* Two main choice buttons */}
