@@ -212,7 +212,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
             <div className="space-y-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-wool-700">Your Projects</h2>
-                <h2 className="text-xl font-semibold text-wool-700 mb-3">Your Projects</h2>
                 <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
                   {projects.length} project{projects.length !== 1 ? 's' : ''}
                 </span>
