@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
+import ContextualBar from '../../../shared/components/ContextualBar';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
@@ -158,16 +159,56 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     }
   };
 
+  // NEW: Generate project count display for contextual bar
+  const getProjectCountDisplay = () => {
+    if (projects.length === 0) return '';
+
+    const total = projects.length;
+    const active = projects.filter(p => !p.completed).length;
+    const completed = projects.filter(p => p.completed).length;
+
+    return `${total} project${total !== 1 ? 's' : ''} • ${active} active • ${completed} completed`;
+  };
+
+  // NEW: Handle both back and cancel navigation to Landing Page
+  const handleBackToLanding = () => {
+    if (onBack) {
+      onBack();
+    }
+  };
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
 
+        {/* Enhanced PageHeader with both back and cancel going to Landing */}
         <PageHeader
-          title="🧶 IntelliKnit"
-          subtitle="Ready to knit something amazing?"
-          onBack={onBack}
-          showBackButton={!!onBack}
+          title="My Projects"
+          onBack={handleBackToLanding}
+          showBackButton={true}
+          showCancelButton={true}
+          onCancel={handleBackToLanding}
         />
+
+        {/* NEW: ContextualBar - Always present, adapts to content */}
+        <ContextualBar>
+          <ContextualBar.Left>
+            {/* Reserved for future filters */}
+          </ContextualBar.Left>
+
+          <ContextualBar.Middle>
+            {projects.length > 0 ? getProjectCountDisplay() : 'Ready to start knitting'}
+          </ContextualBar.Middle>
+
+          <ContextualBar.Right>
+            <button
+              onClick={onCreateProject}
+              className="btn-secondary btn-sm"
+            >
+              + New Project
+            </button>
+          </ContextualBar.Right>
+        </ContextualBar>
 
         <div className="p-4 bg-yarn-50">
 
@@ -210,13 +251,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="content-header-primary">Your Projects</h2>
-                <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
-                  {projects.length} project{projects.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-
+              {/* UPDATED: Removed redundant header since ContextualBar now shows count */}
               <div className="stack-sm">
                 {getSortedProjects().map((project, index) => {
                   const isTopProject = index === 0 && projects.length > 1;
@@ -363,16 +398,18 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
             </div>
           )}
 
-          {/* Create Project Button */}
-          <div className="pt-4">
-            <button
-              onClick={onCreateProject}
-              className="w-full bg-sage-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-700 transition-colors shadow-lg flex items-center justify-center gap-2"
-            >
-              <span className="text-xl">✨</span>
-              {projects.length === 0 ? 'Start Your First Project' : 'Create New Project'}
-            </button>
-          </div>
+          {/* UPDATED: Enhanced Create Project Button - Still present but less prominent */}
+          {projects.length > 0 && (
+            <div className="pt-4">
+              <button
+                onClick={onCreateProject}
+                className="w-full bg-sage-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-700 transition-colors shadow-lg flex items-center justify-center gap-2"
+              >
+                <span className="text-xl">✨</span>
+                Create New Project
+              </button>
+            </div>
+          )}
 
           {/* Footer */}
           <div className="text-center pt-4 pb-2">
