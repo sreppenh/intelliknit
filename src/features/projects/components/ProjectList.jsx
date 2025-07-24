@@ -90,18 +90,19 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
       };
     }
 
-    // Empty projects (no components)
-    if (totalComponents === 0) {
+    // 2. Frogged projects (placeholder - not implemented yet)
+    if (project.frogged) {
       return {
-        state: 'empty',
-        emoji: '💭',
-        mood: 'Ready to begin',
-        cardClass: 'bg-lavender-50 border-lavender-200 border-2 rounded-xl p-5 shadow-sm',
-        iconBg: 'bg-lavender-100 border-lavender-200',
-        textColor: 'text-lavender-700',
-        rightCorner: '✨ Ready'
+        state: 'frogged',
+        emoji: '🐸',
+        mood: 'Frogged',
+        cardClass: 'bg-wool-50 border-wool-300 border-2 rounded-xl p-5 shadow-sm',
+        iconBg: 'bg-wool-100 border-wool-200',
+        textColor: 'text-wool-600',
+        rightCorner: '🐸'
       };
     }
+
 
     // Fire projects (3+ day streak)
     if (streakDays >= 3) {
@@ -116,6 +117,20 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         rightCorner: `${fireLevel} ${streakDays}d`
       };
     }
+
+    // 4. Current project (overrides sleeping/active/empty)
+    if (isTopProject) {
+      return {
+        state: 'current',
+        emoji: '⭐',
+        mood: 'Currently working',
+        cardClass: 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02] border-2 rounded-xl p-5',
+        iconBg: 'bg-sage-200 border-sage-300',
+        textColor: 'text-sage-700',
+        rightCorner: '⭐ Current'
+      };
+    }
+
 
     // Dormant projects (no activity for 14+ days)
     const lastActivity = new Date(project.lastActivityAt || project.createdAt);
@@ -133,6 +148,21 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
       };
     }
 
+
+
+    // Empty projects (no components)
+    if (totalComponents === 0) {
+      return {
+        state: 'empty',
+        emoji: '💭',
+        mood: 'Ready to begin',
+        cardClass: 'bg-lavender-50 border-lavender-200 border-2 rounded-xl p-5 shadow-sm',
+        iconBg: 'bg-lavender-100 border-lavender-200',
+        textColor: 'text-lavender-700',
+        rightCorner: '✨ New'
+      };
+    }
+
     // Active projects
     const completedComponents = project.components?.filter(comp =>
       comp.steps?.length > 0 && comp.steps.every(step => step.completed)
@@ -147,7 +177,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         : 'bg-white border-wool-200 border-2 rounded-xl p-5 shadow-sm',
       iconBg: isTopProject ? 'bg-sage-200 border-sage-300' : 'bg-yarn-100 border-yarn-200',
       textColor: isTopProject ? 'text-sage-700' : 'text-wool-700',
-      rightCorner: `${completedComponents}/${totalComponents} components`
+      rightCorner: '🧶 Active'
     };
   };
 
@@ -345,13 +375,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                       onClick={() => handleProjectEdit(project)}
                       className={`${personality.cardClass} transition-all duration-200 cursor-pointer active:scale-95 relative`}
                     >
-                      {/* Top Project Indicator */}
-                      {isTopProject && (
-                        <div className="flex items-center gap-2 mb-3 text-sage-600">
-                          <span className="text-sm">⭐</span>
-                          <span className="text-xs font-medium uppercase tracking-wide">Current Project</span>
-                        </div>
-                      )}
+
 
                       <div className="flex items-start gap-4">
                         {/* Project Icon */}
@@ -363,14 +387,17 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
                         {/* Project Info - Simplified */}
                         <div className="flex-1 min-w-0">
-                          {/* Project Name Only */}
-                          <div className="mb-2">
-                            <h3 className={`font-bold text-lg ${personality.textColor}`}>
+                          {/* Project Name & Status Badge */}
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className={`font-semibold text-base ${personality.textColor} truncate flex-1 pr-2`}>
                               {project.name}
                             </h3>
+                            <div className={`text-xs font-medium ${personality.textColor} opacity-75 flex-shrink-0 text-right`}>
+                              {personality.rightCorner}
+                            </div>
                           </div>
                           {/* Single Info Line - Components • Start Date */}
-                          <div className="flex items-center gap-2 text-sm text-wool-500">
+                          <div className="flex items-center gap-2 text-xs text-wool-500">
                             <span className="flex items-center gap-1">
                               <span>📐</span>
                               <span>{totalComponents} component{totalComponents !== 1 ? 's' : ''}</span>
