@@ -77,15 +77,15 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     const hasSteps = project.components?.some(comp => comp.steps?.length > 0);
     const streakDays = getStreakDays(project);
 
-    // Completed projects
+    // 1. Completed projects
     if (project.completed) {
       return {
         state: 'completed',
         emoji: '🎉',
         mood: 'Celebration time!',
-        cardClass: 'bg-gradient-to-r from-sage-50 to-yarn-50 border-sage-300 border-2 rounded-xl p-5 shadow-lg',
-        iconBg: 'bg-sage-200 border-sage-300',
-        textColor: 'text-sage-700',
+        cardClass: 'card-project-completed',
+        iconBg: 'icon-project-completed',
+        textColor: 'text-project-completed',
         rightCorner: '🏆'
       };
     }
@@ -96,24 +96,23 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         state: 'frogged',
         emoji: '🐸',
         mood: 'Frogged',
-        cardClass: 'bg-wool-50 border-wool-300 border-2 rounded-xl p-5 shadow-sm',
-        iconBg: 'bg-wool-100 border-wool-200',
-        textColor: 'text-wool-600',
+        cardClass: 'card-project-frogged',
+        iconBg: 'icon-project-frogged',
+        textColor: 'text-project-frogged',
         rightCorner: '🐸'
       };
     }
 
-
-    // Fire projects (3+ day streak)
+    // 3. Fire projects (3+ day streak)
     if (streakDays >= 3) {
       const fireLevel = streakDays >= 7 ? '🔥🔥🔥' : streakDays >= 5 ? '🔥🔥' : '🔥';
       return {
         state: 'fire',
         emoji: '🔥',
         mood: `On fire! ${streakDays} day streak`,
-        cardClass: 'bg-gradient-to-r from-orange-50 to-red-50 border-orange-300 border-2 rounded-xl p-5 shadow-lg',
-        iconBg: 'bg-orange-200 border-orange-300',
-        textColor: 'text-orange-700',
+        cardClass: 'card-project-fire',
+        iconBg: 'icon-project-fire',
+        textColor: 'text-project-fire',
         rightCorner: `${fireLevel} ${streakDays}d`
       };
     }
@@ -124,15 +123,14 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         state: 'current',
         emoji: '⭐',
         mood: 'Currently working',
-        cardClass: 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02] border-2 rounded-xl p-5',
-        iconBg: 'bg-sage-200 border-sage-300',
-        textColor: 'text-sage-700',
+        cardClass: 'card-project-current',
+        iconBg: 'icon-project-current',
+        textColor: 'text-project-current',
         rightCorner: '⭐ Current'
       };
     }
 
-
-    // Dormant projects (no activity for 14+ days)
+    // 5. Dormant projects (no activity for 14+ days)
     const lastActivity = new Date(project.lastActivityAt || project.createdAt);
     const daysSinceActivity = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -141,42 +139,34 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         state: 'dormant',
         emoji: '😴',
         mood: 'Taking a nap...',
-        cardClass: 'bg-wool-50 border-wool-300 border-2 rounded-xl p-5 shadow-sm opacity-90',
-        iconBg: 'bg-wool-100 border-wool-200',
-        textColor: 'text-wool-600',
+        cardClass: 'card-project-dormant',
+        iconBg: 'icon-project-dormant',
+        textColor: 'text-project-dormant',
         rightCorner: `😴 ${Math.floor(daysSinceActivity)}d ago`
       };
     }
 
-
-
-    // Empty projects (no components)
+    // 6. Empty projects (no components)
     if (totalComponents === 0) {
       return {
         state: 'empty',
         emoji: '💭',
         mood: 'Ready to begin',
-        cardClass: 'bg-lavender-50 border-lavender-200 border-2 rounded-xl p-5 shadow-sm',
-        iconBg: 'bg-lavender-100 border-lavender-200',
-        textColor: 'text-lavender-700',
+        cardClass: 'card-project-empty',
+        iconBg: 'icon-project-empty',
+        textColor: 'text-project-empty',
         rightCorner: '✨ New'
       };
     }
 
-    // Active projects
-    const completedComponents = project.components?.filter(comp =>
-      comp.steps?.length > 0 && comp.steps.every(step => step.completed)
-    ).length || 0;
-
+    // 7. Active projects (fallback)
     return {
       state: 'active',
       emoji: '🧶',
-      mood: isTopProject ? 'Currently working' : 'In progress',
-      cardClass: isTopProject
-        ? 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02] border-2 rounded-xl p-5'
-        : 'bg-white border-wool-200 border-2 rounded-xl p-5 shadow-sm',
-      iconBg: isTopProject ? 'bg-sage-200 border-sage-300' : 'bg-yarn-100 border-yarn-200',
-      textColor: isTopProject ? 'text-sage-700' : 'text-wool-700',
+      mood: 'In progress',
+      cardClass: 'card-project-active',
+      iconBg: 'icon-project-active',
+      textColor: 'text-project-active',
       rightCorner: '🧶 Active'
     };
   };
@@ -373,14 +363,14 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                     <div
                       key={project.id}
                       onClick={() => handleProjectEdit(project)}
-                      className={`${personality.cardClass} transition-all duration-200 cursor-pointer active:scale-95 relative`}
+                      className={`${personality.cardClass} transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-95 relative`}
                     >
 
 
                       <div className="flex items-start gap-4">
                         {/* Project Icon */}
                         <div className="flex-shrink-0">
-                          <div className={`w-14 h-14 ${personality.iconBg} rounded-xl flex items-center justify-center text-2xl border-2 shadow-sm`}>
+                          <div className={`w-12 h-12 ${personality.iconBg} rounded-xl flex items-center justify-center text-xl border-2 shadow-sm`}>
                             {getProjectIcon(project.projectType)}
                           </div>
                         </div>

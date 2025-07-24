@@ -458,3 +458,95 @@
 .badge-success {
   @apply bg-sage-500 text-white;
 }
+
+/* ===== Project Personality Cards ===== */
+.card-project-base {
+  @apply border-2 rounded-xl p-5 shadow-sm transition-all duration-200 cursor-pointer;
+  @apply hover:shadow-lg hover:scale-[1.01] active:scale-95;
+}
+
+.card-project-completed {
+  @apply card-project-base bg-gradient-to-r from-sage-50 to-yarn-50 border-sage-300 shadow-lg;
+}
+
+.card-project-frogged {
+  @apply card-project-base bg-wool-50 border-wool-300;
+}
+
+.card-project-fire {
+  @apply card-project-base bg-gradient-to-r from-orange-50 to-red-50 border-orange-300 shadow-lg;
+}
+
+.card-project-current {
+  @apply card-project-base bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg;
+}
+
+.card-project-dormant {
+  @apply card-project-base bg-wool-50 border-wool-300 opacity-90;
+}
+
+.card-project-empty {
+  @apply card-project-base bg-lavender-50 border-lavender-200;
+}
+
+.card-project-active {
+  @apply card-project-base bg-white border-wool-200;
+}
+
+/* Icon backgrounds for personality cards */
+.icon-project-completed {
+  @apply bg-sage-200 border-sage-300;
+}
+
+.icon-project-frogged {
+  @apply bg-wool-100 border-wool-200;
+}
+
+.icon-project-fire {
+  @apply bg-orange-200 border-orange-300;
+}
+
+.icon-project-current {
+  @apply bg-sage-200 border-sage-300;
+}
+
+.icon-project-dormant {
+  @apply bg-wool-100 border-wool-200;
+}
+
+.icon-project-empty {
+  @apply bg-lavender-100 border-lavender-200;
+}
+
+.icon-project-active {
+  @apply bg-yarn-100 border-yarn-200;
+}
+
+/* Text colors for personality cards */
+.text-project-completed {
+  @apply text-sage-700;
+}
+
+.text-project-frogged {
+  @apply text-wool-600;
+}
+
+.text-project-fire {
+  @apply text-orange-700;
+}
+
+.text-project-current {
+  @apply text-sage-700;
+}
+
+.text-project-dormant {
+  @apply text-wool-600;
+}
+
+.text-project-empty {
+  @apply text-lavender-700;
+}
+
+.text-project-active {
+  @apply text-wool-700;
+}
