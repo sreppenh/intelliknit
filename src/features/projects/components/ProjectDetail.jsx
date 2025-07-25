@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import useProjectActions from './ProjectDetail/hooks/useProjectActions';
+import useTabNavigation from './ProjectDetail/hooks/useTabNavigation';
 
 // Main flow components
 import ComponentCreatedCelebration from './ComponentCreatedCelebration';
@@ -28,8 +29,8 @@ import CopyComponentModal from '../../../shared/components/CopyComponentModal';
 const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, onStartKnitting, onEditProjectDetails }) => {
   const { currentProject, dispatch } = useProjectsContext();
 
-  // Tab state management
-  const [activeTab, setActiveTab] = useState('components');
+  // Tab navigation with memory management
+  const { currentTab, changeTab } = useTabNavigation(currentProject?.id);
 
   // Extract all actions and modal states
   const {
@@ -185,7 +186,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
         />
 
         {/* Tab Navigation */}
-        <TabBar activeTab={activeTab} onTabChange={setActiveTab}>
+        <TabBar activeTab={currentTab} onTabChange={changeTab}>
           <TabBar.Tab id="overview" label="Overview" />
           <TabBar.Tab id="components" label="Components" />
           <TabBar.Tab id="details" label="Details" />
@@ -194,7 +195,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
 
         {/* Tab Content */}
         <div className="bg-yarn-50">
-          {activeTab === 'overview' && (
+          {currentTab === 'overview' && (
             <OverviewTab
               project={currentProject}
               totalComponents={totalComponents}
@@ -203,7 +204,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               onEditProjectDetails={projectActions.editProjectDetails}
             />
           )}
-          {activeTab === 'components' && (
+          {currentTab === 'components' && (
             <ComponentsTab
               project={currentProject}
               sortedComponents={getSortedComponentsWithFinishing()}
@@ -214,13 +215,13 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               setOpenMenuId={modalStates.setOpenMenuId}
             />
           )}
-          {activeTab === 'details' && (
+          {currentTab === 'details' && (
             <DetailsTab
               project={currentProject}
               onEditProjectDetails={projectActions.editProjectDetails}
             />
           )}
-          {activeTab === 'photos' && renderPhotosTab()}
+          {currentTab === 'photos' && renderPhotosTab()}
         </div>
 
         {/* Modals */}

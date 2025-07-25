@@ -9,6 +9,7 @@ import React, { useState, useEffect } from 'react';
  * - Accessibility improvements
  * - Performance optimizations
  * - Mobile-optimized touch targets
+ * - Backward compatible with existing TabBar API
  */
 
 const TabBar = ({
