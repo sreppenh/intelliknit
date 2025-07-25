@@ -42,6 +42,77 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
     )
   ).length || 0;
 
+  // Create sorted components with finishing steps placeholder
+  const getSortedComponentsWithFinishing = () => {
+    const components = [...currentProject.components];
+
+    // Create persistent finishing steps placeholder
+    const finishingSteps = {
+      id: 'finishing-steps',
+      name: 'Finishing Steps',
+      type: 'finishing',
+      steps: [], // Empty for now - will be populated later
+      isPlaceholder: true
+    };
+
+    // Add finishing steps to components
+    const allItems = [...components, finishingSteps];
+
+    // Sort by priority
+    return allItems.sort((a, b) => {
+      const getPriority = (item) => {
+        if (item.type === 'finishing') {
+          // Finishing steps logic
+          if (item.isPlaceholder || (item.steps && item.steps.length === 0)) {
+            return 3; // Empty/placeholder - before Edit Mode
+          }
+          const hasProgress = item.steps?.some(s => s.completed);
+          const allComplete = item.steps?.length > 0 && item.steps.every(s => s.completed);
+          const manuallyConfirmed = item.finishingComplete; // Future field
+
+          if (allComplete && manuallyConfirmed) return 6; // Completed finishing - very last
+          if (hasProgress || item.steps?.length > 0) return 3; // In progress - before Edit Mode
+          return 3; // Default to before Edit Mode
+        }
+
+        // Regular component logic
+        if (!item.steps || item.steps.length === 0) return 4; // Edit Mode
+
+        const hasCastOn = item.steps.some(step =>
+          step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
+          step.description?.toLowerCase().includes('cast on')
+        );
+
+        const hasBindOff = item.steps.some(step =>
+          step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
+          step.description?.toLowerCase().includes('bind off')
+        );
+
+        const hasProgress = item.steps.some(s => s.completed);
+        const allStepsComplete = item.steps.length > 0 && item.steps.every(s => s.completed);
+
+        if (hasBindOff && allStepsComplete) return 5; // Finished
+        if (hasCastOn && hasProgress) return 1; // Currently Knitting
+        if (hasCastOn && hasBindOff && !hasProgress) return 2; // Ready to Knit
+        return 4; // Edit Mode
+      };
+
+      const priorityA = getPriority(a);
+      const priorityB = getPriority(b);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+
+      // Within same priority, maintain creation order (or alphabetical for finishing steps)
+      if (a.type === 'finishing' && b.type === 'finishing') {
+        return a.name.localeCompare(b.name);
+      }
+
+      return 0; // Maintain relative order
+    });
+  };
+
   const handleEnhancedComponentCreated = (component) => {
     setShowEnhancedCreation(false);
     setCelebrationComponent(component);
@@ -153,7 +224,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               </span>
               <span>{currentProject.name}</span>
               {currentProject.size && (
-                <span className="text-sage-100 font-normal">({currentProject.size})</span>
+                <span className="text-sage-100 font-normal">(Size {currentProject.size})</span>
               )}
             </div>
           }
@@ -193,24 +264,23 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               {/* Component Grid */}
               <div className="bg-white rounded-xl border-2 border-wool-200 shadow-sm">
                 <div className="p-4">
-                  {currentProject.components.length === 0 ? (
-                    /* Empty state */
-                    <div className="py-12 text-center">
-                      <div className="text-4xl mb-4">📝</div>
-                      <h3 className="text-lg font-semibold text-wool-600 mb-2">No components yet</h3>
-                      <p className="text-wool-500">Add your first component to get started</p>
-                    </div>
-                  ) : (
-                    /* Component grid - Using Landing Page pattern */
-                    <div className="grid-2-equal">
-                      {currentProject.components.map((component, index) => (
-                        <CompactComponentCard
-                          key={component.id}
-                          component={component}
-                          onManageSteps={handleComponentManageSteps}
-                          onMenuAction={handleComponentMenuAction}
-                        />
-                      ))}
+                  {/* Always show grid with sorted items (includes finishing steps placeholder) */}
+                  <div className="grid-2-equal">
+                    {getSortedComponentsWithFinishing().map((item, index) => (
+                      <CompactComponentCard
+                        key={item.id}
+                        component={item}
+                        onManageSteps={handleComponentManageSteps}
+                        onMenuAction={handleComponentMenuAction}
+                      />
+                    ))}
+                  </div>
+
+                  {/* Show empty state message only when no regular components AND no finishing tasks */}
+                  {currentProject.components.length === 0 && (
+                    <div className="mt-6 py-8 text-center">
+                      <div className="text-2xl mb-2">🧶</div>
+                      <p className="text-wool-500 text-sm">Add your first component to get started</p>
                     </div>
                   )}
                 </div>

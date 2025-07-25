@@ -3,8 +3,22 @@ import React, { useState } from 'react';
 const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
 
-  // Enhanced component state detection
+  // Enhanced component state detection with finishing steps support
   const getComponentState = () => {
+    // Handle finishing steps
+    if (component.type === 'finishing') {
+      if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
+        return 'finishing_in_progress'; // Empty placeholder shows as "in progress"
+      }
+
+      const allComplete = component.steps.every(s => s.completed);
+      const manuallyConfirmed = component.finishingComplete;
+
+      if (allComplete && manuallyConfirmed) return 'finishing_done';
+      return 'finishing_in_progress';
+    }
+
+    // Regular component logic
     if (!component.steps || component.steps.length === 0) return 'edit_mode';
 
     const hasCastOn = component.steps.some(step =>
@@ -20,20 +34,6 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
     const hasProgress = component.steps.some(s => s.completed);
     const allStepsComplete = component.steps.length > 0 && component.steps.every(s => s.completed);
 
-    // Check if this is a finishing component
-    const isFinishing = component.type === 'finishing' ||
-      component.name?.toLowerCase().includes('finishing') ||
-      component.name?.toLowerCase().includes('seaming') ||
-      component.name?.toLowerCase().includes('blocking');
-
-    if (isFinishing) {
-      if (allStepsComplete) return 'finished';
-      if (hasProgress) return 'currently_knitting';
-      if (hasBindOff) return 'ready_to_knit';
-      return 'edit_mode';
-    }
-
-    // Regular component logic
     if (hasBindOff && allStepsComplete) return 'finished';
     if (hasCastOn && hasProgress) return 'currently_knitting';
     if (hasCastOn && hasBindOff && !hasProgress) return 'ready_to_knit';
@@ -44,31 +44,45 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
     const configs = {
       currently_knitting: {
         label: 'Currently Knitting',
-        background: 'bg-sage-100 border-sage-200 hover:bg-sage-150',
+        background: 'bg-sage-200 border-sage-300 hover:bg-sage-250',
         textColor: 'text-sage-800',
         icon: '🧶',
         priority: 1
       },
       ready_to_knit: {
         label: 'Ready to Knit',
-        background: 'bg-yarn-100 border-yarn-200 hover:bg-yarn-150',
-        textColor: 'text-yarn-800',
+        background: 'bg-sage-100 border-sage-200 hover:bg-sage-150',
+        textColor: 'text-sage-800',
         icon: '⚡',
         priority: 2
       },
       edit_mode: {
         label: 'Edit Mode',
-        background: 'bg-lavender-50 border-lavender-200 hover:bg-lavender-100',
-        textColor: 'text-lavender-700',
+        background: 'bg-yarn-100 border-yarn-200 hover:bg-yarn-150',
+        textColor: 'text-yarn-800',
         icon: '✏️',
         priority: 3
       },
       finished: {
         label: 'Finished',
-        background: 'bg-sage-150 border-sage-250 hover:bg-sage-200',
-        textColor: 'text-sage-800',
+        background: 'bg-sage-400 border-sage-500 hover:bg-sage-450',
+        textColor: 'text-sage-900',
         icon: '✅',
         priority: 4
+      },
+      finishing_in_progress: {
+        label: 'In Progress',
+        background: 'bg-lavender-100 border-lavender-200 hover:bg-lavender-150',
+        textColor: 'text-lavender-800',
+        icon: '🪡',
+        priority: 3
+      },
+      finishing_done: {
+        label: 'Completed',
+        background: 'bg-lavender-400 border-lavender-500 hover:bg-lavender-450',
+        textColor: 'text-lavender-900',
+        icon: '🪡',
+        priority: 6
       }
     };
     return configs[state] || configs.edit_mode;
@@ -78,11 +92,8 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
   const stateConfig = getStateConfig(state);
   const stepCount = component.steps?.length || 0;
 
-  // Check if this is a finishing component for special icon
-  const isFinishing = component.type === 'finishing' ||
-    component.name?.toLowerCase().includes('finishing') ||
-    component.name?.toLowerCase().includes('seaming') ||
-    component.name?.toLowerCase().includes('blocking');
+  // Check if this is a finishing component for special icon handling
+  const isFinishing = component.type === 'finishing';
 
   const handleCardClick = () => {
     onManageSteps(component.id);
@@ -164,12 +175,20 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
           </span>
         </div>
 
-        {/* Row 3: Step count - tiny and subtle */}
-        {stepCount > 0 && (
-          <div className="text-xs text-wool-500">
-            {stepCount} steps
+        {/* Row 3: Step count or placeholder text */}
+        {component.type === 'finishing' && component.isPlaceholder ? (
+          <div className="text-xs text-lavender-600">
+            Add finishing tasks
           </div>
-        )}
+        ) : stepCount > 0 ? (
+          <div className="text-xs text-wool-500">
+            {component.type === 'finishing' ? (
+              `${component.steps?.filter(s => s.completed).length || 0} of ${stepCount} tasks complete`
+            ) : (
+              `${stepCount} steps`
+            )}
+          </div>
+        ) : null}
       </div>
     </div>
   );
