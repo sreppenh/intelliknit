@@ -4,8 +4,11 @@ import PageHeader from '../../../shared/components/PageHeader';
 import ContextualBar from '../../../shared/components/ContextualBar';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
+
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const { projects, dispatch } = useProjectsContext();
+  const [filterState, setFilterState] = useState('all'); // Add this line
+
 
   const handleProjectEdit = (project) => {
     // NEW: Add today to activity log and update last activity
@@ -220,6 +223,52 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     return sorted;
   };
 
+  // Add this entire function after getSortedProjects()
+  const getFilteredProjects = () => {
+    const sortedProjects = getSortedProjects();
+
+    switch (filterState) {
+      case 'active':
+        return sortedProjects.filter(project => !project.completed);
+      case 'done':
+        return sortedProjects.filter(project => project.completed);
+      case 'all':
+      default:
+        return sortedProjects;
+    }
+  };
+
+  const getEmptyStateContent = () => {
+    switch (filterState) {
+      case 'active':
+        return {
+          emoji: '🎯',
+          title: 'No Active Projects Right Now',
+          message: 'All caught up! Your projects are either completed or waiting to be started. Ready to begin something new?',
+          buttonText: '✨ Start New Project'
+        };
+
+      case 'done':
+        return {
+          emoji: '🏆',
+          title: 'No Completed Projects Yet',
+          message: 'Your future finished projects will appear here! Keep knitting - your first completion celebration is waiting.',
+          buttonText: '🧶 Continue Knitting'
+        };
+
+      case 'all':
+      default:
+        return {
+          emoji: '🏠',
+          title: 'Welcome to Your Craft Room!',
+          message: 'Ready to start your knitting journey? Create your first project and let\'s get those needles clicking!',
+          buttonText: '✨ Create First Project'
+        };
+    }
+  };
+
+
+
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -271,19 +320,36 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           <ContextualBar.Left>
             <div className="bg-sage-200 border border-sage-300 rounded-md p-0.5">
               <div className="flex gap-0.5">
-                <button className="px-2 py-1 rounded text-xs font-medium transition-all duration-200 bg-white text-sage-700 shadow-sm">
+                <button
+                  onClick={() => setFilterState('all')}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${filterState === 'all'
+                    ? 'bg-white text-sage-700 shadow-sm'
+                    : 'text-sage-600 hover:text-sage-800'
+                    }`}
+                >
                   All
                 </button>
-                <button className="px-2 py-1 rounded text-xs font-medium transition-all duration-200 text-sage-600 hover:text-sage-800">
+                <button
+                  onClick={() => setFilterState('active')}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${filterState === 'active'
+                    ? 'bg-white text-sage-700 shadow-sm'
+                    : 'text-sage-600 hover:text-sage-800'
+                    }`}
+                >
                   Active
                 </button>
-                <button className="px-2 py-1 rounded text-xs font-medium transition-all duration-200 text-sage-600 hover:text-sage-800">
+                <button
+                  onClick={() => setFilterState('done')}
+                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${filterState === 'done'
+                    ? 'bg-white text-sage-700 shadow-sm'
+                    : 'text-sage-600 hover:text-sage-800'
+                    }`}
+                >
                   Done
                 </button>
               </div>
             </div>
           </ContextualBar.Left>
-
           <ContextualBar.Middle>
             {/* Empty - no clutter */}
           </ContextualBar.Middle>
@@ -293,8 +359,10 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               onClick={onCreateProject}
               className="bg-yarn-600 hover:bg-yarn-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1 transition-colors"
             >
-              <span className="text-xs">✨</span>
-              <span className="hidden sm:inline">New </span>Project
+              {/* <span className="text-xs">✨</span>*/}
+              {/* <span className="hidden sm:inline">New </span>Project */}
+              <span className="text-xs">✨ New </span>
+
             </button>
           </ContextualBar.Right>
         </ContextualBar>
@@ -313,48 +381,38 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         <div className="p-4 bg-yarn-50">
 
           {/* Project List or Welcome Screen */}
-          {projects.length === 0 ? (
-            <div className="text-center py-4">
-              <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-wool-200 mb-4">
-                <div className="text-4xl mb-3">🏠</div>
-                <h2 className="text-xl font-bold text-wool-700 mb-2">Welcome to Your Craft Room!</h2>
-                <p className="content-subheader leading-relaxed text-sm">
-                  Ready to start your knitting journey? Create your first project and let's get those needles clicking!
-                </p>
-
-                <div className="grid grid-cols-1 gap-2 text-left mb-4">
-                  <div className="flex items-center gap-3 p-2.5 bg-sage-50 rounded-lg border border-sage-200">
-                    <div className="text-xl">🎯</div>
-                    <div>
-                      <div className="font-semibold text-sage-700 text-xs">Smart Progress Tracking</div>
-                      <div className="text-xs text-sage-600">Never lose your place again</div>
-                    </div>
+          {getFilteredProjects().length === 0 ? (
+            <div className="text-center">
+              {(() => {
+                const emptyState = getEmptyStateContent();
+                return (
+                  <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-wool-200 mb-4">
+                    <div className="text-4xl mb-3">{emptyState.emoji}</div>
+                    <h2 className="text-xl font-bold text-wool-700 mb-2">{emptyState.title}</h2>
+                    <p className="content-subheader leading-relaxed text-sm mb-4">
+                      {emptyState.message}
+                    </p>
+                    <button
+                      onClick={onCreateProject}
+                      className="bg-yarn-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-yarn-700 transition-colors shadow-sm"
+                    >
+                      {emptyState.buttonText}
+                    </button>
                   </div>
+                );
+              })()}
 
-                  <div className="flex items-center gap-3 p-2.5 bg-yarn-100 rounded-lg border border-yarn-200">
-                    <div className="text-xl">🧮</div>
-                    <div>
-                      <div className="font-semibold text-yarn-700 text-xs">Pattern Assistant</div>
-                      <div className="text-xs text-yarn-600">Guided step creation</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-2.5 bg-wool-100 rounded-lg border border-wool-200">
-                    <div className="text-xl">🧶</div>
-                    <div>
-                      <div className="font-semibold text-wool-700 text-xs">Knitting-First Design</div>
-                      <div className="text-xs text-wool-600">Focus on the joy of making</div>
-                    </div>
-                  </div>
-                </div>
+              <div className="bg-lavender-100 rounded-2xl p-4 border-2 border-lavender-200">
+                <div className="text-2xl mb-2">💡</div>
+                <div className="text-sm text-wool-600">Focus on the joy of making</div>
               </div>
             </div>
           ) : (
             <div className="space-y-4">
               {/* UPDATED: Removed redundant header since ContextualBar now shows count */}
               <div className="stack-sm">
-                {getSortedProjects().map((project, index) => {
-                  const isTopProject = index === 0 && projects.length > 1;
+                {getFilteredProjects().map((project, index) => {
+                  const isTopProject = index === 0 && getFilteredProjects().length > 1;
                   const status = getProjectStatus(project);
                   const personality = getProjectPersonality(project, isTopProject);
                   const totalComponents = project.components?.length || 0;

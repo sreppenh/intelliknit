@@ -6,6 +6,8 @@ import SmartComponentCreation from './SmartComponentCreation';
 import CompactComponentCard from './CompactComponentCard';
 import PageHeader from '../../../shared/components/PageHeader';
 import ContextualBar from '../../../shared/components/ContextualBar';
+import DeleteComponentModal from '../../../shared/components/DeleteComponentModal';
+import RenameComponentModal from '../../../shared/components/RenameComponentModal';
 
 const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, onStartKnitting, onEditProjectDetails }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -13,6 +15,11 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
   const [showEnhancedCreation, setShowEnhancedCreation] = useState(false);
   const [showCelebrationScreen, setShowCelebrationScreen] = useState(false);
   const [celebrationComponent, setCelebrationComponent] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [componentToDelete, setComponentToDelete] = useState(null);
+  const [showRenameModal, setShowRenameModal] = useState(false);
+  const [componentToRename, setComponentToRename] = useState(null);
 
   if (!currentProject) {
     return <div>No project selected</div>;
@@ -146,26 +153,13 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
 
     if (action === 'manage') {
       onEditSteps(componentIndex);
+
     } else if (action === 'rename') {
-      const newName = window.prompt(`Rename "${component.name}" to:`, component.name);
+      setComponentToRename(component);
+      setShowRenameModal(true);
 
-      if (newName && newName.trim() !== '' && newName !== component.name) {
-        const updatedComponents = [...currentProject.components];
-        updatedComponents[componentIndex] = {
-          ...component,
-          name: newName.trim()
-        };
 
-        const updatedProject = {
-          ...currentProject,
-          components: updatedComponents
-        };
 
-        dispatch({
-          type: 'UPDATE_PROJECT',
-          payload: updatedProject
-        });
-      }
     } else if (action === 'copy') {
       const newName = window.prompt(`Copy "${component.name}" as:`, `${component.name} Copy`);
 
@@ -176,20 +170,25 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
         });
       }
     } else if (action === 'delete') {
-      const confirmed = window.confirm(`Delete "${component.name}"? This cannot be undone.`);
-
-      if (confirmed) {
-        dispatch({
-          type: 'DELETE_COMPONENT',
-          payload: componentIndex
-        });
-      }
+      // NEW: Show modal instead of window.confirm
+      setComponentToDelete(component);
+      setShowDeleteModal(true);
     }
   };
 
   const handleComponentManageSteps = (componentId) => {
+    {/* const componentIndex = currentProject.components.findIndex(c => c.id === componentId);
+    onManageSteps(componentIndex); */}
+
+    // Handle finishing steps placeholder
+    if (componentId === 'finishing-steps') {
+      alert('Finishing steps functionality coming soon!');
+      return;
+    }
+
     const componentIndex = currentProject.components.findIndex(c => c.id === componentId);
     onManageSteps(componentIndex);
+
   };
 
   if (showEnhancedCreation) {
@@ -269,6 +268,8 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
                     component={item}
                     onManageSteps={handleComponentManageSteps}
                     onMenuAction={handleComponentMenuAction}
+                    openMenuId={openMenuId}
+                    setOpenMenuId={setOpenMenuId}
                   />
                 ))}
               </div>
@@ -304,6 +305,60 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
           />
         )}
       </div>
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && componentToDelete && (
+        <DeleteComponentModal
+          component={componentToDelete}
+          onClose={() => {
+            setShowDeleteModal(false);
+            setComponentToDelete(null);
+          }}
+          onDelete={() => {
+            const componentIndex = currentProject.components.findIndex(c => c.id === componentToDelete.id);
+            dispatch({
+              type: 'DELETE_COMPONENT',
+              payload: componentIndex
+            });
+            setShowDeleteModal(false);
+            setComponentToDelete(null);
+          }}
+        />
+      )}
+
+
+      {/* Rename Component Modal */}
+
+      {console.log('Checking rename modal:', showRenameModal, componentToRename) || null}
+      {showRenameModal && componentToRename && (
+        <RenameComponentModal
+          component={componentToRename}
+          onClose={() => {
+            setShowRenameModal(false);
+            setComponentToRename(null);
+          }}
+          onRename={(newName) => {
+            const componentIndex = currentProject.components.findIndex(c => c.id === componentToRename.id);
+            const updatedComponents = [...currentProject.components];
+            updatedComponents[componentIndex] = {
+              ...componentToRename,
+              name: newName
+            };
+
+            const updatedProject = {
+              ...currentProject,
+              components: updatedComponents
+            };
+
+            dispatch({
+              type: 'UPDATE_PROJECT',
+              payload: updatedProject
+            });
+
+            setShowRenameModal(false);
+            setComponentToRename(null);
+          }}
+        />
+      )}
     </div>
   );
 };

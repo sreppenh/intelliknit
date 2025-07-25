@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
+import DeleteComponentModal from '../../../shared/components/DeleteComponentModal';
 
-const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
-  const [openMenuId, setOpenMenuId] = useState(null);
-
+const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenuId, setOpenMenuId }) => {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   // Enhanced component state detection with finishing steps support
   const getComponentState = () => {
     // Handle finishing steps
@@ -101,10 +101,16 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
 
   const handleMenuToggle = (e) => {
     e.stopPropagation();
-    setOpenMenuId(openMenuId === component.id ? null : component.id);
+    // Close any open menu first, then toggle this one
+    if (openMenuId === component.id) {
+      setOpenMenuId(null);
+    } else {
+      setOpenMenuId(component.id);
+    }
   };
 
   const handleMenuAction = (action, e) => {
+    console.log('handleMenuAction called with:', action);
     e.stopPropagation();
     onMenuAction(action, component.id);
     setOpenMenuId(null);
@@ -114,16 +120,16 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
     <div
       onClick={handleCardClick}
       className={`
-        relative cursor-pointer transition-all duration-200 rounded-xl p-3 border-2
-        hover:shadow-md hover:transform hover:scale-[1.01] active:scale-[0.99]
-        ${stateConfig.background}
-      `}
+    relative cursor-pointer transition-all duration-200 rounded-xl p-3 border-2
+    hover:shadow-md hover:transform hover:scale-[1.01] active:scale-[0.99]
+    ${stateConfig.background} ${openMenuId === component.id ? 'z-20' : 'z-10'}
+  `}
     >
       {/* True single column layout */}
       <div className="space-y-1.5">
         {/* Row 1: Component name with menu */}
         <div className="flex items-start justify-between">
-          <h3 className={`font-semibold text-base leading-tight ${stateConfig.textColor}`}>
+          <h3 className={`font-medium text-sm leading-tight ${stateConfig.textColor}`}>
             {component.name}
           </h3>
 
@@ -131,9 +137,10 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
           <div className="relative ml-2 flex-shrink-0">
             <button
               onClick={handleMenuToggle}
-              className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-200 rounded-full transition-colors"
+              className={`p-1.5 text-wool-400 hover:text-wool-600 hover:bg-wool-200 rounded-full transition-colors ${openMenuId === component.id ? 'relative z-[101]' : ''}`}
+              aria-label={`Menu for ${component.name}`}
             >
-              <svg width="12" height="12" viewBox="0 0 16 16" fill="currentColor">
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                 <circle cx="8" cy="3" r="1.5" />
                 <circle cx="8" cy="8" r="1.5" />
                 <circle cx="8" cy="13" r="1.5" />
@@ -141,26 +148,37 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
             </button>
 
             {openMenuId === component.id && (
-              <div className="absolute right-0 top-6 bg-white border border-wool-200 rounded-lg shadow-lg z-20 min-w-28 overflow-hidden">
-                <button
-                  onClick={(e) => handleMenuAction('rename', e)}
-                  className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors"
-                >
-                  ✏️ Rename
-                </button>
-                <button
-                  onClick={(e) => handleMenuAction('copy', e)}
-                  className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors border-t border-wool-100"
-                >
-                  📋 Copy
-                </button>
-                <button
-                  onClick={(e) => handleMenuAction('delete', e)}
-                  className="w-full px-3 py-2 text-left text-red-600 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors border-t border-wool-100"
-                >
-                  🗑️ Delete
-                </button>
-              </div>
+              <>
+                {/* Backdrop for click-outside */}
+                <div
+                  className="fixed inset-0 z-[90]"
+                  onMouseDown={() => setOpenMenuId(null)}
+                  aria-hidden="true"
+                />
+
+                {/* Menu with smooth animation */}
+                <div className="absolute right-0 top-10 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in">
+                  <button
+                    onClick={(e) => handleMenuAction('rename', e)}
+                    className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
+
+                  >
+                    ✏️ Rename
+                  </button>
+                  <button
+                    onClick={(e) => handleMenuAction('copy', e)}
+                    className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
+                  >
+                    📋 Copy
+                  </button>
+                  <button
+                    onClick={(e) => handleMenuAction('delete', e)}
+                    className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
+                  >
+                    🗑️ Delete
+                  </button>
+                </div>
+              </>
             )}
           </div>
         </div>
@@ -170,7 +188,7 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
           <span className="text-lg">
             {isFinishing ? '🪡' : stateConfig.icon}
           </span>
-          <span className={`text-sm font-medium ${stateConfig.textColor}`}>
+          <span className={`text-xs ${stateConfig.textColor}`}>
             {stateConfig.label}
           </span>
         </div>
@@ -190,6 +208,20 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction }) => {
           </div>
         ) : null}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <DeleteComponentModal
+          component={component}
+          onClose={() => setShowDeleteModal(false)}
+          onDelete={() => {
+            handleMenuAction('delete', { stopPropagation: () => { } });
+            setShowDeleteModal(false);
+          }}
+        />
+      )}
+
+
     </div>
   );
 };
