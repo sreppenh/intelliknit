@@ -8,7 +8,7 @@ import CompleteProjectModal from './CompleteProjectModal';
 import SmartComponentCreation from './SmartComponentCreation';
 import CompactComponentCard from './CompactComponentCard';
 import PageHeader from '../../../shared/components/PageHeader';
-import ProjectStatusBar from '../../../shared/components/ProjectStatusBar';
+import ProjectStatusBar from './ProjectDetail/ProjectStatusBar';
 import TabBar from '../../../shared/components/TabBar';
 import DeleteComponentModal from '../../../shared/components/DeleteComponentModal';
 import RenameComponentModal from '../../../shared/components/RenameComponentModal';
@@ -358,7 +358,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               </span>
               <span>{currentProject.name}</span>
               {currentProject.size && (
-                <span className="text-sage-100 font-normal">(Size {currentProject.size})</span>
+                <span className="text-sage-100 font-normal">({currentProject.size})</span>
               )}
             </div>
           }

@@ -66,9 +66,9 @@ const ProjectStatusBar = ({ project, onEditProject, className = "" }) => {
                     <div className="flex items-center gap-2">
                         <span className="text-sm font-semibold text-sage-700">Status:</span>
                         <span className={`text-sm font-medium ${status === 'Complete' ? 'text-sage-800' :
-                                status === 'In Progress' ? 'text-sage-700' :
-                                    status === 'Ready to Knit' ? 'text-yarn-700' :
-                                        'text-wool-600'
+                            status === 'In Progress' ? 'text-sage-700' :
+                                status === 'Ready to Knit' ? 'text-yarn-700' :
+                                    'text-wool-600'
                             }`}>
                             {status}
                         </span>
