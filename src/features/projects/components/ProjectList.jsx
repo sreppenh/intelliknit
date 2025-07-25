@@ -270,15 +270,15 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         <ContextualBar>
           <ContextualBar.Left>
             <div className="bg-sage-200 border border-sage-300 rounded-md p-0.5">
-              <div className="flex gap-1">
-                <button className="px-3 py-1 rounded text-xs font-medium transition-all duration-200 bg-white text-sage-700 shadow-sm">
+              <div className="flex gap-0.5">
+                <button className="px-2 py-1 rounded text-xs font-medium transition-all duration-200 bg-white text-sage-700 shadow-sm">
                   All
                 </button>
-                <button className="px-3 py-1 rounded text-xs font-medium transition-all duration-200 text-sage-600 hover:text-sage-800">
-                  In Progress
+                <button className="px-2 py-1 rounded text-xs font-medium transition-all duration-200 text-sage-600 hover:text-sage-800">
+                  Active
                 </button>
-                <button className="px-3 py-1 rounded text-xs font-medium transition-all duration-200 text-sage-600 hover:text-sage-800">
-                  Finished
+                <button className="px-2 py-1 rounded text-xs font-medium transition-all duration-200 text-sage-600 hover:text-sage-800">
+                  Done
                 </button>
               </div>
             </div>
@@ -291,10 +291,10 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           <ContextualBar.Right>
             <button
               onClick={onCreateProject}
-              className="btn-secondary btn-sm flex items-center gap-1.5"
+              className="bg-yarn-600 hover:bg-yarn-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1 transition-colors"
             >
-              <span className="text-sm">✨</span>
-              New Project
+              <span className="text-xs">✨</span>
+              <span className="hidden sm:inline">New </span>Project
             </button>
           </ContextualBar.Right>
         </ContextualBar>

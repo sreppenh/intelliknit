@@ -16,7 +16,7 @@ import React from 'react';
 const ContextualBar = ({ children, className = "", ...props }) => {
     return (
         <div
-            className={`px-6 py-3 bg-sage-100 border-b border-sage-200 ${className}`}
+            className={`px-4 sm:px-6 py-2 sm:py-3 bg-sage-100 border-b border-sage-200 ${className}`}
             {...props}
         >
             <div className="flex items-center justify-between text-sm">
@@ -30,7 +30,7 @@ const ContextualBar = ({ children, className = "", ...props }) => {
 const ContextualBarLeft = ({ children, className = "", ...props }) => {
     return (
         <div
-            className={`flex items-center gap-4 ${className}`}
+            className={`flex items-center gap-2 sm:gap-4 ${className}`}
             {...props}
         >
             {children}
@@ -54,7 +54,7 @@ const ContextualBarMiddle = ({ children, className = "", ...props }) => {
 const ContextualBarRight = ({ children, className = "", ...props }) => {
     return (
         <div
-            className={`flex items-center gap-3 ${className}`}
+            className={`flex items-center gap-2 sm:gap-3 ${className}`}
             {...props}
         >
             {children}
