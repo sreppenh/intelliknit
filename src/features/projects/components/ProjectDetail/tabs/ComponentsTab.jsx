@@ -1,5 +1,5 @@
 import React from 'react';
-import CompactComponentCard from '../CompactComponentCard';
+import CompactComponentCard from '../../CompactComponentCard';
 
 const ComponentsTab = ({
     project,
