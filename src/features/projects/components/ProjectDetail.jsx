@@ -261,30 +261,25 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
                 Add Component
               </button>
 
-              {/* Component Grid */}
-              <div className="bg-white rounded-xl border-2 border-wool-200 shadow-sm">
-                <div className="p-4">
-                  {/* Always show grid with sorted items (includes finishing steps placeholder) */}
-                  <div className="grid-2-equal">
-                    {getSortedComponentsWithFinishing().map((item, index) => (
-                      <CompactComponentCard
-                        key={item.id}
-                        component={item}
-                        onManageSteps={handleComponentManageSteps}
-                        onMenuAction={handleComponentMenuAction}
-                      />
-                    ))}
-                  </div>
-
-                  {/* Show empty state message only when no regular components AND no finishing tasks */}
-                  {currentProject.components.length === 0 && (
-                    <div className="mt-6 py-8 text-center">
-                      <div className="text-2xl mb-2">🧶</div>
-                      <p className="text-wool-500 text-sm">Add your first component to get started</p>
-                    </div>
-                  )}
-                </div>
+              {/* Component Grid - Clean like other pages */}
+              <div className="grid-2-equal">
+                {getSortedComponentsWithFinishing().map((item, index) => (
+                  <CompactComponentCard
+                    key={item.id}
+                    component={item}
+                    onManageSteps={handleComponentManageSteps}
+                    onMenuAction={handleComponentMenuAction}
+                  />
+                ))}
               </div>
+
+              {/* Show empty state message only when no regular components */}
+              {currentProject.components.length === 0 && (
+                <div className="mt-6 py-8 text-center">
+                  <div className="text-2xl mb-2">🧶</div>
+                  <p className="text-wool-500 text-sm">Add your first component to get started</p>
+                </div>
+              )}
 
               {/* Completed project display */}
               {currentProject.completed && (
