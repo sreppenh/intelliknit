@@ -11,7 +11,7 @@ const DurationChoice = ({ wizardData, updateWizardData, construction }) => {
       <div className="stack-lg">
         <div className="success-block-center">
           <div className="text-2xl mb-2">🏗️</div>
-          <h3 className="text-lg font-semibold text-sage-700 mb-2">Cast On Ready!</h3>
+          <h3 className="content-header-secondary mb-2">Cast On Ready!</h3>
           <p className="text-sm text-sage-600">Your cast on step is ready to add</p>
         </div>
       </div>
@@ -43,8 +43,8 @@ const DurationChoice = ({ wizardData, updateWizardData, construction }) => {
   return (
     <div className="stack-lg">
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">How Long?</h2>
-        <p className="text-wool-500 mb-4">Choose how you want to work this {pattern?.toLowerCase()}</p>
+        <h2 className="content-header-primary">Configure Length</h2>
+        <p className="content-subheader">Choose how you want to measure your {pattern?.toLowerCase()}</p>
       </div>
 
       {/* Bind Off - Special case */}
@@ -53,13 +53,13 @@ const DurationChoice = ({ wizardData, updateWizardData, construction }) => {
           <div className="success-block">
             <div className="text-center">
               <div className="text-2xl mb-2">✂️</div>
-              <h3 className="text-lg font-semibold text-sage-700 mb-2">Bind Off Stitches</h3>
+              <h3 className="content-header-secondary mb-2">Bind Off Stitches</h3>
               <p className="text-sm text-sage-600">Specify how many stitches to bind off</p>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+            <label className="form-label">
               Number of Stitches to Bind Off
             </label>
             <input

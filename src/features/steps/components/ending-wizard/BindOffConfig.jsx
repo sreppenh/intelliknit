@@ -2,33 +2,33 @@ import React from 'react';
 
 const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishingComponent = false }) => {
   const methods = [
-    { 
-      id: 'standard', 
-      name: 'Standard', 
+    {
+      id: 'standard',
+      name: 'Standard',
       icon: '✂️',
       description: 'Basic bind off, most common'
     },
-    { 
-      id: 'stretchy', 
-      name: 'Stretchy', 
+    {
+      id: 'stretchy',
+      name: 'Stretchy',
       icon: '🌊',
       description: 'Extra stretch for ribbing'
     },
-    { 
-      id: 'picot', 
-      name: 'Picot', 
+    {
+      id: 'picot',
+      name: 'Picot',
       icon: '🌸',
       description: 'Decorative scalloped edge'
     },
-    { 
-      id: 'three_needle', 
-      name: 'Three Needle', 
+    {
+      id: 'three_needle',
+      name: 'Three Needle',
       icon: '🔗',
       description: 'Joins two pieces together'
     },
-    { 
-      id: 'other', 
-      name: 'Other Method', 
+    {
+      id: 'other',
+      name: 'Other Method',
       icon: '📝',
       description: 'Specify your own'
     }
@@ -37,9 +37,9 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
   return (
     <div className="stack-lg">
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">Bind Off Method</h2>
-        <p className="text-wool-500 mb-4">
-          {isFinishingComponent 
+        <h2 className="content-header-primary">Bind Off Method</h2>
+        <p className="content-subheader">
+          {isFinishingComponent
             ? `How do you want to finish these ${currentStitches} stitches?`
             : 'Choose your bind off method'
           }
@@ -52,7 +52,7 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
           <div>
             <h3 className="text-sm font-semibold text-sage-700">Stitches to Bind Off</h3>
             <p className="text-xs text-sage-600 mt-1">
-              {isFinishingComponent 
+              {isFinishingComponent
                 ? 'Finishing the entire component'
                 : 'You can adjust this number if needed'
               }
@@ -63,7 +63,7 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
             <div className="text-xs text-sage-600">stitches</div>
           </div>
         </div>
-        
+
         {/* Only show input if NOT finishing component (for partial bind-offs) */}
         {!isFinishingComponent && (
           <input
@@ -80,7 +80,7 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
 
       {/* Method Selection - Grid Layout */}
       <div>
-        <label className="block text-sm font-semibold text-wool-700 mb-3">
+        <label className="form-label">
           Bind Off Method (optional)
         </label>
         <div className="grid grid-cols-2 gap-3">
@@ -88,11 +88,10 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
             <button
               key={method.id}
               onClick={() => setEndingData(prev => ({ ...prev, method: method.id }))}
-              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${
-                endingData.method === method.id
-                  ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
-              }`}
+              className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${endingData.method === method.id
+                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
+                }`}
             >
               <div className="text-2xl mb-2">{method.icon}</div>
               <div className="font-semibold text-sm mb-1">{method.name}</div>
@@ -105,7 +104,7 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
       {/* Custom Method Input */}
       {endingData.method === 'other' && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
+          <label className="form-label">
             Describe Your Bind Off Method
           </label>
           <input

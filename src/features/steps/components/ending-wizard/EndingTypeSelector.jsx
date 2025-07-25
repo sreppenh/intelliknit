@@ -5,7 +5,7 @@ const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
 
   const handlePutOnHolderClick = () => {
     setShowHolderSuccess(true);
-    
+
     // Show success message briefly, then complete
     setTimeout(() => {
       onTypeSelect('put_on_holder');
@@ -18,12 +18,12 @@ const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
       <div className="stack-lg">
         <div className="text-center">
           <div className="text-4xl mb-4">✅</div>
-          <h2 className="text-xl font-semibold text-sage-700 mb-2">Stitches on Holder!</h2>
+          <h2 className="content-header-primary-700 mb-2">Stitches on Holder!</h2>
           <p className="text-sage-600">
             All {currentStitches} stitches for {component?.name || 'this component'} are now safely on a holder.
           </p>
         </div>
-        
+
         <div className="success-block">
           <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 What's Next?</h4>
           <div className="text-sm text-sage-600">
@@ -39,7 +39,7 @@ const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
       <div>
         <div className="text-center mb-6">
           <div className="text-2xl mb-2">🏁</div>
-          <h2 className="text-xl font-semibold text-wool-700 mb-2">
+          <h2 className="content-header-primary">
             How does {component?.name || 'this component'} end?
           </h2>
           <p className="text-wool-500">
@@ -47,10 +47,10 @@ const EndingTypeSelector = ({ onTypeSelect, component, currentStitches }) => {
           </p>
         </div>
       </div>
-      
+
       {/* Clickable cards - Clean 4 options */}
       <div className="stack-sm">
-        
+
         {/* Bind Off All Stitches - Most common, show stitch count */}
         <button
           onClick={() => onTypeSelect('bind_off_all')}

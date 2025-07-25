@@ -334,16 +334,53 @@
 }
 
 .content-header-primary {
-  @apply text-xl font-semibold text-wool-700 mb-3 text-left;
+  @apply text-xl font-semibold text-wool-700 mb-3 text-center;
+  margin-top: 0 !important;
+  /* Override wrapper conflicts */
 }
 
 .content-header-secondary {
-  @apply text-lg font-semibold text-wool-700 mb-3 text-left;
+  @apply text-lg font-semibold text-wool-700 mb-3 text-center;
+  margin-top: 0 !important;
 }
 
 .content-subtitle {
-  @apply text-wool-500 mb-4 text-left;
+  @apply text-wool-500 mb-4 text-center;
+  margin-top: 0 !important;
 }
+
+/* ===== WRAPPER SPACING FIXES ===== */
+
+/* Fix: Remove space-y spacing from first content headers specifically */
+.space-y-4>div:first-child .content-header-primary,
+.space-y-4>div:first-child .content-header-secondary,
+.space-y-6>div:first-child .content-header-primary,
+.space-y-6>div:first-child .content-header-secondary,
+.stack-lg>div:first-child .content-header-primary,
+.stack-lg>div:first-child .content-header-secondary {
+  margin-top: 0 !important;
+}
+
+/* Fix: When the wrapper itself has space-y, the first div gets margin-top from Tailwind */
+.space-y-4>div:first-child {
+  margin-top: 0 !important;
+}
+
+.space-y-6>div:first-child {
+  margin-top: 0 !important;
+}
+
+.stack-lg>div:first-child {
+  margin-top: 0 !important;
+}
+
+/* Fix: Also handle when headers are direct children */
+.space-y-4>.content-header-primary:first-child,
+.space-y-6>.content-header-primary:first-child,
+.stack-lg>.content-header-primary:first-child {
+  margin-top: 0 !important;
+}
+
 
 /* Standard spacing after header sections to match current spacing patterns */
 .section-header {
@@ -353,6 +390,10 @@
 
 .page-title {
   @apply text-xl font-semibold text-wool-700 mb-6 text-center;
+}
+
+.page-content-tight {
+  @apply px-6 pb-6 pt-1;
 }
 
 
@@ -416,4 +457,96 @@
 
 .badge-success {
   @apply bg-sage-500 text-white;
+}
+
+/* ===== Project Personality Cards ===== */
+.card-project-base {
+  @apply border-2 rounded-xl p-5 shadow-sm transition-all duration-200 cursor-pointer;
+  @apply hover:shadow-lg hover:scale-[1.01] active:scale-95;
+}
+
+.card-project-completed {
+  @apply card-project-base bg-gradient-to-r from-sage-50 to-yarn-50 border-sage-300 shadow-lg;
+}
+
+.card-project-frogged {
+  @apply card-project-base bg-wool-50 border-wool-300;
+}
+
+.card-project-fire {
+  @apply card-project-base bg-gradient-to-r from-orange-50 to-red-50 border-orange-300 shadow-lg;
+}
+
+.card-project-current {
+  @apply card-project-base bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg;
+}
+
+.card-project-dormant {
+  @apply card-project-base bg-wool-50 border-wool-300 opacity-90;
+}
+
+.card-project-empty {
+  @apply card-project-base bg-lavender-50 border-lavender-200;
+}
+
+.card-project-active {
+  @apply card-project-base bg-white border-wool-200;
+}
+
+/* Icon backgrounds for personality cards */
+.icon-project-completed {
+  @apply bg-sage-200 border-sage-300;
+}
+
+.icon-project-frogged {
+  @apply bg-wool-100 border-wool-200;
+}
+
+.icon-project-fire {
+  @apply bg-orange-200 border-orange-300;
+}
+
+.icon-project-current {
+  @apply bg-sage-200 border-sage-300;
+}
+
+.icon-project-dormant {
+  @apply bg-wool-100 border-wool-200;
+}
+
+.icon-project-empty {
+  @apply bg-lavender-100 border-lavender-200;
+}
+
+.icon-project-active {
+  @apply bg-yarn-100 border-yarn-200;
+}
+
+/* Text colors for personality cards */
+.text-project-completed {
+  @apply text-sage-700;
+}
+
+.text-project-frogged {
+  @apply text-wool-600;
+}
+
+.text-project-fire {
+  @apply text-orange-700;
+}
+
+.text-project-current {
+  @apply text-sage-700;
+}
+
+.text-project-dormant {
+  @apply text-wool-600;
+}
+
+.text-project-empty {
+  @apply text-lavender-700;
+}
+
+.text-project-active {
+  @apply text-wool-700;
 }

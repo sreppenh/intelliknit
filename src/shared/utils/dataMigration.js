@@ -10,7 +10,7 @@ export const migrateComponentToNewArchitecture = (component) => {
 
   // 1. Convert startingStitches to Cast On step (if not already present)
   if (component.startingStitches && component.startingStitches > 0) {
-    const hasCastOnStep = newSteps.some(step => 
+    const hasCastOnStep = newSteps.some(step =>
       step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
       step.description?.toLowerCase().includes('cast on')
     );
@@ -33,7 +33,7 @@ export const migrateComponentToNewArchitecture = (component) => {
         construction: component.construction || 'flat',
         completed: true // Mark as completed since it's legacy data
       };
-      
+
       // Insert at beginning
       newSteps.unshift(castOnStep);
       hasChanges = true;
@@ -46,7 +46,7 @@ export const migrateComponentToNewArchitecture = (component) => {
 
   // 2. Convert endingStep to Bind Off step (if present)
   if (component.endingStep) {
-    const hasBindOffStep = newSteps.some(step => 
+    const hasBindOffStep = newSteps.some(step =>
       step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
       step.description?.toLowerCase().includes('bind off')
     );
@@ -73,7 +73,7 @@ export const migrateComponentToNewArchitecture = (component) => {
         construction: component.construction || 'flat',
         completed: true // Mark as completed since it's legacy data
       };
-      
+
       // Add at end
       newSteps.push(bindOffStep);
       hasChanges = true;
@@ -87,14 +87,14 @@ export const migrateComponentToNewArchitecture = (component) => {
   // 3. Ensure all steps have proper startingStitches/endingStitches
   for (let i = 0; i < newSteps.length; i++) {
     const step = newSteps[i];
-    
+
     // Set startingStitches from previous step's endingStitches
     if (i > 0 && !step.startingStitches) {
       const prevStep = newSteps[i - 1];
       step.startingStitches = prevStep.endingStitches || prevStep.expectedStitches || 0;
       hasChanges = true;
     }
-    
+
     // Ensure endingStitches is set
     if (!step.endingStitches && step.expectedStitches) {
       step.endingStitches = step.expectedStitches;
@@ -103,7 +103,7 @@ export const migrateComponentToNewArchitecture = (component) => {
   }
 
   migratedComponent.steps = newSteps;
-  
+
   return {
     component: migratedComponent,
     hasChanges
@@ -119,6 +119,31 @@ export const migrateProjectToNewArchitecture = (project) => {
     if (hasChanges) hasAnyChanges = true;
     return migratedComponent;
   });
+
+  // NEW: Add activity tracking to projects
+  if (!migratedProject.activityLog) {
+    migratedProject.activityLog = [];
+    hasAnyChanges = true;
+  }
+
+  // NEW: Initialize lastActivityAt if not present  
+  if (!migratedProject.lastActivityAt) {
+    migratedProject.lastActivityAt = migratedProject.createdAt;
+    hasAnyChanges = true;
+  }
+
+  // NEW: Add initial activity for recently created projects
+  const now = new Date();
+  const createdAt = new Date(migratedProject.createdAt);
+  const hoursSinceCreation = (now - createdAt) / (1000 * 60 * 60);
+
+  if (hoursSinceCreation < 24 && migratedProject.activityLog.length === 0) {
+    const today = now.toISOString().split('T')[0];
+    migratedProject.activityLog = [today];
+    hasAnyChanges = true;
+  }
+
+
 
   return {
     project: migratedProject,

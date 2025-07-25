@@ -12,7 +12,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
         <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
           <div className="text-4xl mb-4">❌</div>
           <h3 className="text-lg font-medium text-wool-600 mb-2">Component not found</h3>
-          <button 
+          <button
             onClick={onBack}
             className="btn-primary btn-sm"
           >
@@ -60,20 +60,20 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        
+
         {/* Header */}
-        <PageHeader 
-  title={component.name} 
-  subtitle={currentProject.name} 
-  onBack={onBack} 
-/>
+        <PageHeader
+          title={component.name}
+          subtitle={currentProject.name}
+          onBack={onBack}
+        />
 
         <div className="p-6 bg-yarn-50">
-          
+
           {/* Component Status */}
           <div className="bg-white rounded-xl border-2 border-wool-200 p-5 mb-6 shadow-sm">
-            <h2 className="text-lg font-semibold text-wool-700 mb-4">Component Status</h2>
-            
+            <h2 className="content-header-secondary mb-4">Component Status</h2>
+
             {/* Enhanced component info */}
             {component.startingStitches && (
               <div className="bg-sage-50 rounded-lg p-3 border border-sage-200 mb-4">
@@ -102,16 +102,15 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                   {component.steps.filter(s => s.completed).length} of {component.steps.length} steps
                 </span>
               </div>
-              
+
               {component.steps.length > 0 && (
                 <div className="flex items-center gap-3">
                   <div className="flex-1 bg-wool-100 rounded-full h-3 border border-wool-200">
-                    <div 
-                      className={`h-3 rounded-full transition-all duration-300 ${
-                        component.steps.filter(s => s.completed).length === component.steps.length
-                          ? 'bg-sage-500 shadow-sm' 
-                          : 'bg-sage-400'
-                      }`}
+                    <div
+                      className={`h-3 rounded-full transition-all duration-300 ${component.steps.filter(s => s.completed).length === component.steps.length
+                        ? 'bg-sage-500 shadow-sm'
+                        : 'bg-sage-400'
+                        }`}
                       style={{
                         width: `${(component.steps.filter(s => s.completed).length / component.steps.length) * 100}%`
                       }}
@@ -127,11 +126,11 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
 
           {/* Action Buttons */}
           <div className="space-y-4">
-            
+
             {/* Primary Actions */}
             <div className="stack-sm">
-              <h3 className="text-lg font-semibold text-wool-700">Actions</h3>
-              
+              <h3 className="content-header-secondary">Actions</h3>
+
               {/* Manage Steps - yarn orange for exciting action */}
               <button
                 onClick={() => onManageSteps(componentIndex)}
@@ -156,7 +155,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
             {/* Secondary Actions */}
             <div className="pt-4 border-t border-wool-200">
               <h4 className="text-sm font-semibold text-wool-600 mb-3">More Options</h4>
-              
+
               <div className="stack-sm">
                 {/* Copy Component */}
                 <button
@@ -177,7 +176,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                     Delete Component
                   </button>
                 )}
-                
+
                 {!canDelete && (
                   <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
                     <p className="text-xs text-yellow-700">
@@ -194,7 +193,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
         {showDeleteModal && (
           <div className="modal-overlay">
             <div className="modal-content">
-              
+
               <div className="bg-red-500 text-white px-6 py-4 rounded-t-2xl">
                 <div className="text-center">
                   <div className="text-2xl mb-2">⚠️</div>
@@ -220,7 +219,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                   >
                     Yes, Delete Component
                   </button>
-                  
+
                   <button
                     onClick={() => setShowDeleteModal(false)}
                     className="w-full btn-tertiary"

@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import PageHeader from '../../../shared/components/PageHeader';
 
 const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect, onExitToProjectList }) => {
   const [showExitModal, setShowExitModal] = useState(false);
@@ -55,33 +56,19 @@ const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect, o
 
         {/* Compact Header */}
 
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-            >
-              ←
-            </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">What are you making?</h1>
-              <p className="text-sage-100 text-sm">Choose your project type</p>
-            </div>
-            <button
-              onClick={handleXButtonClick}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-              title="Exit Project Creation"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
+        <PageHeader
+          title="What are you making?"
+          subtitle="Choose your project type"
+          onBack={onBack}
+          showCancelButton={true}
+          onCancel={handleXButtonClick}
+        />
 
         <div className="p-4 bg-yarn-50 space-y-4">
           {/* Compact Welcome Message */}
           <div className="text-center">
             <div className="text-2xl mb-2">🧶</div>
-            <h2 className="text-lg font-semibold text-wool-700 mb-1">Let's Get Started!</h2>
+            <h2 className="content-header-secondary mb-1">Let's Get Started!</h2>
             <p className="text-wool-500 text-sm">What are you excited to create?</p>
           </div>
 

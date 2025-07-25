@@ -1,16 +1,19 @@
 // src/shared/components/PageHeader.jsx
 import React from 'react';
 
-const PageHeader = ({ 
-  title, 
-  subtitle, 
-  onBack, 
+const PageHeader = ({
+  title,
+  subtitle,
+  onBack,
   showBackButton = true,
   // New props for wizard support
   showCancelButton = false,
   onCancel,
   showConstructionBar = false,
-  constructionInfo = {}
+  constructionInfo = {},
+  // New props for contextual info bar
+  showContextualBar = false,
+  contextualInfo = {}
 }) => {
   return (
     <>
@@ -41,7 +44,7 @@ const PageHeader = ({
         </div>
       </div>
 
-      {/* Optional Construction Info Bar */}
+      {/* Optional Construction Info Bar (existing) */}
       {showConstructionBar && (
         <div className="px-6 py-3 bg-sage-100 border-b border-sage-200">
           <div className="flex items-center justify-between text-sm">
@@ -51,21 +54,19 @@ const PageHeader = ({
                 <div className="grid grid-cols-2 gap-1">
                   <button
                     onClick={() => constructionInfo.setConstruction('flat')}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${
-                      constructionInfo.construction === 'flat'
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${constructionInfo.construction === 'flat'
                         ? 'bg-white text-sage-700 shadow-sm'
                         : 'text-sage-600 hover:text-sage-800'
-                    }`}
+                      }`}
                   >
                     Flat
                   </button>
                   <button
                     onClick={() => constructionInfo.setConstruction('round')}
-                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${
-                      constructionInfo.construction === 'round'
+                    className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${constructionInfo.construction === 'round'
                         ? 'bg-white text-sage-700 shadow-sm'
                         : 'text-sage-600 hover:text-sage-800'
-                    }`}
+                      }`}
                   >
                     Round
                   </button>
@@ -75,6 +76,25 @@ const PageHeader = ({
             <div className="text-sage-600 text-xs">
               {constructionInfo.currentStitches} stitches • {constructionInfo.componentName}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* New: Generic Contextual Info Bar */}
+      {showContextualBar && (
+        <div className="px-6 py-3 bg-sage-100 border-b border-sage-200">
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-4">
+              {contextualInfo.label && (
+                <span className="font-medium text-sage-700">{contextualInfo.label}:</span>
+              )}
+              {contextualInfo.leftContent}
+            </div>
+            {contextualInfo.rightContent && (
+              <div className="text-sage-600 text-xs">
+                {contextualInfo.rightContent}
+              </div>
+            )}
           </div>
         </div>
       )}

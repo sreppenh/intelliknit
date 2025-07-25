@@ -4,12 +4,12 @@ const ContinueConfig = ({ endingData, setEndingData }) => {
   return (
     <div className="stack-lg">
       <div>
-        <h2 className="text-xl font-semibold text-wool-700 mb-3">Continue To What?</h2>
-        <p className="text-wool-500 mb-4">Describe what section comes next</p>
+        <h2 className="content-header-primary">Continue To What?</h2>
+        <p className="content-subheader">Describe what section comes next</p>
       </div>
 
       <div>
-        <label className="block text-sm font-semibold text-wool-700 mb-3 text-left">
+        <label className="form-label">
           Next Section Description
         </label>
         <input

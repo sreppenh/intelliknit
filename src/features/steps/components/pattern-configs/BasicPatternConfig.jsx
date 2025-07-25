@@ -75,7 +75,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
       {/* Basic/Rib/Textured - Optional repeat input */}
       {canHaveOptionalRepeats() && !needsRowInput && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
+          <label className="form-label">
             Pattern Repeat (optional)
           </label>
           <input
@@ -96,7 +96,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
       {/* Other pattern input */}
       {isOtherPattern && (
         <div>
-          <label className="block text-sm font-semibold text-wool-700 mb-3">
+          <label className="form-label">
             Describe Your Pattern *
           </label>
           <textarea

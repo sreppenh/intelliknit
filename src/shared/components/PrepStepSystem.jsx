@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 
 // Overlay Modal for Prep Notes
-export const PrepStepOverlay = ({ 
+export const PrepStepOverlay = ({
   isOpen,
   onClose,
   onSave,
@@ -44,7 +44,7 @@ export const PrepStepOverlay = ({
   return (
     <div className="modal-overlay">
       <div className="modal-content max-h-[80vh] overflow-y-auto">
-        
+
         {/* Header */}
         <div className="bg-sage-500 text-white px-6 py-4 rounded-t-2xl">
           <div className="flex items-center gap-3">
@@ -63,10 +63,10 @@ export const PrepStepOverlay = ({
         </div>
 
         <div className="p-6 bg-yarn-50 stack-lg">
-          
+
           {/* Note Input */}
           <div>
-            <label className="block text-sm font-semibold text-wool-700 mb-3">
+            <label className="form-label">
               What should the knitter do?
             </label>
             <textarea
@@ -101,19 +101,19 @@ export const PrepStepOverlay = ({
                 Clear Note
               </button>
             )}
-            
+
             <button
               onClick={onClose}
               className="flex-1 btn-tertiary"
             >
               Cancel
             </button>
-            
+
             <button
               onClick={handleSave}
               disabled={!canSave}
               className="flex-2 bg-sage-500 text-white py-3 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
-              style={{flexGrow: 2}}
+              style={{ flexGrow: 2 }}
             >
               {hasExistingNote ? 'Update Note' : 'Save Note'}
             </button>
@@ -125,8 +125,8 @@ export const PrepStepOverlay = ({
 };
 
 // Enhanced Prep Step Button with visual state
-export const PrepStepButton = ({ 
-  onClick, 
+export const PrepStepButton = ({
+  onClick,
   hasNote = false,
   notePreview = '',
   position = "top-right",
@@ -161,7 +161,7 @@ export const PrepStepButton = ({
     if (hasNote) {
       return "bg-sage-500 text-white hover:bg-sage-600 shadow-md";
     }
-    
+
     switch (variant) {
       case "outlined":
         return "border-2 border-sage-300 text-sage-600 hover:bg-sage-50";
@@ -182,16 +182,16 @@ export const PrepStepButton = ({
         className={`${getSizeClasses()} ${getVariantClasses()} rounded-full transition-all duration-200 group relative`}
         title={hasNote ? `Edit note: ${notePreview.slice(0, 30)}${notePreview.length > 30 ? '...' : ''}` : "Add preparation note"}
       >
-        <svg 
-          width={iconSize} 
-          height={iconSize} 
-          viewBox="0 0 20 20" 
-          fill="currentColor" 
+        <svg
+          width={iconSize}
+          height={iconSize}
+          viewBox="0 0 20 20"
+          fill="currentColor"
           className="group-hover:scale-110 transition-transform"
         >
-          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z"/>
+          <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
         </svg>
-        
+
         {/* Note indicator dot */}
         {hasNote && (
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-yarn-600 rounded-full border-2 border-white"></div>
@@ -271,23 +271,23 @@ export const PREP_NOTE_CONFIGS = {
     ],
     placeholder: "e.g., Switch to smaller needles, place stitch markers, check measurements"
   },
-  
+
   componentCreation: {
     title: "Setup Note",
     subtitle: "Add preparation before starting this component",
     icon: "🛠️",
     examples: [
       "Transfer stitches to circular needle",
-      "Place holders on live stitches", 
+      "Place holders on live stitches",
       "Set up for picking up stitches",
       "Change to contrast color yarn"
     ],
     placeholder: "e.g., Transfer to 16-inch circular needle, place live stitches on holder"
   },
-  
+
   componentEnding: {
     title: "Finishing Note",
-    subtitle: "Add setup note before finishing this component", 
+    subtitle: "Add setup note before finishing this component",
     icon: "🏁",
     examples: [
       "Try on garment to check fit",

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import PageHeader from '../../../shared/components/PageHeader';
 
 const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitToProjectList }) => {
   const { dispatch } = useProjectsContext();
@@ -73,34 +74,20 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
 
         {/* Compact Header */}
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={onBack}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-            >
-              ←
-            </button>
-            <div className="flex-1">
-              <h1 className="text-lg font-semibold">Create New Project</h1>
-              <p className="text-sage-100 text-sm">Just the essentials</p>
-            </div>
-            <button
-              onClick={handleXButtonClick}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-              title="Exit Project Creation"
-            >
-              ✕
-            </button>
-          </div>
-        </div>
+        <PageHeader
+          title="Create New Project"
+          subtitle="Just the essentials"
+          onBack={onBack}
+          showCancelButton={true}
+          onCancel={handleXButtonClick}
+        />
 
         <div className="p-4 bg-yarn-50 space-y-4">
 
           {/* Compact Welcome Message */}
           <div className="text-center">
             <div className="text-2xl mb-2">🧶</div>
-            <h2 className="text-lg font-semibold text-wool-700 mb-1">Project Details</h2>
+            <h2 className="content-header-secondary mb-1">Project Details</h2>
             <p className="text-wool-500 text-sm">Add more details later!</p>
           </div>
 

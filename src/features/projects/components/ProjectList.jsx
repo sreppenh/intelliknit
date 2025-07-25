@@ -1,17 +1,26 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
+import PageHeader from '../../../shared/components/PageHeader';
+import ContextualBar from '../../../shared/components/ContextualBar';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const { projects, dispatch } = useProjectsContext();
-  const [openMenuId, setOpenMenuId] = useState(null);
 
   const handleProjectEdit = (project) => {
-    setOpenMenuId(null);
+    // NEW: Add today to activity log and update last activity
+    const today = new Date().toISOString().split('T')[0];
+    const updatedActivityLog = project.activityLog || [];
 
-    // Update last activity when opening project for editing
+    // Only add today if it's not already in the log
+    if (!updatedActivityLog.includes(today)) {
+      updatedActivityLog.push(today);
+    }
+
     const updatedProject = {
       ...project,
-      lastActivityAt: new Date().toISOString()
+      lastActivityAt: new Date().toISOString(),
+      activityLog: updatedActivityLog
     };
 
     dispatch({
@@ -22,41 +31,144 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     onOpenProject(updatedProject);
   };
 
-  const handleProjectKnitting = (project) => {
-    setOpenMenuId(null);
-    // TODO: Navigate to knitting mode when implemented
-
-    // For now, could go to tracking or show coming soon
+  // NEW: Project type icons (from existing ProjectDetail pattern)
+  const getProjectIcon = (projectType) => {
+    const icons = {
+      sweater: '🧥',
+      shawl: '🌙',
+      hat: '🎩',
+      scarf_cowl: '🧣',
+      socks: '🧦',
+      blanket: '🛏️',
+      toys: '🧸',
+      other: '✨'
+    };
+    return icons[projectType] || '🧶';
   };
 
-  const handleMenuToggle = (projectId, event) => {
-    event.stopPropagation();
-    setOpenMenuId(openMenuId === projectId ? null : projectId);
-  };
+  // NEW: Calculate streak days (consecutive days of any activity)
+  const getStreakDays = (project) => {
+    if (!project.activityLog || project.activityLog.length === 0) return 0;
 
-  const handleDeleteProject = (projectId, projectName, event) => {
-    event.stopPropagation();
-    const confirmed = window.confirm(`Delete "${projectName}"? This cannot be undone.`);
+    let streak = 0;
+    const today = new Date();
+    const msPerDay = 24 * 60 * 60 * 1000;
 
-    if (confirmed) {
-      dispatch({
-        type: 'DELETE_PROJECT',
-        payload: projectId
-      });
+    // Check each day going backwards from today
+    for (let i = 0; i < 30; i++) { // Check last 30 days max
+      const checkDate = new Date(today.getTime() - (i * msPerDay));
+      const dayString = checkDate.toISOString().split('T')[0];
+
+      if (project.activityLog.includes(dayString)) {
+        streak = i + 1;
+      } else if (i === 0) {
+        // No activity today, check if streak continues from yesterday
+        continue;
+      } else {
+        break; // Streak broken
+      }
     }
-    setOpenMenuId(null);
+    return streak;
   };
 
-  const handleCopyPattern = (project, event) => {
-    event.stopPropagation();
-    const newName = window.prompt(`Copy "${project.name}" as:`, `${project.name} Copy`);
+  // NEW: Calculate project personality state and styling
+  const getProjectPersonality = (project, isTopProject = false) => {
+    const totalComponents = project.components?.length || 0;
+    const hasSteps = project.components?.some(comp => comp.steps?.length > 0);
+    const streakDays = getStreakDays(project);
 
-    if (newName && newName.trim() !== '') {
-      // TODO: Implement copy pattern functionality
-
-      alert(`Pattern copying coming soon! Would copy "${project.name}" as "${newName.trim()}"`);
+    // 1. Completed projects
+    if (project.completed) {
+      return {
+        state: 'completed',
+        emoji: '🎉',
+        mood: 'Celebration time!',
+        cardClass: 'card-project-completed',
+        iconBg: 'icon-project-completed',
+        textColor: 'text-project-completed',
+        rightCorner: '🏆'
+      };
     }
-    setOpenMenuId(null);
+
+    // 2. Frogged projects (placeholder - not implemented yet)
+    if (project.frogged) {
+      return {
+        state: 'frogged',
+        emoji: '🐸',
+        mood: 'Frogged',
+        cardClass: 'card-project-frogged',
+        iconBg: 'icon-project-frogged',
+        textColor: 'text-project-frogged',
+        rightCorner: '🐸'
+      };
+    }
+
+    // 3. Fire projects (3+ day streak)
+    if (streakDays >= 3) {
+      const fireLevel = streakDays >= 7 ? '🔥🔥🔥' : streakDays >= 5 ? '🔥🔥' : '🔥';
+      return {
+        state: 'fire',
+        emoji: '🔥',
+        mood: `On fire! ${streakDays} day streak`,
+        cardClass: 'card-project-fire',
+        iconBg: 'icon-project-fire',
+        textColor: 'text-project-fire',
+        rightCorner: `${fireLevel} ${streakDays}d`
+      };
+    }
+
+    // 4. Current project (overrides sleeping/active/empty)
+    if (isTopProject) {
+      return {
+        state: 'current',
+        emoji: '⭐',
+        mood: 'Currently working',
+        cardClass: 'card-project-current',
+        iconBg: 'icon-project-current',
+        textColor: 'text-project-current',
+        rightCorner: '⭐ Current'
+      };
+    }
+
+    // 5. Dormant projects (no activity for 14+ days)
+    const lastActivity = new Date(project.lastActivityAt || project.createdAt);
+    const daysSinceActivity = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+
+    if (daysSinceActivity > 14 && hasSteps) {
+      return {
+        state: 'dormant',
+        emoji: '😴',
+        mood: 'Taking a nap...',
+        cardClass: 'card-project-dormant',
+        iconBg: 'icon-project-dormant',
+        textColor: 'text-project-dormant',
+        rightCorner: `😴 ${Math.floor(daysSinceActivity)}d ago`
+      };
+    }
+
+    // 6. Empty projects (no components)
+    if (totalComponents === 0) {
+      return {
+        state: 'empty',
+        emoji: '💭',
+        mood: 'Ready to begin',
+        cardClass: 'card-project-empty',
+        iconBg: 'icon-project-empty',
+        textColor: 'text-project-empty',
+        rightCorner: '✨ New'
+      };
+    }
+
+    // 7. Active projects (fallback)
+    return {
+      state: 'active',
+      emoji: '🧶',
+      mood: 'In progress',
+      cardClass: 'card-project-active',
+      iconBg: 'icon-project-active',
+      textColor: 'text-project-active',
+      rightCorner: '🧶 Active'
+    };
   };
 
   // Helper functions for smart button logic
@@ -108,32 +220,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     return sorted;
   };
 
-  const getKnittingButtonText = (project) => {
-    const status = getProjectStatus(project);
-    switch (status) {
-      case 'ready': return 'Start Knitting';
-      case 'in_progress': return 'Continue Knitting';
-      case 'completed': return 'View Project';
-      case 'planning': return 'Plan Project';
-      default: return 'Continue Knitting';
-    }
-  };
-
-  const getKnittingButtonIcon = (project) => {
-    const status = getProjectStatus(project);
-    switch (status) {
-      case 'ready': return '🚀';
-      case 'in_progress': return '🧶';
-      case 'completed': return '🏆';
-      case 'planning': return '📝';
-      default: return '🧶';
-    }
-  };
-
-  const shouldShowKnittingButton = (project) => {
-    return getProjectStatus(project) !== 'planning';
-  };
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -149,10 +235,21 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     });
   };
 
-  // Close menu when clicking outside
-  const handleCardClick = (project) => {
-    if (openMenuId) {
-      setOpenMenuId(null);
+  // NEW: Generate project count display for contextual bar
+  const getProjectCountDisplay = () => {
+    if (projects.length === 0) return '';
+
+    const total = projects.length;
+    const active = projects.filter(p => !p.completed).length;
+    const completed = projects.filter(p => p.completed).length;
+
+    return `${total} project${total !== 1 ? 's' : ''} • ${active} active • ${completed} completed`;
+  };
+
+  // NEW: Handle both back and cancel navigation to Landing Page
+  const handleBackToLanding = () => {
+    if (onBack) {
+      onBack();
     }
   };
 
@@ -160,25 +257,58 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
 
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            {onBack && (
-              <button
-                onClick={onBack}
-                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-              >
-                ←
-              </button>
-            )}
-            <div className="flex-1 text-center">
-              <div className="text-2xl mb-1">🧶</div>
-              <h1 className="text-xl font-bold mb-0.5">IntelliKnit</h1>
-              <p className="text-sage-100 text-xs">Ready to knit something amazing?</p>
+        {/* Enhanced PageHeader with both back and cancel going to Landing */}
+        <PageHeader
+          title="My Projects"
+          onBack={handleBackToLanding}
+          showBackButton={true}
+          showCancelButton={true}
+          onCancel={handleBackToLanding}
+        />
+
+        {/* NEW: ContextualBar - Always present, adapts to content */}
+        <ContextualBar>
+          <ContextualBar.Left>
+            <div className="bg-sage-200 border border-sage-300 rounded-md p-0.5">
+              <div className="flex gap-1">
+                <button className="px-3 py-1 rounded text-xs font-medium transition-all duration-200 bg-white text-sage-700 shadow-sm">
+                  All
+                </button>
+                <button className="px-3 py-1 rounded text-xs font-medium transition-all duration-200 text-sage-600 hover:text-sage-800">
+                  In Progress
+                </button>
+                <button className="px-3 py-1 rounded text-xs font-medium transition-all duration-200 text-sage-600 hover:text-sage-800">
+                  Finished
+                </button>
+              </div>
             </div>
-            {/* Spacer to center the content when back button is present */}
-            {onBack && <div className="w-10"></div>}
-          </div>
+          </ContextualBar.Left>
+
+          <ContextualBar.Middle>
+            {/* Empty - no clutter */}
+          </ContextualBar.Middle>
+
+          <ContextualBar.Right>
+            <button
+              onClick={onCreateProject}
+              className="btn-secondary btn-sm flex items-center gap-1.5"
+            >
+              <span className="text-sm">✨</span>
+              New Project
+            </button>
+          </ContextualBar.Right>
+        </ContextualBar>
+
+
+        {/* Content Header */}
+        <div className="p-6 pb-4 bg-yarn-50">
+          <h2 className="content-header-primary">Your Knitting Projects</h2>
+          <p className="content-subheader">What would you like to work on?</p>
+
+
         </div>
+
+
 
         <div className="p-4 bg-yarn-50">
 
@@ -188,7 +318,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-wool-200 mb-4">
                 <div className="text-4xl mb-3">🏠</div>
                 <h2 className="text-xl font-bold text-wool-700 mb-2">Welcome to Your Craft Room!</h2>
-                <p className="text-wool-500 mb-4 leading-relaxed text-sm">
+                <p className="content-subheader leading-relaxed text-sm">
                   Ready to start your knitting journey? Create your first project and let's get those needles clicking!
                 </p>
 
@@ -221,151 +351,51 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h2 className="text-lg font-semibold text-wool-700">Your Projects</h2>
-                <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
-                  {projects.length} project{projects.length !== 1 ? 's' : ''}
-                </span>
-              </div>
-
+              {/* UPDATED: Removed redundant header since ContextualBar now shows count */}
               <div className="stack-sm">
                 {getSortedProjects().map((project, index) => {
                   const isTopProject = index === 0 && projects.length > 1;
                   const status = getProjectStatus(project);
-                  const totalSteps = project.components.reduce((total, comp) => total + comp.steps.length, 0);
-                  const completedSteps = project.components.reduce((total, comp) =>
-                    total + comp.steps.filter(s => s.completed).length, 0);
-                  const completedComponents = project.components.filter(comp =>
-                    comp.steps.length > 0 && comp.steps.every(step => step.completed)
-                  ).length;
-                  const progressPercent = totalSteps > 0 ? Math.round((completedSteps / totalSteps) * 100) : 0;
+                  const personality = getProjectPersonality(project, isTopProject);
+                  const totalComponents = project.components?.length || 0;
 
                   return (
                     <div
                       key={project.id}
-                      onClick={() => handleCardClick(project)}
-                      className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 relative ${isTopProject
-                          ? 'bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg transform scale-[1.02]'
-                          : 'bg-white border-wool-200'
-                        }`}
+                      onClick={() => handleProjectEdit(project)}
+                      className={`${personality.cardClass} transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-95 relative`}
                     >
-                      {/* Project Header */}
-                      <div className="flex items-start justify-between mb-3">
-                        <div className="flex-1 pr-8">
-                          <div className="flex items-center gap-2 mb-1">
-                            {/* NEW: Subtle current project indicator */}
-                            {isTopProject && (
-                              <span className="text-sm">⭐</span>
-                            )}
-                            <h3 className={`font-bold text-base ${isTopProject ? 'text-sage-700' : 'text-wool-700'
-                              }`}>
+
+
+                      <div className="flex items-start gap-4">
+                        {/* Project Icon */}
+                        <div className="flex-shrink-0">
+                          <div className={`w-12 h-12 ${personality.iconBg} rounded-xl flex items-center justify-center text-xl border-2 shadow-sm`}>
+                            {getProjectIcon(project.projectType)}
+                          </div>
+                        </div>
+
+                        {/* Project Info - Simplified */}
+                        <div className="flex-1 min-w-0">
+                          {/* Project Name & Status Badge */}
+                          <div className="flex items-start justify-between mb-2">
+                            <h3 className={`font-semibold text-base ${personality.textColor} truncate flex-1 pr-2`}>
                               {project.name}
                             </h3>
-                            {status === 'completed' && (
-                              <span className="text-lg">🏆</span>
-                            )}
+                            <div className={`text-xs font-medium ${personality.textColor} opacity-75 flex-shrink-0 text-right`}>
+                              {personality.rightCorner}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-3 text-xs text-wool-500">
-                            <span>{project.size || 'No size specified'}</span>
+                          {/* Single Info Line - Components • Start Date */}
+                          <div className="flex items-center gap-2 text-xs text-wool-500">
+                            <span className="flex items-center gap-1">
+                              <span>📐</span>
+                              <span>{totalComponents} component{totalComponents !== 1 ? 's' : ''}</span>
+                            </span>
                             <span>•</span>
                             <span>Started {formatDate(project.createdAt)}</span>
                           </div>
                         </div>
-
-                        {/* Three-dot menu */}
-                        <div className="relative">
-                          <button
-                            onClick={(e) => handleMenuToggle(project.id, e)}
-                            className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-100 rounded-full transition-colors"
-                          >
-                            <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                              <circle cx="8" cy="3" r="1.5" />
-                              <circle cx="8" cy="8" r="1.5" />
-                              <circle cx="8" cy="13" r="1.5" />
-                            </svg>
-                          </button>
-
-                          {/* Dropdown menu */}
-                          {openMenuId === project.id && (
-                            <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-40">
-                              <button
-                                onClick={(e) => handleProjectEdit(project)}
-                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 rounded-t-lg text-sm flex items-center gap-2 transition-colors"
-                              >
-                                📝 Edit Project
-                              </button>
-                              <button
-                                onClick={(e) => handleCopyPattern(project, e)}
-                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-yarn-50 text-sm flex items-center gap-2 transition-colors"
-                              >
-                                📋 Copy Pattern
-                              </button>
-                              <button
-                                onClick={(e) => handleDeleteProject(project.id, project.name, e)}
-                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors"
-                              >
-                                🗑️ Delete Project
-                              </button>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      {/* Progress Section */}
-                      {project.components.length > 0 && (
-                        <div className="mb-4">
-                          <div className="flex items-center gap-3 mb-2">
-                            <div className="flex-1 bg-wool-100 rounded-full h-2 border border-wool-200">
-                              <div
-                                className={`h-2 rounded-full transition-all duration-300 ${status === 'completed' ? 'bg-sage-500' : 'bg-yarn-500'
-                                  }`}
-                                style={{ width: `${progressPercent}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-bold text-wool-700 tabular-nums">
-                              {progressPercent}%
-                            </span>
-                          </div>
-                          <div className="text-xs text-wool-500">
-                            {completedComponents} of {project.components.length} components complete
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Action Button */}
-                      <div className="space-y-2">
-                        {shouldShowKnittingButton(project) ? (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              if (status === 'completed' || status === 'planning') {
-                                handleProjectEdit(project);
-                              } else {
-                                handleProjectKnitting(project);
-                              }
-                            }}
-                            className={`w-full py-3 px-4 rounded-xl font-semibold text-base transition-colors shadow-sm flex items-center justify-center gap-2 ${status === 'completed'
-                                ? 'bg-sage-500 text-white hover:bg-sage-600'
-                                : isTopProject
-                                  ? 'bg-sage-600 text-white hover:bg-sage-700 shadow-md'
-                                  : 'bg-yarn-600 text-white hover:bg-yarn-700'
-                              }`}
-                          >
-                            <span className="text-lg">{getKnittingButtonIcon(project)}</span>
-                            {getKnittingButtonText(project)}
-                          </button>
-                        ) : (
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleProjectEdit(project);
-                            }}
-                            className="w-full btn-tertiary flex items-center justify-center gap-2"
-                          >
-                            <span className="text-lg">📝</span>
-                            Plan Project
-                          </button>
-                        )}
                       </div>
                     </div>
                   );
@@ -373,17 +403,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               </div>
             </div>
           )}
-
-          {/* Create Project Button */}
-          <div className="pt-4">
-            <button
-              onClick={onCreateProject}
-              className="w-full bg-sage-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-sage-700 transition-colors shadow-lg flex items-center justify-center gap-2"
-            >
-              <span className="text-xl">✨</span>
-              {projects.length === 0 ? 'Start Your First Project' : 'Create New Project'}
-            </button>
-          </div>
 
           {/* Footer */}
           <div className="text-center pt-4 pb-2">

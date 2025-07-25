@@ -7,7 +7,7 @@ import WizardHeader from './wizard-layout/WizardHeader';
 import PatternSelector from './wizard-steps/PatternSelector';
 import PatternConfiguration from './wizard-steps/PatternConfiguration';
 import DurationChoice from './wizard-steps/DurationChoice';
-import StepPreview from './wizard-steps/StepPreview';
+// import StepPreview from './wizard-steps/StepPreview';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import DurationShapingChoice from './wizard-steps/DurationShapingChoice';
 import { createWizardNavigator, shouldSkipConfiguration, shouldShowNavigation } from './wizard-navigation/WizardNavigator';
@@ -16,6 +16,7 @@ import { useWizardState } from './wizard-navigation/WizardState';
 import ShapingWizard from './ShapingWizard';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import DurationWizard from './DurationWizard';
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
@@ -24,14 +25,6 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const [showShapingWizard, setShowShapingWizard] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
 
-  IntelliKnitLogger.debug('StepWizard Main State', {
-    step: wizard.wizardStep,
-    hasShaping: wizard.wizardData.hasShaping,
-    choiceMade: wizard.wizardData.choiceMade,
-    pattern: wizard.wizardData.stitchPattern.pattern,
-    currentScreen: `Step ${wizard.wizardStep}`,
-    showShapingWizard: showShapingWizard
-  });
 
   // Component validation
   if (!wizard.component) {
@@ -82,6 +75,8 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         setConstruction={wizard.setConstruction}
         setCurrentStitches={wizard.setCurrentStitches}
         component={wizard.component}
+        componentIndex={wizard.componentIndex} // ← ADD THIS LINE
+        onExitToComponentSteps={onBack} // ← ADD THIS LINE
         onBack={() => {
           setShowShapingWizard(false);
           // Check if shaping was actually COMPLETED (has config with calculation)
@@ -112,10 +107,10 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
           }
           // If hasShaping is still undefined/false, just return to where we came from
         }}
-        onExitToComponentSteps={onBack}
       />
     );
   }
+
 
   // AFTER existing helper functions, ADD:
   const hasUnsavedData = () => {
@@ -246,58 +241,34 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
       case 4:
         // Duration Choice - needs nav buttons
         return (
-          <div className="stack-lg">
-            <DurationChoice
-              wizardData={wizard.wizardData}
-              updateWizardData={wizard.updateWizardData}
-              construction={wizard.construction}
-              existingPrepNote={wizard.wizardData.prepNote || ''}
-              onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
-            />
-
-            {/* Inline Navigation for Step 4 */}
-            <div className="pt-6 border-t border-wool-100">
-              <div className="flex gap-3">
-                <button
-                  onClick={() => {
-                    const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
-                    const previousStep = navigator.getPreviousStep();
-                    wizard.navigation.goToStep(previousStep);
-                  }}
-                  className="flex-1 btn-tertiary"
-                >
-                  ← Back
-                </button>
-
-                <button
-                  onClick={() => {
-                    const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
-                    const nextStep = navigator.getNextStep();
-                    wizard.navigation.goToStep(nextStep);
-                  }}
-                  disabled={!navigator.canProceed()}
-                  className="flex-2 btn-primary"
-                  style={{ flexGrow: 2 }}
-                >
-                  Add Step
-                </button>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 5:
-        // Preview step (has custom buttons, no nav needed)
-        return (
-          <StepPreview
-            wizard={wizard}
-            onAddStep={handleAddStep}
-            onAddStepAndContinue={handleAddStepAndContinue}
-            onFinishComponent={wizardState.handleFinishComponent}
-            onBack={onBack}
-            prepNote={wizard.wizardData.prepNote || ''}
+          <DurationWizard
+            wizardData={wizard.wizardData}
+            updateWizardData={wizard.updateWizardData}
+            currentStitches={wizard.currentStitches}
+            construction={wizard.construction}
+            componentIndex={wizard.componentIndex}
+            onBack={() => {
+              // Go back to previous step in StepWizard
+              const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
+              const previousStep = navigator.getPreviousStep();
+              wizard.navigation.goToStep(previousStep);
+            }}
+            onExitToComponentSteps={onBack}
           />
         );
+
+      /*   case 5:
+          // Preview step (has custom buttons, no nav needed)
+          return (
+            <StepPreview
+              wizard={wizard}
+              onAddStep={handleAddStep}
+              onAddStepAndContinue={handleAddStepAndContinue}
+              onFinishComponent={wizardState.handleFinishComponent}
+              onBack={onBack}
+              prepNote={wizard.wizardData.prepNote || ''}
+            />
+          ); */
 
       default:
         return <div>Step not found</div>;

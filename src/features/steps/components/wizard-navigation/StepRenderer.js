@@ -2,14 +2,14 @@ import React from 'react';
 import PatternSelector from '../wizard-steps/PatternSelector';
 import PatternConfiguration from '../wizard-steps/PatternConfiguration';
 import DurationChoice from '../wizard-steps/DurationChoice';
-import StepPreview from '../wizard-steps/StepPreview';
+// import StepPreview from '../wizard-steps/StepPreview';
 import DurationShapingChoice from '../wizard-steps/DurationShapingChoice';
 import { shouldSkipConfiguration } from './WizardNavigator';
 
 export const renderStep = (
-  wizardStep, 
-  wizard, 
-  customNavigation, 
+  wizardStep,
+  wizard,
+  customNavigation,
   handlers
 ) => {
   const { handleAddStep, handleAddStepAndContinue, handleFinishComponent, onBack } = handlers;
@@ -23,7 +23,7 @@ export const renderStep = (
           navigation={customNavigation}
         />
       );
-      
+
     case 2:
       return (
         <PatternConfiguration
@@ -32,7 +32,7 @@ export const renderStep = (
           navigation={customNavigation}
         />
       );
-      
+
     case 3:
       // Duration/Shaping choice - no nav buttons needed (auto-advances)
       return (
@@ -42,7 +42,7 @@ export const renderStep = (
           onAdvanceStep={() => wizard.navigation.goToStep(4)}
         />
       );
-      
+
     case 4:
       // Duration Choice - our new single page that NEEDS nav buttons
       return (
@@ -51,8 +51,8 @@ export const renderStep = (
           updateWizardData={wizard.updateWizardData}
         />
       );
-      
-    case 5:
+
+    /* case 5:
       // Preview step (has custom buttons, no nav needed)
       return (
         <StepPreview
@@ -62,8 +62,8 @@ export const renderStep = (
           onFinishComponent={handleFinishComponent}
           onBack={onBack}
         />
-      );
-      
+      ); */
+
     default:
       return <div>Step not found</div>;
   }

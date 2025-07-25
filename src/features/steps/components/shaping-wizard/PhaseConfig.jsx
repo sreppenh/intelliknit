@@ -11,17 +11,19 @@ import PhaseConfigTypeSelector from './PhaseConfigTypeSelector';
  * Clean, focused component that orchestrates the phase management flow
  * All complex state and logic moved to usePhaseManager hook
  */
-const PhaseConfig = ({ 
-  shapingData, 
-  setShapingData, 
-  currentStitches, 
+const PhaseConfig = ({
+  shapingData,
+  setShapingData,
+  currentStitches,
   construction,
+  componentIndex, // ADDED
+  onExitToComponentSteps,
   onComplete,
-  onBack 
+  onBack
 }) => {
   // All state management and logic handled by custom hook
   const phaseManager = usePhaseManager(currentStitches, construction);
-  
+
   const {
     phases,
     currentScreen,
@@ -49,27 +51,27 @@ const PhaseConfig = ({
 
   // Calculate current phase number
   const getCurrentPhaseNumber = () => {
-  if (editingPhaseId) {
-    // Editing existing phase - find its position
-    const phaseIndex = phases.findIndex(p => p.id === editingPhaseId);
-    return phaseIndex + 1;
-  } else {
-    // Adding new phase - next number in sequence
-    return phases.length + 1;
-  }
-};
+    if (editingPhaseId) {
+      // Editing existing phase - find its position
+      const phaseIndex = phases.findIndex(p => p.id === editingPhaseId);
+      return phaseIndex + 1;
+    } else {
+      // Adding new phase - next number in sequence
+      return phases.length + 1;
+    }
+  };
 
   // Handle back navigation from type selector when no phases exist
   const handleTypeSelectBack = () => {
-  if (phases.length === 0) {
-    // No phases configured yet - exit Sequential Shaping entirely
-    onBack();
-  } else {
-    // Phases exist - go back to summary
-    phaseManager.goToSummary();
-  }
+    if (phases.length === 0) {
+      // No phases configured yet - exit Sequential Shaping entirely
+      onBack();
+    } else {
+      // Phases exist - go back to summary
+      phaseManager.goToSummary();
+    }
   };
-  
+
   const handleComplete = () => {
     onComplete({
       phases: phases,
@@ -87,8 +89,11 @@ const PhaseConfig = ({
         phaseTypes={phaseTypes}
         result={result}
         construction={construction}
+        currentStitches={currentStitches} // ← ADD THIS LINE
         stepDescription={stepDescription}        // NEW: Add this line
         setStepDescription={setStepDescription}  // NEW: Add this line
+        componentIndex={componentIndex} // also added
+        onExitToComponentSteps={onExitToComponentSteps}
         onAddPhase={handleAddPhase}
         onEditPhase={handleEditPhase}
         onDeletePhase={handleDeletePhase}
@@ -103,12 +108,12 @@ const PhaseConfig = ({
   if (currentScreen === 'type-select') {
     return (
       <PhaseConfigTypeSelector
-  phaseTypes={phaseTypes}
-  onTypeSelect={handleTypeSelect}
-  onBackToSummary={handleTypeSelectBack}
-  phases={phases}
-  phaseNumber={getCurrentPhaseNumber()}
-/>
+        phaseTypes={phaseTypes}
+        onTypeSelect={handleTypeSelect}
+        onBackToSummary={handleTypeSelectBack}
+        phases={phases}
+        phaseNumber={getCurrentPhaseNumber()}
+      />
     );
   }
 
