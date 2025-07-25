@@ -8,6 +8,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import ContextualBar from '../../../shared/components/ContextualBar';
 import DeleteComponentModal from '../../../shared/components/DeleteComponentModal';
 import RenameComponentModal from '../../../shared/components/RenameComponentModal';
+import CopyComponentModal from '../../../shared/components/CopyComponentModal';
 
 const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, onStartKnitting, onEditProjectDetails }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -20,6 +21,8 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
   const [componentToDelete, setComponentToDelete] = useState(null);
   const [showRenameModal, setShowRenameModal] = useState(false);
   const [componentToRename, setComponentToRename] = useState(null);
+  const [showCopyModal, setShowCopyModal] = useState(false);
+  const [componentToCopy, setComponentToCopy] = useState(null);
 
   if (!currentProject) {
     return <div>No project selected</div>;
@@ -161,14 +164,8 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
 
 
     } else if (action === 'copy') {
-      const newName = window.prompt(`Copy "${component.name}" as:`, `${component.name} Copy`);
-
-      if (newName && newName.trim() !== '') {
-        dispatch({
-          type: 'COPY_COMPONENT',
-          payload: { sourceIndex: componentIndex, newName: newName.trim() }
-        });
-      }
+      setComponentToCopy(component);
+      setShowCopyModal(true);
     } else if (action === 'delete') {
       // NEW: Show modal instead of window.confirm
       setComponentToDelete(component);
@@ -356,6 +353,26 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
 
             setShowRenameModal(false);
             setComponentToRename(null);
+          }}
+        />
+      )}
+
+      {/* Copy Component Modal */}
+      {showCopyModal && componentToCopy && (
+        <CopyComponentModal
+          component={componentToCopy}
+          onClose={() => {
+            setShowCopyModal(false);
+            setComponentToCopy(null);
+          }}
+          onCopy={(newName) => {
+            const componentIndex = currentProject.components.findIndex(c => c.id === componentToCopy.id);
+            dispatch({
+              type: 'COPY_COMPONENT',
+              payload: { sourceIndex: componentIndex, newName: newName }
+            });
+            setShowCopyModal(false);
+            setComponentToCopy(null);
           }}
         />
       )}
