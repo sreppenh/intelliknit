@@ -218,7 +218,12 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
           {currentTab === 'details' && (
             <DetailsTab
               project={currentProject}
-              onEditProjectDetails={projectActions.editProjectDetails}
+              onProjectUpdate={(updatedProject) => {
+                dispatch({
+                  type: 'UPDATE_PROJECT',
+                  payload: updatedProject
+                });
+              }}
             />
           )}
           {currentTab === 'photos' && renderPhotosTab()}
