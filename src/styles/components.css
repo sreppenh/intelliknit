@@ -567,3 +567,255 @@
 .animate-in {
   animation: slideInFromTop 200ms ease-out;
 }
+
+/* ===== DETAILS TAB ENHANCEMENTS ===== */
+
+/* Edit Mode Visual System */
+.edit-mode-container {
+  @apply bg-sage-50 border-2 border-sage-200 rounded-xl p-4 transition-all duration-200;
+}
+
+.edit-mode-header {
+  @apply bg-sage-100 border border-sage-300 rounded-xl p-4 mb-6;
+}
+
+.edit-mode-badge {
+  @apply bg-sage-100 border border-sage-300 text-sage-700 px-3 py-1 rounded-full text-xs font-medium;
+}
+
+.unsaved-changes-badge {
+  @apply bg-yarn-100 border border-yarn-300 text-yarn-700 px-2 py-1 rounded-full text-xs font-medium;
+}
+
+/* Enhanced Notes Interaction */
+.notes-click-to-edit {
+  @apply border-2 border-transparent rounded-xl p-4 transition-all duration-200;
+  @apply hover:border-sage-200 hover:bg-sage-50 cursor-text;
+  @apply focus-within:border-sage-500 focus-within:bg-white focus-within:shadow-inner;
+}
+
+.notes-empty-state {
+  @apply text-center py-8 text-wool-500 border-2 border-dashed border-wool-300 rounded-xl;
+  @apply hover:border-sage-300 hover:text-sage-600 cursor-text transition-all duration-200;
+}
+
+.notes-editing {
+  @apply border-sage-500 bg-white shadow-inner;
+}
+
+.notes-read-mode {
+  @apply bg-white border-2 border-wool-200 rounded-xl p-4;
+}
+
+.notes-expand-collapse {
+  @apply text-sage-600 hover:text-sage-700 font-medium text-sm;
+  @apply border-t border-sage-200 pt-2 mt-2 transition-colors duration-200;
+}
+
+/* Field Grouping Enhancement */
+.field-group-basics {
+  @apply bg-gradient-to-r from-wool-50 to-sage-50 border-l-4 border-wool-300;
+}
+
+.field-group-materials {
+  @apply bg-gradient-to-r from-yarn-50 to-wool-50 border-l-4 border-yarn-300;
+}
+
+.field-group-info {
+  @apply bg-gradient-to-r from-lavender-50 to-sage-50 border-l-4 border-lavender-300;
+}
+
+.field-group-timeline {
+  @apply bg-gradient-to-r from-sage-50 to-lavender-50 border-l-4 border-sage-300;
+}
+
+.field-group-notes {
+  @apply bg-gradient-to-r from-wool-50 to-yarn-50 border-l-4 border-wool-400;
+}
+
+/* Array Input Enhancement */
+.array-input-group {
+  @apply space-y-2 border-2 border-dashed border-wool-300 rounded-xl p-3;
+  @apply hover:border-sage-300 transition-colors duration-200;
+}
+
+.array-input-item {
+  @apply flex gap-2 items-center p-2 bg-white rounded-lg border border-wool-200;
+  @apply hover:border-sage-300 transition-colors duration-200;
+}
+
+.array-add-button {
+  @apply w-full border-2 border-dashed border-wool-300 text-wool-600 py-3 rounded-xl;
+  @apply hover:border-sage-400 hover:text-sage-600 hover:bg-sage-50;
+  @apply transition-all duration-200 font-medium cursor-pointer;
+  @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
+}
+
+.array-remove-button {
+  @apply bg-red-100 text-red-600 px-3 py-2 rounded-xl;
+  @apply hover:bg-red-200 active:bg-red-300 transition-colors duration-200;
+  @apply focus:ring-2 focus:ring-red-300 focus:ring-opacity-50;
+}
+
+/* Enhanced Form Fields */
+.details-form-field {
+  @apply space-y-3 p-4 bg-white rounded-xl border border-wool-200;
+  @apply focus-within:border-sage-300 focus-within:shadow-sm transition-all duration-200;
+}
+
+.details-input-field {
+  @apply w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base;
+  @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
+  @apply transition-all duration-200 placeholder-wool-400 bg-white;
+}
+
+.details-textarea {
+  @apply w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base;
+  @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
+  @apply transition-all duration-200 placeholder-wool-400 bg-white resize-none;
+  @apply min-h-[120px];
+}
+
+.character-count {
+  @apply text-xs text-wool-500 text-right mt-1;
+}
+
+/* Enhanced Segmented Control */
+.details-segmented-control {
+  @apply bg-wool-100 border-2 border-wool-200 rounded-xl p-1;
+  @apply hover:border-sage-300 transition-colors duration-200;
+}
+
+.details-segmented-option {
+  @apply py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200;
+  @apply text-wool-600 hover:text-sage-600 cursor-pointer;
+  @apply focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
+}
+
+.details-segmented-option-active {
+  @apply bg-sage-500 text-white shadow-sm transform scale-[1.02];
+}
+
+/* Micro-interactions */
+.save-success-flash {
+  animation: saveSuccess 0.6s ease-out;
+}
+
+@keyframes saveSuccess {
+  0% {
+    @apply bg-white;
+  }
+
+  50% {
+    @apply bg-sage-100 border-sage-300 transform scale-[1.01];
+  }
+
+  100% {
+    @apply bg-white;
+  }
+}
+
+.field-focus-highlight {
+  @apply ring-2 ring-sage-300 ring-opacity-50 transform scale-[1.01];
+  @apply transition-all duration-200;
+}
+
+.button-press {
+  @apply transform scale-95 transition-transform duration-100;
+}
+
+.hover-lift {
+  @apply hover:transform hover:scale-[1.02] hover:shadow-md transition-all duration-200;
+}
+
+/* Read Mode Enhancements */
+.read-mode-section {
+  @apply bg-white rounded-xl p-4 border-2 border-wool-200 shadow-sm;
+  @apply hover:border-sage-200 hover:shadow-md transition-all duration-200;
+}
+
+.read-mode-field {
+  @apply flex justify-between items-start py-2;
+  @apply border-b border-wool-100 last:border-b-0;
+}
+
+.read-mode-label {
+  @apply text-sm font-medium text-wool-600 min-w-0 pr-4;
+}
+
+.read-mode-value {
+  @apply text-sm text-wool-700 font-medium text-right min-w-0;
+  @apply break-words;
+}
+
+.read-mode-list-item {
+  @apply ml-3 text-sm text-wool-700 relative;
+}
+
+.read-mode-list-item::before {
+  content: '•';
+  @apply text-yarn-500 absolute -left-3;
+}
+
+/* Edit Button Enhancement */
+.details-edit-button {
+  @apply bg-sage-500 text-white text-xs px-3 py-1.5 rounded-md font-medium;
+  @apply hover:bg-sage-600 active:bg-sage-700 transition-all duration-200;
+  @apply focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
+  @apply transform hover:scale-105 active:scale-95;
+}
+
+/* Section Headers */
+.details-section-header {
+  @apply flex justify-between items-start mb-4;
+}
+
+.details-section-title {
+  @apply font-semibold text-wool-700 text-lg flex items-center gap-2;
+}
+
+/* Modal Integration Classes */
+.unsaved-changes-warning {
+  @apply bg-yarn-50 border-2 border-yarn-200 rounded-xl p-3 mb-4;
+}
+
+.unsaved-changes-text {
+  @apply text-sm text-yarn-700 font-medium;
+}
+
+/* Timeline Display */
+.timeline-entry {
+  @apply flex justify-between items-center py-2;
+  @apply border-b border-wool-100 last:border-b-0;
+}
+
+.timeline-label {
+  @apply text-sm font-medium text-wool-600 flex items-center gap-2;
+}
+
+.timeline-date {
+  @apply text-sm text-wool-700 font-medium;
+}
+
+/* Loading States */
+.details-loading {
+  @apply animate-pulse bg-wool-100 rounded-xl;
+}
+
+.details-skeleton {
+  @apply bg-wool-200 rounded h-4 w-full;
+}
+
+/* Error States */
+.details-error {
+  @apply bg-red-50 border-2 border-red-200 text-red-700 p-3 rounded-xl;
+}
+
+.details-field-error {
+  @apply border-red-300 bg-red-50 focus:border-red-500 focus:ring-red-300;
+}
+
+/* Success States */
+.details-success {
+  @apply bg-sage-50 border-2 border-sage-200 text-sage-700 p-3 rounded-xl;
+}
