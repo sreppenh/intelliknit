@@ -58,18 +58,23 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
         setIsEditing(true);
     };
 
-    const handleSave = () => {
-        if (!formData.name.trim()) return;
+    const handleSave = (saveData = null) => {
+        // Use passed data from child component, or default to formData
+        const dataToSave = saveData || formData;
+
+        if (!dataToSave.name || !dataToSave.name.trim()) return;
 
         const updatedProject = {
             ...project,
-            ...formData,
-            // Clean up empty array items
-            yarns: formData.yarns.filter(yarn => yarn.trim() !== ''),
-            needles: formData.needles.filter(needle => needle.trim() !== '')
+            ...dataToSave,
+            // Keep enhanced yarn format - no more filtering with .trim()
+            yarns: dataToSave.yarns || [],
+            needles: dataToSave.needles?.filter(needle => needle && needle.trim && needle.trim() !== '') || []
         };
 
         onProjectUpdate(updatedProject);
+
+        // Always return to read-only view after saving
         setIsEditing(false);
         setHasUnsavedChanges(false);
     };

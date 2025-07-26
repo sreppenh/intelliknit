@@ -8,6 +8,7 @@ import React, { useState } from 'react';
  * - Logical information categories
  * - Left-aligned materials display
  * - Natural information hierarchy
+ * - Fixed yarn display for enhanced format
  */
 const DetailsTabRead = ({ project, onEdit }) => {
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
@@ -21,6 +22,42 @@ const DetailsTabRead = ({ project, onEdit }) => {
             month: 'long',
             day: 'numeric'
         });
+    };
+
+    // Format yarn for display - handles both old string format and new object format
+    const formatYarnDisplay = (yarns) => {
+        if (!yarns || yarns.length === 0) return [];
+
+        const formattedYarns = [];
+
+        yarns.forEach(yarn => {
+            if (typeof yarn === 'string') {
+                // Old format - just display as is
+                if (yarn.trim()) {
+                    formattedYarns.push(yarn.trim());
+                }
+            } else if (yarn && yarn.name) {
+                // New format - create flat list entries
+                const yarnName = yarn.name.trim();
+                if (!yarnName) return;
+
+                const colors = yarn.colors?.filter(c => c.color && c.color.trim()) || [];
+
+                if (colors.length === 0) {
+                    // Just yarn name
+                    formattedYarns.push(yarnName);
+                } else {
+                    // Create separate entries for each color
+                    colors.forEach(colorData => {
+                        const color = colorData.color.trim();
+                        const skeins = colorData.skeins ? ` (${colorData.skeins} skeins)` : '';
+                        formattedYarns.push(`${yarnName} - ${color}${skeins}`);
+                    });
+                }
+            }
+        });
+
+        return formattedYarns;
     };
 
     return (
@@ -49,10 +86,10 @@ const DetailsTabRead = ({ project, onEdit }) => {
                         )}
                     </div>
 
-                    {/* Edit Button */}
+                    {/* Edit Button - Small like CreateProject buttons */}
                     <button
                         onClick={onEdit}
-                        className="details-edit-button flex-shrink-0"
+                        className="bg-sage-500 text-white text-sm px-3 py-2 rounded-lg font-semibold hover:bg-sage-600 transition-colors duration-200 shadow-sm hover:shadow-md flex-shrink-0"
                     >
                         Edit Project
                     </button>
@@ -90,15 +127,15 @@ const DetailsTabRead = ({ project, onEdit }) => {
                     <div className="read-mode-section field-group-materials">
                         <h3 className="text-sm font-semibold text-wool-600 mb-3 uppercase tracking-wide">🧶 Materials</h3>
                         <div className="space-y-3 text-left">
-                            {/* Yarn */}
-                            {project.yarns?.filter(yarn => yarn.trim()).length > 0 && (
+                            {/* Yarn - Fixed Display */}
+                            {formatYarnDisplay(project.yarns).length > 0 && (
                                 <div>
                                     <h4 className="text-sm font-medium text-wool-700 mb-2">
                                         Yarn
                                     </h4>
                                     <div className="space-y-1">
-                                        {project.yarns.filter(yarn => yarn.trim()).map((yarn, index) => (
-                                            <div key={index} className="text-sm text-wool-700">• {yarn}</div>
+                                        {formatYarnDisplay(project.yarns).map((yarnDisplay, index) => (
+                                            <div key={index} className="text-sm text-wool-700">• {yarnDisplay}</div>
                                         ))}
                                     </div>
                                 </div>
