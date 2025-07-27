@@ -8,7 +8,7 @@ import React from 'react';
 
 export const ProjectStatusSection = ({ formData, handleStatusChange }) => (
     <div className="bg-gradient-to-r from-sage-50 to-yarn-50 border-l-4 border-sage-300 rounded-xl p-4 shadow-sm">
-        <h3 className="section-header-primary text-sage-700">
+        <h3 className="section-header-secondary text-sage-700">
             🎯 Project Status
         </h3>
         <div className="flex gap-6">
@@ -44,7 +44,7 @@ export const ProjectStatusSection = ({ formData, handleStatusChange }) => (
 
 export const PatternIdentitySection = ({ formData, handleInputChange }) => (
     <div className="bg-gradient-to-r from-wool-50 to-sage-50 border-l-4 border-wool-300 rounded-xl p-5 shadow-sm">
-        <h3 className="section-header-primary">
+        <h3 className="section-header-secondary">
             📝 Pattern Identity
         </h3>
         <div className="space-y-4">
@@ -84,7 +84,7 @@ export const PatternIdentitySection = ({ formData, handleInputChange }) => (
 
 export const ProjectContextSection = ({ formData, handleInputChange }) => (
     <div className="bg-gradient-to-r from-lavender-50 to-sage-50 border-l-4 border-lavender-300 rounded-xl p-5 shadow-sm">
-        <h3 className="section-header-primary text-lavender-700">
+        <h3 className="section-header-secondary text-lavender-700">
             🎯 Project Context
         </h3>
         <div className="space-y-4">
@@ -141,7 +141,7 @@ export const ProjectContextSection = ({ formData, handleInputChange }) => (
 
 export const PhysicalSpecsSection = ({ formData, handleInputChange }) => (
     <div className="bg-gradient-to-r from-yarn-50 to-wool-50 border-l-4 border-yarn-300 rounded-xl p-5 shadow-sm">
-        <h3 className="section-header-primary text-yarn-700">
+        <h3 className="section-header-secondary text-yarn-700">
             📏 Physical Specs
         </h3>
         <div className="space-y-4">
@@ -176,7 +176,7 @@ export const PhysicalSpecsSection = ({ formData, handleInputChange }) => (
 
 export const TechnicalSpecsSection = ({ formData, handleInputChange }) => (
     <div className="bg-gradient-to-r from-sage-50 to-lavender-50 border-l-4 border-sage-300 rounded-xl p-5 shadow-sm">
-        <h3 className="section-header-primary text-sage-700">
+        <h3 className="section-header-secondary text-sage-700">
             📐 Technical Specifications
         </h3>
         <div className="space-y-4">
@@ -247,7 +247,7 @@ export const MaterialsSection = ({
     removeArrayItem
 }) => (
     <div className="bg-gradient-to-r from-yarn-50 to-wool-50 border-l-4 border-yarn-300 rounded-xl p-5 shadow-sm">
-        <h3 className="section-header-primary text-yarn-700">
+        <h3 className="section-header-secondary text-yarn-700">
             🧶 Materials
         </h3>
         <div className="space-y-5">
@@ -374,7 +374,7 @@ export const TimelineSection = ({ formData, handleInputChange }) => {
 
     return (
         <div className="bg-gradient-to-r from-sage-50 to-lavender-50 border-l-4 border-sage-300 rounded-xl p-5 shadow-sm">
-            <h3 className="section-header-primary text-sage-700">
+            <h3 className="section-header-secondary text-sage-700">
                 📅 Timeline
             </h3>
             <div className="space-y-4">
@@ -415,7 +415,7 @@ export const NotesSection = ({ formData, handleInputChange }) => {
 
     return (
         <div className="bg-gradient-to-r from-wool-50 to-yarn-50 border-l-4 border-wool-400 rounded-xl p-5 shadow-sm">
-            <h3 className="section-header-primary text-wool-700">
+            <h3 className="section-header-secondary text-wool-700">
                 💭 Notes
             </h3>
             <div>
