@@ -3,6 +3,7 @@ import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import ContextualBar from '../../../shared/components/ContextualBar';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import { getProjectStatus as getSharedProjectStatus } from '../../../shared/utils/projectStatus';
 
 
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
@@ -174,20 +175,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     };
   };
 
-  // Helper functions for smart button logic
-  const getProjectStatus = (project) => {
-    if (project.completed) return 'completed';
-    if (project.components.length === 0) return 'planning';
-
-    const totalSteps = project.components.reduce((total, comp) => total + comp.steps.length, 0);
-    const completedSteps = project.components.reduce((total, comp) =>
-      total + comp.steps.filter(s => s.completed).length, 0);
-
-    if (totalSteps === 0) return 'planning';
-    if (completedSteps === 0) return 'ready';
-    if (completedSteps === totalSteps) return 'completed';
-    return 'in_progress';
-  };
 
   // NEW: Smart project sorting with featured top project
   const getSortedProjects = () => {
@@ -203,17 +190,22 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
       // Second priority: Status-based ordering
       const statusOrder = {
-        'in_progress': 1,
-        'ready': 2,
-        'planning': 3,
-        'completed': 4
+        'Completed': 1,
+        'On fire': 2,
+        'In progress': 3,
+        'Ready to knit': 4,
+        'Planning': 5
       };
 
-      const statusA = getProjectStatus(a);
-      const statusB = getProjectStatus(b);
+      const statusA = getSharedProjectStatus(a);
+      const statusB = getSharedProjectStatus(b);
 
-      if (statusOrder[statusA] !== statusOrder[statusB]) {
-        return statusOrder[statusA] - statusOrder[statusB];
+      // Extract text for comparison
+      const statusTextA = statusA.text || statusA;
+      const statusTextB = statusB.text || statusB;
+
+      if (statusOrder[statusTextA] !== statusOrder[statusTextB]) {
+        return statusOrder[statusTextA] - statusOrder[statusTextB];
       }
 
       // Final: Creation date (newest first)
@@ -413,7 +405,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               <div className="stack-sm">
                 {getFilteredProjects().map((project, index) => {
                   const isTopProject = index === 0 && getFilteredProjects().length > 1;
-                  const status = getProjectStatus(project);
+                  const status = getSharedProjectStatus(project);
                   const personality = getProjectPersonality(project, isTopProject);
                   const totalComponents = project.components?.length || 0;
 

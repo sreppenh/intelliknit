@@ -1,4 +1,5 @@
 import React from 'react';
+import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
 
 /**
  * DetailsTabEditSections - All UI sections extracted from actual DetailsTabEdit.jsx
@@ -6,41 +7,51 @@ import React from 'react';
  * Extracted exactly from your working code - zero visual/functionality changes.
  */
 
-export const ProjectStatusSection = ({ formData, handleStatusChange }) => (
-    <div className="bg-gradient-to-r from-sage-50 to-yarn-50 border-l-4 border-sage-300 rounded-xl p-4 shadow-sm">
-        <h3 className="section-header-secondary text-sage-700">
-            🎯 Project Status
-        </h3>
-        <div className="flex gap-6">
-            <div className="flex items-center gap-3">
-                <input
-                    type="radio"
-                    id="completed"
-                    name="status"
-                    checked={formData.completed || false}
-                    onChange={(e) => handleStatusChange('completed', e.target.checked)}
-                    className="w-4 h-4 text-sage-600 border-wool-300 focus:ring-sage-500"
-                />
-                <label htmlFor="completed" className="text-sm font-medium text-wool-700">
-                    🎉 Completed
-                </label>
-            </div>
-            <div className="flex items-center gap-3">
-                <input
-                    type="radio"
-                    id="frogged"
-                    name="status"
-                    checked={formData.frogged || false}
-                    onChange={(e) => handleStatusChange('frogged', e.target.checked)}
-                    className="w-4 h-4 text-red-600 border-wool-300 focus:ring-red-500"
-                />
-                <label htmlFor="frogged" className="text-sm font-medium text-wool-700">
-                    🐸 Frogged
-                </label>
-            </div>
+export const ProjectStatusSection = ({ formData, handleStatusChange, project }) => {
+    const autoStatus = getProjectStatus(project);
+
+    // Determine current selection
+    const getCurrentStatus = () => {
+        if (formData.completed) return 'completed';
+        if (formData.frogged) return 'frogged';
+        return 'auto';
+    };
+
+    const handleStatusSelect = (value) => {
+        switch (value) {
+            case 'completed':
+                handleStatusChange('completed', true);
+                handleStatusChange('frogged', false);
+                break;
+            case 'frogged':
+                handleStatusChange('frogged', true);
+                handleStatusChange('completed', false);
+                break;
+            case 'auto':
+                handleStatusChange('completed', false);
+                handleStatusChange('frogged', false);
+                break;
+        }
+    };
+
+    return (
+        <div className="bg-gradient-to-r from-sage-50 to-yarn-50 border-l-4 border-sage-300 rounded-xl p-4 shadow-sm">
+            <h3 className="section-header-secondary text-sage-700">
+                🎯 Project Status
+            </h3>
+
+            <select
+                value={getCurrentStatus()}
+                onChange={(e) => handleStatusSelect(e.target.value)}
+                className="w-full bg-white border-2 border-wool-200 rounded-lg px-4 py-3 text-base font-medium focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50 transition-colors"
+            >
+                <option value="auto">{autoStatus.emoji} {autoStatus.text}</option>
+                <option value="completed">🎉 Completed</option>
+                <option value="frogged">🐸 Frogged</option>
+            </select>
         </div>
-    </div>
-);
+    );
+};
 
 export const PatternIdentitySection = ({ formData, handleInputChange }) => (
     <div className="bg-gradient-to-r from-wool-50 to-sage-50 border-l-4 border-wool-300 rounded-xl p-5 shadow-sm">

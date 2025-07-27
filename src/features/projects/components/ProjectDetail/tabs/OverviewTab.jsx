@@ -1,4 +1,5 @@
 import React from 'react';
+import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
 
 const OverviewTab = ({
     project,
@@ -7,33 +8,6 @@ const OverviewTab = ({
     onCompleteProject,
     onEditProjectDetails
 }) => {
-    // Calculate project status (migrated from ProjectStatusBar)
-    const getProjectStatus = () => {
-        if (project.completed) return 'Complete';
-
-        const totalComponents = project.components?.length || 0;
-        if (totalComponents === 0) return 'Planning';
-
-        const readyComponents = project.components.filter(comp => {
-            const hasCastOn = comp.steps?.some(step =>
-                step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-                step.description?.toLowerCase().includes('cast on')
-            );
-            const hasBindOff = comp.steps?.some(step =>
-                step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-                step.description?.toLowerCase().includes('bind off')
-            );
-            return hasCastOn && hasBindOff;
-        }).length;
-
-        const inProgressComponents = project.components.filter(comp => {
-            return comp.steps?.some(s => s.completed);
-        }).length;
-
-        if (inProgressComponents > 0) return 'In Progress';
-        if (readyComponents > 0) return 'Ready to Knit';
-        return 'Planning';
-    };
 
     // Format dates (migrated from ProjectStatusBar)
     const formatDate = (dateString) => {
@@ -56,7 +30,7 @@ const OverviewTab = ({
         return `${Math.floor(daysSinceCreated / 30)} months ago`;
     };
 
-    const status = getProjectStatus();
+    const status = getProjectStatus(project);
 
     return (
         <div className="p-6 space-y-6">
@@ -75,12 +49,12 @@ const OverviewTab = ({
                 <div className="space-y-3">
                     <div className="flex items-center justify-between">
                         <span className="text-sm font-semibold text-sage-700">Status:</span>
-                        <span className={`text-sm font-medium ${status === 'Complete' ? 'text-sage-800' :
-                                status === 'In Progress' ? 'text-sage-700' :
-                                    status === 'Ready to Knit' ? 'text-yarn-700' :
-                                        'text-wool-600'
+                        <span className={`text-sm font-medium ${status.text === 'Completed' ? 'text-sage-800' :
+                            status.text.includes('progress') || status.text.includes('fire') ? 'text-sage-700' :
+                                status.text.includes('Ready to knit') ? 'text-yarn-700' :
+                                    'text-wool-600'
                             }`}>
-                            {status}
+                            {status.emoji} {status.text}
                         </span>
                     </div>
 
