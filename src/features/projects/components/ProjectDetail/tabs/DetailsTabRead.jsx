@@ -63,34 +63,25 @@ const DetailsTabRead = ({ project, onEdit }) => {
     return (
         <div className="p-6">
             {/* Pattern Identity Section */}
-            <div className="mb-6">
-                <div className="flex justify-between items-start mb-3">
-                    <div className="flex-1 min-w-0 pr-4">
-                        {/* Pattern Title - Cleaner Layout */}
-                        <h2 className="text-xl font-semibold text-wool-800 leading-tight mb-1">
-                            📖 {project.name || 'Untitled Project'}
-                        </h2>
-
-                        {/* Designer on separate line */}
-                        {project.designer && (
-                            <p className="text-lg text-wool-600 ml-6 mb-1">
-                                by {project.designer}
-                            </p>
-                        )}
-
-                        {/* Pattern Source */}
-                        {project.source && (
-                            <p className="text-sm text-wool-500 ml-6">
-                                Pattern from {project.source}
-                            </p>
-                        )}
-                    </div>
-
-                    {/* Edit Button - Small like CreateProject buttons */}
-                    <button
-                        onClick={onEdit}
-                        className="bg-sage-500 text-white text-sm px-3 py-2 rounded-lg font-semibold hover:bg-sage-600 transition-colors duration-200 shadow-sm hover:shadow-md flex-shrink-0"
-                    >
+            {/* Pattern Identity Section - Enhanced */}
+            <div className="content-header-with-buttons">
+                <div className="flex-1 min-w-0">
+                    <h2 className="text-xl font-semibold text-wool-800 leading-tight mb-1">
+                        📖 {project.name || 'Untitled Project'}
+                    </h2>
+                    {project.designer && (
+                        <p className="text-lg text-wool-600 ml-6 mb-1">
+                            by {project.designer}
+                        </p>
+                    )}
+                    {project.source && (
+                        <p className="text-sm text-wool-500 ml-6">
+                            Pattern from {project.source}
+                        </p>
+                    )}
+                </div>
+                <div className="button-group">
+                    <button onClick={onEdit} className="btn-primary btn-sm">
                         Edit Project
                     </button>
                 </div>
@@ -101,7 +92,7 @@ const DetailsTabRead = ({ project, onEdit }) => {
                 {/* Project Details - Personal Info Only */}
                 {(project.recipient || project.size) && (
                     <div className="read-mode-section field-group-info">
-                        <h3 className="text-sm font-semibold text-wool-600 mb-3 uppercase tracking-wide">👤 Project Details</h3>
+                        <h3 className="text-sm font-semibold text-wool-600 mb-3">👤 Project Details</h3>
                         <div className="text-sm text-wool-700">
                             {project.recipient && `For ${project.recipient}`}
                             {project.recipient && project.size && ' • '}
@@ -113,7 +104,7 @@ const DetailsTabRead = ({ project, onEdit }) => {
                 {/* Technical Defaults */}
                 {(project.defaultUnits || project.construction) && (
                     <div className="read-mode-section field-group-basics">
-                        <h3 className="text-sm font-semibold text-wool-600 mb-3 uppercase tracking-wide">⚙️ Project Settings</h3>
+                        <h3 className="text-sm font-semibold text-wool-600 mb-3">⚙️ Project Settings</h3>
                         <div className="text-sm text-wool-700">
                             {project.defaultUnits && (project.defaultUnits === 'inches' ? 'Inches' : 'Centimeters')}
                             {project.defaultUnits && project.construction && ' • '}
@@ -125,7 +116,7 @@ const DetailsTabRead = ({ project, onEdit }) => {
                 {/* Materials - Left Aligned */}
                 {(project.yarns?.length > 0 || project.needles?.length > 0 || project.gauge) && (
                     <div className="read-mode-section field-group-materials">
-                        <h3 className="text-sm font-semibold text-wool-600 mb-3 uppercase tracking-wide">🧶 Materials</h3>
+                        <h3 className="text-sm font-semibold text-wool-600 mb-3">🧶 Materials</h3>
                         <div className="space-y-3 text-left">
                             {/* Yarn - Fixed Display */}
                             {formatYarnDisplay(project.yarns).length > 0 && (
@@ -170,7 +161,7 @@ const DetailsTabRead = ({ project, onEdit }) => {
 
                 {/* Timeline */}
                 <div className="read-mode-section field-group-timeline">
-                    <h3 className="text-sm font-semibold text-wool-600 mb-3 uppercase tracking-wide">📅 Timeline</h3>
+                    <h3 className="text-sm font-semibold text-wool-600 mb-3">📅 Timeline</h3>
                     <div className="space-y-1">
                         <div className="timeline-entry">
                             <span className="timeline-label">Created:</span>
@@ -194,7 +185,7 @@ const DetailsTabRead = ({ project, onEdit }) => {
                 {/* Notes - Read Only, Left Aligned */}
                 {project.notes && (
                     <div className="read-mode-section field-group-notes">
-                        <h3 className="text-sm font-semibold text-wool-600 mb-3 uppercase tracking-wide">💭 Notes</h3>
+                        <h3 className="text-sm font-semibold text-wool-600 mb-3">💭 Notes</h3>
                         <div className="text-left">
                             {project.notes.length > 300 && !isNotesExpanded ? (
                                 <div>

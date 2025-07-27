@@ -344,6 +344,25 @@
   margin-top: 0 !important;
 }
 
+/* NEW: Header with buttons pattern */
+.content-header-with-buttons {
+  @apply flex justify-between items-start mb-6;
+}
+
+.content-header-with-buttons .content-title {
+  @apply text-xl font-semibold text-wool-700;
+  margin-top: 0 !important;
+}
+
+.content-header-with-buttons .button-group {
+  @apply flex gap-2 flex-shrink-0;
+}
+
+/* Ensure button group doesn't wrap */
+.content-header-with-buttons .button-group .btn-sm {
+  @apply whitespace-nowrap;
+}
+
 .content-subtitle {
   @apply text-wool-500 mb-4 text-center;
   margin-top: 0 !important;

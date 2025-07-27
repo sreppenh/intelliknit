@@ -152,35 +152,26 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
 
     return (
         <div className="p-6">
-            {/* Edit Mode Header - Clean without unsaved message */}
-            <div className="mb-6">
-
-                <div className="flex justify-between items-center">
-                    <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 bg-sage-500 rounded-lg flex items-center justify-center text-white text-lg shadow-sm">
-                            ✏️
-                        </div>
-                        <h2 className="text-xl font-semibold text-sage-800 leading-tight">
-                            Edit Details
-                        </h2>
-                    </div>
-                    <div className="flex gap-2 flex-shrink-0">
-                        <button
-                            onClick={handleCancel}
-                            className="btn-tertiary btn-sm shadow-sm hover:shadow-md transition-shadow"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSave}
-                            disabled={!formData.name.trim()}
-                            className="btn-primary btn-sm shadow-sm hover:shadow-md transition-shadow"
-                        >
-                            Save
-                        </button>
-                    </div>
+            {/* Content Header with Buttons - Clean Pattern */}
+            <div className="content-header-with-buttons">
+                <h2 className="content-title">
+                    Edit Details
+                </h2>
+                <div className="button-group">
+                    <button
+                        onClick={handleCancel}
+                        className="btn-tertiary btn-sm"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSave}
+                        disabled={!formData.name.trim()}
+                        className="btn-primary btn-sm"
+                    >
+                        Save Changes
+                    </button>
                 </div>
-
             </div>
 
             {/* Content Sections - Clean like read view */}
@@ -499,7 +490,7 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
             </div>
 
 
-        </div>
+        </div >
     );
 };
 
