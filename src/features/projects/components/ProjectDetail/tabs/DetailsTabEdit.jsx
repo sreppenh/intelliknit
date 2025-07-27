@@ -54,6 +54,7 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                 <ProjectStatusSection
                     formData={formData}
                     handleStatusChange={handlers.handleStatusChange}
+                    project={project}
                 />
 
                 <PatternIdentitySection

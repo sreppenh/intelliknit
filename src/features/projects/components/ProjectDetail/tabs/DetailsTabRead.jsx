@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
 
 /**
  * DetailsTabRead - Purpose-driven section structure with smart status display
@@ -13,53 +14,8 @@ import React, { useState } from 'react';
 const DetailsTabRead = ({ project, onEdit }) => {
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 
-    // Smart status calculation (matches ProjectList.jsx logic)
-    const getProjectStatus = () => {
-        if (project.completed) return { emoji: '🎉', text: 'Completed' };
-        if (project.frogged) return { emoji: '🐸', text: 'Frogged' };
-
-        // Calculate streak for fire status
-        const getStreakDays = () => {
-            if (!project.activityLog || project.activityLog.length === 0) return 0;
-            let streak = 0;
-            const today = new Date();
-            const msPerDay = 24 * 60 * 60 * 1000;
-
-            for (let i = 0; i < 30; i++) {
-                const checkDate = new Date(today.getTime() - (i * msPerDay));
-                const dayString = checkDate.toISOString().split('T')[0];
-                if (project.activityLog.includes(dayString)) {
-                    streak = i + 1;
-                } else if (i === 0) {
-                    continue;
-                } else {
-                    break;
-                }
-            }
-            return streak;
-        };
-
-        const streakDays = getStreakDays();
-        if (streakDays >= 3) {
-            const fireLevel = streakDays >= 7 ? '🔥🔥🔥' : streakDays >= 5 ? '🔥🔥' : '🔥';
-            return { emoji: '🔥', text: `On fire! ${streakDays} day streak` };
-        }
-
-        // Check for dormant (14+ days inactive)
-        const lastActivity = new Date(project.lastActivityAt || project.createdAt);
-        const daysSinceActivity = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
-        if (daysSinceActivity > 14 && project.components?.length > 0) {
-            return { emoji: '😴', text: 'Taking a nap...' };
-        }
-
-        // Check for empty (no components)
-        if (!project.components || project.components.length === 0) {
-            return { emoji: '💭', text: 'Ready to begin' };
-        }
-
-        // Default: active
-        return { emoji: '🧶', text: 'In progress' };
-    };
+    // DEBUG: Let's see what we're getting
+    console.log('DetailsTabRead received project:', project);
 
     // Format dates for display
     const formatDate = (dateString) => {
@@ -108,7 +64,8 @@ const DetailsTabRead = ({ project, onEdit }) => {
         return formattedYarns;
     };
 
-    const status = getProjectStatus();
+    const status = getProjectStatus(project);
+
 
     return (
         <div className="p-6">
