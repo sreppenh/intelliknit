@@ -12,16 +12,23 @@ const ComponentsTab = ({
 }) => {
     return (
         <div className="p-6">
-            <div className="stack-lg">
-                {/* Add Component Button - Less prominent than before */}
-                <button
-                    onClick={onShowEnhancedCreation}
-                    className="w-full bg-wool-200 text-wool-700 py-2.5 px-4 rounded-xl font-medium hover:bg-wool-300 transition-colors flex items-center justify-center gap-2 border-2 border-wool-300"
-                >
-                    <span>➕</span>
-                    Add Component
-                </button>
+            {/* Content Header with Button - Matching Details Tab Pattern */}
+            <div className="content-header-with-buttons">
+                <h2 className="content-title">
+                    Components ({project.components.length})
+                </h2>
+                <div className="button-group">
+                    <button
+                        onClick={onShowEnhancedCreation}
+                        className="btn-primary btn-sm flex items-center gap-2"
+                    >
+                        <span>➕</span>
+                        Add Component
+                    </button>
+                </div>
+            </div>
 
+            <div className="stack-lg">
                 {/* Component Grid - Exactly as before */}
                 <div className="grid-2-equal">
                     {sortedComponents.map((item, index) => (
