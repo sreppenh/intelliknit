@@ -820,3 +820,47 @@
 .details-success {
   @apply bg-sage-50 border-2 border-sage-200 text-sage-700 p-3 rounded-xl;
 }
+
+/* ===== STEP 2D: COMPLETE COMPONENT CARD SYSTEM ===== */
+/* File: src/styles/components.css */
+/* REPLACE the component card classes with this complete system: */
+
+/* ===== Component Card System - Complete Visual Progression ===== */
+
+/* 🧶 EDIT MODE - Warm yarn/beige theme (building phase) */
+.card-component {
+  @apply bg-yarn-100 border-2 border-yarn-300 rounded-xl p-3 shadow-sm transition-all duration-200;
+  @apply hover:border-yarn-400 hover:bg-yarn-200 hover:shadow-md hover:transform hover:scale-[1.01];
+  @apply active:scale-[0.99] cursor-pointer;
+}
+
+/* 🟢 READY TO KNIT - Light sage (ready to start) */
+.card-component-ready {
+  @apply bg-sage-100 border-2 border-sage-400 rounded-xl p-3 shadow-sm transition-all duration-200;
+  @apply hover:border-sage-500 hover:bg-sage-200 hover:shadow-md hover:transform hover:scale-[1.01];
+  @apply active:scale-[0.99] cursor-pointer;
+}
+
+/* 🧶 CURRENTLY KNITTING - Medium sage (actively working) */
+.card-component-progress {
+  @apply bg-sage-200 border-2 border-sage-500 rounded-xl p-3 shadow-md transition-all duration-200;
+  @apply hover:border-sage-600 hover:bg-sage-300 hover:shadow-lg hover:transform hover:scale-[1.01];
+  @apply active:scale-[0.99] cursor-pointer;
+}
+
+/* ✅ FINISHED - Strong sage (celebration!) */
+.card-component-complete {
+  @apply bg-sage-300 border-2 border-sage-600 rounded-xl p-3 shadow-lg transition-all duration-200;
+  @apply hover:border-sage-700 hover:bg-sage-400 hover:shadow-xl hover:transform hover:scale-[1.01];
+  @apply active:scale-[0.99] cursor-pointer;
+}
+
+/* 🪡 FINISHING STEPS - Lavender theme (special tasks) */
+.card-component-finishing {
+  @apply bg-lavender-100 border-2 border-lavender-400 rounded-xl p-3 shadow-sm transition-all duration-200;
+  @apply hover:border-lavender-500 hover:bg-lavender-200 hover:shadow-md hover:transform hover:scale-[1.01];
+  @apply active:scale-[0.99] cursor-pointer;
+}
+
+/* VISUAL PROGRESSION: beige → light green → medium green → strong green 
+   Each state gets more prominent as you make progress! */

@@ -1,6 +1,23 @@
 import React, { useState } from 'react';
 import DeleteComponentModal from '../../../shared/components/DeleteComponentModal';
 
+const getCardClassName = (state) => {
+  switch (state) {
+    case 'ready_to_knit':
+      return 'card-component-ready relative';
+    case 'currently_knitting':
+      return 'card-component-progress relative';
+    case 'finished':
+      return 'card-component-complete relative';
+    case 'finishing_in_progress':
+    case 'finishing_done':
+      return 'card-component-finishing relative';
+    case 'edit_mode':
+    default:
+      return 'card-component relative';
+  }
+};
+
 const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenuId, setOpenMenuId }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   // Enhanced component state detection with finishing steps support
@@ -120,9 +137,7 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
     <div
       onClick={handleCardClick}
       className={`
-    relative cursor-pointer transition-all duration-200 rounded-xl p-3 border-2
-    hover:shadow-md hover:transform hover:scale-[1.01] active:scale-[0.99]
-    ${stateConfig.background} ${openMenuId === component.id ? 'z-20' : 'z-10'}
+    ${getCardClassName(state)} ${openMenuId === component.id ? 'z-20' : 'z-10'}
   `}
     >
       {/* True single column layout */}
