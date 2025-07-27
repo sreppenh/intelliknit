@@ -1,5 +1,6 @@
 // Enhanced ProjectDetail.jsx implementation
 // Refactored with extracted components and centralized actions
+// STRUCTURAL CLEANUP: Removed ProjectStatusBar for clean hierarchy
 
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
@@ -17,7 +18,6 @@ import DetailsTab from './ProjectDetail/tabs/DetailsTab';
 
 // Shared components
 import PageHeader from '../../../shared/components/PageHeader';
-import ProjectStatusBar from './ProjectDetail/ProjectStatusBar';
 import TabBar from '../../../shared/components/TabBar';
 
 // Modal components
@@ -179,13 +179,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
           onCancel={onBack}
         />
 
-        {/* Enhanced Status Bar */}
-        <ProjectStatusBar
-          project={currentProject}
-          onEditProject={onEditProjectDetails}
-        />
-
-        {/* Tab Navigation */}
+        {/* Tab Navigation - Now functions as secondary header */}
         <TabBar activeTab={currentTab} onTabChange={changeTab}>
           <TabBar.Tab id="overview" label="Overview" />
           <TabBar.Tab id="components" label="Components" />

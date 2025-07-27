@@ -154,33 +154,33 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
         <div className="p-6">
             {/* Edit Mode Header - Clean without unsaved message */}
             <div className="mb-6">
-                <div className="bg-gradient-to-r from-sage-50 to-yarn-50 border-2 border-sage-200 rounded-xl p-4 shadow-sm">
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-sage-500 rounded-lg flex items-center justify-center text-white text-lg shadow-sm">
-                                ✏️
-                            </div>
-                            <h2 className="text-xl font-semibold text-sage-800 leading-tight">
-                                Edit Details
-                            </h2>
+
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 bg-sage-500 rounded-lg flex items-center justify-center text-white text-lg shadow-sm">
+                            ✏️
                         </div>
-                        <div className="flex gap-2 flex-shrink-0">
-                            <button
-                                onClick={handleCancel}
-                                className="btn-tertiary btn-sm shadow-sm hover:shadow-md transition-shadow"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSave}
-                                disabled={!formData.name.trim()}
-                                className="btn-primary btn-sm shadow-sm hover:shadow-md transition-shadow"
-                            >
-                                Save
-                            </button>
-                        </div>
+                        <h2 className="text-xl font-semibold text-sage-800 leading-tight">
+                            Edit Details
+                        </h2>
+                    </div>
+                    <div className="flex gap-2 flex-shrink-0">
+                        <button
+                            onClick={handleCancel}
+                            className="btn-tertiary btn-sm shadow-sm hover:shadow-md transition-shadow"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSave}
+                            disabled={!formData.name.trim()}
+                            className="btn-primary btn-sm shadow-sm hover:shadow-md transition-shadow"
+                        >
+                            Save
+                        </button>
                     </div>
                 </div>
+
             </div>
 
             {/* Content Sections - Clean like read view */}
