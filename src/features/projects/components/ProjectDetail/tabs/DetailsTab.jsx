@@ -80,18 +80,49 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
     };
 
     const handleCancel = () => {
+        // Helper function to convert yarns to edit format (same as in useEffect)
+        const normalizeYarns = (yarns) => {
+            if (!yarns || yarns.length === 0) {
+                return [{ name: '', colors: [{ color: '', skeins: '' }] }];
+            }
+
+            return yarns.map(yarn => {
+                if (typeof yarn === 'string') {
+                    return { name: yarn, colors: [{ color: '', skeins: '' }] };
+                } else if (yarn && yarn.name) {
+                    return {
+                        ...yarn,
+                        colors: yarn.colors && yarn.colors.length > 0 ? yarn.colors : [{ color: '', skeins: '' }]
+                    };
+                } else {
+                    return { name: '', colors: [{ color: '', skeins: '' }] };
+                }
+            });
+        };
+
         // Reset form data to original project data
         setFormData({
             name: project?.name || '',
             size: project?.size || '',
             defaultUnits: project?.defaultUnits || 'inches',
             gauge: project?.gauge || '',
-            yarns: project?.yarns || [''],
+            yarns: normalizeYarns(project?.yarns),
             needles: project?.needles || [''],
             source: project?.source || '',
             designer: project?.designer || '',
             recipient: project?.recipient || '',
-            notes: project?.notes || ''
+            notes: project?.notes || '',
+            // Add missing fields that Edit mode uses
+            occasion: project?.occasion || '',
+            deadline: project?.deadline || '',
+            priority: project?.priority || 'normal',
+            progress: project?.progress || '',
+            construction: project?.construction || 'flat',
+            completed: project?.completed || false,
+            frogged: project?.frogged || false,
+            completedAt: project?.completedAt || '',
+            froggedAt: project?.froggedAt || '',
+            startedAt: project?.startedAt || ''
         });
 
         setIsEditing(false);
