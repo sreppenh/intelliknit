@@ -84,6 +84,7 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     addYarnColor={handlers.addYarnColor}
                     removeYarnColor={handlers.removeYarnColor}
                     handleArrayChange={handlers.handleArrayChange}
+                    handleNeedleChange={handlers.handleNeedleChange} // NEW
                     addArrayItem={handlers.addArrayItem}
                     removeArrayItem={handlers.removeArrayItem}
                 />

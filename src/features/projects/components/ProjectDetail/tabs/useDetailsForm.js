@@ -65,11 +65,28 @@ const useDetailsForm = (formData, setFormData, project, onSave, onCancel) => {
         }));
     };
 
+    // NEW: Handle structured needle changes
+    const handleNeedleChange = (needleIndex, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            needles: prev.needles.map((needle, i) =>
+                i === needleIndex ? { ...needle, [field]: value } : needle
+            )
+        }));
+    };
+
     const addArrayItem = (field) => {
         if (field === 'yarns') {
             setFormData(prev => ({
                 ...prev,
                 yarns: [...prev.yarns, { name: '', colors: [{ color: '', skeins: '' }] }]
+            }));
+
+        } else if (field === 'needles') {
+            // NEW: Add structured needle object
+            setFormData(prev => ({
+                ...prev,
+                needles: [...prev.needles, { size: '', mm: '', type: 'straight', length: '' }]
             }));
         } else {
             setFormData(prev => ({
@@ -100,7 +117,9 @@ const useDetailsForm = (formData, setFormData, project, onSave, onCancel) => {
             // Keep enhanced yarn format but clean up empty entries
             yarns: formData.yarns.filter(yarn => yarn.name && yarn.name.trim() !== ''),
             // Clean up empty needle items
-            needles: formData.needles.filter(needle => needle.trim() !== '')
+            needles: formData.needles.filter(needle =>
+                typeof needle === 'string' ? needle.trim() !== '' : needle.size && needle.size.trim() !== ''
+            )
         };
 
         onSave(transformedData);
@@ -168,6 +187,7 @@ const useDetailsForm = (formData, setFormData, project, onSave, onCancel) => {
     return {
         handleInputChange,
         handleArrayChange,
+        handleNeedleChange,
         handleYarnChange,
         handleYarnColorChange,
         addYarnColor,

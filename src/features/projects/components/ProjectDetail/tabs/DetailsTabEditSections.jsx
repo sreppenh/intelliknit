@@ -254,6 +254,7 @@ export const MaterialsSection = ({
     addYarnColor,
     removeYarnColor,
     handleArrayChange,
+    handleNeedleChange,
     addArrayItem,
     removeArrayItem
 }) => (
@@ -341,26 +342,92 @@ export const MaterialsSection = ({
             </div>
 
             {/* Needles */}
+            {/* Needles - Enhanced with structured data */}
             <div>
                 <label className="form-label">Needles</label>
                 <div className="space-y-3">
                     {formData.needles.map((needle, index) => (
-                        <div key={index} className="flex gap-3 items-center">
-                            <input
-                                type="text"
-                                value={needle}
-                                onChange={(e) => handleArrayChange('needles', index, e.target.value)}
-                                placeholder="e.g., US 8 (5mm) circular"
-                                className="flex-1 details-input-field shadow-sm focus:shadow-md transition-shadow"
-                            />
-                            {formData.needles.length > 1 && (
-                                <button
-                                    type="button"
-                                    onClick={() => removeArrayItem('needles', index)}
-                                    className="remove-button"
-                                >
-                                    ✕
-                                </button>
+                        <div key={index} className="border border-yarn-200 rounded-lg p-4 bg-yarn-25">
+                            {typeof needle === 'string' ? (
+                                // Legacy string format - simple input
+                                <div className="flex gap-3 items-center">
+                                    <input
+                                        type="text"
+                                        value={needle}
+                                        onChange={(e) => handleArrayChange('needles', index, e.target.value)}
+                                        placeholder="e.g., US 8 (5mm) circular"
+                                        className="flex-1 details-input-field shadow-sm focus:shadow-md transition-shadow"
+                                    />
+                                    {formData.needles.length > 1 && (
+                                        <button
+                                            type="button"
+                                            onClick={() => removeArrayItem('needles', index)}
+                                            className="remove-button"
+                                        >
+                                            ✕
+                                        </button>
+                                    )}
+                                </div>
+                            ) : (
+                                // NEW: Structured needle format
+                                <div className="space-y-3">
+                                    <div className="flex gap-3 items-start">
+                                        <div className="flex-1">
+                                            <label className="text-xs font-medium text-wool-600 mb-1 block">Size</label>
+                                            <input
+                                                type="text"
+                                                value={needle.size || ''}
+                                                onChange={(e) => handleNeedleChange(index, 'size', e.target.value)}
+                                                placeholder="e.g., US 8"
+                                                className="details-input-field text-sm"
+                                            />
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-xs font-medium text-wool-600 mb-1 block">MM</label>
+                                            <input
+                                                type="text"
+                                                value={needle.mm || ''}
+                                                onChange={(e) => handleNeedleChange(index, 'mm', e.target.value)}
+                                                placeholder="e.g., 5.0"
+                                                className="details-input-field text-sm"
+                                            />
+                                        </div>
+                                        {formData.needles.length > 1 && (
+                                            <button
+                                                type="button"
+                                                onClick={() => removeArrayItem('needles', index)}
+                                                className="remove-button-lg mt-6"
+                                            >
+                                                ✕
+                                            </button>
+                                        )}
+                                    </div>
+                                    <div className="flex gap-3">
+                                        <div className="flex-1">
+                                            <label className="text-xs font-medium text-wool-600 mb-1 block">Type</label>
+                                            <select
+                                                value={needle.type || 'straight'}
+                                                onChange={(e) => handleNeedleChange(index, 'type', e.target.value)}
+                                                className="w-full details-input-field text-sm"
+                                            >
+                                                <option value="straight">Straight</option>
+                                                <option value="circular">Circular</option>
+                                                <option value="dpn">Double Pointed</option>
+                                                <option value="interchangeable">Interchangeable</option>
+                                            </select>
+                                        </div>
+                                        <div className="flex-1">
+                                            <label className="text-xs font-medium text-wool-600 mb-1 block">Length</label>
+                                            <input
+                                                type="text"
+                                                value={needle.length || ''}
+                                                onChange={(e) => handleNeedleChange(index, 'length', e.target.value)}
+                                                placeholder='e.g., 32"'
+                                                className="details-input-field text-sm"
+                                            />
+                                        </div>
+                                    </div>
+                                </div>
                             )}
                         </div>
                     ))}
