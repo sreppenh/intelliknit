@@ -57,10 +57,10 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
             {/* Add New Project - Top Left */}
             <button
               onClick={onAddNewProject}
-              className="bg-white border-2 border-wool-200 rounded-2xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95"
+              className="bg-white border-2 border-wool-200 rounded-2xl p-6 text-center hover:border-sage-300 hover:bg-sage-50 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 "
             >
               <div className="text-4xl mb-3">✨</div>
-              <div className="font-semibold text-base text-wool-700 mb-1">Add New Project</div>
+              <div className="font-semibold text-base text-wool-700 mb-1">Create Project</div>
               <div className="text-xs text-wool-500">Start something amazing</div>
             </button>
 
@@ -70,8 +70,8 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
               className="bg-gradient-to-br from-sage-500 to-sage-600 text-white rounded-xl p-6 text-center hover:from-sage-600 hover:to-sage-700 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 shadow-md"
             >
               <div className="text-4xl mb-3">🧶</div>
-              <div className="font-semibold text-base mb-1">Continue Knitting</div>
-              <div className="text-xs text-sage-100">Pick up where you left off</div>
+              <div className="font-semibold text-base mb-1">Resume Knitting</div>
+              <div className="text-xs text-sage-100">Continue your current project</div>
             </button>
           </div>
 
