@@ -1,21 +1,51 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother }) => {
+  // Standardized Simple Action Modal Behavior
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    document.addEventListener('keydown', handleEscKey);
+
+    // Focus management - focus the primary (add steps) button
+    setTimeout(() => {
+      const primaryButton = document.querySelector('[data-modal-primary]');
+      if (primaryButton) {
+        primaryButton.focus();
+      }
+    }, 100);
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [onClose]);
+
+  // Handle backdrop click
+  const handleBackdropClick = (event) => {
+    if (event.target === event.currentTarget) {
+      onClose();
+    }
+  };
+
   return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        
-        {/* Header with more celebration */}
-        <div className="bg-yarn-600 text-white px-6 py-4 rounded-t-2xl">
+    <div className="modal-overlay" onClick={handleBackdropClick}>
+      <div className="modal-content-light">
+
+        {/* Header with lighter celebration treatment */}
+        <div className="modal-header-light">
           <div className="text-center">
             <div className="text-3xl mb-2">🎉</div>
             <h2 className="text-lg font-semibold">Component Created!</h2>
-            <p className="text-yarn-100 text-sm">🧶 {componentName} is ready to knit!</p>
+            <p className="text-sage-600 text-sm">🧶 {componentName} is ready to knit!</p>
           </div>
         </div>
 
-        {/* Content */}
-        <div className="p-6 bg-yarn-50">
+        {/* Content with light sage background */}
+        <div className="p-6">
           <div className="text-center mb-6">
             <p className="text-wool-600 mb-4">What would you like to do next?</p>
           </div>
@@ -25,6 +55,7 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
             {/* Primary action - Add Steps */}
             <button
               onClick={onAddSteps}
+              data-modal-primary
               className="w-full btn-secondary flex items-center justify-center gap-2"
             >
               <span className="text-lg">📝</span>
@@ -43,6 +74,7 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
             {/* Tertiary action - Close */}
             <button
               onClick={onClose}
+              data-modal-cancel
               className="w-full btn-tertiary"
             >
               Close

@@ -424,6 +424,20 @@
   @apply bg-yarn-50 rounded-2xl shadow-xl max-w-sm w-full border-2 border-wool-200;
 }
 
+/* NEW: Light modal treatment (wizard-inspired) */
+.modal-content-light {
+  @apply bg-sage-50 rounded-2xl shadow-xl max-w-sm w-full border-2 border-sage-200;
+}
+
+/* NEW: Light modal headers */
+.modal-header-light {
+  @apply bg-sage-200 text-sage-800 px-6 py-4 rounded-t-2xl;
+}
+
+.modal-header-light-danger {
+  @apply bg-red-100 text-red-800 px-6 py-4 rounded-t-2xl;
+}
+
 /* ===== Spacing Utilities ===== */
 .stack-sm {
   @apply space-y-3;

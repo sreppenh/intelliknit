@@ -1,7 +1,8 @@
 // src/shared/components/PrepStepSystem.jsx
 import React, { useState, useEffect } from 'react';
 
-// Overlay Modal for Prep Notes
+// Updated PrepStepOverlay from PrepStepSystem.jsx
+
 export const PrepStepOverlay = ({
   isOpen,
   onClose,
@@ -25,6 +26,30 @@ export const PrepStepOverlay = ({
     setNote(existingNote);
   }, [existingNote]);
 
+  // Standardized Complex Modal Behavior  
+  useEffect(() => {
+    const handleEscKey = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('keydown', handleEscKey);
+      // Focus the textarea for immediate editing
+      setTimeout(() => {
+        const textarea = document.querySelector('[data-modal-focus]');
+        if (textarea) {
+          textarea.focus();
+        }
+      }, 100);
+    }
+
+    return () => {
+      document.removeEventListener('keydown', handleEscKey);
+    };
+  }, [isOpen, onClose]);
+
   const handleSave = () => {
     onSave(note.trim());
     onClose();
@@ -43,26 +68,26 @@ export const PrepStepOverlay = ({
 
   return (
     <div className="modal-overlay">
-      <div className="modal-content max-h-[80vh] overflow-y-auto">
+      <div className="modal-content-light max-h-[80vh] overflow-y-auto">
 
-        {/* Header */}
-        <div className="bg-sage-500 text-white px-6 py-4 rounded-t-2xl">
+        {/* Header with lighter treatment */}
+        <div className="modal-header-light">
           <div className="flex items-center gap-3">
             <div className="text-2xl">{icon}</div>
             <div className="flex-1">
               <h2 className="text-lg font-semibold">{title}</h2>
-              <p className="text-sage-100 text-sm">{subtitle}</p>
+              <p className="text-sage-600 text-sm">{subtitle}</p>
             </div>
             <button
               onClick={onClose}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+              className="text-sage-600 text-xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
             >
               ×
             </button>
           </div>
         </div>
 
-        <div className="p-6 bg-yarn-50 stack-lg">
+        <div className="p-6 stack-lg">
 
           {/* Note Input */}
           <div>
@@ -73,49 +98,53 @@ export const PrepStepOverlay = ({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder={placeholder}
-              rows={3}
-              className="input-field-lg resize-none"
-              autoFocus
+              rows={4}
+              data-modal-focus
+              className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white resize-none"
             />
           </div>
 
-          {/* Examples (only show if no existing note to save space) */}
-          {!hasExistingNote && (
-            <div className="success-block">
-              <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Examples</h4>
-              <div className="text-sm text-sage-600 space-y-1">
-                {examples.slice(0, 3).map((example, index) => (
-                  <div key={index}>• {example}</div>
-                ))}
-              </div>
+          {/* Examples */}
+          <div className="help-block">
+            <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Example Notes</h4>
+            <div className="text-sm text-sage-600 space-y-1">
+              {examples.map((example, index) => (
+                <div key={index}>• {example}</div>
+              ))}
             </div>
-          )}
+          </div>
 
           {/* Action Buttons */}
-          <div className="flex gap-3">
+          <div className="stack-sm">
+            {/* Primary action - Save */}
+            {canSave && (
+              <button
+                onClick={handleSave}
+                data-modal-primary
+                className="w-full btn-primary flex items-center justify-center gap-2"
+              >
+                <span>{icon}</span>
+                Save Note
+              </button>
+            )}
+
+            {/* Clear existing note */}
             {hasExistingNote && (
               <button
                 onClick={handleClear}
-                className="flex-1 bg-red-100 text-red-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-red-200 transition-colors border border-red-200"
+                className="w-full btn-tertiary"
               >
                 Clear Note
               </button>
             )}
 
+            {/* Cancel */}
             <button
               onClick={onClose}
-              className="flex-1 btn-tertiary"
+              data-modal-cancel
+              className="w-full btn-tertiary"
             >
               Cancel
-            </button>
-
-            <button
-              onClick={handleSave}
-              disabled={!canSave}
-              className="flex-2 bg-sage-500 text-white py-3 px-6 rounded-xl font-semibold text-base hover:bg-sage-600 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
-              style={{ flexGrow: 2 }}
-            >
-              {hasExistingNote ? 'Update Note' : 'Save Note'}
             </button>
           </div>
         </div>

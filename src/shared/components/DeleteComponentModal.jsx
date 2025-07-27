@@ -1,21 +1,51 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 
 const DeleteComponentModal = ({ component, onClose, onDelete }) => {
-    return (
-        <div className="modal-overlay">
-            <div className="modal-content">
+    // Standardized Simple Action Modal Behavior
+    useEffect(() => {
+        const handleEscKey = (event) => {
+            if (event.key === 'Escape') {
+                onClose();
+            }
+        };
 
-                {/* Header */}
-                <div className="bg-red-500 text-white px-6 py-4 rounded-t-2xl">
+        document.addEventListener('keydown', handleEscKey);
+
+        // Focus management - focus the primary (delete) button
+        setTimeout(() => {
+            const deleteButton = document.querySelector('[data-modal-primary]');
+            if (deleteButton) {
+                deleteButton.focus();
+            }
+        }, 100);
+
+        return () => {
+            document.removeEventListener('keydown', handleEscKey);
+        };
+    }, [onClose]);
+
+    // Handle backdrop click
+    const handleBackdropClick = (event) => {
+        if (event.target === event.currentTarget) {
+            onClose();
+        }
+    };
+
+    return (
+        <div className="modal-overlay" onClick={handleBackdropClick}>
+            <div className="modal-content-light">
+
+                {/* Header with lighter danger treatment */}
+                <div className="modal-header-light-danger">
                     <div className="text-center">
                         <div className="text-2xl mb-2">⚠️</div>
                         <h2 className="text-lg font-semibold">Delete Component?</h2>
-                        <p className="text-red-100 text-sm">{component.name}</p>
+                        <p className="text-red-600 text-sm">{component.name}</p>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 bg-yarn-50">
+                {/* Content with light sage background */}
+                <div className="p-6">
                     <div className="text-center mb-6">
                         <p className="text-wool-600 mb-2">
                             This will permanently delete <strong>{component.name}</strong> and all its steps.
@@ -30,6 +60,7 @@ const DeleteComponentModal = ({ component, onClose, onDelete }) => {
                         {/* Primary action - Delete */}
                         <button
                             onClick={onDelete}
+                            data-modal-primary
                             className="w-full bg-red-500 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                         >
                             <span>🗑️</span>
@@ -39,6 +70,7 @@ const DeleteComponentModal = ({ component, onClose, onDelete }) => {
                         {/* Secondary action - Cancel */}
                         <button
                             onClick={onClose}
+                            data-modal-cancel
                             className="w-full btn-tertiary"
                         >
                             Cancel

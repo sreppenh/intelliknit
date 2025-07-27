@@ -12,11 +12,18 @@ const CopyComponentModal = ({ component, onClose, onCopy }) => {
         }
     }, []);
 
-    // Handle Enter key
+    // Handle Enter and ESC keys  
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleCopy();
         } else if (e.key === 'Escape') {
+            onClose();
+        }
+    };
+
+    // Handle backdrop click
+    const handleBackdropClick = (event) => {
+        if (event.target === event.currentTarget) {
             onClose();
         }
     };
@@ -31,20 +38,20 @@ const CopyComponentModal = ({ component, onClose, onCopy }) => {
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
+        <div className="modal-overlay" onClick={handleBackdropClick}>
+            <div className="modal-content-light">
 
-                {/* Header */}
-                <div className="bg-yarn-600 text-white px-6 py-4 rounded-t-2xl">
+                {/* Header with lighter treatment */}
+                <div className="modal-header-light">
                     <div className="text-center">
                         <div className="text-2xl mb-2">📋</div>
                         <h2 className="text-lg font-semibold">Copy Component</h2>
-                        <p className="text-yarn-100 text-sm">{component.name}</p>
+                        <p className="text-sage-600 text-sm">{component.name}</p>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 bg-yarn-50">
+                {/* Content with light sage background */}
+                <div className="p-6">
                     <div className="mb-6">
                         <p className="text-wool-600 mb-4 text-sm">
                             This will create a copy of <strong>{component.name}</strong> with all its steps.
@@ -60,7 +67,7 @@ const CopyComponentModal = ({ component, onClose, onCopy }) => {
                             onChange={(e) => setNewName(e.target.value)}
                             onKeyDown={handleKeyDown}
                             placeholder="Enter new component name"
-                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-yarn-500 focus:ring-0 transition-colors bg-white"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
                         />
                     </div>
 
@@ -70,7 +77,7 @@ const CopyComponentModal = ({ component, onClose, onCopy }) => {
                         <button
                             onClick={handleCopy}
                             disabled={!newName.trim() || newName.trim() === component.name}
-                            className="w-full bg-yarn-600 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
+                            className="w-full bg-sage-500 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-sage-600 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors flex items-center justify-center gap-2"
                         >
                             <span>📋</span>
                             Copy Component

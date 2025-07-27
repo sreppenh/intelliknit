@@ -12,11 +12,18 @@ const RenameComponentModal = ({ component, onClose, onRename }) => {
         }
     }, []);
 
-    // Handle Enter key
+    // Handle Enter and ESC keys
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             handleRename();
         } else if (e.key === 'Escape') {
+            onClose();
+        }
+    };
+
+    // Add backdrop click handler
+    const handleBackdropClick = (event) => {
+        if (event.target === event.currentTarget) {
             onClose();
         }
     };
@@ -31,20 +38,20 @@ const RenameComponentModal = ({ component, onClose, onRename }) => {
     };
 
     return (
-        <div className="modal-overlay">
-            <div className="modal-content">
+        <div className="modal-overlay" onClick={handleBackdropClick}>
+            <div className="modal-content-light">
 
-                {/* Header */}
-                <div className="bg-sage-500 text-white px-6 py-4 rounded-t-2xl">
+                {/* Header with lighter treatment */}
+                <div className="modal-header-light">
                     <div className="text-center">
                         <div className="text-2xl mb-2">✏️</div>
                         <h2 className="text-lg font-semibold">Rename Component</h2>
-                        <p className="text-sage-100 text-sm">{component.name}</p>
+                        <p className="text-sage-600 text-sm">{component.name}</p>
                     </div>
                 </div>
 
-                {/* Content */}
-                <div className="p-6 bg-yarn-50">
+                {/* Content with light sage background */}
+                <div className="p-6">
                     <div className="mb-6">
                         <label className="form-label">
                             Component Name
