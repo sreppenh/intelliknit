@@ -109,7 +109,7 @@ export const ProjectContextSection = ({ formData, handleInputChange }) => (
                 />
             </div>
             <div>
-                <label className="form-label">Deadline</label>
+                <label className="form-label">Deadline <span className="text-xs text-wool-500">(MM/DD/YYYY)</span></label>
                 <input
                     type="date"
                     value={formData.deadline || ''}
@@ -380,7 +380,7 @@ export const TimelineSection = ({ formData, handleInputChange }) => {
             <div className="space-y-4">
                 {formData.completed && (
                     <div>
-                        <label className="form-label">Completed</label>
+                        <label className="form-label">Completed <span className="text-xs text-wool-500">(MM/DD/YYYY)</span></label>
                         <input
                             type="date"
                             value={formData.completedAt || ''}
@@ -392,7 +392,7 @@ export const TimelineSection = ({ formData, handleInputChange }) => {
                 )}
                 {formData.frogged && (
                     <div>
-                        <label className="form-label">Frogged</label>
+                        <label className="form-label">Frogged <span className="text-xs text-wool-500">(MM/DD/YYYY)</span></label>
                         <input
                             type="date"
                             value={formData.froggedAt || ''}
