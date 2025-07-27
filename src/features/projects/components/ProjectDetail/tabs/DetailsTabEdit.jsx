@@ -2,13 +2,16 @@ import React, { useState } from 'react';
 import UnsavedChangesModal from '../../../../../shared/components/UnsavedChangesModal';
 
 /**
- * DetailsTabEdit - Group 2 Complete: Field Layout & Organization
+ * DetailsTabEdit - Complete Group 3 + Small Edits: Visual Polish & Final Improvements
  * 
  * Changes:
- * - Stacked all adjacent fields (no more grid-cols-2)
- * - Added all missing fields: occasion, deadline, priority, progress, startedAt
- * - Reorganized sections to match read view structure
- * - Comprehensive field layout improvements
+ * - Wizard-inspired light backgrounds for visual polish
+ * - Status as prominent radio buttons (completed/frogged only)
+ * - Smart timeline with conditional date fields
+ * - Fixed date field styling (height, alignment, width)
+ * - Cleaned priority selector (removed Someday)
+ * - Standard save/cancel footer (no gradient)
+ * - Comprehensive visual consistency
  */
 const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onSave, onCancel }) => {
     const [showUnsavedModal, setShowUnsavedModal] = useState(false);
@@ -93,40 +96,58 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
         }));
     };
 
-    // Enhanced save with data transformation
+    // Enhanced save with data transformation and auto-date logic
     const handleSave = () => {
         if (!formData.name.trim()) return;
 
-        // Keep the enhanced yarn format for storage, just clean up empty entries
         const transformedData = {
             ...formData,
+            // Auto-set completion date if completed is newly checked
+            completedAt: formData.completed && !formData.completedAt ?
+                new Date().toISOString().split('T')[0] : formData.completedAt,
+            // Auto-set started date from creation if not set
+            startedAt: formData.startedAt || project?.createdAt?.split('T')[0],
             // Keep enhanced yarn format but clean up empty entries
             yarns: formData.yarns.filter(yarn => yarn.name && yarn.name.trim() !== ''),
             // Clean up empty needle items
             needles: formData.needles.filter(needle => needle.trim() !== '')
         };
 
-        // Call the parent's save function with enhanced data
         onSave(transformedData);
     };
 
-    // Simple cancel without modal
+    // Handle status changes with smart date setting
+    const handleStatusChange = (field, value) => {
+        setFormData(prev => {
+            const newData = { ...prev, [field]: value };
+
+            // If marking as completed, clear frogged
+            if (field === 'completed' && value) {
+                newData.frogged = false;
+                if (!newData.completedAt) {
+                    newData.completedAt = new Date().toISOString().split('T')[0];
+                }
+            }
+
+            // If marking as frogged, clear completed
+            if (field === 'frogged' && value) {
+                newData.completed = false;
+                newData.completedAt = '';
+            }
+
+            return newData;
+        });
+    };
+
     const handleCancel = () => {
         onCancel();
     };
 
-    const confirmCancel = () => {
-        setShowUnsavedModal(false);
-        onCancel();
-    };
-
-    // Initialize construction and ensure yarns have proper structure
+    // Initialize defaults
     React.useEffect(() => {
         if (!formData.construction) {
             handleInputChange('construction', 'flat');
         }
-
-        // Initialize new fields with defaults
         if (formData.priority === undefined) {
             handleInputChange('priority', 'normal');
         }
@@ -156,7 +177,7 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
 
     return (
         <div className="p-6">
-            {/* Page Header */}
+            {/* Page Header - Clean, no gradient */}
             <div className="content-header-with-buttons">
                 <h2 className="content-title">
                     Edit Details
@@ -178,10 +199,45 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                 </div>
             </div>
 
-            {/* Content Sections - Reorganized to match read view */}
+            {/* Content Sections - With wizard-inspired backgrounds */}
             <div className="space-y-4">
+                {/* Project Status - Prominent, compact section */}
+                <div className="bg-gradient-to-r from-sage-50 to-yarn-50 border-l-4 border-sage-300 rounded-xl p-4 shadow-sm">
+                    <h3 className="section-header-primary text-sage-700">
+                        🎯 Project Status
+                    </h3>
+                    <div className="flex gap-6">
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="radio"
+                                id="completed"
+                                name="status"
+                                checked={formData.completed || false}
+                                onChange={(e) => handleStatusChange('completed', e.target.checked)}
+                                className="w-4 h-4 text-sage-600 border-wool-300 focus:ring-sage-500"
+                            />
+                            <label htmlFor="completed" className="text-sm font-medium text-wool-700">
+                                🎉 Completed
+                            </label>
+                        </div>
+                        <div className="flex items-center gap-3">
+                            <input
+                                type="radio"
+                                id="frogged"
+                                name="status"
+                                checked={formData.frogged || false}
+                                onChange={(e) => handleStatusChange('frogged', e.target.checked)}
+                                className="w-4 h-4 text-red-600 border-wool-300 focus:ring-red-500"
+                            />
+                            <label htmlFor="frogged" className="text-sm font-medium text-wool-700">
+                                🐸 Frogged
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
                 {/* Pattern Identity */}
-                <div className="bg-white rounded-xl p-5 border-2 border-wool-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="bg-gradient-to-r from-wool-50 to-sage-50 border-l-4 border-wool-300 rounded-xl p-5 shadow-sm">
                     <h3 className="section-header-primary">
                         📝 Pattern Identity
                     </h3>
@@ -219,8 +275,8 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     </div>
                 </div>
 
-                {/* Project Context - New section with new fields */}
-                <div className="bg-white rounded-xl p-5 border-2 border-lavender-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                {/* Project Context */}
+                <div className="bg-gradient-to-r from-lavender-50 to-sage-50 border-l-4 border-lavender-300 rounded-xl p-5 shadow-sm">
                     <h3 className="section-header-primary text-lavender-700">
                         🎯 Project Context
                     </h3>
@@ -251,14 +307,15 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                                 type="date"
                                 value={formData.deadline || ''}
                                 onChange={(e) => handleInputChange('deadline', e.target.value)}
-                                className="details-input-field shadow-sm focus:shadow-md transition-shadow"
+                                className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
+                                style={{ textAlign: 'left' }}
                             />
                         </div>
                         <div>
                             <label className="form-label">Priority</label>
                             <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
-                                <div className="grid grid-cols-4 gap-1">
-                                    {['high', 'normal', 'low', 'someday'].map((priority) => (
+                                <div className="grid grid-cols-3 gap-1">
+                                    {['high', 'normal', 'low'].map((priority) => (
                                         <button
                                             key={priority}
                                             type="button"
@@ -274,8 +331,8 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     </div>
                 </div>
 
-                {/* Physical Specs - Size and Progress */}
-                <div className="bg-white rounded-xl p-5 border-2 border-yarn-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                {/* Physical Specs */}
+                <div className="bg-gradient-to-r from-yarn-50 to-wool-50 border-l-4 border-yarn-300 rounded-xl p-5 shadow-sm">
                     <h3 className="section-header-primary text-yarn-700">
                         📏 Physical Specs
                     </h3>
@@ -305,40 +362,11 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                                 <span className="text-sm text-wool-600">% complete</span>
                             </div>
                         </div>
-                        <div>
-                            <label className="form-label">Status</label>
-                            <div className="space-y-2">
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        id="completed"
-                                        checked={formData.completed || false}
-                                        onChange={(e) => handleInputChange('completed', e.target.checked)}
-                                        className="w-4 h-4 text-sage-600 border-wool-300 rounded focus:ring-sage-500"
-                                    />
-                                    <label htmlFor="completed" className="text-sm font-medium text-wool-700">
-                                        Project is completed
-                                    </label>
-                                </div>
-                                <div className="flex items-center gap-3">
-                                    <input
-                                        type="checkbox"
-                                        id="frogged"
-                                        checked={formData.frogged || false}
-                                        onChange={(e) => handleInputChange('frogged', e.target.checked)}
-                                        className="w-4 h-4 text-red-600 border-wool-300 rounded focus:ring-red-500"
-                                    />
-                                    <label htmlFor="frogged" className="text-sm font-medium text-wool-700">
-                                        Project has been frogged
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
                 {/* Technical Specifications */}
-                <div className="bg-white rounded-xl p-5 border-2 border-sage-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                <div className="bg-gradient-to-r from-sage-50 to-lavender-50 border-l-4 border-sage-300 rounded-xl p-5 shadow-sm">
                     <h3 className="section-header-primary text-sage-700">
                         📐 Technical Specifications
                     </h3>
@@ -398,19 +426,19 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     </div>
                 </div>
 
-                {/* Materials - Streamlined visual hierarchy */}
-                <div className="bg-white rounded-xl p-5 border-2 border-yarn-200 shadow-sm hover:shadow-md transition-shadow duration-200">
+                {/* Materials */}
+                <div className="bg-gradient-to-r from-yarn-50 to-wool-50 border-l-4 border-yarn-300 rounded-xl p-5 shadow-sm">
                     <h3 className="section-header-primary text-yarn-700">
                         🧶 Materials
                     </h3>
                     <div className="space-y-5">
-                        {/* Yarn with Colors and Skeins - Cleaner hierarchy */}
+                        {/* Yarn with Colors and Skeins */}
                         <div>
                             <label className="form-label">Yarn</label>
                             <div className="space-y-3">
                                 {formData.yarns.map((yarn, yarnIndex) => (
                                     <div key={yarnIndex} className="border border-yarn-200 rounded-lg p-4 bg-yarn-25">
-                                        {/* Yarn Name - Simplified */}
+                                        {/* Yarn Name */}
                                         <div className="flex gap-3 items-start mb-3">
                                             <input
                                                 type="text"
@@ -430,7 +458,7 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                                             )}
                                         </div>
 
-                                        {/* Colors and Skeins - Cleaner nested style */}
+                                        {/* Colors and Skeins */}
                                         <div className="space-y-2 ml-2">
                                             {yarn.colors?.map((colorData, colorIndex) => (
                                                 <div key={colorIndex} className="flex gap-2 items-center bg-white rounded-lg p-2 border border-yarn-150">
@@ -482,7 +510,7 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                             </div>
                         </div>
 
-                        {/* Needles - Simplified */}
+                        {/* Needles */}
                         <div>
                             <label className="form-label">Needles</label>
                             <div className="space-y-3">
@@ -518,38 +546,44 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     </div>
                 </div>
 
-                {/* Timeline - New section for dates */}
-                <div className="bg-white rounded-xl p-5 border-2 border-sage-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <h3 className="section-header-primary text-sage-700">
-                        📅 Timeline
-                    </h3>
-                    <div className="space-y-4">
-                        <div>
-                            <label className="form-label">Started Date (Optional)</label>
-                            <input
-                                type="date"
-                                value={formData.startedAt || ''}
-                                onChange={(e) => handleInputChange('startedAt', e.target.value)}
-                                className="details-input-field shadow-sm focus:shadow-md transition-shadow"
-                            />
+                {/* Timeline - Smart conditional dates */}
+                {(formData.completed || formData.frogged) && (
+                    <div className="bg-gradient-to-r from-sage-50 to-lavender-50 border-l-4 border-sage-300 rounded-xl p-5 shadow-sm">
+                        <h3 className="section-header-primary text-sage-700">
+                            📅 Timeline
+                        </h3>
+                        <div className="space-y-4">
+                            {formData.completed && (
+                                <div>
+                                    <label className="form-label">Completed</label>
+                                    <input
+                                        type="date"
+                                        value={formData.completedAt || ''}
+                                        onChange={(e) => handleInputChange('completedAt', e.target.value)}
+                                        className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
+                                        style={{ textAlign: 'left' }}
+                                    />
+                                </div>
+                            )}
+                            {formData.frogged && (
+                                <div>
+                                    <label className="form-label">Frogged</label>
+                                    <input
+                                        type="date"
+                                        value={formData.froggedAt || ''}
+                                        onChange={(e) => handleInputChange('froggedAt', e.target.value)}
+                                        className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
+                                        style={{ textAlign: 'left' }}
+                                    />
+                                </div>
+                            )}
                         </div>
-                        {formData.completed && (
-                            <div>
-                                <label className="form-label">Completed Date</label>
-                                <input
-                                    type="date"
-                                    value={formData.completedAt || ''}
-                                    onChange={(e) => handleInputChange('completedAt', e.target.value)}
-                                    className="details-input-field shadow-sm focus:shadow-md transition-shadow"
-                                />
-                            </div>
-                        )}
                     </div>
-                </div>
+                )}
 
-                {/* Notes - Removed redundant label */}
+                {/* Notes */}
                 {(formData.notes || formData.notes === '') && (
-                    <div className="bg-white rounded-xl p-5 border-2 border-wool-300 shadow-sm hover:shadow-md transition-shadow duration-200">
+                    <div className="bg-gradient-to-r from-wool-50 to-yarn-50 border-l-4 border-wool-400 rounded-xl p-5 shadow-sm">
                         <h3 className="section-header-primary text-wool-700">
                             💭 Notes
                         </h3>
@@ -568,27 +602,25 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                 )}
             </div>
 
-            {/* Save/Cancel Footer - Clean */}
-            <div className="mt-8 bg-gradient-to-r from-sage-50 to-yarn-50 border-2 border-sage-200 rounded-xl p-4 shadow-sm">
-                <div className="flex gap-3">
-                    <button
-                        type="button"
-                        onClick={handleCancel}
-                        className="flex-1 btn-tertiary shadow-sm hover:shadow-md transition-shadow"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleSave}
-                        disabled={!formData.name.trim()}
-                        className="flex-2 btn-primary flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow"
-                        style={{ flexGrow: 2 }}
-                    >
-                        <span className="text-lg">💾</span>
-                        {hasUnsavedChanges ? 'Save Changes' : 'Done'}
-                    </button>
-                </div>
+            {/* Save/Cancel Footer - Clean, standard styling */}
+            <div className="mt-8 flex gap-3">
+                <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="flex-1 btn-tertiary shadow-sm hover:shadow-md transition-shadow"
+                >
+                    Cancel
+                </button>
+                <button
+                    type="button"
+                    onClick={handleSave}
+                    disabled={!formData.name.trim()}
+                    className="flex-2 btn-primary flex items-center justify-center gap-2 shadow-sm hover:shadow-md transition-shadow"
+                    style={{ flexGrow: 2 }}
+                >
+                    <span className="text-lg">💾</span>
+                    {hasUnsavedChanges ? 'Save Changes' : 'Done'}
+                </button>
             </div>
         </div >
     );
