@@ -1,5 +1,5 @@
 import React from 'react';
-import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
+import { getSmartProjectStatus } from '../../../../../shared/utils/projectStatus';
 
 /**
  * DetailsTabEditSections - All UI sections extracted from actual DetailsTabEdit.jsx
@@ -8,7 +8,7 @@ import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
  */
 
 export const ProjectStatusSection = ({ formData, handleStatusChange, project }) => {
-    const autoStatus = getProjectStatus(project);
+    const autoStatus = getSmartProjectStatus(project);
 
     // Determine current selection
     const getCurrentStatus = () => {
