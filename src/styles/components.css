@@ -204,9 +204,8 @@
 }
 
 /* ===== Form Elements ===== */
-/* UPDATED - better mobile feel, consistent padding with wizards */
 .input-field {
-  @apply w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base;
+  @apply w-full border-2 border-wool-200 rounded-xl px-3 py-2.5 text-base;
   @apply focus:border-sage-500 focus:ring-0 transition-colors;
   @apply placeholder-wool-400 bg-white;
 }
@@ -691,30 +690,6 @@
   @apply bg-gradient-to-r from-wool-50 to-yarn-50 border-l-4 border-wool-400;
 }
 
-/* Array Input Enhancement */
-.array-input-group {
-  @apply space-y-2 border-2 border-dashed border-wool-300 rounded-xl p-3;
-  @apply hover:border-sage-300 transition-colors duration-200;
-}
-
-.array-input-item {
-  @apply flex gap-2 items-center p-2 bg-white rounded-lg border border-wool-200;
-  @apply hover:border-sage-300 transition-colors duration-200;
-}
-
-.array-add-button {
-  @apply w-full border-2 border-dashed border-wool-300 text-wool-600 py-3 rounded-xl;
-  @apply hover:border-sage-400 hover:text-sage-600 hover:bg-sage-50;
-  @apply transition-all duration-200 font-medium cursor-pointer;
-  @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
-}
-
-.array-remove-button {
-  @apply bg-red-100 text-red-600 px-3 py-2 rounded-xl;
-  @apply hover:bg-red-200 active:bg-red-300 transition-colors duration-200;
-  @apply focus:ring-2 focus:ring-red-300 focus:ring-opacity-50;
-}
-
 /* Enhanced Form Fields */
 .details-form-field {
   @apply space-y-3 p-4 bg-white rounded-xl border border-wool-200;
@@ -922,3 +897,24 @@
 
 /* VISUAL PROGRESSION: beige → light green → medium green → strong green 
    Each state gets more prominent as you make progress! */
+
+/* Refined removal buttons - replaces old bulky array-remove-button */
+.remove-button {
+  @apply text-wool-400 hover:text-red-500 w-6 h-6 flex items-center justify-center rounded-full;
+  @apply hover:bg-red-50 transition-colors text-sm cursor-pointer;
+  @apply focus:ring-2 focus:ring-red-300 focus:ring-opacity-50;
+}
+
+.remove-button-lg {
+  @apply text-wool-400 hover:text-red-500 w-8 h-8 flex items-center justify-center rounded-lg;
+  @apply hover:bg-red-50 transition-colors font-medium cursor-pointer;
+  @apply focus:ring-2 focus:ring-red-300 focus:ring-opacity-50;
+}
+
+/* Add button styling */
+.add-button {
+  @apply w-full border-2 border-dashed border-wool-300 text-wool-600 py-3 rounded-xl;
+  @apply hover:border-sage-400 hover:text-sage-600 hover:bg-sage-50;
+  @apply transition-all duration-200 font-medium cursor-pointer;
+  @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
+}

@@ -270,7 +270,7 @@ export const MaterialsSection = ({
                                     <button
                                         type="button"
                                         onClick={() => removeArrayItem('yarns', yarnIndex)}
-                                        className="array-remove-button"
+                                        className="remove-button-lg"
                                     >
                                         ✕
                                     </button>
@@ -302,7 +302,7 @@ export const MaterialsSection = ({
                                             <button
                                                 type="button"
                                                 onClick={() => removeYarnColor(yarnIndex, colorIndex)}
-                                                className="text-red-500 hover:text-red-700 p-1 rounded transition-colors"
+                                                className="array-remove-button"
                                             >
                                                 ✕
                                             </button>
@@ -322,7 +322,7 @@ export const MaterialsSection = ({
                     <button
                         type="button"
                         onClick={() => addArrayItem('yarns')}
-                        className="array-add-button shadow-sm hover:shadow-md transition-shadow"
+                        className="add-button"
                     >
                         + Add Another Yarn
                     </button>
@@ -346,7 +346,7 @@ export const MaterialsSection = ({
                                 <button
                                     type="button"
                                     onClick={() => removeArrayItem('needles', index)}
-                                    className="array-remove-button shadow-sm hover:shadow-md transition-shadow"
+                                    className="remove-button"
                                 >
                                     ✕
                                 </button>
@@ -356,7 +356,7 @@ export const MaterialsSection = ({
                     <button
                         type="button"
                         onClick={() => addArrayItem('needles')}
-                        className="array-add-button shadow-sm hover:shadow-md transition-shadow"
+                        className="add-button"
                     >
                         + Add Another Needle
                     </button>
