@@ -368,6 +368,30 @@
   margin-top: 0 !important;
 }
 
+/* ===== UNIFIED SECTION HEADER SYSTEM ===== */
+/* Edit form major sections - left-aligned, distinctive but not overwhelming */
+.section-header-primary {
+  @apply text-lg font-semibold text-wool-700 mb-4 text-left flex items-center gap-2;
+}
+
+/* Edit form subsections - smaller, for grouping related fields */
+.section-header-secondary {
+  @apply text-base font-semibold text-wool-700 mb-3 text-left;
+}
+
+/* Enhanced contextual subtitle for wizard alignment */
+.content-subheader {
+  @apply text-wool-500 mb-4 text-center;
+  margin-top: 0 !important;
+}
+
+/* Ensure spacing consistency for all header types */
+.section-header-primary,
+.section-header-secondary {
+  margin-top: 0 !important;
+}
+
+
 /* ===== WRAPPER SPACING FIXES ===== */
 
 /* Fix: Remove space-y spacing from first content headers specifically */

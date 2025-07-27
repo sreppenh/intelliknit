@@ -2,14 +2,14 @@ import React, { useState } from 'react';
 import UnsavedChangesModal from '../../../../../shared/components/UnsavedChangesModal';
 
 /**
- * DetailsTabEdit - Streamlined edit mode for project details
+ * DetailsTabEdit - Streamlined edit mode with unified section labeling
  * 
  * Features:
- * - Compact layout matching read view
+ * - Unified section headers following wizard patterns
+ * - Distinctive visual hierarchy with colored cards
  * - Enhanced yarn management with color field
  * - Construction selector (flat/round)
- * - Minimal containers, clean gestalt
- * - Refined visual polish
+ * - Consistent typography across all sections
  */
 const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onSave, onCancel }) => {
     const [showUnsavedModal, setShowUnsavedModal] = useState(false);
@@ -152,7 +152,7 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
 
     return (
         <div className="p-6">
-            {/* Content Header with Buttons - Clean Pattern */}
+            {/* Page Header - Uses unified primary header class */}
             <div className="content-header-with-buttons">
                 <h2 className="content-title">
                     Edit Details
@@ -174,16 +174,13 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                 </div>
             </div>
 
-            {/* Content Sections - Clean like read view */}
+            {/* Content Sections - Unified headers with distinctive cards */}
             <div className="space-y-4">
-                {/* Project Identity */}
+                {/* Pattern Identity */}
                 <div className="bg-white rounded-xl p-5 border-2 border-wool-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-6 h-6 bg-wool-500 rounded-md flex items-center justify-center text-white text-sm shadow-sm">
-                            📋
-                        </div>
-                        <h3 className="text-sm font-semibold text-wool-700 uppercase tracking-wide">Project Identity</h3>
-                    </div>
+                    <h3 className="section-header-primary">
+                        📝 Pattern Identity
+                    </h3>
                     <div className="space-y-4">
                         <div>
                             <label className="form-label">Project Name (Required)</label>
@@ -222,12 +219,9 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
 
                 {/* Project Details */}
                 <div className="bg-white rounded-xl p-5 border-2 border-lavender-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-6 h-6 bg-lavender-500 rounded-md flex items-center justify-center text-white text-sm shadow-sm">
-                            👤
-                        </div>
-                        <h3 className="text-sm font-semibold text-lavender-700 uppercase tracking-wide">Project Details</h3>
-                    </div>
+                    <h3 className="section-header-primary text-lavender-700">
+                        👤 Project Details
+                    </h3>
                     <div className="grid grid-cols-2 gap-4">
                         <div>
                             <label className="form-label">Recipient</label>
@@ -252,14 +246,11 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     </div>
                 </div>
 
-                {/* Project Settings */}
+                {/* Specifications */}
                 <div className="bg-white rounded-xl p-5 border-2 border-sage-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-6 h-6 bg-sage-500 rounded-md flex items-center justify-center text-white text-sm shadow-sm">
-                            ⚙️
-                        </div>
-                        <h3 className="text-sm font-semibold text-sage-700 uppercase tracking-wide">Project Settings</h3>
-                    </div>
+                    <h3 className="section-header-primary text-sage-700">
+                        📐 Specifications
+                    </h3>
                     <div className="space-y-4">
                         <div>
                             <label className="form-label">Preferred Units</label>
@@ -303,17 +294,24 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                                 </div>
                             </div>
                         </div>
+                        <div>
+                            <label className="form-label">Gauge</label>
+                            <input
+                                type="text"
+                                value={formData.gauge}
+                                onChange={(e) => handleInputChange('gauge', e.target.value)}
+                                placeholder="e.g., 18 sts = 4 inches in stockinette"
+                                className="details-input-field shadow-sm focus:shadow-md transition-shadow"
+                            />
+                        </div>
                     </div>
                 </div>
 
                 {/* Materials */}
                 <div className="bg-white rounded-xl p-5 border-2 border-yarn-200 shadow-sm hover:shadow-md transition-shadow duration-200">
-                    <div className="flex items-center gap-3 mb-4">
-                        <div className="w-6 h-6 bg-yarn-500 rounded-md flex items-center justify-center text-white text-sm shadow-sm">
-                            🧶
-                        </div>
-                        <h3 className="text-sm font-semibold text-yarn-700 uppercase tracking-wide">Materials</h3>
-                    </div>
+                    <h3 className="section-header-primary text-yarn-700">
+                        🧶 Materials
+                    </h3>
                     <div className="space-y-5">
                         {/* Yarn with Colors and Skeins */}
                         <div>
@@ -426,30 +424,15 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                                 </button>
                             </div>
                         </div>
-
-                        {/* Gauge */}
-                        <div>
-                            <label className="form-label">Gauge</label>
-                            <input
-                                type="text"
-                                value={formData.gauge}
-                                onChange={(e) => handleInputChange('gauge', e.target.value)}
-                                placeholder="e.g., 18 sts = 4 inches in stockinette"
-                                className="details-input-field shadow-sm focus:shadow-md transition-shadow"
-                            />
-                        </div>
                     </div>
                 </div>
 
                 {/* Notes */}
                 {(formData.notes || formData.notes === '') && (
                     <div className="bg-white rounded-xl p-5 border-2 border-wool-300 shadow-sm hover:shadow-md transition-shadow duration-200">
-                        <div className="flex items-center gap-3 mb-4">
-                            <div className="w-6 h-6 bg-wool-500 rounded-md flex items-center justify-center text-white text-sm shadow-sm">
-                                💭
-                            </div>
-                            <h3 className="text-sm font-semibold text-wool-700 uppercase tracking-wide">Notes</h3>
-                        </div>
+                        <h3 className="section-header-primary text-wool-700">
+                            💭 Notes
+                        </h3>
                         <div>
                             <label className="form-label">Project Notes</label>
                             <textarea
@@ -488,8 +471,6 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     </button>
                 </div>
             </div>
-
-
         </div >
     );
 };

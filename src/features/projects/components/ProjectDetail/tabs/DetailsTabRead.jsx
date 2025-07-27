@@ -1,17 +1,65 @@
 import React, { useState } from 'react';
 
 /**
- * DetailsTabRead - Enhanced read-only view for project details
+ * DetailsTabRead - Purpose-driven section structure with smart status display
  * 
  * Features:
- * - Clean pattern identity section
- * - Logical information categories
- * - Left-aligned materials display
- * - Natural information hierarchy
- * - Fixed yarn display for enhanced format
+ * - Project Context, Physical Specs, Technical Specifications separation
+ * - Smart status display using existing project personality logic
+ * - Consistent formatting with "labels only when needed" principle
+ * - Timeline bullet format for compactness
+ * - Materials section unchanged (already perfect)
  */
 const DetailsTabRead = ({ project, onEdit }) => {
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
+
+    // Smart status calculation (matches ProjectList.jsx logic)
+    const getProjectStatus = () => {
+        if (project.completed) return { emoji: '🎉', text: 'Completed' };
+        if (project.frogged) return { emoji: '🐸', text: 'Frogged' };
+
+        // Calculate streak for fire status
+        const getStreakDays = () => {
+            if (!project.activityLog || project.activityLog.length === 0) return 0;
+            let streak = 0;
+            const today = new Date();
+            const msPerDay = 24 * 60 * 60 * 1000;
+
+            for (let i = 0; i < 30; i++) {
+                const checkDate = new Date(today.getTime() - (i * msPerDay));
+                const dayString = checkDate.toISOString().split('T')[0];
+                if (project.activityLog.includes(dayString)) {
+                    streak = i + 1;
+                } else if (i === 0) {
+                    continue;
+                } else {
+                    break;
+                }
+            }
+            return streak;
+        };
+
+        const streakDays = getStreakDays();
+        if (streakDays >= 3) {
+            const fireLevel = streakDays >= 7 ? '🔥🔥🔥' : streakDays >= 5 ? '🔥🔥' : '🔥';
+            return { emoji: '🔥', text: `On fire! ${streakDays} day streak` };
+        }
+
+        // Check for dormant (14+ days inactive)
+        const lastActivity = new Date(project.lastActivityAt || project.createdAt);
+        const daysSinceActivity = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
+        if (daysSinceActivity > 14 && project.components?.length > 0) {
+            return { emoji: '😴', text: 'Taking a nap...' };
+        }
+
+        // Check for empty (no components)
+        if (!project.components || project.components.length === 0) {
+            return { emoji: '💭', text: 'Ready to begin' };
+        }
+
+        // Default: active
+        return { emoji: '🧶', text: 'In progress' };
+    };
 
     // Format dates for display
     const formatDate = (dateString) => {
@@ -60,10 +108,11 @@ const DetailsTabRead = ({ project, onEdit }) => {
         return formattedYarns;
     };
 
+    const status = getProjectStatus();
+
     return (
         <div className="p-6">
-            {/* Pattern Identity Section */}
-            {/* Pattern Identity Section - Enhanced */}
+            {/* Pattern Identity - Enhanced header */}
             <div className="content-header-with-buttons">
                 <div className="flex-1 min-w-0">
                     <h2 className="text-xl font-semibold text-wool-800 leading-tight mb-1">
@@ -87,38 +136,60 @@ const DetailsTabRead = ({ project, onEdit }) => {
                 </div>
             </div>
 
-            {/* Content Sections */}
+            {/* Content Sections - Purpose-driven organization */}
             <div className="space-y-4">
-                {/* Project Details - Personal Info Only */}
-                {(project.recipient || project.size) && (
-                    <div className="read-mode-section field-group-info">
-                        <h3 className="text-sm font-semibold text-wool-600 mb-3">👤 Project Details</h3>
-                        <div className="text-sm text-wool-700">
-                            {project.recipient && `For ${project.recipient}`}
-                            {project.recipient && project.size && ' • '}
-                            {project.size && `Size ${project.size}`}
+                {/* Project Context - Who, Why, When + Status */}
+                {(project.recipient || project.occasion || project.deadline || project.priority || status.text) && (
+                    <div className="read-mode-section">
+                        <h3 className="section-header-secondary">🎯 Project Context</h3>
+                        <div className="text-sm text-wool-700 space-y-1 text-left">
+                            {/* Status prominently at top */}
+                            <div className="font-semibold text-wool-800">{status.emoji} {status.text}</div>
+                            {project.recipient && <div>For {project.recipient}</div>}
+                            {project.occasion && <div>{project.occasion}</div>}
+                            {project.deadline && <div>Due {formatDate(project.deadline)}</div>}
+                            {project.priority && project.priority !== 'normal' && (
+                                <div>{project.priority.charAt(0).toUpperCase() + project.priority.slice(1)} priority</div>
+                            )}
                         </div>
                     </div>
                 )}
 
-                {/* Technical Defaults */}
-                {(project.defaultUnits || project.construction) && (
-                    <div className="read-mode-section field-group-basics">
-                        <h3 className="text-sm font-semibold text-wool-600 mb-3">⚙️ Project Settings</h3>
-                        <div className="text-sm text-wool-700">
-                            {project.defaultUnits && (project.defaultUnits === 'inches' ? 'Inches' : 'Centimeters')}
-                            {project.defaultUnits && project.construction && ' • '}
-                            {project.construction && `${project.construction.charAt(0).toUpperCase() + project.construction.slice(1)} Construction`}
+                {/* Physical Specs - Size, Progress */}
+                {(project.size || project.progress) && (
+                    <div className="read-mode-section">
+                        <h3 className="section-header-secondary">📏 Physical Specs</h3>
+                        <div className="text-sm text-wool-700 space-y-1 text-left">
+                            {project.size && <div>Size {project.size}</div>}
+                            {project.progress !== undefined && project.progress !== null && (
+                                <div>{project.progress}% complete</div>
+                            )}
                         </div>
                     </div>
                 )}
 
-                {/* Materials - Left Aligned */}
-                {(project.yarns?.length > 0 || project.needles?.length > 0 || project.gauge) && (
-                    <div className="read-mode-section field-group-materials">
-                        <h3 className="text-sm font-semibold text-wool-600 mb-3">🧶 Materials</h3>
+                {/* Technical Specifications - Units, Construction, Gauge */}
+                {(project.defaultUnits || project.construction || project.gauge) && (
+                    <div className="read-mode-section">
+                        <h3 className="section-header-secondary">📐 Technical Specifications</h3>
+                        <div className="text-sm text-wool-700 space-y-1 text-left">
+                            {project.defaultUnits && (
+                                <div>Measured in {project.defaultUnits === 'inches' ? 'inches' : 'centimeters'}</div>
+                            )}
+                            {project.construction && (
+                                <div>{project.construction.charAt(0).toUpperCase() + project.construction.slice(1)} construction</div>
+                            )}
+                            {project.gauge && <div>Gauge: {project.gauge}</div>}
+                        </div>
+                    </div>
+                )}
+
+                {/* Materials - Keep exactly as-is (you love this section!) */}
+                {(project.yarns?.length > 0 || project.needles?.length > 0) && (
+                    <div className="read-mode-section">
+                        <h3 className="section-header-secondary">🧶 Materials</h3>
                         <div className="space-y-3 text-left">
-                            {/* Yarn - Fixed Display */}
+                            {/* Yarn */}
                             {formatYarnDisplay(project.yarns).length > 0 && (
                                 <div>
                                     <h4 className="text-sm font-medium text-wool-700 mb-2">
@@ -145,47 +216,31 @@ const DetailsTabRead = ({ project, onEdit }) => {
                                     </div>
                                 </div>
                             )}
-
-                            {/* Gauge */}
-                            {project.gauge && (
-                                <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-2">
-                                        Gauge
-                                    </h4>
-                                    <div className="text-sm text-wool-700">{project.gauge}</div>
-                                </div>
-                            )}
                         </div>
                     </div>
                 )}
 
-                {/* Timeline */}
-                <div className="read-mode-section field-group-timeline">
-                    <h3 className="text-sm font-semibold text-wool-600 mb-3">📅 Timeline</h3>
-                    <div className="space-y-1">
-                        <div className="timeline-entry">
-                            <span className="timeline-label">Created:</span>
-                            <span className="timeline-date">{formatDate(project.createdAt)}</span>
-                        </div>
+                {/* Timeline - Bullet format with colored dates */}
+                <div className="read-mode-section">
+                    <h3 className="section-header-secondary">📅 Timeline</h3>
+                    <div className="text-sm text-wool-700 space-y-1 text-left">
+                        <div>• Created: <span className="text-wool-500">{formatDate(project.createdAt)}</span></div>
+                        {project.startedAt && (
+                            <div>• Started: <span className="text-wool-500">{formatDate(project.startedAt)}</span></div>
+                        )}
                         {project.lastActivityAt && (
-                            <div className="timeline-entry">
-                                <span className="timeline-label">Last Modified:</span>
-                                <span className="timeline-date">{formatDate(project.lastActivityAt)}</span>
-                            </div>
+                            <div>• Last Modified: <span className="text-wool-500">{formatDate(project.lastActivityAt)}</span></div>
                         )}
                         {project.completedAt && (
-                            <div className="timeline-entry">
-                                <span className="timeline-label">Completed:</span>
-                                <span className="timeline-date">{formatDate(project.completedAt)}</span>
-                            </div>
+                            <div>• Completed: <span className="text-wool-500">{formatDate(project.completedAt)}</span></div>
                         )}
                     </div>
                 </div>
 
-                {/* Notes - Read Only, Left Aligned */}
+                {/* Notes - Keep exactly as-is */}
                 {project.notes && (
-                    <div className="read-mode-section field-group-notes">
-                        <h3 className="text-sm font-semibold text-wool-600 mb-3">💭 Notes</h3>
+                    <div className="read-mode-section">
+                        <h3 className="section-header-secondary">💭 Notes</h3>
                         <div className="text-left">
                             {project.notes.length > 300 && !isNotesExpanded ? (
                                 <div>
