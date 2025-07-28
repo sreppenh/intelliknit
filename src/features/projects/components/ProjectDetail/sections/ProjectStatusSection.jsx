@@ -63,7 +63,8 @@ const ProjectStatusSection = ({
             completed: true,
             frogged: false,
             completedAt: today,
-            froggedAt: ''
+            froggedAt: '',
+            progress: 100 // Set to 100% when marking complete
         };
         onProjectUpdate(updatedProject);
     };
@@ -80,16 +81,36 @@ const ProjectStatusSection = ({
         onProjectUpdate(updatedProject);
     };
 
-    const handleStartOver = () => {
+    // === PROGRESS INCREMENT HANDLERS ===
+
+    const handleProgressChange = (newProgress) => {
         const updatedProject = {
             ...project,
-            frogged: false,
-            completed: false,
-            froggedAt: '',
-            completedAt: '',
-            progress: 0
+            progress: newProgress
         };
+
+        // Auto-complete at 100%
+        if (newProgress >= 100) {
+            const today = new Date().toISOString().split('T')[0];
+            updatedProject.completed = true;
+            updatedProject.frogged = false;
+            updatedProject.completedAt = today;
+            updatedProject.progress = 100;
+        }
+
         onProjectUpdate(updatedProject);
+    };
+
+    const handleProgressIncrement = () => {
+        const currentProgress = displayData?.progress || 0;
+        const newProgress = Math.min(currentProgress + 5, 100);
+        handleProgressChange(newProgress);
+    };
+
+    const handleProgressDecrement = () => {
+        const currentProgress = displayData?.progress || 0;
+        const newProgress = Math.max(currentProgress - 5, 0);
+        handleProgressChange(newProgress);
     };
 
     // === EDIT DETAILS MODAL HANDLERS ===
@@ -99,17 +120,82 @@ const ProjectStatusSection = ({
     };
 
     const handleSaveEdit = () => {
-        // Update using batched pattern for modal changes
-        if (handleInputChange) {
-            Object.keys(tempFormData).forEach(field => {
-                if (field === 'completed' || field === 'frogged') {
-                    handleStatusChange(field, tempFormData[field]);
-                } else {
-                    handleInputChange(field, tempFormData[field]);
-                }
-            });
+        // For status changes, we need atomic updates to prevent race conditions
+        const currentStatus = getCurrentStatus();
+
+        if (currentStatus === 'auto') {
+            // Handle auto status as single atomic update
+            const updatedProject = {
+                ...project,
+                completed: false,
+                frogged: false,
+                completedAt: '',
+                froggedAt: '',
+                progress: tempFormData.progress || project.progress || 0
+            };
+            onProjectUpdate(updatedProject);
+        } else if (currentStatus === 'completed') {
+            // Handle completed status as single atomic update  
+            const updatedProject = {
+                ...project,
+                completed: true,
+                frogged: false,
+                completedAt: tempFormData.completedAt || new Date().toISOString().split('T')[0],
+                froggedAt: '',
+                progress: tempFormData.progress || project.progress || 0
+            };
+            onProjectUpdate(updatedProject);
+        } else if (currentStatus === 'frogged') {
+            // Handle frogged status as single atomic update
+            const updatedProject = {
+                ...project,
+                completed: false,
+                frogged: true,
+                completedAt: '',
+                froggedAt: tempFormData.froggedAt || new Date().toISOString().split('T')[0],
+                progress: tempFormData.progress || project.progress || 0
+            };
+            onProjectUpdate(updatedProject);
+        } else {
+            // Fallback: just update progress if no status change
+            if (handleInputChange) {
+                handleInputChange('progress', tempFormData.progress || 0);
+            }
         }
+
         setShowEditModal(false);
+    };
+
+    // Status handling functions (copied from original)
+    const getCurrentStatus = () => {
+        if (tempFormData.completed) return 'completed';
+        if (tempFormData.frogged) return 'frogged';
+        return 'auto';
+    };
+
+    const handleStatusSelect = (value) => {
+        switch (value) {
+            case 'completed':
+                handleTempInputChange('completed', true);
+                handleTempInputChange('frogged', false);
+                if (!tempFormData.completedAt) {
+                    handleTempInputChange('completedAt', new Date().toISOString().split('T')[0]);
+                }
+                break;
+            case 'frogged':
+                handleTempInputChange('frogged', true);
+                handleTempInputChange('completed', false);
+                if (!tempFormData.froggedAt) {
+                    handleTempInputChange('froggedAt', new Date().toISOString().split('T')[0]);
+                }
+                break;
+            case 'auto':
+                handleTempInputChange('completed', false);
+                handleTempInputChange('frogged', false);
+                handleTempInputChange('completedAt', '');
+                handleTempInputChange('froggedAt', '');
+                break;
+        }
     };
 
     const handleCancelEdit = () => {
@@ -144,7 +230,7 @@ const ProjectStatusSection = ({
 
     const renderActionButtons = () => {
         if (displayData?.completed) {
-            // COMPLETED STATE
+            // COMPLETED STATE - Only Frog action
             return (
                 <div className="flex gap-3 mt-4">
                     <button
@@ -154,41 +240,18 @@ const ProjectStatusSection = ({
                         <span>🐸</span>
                         Actually, Frog It
                     </button>
-                    <button
-                        onClick={handleEditDetails}
-                        className="btn-tertiary btn-sm"
-                    >
-                        ✏️ Edit Details
-                    </button>
                 </div>
             );
         } else if (displayData?.frogged) {
-            // FROGGED STATE  
-            return (
-                <div className="flex gap-3 mt-4">
-                    <button
-                        onClick={handleStartOver}
-                        className="btn-primary btn-sm flex items-center gap-2"
-                    >
-                        <span>🔄</span>
-                        Start Over
-                    </button>
-                    <button
-                        onClick={handleEditDetails}
-                        className="btn-tertiary btn-sm"
-                    >
-                        ✏️ Edit Details
-                    </button>
-                </div>
-            );
+            // FROGGED STATE - No actions, just edit details via section tap
+            return null;
         } else {
             // ACTIVE/READY STATE
             return (
                 <div className="flex gap-3 mt-4">
                     <button
                         onClick={handleMarkComplete}
-                        className="btn-primary btn-sm flex items-center gap-2
-                        "
+                        className="btn-primary btn-sm flex items-center gap-2"
                     >
                         <span>🎉</span>
                         Mark Complete
@@ -225,15 +288,39 @@ const ProjectStatusSection = ({
                 </div>
             );
         } else {
-            // ACTIVE/READY STATE - Show smart status + progress
+            // ACTIVE/READY STATE - Show smart status + progress increment component
             return (
-                <div className="text-sm text-wool-700 space-y-1 text-left">
+                <div className="text-sm text-wool-700 space-y-3 text-left">
                     <div className="font-semibold text-wool-800">
                         {status.emoji} {status.text}
                     </div>
-                    {displayData?.progress > 0 && (
-                        <div>{displayData.progress}% complete</div>
-                    )}
+
+                    {/* Progress increment component */}
+                    <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2">
+                            <button
+                                onClick={handleProgressDecrement}
+                                className="w-8 h-8 rounded-lg bg-wool-100 hover:bg-wool-200 flex items-center justify-center text-wool-600 hover:text-wool-700 transition-colors"
+                                disabled={(displayData?.progress || 0) <= 0}
+                            >
+                                ⊖
+                            </button>
+
+                            <div className="min-w-[60px] text-center font-medium">
+                                {displayData?.progress || 0}%
+                            </div>
+
+                            <button
+                                onClick={handleProgressIncrement}
+                                className="w-8 h-8 rounded-lg bg-wool-100 hover:bg-wool-200 flex items-center justify-center text-wool-600 hover:text-wool-700 transition-colors"
+                                disabled={(displayData?.progress || 0) >= 100}
+                            >
+                                ⊕
+                            </button>
+                        </div>
+
+                        <span className="text-wool-500">complete</span>
+                    </div>
                 </div>
             );
         }
@@ -244,14 +331,21 @@ const ProjectStatusSection = ({
     // Read View (No Edit Modal)
     if (!showEditModal) {
         return (
-            <div className="read-mode-section">
+            <div
+                className="read-mode-section hover:bg-sage-25 active:scale-95 cursor-pointer transition-all duration-200"
+                onClick={handleEditDetails}
+            >
                 <div className="details-section-header">
                     <h3 className="section-header-secondary">🎯 Project Status</h3>
-                    {/* NO edit button - actions ARE the interaction! */}
+                    {/* NO edit button - section tap opens edit details! */}
                 </div>
 
                 {renderStatusDisplay()}
-                {renderActionButtons()}
+
+                {/* Action buttons with pointer-events-none to prevent bubble */}
+                <div onClick={(e) => e.stopPropagation()}>
+                    {renderActionButtons()}
+                </div>
             </div>
         );
     }
@@ -260,13 +354,20 @@ const ProjectStatusSection = ({
     return (
         <>
             {/* Background section for read view */}
-            <div className="read-mode-section">
+            <div
+                className="read-mode-section hover:bg-sage-25 active:scale-95 cursor-pointer transition-all duration-200"
+                onClick={handleEditDetails}
+            >
                 <div className="details-section-header">
                     <h3 className="section-header-secondary">🎯 Project Status</h3>
                 </div>
 
                 {renderStatusDisplay()}
-                {renderActionButtons()}
+
+                {/* Action buttons with pointer-events-none to prevent bubble */}
+                <div onClick={(e) => e.stopPropagation()}>
+                    {renderActionButtons()}
+                </div>
             </div>
 
             {/* Modal Overlay */}
@@ -301,46 +402,18 @@ const ProjectStatusSection = ({
                                 </div>
                             </div>
 
-                            {/* Status Override */}
+                            {/* Status Override - Use dropdown like original */}
                             <div>
                                 <label className="form-label">Status Override</label>
-                                <div className="space-y-2">
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={tempFormData.completed || false}
-                                            onChange={(e) => {
-                                                handleTempInputChange('completed', e.target.checked);
-                                                if (e.target.checked) {
-                                                    handleTempInputChange('frogged', false);
-                                                    if (!tempFormData.completedAt) {
-                                                        handleTempInputChange('completedAt', new Date().toISOString().split('T')[0]);
-                                                    }
-                                                }
-                                            }}
-                                            className="rounded"
-                                        />
-                                        <span className="text-sm">Mark as completed</span>
-                                    </label>
-
-                                    <label className="flex items-center gap-2">
-                                        <input
-                                            type="checkbox"
-                                            checked={tempFormData.frogged || false}
-                                            onChange={(e) => {
-                                                handleTempInputChange('frogged', e.target.checked);
-                                                if (e.target.checked) {
-                                                    handleTempInputChange('completed', false);
-                                                    if (!tempFormData.froggedAt) {
-                                                        handleTempInputChange('froggedAt', new Date().toISOString().split('T')[0]);
-                                                    }
-                                                }
-                                            }}
-                                            className="rounded"
-                                        />
-                                        <span className="text-sm">Mark as frogged</span>
-                                    </label>
-                                </div>
+                                <select
+                                    value={getCurrentStatus()}
+                                    onChange={(e) => handleStatusSelect(e.target.value)}
+                                    className="w-full bg-white border-2 border-wool-200 rounded-lg px-4 py-3 text-base font-medium focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50 transition-colors"
+                                >
+                                    <option value="auto">{status.emoji} {status.text}</option>
+                                    <option value="completed">🎉 Completed</option>
+                                    <option value="frogged">🐸 Frogged</option>
+                                </select>
                             </div>
 
                             {/* Completion Date */}
