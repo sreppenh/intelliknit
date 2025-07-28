@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
 import UnitsConstructionSection from '../sections/UnitsConstruction';
 import ProjectContextSection from '../sections/ProjectContextSection';
+import ProjectStatusSection from '../sections/ProjectStatusSection';
 
 
 const DetailsTab = ({ project, onProjectUpdate }) => {
@@ -112,15 +113,21 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
 
             {/* Content Sections - Purpose-driven organization */}
             <div className="space-y-4">
-                {/* Status - Keep prominently at top */}
-                {status.text && (
-                    <div className="read-mode-section">
-                        <h3 className="section-header-secondary">📊 Status</h3>
-                        <div className="text-sm font-semibold text-wool-800">
-                            {status.emoji} {status.text}
-                        </div>
-                    </div>
-                )}
+                {/* Project Status - Revolutionary Action Center */}
+                <ProjectStatusSection
+                    project={project}
+                    formData={project}
+                    handleInputChange={handleInputChange}
+                    handleStatusChange={(field, value) => {
+                        // Handle boolean status changes
+                        const updatedProject = {
+                            ...project,
+                            [field]: value
+                        };
+                        onProjectUpdate(updatedProject);
+                    }}
+                    onProjectUpdate={onProjectUpdate}
+                />
 
                 {/* Project Context - New conversational section */}
                 <ProjectContextSection
@@ -130,16 +137,6 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                     formData={project}
                     handleInputChange={handleInputChange}
                 />
-
-                {/* Physical Specs - Progress only (size moved to Project Context) */}
-                {(project.progress !== undefined && project.progress !== null) && (
-                    <div className="read-mode-section">
-                        <h3 className="section-header-secondary">📏 Progress</h3>
-                        <div className="text-sm text-wool-700 space-y-1 text-left">
-                            <div>{project.progress}% complete</div>
-                        </div>
-                    </div>
-                )}
 
                 {/* Units & Construction - New inline editing section */}
                 <UnitsConstructionSection

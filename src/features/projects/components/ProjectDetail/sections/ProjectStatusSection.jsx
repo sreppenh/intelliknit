@@ -149,7 +149,7 @@ const ProjectStatusSection = ({
                 <div className="flex gap-3 mt-4">
                     <button
                         onClick={handleFrogProject}
-                        className="flex-1 btn-secondary flex items-center justify-center gap-2"
+                        className="btn-secondary btn-sm flex items-center gap-2"
                     >
                         <span>🐸</span>
                         Actually, Frog It
@@ -168,7 +168,7 @@ const ProjectStatusSection = ({
                 <div className="flex gap-3 mt-4">
                     <button
                         onClick={handleStartOver}
-                        className="flex-1 btn-primary flex items-center justify-center gap-2"
+                        className="btn-primary btn-sm flex items-center gap-2"
                     >
                         <span>🔄</span>
                         Start Over
@@ -187,14 +187,15 @@ const ProjectStatusSection = ({
                 <div className="flex gap-3 mt-4">
                     <button
                         onClick={handleMarkComplete}
-                        className="flex-1 btn-primary flex items-center justify-center gap-2"
+                        className="btn-primary btn-sm flex items-center gap-2
+                        "
                     >
                         <span>🎉</span>
                         Mark Complete
                     </button>
                     <button
                         onClick={handleFrogProject}
-                        className="flex-1 btn-secondary flex items-center justify-center gap-2"
+                        className="btn-secondary btn-sm flex items-center gap-2"
                     >
                         <span>🐸</span>
                         Frog Project
