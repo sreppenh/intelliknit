@@ -171,6 +171,7 @@ export const PhysicalSpecsSection = ({ formData, handleInputChange }) => (
                 <div className="flex items-center gap-3">
                     <input
                         type="number"
+                        inputMode="numeric"
                         min="0"
                         max="100"
                         value={formData.progress || ''}
@@ -240,7 +241,10 @@ export const MaterialsSection = ({
                                         />
                                         <div className="flex items-center gap-1">
                                             <input
-                                                type="text"
+                                                type="number"
+                                                inputMode="numeric"
+                                                min="0"
+                                                step="0.5"
                                                 value={colorData.skeins || ''}
                                                 onChange={(e) => handleYarnColorChange(yarnIndex, colorIndex, 'skeins', e.target.value)}
                                                 placeholder="0"
@@ -457,6 +461,7 @@ export const TechnicalSpecsSection = ({ formData, handleInputChange, handleGauge
                         <div className="flex gap-2 items-center">
                             <input
                                 type="number"
+                                inputMode="numeric"
                                 value={formData.gauge?.stitchGauge?.stitches || ''}
                                 onChange={(e) => handleGaugeMeasurementChange('stitchGauge', 'stitches', e.target.value)}
                                 placeholder="18"
@@ -465,6 +470,7 @@ export const TechnicalSpecsSection = ({ formData, handleInputChange, handleGauge
                             <span className="text-sm text-wool-600">sts =</span>
                             <input
                                 type="number"
+                                inputMode="numeric"
                                 step="0.1"
                                 value={formData.gauge?.stitchGauge?.measurement || ''}
                                 onChange={(e) => handleGaugeMeasurementChange('stitchGauge', 'measurement', e.target.value)}
@@ -481,6 +487,7 @@ export const TechnicalSpecsSection = ({ formData, handleInputChange, handleGauge
                         <div className="flex gap-2 items-center">
                             <input
                                 type="number"
+                                inputMode="numeric"
                                 value={formData.gauge?.rowGauge?.rows || ''}
                                 onChange={(e) => handleGaugeMeasurementChange('rowGauge', 'rows', e.target.value)}
                                 placeholder="24"
@@ -489,6 +496,7 @@ export const TechnicalSpecsSection = ({ formData, handleInputChange, handleGauge
                             <span className="text-sm text-wool-600">rows =</span>
                             <input
                                 type="number"
+                                inputMode="numeric"
                                 step="0.1"
                                 value={formData.gauge?.rowGauge?.measurement || ''}
                                 onChange={(e) => handleGaugeMeasurementChange('rowGauge', 'measurement', e.target.value)}
