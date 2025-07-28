@@ -125,14 +125,14 @@ const ProjectStatusSection = ({
         const currentStatus = getCurrentStatus();
 
         if (currentStatus === 'auto') {
-            // Handle auto status as single atomic update
+            // Handle auto status as single atomic update - RESET PROGRESS TO 0
             const updatedProject = {
                 ...project,
                 completed: false,
                 frogged: false,
                 completedAt: '',
                 froggedAt: '',
-                progress: tempFormData.progress || project.progress || 0
+                progress: tempFormData.progress || 0  // Use form value, not original project
             };
             onProjectUpdate(updatedProject);
         } else if (currentStatus === 'completed') {
@@ -143,7 +143,7 @@ const ProjectStatusSection = ({
                 frogged: false,
                 completedAt: tempFormData.completedAt || new Date().toISOString().split('T')[0],
                 froggedAt: '',
-                progress: tempFormData.progress || project.progress || 0
+                progress: tempFormData.progress || 100  // Default to 100% for completed
             };
             onProjectUpdate(updatedProject);
         } else if (currentStatus === 'frogged') {
@@ -154,7 +154,7 @@ const ProjectStatusSection = ({
                 frogged: true,
                 completedAt: '',
                 froggedAt: tempFormData.froggedAt || new Date().toISOString().split('T')[0],
-                progress: tempFormData.progress || project.progress || 0
+                progress: tempFormData.progress || 0  // Reset progress for frogged
             };
             onProjectUpdate(updatedProject);
         } else {
@@ -182,6 +182,10 @@ const ProjectStatusSection = ({
                 if (!tempFormData.completedAt) {
                     handleTempInputChange('completedAt', new Date().toISOString().split('T')[0]);
                 }
+                // Set progress to 100% when marking completed (unless already set)
+                if (!tempFormData.progress || tempFormData.progress === 0) {
+                    handleTempInputChange('progress', 100);
+                }
                 break;
             case 'frogged':
                 handleTempInputChange('frogged', true);
@@ -189,12 +193,17 @@ const ProjectStatusSection = ({
                 if (!tempFormData.froggedAt) {
                     handleTempInputChange('froggedAt', new Date().toISOString().split('T')[0]);
                 }
+                // Reset progress to 0% when frogging (unless user set otherwise)
+                if (tempFormData.progress === 100) {
+                    handleTempInputChange('progress', 0);
+                }
                 break;
             case 'auto':
                 handleTempInputChange('completed', false);
                 handleTempInputChange('frogged', false);
                 handleTempInputChange('completedAt', '');
                 handleTempInputChange('froggedAt', '');
+                // DON'T reset progress - let user keep their current percentage
                 break;
         }
     };
@@ -377,15 +386,20 @@ const ProjectStatusSection = ({
                     {/* Modal Content */}
                     <div className="p-6">
                         <div className="space-y-4">
-                            {/* Progress with IncrementInput */}
+                            {/* Progress with IncrementInput - Step by 5% */}
                             <div>
                                 <label className="form-label">Progress</label>
                                 <div className="flex items-center gap-3">
                                     <IncrementInput
                                         value={tempFormData.progress || 0}
-                                        onChange={(value) => handleTempInputChange('progress', value)}
+                                        onChange={(value) => {
+                                            // Round to nearest 5% increment
+                                            const roundedValue = Math.round(value / 5) * 5;
+                                            handleTempInputChange('progress', Math.min(100, Math.max(0, roundedValue)));
+                                        }}
                                         min={0}
                                         max={100}
+                                        step={5}
                                         unit="%"
                                         label="progress"
                                         size="sm"

@@ -11,10 +11,10 @@ import React from 'react';
  * - Mobile-optimized with AA compliance
  * - Surgical fix for empty field issue
  */
-const IncrementInput = ({ 
-  value, 
-  onChange, 
-  min = 1, 
+const IncrementInput = ({
+  value,
+  onChange,
+  min = 1,
   max = undefined,
   label = 'value',
   unit = '',
@@ -23,11 +23,12 @@ const IncrementInput = ({
   className = '',
   disabled = false,
   placeholder = '',
+  step = 1,
   contextualMax = undefined, // For context-aware max limits
-  ...props 
+  ...props
 }) => {
 
-  
+
   // NEW: Add this function to make units construction-aware
   const getConstructionAwareUnit = (baseUnit) => {
     if (!construction || baseUnit !== 'rows') return baseUnit;
@@ -38,17 +39,17 @@ const IncrementInput = ({
   const getContextualMax = () => {
     if (max !== undefined) return max;
     if (contextualMax !== undefined) return contextualMax;
-    
+
     // Smart defaults based on typical knitting values
     if (unit === 'rows' || label.includes('row')) return 999;
     if (unit === 'times' || label.includes('time')) return 999;
     if (unit === 'stitches' || label.includes('stitch')) return 999;
     if (label.includes('amount') || label.includes('count')) return 20;
-    
+
     return 999; // Fallback for edge cases
   };
 
-  
+
 
   const effectiveMax = getContextualMax();
 
@@ -62,47 +63,47 @@ const IncrementInput = ({
 
   const handleIncrement = () => {
     const currentValue = getCurrentValue();
-    const newValue = Math.min(effectiveMax, currentValue + 1);
+    const newValue = Math.min(effectiveMax, currentValue + step);
     onChange(newValue);
   };
 
   const handleDecrement = () => {
     const currentValue = getCurrentValue();
-    const newValue = Math.max(min, currentValue - 1);
+    const newValue = Math.max(min, currentValue - step);
     onChange(newValue);
   };
 
   const handleInputChange = (e) => {
     const inputValue = e.target.value.replace(/[^0-9]/g, '');
-    
+
     // FIXED: Temporarily allow the empty state
-if (inputValue === '') {
-  onChange('');  
-  return;
-}
-    
+    if (inputValue === '') {
+      onChange('');
+      return;
+    }
+
     const numValue = parseInt(inputValue);
-    
+
     // Validate against min/max bounds
     if (numValue < min) {
       onChange(min);
       return;
     }
-    
+
     if (numValue > effectiveMax) {
       onChange(effectiveMax);
       return;
     }
-    
+
     onChange(numValue);
   };
 
-const handleInputBlur = () => {
-  // FIXED: Always ensure we have a valid value on blur
-  if (value === '' || value === undefined || value === null) {
-    onChange(min);
-  }
-};
+  const handleInputBlur = () => {
+    // FIXED: Always ensure we have a valid value on blur
+    if (value === '' || value === undefined || value === null) {
+      onChange(min);
+    }
+  };
 
   const handleInputFocus = (e) => {
     // Select all text on focus for easy editing
@@ -141,7 +142,7 @@ const handleInputBlur = () => {
       >
         −
       </button>
-      
+
       <input
         type="text"
         inputMode="numeric"
@@ -158,7 +159,7 @@ const handleInputBlur = () => {
         max={effectiveMax}
         {...props}
       />
-      
+
       <button
         onClick={handleIncrement}
         disabled={disabled || isAtMax}
@@ -168,11 +169,11 @@ const handleInputBlur = () => {
       >
         +
       </button>
-      
+
       {unit && (
         <span className="text-sm text-wool-600 ml-2 whitespace-nowrap min-w-0 flex-shrink-0">{displayUnit}</span>
       )}
-      
+
 
     </div>
   );
