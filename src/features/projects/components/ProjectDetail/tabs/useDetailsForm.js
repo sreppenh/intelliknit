@@ -75,6 +75,35 @@ const useDetailsForm = (formData, setFormData, project, onSave, onCancel) => {
         }));
     };
 
+    const handleGaugeChange = (field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            gauge: {
+                ...prev.gauge,
+                [field]: value,
+                // When saving gauge notes, store in blockingNotes field
+                ...(field === 'gaugeNotes' && {
+                    blockingNotes: value,
+                    customPattern: '' // Clear the old custom pattern field
+                })
+            }
+        }));
+    };
+
+    const handleGaugeMeasurementChange = (gaugeType, field, value) => {
+        setFormData(prev => ({
+            ...prev,
+            gauge: {
+                ...prev.gauge,
+                [gaugeType]: {
+                    ...prev.gauge?.[gaugeType],
+                    [field]: value
+                }
+            }
+        }));
+    };
+
+
     const addArrayItem = (field) => {
         if (field === 'yarns') {
             setFormData(prev => ({
@@ -83,10 +112,9 @@ const useDetailsForm = (formData, setFormData, project, onSave, onCancel) => {
             }));
 
         } else if (field === 'needles') {
-            // NEW: Add structured needle object
             setFormData(prev => ({
                 ...prev,
-                needles: [...prev.needles, { size: '', mm: '', type: 'straight', length: '' }]
+                needles: [...prev.needles, { size: '', type: 'circular', length: '' }] // Simplified + smart default
             }));
         } else {
             setFormData(prev => ({
@@ -181,6 +209,28 @@ const useDetailsForm = (formData, setFormData, project, onSave, onCancel) => {
                 });
                 setFormData(prev => ({ ...prev, yarns: updatedYarns }));
             }
+        } // ← This brace was missing!
+
+        // Reset all needles to clean structured format - forget the old data
+        setFormData(prev => ({
+            ...prev,
+            needles: [{ size: '', type: 'circular', length: '' }]
+        }));
+
+
+        // Initialize structured gauge if not present (moved outside yarn condition)
+        if (!formData.gauge || typeof formData.gauge === 'string') {
+            setFormData(prev => ({
+                ...prev,
+                gauge: {
+                    stitchGauge: { stitches: '', measurement: '' },
+                    rowGauge: { rows: '', measurement: '' },
+                    needleIndex: 0,
+                    pattern: 'stockinette',
+                    customPattern: '',
+                    blockingNotes: ''
+                }
+            }));
         }
     }, []);
 
@@ -196,7 +246,9 @@ const useDetailsForm = (formData, setFormData, project, onSave, onCancel) => {
         removeArrayItem,
         handleSave,
         handleStatusChange,
-        handleCancel
+        handleCancel,
+        handleGaugeChange,
+        handleGaugeMeasurementChange
     };
 };
 

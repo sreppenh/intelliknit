@@ -185,68 +185,6 @@ export const PhysicalSpecsSection = ({ formData, handleInputChange }) => (
     </div>
 );
 
-export const TechnicalSpecsSection = ({ formData, handleInputChange }) => (
-    <div className="bg-gradient-to-r from-sage-50 to-lavender-50 border-l-4 border-sage-300 rounded-xl p-5 shadow-sm">
-        <h3 className="section-header-secondary text-sage-700">
-            📐 Technical Specifications
-        </h3>
-        <div className="space-y-4">
-            <div>
-                <label className="form-label">Preferred Units</label>
-                <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
-                    <div className="grid grid-cols-2 gap-1">
-                        <button
-                            type="button"
-                            onClick={() => handleInputChange('defaultUnits', 'inches')}
-                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${formData.defaultUnits === 'inches' ? 'bg-sage-500 text-white shadow-sm' : 'text-wool-600 hover:text-sage-600'}`}
-                        >
-                            🇺🇸 Inches
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleInputChange('defaultUnits', 'cm')}
-                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${formData.defaultUnits === 'cm' ? 'bg-sage-500 text-white shadow-sm' : 'text-wool-600 hover:text-sage-600'}`}
-                        >
-                            🇪🇺 Centimeters
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <label className="form-label">Construction</label>
-                <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
-                    <div className="grid grid-cols-2 gap-1">
-                        <button
-                            type="button"
-                            onClick={() => handleInputChange('construction', 'flat')}
-                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${formData.construction === 'flat' ? 'bg-sage-500 text-white shadow-sm' : 'text-wool-600 hover:text-sage-600'}`}
-                        >
-                            📐 Flat
-                        </button>
-                        <button
-                            type="button"
-                            onClick={() => handleInputChange('construction', 'round')}
-                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${formData.construction === 'round' ? 'bg-sage-500 text-white shadow-sm' : 'text-wool-600 hover:text-sage-600'}`}
-                        >
-                            ⭕ Round
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <div>
-                <label className="form-label">Gauge</label>
-                <input
-                    type="text"
-                    value={formData.gauge}
-                    onChange={(e) => handleInputChange('gauge', e.target.value)}
-                    placeholder="e.g., 18 sts = 4 inches in stockinette"
-                    className="details-input-field shadow-sm focus:shadow-md transition-shadow"
-                />
-            </div>
-        </div>
-    </div>
-);
-
 export const MaterialsSection = ({
     formData,
     handleYarnChange,
@@ -342,93 +280,63 @@ export const MaterialsSection = ({
             </div>
 
             {/* Needles */}
-            {/* Needles - Enhanced with structured data */}
             <div>
                 <label className="form-label">Needles</label>
                 <div className="space-y-3">
                     {formData.needles.map((needle, index) => (
                         <div key={index} className="border border-yarn-200 rounded-lg p-4 bg-yarn-25">
-                            {typeof needle === 'string' ? (
-                                // Legacy string format - simple input
-                                <div className="flex gap-3 items-center">
-                                    <input
-                                        type="text"
-                                        value={needle}
-                                        onChange={(e) => handleArrayChange('needles', index, e.target.value)}
-                                        placeholder="e.g., US 8 (5mm) circular"
-                                        className="flex-1 details-input-field shadow-sm focus:shadow-md transition-shadow"
-                                    />
+                            <div className="space-y-3">
+                                <div className="flex gap-3 items-start">
+                                    <div className="flex-1">
+                                        <select
+                                            value={needle.size || ''}
+                                            onChange={(e) => handleNeedleChange(index, 'size', e.target.value)}
+                                            className="w-full details-input-field text-sm"
+                                        >
+                                            <option value="">Select size...</option>
+                                            <option value="US 0 (2.0mm)">US 0 (2.0mm)</option>
+                                            <option value="US 1 (2.25mm)">US 1 (2.25mm)</option>
+                                            <option value="US 2 (2.75mm)">US 2 (2.75mm)</option>
+                                            <option value="US 3 (3.25mm)">US 3 (3.25mm)</option>
+                                            <option value="US 4 (3.5mm)">US 4 (3.5mm)</option>
+                                            <option value="US 5 (3.75mm)">US 5 (3.75mm)</option>
+                                            <option value="US 6 (4.0mm)">US 6 (4.0mm)</option>
+                                            <option value="US 7 (4.5mm)">US 7 (4.5mm)</option>
+                                            <option value="US 8 (5.0mm)">US 8 (5.0mm)</option>
+                                            <option value="US 9 (5.5mm)">US 9 (5.5mm)</option>
+                                            <option value="US 10 (6.0mm)">US 10 (6.0mm)</option>
+                                            <option value="US 10.5 (6.5mm)">US 10.5 (6.5mm)</option>
+                                            <option value="US 11 (8.0mm)">US 11 (8.0mm)</option>
+                                            <option value="US 13 (9.0mm)">US 13 (9.0mm)</option>
+                                            <option value="US 15 (10.0mm)">US 15 (10.0mm)</option>
+                                            <option value="US 17 (12.0mm)">US 17 (12.0mm)</option>
+                                            <option value="US 19 (15.0mm)">US 19 (15.0mm)</option>
+                                        </select>
+                                    </div>
+                                    <div className="flex-1">
+                                        <select
+                                            value={needle.type || 'circular'}
+                                            onChange={(e) => handleNeedleChange(index, 'type', e.target.value)}
+                                            className="w-full details-input-field text-sm"
+                                        >
+                                            <option value="circular">Circular</option>
+                                            <option value="straight">Straight</option>
+                                            <option value="dpn">Double Pointed</option>
+                                        </select>
+                                    </div>
                                     {formData.needles.length > 1 && (
                                         <button
                                             type="button"
                                             onClick={() => removeArrayItem('needles', index)}
-                                            className="remove-button"
+                                            className="remove-button-lg"
                                         >
                                             ✕
                                         </button>
                                     )}
                                 </div>
-                            ) : (
-                                // NEW: Structured needle format
-                                <div className="space-y-3">
-                                    <div className="flex gap-3 items-start">
-                                        <div className="flex-1">
-                                            <label className="text-xs font-medium text-wool-600 mb-1 block">Size</label>
-                                            <input
-                                                type="text"
-                                                value={needle.size || ''}
-                                                onChange={(e) => handleNeedleChange(index, 'size', e.target.value)}
-                                                placeholder="e.g., US 8"
-                                                className="details-input-field text-sm"
-                                            />
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="text-xs font-medium text-wool-600 mb-1 block">MM</label>
-                                            <input
-                                                type="text"
-                                                value={needle.mm || ''}
-                                                onChange={(e) => handleNeedleChange(index, 'mm', e.target.value)}
-                                                placeholder="e.g., 5.0"
-                                                className="details-input-field text-sm"
-                                            />
-                                        </div>
-                                        {formData.needles.length > 1 && (
-                                            <button
-                                                type="button"
-                                                onClick={() => removeArrayItem('needles', index)}
-                                                className="remove-button-lg mt-6"
-                                            >
-                                                ✕
-                                            </button>
-                                        )}
-                                    </div>
-                                    <div className="flex gap-3">
-                                        <div className="flex-1">
-                                            <label className="text-xs font-medium text-wool-600 mb-1 block">Type</label>
-                                            <select
-                                                value={needle.type || 'straight'}
-                                                onChange={(e) => handleNeedleChange(index, 'type', e.target.value)}
-                                                className="w-full details-input-field text-sm"
-                                            >
-                                                <option value="straight">Straight</option>
-                                                <option value="circular">Circular</option>
-                                                <option value="dpn">Double Pointed</option>
-                                                <option value="interchangeable">Interchangeable</option>
-                                            </select>
-                                        </div>
-                                        <div className="flex-1">
-                                            <label className="text-xs font-medium text-wool-600 mb-1 block">Length</label>
-                                            <input
-                                                type="text"
-                                                value={needle.length || ''}
-                                                onChange={(e) => handleNeedleChange(index, 'length', e.target.value)}
-                                                placeholder='e.g., 32"'
-                                                className="details-input-field text-sm"
-                                            />
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
+
+                            </div>
+
                         </div>
                     ))}
                     <button
@@ -438,6 +346,158 @@ export const MaterialsSection = ({
                     >
                         + Add Another Needle
                     </button>
+                </div>
+            </div>
+        </div>
+    </div>
+);
+
+export const TechnicalSpecsSection = ({ formData, handleInputChange, handleGaugeChange, handleGaugeMeasurementChange }) => (
+    <div className="bg-gradient-to-r from-sage-50 to-lavender-50 border-l-4 border-sage-300 rounded-xl p-5 shadow-sm">
+        <h3 className="section-header-secondary text-sage-700">
+            📐 Technical Specifications
+        </h3>
+        <div className="space-y-4">
+            <div>
+                <label className="form-label">Preferred Units</label>
+                <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
+                    <div className="grid grid-cols-2 gap-1">
+                        <button
+                            type="button"
+                            onClick={() => handleInputChange('defaultUnits', 'inches')}
+                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${formData.defaultUnits === 'inches' ? 'bg-sage-500 text-white shadow-sm' : 'text-wool-600 hover:text-sage-600'}`}
+                        >
+                            🇺🇸 Inches
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleInputChange('defaultUnits', 'cm')}
+                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${formData.defaultUnits === 'cm' ? 'bg-sage-500 text-white shadow-sm' : 'text-wool-600 hover:text-sage-600'}`}
+                        >
+                            🇪🇺 Centimeters
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <div>
+                <label className="form-label">Construction</label>
+                <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
+                    <div className="grid grid-cols-2 gap-1">
+                        <button
+                            type="button"
+                            onClick={() => handleInputChange('construction', 'flat')}
+                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${formData.construction === 'flat' ? 'bg-sage-500 text-white shadow-sm' : 'text-wool-600 hover:text-sage-600'}`}
+                        >
+                            📐 Flat
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => handleInputChange('construction', 'round')}
+                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${formData.construction === 'round' ? 'bg-sage-500 text-white shadow-sm' : 'text-wool-600 hover:text-sage-600'}`}
+                        >
+                            ⭕ Round
+                        </button>
+                    </div>
+                </div>
+            </div>
+            {/* Structured Gauge */}
+            <div>
+                <label className="form-label">Gauge</label>
+                <div className="space-y-4 bg-wool-50 border border-wool-200 rounded-lg p-4">
+                    {/* Pattern */}
+                    <div>
+                        <label className="text-xs font-medium text-wool-600 mb-1 block text-left">Pattern</label>
+                        <select
+                            value={formData.gauge?.pattern || 'stockinette'}
+                            onChange={(e) => handleGaugeChange('pattern', e.target.value)}
+                            className="w-full details-input-field text-sm"
+                        >
+                            <option value="stockinette">Stockinette</option>
+                            <option value="ribbing">Ribbing</option>
+                            <option value="seed">Seed Stitch</option>
+                            <option value="garter">Garter</option>
+                            <option value="custom">Custom</option>
+                        </select>
+                    </div>
+
+                    {/* Gauge Notes - Always visible */}
+                    <div>
+                        <label className="text-xs font-medium text-wool-600 mb-1 block text-left">Gauge Notes</label>
+                        <input
+                            type="text"
+                            value={formData.gauge?.customPattern || formData.gauge?.blockingNotes || ''}
+                            onChange={(e) => handleGaugeChange('gaugeNotes', e.target.value)}
+                            placeholder="e.g., after wet blocking, custom stitch pattern details..."
+                            className="w-full details-input-field text-sm"
+                        />
+                    </div>
+
+                    {/* Needle Used */}
+                    <div>
+                        <label className="text-xs font-medium text-wool-600 mb-1 block text-left">Needle Used</label>
+                        <select
+                            value={formData.gauge?.needleIndex || 0}
+                            onChange={(e) => handleGaugeChange('needleIndex', parseInt(e.target.value))}
+                            className="w-full details-input-field text-sm"
+                        >
+                            {formData.needles.map((needle, index) => (
+                                <option key={index} value={index}>
+                                    {typeof needle === 'string'
+                                        ? needle
+                                        : `${needle.size || 'Unknown'} ${needle.type || ''}`
+                                    }
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Stitch Gauge */}
+                    <div>
+                        <label className="text-xs font-medium text-wool-600 mb-1 block text-left">Stitch Gauge</label>
+                        <div className="flex gap-2 items-center">
+                            <input
+                                type="number"
+                                value={formData.gauge?.stitchGauge?.stitches || ''}
+                                onChange={(e) => handleGaugeMeasurementChange('stitchGauge', 'stitches', e.target.value)}
+                                placeholder="18"
+                                className="w-20 details-input-field text-sm text-center"
+                            />
+                            <span className="text-sm text-wool-600">sts =</span>
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={formData.gauge?.stitchGauge?.measurement || ''}
+                                onChange={(e) => handleGaugeMeasurementChange('stitchGauge', 'measurement', e.target.value)}
+                                placeholder="4"
+                                className="w-20 details-input-field text-sm text-center"
+                            />
+                            <span className="text-sm text-wool-600">{formData.defaultUnits}</span>
+                        </div>
+                    </div>
+
+                    {/* Row Gauge */}
+                    <div>
+                        <label className="text-xs font-medium text-wool-600 mb-1 block text-left">Row Gauge</label>
+                        <div className="flex gap-2 items-center">
+                            <input
+                                type="number"
+                                value={formData.gauge?.rowGauge?.rows || ''}
+                                onChange={(e) => handleGaugeMeasurementChange('rowGauge', 'rows', e.target.value)}
+                                placeholder="24"
+                                className="w-20 details-input-field text-sm text-center"
+                            />
+                            <span className="text-sm text-wool-600">rows =</span>
+                            <input
+                                type="number"
+                                step="0.1"
+                                value={formData.gauge?.rowGauge?.measurement || ''}
+                                onChange={(e) => handleGaugeMeasurementChange('rowGauge', 'measurement', e.target.value)}
+                                placeholder="4"
+                                className="w-20 details-input-field text-sm text-center"
+                            />
+                            <span className="text-sm text-wool-600">{formData.defaultUnits}</span>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

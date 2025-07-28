@@ -72,11 +72,6 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     handleInputChange={handlers.handleInputChange}
                 />
 
-                <TechnicalSpecsSection
-                    formData={formData}
-                    handleInputChange={handlers.handleInputChange}
-                />
-
                 <MaterialsSection
                     formData={formData}
                     handleYarnChange={handlers.handleYarnChange}
@@ -87,6 +82,14 @@ const DetailsTabEdit = ({ project, formData, setFormData, hasUnsavedChanges, onS
                     handleNeedleChange={handlers.handleNeedleChange} // NEW
                     addArrayItem={handlers.addArrayItem}
                     removeArrayItem={handlers.removeArrayItem}
+                />
+
+
+                <TechnicalSpecsSection
+                    formData={formData}
+                    handleInputChange={handlers.handleInputChange}
+                    handleGaugeChange={handlers.handleGaugeChange}
+                    handleGaugeMeasurementChange={handlers.handleGaugeMeasurementChange}
                 />
 
                 <TimelineSection
