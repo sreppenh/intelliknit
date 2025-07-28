@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
 import UnitsConstructionSection from '../sections/UnitsConstruction';
+import ProjectContextSection from '../sections/ProjectContextSection';
 
 
 const DetailsTab = ({ project, onProjectUpdate }) => {
@@ -18,12 +19,31 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
     };
 
     const handleInputChange = (field, value) => {
-        // Update the project immediately when saving from modal
-        const updatedProject = {
-            ...project,
-            [field]: value
-        };
-        onProjectUpdate(updatedProject);
+        console.log('🔧 DetailsTab handleInputChange called:', { field, value });
+
+        // Store updates temporarily instead of applying immediately
+        if (!window.pendingUpdates) {
+            window.pendingUpdates = {};
+        }
+
+        window.pendingUpdates[field] = value;
+
+        // Debounce the actual update
+        clearTimeout(window.updateTimeout);
+        window.updateTimeout = setTimeout(() => {
+            console.log('🔧 Applying batched updates:', window.pendingUpdates);
+
+            const updatedProject = {
+                ...project,
+                ...window.pendingUpdates
+            };
+
+            console.log('🔧 Final updated project:', updatedProject);
+            onProjectUpdate(updatedProject);
+
+            // Clear pending updates
+            window.pendingUpdates = {};
+        }, 100);
     };
 
     const formatYarnDisplay = (yarns) => {
@@ -92,32 +112,31 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
 
             {/* Content Sections - Purpose-driven organization */}
             <div className="space-y-4">
-                {/* Project Context - Who, Why, When + Status */}
-                {(project.recipient || project.occasion || project.deadline || project.priority || status.text) && (
+                {/* Status - Keep prominently at top */}
+                {status.text && (
                     <div className="read-mode-section">
-                        <h3 className="section-header-secondary">🎯 Project Context</h3>
-                        <div className="text-sm text-wool-700 space-y-1 text-left">
-                            {/* Status prominently at top */}
-                            <div className="font-semibold text-wool-800">{status.emoji} {status.text}</div>
-                            {project.recipient && <div>For {project.recipient}</div>}
-                            {project.occasion && <div>{project.occasion}</div>}
-                            {project.deadline && <div>Due {formatDate(project.deadline)}</div>}
-                            {project.priority && project.priority !== 'normal' && (
-                                <div>{project.priority.charAt(0).toUpperCase() + project.priority.slice(1)} priority</div>
-                            )}
+                        <h3 className="section-header-secondary">📊 Status</h3>
+                        <div className="text-sm font-semibold text-wool-800">
+                            {status.emoji} {status.text}
                         </div>
                     </div>
                 )}
 
-                {/* Physical Specs - Size, Progress */}
-                {(project.size || project.progress) && (
+                {/* Project Context - New conversational section */}
+                <ProjectContextSection
+                    project={project}
+                    isEditing={false}
+                    onEdit={() => console.log('Starting project context edit...')}
+                    formData={project}
+                    handleInputChange={handleInputChange}
+                />
+
+                {/* Physical Specs - Progress only (size moved to Project Context) */}
+                {(project.progress !== undefined && project.progress !== null) && (
                     <div className="read-mode-section">
-                        <h3 className="section-header-secondary">📏 Physical Specs</h3>
+                        <h3 className="section-header-secondary">📏 Progress</h3>
                         <div className="text-sm text-wool-700 space-y-1 text-left">
-                            {project.size && <div>Size {project.size}</div>}
-                            {project.progress !== undefined && project.progress !== null && (
-                                <div>{project.progress}% complete</div>
-                            )}
+                            <div>{project.progress}% complete</div>
                         </div>
                     </div>
                 )}
@@ -127,8 +146,8 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                     project={project}
                     isEditing={false}
                     onEdit={() => console.log('Starting inline edit...')}
-                    formData={null}
-                    handleInputChange={null}
+                    formData={project}
+                    handleInputChange={handleInputChange}
                 />
 
                 {/* Gauge - Remaining Technical Specs */}

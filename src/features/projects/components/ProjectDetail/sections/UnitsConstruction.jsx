@@ -90,18 +90,16 @@ const UnitsConstructionSection = ({
     // Read View
     if (!showEditModal) {
         return (
-            <div className="read-mode-section">
+            <div
+                className="read-mode-section hover:bg-sage-25 active:scale-95 cursor-pointer transition-all duration-200"
+                onClick={handleEditClick}
+            >
                 <div className="details-section-header">
                     <h3 className="section-header-secondary">📏 Units & Construction</h3>
-                    <button
-                        onClick={handleEditClick}
-                        className="details-edit-button"
-                        title="Edit units and construction"
-                    >
+                    <div className="details-edit-button pointer-events-none">
                         ✏️
-                    </button>
+                    </div>
                 </div>
-
                 {hasContent ? (
                     <div className="text-sm text-wool-700 space-y-1 text-left">
                         {displayData?.defaultUnits && (
@@ -175,8 +173,8 @@ const UnitsConstructionSection = ({
                                             type="button"
                                             onClick={() => handleTempInputChange('defaultUnits', 'inches')}
                                             className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.defaultUnits === 'inches'
-                                                    ? 'bg-sage-500 text-white shadow-sm'
-                                                    : 'text-wool-600 hover:text-sage-600'
+                                                ? 'bg-sage-500 text-white shadow-sm'
+                                                : 'text-wool-600 hover:text-sage-600'
                                                 }`}
                                         >
                                             🇺🇸 Inches
@@ -185,8 +183,8 @@ const UnitsConstructionSection = ({
                                             type="button"
                                             onClick={() => handleTempInputChange('defaultUnits', 'cm')}
                                             className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.defaultUnits === 'cm'
-                                                    ? 'bg-sage-500 text-white shadow-sm'
-                                                    : 'text-wool-600 hover:text-sage-600'
+                                                ? 'bg-sage-500 text-white shadow-sm'
+                                                : 'text-wool-600 hover:text-sage-600'
                                                 }`}
                                         >
                                             🇪🇺 Centimeters
@@ -204,8 +202,8 @@ const UnitsConstructionSection = ({
                                             type="button"
                                             onClick={() => handleTempInputChange('construction', 'flat')}
                                             className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.construction === 'flat'
-                                                    ? 'bg-sage-500 text-white shadow-sm'
-                                                    : 'text-wool-600 hover:text-sage-600'
+                                                ? 'bg-sage-500 text-white shadow-sm'
+                                                : 'text-wool-600 hover:text-sage-600'
                                                 }`}
                                         >
                                             📐 Flat
@@ -214,8 +212,8 @@ const UnitsConstructionSection = ({
                                             type="button"
                                             onClick={() => handleTempInputChange('construction', 'round')}
                                             className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.construction === 'round'
-                                                    ? 'bg-sage-500 text-white shadow-sm'
-                                                    : 'text-wool-600 hover:text-sage-600'
+                                                ? 'bg-sage-500 text-white shadow-sm'
+                                                : 'text-wool-600 hover:text-sage-600'
                                                 }`}
                                         >
                                             ⭕ Round
