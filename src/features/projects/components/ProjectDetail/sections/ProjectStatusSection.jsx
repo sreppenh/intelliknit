@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getSmartProjectStatus } from '../../../../../shared/utils/projectStatus';
+import IncrementInput from '../../../../../shared/components/IncrementInput';
 
 /**
  * ProjectStatusSection - The Ultimate Project Lifecycle Control Center
@@ -271,58 +272,21 @@ const ProjectStatusSection = ({
     // === SMART STATUS DISPLAY ===
 
     const renderStatusDisplay = () => {
+        // No separate status display needed - everything is in the title now!
+        return null;
+    };
+
+    // === SMART TITLE WITH INLINE PROGRESS AND DATES ===
+    const renderSectionTitle = () => {
         if (displayData?.completed) {
-            return (
-                <div className="text-sm text-wool-700 space-y-1 text-left">
-                    <div className="font-semibold text-wool-800">
-                        🎉 Completed on {formatDate(displayData.completedAt)}
-                    </div>
-                </div>
-            );
+            return `🎉 Completed on ${formatDate(displayData.completedAt)}`;
         } else if (displayData?.frogged) {
-            return (
-                <div className="text-sm text-wool-700 space-y-1 text-left">
-                    <div className="font-semibold text-wool-800">
-                        🐸 Frogged on {formatDate(displayData.froggedAt)}
-                    </div>
-                </div>
-            );
+            return `🐸 Frogged on ${formatDate(displayData.froggedAt)}`;
         } else {
-            // ACTIVE/READY STATE - Show smart status + progress increment component
-            return (
-                <div className="text-sm text-wool-700 space-y-3 text-left">
-                    <div className="font-semibold text-wool-800">
-                        {status.emoji} {status.text}
-                    </div>
-
-                    {/* Progress increment component */}
-                    <div className="flex items-center gap-3">
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={handleProgressDecrement}
-                                className="w-8 h-8 rounded-lg bg-wool-100 hover:bg-wool-200 flex items-center justify-center text-wool-600 hover:text-wool-700 transition-colors"
-                                disabled={(displayData?.progress || 0) <= 0}
-                            >
-                                ⊖
-                            </button>
-
-                            <div className="min-w-[60px] text-center font-medium">
-                                {displayData?.progress || 0}%
-                            </div>
-
-                            <button
-                                onClick={handleProgressIncrement}
-                                className="w-8 h-8 rounded-lg bg-wool-100 hover:bg-wool-200 flex items-center justify-center text-wool-600 hover:text-wool-700 transition-colors"
-                                disabled={(displayData?.progress || 0) >= 100}
-                            >
-                                ⊕
-                            </button>
-                        </div>
-
-                        <span className="text-wool-500">complete</span>
-                    </div>
-                </div>
-            );
+            // ACTIVE/READY STATE - Show status with inline progress
+            const progress = displayData?.progress || 0;
+            const progressText = progress > 0 ? ` (${progress}% complete)` : '';
+            return `${status.emoji} ${status.text}${progressText}`;
         }
     };
 
@@ -330,22 +294,35 @@ const ProjectStatusSection = ({
 
     // Read View (No Edit Modal)
     if (!showEditModal) {
+        const statusDisplay = renderStatusDisplay();
+        const actionButtons = renderActionButtons();
+
+        // Add inline style to override padding-bottom for frogged state
+        const sectionStyle = displayData?.frogged ? { paddingBottom: 0 } : {};
+
         return (
             <div
                 className="read-mode-section hover:bg-sage-25 active:scale-95 cursor-pointer transition-all duration-200"
+                style={sectionStyle}
                 onClick={handleEditDetails}
             >
                 <div className="details-section-header">
-                    <h3 className="section-header-secondary">🎯 Project Status</h3>
-                    {/* NO edit button - section tap opens edit details! */}
+                    <h3 className="section-header-secondary">
+                        {renderSectionTitle()}
+                    </h3>
+                    <div className="details-edit-button pointer-events-none">
+                        ✏️
+                    </div>
                 </div>
 
-                {renderStatusDisplay()}
+                {statusDisplay && statusDisplay}
 
-                {/* Action buttons with pointer-events-none to prevent bubble */}
-                <div onClick={(e) => e.stopPropagation()}>
-                    {renderActionButtons()}
-                </div>
+                {/* Only render action buttons container if buttons exist */}
+                {actionButtons && (
+                    <div onClick={(e) => e.stopPropagation()}>
+                        {actionButtons}
+                    </div>
+                )}
             </div>
         );
     }
@@ -359,15 +336,31 @@ const ProjectStatusSection = ({
                 onClick={handleEditDetails}
             >
                 <div className="details-section-header">
-                    <h3 className="section-header-secondary">🎯 Project Status</h3>
+                    <h3 className="section-header-secondary">
+                        {renderSectionTitle()}
+                    </h3>
+                    <div className="details-edit-button pointer-events-none">
+                        ✏️
+                    </div>
                 </div>
 
-                {renderStatusDisplay()}
+                {(() => {
+                    const statusDisplay = renderStatusDisplay();
+                    const actionButtons = renderActionButtons();
 
-                {/* Action buttons with pointer-events-none to prevent bubble */}
-                <div onClick={(e) => e.stopPropagation()}>
-                    {renderActionButtons()}
-                </div>
+                    return (
+                        <>
+                            {statusDisplay && statusDisplay}
+
+                            {/* Only render action buttons container if buttons exist */}
+                            {actionButtons && (
+                                <div onClick={(e) => e.stopPropagation()}>
+                                    {actionButtons}
+                                </div>
+                            )}
+                        </>
+                    );
+                })()}
             </div>
 
             {/* Modal Overlay */}
@@ -384,21 +377,20 @@ const ProjectStatusSection = ({
                     {/* Modal Content */}
                     <div className="p-6">
                         <div className="space-y-4">
-                            {/* Progress */}
+                            {/* Progress with IncrementInput */}
                             <div>
                                 <label className="form-label">Progress</label>
                                 <div className="flex items-center gap-3">
-                                    <input
-                                        type="number"
-                                        inputMode="numeric"
-                                        min="0"
-                                        max="100"
-                                        value={tempFormData.progress || ''}
-                                        onChange={(e) => handleTempInputChange('progress', e.target.value ? parseInt(e.target.value) : 0)}
-                                        placeholder="0"
-                                        className="w-20 details-input-field text-center shadow-sm focus:shadow-md transition-shadow"
+                                    <IncrementInput
+                                        value={tempFormData.progress || 0}
+                                        onChange={(value) => handleTempInputChange('progress', value)}
+                                        min={0}
+                                        max={100}
+                                        unit="%"
+                                        label="progress"
+                                        size="sm"
                                     />
-                                    <span className="text-sm text-wool-600">% complete</span>
+                                    <span className="text-sm text-wool-600">complete</span>
                                 </div>
                             </div>
 

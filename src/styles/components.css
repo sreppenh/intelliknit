@@ -1,5 +1,10 @@
 /* IntelliKnit Design System Components */
 
+select {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
 /* ===== Button System ===== */
 .btn-primary {
   @apply bg-sage-500 hover:bg-sage-600 text-white py-4 px-6 rounded-xl font-semibold shadow-sm transition-colors;
