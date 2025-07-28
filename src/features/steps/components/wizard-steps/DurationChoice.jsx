@@ -2,7 +2,7 @@ import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 // import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
-const DurationChoice = ({ wizardData, updateWizardData, construction }) => {
+const DurationChoice = ({ wizardData, updateWizardData, construction, project }) => {
   const { pattern } = wizardData.stitchPattern;
 
   // Skip duration for Cast On (already configured)
@@ -25,15 +25,28 @@ const DurationChoice = ({ wizardData, updateWizardData, construction }) => {
     updateWizardData('duration', { type, value: '' });
   };
 
-  // Smart gauge calculation
+  // Smart gauge calculation using real project data
   const calculateRowsFromLength = (inches) => {
-    // Mock gauge for demo - in real app, get from project settings
-    const mockGauge = "18 sts and 24 rows = 4 inches"; // This would come from project.gauge
-    if (!inches || !mockGauge) return null;
+    // Use real project gauge instead of mock data
+    const projectGauge = project?.gauge;
 
-    // Simple extraction - in real app, parse the gauge properly
-    const rowsPerInch = 6; // 24 rows / 4 inches
-    return Math.round(parseFloat(inches) * rowsPerInch);
+    if (!inches || !projectGauge?.rowGauge?.rows || !projectGauge?.rowGauge?.measurement) {
+      return null;
+    }
+
+    // Handle unit conversion if needed
+    const inputUnits = wizardData.duration?.units || 'inches';
+    const gaugeUnits = project?.defaultUnits || 'inches';
+
+    let convertedInches = parseFloat(inches);
+    if (inputUnits === 'cm' && gaugeUnits === 'inches') {
+      convertedInches = convertedInches / 2.54; // cm to inches
+    } else if (inputUnits === 'inches' && gaugeUnits === 'cm') {
+      convertedInches = convertedInches * 2.54; // inches to cm
+    }
+
+    const rowsPerUnit = projectGauge.rowGauge.rows / projectGauge.rowGauge.measurement;
+    return Math.round(convertedInches * rowsPerUnit);
   };
 
   const estimatedRows = wizardData.duration.type === 'length' && wizardData.duration.value
@@ -174,7 +187,10 @@ const DurationChoice = ({ wizardData, updateWizardData, construction }) => {
                       <div className="bg-sage-50 border border-sage-200 rounded-lg p-3">
                         <div className="text-sm text-sage-700">
                           <span className="font-medium">Estimated rows:</span> {estimatedRows}
-                          <div className="text-xs text-sage-600 mt-1">Using gauge: 18 sts and 24 rows = 4 inches</div>
+                          <div className="text-xs text-sage-600 mt-1">
+                            Using gauge: {project?.gauge?.rowGauge?.rows || '24'} rows = {project?.gauge?.rowGauge?.measurement || '4'} {project?.defaultUnits || 'inches'}
+                            {project?.gauge?.pattern && ` in ${project.gauge.pattern}`}
+                          </div>
                         </div>
                       </div>
                     )}

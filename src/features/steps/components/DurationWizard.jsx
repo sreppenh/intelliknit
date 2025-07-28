@@ -10,6 +10,7 @@ const DurationWizard = ({
     currentStitches,
     construction,
     componentIndex,
+    project,
     onBack,
     onExitToComponentSteps
 }) => {
@@ -70,6 +71,7 @@ const DurationWizard = ({
                 wizardData={wizardData}
                 updateWizardData={updateWizardData}
                 construction={construction}
+                project={project}
                 existingPrepNote={wizardData.prepNote || ''}
                 onSavePrepNote={(note) => updateWizardData('prepNote', note)}
             />

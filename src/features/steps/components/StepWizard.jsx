@@ -17,10 +17,12 @@ import ShapingWizard from './ShapingWizard';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import DurationWizard from './DurationWizard';
+import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
   const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
+  const { currentProject } = useProjectsContext();
   const wizardState = useWizardState(wizard, onBack);
   const [showShapingWizard, setShowShapingWizard] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
@@ -247,6 +249,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
             currentStitches={wizard.currentStitches}
             construction={wizard.construction}
             componentIndex={wizard.componentIndex}
+            project={currentProject}
             onBack={() => {
               // Go back to previous step in StepWizard
               const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
