@@ -3,6 +3,7 @@ import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
 import UnitsConstructionSection from '../sections/UnitsConstruction';
 import ProjectContextSection from '../sections/ProjectContextSection';
 import ProjectStatusSection from '../sections/ProjectStatusSection';
+import NeedlesSection from '../sections/NeedlesSection';
 
 
 const DetailsTab = ({ project, onProjectUpdate }) => {
@@ -28,6 +29,67 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
         }
 
         window.pendingUpdates[field] = value;
+
+        // Debounce the actual update
+        clearTimeout(window.updateTimeout);
+        window.updateTimeout = setTimeout(() => {
+            console.log('🔧 Applying batched updates:', window.pendingUpdates);
+
+            const updatedProject = {
+                ...project,
+                ...window.pendingUpdates
+            };
+
+            console.log('🔧 Final updated project:', updatedProject);
+            onProjectUpdate(updatedProject);
+
+            // Clear pending updates
+            window.pendingUpdates = {};
+        }, 100);
+    };
+
+    // Add these array management functions to DetailsTab.jsx
+    const addArrayItem = (field, itemData) => {
+        console.log('🔧 DetailsTab addArrayItem called:', { field, itemData });
+
+        if (!window.pendingUpdates) {
+            window.pendingUpdates = {};
+        }
+
+        const currentArray = project[field] || [];
+        const newArray = [...currentArray, itemData];
+
+        window.pendingUpdates[field] = newArray;
+
+        // Debounce the actual update
+        clearTimeout(window.updateTimeout);
+        window.updateTimeout = setTimeout(() => {
+            console.log('🔧 Applying batched updates:', window.pendingUpdates);
+
+            const updatedProject = {
+                ...project,
+                ...window.pendingUpdates
+            };
+
+            console.log('🔧 Final updated project:', updatedProject);
+            onProjectUpdate(updatedProject);
+
+            // Clear pending updates
+            window.pendingUpdates = {};
+        }, 100);
+    };
+
+    const removeArrayItem = (field, index) => {
+        console.log('🔧 DetailsTab removeArrayItem called:', { field, index });
+
+        if (!window.pendingUpdates) {
+            window.pendingUpdates = {};
+        }
+
+        const currentArray = project[field] || [];
+        const newArray = currentArray.filter((_, i) => i !== index);
+
+        window.pendingUpdates[field] = newArray;
 
         // Debounce the actual update
         clearTimeout(window.updateTimeout);
@@ -147,6 +209,17 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                     handleInputChange={handleInputChange}
                 />
 
+                {/* Needles - New Interactive Section */}
+                <NeedlesSection
+                    project={project}
+                    formData={project}
+                    handleInputChange={handleInputChange}
+                    addArrayItem={addArrayItem}
+                    removeArrayItem={removeArrayItem}
+                />
+
+
+
                 {/* Gauge - Remaining Technical Specs */}
                 {project.gauge && (
                     <div className="read-mode-section">
@@ -175,19 +248,7 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                                 </div>
                             )}
 
-                            {/* Needles */}
-                            {project.needles?.filter(needle => needle.trim()).length > 0 && (
-                                <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-2">
-                                        Needles
-                                    </h4>
-                                    <div className="space-y-1">
-                                        {project.needles.filter(needle => needle.trim()).map((needle, index) => (
-                                            <div key={index} className="text-sm text-wool-700">• {needle}</div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
+
                         </div>
                     </div>
                 )}

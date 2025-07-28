@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { getSmartProjectStatus } from '../../../../../shared/utils/projectStatus';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
 
+
 /**
  * ProjectStatusSection - The Ultimate Project Lifecycle Control Center
  * 
@@ -24,6 +25,14 @@ const ProjectStatusSection = ({
     // Get smart status using existing logic
     const status = getSmartProjectStatus(project);
     const displayData = formData || project;
+
+    useEffect(() => {
+        console.log('[ProjectStatusSection] Mounted');
+        return () => {
+            console.log('[ProjectStatusSection] Unmounted');
+        };
+    }, []);
+
 
     // Initialize modal form data when opening
     useEffect(() => {
@@ -410,7 +419,7 @@ const ProjectStatusSection = ({
 
                             {/* Status Override - Use dropdown like original */}
                             <div>
-                                <label className="form-label">Status Override</label>
+                                <label className="form-label">Update Status</label>
                                 <select
                                     value={getCurrentStatus()}
                                     onChange={(e) => handleStatusSelect(e.target.value)}
