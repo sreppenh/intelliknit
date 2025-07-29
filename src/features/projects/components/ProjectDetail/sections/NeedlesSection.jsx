@@ -243,22 +243,11 @@ const NeedlesSection = ({
                                 <div>
                                     <label className="form-label">Needle Size</label>
 
-                                    {/* VISUAL DEBUG - Remove after testing */}
-                                    <div className="bg-yellow-100 p-2 text-xs mb-2 border border-yellow-300 rounded">
-                                        <div><strong>Debug Info:</strong></div>
-                                        <div>Current size: "{newNeedle.size}"</div>
-                                        <div>Size exists: {newNeedle.size ? 'YES' : 'NO'}</div>
-                                        <div>Size length: {newNeedle.size?.length || 0}</div>
-                                        <div>Can add needle: {canAddNeedle ? 'YES' : 'NO'}</div>
-                                        <div>Full newNeedle: {JSON.stringify(newNeedle)}</div>
-                                    </div>
+
 
                                     <select
                                         value={newNeedle.size}
-                                        onChange={(e) => {
-                                            alert(`Selected: ${e.target.value}`);
-                                            updateNewNeedle('size', e.target.value);
-                                        }}
+                                        onChange={(e) => updateNewNeedle('size', e.target.value)}
                                         className="w-full details-input-field"
                                         style={{ fontSize: '16px', minHeight: '44px' }}
                                     >

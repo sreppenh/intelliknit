@@ -34,10 +34,10 @@ const GaugeSection = ({
             // Force proper initialization with defaults
             setTempGaugeData({
                 stitchGauge: {
-                    stitches: gauge?.stitchGauge?.stitches || ''
+                    stitches: gauge?.stitchGauge?.stitches || 18  // ✅ Default to 18!
                 },
                 rowGauge: {
-                    rows: gauge?.rowGauge?.rows || ''
+                    rows: gauge?.rowGauge?.rows || 24  // ✅ Default to 24!
                 },
                 needleIndex: gauge?.needleIndex || 0,
                 pattern: gauge?.pattern || 'stockinette',
@@ -129,6 +129,14 @@ const GaugeSection = ({
     };
 
     const handleSaveEdit = () => {
+
+        console.log('=== SAVING GAUGE ===');
+        console.log('Full tempGaugeData:', tempGaugeData);
+        console.log('Stitch value being saved:', tempGaugeData.stitchGauge?.stitches);
+        console.log('Row value being saved:', tempGaugeData.rowGauge?.rows);
+        console.log('tempGaugeData.stitchGauge:', tempGaugeData.stitchGauge);
+        console.log('tempGaugeData.rowGauge:', tempGaugeData.rowGauge);
+
         // Update each field using our self-sufficient handlers
         // Hardcode measurements to standard values
         const standardMeasurement = defaultUnits === 'cm' ? '10' : '4';
@@ -189,10 +197,12 @@ const GaugeSection = ({
         });
     };
     const updateTempGaugeSimple = (field, value) => {
-        setTempGaugeData(prev => ({
-            ...prev,
-            [field]: value
-        }));
+        console.log('Updating SIMPLE field:', field, 'to:', value);
+        setTempGaugeData(prev => {
+            const updated = { ...prev, [field]: value };
+            console.log('Updated simple temp data:', updated);
+            return updated;
+        });
     };
 
     // Create needle options for dropdown
@@ -217,6 +227,7 @@ const GaugeSection = ({
 
                 {hasContent ? (
                     <div className="text-sm text-wool-700 space-y-1 text-left">
+                        <div className="bg-red-100 p-2 text-xs">DEBUG: {JSON.stringify(gauge)}</div>
                         <div>{formatGaugeDisplay()}</div>
                         {getNeedleUsedDisplay() && (
                             <div className="text-wool-500">Using {getNeedleUsedDisplay()}</div>
@@ -327,7 +338,7 @@ const GaugeSection = ({
                                 <div className="flex gap-2 items-center">
                                     <IncrementInput
                                         value={tempGaugeData.rowGauge?.rows ? parseFloat(tempGaugeData.rowGauge.rows) : 24}
-                                        onChange={(value) => updateTempGaugeField('rowGauge', 'rows', value.toString())}
+                                        onChange={(value) => updateTempGaugeField('rowGauge', 'rows', value)}
                                         min={1}
                                         max={100}
                                         step={0.5}
