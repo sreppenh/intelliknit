@@ -262,8 +262,8 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
             <button
                 onClick={() => handleToggleTask(categoryId, task.id)}
                 className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${task.completed
-                    ? 'bg-lavender-500 border-lavender-500 text-white'
-                    : 'border-lavender-400 hover:border-lavender-500'
+                        ? 'bg-lavender-500 border-lavender-500 text-white'
+                        : 'border-lavender-400 hover:border-lavender-500'
                     }`}
             >
                 {task.completed && '✓'}
@@ -271,8 +271,8 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
 
             {/* Task Text */}
             <span className={`flex-1 transition-all ${task.completed
-                ? 'text-lavender-400 line-through'
-                : 'text-wool-700'
+                    ? 'text-lavender-400 line-through'
+                    : 'text-wool-700'
                 }`}>
                 {task.text}
             </span>
@@ -320,22 +320,13 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
     return (
         <div className="p-6">
             {/* Header with Progress */}
-            <div className="content-header-primary">
-                <div>
-                    <h2 className="content-title">📋 Checklist</h2>
-                    {stats.total > 0 && (
-                        <p className="text-sm text-wool-500 mt-1">
-                            {stats.completed} of {stats.total} tasks completed ({stats.percentage}%)
-                        </p>
-                    )}
-                </div>
-                <div className="button-group">
-                    {stats.total > 0 && (
-                        <div className="bg-lavender-100 border border-lavender-300 text-lavender-700 px-3 py-1 rounded-full text-xs font-medium">
-                            {stats.percentage}%
-                        </div>
-                    )}
-                </div>
+            <div className="mb-6">
+                <h2 className="content-header-primary">📋 Checklist</h2>
+                {stats.total > 0 && (
+                    <p className="text-sm text-wool-500 mt-2 text-center">
+                        {stats.completed} of {stats.total} tasks completed ({stats.percentage}%)
+                    </p>
+                )}
             </div>
 
             {/* Progress Bar */}
@@ -380,60 +371,63 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                             </div>
                         </div>
 
-                        <div className="p-6 space-y-4">
-                            {/* Smart Suggestions */}
+                        <div className="p-6 space-y-6">
+                            {/* Smart Suggestions - Beautiful Bubble UI */}
                             <div>
-                                <h4 className="font-medium text-wool-700 mb-3">Smart Suggestions:</h4>
-                                <div className="space-y-2">
-                                    {getSuggestionsForCategory(currentCategory.id).map(suggestion => (
-                                        <label key={suggestion} className="flex items-center gap-3 p-2 hover:bg-lavender-50 rounded cursor-pointer">
-                                            <input
-                                                type="checkbox"
-                                                checked={selectedSuggestions.includes(suggestion)}
-                                                onChange={() => toggleSuggestion(suggestion)}
-                                                className="w-4 h-4 text-lavender-500 border-lavender-300 rounded focus:ring-lavender-500"
-                                            />
-                                            <span className="text-sm">{suggestion}</span>
-                                        </label>
-                                    ))}
+                                <h4 className="font-medium text-wool-700 mb-4 text-center">Smart Suggestions</h4>
+                                <div className="flex flex-wrap gap-2 justify-center mb-4">
+                                    {getSuggestionsForCategory(currentCategory.id)
+                                        .filter(suggestion => !selectedSuggestions.includes(suggestion))
+                                        .map(suggestion => (
+                                            <button
+                                                key={suggestion}
+                                                onClick={() => toggleSuggestion(suggestion)}
+                                                className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 bg-white border-lavender-300 text-lavender-700 hover:border-lavender-400 hover:bg-lavender-50 active:scale-95"
+                                            >
+                                                {suggestion}
+                                            </button>
+                                        ))}
                                 </div>
                             </div>
 
-                            {/* Custom Task Input */}
-                            <div>
-                                <label className="form-label">Add Custom Task:</label>
-                                <div className="flex gap-2">
-                                    <input
-                                        type="text"
-                                        value={customTaskText}
-                                        onChange={(e) => setCustomTaskText(e.target.value)}
-                                        placeholder="e.g., Block aggressively - this yarn grows!"
-                                        className="details-input-field flex-1"
-                                    />
-                                    <button
-                                        onClick={handleAddCustomTask}
-                                        disabled={!customTaskText.trim()}
-                                        className="btn-secondary"
-                                    >
-                                        Add
-                                    </button>
-                                </div>
-                            </div>
-
-                            {/* Added Custom Tasks Preview */}
-                            {customTasks.length > 0 && (
-                                <div>
-                                    <h5 className="text-sm font-medium text-wool-600 mb-2">Custom Tasks to Add:</h5>
-                                    <div className="space-y-1">
+                            {/* Selected Tasks Live Preview */}
+                            {(selectedSuggestions.length > 0 || customTasks.length > 0) && (
+                                <div className="bg-lavender-50 border-2 border-lavender-200 rounded-xl p-4">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <h5 className="font-medium text-lavender-800">Tasks to Add:</h5>
+                                        <button
+                                            onClick={() => {
+                                                // Sort tasks alphabetically
+                                                setSelectedSuggestions(prev => [...prev].sort());
+                                                setCustomTasks(prev => [...prev].sort());
+                                            }}
+                                            className="text-xs text-lavender-600 hover:text-lavender-700 font-medium"
+                                        >
+                                            Sort A-Z
+                                        </button>
+                                    </div>
+                                    <div className="space-y-2">
+                                        {selectedSuggestions.map(task => (
+                                            <div key={`suggestion-${task}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-lavender-200">
+                                                <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
+                                                <button
+                                                    onClick={() => toggleSuggestion(task)}
+                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
+                                                    title="Remove this task"
+                                                >
+                                                    ✕
+                                                </button>
+                                            </div>
+                                        ))}
                                         {customTasks.map((task, index) => (
-                                            <div key={index} className="flex items-center gap-2 text-sm text-lavender-700 bg-lavender-50 p-2 rounded">
-                                                <span>•</span>
-                                                <span>{task}</span>
+                                            <div key={`custom-${index}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-lavender-200">
+                                                <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
                                                 <button
                                                     onClick={() => setCustomTasks(prev => prev.filter((_, i) => i !== index))}
-                                                    className="ml-auto text-lavender-400 hover:text-lavender-600"
+                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
+                                                    title="Remove this task"
                                                 >
-                                                    ×
+                                                    ✕
                                                 </button>
                                             </div>
                                         ))}
@@ -441,8 +435,35 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                 </div>
                             )}
 
+                            {/* Custom Task Input */}
+                            <div>
+                                <label className="form-label text-center block">Add Custom Task</label>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={customTaskText}
+                                        onChange={(e) => setCustomTaskText(e.target.value)}
+                                        placeholder="e.g., Block aggressively - this yarn grows!"
+                                        className="details-input-field flex-1"
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter' && customTaskText.trim()) {
+                                                e.preventDefault();
+                                                handleAddCustomTask();
+                                            }
+                                        }}
+                                    />
+                                    <button
+                                        onClick={handleAddCustomTask}
+                                        disabled={!customTaskText.trim()}
+                                        className="btn-secondary whitespace-nowrap"
+                                    >
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+
                             {/* Action Buttons */}
-                            <div className="flex gap-3 pt-4">
+                            <div className="flex gap-3 pt-2">
                                 <button onClick={handleCloseModal} className="btn-tertiary flex-1">
                                     Cancel
                                 </button>
