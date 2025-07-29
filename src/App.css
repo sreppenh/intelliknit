@@ -1,8 +1,6 @@
 .App {
-  height: 100vh;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+  min-height: 100vh;
+  /* REMOVED: height: 100vh, display: flex, flex-direction: column, overflow: hidden */
 }
 
 .App-logo {
