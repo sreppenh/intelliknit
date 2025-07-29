@@ -5,6 +5,7 @@ import ProjectContextSection from '../sections/ProjectContextSection';
 import ProjectStatusSection from '../sections/ProjectStatusSection';
 import NeedlesSection from '../sections/NeedlesSection';
 import YarnsSection from '../sections/YarnsSection';
+import GaugeSection from '../sections/GaugeSection';
 
 
 const DetailsTab = ({ project, onProjectUpdate }) => {
@@ -227,15 +228,12 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
 
 
 
-                {/* Gauge - Remaining Technical Specs */}
-                {project.gauge && (
-                    <div className="read-mode-section">
-                        <h3 className="section-header-secondary">⚖️ Gauge</h3>
-                        <div className="text-sm text-wool-700 space-y-1 text-left">
-                            <div>Gauge: {project.gauge}</div>
-                        </div>
-                    </div>
-                )}
+                {/* Gauge - Technical Precision Section */}
+                <GaugeSection
+                    project={project}
+                    formData={project}
+                    handleInputChange={handleInputChange}
+                />
 
                 {/* Timeline - Bullet format with colored dates */}
                 <div className="read-mode-section">

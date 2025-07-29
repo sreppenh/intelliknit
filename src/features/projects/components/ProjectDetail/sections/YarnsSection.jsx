@@ -197,11 +197,25 @@ const YarnsSection = ({
 
                 {hasContent ? (
                     <div className="text-sm text-wool-700 space-y-1 text-left">
-                        {yarns.map((yarn, index) => (
-                            <div key={index} className="py-1">
-                                {formatYarnDisplay(yarn)}
-                            </div>
-                        ))}
+                        {yarns.map((yarn, yarnIndex) => {
+                            // If yarn has colors, show each yarn-color combo as separate line
+                            if (yarn.colors && yarn.colors.length > 0) {
+                                return yarn.colors
+                                    .filter(c => c.color && c.color.trim())
+                                    .map((color, colorIndex) => (
+                                        <div key={`${yarnIndex}-${colorIndex}`}>
+                                            • {yarn.name}: <span className="text-wool-500">{color.color}{color.skeins && color.skeins.trim() ? ` (${color.skeins} skeins)` : ''}</span>
+                                        </div>
+                                    ));
+                            } else {
+                                // Yarn with no colors - show just the yarn name
+                                return (
+                                    <div key={yarnIndex}>
+                                        • <span className="text-wool-500">{yarn.name}</span>
+                                    </div>
+                                );
+                            }
+                        })}
                     </div>
                 ) : (
                     <div className="text-sm text-wool-500 italic">
@@ -263,40 +277,56 @@ const YarnsSection = ({
                             <div className="mb-6">
                                 <h4 className="text-sm font-medium text-wool-700 mb-3">Current Yarns</h4>
                                 <div className="space-y-2">
-                                    {tempYarns.map((yarn, index) => (
-                                        <div key={index} className="py-2 px-3 bg-wool-50 rounded-lg border border-wool-200">
-                                            {/* Yarn name on first line */}
-                                            <div className="flex items-center justify-between">
-                                                <span className="text-sm font-medium text-wool-700">
-                                                    {yarn.name}
-                                                </span>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => removeTempYarn(index)}
-                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors"
-                                                    title="Remove this yarn"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                            {/* Colors on second line if they exist */}
-                                            {yarn.colors && yarn.colors.length > 0 && (
-                                                <div className="text-xs text-wool-600 mt-1">
-                                                    {yarn.colors
-                                                        .filter(c => c.color && c.color.trim())
-                                                        .map(c => {
-                                                            let colorStr = c.color;
-                                                            if (c.skeins && c.skeins.trim()) {
-                                                                colorStr += ` (${c.skeins} skeins)`;
-                                                            }
-                                                            return colorStr;
-                                                        })
-                                                        .join(', ')
-                                                    }
+                                    {tempYarns.map((yarn, yarnIndex) => {
+                                        // If yarn has colors, show each yarn-color combo as separate line
+                                        if (yarn.colors && yarn.colors.length > 0) {
+                                            return yarn.colors
+                                                .filter(c => c.color && c.color.trim())
+                                                .map((color, colorIndex) => (
+                                                    <div key={`${yarnIndex}-${colorIndex}`} className="flex items-center justify-between py-2 px-3 bg-wool-50 rounded-lg border border-wool-200">
+                                                        <span className="text-sm text-wool-700">
+                                                            {yarn.name}: {color.color}{color.skeins && color.skeins.trim() ? ` (${color.skeins} skeins)` : ''}
+                                                        </span>
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => {
+                                                                // Remove this specific yarn-color combination
+                                                                const updatedYarns = tempYarns.map((y, yi) => {
+                                                                    if (yi === yarnIndex) {
+                                                                        const updatedColors = y.colors.filter((_, ci) => ci !== colorIndex);
+                                                                        // If no colors left, remove the yarn entirely
+                                                                        return updatedColors.length > 0 ? { ...y, colors: updatedColors } : null;
+                                                                    }
+                                                                    return y;
+                                                                }).filter(Boolean); // Remove null entries
+                                                                setTempYarns(updatedYarns);
+                                                            }}
+                                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors"
+                                                            title="Remove this yarn-color combination"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    </div>
+                                                ));
+                                        } else {
+                                            // Yarn with no colors - show just the yarn name
+                                            return (
+                                                <div key={yarnIndex} className="flex items-center justify-between py-2 px-3 bg-wool-50 rounded-lg border border-wool-200">
+                                                    <span className="text-sm text-wool-700">
+                                                        {yarn.name}
+                                                    </span>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => removeTempYarn(yarnIndex)}
+                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors"
+                                                        title="Remove this yarn"
+                                                    >
+                                                        ✕
+                                                    </button>
                                                 </div>
-                                            )}
-                                        </div>
-                                    ))}
+                                            );
+                                        }
+                                    })}
                                 </div>
                             </div>
                         )}
