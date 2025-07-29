@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import IncrementInput from '../../../../../shared/components/IncrementInput';
 
 /**
  * 🧶 YarnsSection - Ultimate Complex Array Management Pattern
@@ -38,7 +39,7 @@ const YarnsSection = ({
                 colors: [{ color: '', skeins: '' }]
             });
         }
-    }, [showEditModal, yarns]);
+    }, [showEditModal]); // REMOVE yarns from dependency - that's causing the loop
 
     // 🎨 Conversational Display Formatting
     const formatYarnDisplay = (yarn) => {
@@ -138,12 +139,16 @@ const YarnsSection = ({
 
     // 🔧 New yarn form handlers
     const updateNewYarn = (field, value) => {
-        setNewYarn(prev => ({
-            name: '',
-            colors: [{ color: '', skeins: '' }],
-            ...prev,
-            [field]: value
-        }));
+        setNewYarn(prev => {
+            // Ensure we always have a valid object
+            const current = prev || { name: '', colors: [{ color: '', skeins: '' }] };
+            return {
+                name: '',
+                colors: [{ color: '', skeins: '' }],
+                ...current,
+                [field]: value
+            };
+        });
     };
 
     // 🎨 Color management within new yarn
@@ -318,30 +323,38 @@ const YarnsSection = ({
                                     <label className="form-label">Colors & Skeins</label>
                                     <div className="space-y-2">
                                         {newYarn.colors.map((color, colorIndex) => (
-                                            <div key={colorIndex} className="flex gap-2 items-center">
-                                                <input
-                                                    type="text"
-                                                    value={color.color}
-                                                    onChange={(e) => updateNewYarnColor(colorIndex, 'color', e.target.value)}
-                                                    placeholder="Color name"
-                                                    className="flex-1 details-input-field text-sm"
-                                                />
-                                                <input
-                                                    type="text"
-                                                    value={color.skeins}
-                                                    onChange={(e) => updateNewYarnColor(colorIndex, 'skeins', e.target.value)}
-                                                    placeholder="Skeins"
-                                                    className="w-20 details-input-field text-sm"
-                                                />
-                                                {newYarn.colors.length > 1 && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => removeNewYarnColor(colorIndex)}
-                                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors"
-                                                    >
-                                                        ✕
-                                                    </button>
-                                                )}
+                                            <div key={colorIndex} className="space-y-2">
+                                                {/* Color name input */}
+                                                <div className="flex gap-2 items-center">
+                                                    <input
+                                                        type="text"
+                                                        value={color.color}
+                                                        onChange={(e) => updateNewYarnColor(colorIndex, 'color', e.target.value)}
+                                                        placeholder="Color name"
+                                                        className="flex-1 details-input-field text-sm"
+                                                    />
+                                                    {newYarn.colors.length > 1 && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() => removeNewYarnColor(colorIndex)}
+                                                            className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors"
+                                                        >
+                                                            ✕
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                {/* Skeins input below */}
+                                                <div className="ml-4">
+                                                    <IncrementInput
+                                                        value={parseInt(color.skeins) || 0}
+                                                        onChange={(value) => updateNewYarnColor(colorIndex, 'skeins', value.toString())}
+                                                        min={0}
+                                                        max={50}
+                                                        label="skeins"
+                                                        size="sm"
+                                                    />
+                                                </div>
                                             </div>
                                         ))}
 
@@ -381,7 +394,7 @@ const YarnsSection = ({
                                 data-modal-primary
                                 className="flex-1 btn-primary"
                             >
-                                {hasChanges ? 'Update Yarns' : 'Done'}
+                                Save Changes
                             </button>
                         </div>
                     </div>

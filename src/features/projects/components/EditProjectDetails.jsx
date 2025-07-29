@@ -348,7 +348,7 @@ const EditProjectDetails = ({ onBack }) => {
                 style={{ flexGrow: 2 }}
               >
                 <span className="text-lg">💾</span>
-                {hasChanges() ? 'Save Changes' : 'Done'}
+                {hasChanges() ? 'Save Changes' : 'Save Changes'}
               </button>
             </div>
           </div>

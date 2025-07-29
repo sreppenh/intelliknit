@@ -236,29 +236,6 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                         </div>
                     </div>
                 )}
-                {/* Materials - Keep exactly as-is (you love this section!) */}
-                {(project.yarns?.length > 0 || project.needles?.length > 0) && (
-                    <div className="read-mode-section">
-                        <h3 className="section-header-secondary">🧶 Materials</h3>
-                        <div className="space-y-3 text-left">
-                            {/* Yarn */}
-                            {formatYarnDisplay(project.yarns).length > 0 && (
-                                <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-2">
-                                        Yarn
-                                    </h4>
-                                    <div className="space-y-1">
-                                        {formatYarnDisplay(project.yarns).map((yarnDisplay, index) => (
-                                            <div key={index} className="text-sm text-wool-700">• {yarnDisplay}</div>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-
-
-                        </div>
-                    </div>
-                )}
 
                 {/* Timeline - Bullet format with colored dates */}
                 <div className="read-mode-section">

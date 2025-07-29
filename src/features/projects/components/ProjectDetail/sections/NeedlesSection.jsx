@@ -300,7 +300,7 @@ const NeedlesSection = ({
                                 data-modal-primary
                                 className="flex-1 btn-primary"
                             >
-                                {hasChanges ? 'Update Needles' : 'Done'}
+                                Save Changes
                             </button>
                         </div>
                     </div>
