@@ -126,14 +126,7 @@ const NeedlesSection = ({
     };
 
     // Validation for add button
-    // Replace the current canAddNeedle line with:
     const canAddNeedle = newNeedle.size && newNeedle.size.trim();
-    console.log('Can add needle check:', {
-        'newNeedle.size': newNeedle.size,
-        'size exists': !!newNeedle.size,
-        'size after trim': newNeedle.size?.trim(),
-        'canAddNeedle': canAddNeedle
-    });
 
     // Check if there are any changes to save
     const hasChanges = JSON.stringify(tempNeedles) !== JSON.stringify(needles);
@@ -250,16 +243,20 @@ const NeedlesSection = ({
                                 <div>
                                     <label className="form-label">Needle Size</label>
 
-                                    {/* VISUAL DEBUG */}
-                                    <div className="bg-yellow-100 p-2 text-xs mb-2">
-                                        <div>Current size: {newNeedle.size}</div>
+                                    {/* VISUAL DEBUG - Remove after testing */}
+                                    <div className="bg-yellow-100 p-2 text-xs mb-2 border border-yellow-300 rounded">
+                                        <div><strong>Debug Info:</strong></div>
+                                        <div>Current size: "{newNeedle.size}"</div>
+                                        <div>Size exists: {newNeedle.size ? 'YES' : 'NO'}</div>
+                                        <div>Size length: {newNeedle.size?.length || 0}</div>
                                         <div>Can add needle: {canAddNeedle ? 'YES' : 'NO'}</div>
+                                        <div>Full newNeedle: {JSON.stringify(newNeedle)}</div>
                                     </div>
 
                                     <select
                                         value={newNeedle.size}
                                         onChange={(e) => {
-                                            alert(`Size changed to: ${e.target.value}`);
+                                            alert(`Selected: ${e.target.value}`);
                                             updateNewNeedle('size', e.target.value);
                                         }}
                                         className="w-full details-input-field"
