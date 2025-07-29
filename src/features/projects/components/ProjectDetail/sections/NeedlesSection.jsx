@@ -47,8 +47,21 @@ const NeedlesSection = ({
     };
 
     const handleSaveEdit = () => {
-        // Save the entire temp needles state (includes deletions + additions)
-        handleInputChange('needles', tempNeedles);
+        // Auto-add any pending needle data before saving
+        let finalNeedles = [...tempNeedles];
+
+        // If user has entered needle info but hasn't clicked "Add Another Needle", add it automatically
+        if (newNeedle.size && newNeedle.size.trim()) {
+            const needleToAdd = {
+                size: newNeedle.size,
+                type: newNeedle.type || 'straight',
+                length: ''
+            };
+            finalNeedles = [...tempNeedles, needleToAdd];
+        }
+
+        // Save the complete needles array
+        handleInputChange('needles', finalNeedles);
         setShowEditModal(false);
     };
 
@@ -262,13 +275,13 @@ const NeedlesSection = ({
                                     </select>
                                 </div>
 
-                                {/* Add This Needle Button */}
+                                {/* Add Another Needle Button */}
                                 <button
                                     onClick={addTempNeedle}
                                     disabled={!canAddNeedle}
                                     className="w-full btn-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
-                                    + Add This Needle
+                                    + Add Another Needle
                                 </button>
                             </div>
                         </div>
@@ -287,7 +300,7 @@ const NeedlesSection = ({
                                 data-modal-primary
                                 className="flex-1 btn-primary"
                             >
-                                {hasChanges ? 'Save Changes' : 'Save Changes'}
+                                {hasChanges ? 'Update Needles' : 'Done'}
                             </button>
                         </div>
                     </div>

@@ -4,6 +4,7 @@ import UnitsConstructionSection from '../sections/UnitsConstruction';
 import ProjectContextSection from '../sections/ProjectContextSection';
 import ProjectStatusSection from '../sections/ProjectStatusSection';
 import NeedlesSection from '../sections/NeedlesSection';
+import YarnsSection from '../sections/YarnsSection';
 
 
 const DetailsTab = ({ project, onProjectUpdate }) => {
@@ -196,6 +197,12 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                     project={project}
                     isEditing={false}
                     onEdit={() => console.log('Starting project context edit...')}
+                    formData={project}
+                    handleInputChange={handleInputChange}
+                />
+
+                <YarnsSection
+                    project={project}
                     formData={project}
                     handleInputChange={handleInputChange}
                 />
