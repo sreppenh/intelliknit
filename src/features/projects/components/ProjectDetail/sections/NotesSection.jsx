@@ -111,16 +111,15 @@ const NotesSection = ({
     // 📖 Read View - Conversational Display with Expand/Collapse
     return (
         <>
-            <div className="read-mode-section">
+            <div
+                className="read-mode-section hover:bg-sage-25 active:scale-95 cursor-pointer transition-all duration-200"
+                onClick={handleEditNotes}
+            >
                 <div className="details-section-header">
                     <h3 className="section-header-secondary">💭 Notes</h3>
-                    <button
-                        onClick={handleEditNotes}
-                        className="details-edit-button"
-                        title="Edit notes"
-                    >
+                    <div className="details-edit-button pointer-events-none">
                         ✏️
-                    </button>
+                    </div>
                 </div>
 
                 {hasContent ? (
@@ -133,14 +132,20 @@ const NotesSection = ({
                             <div className="mt-2">
                                 {!isExpanded ? (
                                     <button
-                                        onClick={() => setIsExpanded(true)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsExpanded(true);
+                                        }}
                                         className="text-sage-600 hover:text-sage-700 font-medium text-sm underline transition-colors"
                                     >
                                         Read more
                                     </button>
                                 ) : (
                                     <button
-                                        onClick={() => setIsExpanded(false)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setIsExpanded(false);
+                                        }}
                                         className="text-sage-600 hover:text-sage-700 font-medium text-sm underline transition-colors"
                                     >
                                         Show less
@@ -150,10 +155,7 @@ const NotesSection = ({
                         )}
                     </div>
                 ) : (
-                    <div
-                        className="text-sm text-wool-400 italic cursor-pointer hover:text-sage-500 transition-colors"
-                        onClick={handleEditNotes}
-                    >
+                    <div className="text-sm text-wool-400 italic">
                         + Add project notes
                     </div>
                 )}

@@ -6,7 +6,8 @@ import ProjectStatusSection from '../sections/ProjectStatusSection';
 import NeedlesSection from '../sections/NeedlesSection';
 import YarnsSection from '../sections/YarnsSection';
 import GaugeSection from '../sections/GaugeSection';
-
+import NotesSection from '../sections/NotesSection';
+import TimelineSection from '../sections/TimeLineSection';
 
 const DetailsTab = ({ project, onProjectUpdate }) => {
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
@@ -315,52 +316,17 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                 />
 
                 {/* Timeline - Bullet format with colored dates */}
-                <div className="read-mode-section">
-                    <h3 className="section-header-secondary">📅 Timeline</h3>
-                    <div className="text-sm text-wool-700 space-y-1 text-left">
-                        <div>• Created: <span className="text-wool-500">{formatDate(project.createdAt)}</span></div>
-                        {project.startedAt && (
-                            <div>• Started: <span className="text-wool-500">{formatDate(project.startedAt)}</span></div>
-                        )}
-                        {project.lastActivityAt && (
-                            <div>• Last Modified: <span className="text-wool-500">{formatDate(project.lastActivityAt)}</span></div>
-                        )}
-                        {project.completedAt && (
-                            <div>• Completed: <span className="text-wool-500">{formatDate(project.completedAt)}</span></div>
-                        )}
-                    </div>
-                </div>
-                {/* Notes - Keep exactly as-is */}
-                {project.notes && (
-                    <div className="read-mode-section">
-                        <h3 className="section-header-secondary">💭 Notes</h3>
-                        <div className="text-left">
-                            {project.notes.length > 300 && !isNotesExpanded ? (
-                                <div>
-                                    <p className="whitespace-pre-wrap text-sm text-wool-700 leading-relaxed">{project.notes.substring(0, 300)}...</p>
-                                    <button
-                                        onClick={() => setIsNotesExpanded(true)}
-                                        className="text-sage-600 hover:text-sage-700 font-medium text-sm mt-2 underline"
-                                    >
-                                        Read more
-                                    </button>
-                                </div>
-                            ) : (
-                                <div>
-                                    <p className="whitespace-pre-wrap text-sm text-wool-700 leading-relaxed">{project.notes}</p>
-                                    {project.notes.length > 300 && isNotesExpanded && (
-                                        <button
-                                            onClick={() => setIsNotesExpanded(false)}
-                                            className="text-sage-600 hover:text-sage-700 font-medium text-sm mt-2 underline"
-                                        >
-                                            Show less
-                                        </button>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
+                <TimelineSection
+                    project={project}
+                    formData={project}
+                    handleInputChange={handleInputChange}
+                />
+
+                <NotesSection
+                    project={project}
+                    formData={project}
+                    handleInputChange={handleInputChange}
+                />
             </div>
 
             {/* Pattern Identity Edit Modal */}
