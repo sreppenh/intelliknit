@@ -15,6 +15,7 @@ import SmartComponentCreation from './SmartComponentCreation';
 import OverviewTab from './ProjectDetail/tabs/OverviewTab';
 import ComponentsTab from './ProjectDetail/tabs/ComponentsTab';
 import DetailsTab from './ProjectDetail/tabs/DetailsTab';
+import ChecklistTab from './ProjectDetail/tabs/ChecklistTab';
 
 // Shared components
 import PageHeader from '../../../shared/components/PageHeader';
@@ -184,7 +185,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
           <TabBar.Tab id="overview" label="Overview" />
           <TabBar.Tab id="components" label="Components" />
           <TabBar.Tab id="details" label="Details" />
-          <TabBar.Tab id="photos" label="Photos" />
+          <TabBar.Tab id="checklist" label="Checklist" />
         </TabBar>
 
         {/* Tab Content */}
@@ -220,7 +221,17 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               }}
             />
           )}
-          {currentTab === 'photos' && renderPhotosTab()}
+          {currentTab === 'checklist' && (
+            <ChecklistTab
+              project={currentProject}
+              onProjectUpdate={(updatedProject) => {
+                dispatch({
+                  type: 'UPDATE_PROJECT',
+                  payload: updatedProject
+                });
+              }}
+            />
+          )}
         </div>
 
         {/* Modals */}
