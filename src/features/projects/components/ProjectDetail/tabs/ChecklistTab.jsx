@@ -154,6 +154,56 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
         });
     };
 
+    const handleDeleteTask = (categoryId, taskId) => {
+        const updatedChecklist = {
+            ...checklist,
+            categories: checklist.categories.map(category => {
+                if (category.id === categoryId) {
+                    return {
+                        ...category,
+                        tasks: category.tasks.filter(task => task.id !== taskId)
+                    };
+                }
+                return category;
+            })
+        };
+
+        onProjectUpdate({
+            ...project,
+            checklist: updatedChecklist
+        });
+    };
+
+    const handleReorderTasks = (categoryId, fromIndex, toIndex) => {
+        const updatedChecklist = {
+            ...checklist,
+            categories: checklist.categories.map(category => {
+                if (category.id === categoryId) {
+                    const reorderedTasks = [...category.tasks];
+                    const [movedTask] = reorderedTasks.splice(fromIndex, 1);
+                    reorderedTasks.splice(toIndex, 0, movedTask);
+
+                    // Update order values
+                    const tasksWithNewOrder = reorderedTasks.map((task, index) => ({
+                        ...task,
+                        order: index
+                    }));
+
+                    return {
+                        ...category,
+                        tasks: tasksWithNewOrder
+                    };
+                }
+                return category;
+            })
+        };
+
+        onProjectUpdate({
+            ...project,
+            checklist: updatedChecklist
+        });
+    };
+
     const toggleSuggestion = (suggestion) => {
         setSelectedSuggestions(prev =>
             prev.includes(suggestion)
@@ -255,46 +305,135 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
 
     const stats = getCompletionStats();
 
-    // Task Item Component
-    const TaskItem = ({ task, categoryId }) => (
-        <div className="flex items-center gap-3 p-4 min-h-[44px] hover:bg-lavender-50 transition-colors group">
-            {/* Checkbox */}
-            <button
-                onClick={() => handleToggleTask(categoryId, task.id)}
-                className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${task.completed
-                        ? 'bg-lavender-500 border-lavender-500 text-white'
-                        : 'border-lavender-400 hover:border-lavender-500'
+    // Task Item Component with Swipe-to-Delete and Reordering
+    const TaskItem = ({ task, categoryId, index, totalTasks }) => {
+        const [swipeOffset, setSwipeOffset] = useState(0);
+        const [isDragging, setIsDragging] = useState(false);
+        const [startY, setStartY] = useState(0);
+        const [currentY, setCurrentY] = useState(0);
+        const swipeThreshold = 100; // pixels to trigger delete
+
+        // Touch handlers for swipe-to-delete
+        const handleTouchStart = (e) => {
+            const touch = e.touches[0];
+            setSwipeOffset(0);
+            document.body.style.userSelect = 'none';
+        };
+
+        const handleTouchMove = (e) => {
+            const touch = e.touches[0];
+            const deltaX = touch.clientX - e.changedTouches[0].clientX;
+
+            // Only allow left swipe (negative values)
+            if (deltaX < 0) {
+                setSwipeOffset(Math.max(deltaX, -150)); // Max swipe distance
+            }
+        };
+
+        const handleTouchEnd = (e) => {
+            document.body.style.userSelect = '';
+
+            if (Math.abs(swipeOffset) > swipeThreshold) {
+                // Trigger delete
+                handleDeleteTask(categoryId, task.id);
+            } else {
+                // Snap back
+                setSwipeOffset(0);
+            }
+        };
+
+        // Drag handlers for reordering
+        const handleDragStart = (e) => {
+            const touch = e.touches[0];
+            setIsDragging(true);
+            setStartY(touch.clientY);
+            setCurrentY(touch.clientY);
+        };
+
+        const handleDragMove = (e) => {
+            if (!isDragging) return;
+            const touch = e.touches[0];
+            setCurrentY(touch.clientY);
+        };
+
+        const handleDragEnd = (e) => {
+            if (!isDragging) return;
+            setIsDragging(false);
+
+            const deltaY = currentY - startY;
+            const itemHeight = 60; // approximate height of each task item
+            const positions = Math.round(deltaY / itemHeight);
+
+            if (Math.abs(positions) >= 1) {
+                const newIndex = Math.max(0, Math.min(totalTasks - 1, index + positions));
+                if (newIndex !== index) {
+                    handleReorderTasks(categoryId, index, newIndex);
+                }
+            }
+        };
+
+        return (
+            <div
+                className={`relative overflow-hidden transition-transform duration-200 ${isDragging ? 'scale-105 shadow-lg z-10' : ''
                     }`}
+                style={{
+                    transform: `translateX(${swipeOffset}px) ${isDragging ? `translateY(${currentY - startY}px)` : ''}`
+                }}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
             >
-                {task.completed && '✓'}
-            </button>
+                {/* Delete Background (revealed on swipe) */}
+                <div className="absolute right-0 top-0 bottom-0 bg-red-500 flex items-center justify-center w-20 text-white font-bold">
+                    Delete
+                </div>
 
-            {/* Task Text */}
-            <span className={`flex-1 transition-all ${task.completed
-                    ? 'text-lavender-400 line-through'
-                    : 'text-wool-700'
-                }`}>
-                {task.text}
-            </span>
+                {/* Main Task Content */}
+                <div className="bg-white flex items-center gap-3 p-4 min-h-[60px] hover:bg-lavender-50 transition-colors relative">
+                    {/* Checkbox - Large Touch Target */}
+                    <button
+                        onClick={() => handleToggleTask(categoryId, task.id)}
+                        className={`w-8 h-8 rounded border-2 flex items-center justify-center transition-all ${task.completed
+                                ? 'bg-lavender-500 border-lavender-500 text-white shadow-sm'
+                                : 'border-lavender-400 hover:border-lavender-500 hover:bg-lavender-50'
+                            }`}
+                    >
+                        {task.completed && '✓'}
+                    </button>
 
-            {/* Drag Handle (show on hover/touch) */}
-            <div className="text-lavender-400 cursor-move opacity-0 group-hover:opacity-100 transition-opacity">
-                ⋮⋮
+                    {/* Task Text - Larger, More Readable */}
+                    <span className={`flex-1 transition-all text-base ${task.completed
+                            ? 'text-lavender-400 line-through'
+                            : 'text-wool-700'
+                        }`}>
+                        {task.text}
+                    </span>
+
+                    {/* Drag Handle */}
+                    <div
+                        className="text-lavender-400 cursor-move p-2 touch-manipulation"
+                        onTouchStart={handleDragStart}
+                        onTouchMove={handleDragMove}
+                        onTouchEnd={handleDragEnd}
+                    >
+                        ⋮⋮
+                    </div>
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     // Category Section Component
     const CategorySection = ({ category }) => (
-        <div className="mb-6">
-            {/* Category Header with Lavender Styling */}
-            <div className="bg-lavender-100 border-2 border-lavender-300 rounded-t-xl p-4 flex justify-between items-center">
-                <h3 className="text-lg font-semibold text-lavender-800 flex items-center gap-2">
+        <div className="mb-4">
+            {/* Category Header - Narrower and More Compact */}
+            <div className="bg-lavender-100 border-2 border-lavender-300 rounded-t-xl p-3 flex justify-between items-center">
+                <h3 className="text-base font-semibold text-lavender-800 flex items-center gap-2">
                     {category.icon} {category.name}
                 </h3>
                 <button
                     onClick={() => handleAddTask(category.id)}
-                    className="bg-lavender-500 hover:bg-lavender-600 text-white w-8 h-8 rounded-lg flex items-center justify-center font-bold transition-colors"
+                    className="bg-lavender-500 hover:bg-lavender-600 text-white w-7 h-7 rounded-lg flex items-center justify-center font-bold transition-colors text-sm"
                 >
                     +
                 </button>
@@ -304,9 +443,17 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
             <div className="bg-white border-2 border-lavender-200 border-t-0 rounded-b-xl">
                 {category.tasks.length > 0 ? (
                     <div className="divide-y divide-lavender-100">
-                        {category.tasks.map(task => (
-                            <TaskItem key={task.id} task={task} categoryId={category.id} />
-                        ))}
+                        {category.tasks
+                            .sort((a, b) => (a.order || 0) - (b.order || 0))
+                            .map((task, index) => (
+                                <TaskItem
+                                    key={task.id}
+                                    task={task}
+                                    categoryId={category.id}
+                                    index={index}
+                                    totalTasks={category.tasks.length}
+                                />
+                            ))}
                     </div>
                 ) : (
                     <div className="p-4 text-center text-lavender-400">
@@ -393,19 +540,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                             {/* Selected Tasks Live Preview */}
                             {(selectedSuggestions.length > 0 || customTasks.length > 0) && (
                                 <div className="bg-lavender-50 border-2 border-lavender-200 rounded-xl p-4">
-                                    <div className="flex justify-between items-center mb-3">
-                                        <h5 className="font-medium text-lavender-800">Tasks to Add:</h5>
-                                        <button
-                                            onClick={() => {
-                                                // Sort tasks alphabetically
-                                                setSelectedSuggestions(prev => [...prev].sort());
-                                                setCustomTasks(prev => [...prev].sort());
-                                            }}
-                                            className="text-xs text-lavender-600 hover:text-lavender-700 font-medium"
-                                        >
-                                            Sort A-Z
-                                        </button>
-                                    </div>
+                                    <h5 className="font-medium text-lavender-800 mb-3 text-center">Tasks to Add</h5>
                                     <div className="space-y-2">
                                         {selectedSuggestions.map(task => (
                                             <div key={`suggestion-${task}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-lavender-200">
