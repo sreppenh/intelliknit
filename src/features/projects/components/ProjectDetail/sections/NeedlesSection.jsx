@@ -30,7 +30,7 @@ const NeedlesSection = ({
             setTempNeedles([...needles]); // Copy current needles for live editing
             setNewNeedle({ size: '', type: '' });
         }
-    }, [showEditModal, needles]);
+    }, [showEditModal]);
 
     // 🎨 Conversational Display Formatting
     const formatNeedleDisplay = (needle) => {
