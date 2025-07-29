@@ -113,7 +113,12 @@ const NeedlesSection = ({
 
     // 🔧 New needle form handlers
     const updateNewNeedle = (field, value) => {
-        setNewNeedle(prev => ({ ...prev, [field]: value }));
+        console.log('Updating needle field:', field, 'to:', value);
+        setNewNeedle(prev => {
+            const updated = { ...prev, [field]: value };
+            console.log('New needle state:', updated);
+            return updated;
+        });
     };
 
     // Validation for add button
