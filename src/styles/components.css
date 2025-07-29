@@ -923,3 +923,10 @@ select {
   @apply transition-all duration-200 font-medium cursor-pointer;
   @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
 }
+
+/* Mobile dropdown fix */
+@media (max-width: 768px) {
+  .modal-content-light select {
+    font-size: 16px !important;
+  }
+}
