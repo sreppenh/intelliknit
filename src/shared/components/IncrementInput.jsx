@@ -1,5 +1,6 @@
 // src/shared/components/IncrementInput.jsx
 import React from 'react';
+import IntelliKnitLogger from '../utils/ConsoleLogging';
 
 /**
  * Enhanced IncrementInput Component with proper value handling

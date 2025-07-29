@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
+import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 
 /**
  * ⚖️ GaugeSection - Technical Precision Showcase with Perfect Wizard Integration
@@ -129,28 +130,31 @@ const GaugeSection = ({
     };
 
     const handleSaveEdit = () => {
-
-        console.log('=== SAVING GAUGE ===');
-        console.log('Full tempGaugeData:', tempGaugeData);
-        console.log('Stitch value being saved:', tempGaugeData.stitchGauge?.stitches);
-        console.log('Row value being saved:', tempGaugeData.rowGauge?.rows);
-        console.log('tempGaugeData.stitchGauge:', tempGaugeData.stitchGauge);
-        console.log('tempGaugeData.rowGauge:', tempGaugeData.rowGauge);
-
-        // Update each field using our self-sufficient handlers
-        // Hardcode measurements to standard values
         const standardMeasurement = defaultUnits === 'cm' ? '10' : '4';
 
-        updateGaugeField('pattern', tempGaugeData.pattern);
-        updateGaugeField('needleIndex', tempGaugeData.needleIndex);
-        updateGaugeField('gaugeNotes', tempGaugeData.blockingNotes);
+        // Build complete gauge object in one go
+        const updatedGauge = {
+            ...gauge, // Keep existing gauge data
+            stitchGauge: {
+                ...gauge?.stitchGauge,
+                stitches: tempGaugeData.stitchGauge?.stitches,
+                measurement: standardMeasurement
+            },
+            rowGauge: {
+                ...gauge?.rowGauge,
+                rows: tempGaugeData.rowGauge?.rows,
+                measurement: standardMeasurement
+            },
+            pattern: tempGaugeData.pattern,
+            needleIndex: tempGaugeData.needleIndex,
+            blockingNotes: tempGaugeData.blockingNotes,
+            customPattern: '' // Clear this when we have blockingNotes
+        };
 
-        // Update measurements with hardcoded standard distances
-        updateGaugeMeasurement('stitchGauge', 'stitches', tempGaugeData.stitchGauge.stitches);
-        updateGaugeMeasurement('stitchGauge', 'measurement', standardMeasurement);
-        updateGaugeMeasurement('rowGauge', 'rows', tempGaugeData.rowGauge.rows);
-        updateGaugeMeasurement('rowGauge', 'measurement', standardMeasurement);
+        IntelliKnitLogger.debug('Gauge', 'Saving gauge data', updatedGauge);
 
+        // Single state update
+        handleInputChange('gauge', updatedGauge);
         setShowEditModal(false);
     };
 
@@ -227,7 +231,6 @@ const GaugeSection = ({
 
                 {hasContent ? (
                     <div className="text-sm text-wool-700 space-y-1 text-left">
-                        <div className="bg-red-100 p-2 text-xs">DEBUG: {JSON.stringify(gauge)}</div>
                         <div>{formatGaugeDisplay()}</div>
                         {getNeedleUsedDisplay() && (
                             <div className="text-wool-500">Using {getNeedleUsedDisplay()}</div>
