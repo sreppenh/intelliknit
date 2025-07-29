@@ -248,99 +248,72 @@ const ProjectStatusSection = ({
     // === CONTEXT-AWARE BUTTON RENDERING ===
 
     const renderActionButtons = () => {
-        if (displayData?.completed) {
-            // COMPLETED STATE - Only Frog action
-            return (
-                <div className="flex gap-3 mt-4">
-                    <button
-                        onClick={handleFrogProject}
-                        className="btn-secondary btn-sm flex items-center gap-2"
-                    >
-                        <span>🐸</span>
-                        Actually, Frog It
-                    </button>
-                </div>
-            );
-        } else if (displayData?.frogged) {
-            // FROGGED STATE - No actions, just edit details via section tap
-            return null;
-        } else {
-            // ACTIVE/READY STATE
-            return (
-                <div className="flex gap-3 mt-4">
-                    <button
-                        onClick={handleMarkComplete}
-                        className="btn-primary btn-sm flex items-center gap-2"
-                    >
-                        <span>🎉</span>
-                        Mark Complete
-                    </button>
-                    <button
-                        onClick={handleFrogProject}
-                        className="btn-secondary btn-sm flex items-center gap-2"
-                    >
-                        <span>🐸</span>
-                        Frog Project
-                    </button>
-                </div>
-            );
-        }
+        return null; // No buttons in read mode!
+    };
+
+    // REPLACE ENTIRE FUNCTION:
+    const renderSectionTitle = () => {
+        return "🎉 Project Status";
     };
 
     // === SMART STATUS DISPLAY ===
-
     const renderStatusDisplay = () => {
-        // No separate status display needed - everything is in the title now!
-        return null;
-    };
+        const progress = displayData?.progress || 0;
+        const progressFilled = Math.round(progress / 100 * 20);
+        const progressEmpty = 20 - progressFilled;
 
-    // === SMART TITLE WITH INLINE PROGRESS AND DATES ===
-    const renderSectionTitle = () => {
+        // Status text with streak if available
+        let statusText = status.text;
+        if (displayData?.streak && displayData.streak > 1) {
+            statusText += ` (${displayData.streak} day streak!)`;
+        }
+
         if (displayData?.completed) {
-            return `🎉 Completed on ${formatDate(displayData.completedAt)}`;
+            return (
+                <div className="text-sm text-wool-700 space-y-1 text-left">
+                    <div>Current Status: ✅ Completed on {formatDate(displayData.completedAt)}</div>
+                    <div className="text-xs">
+                        Progress: <span className="text-sage-500">{'█'.repeat(progressFilled)}</span><span className="text-wool-200">{'░'.repeat(progressEmpty)}</span> {progress}%
+                    </div>
+                </div>
+            );
         } else if (displayData?.frogged) {
-            return `🐸 Frogged on ${formatDate(displayData.froggedAt)}`;
+            return (
+                <div className="text-sm text-wool-700 space-y-1 text-left">
+                    <div>Current Status: 🐸 Frogged on {formatDate(displayData.froggedAt)}</div>
+                    <div className="text-xs">
+                        Progress: <span className="text-sage-500">{'█'.repeat(progressFilled)}</span><span className="text-wool-200">{'░'.repeat(progressEmpty)}</span> {progress}%
+                    </div>
+                </div>
+            );
         } else {
-            // ACTIVE/READY STATE - Show status with inline progress
-            const progress = displayData?.progress || 0;
-            const progressText = progress > 0 ? ` (${progress}% complete)` : '';
-            return `${status.emoji} ${status.text}${progressText}`;
+            return (
+                <div className="text-sm text-wool-700 space-y-1 text-left">
+                    <div>Current Status: {status.emoji} {statusText}</div>
+                    <div className="text-xs">
+                        Progress: <span className="text-sage-500">{'█'.repeat(progressFilled)}</span><span className="text-wool-200">{'░'.repeat(progressEmpty)}</span> {progress}%
+                    </div>
+                </div>
+            );
         }
     };
 
-    // === MAIN RENDER ===
-
-    // Read View (No Edit Modal)
     if (!showEditModal) {
         const statusDisplay = renderStatusDisplay();
-        const actionButtons = renderActionButtons();
-
-        // Add inline style to override padding-bottom for frogged state
-        const sectionStyle = displayData?.frogged ? { paddingBottom: 0 } : {};
 
         return (
             <div
                 className="read-mode-section hover:bg-sage-25 active:scale-95 cursor-pointer transition-all duration-200"
-                style={sectionStyle}
                 onClick={handleEditDetails}
             >
                 <div className="details-section-header">
-                    <h3 className="section-header-secondary">
-                        {renderSectionTitle()}
-                    </h3>
+                    <h3 className="section-header-secondary">🎉 Project Status</h3>
                     <div className="details-edit-button pointer-events-none">
                         ✏️
                     </div>
                 </div>
 
-                {statusDisplay && statusDisplay}
-
-                {/* Only render action buttons container if buttons exist */}
-                {actionButtons && (
-                    <div onClick={(e) => e.stopPropagation()}>
-                        {actionButtons}
-                    </div>
-                )}
+                {statusDisplay}
             </div>
         );
     }
