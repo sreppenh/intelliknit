@@ -304,7 +304,7 @@ const GaugeSection = ({
                                 <label className="form-label">Stitch Gauge</label>
                                 <div className="flex gap-2 items-center">
                                     <IncrementInput
-                                        value={parseInt(tempGaugeData.stitchGauge?.stitches || 18)}
+                                        value={tempGaugeData.stitchGauge?.stitches ? parseFloat(tempGaugeData.stitchGauge.stitches) : 18}
                                         onChange={(value) => {
                                             console.log('INCREMENT: New value from button:', value);
                                             updateTempGaugeField('stitchGauge', 'stitches', value);

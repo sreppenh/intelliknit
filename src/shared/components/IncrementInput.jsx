@@ -55,7 +55,9 @@ const IncrementInput = ({
 
   // Enhanced value handling - always ensure valid number
   const getCurrentValue = () => {
-    const parsed = parseInt(value);
+    // Only use parseFloat when step has decimals
+    const useDecimals = step % 1 !== 0;
+    const parsed = useDecimals ? parseFloat(value) : parseInt(value);
     if (isNaN(parsed) || parsed < min) return min;
     if (parsed > effectiveMax) return effectiveMax;
     return parsed;
@@ -74,7 +76,8 @@ const IncrementInput = ({
   };
 
   const handleInputChange = (e) => {
-    const inputValue = e.target.value.replace(/[^0-9]/g, '');
+    const useDecimals = step % 1 !== 0;
+    const inputValue = e.target.value.replace(useDecimals ? /[^0-9.]/g : /[^0-9]/g, '');
 
     // FIXED: Temporarily allow the empty state
     if (inputValue === '') {
@@ -82,7 +85,7 @@ const IncrementInput = ({
       return;
     }
 
-    const numValue = parseInt(inputValue);
+    const numValue = useDecimals ? parseFloat(inputValue) : parseInt(inputValue);
 
     // Validate against min/max bounds
     if (numValue < min) {

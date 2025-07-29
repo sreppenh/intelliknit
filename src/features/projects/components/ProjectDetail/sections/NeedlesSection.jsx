@@ -113,16 +113,27 @@ const NeedlesSection = ({
 
     // 🔧 New needle form handlers
     const updateNewNeedle = (field, value) => {
-        console.log('Updating needle field:', field, 'to:', value);
+        console.log('=== NEEDLE UPDATE DEBUG ===');
+        console.log('Field:', field);
+        console.log('Value:', value);
+        console.log('Current newNeedle state before update:', newNeedle);
+
         setNewNeedle(prev => {
             const updated = { ...prev, [field]: value };
-            console.log('New needle state:', updated);
+            console.log('New needle state after update:', updated);
             return updated;
         });
     };
 
     // Validation for add button
+    // Replace the current canAddNeedle line with:
     const canAddNeedle = newNeedle.size && newNeedle.size.trim();
+    console.log('Can add needle check:', {
+        'newNeedle.size': newNeedle.size,
+        'size exists': !!newNeedle.size,
+        'size after trim': newNeedle.size?.trim(),
+        'canAddNeedle': canAddNeedle
+    });
 
     // Check if there are any changes to save
     const hasChanges = JSON.stringify(tempNeedles) !== JSON.stringify(needles);
