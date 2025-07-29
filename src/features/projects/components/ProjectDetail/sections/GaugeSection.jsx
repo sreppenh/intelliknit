@@ -31,18 +31,13 @@ const GaugeSection = ({
     // Initialize temp gauge data when opening modal
     useEffect(() => {
         if (showEditModal) {
-            // Smart defaults based on units
-            const defaultMeasurement = defaultUnits === 'cm' ? '10' : '4';
-
             // Force proper initialization with defaults
             setTempGaugeData({
                 stitchGauge: {
-                    stitches: gauge?.stitchGauge?.stitches || '',
-                    measurement: gauge?.stitchGauge?.measurement || defaultMeasurement
+                    stitches: gauge?.stitchGauge?.stitches || ''
                 },
                 rowGauge: {
-                    rows: gauge?.rowGauge?.rows || '',
-                    measurement: gauge?.rowGauge?.measurement || defaultMeasurement
+                    rows: gauge?.rowGauge?.rows || ''
                 },
                 needleIndex: gauge?.needleIndex || 0,
                 pattern: gauge?.pattern || 'stockinette',
@@ -57,15 +52,16 @@ const GaugeSection = ({
 
         const parts = [];
         const unit = defaultUnits === 'cm' ? 'cm' : '"';
+        const standardDistance = defaultUnits === 'cm' ? '10' : '4';
 
         // Stitch gauge (required)
-        if (gauge.stitchGauge?.stitches && gauge.stitchGauge?.measurement) {
-            parts.push(`${gauge.stitchGauge.stitches} sts = ${gauge.stitchGauge.measurement}${unit}`);
+        if (gauge.stitchGauge?.stitches) {
+            parts.push(`${gauge.stitchGauge.stitches} sts = ${standardDistance}${unit}`);
         }
 
         // Row gauge (optional)
-        if (gauge.rowGauge?.rows && gauge.rowGauge?.measurement) {
-            parts.push(`${gauge.rowGauge.rows} rows = ${gauge.rowGauge.measurement}${unit}`);
+        if (gauge.rowGauge?.rows) {
+            parts.push(`${gauge.rowGauge.rows} rows = ${standardDistance}${unit}`);
         }
 
         let display = parts.join(' • ');
@@ -94,11 +90,6 @@ const GaugeSection = ({
             return formatNeedleDisplay(needles[gauge.needleIndex]);
         }
         return null;
-    };
-
-    // 🔧 Modal Management Functions
-    const handleEditClick = () => {
-        setShowEditModal(true);
     };
 
     // 🔧 Self-sufficient gauge update handlers (same logic as useDetailsForm)
@@ -130,6 +121,11 @@ const GaugeSection = ({
         };
 
         handleInputChange('gauge', updatedGauge);
+    };
+
+    // 🔧 Modal Management Functions
+    const handleEditClick = () => {
+        setShowEditModal(true);
     };
 
     const handleSaveEdit = () => {
@@ -179,22 +175,20 @@ const GaugeSection = ({
 
     // 🔧 Temp gauge form handlers - SIMPLIFIED AND FIXED
     const updateTempGaugeField = (category, field, value) => {
-        console.log('Updating gauge field:', category, field, 'to:', value);
+        console.log('Updating:', category, field, value);
         setTempGaugeData(prev => {
-            const updated = {
+            const newData = {
                 ...prev,
                 [category]: {
-                    ...prev[category],
+                    ...prev?.[category],
                     [field]: value
                 }
             };
-            console.log('New temp gauge data:', updated);
-            return updated;
+            console.log('New temp data:', newData);
+            return newData;
         });
     };
-
     const updateTempGaugeSimple = (field, value) => {
-        console.log('Updating simple gauge field:', field, 'to:', value);
         setTempGaugeData(prev => ({
             ...prev,
             [field]: value
@@ -224,7 +218,6 @@ const GaugeSection = ({
                 {hasContent ? (
                     <div className="text-sm text-wool-700 space-y-1 text-left">
                         <div>{formatGaugeDisplay()}</div>
-                        <div className="text-xs text-red-500">DEBUG: Units = {defaultUnits}</div>
                         {getNeedleUsedDisplay() && (
                             <div className="text-wool-500">Using {getNeedleUsedDisplay()}</div>
                         )}
@@ -306,79 +299,68 @@ const GaugeSection = ({
                                 </select>
                             </div>
 
-                            {/* Stitch Gauge */}
+                            {/* Stitch Gauge - FIXED FORMAT */}
                             <div>
                                 <label className="form-label">Stitch Gauge</label>
-                                <div className="flex gap-3 items-center">
+                                <div className="flex gap-2 items-center">
                                     <IncrementInput
-                                        value={parseInt(tempGaugeData.stitchGauge?.stitches) || 0}
+                                        value={tempGaugeData.stitchGauge?.stitches ? parseFloat(tempGaugeData.stitchGauge.stitches) : 18}
                                         onChange={(value) => updateTempGaugeField('stitchGauge', 'stitches', value.toString())}
                                         min={1}
                                         max={50}
+                                        step={0.5}
                                         label="stitches"
                                         size="sm"
                                     />
-                                    <span className="text-sm text-wool-600">sts =</span>
-                                    <IncrementInput
-                                        value={tempGaugeData.stitchGauge?.measurement ? parseFloat(tempGaugeData.stitchGauge.measurement) : (defaultUnits === 'cm' ? 10 : 4)}
-                                        onChange={(value) => {
-                                            console.log('Current tempGaugeData:', tempGaugeData);
-                                            console.log('Current measurement in state:', tempGaugeData.stitchGauge?.measurement);
-                                            console.log('Parsed value passed to input:', tempGaugeData.stitchGauge?.measurement ? parseFloat(tempGaugeData.stitchGauge.measurement) : (defaultUnits === 'cm' ? 10 : 4));
-                                            console.log('NEW value from increment:', value);
-                                            updateTempGaugeField('stitchGauge', 'measurement', value.toString());
-                                        }}
-                                        min={0.5}
-                                        max={20}
-                                        step={0.5}
-                                        label={defaultUnits === 'cm' ? 'cm' : 'inches'}
-                                        size="sm"
-                                    />
+                                    <span className="text-sm text-wool-600">
+                                        stitches in {defaultUnits === 'cm' ? '10 cm' : '4 inches'}
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Row Gauge */}
+                            {/* Row Gauge - FIXED FORMAT */}
                             <div>
                                 <label className="form-label">Row Gauge</label>
-                                <div className="flex gap-3 items-center">
+                                <div className="flex gap-2 items-center">
                                     <IncrementInput
-                                        value={parseInt(tempGaugeData.rowGauge?.rows) || 0}
+                                        value={tempGaugeData.rowGauge?.rows ? parseFloat(tempGaugeData.rowGauge.rows) : 24}
                                         onChange={(value) => updateTempGaugeField('rowGauge', 'rows', value.toString())}
                                         min={1}
                                         max={100}
+                                        step={0.5}
                                         label="rows"
                                         size="sm"
                                     />
-                                    <span className="text-sm text-wool-600">rows =</span>
-                                    <IncrementInput
-                                        value={parseFloat(tempGaugeData.rowGauge?.measurement) || (defaultUnits === 'cm' ? 10 : 4)}
-                                        onChange={(value) => updateTempGaugeField('rowGauge', 'measurement', value.toString())}
-                                        min={0.5}
-                                        max={20}
-                                        step={0.5}
-                                        label={defaultUnits === 'cm' ? 'cm' : 'inches'}
-                                        size="sm"
-                                    />
+                                    <span className="text-sm text-wool-600">
+                                        rows in {defaultUnits === 'cm' ? '10 cm' : '4 inches'}
+                                    </span>
                                 </div>
                             </div>
 
-                            {/* Needle Used */}
+                            {/* Needle Used - MOBILE DROPDOWN FIX */}
                             <div>
                                 <label className="form-label">Needle Used</label>
-                                <select
-                                    value={tempGaugeData.needleIndex || 0}
-                                    onChange={(e) => updateTempGaugeSimple('needleIndex', parseInt(e.target.value))}
-                                    className="w-full details-input-field"
+                                <div
+                                    className="w-full details-input-field cursor-pointer"
+                                    onClick={(e) => e.stopPropagation()}
+                                    onTouchStart={(e) => e.stopPropagation()}
                                 >
-                                    {needleOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
+                                    <select
+                                        value={tempGaugeData.needleIndex || 0}
+                                        onChange={(e) => updateTempGaugeSimple('needleIndex', parseInt(e.target.value))}
+                                        className="w-full bg-transparent border-none outline-none cursor-pointer"
+                                        style={{ fontSize: '16px' }}
+                                    >
+                                        {needleOptions.map((option) => (
+                                            <option key={option.value} value={option.value}>
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
                                 {needles.length === 0 && (
                                     <p className="text-sm text-wool-500 mt-1">
-                                        No needles added yet. <button onClick={() => window.alert('Go to Needles section to add needles first!')} className="text-sage-600 underline">Add needles first</button>.
+                                        No needles added yet. Add needles in the Needles section first.
                                     </p>
                                 )}
                             </div>

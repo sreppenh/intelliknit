@@ -196,6 +196,8 @@ const NeedlesSection = ({
                         </div>
                     </div>
 
+
+
                     {/* 📝 Modal Content */}
                     <div className="p-6">
 
@@ -228,13 +230,24 @@ const NeedlesSection = ({
                             <h4 className="text-sm font-medium text-wool-700 mb-3">Add New Needle</h4>
 
                             <div className="space-y-4">
-                                {/* Size Dropdown - Full Width */}
+                                {/* Size Dropdown - with Mobile Debug */}
                                 <div>
                                     <label className="form-label">Needle Size</label>
+
+                                    {/* VISUAL DEBUG */}
+                                    <div className="bg-yellow-100 p-2 text-xs mb-2">
+                                        <div>Current size: {newNeedle.size}</div>
+                                        <div>Can add needle: {canAddNeedle ? 'YES' : 'NO'}</div>
+                                    </div>
+
                                     <select
                                         value={newNeedle.size}
-                                        onChange={(e) => updateNewNeedle('size', e.target.value)}
+                                        onChange={(e) => {
+                                            alert(`Size changed to: ${e.target.value}`);
+                                            updateNewNeedle('size', e.target.value);
+                                        }}
                                         className="w-full details-input-field"
+                                        style={{ fontSize: '16px', minHeight: '44px' }}
                                     >
                                         <option value="">Select size...</option>
                                         <option value="US 0 (2mm)">US 0 (2mm)</option>
