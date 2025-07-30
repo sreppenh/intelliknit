@@ -504,10 +504,10 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                 + Add Category (Coming Soon)
             </button>
 
-            {/* Add Tasks Modal - Updated with Needle Pattern Order */}
+            {/* Add Tasks Modal - Updated with Mobile Scrolling + Full Width Button */}
             {showAddTaskModal && currentCategory && (
                 <div className="modal-overlay" onClick={handleBackdropClick}>
-                    <div className="modal-content-light max-w-lg">
+                    <div className="modal-content-light max-w-lg max-h-[90vh] overflow-y-auto">
                         <div className="modal-header-light">
                             <div className="flex items-center gap-3">
                                 <div className="text-2xl">{currentCategory.icon}</div>
@@ -576,31 +576,29 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                 </div>
                             </div>
 
-                            {/* 3. CUSTOM ENTRY THIRD - Following Needle Pattern */}
-                            <div className={`${(selectedSuggestions.length > 0 || customTasks.length > 0) ? 'border-t border-wool-200 pt-6' : ''}`}>
-                                <h4 className="font-medium text-wool-700 mb-3">Add Custom Task</h4>
-                                <div className="flex gap-3">
-                                    <input
-                                        type="text"
-                                        value={customTaskText}
-                                        onChange={(e) => setCustomTaskText(e.target.value)}
-                                        placeholder="Enter custom task..."
-                                        className="details-input-field flex-1"
-                                        onKeyDown={(e) => {
-                                            if (e.key === 'Enter' && customTaskText.trim()) {
-                                                e.preventDefault();
-                                                handleAddCustomTask();
-                                            }
-                                        }}
-                                    />
-                                    <button
-                                        onClick={handleAddCustomTask}
-                                        disabled={!customTaskText.trim()}
-                                        className="btn-tertiary whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        + Add
-                                    </button>
-                                </div>
+                            {/* 3. CUSTOM ENTRY THIRD - Full Width Button Like Needle Pattern */}
+                            <div className={`${(selectedSuggestions.length > 0 || customTasks.length > 0) ? 'border-t border-wool-200 pt-6' : ''} space-y-3`}>
+                                <h4 className="font-medium text-wool-700">Add Custom Task</h4>
+                                <input
+                                    type="text"
+                                    value={customTaskText}
+                                    onChange={(e) => setCustomTaskText(e.target.value)}
+                                    placeholder="Enter custom task..."
+                                    className="details-input-field w-full"
+                                    onKeyDown={(e) => {
+                                        if (e.key === 'Enter' && customTaskText.trim()) {
+                                            e.preventDefault();
+                                            handleAddCustomTask();
+                                        }
+                                    }}
+                                />
+                                <button
+                                    onClick={handleAddCustomTask}
+                                    disabled={!customTaskText.trim()}
+                                    className="w-full btn-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                    + Add Custom Task
+                                </button>
                             </div>
 
                             {/* 4. ACTION BUTTONS LAST - Standard Modal Pattern */}
