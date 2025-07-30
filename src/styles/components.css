@@ -997,17 +997,24 @@ body.modal-open {
   z-index: 50;
 }
 
-/* ===== SCROLL FIXES ===== */
+/* ===== SCROLL FIXES - COMPLETE FIX ===== */
 
-/* Allow normal scrolling but prevent bounce */
+/* Only apply scroll rules to specific scrollable areas, not all .p-6 */
 .scrollable-content,
-.p-6,
-[class*="space-y"],
-.tab-content {
-  /* Normal scrolling allowed */
+.tab-content,
+.modal-content {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  /* But no bounce */
+  overscroll-behavior: none;
+}
+
+/* Remove .p-6 from global scroll rules - this was causing mobile scrollbars */
+/* .p-6 should inherit normal behavior from parent */
+
+/* Specific scrollable areas only */
+[class*="space-y"]:not(.p-6) {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
 }
 
@@ -1023,8 +1030,21 @@ body.modal-open {
     box-shadow: none !important;
   }
 
-  /* Or just hide scrollbars entirely on desktop */
+  /* Hide scrollbars entirely on desktop to fix invisible scrollbar issue */
   ::-webkit-scrollbar {
     display: none;
   }
+
+  /* For Firefox */
+  * {
+    scrollbar-width: none;
+  }
+}
+
+
+/* ===== Smart Suggestion Bubble System ===== */
+.suggestion-bubble {
+  @apply bg-white border-2 border-sage-300 text-sage-700 px-4 py-2 rounded-full text-sm font-medium;
+  @apply hover:bg-sage-50 hover:border-sage-400 transition-all duration-200 cursor-pointer;
+  @apply active:scale-95;
 }

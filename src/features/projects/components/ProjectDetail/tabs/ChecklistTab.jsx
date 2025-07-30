@@ -93,6 +93,11 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
         'Share on social media'
     ];
 
+    {/* Helper function to add to ChecklistTab component */ }
+    const removeCustomTask = (index) => {
+        setCustomTasks(prev => prev.filter((_, i) => i !== index));
+    };
+
     // Default categories
     function getDefaultCategories() {
         return [
@@ -499,7 +504,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                 + Add Category (Coming Soon)
             </button>
 
-            {/* Add Tasks Modal */}
+            {/* Add Tasks Modal - Updated with Needle Pattern Order */}
             {showAddTaskModal && currentCategory && (
                 <div className="modal-overlay" onClick={handleBackdropClick}>
                     <div className="modal-content-light max-w-lg">
@@ -520,25 +525,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                         </div>
 
                         <div className="p-6 space-y-6">
-                            {/* Smart Suggestions - Beautiful Bubble UI */}
-                            <div>
-                                <h4 className="font-medium text-wool-700 mb-4 text-center">Smart Suggestions</h4>
-                                <div className="flex flex-wrap gap-2 justify-center mb-4">
-                                    {getSuggestionsForCategory(currentCategory.id)
-                                        .filter(suggestion => !selectedSuggestions.includes(suggestion))
-                                        .map(suggestion => (
-                                            <button
-                                                key={suggestion}
-                                                onClick={() => toggleSuggestion(suggestion)}
-                                                className="px-4 py-2 rounded-full text-sm font-medium transition-all duration-200 border-2 bg-white border-lavender-300 text-lavender-700 hover:border-lavender-400 hover:bg-lavender-50 active:scale-95"
-                                            >
-                                                {suggestion}
-                                            </button>
-                                        ))}
-                                </div>
-                            </div>
-
-                            {/* Selected Tasks Live Preview */}
+                            {/* 1. PREVIEW FIRST - Tasks to Add */}
                             {(selectedSuggestions.length > 0 || customTasks.length > 0) && (
                                 <div className="bg-lavender-50 border-2 border-lavender-200 rounded-xl p-4">
                                     <h5 className="font-medium text-lavender-800 mb-3 text-center">Tasks to Add</h5>
@@ -559,7 +546,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                             <div key={`custom-${index}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-lavender-200">
                                                 <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
                                                 <button
-                                                    onClick={() => setCustomTasks(prev => prev.filter((_, i) => i !== index))}
+                                                    onClick={() => removeCustomTask(index)}
                                                     className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
                                                     title="Remove this task"
                                                 >
@@ -571,15 +558,33 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                 </div>
                             )}
 
-                            {/* Custom Task Input */}
+                            {/* 2. SMART SUGGESTIONS SECOND - Bubble UI */}
                             <div>
-                                <label className="form-label text-center block">Add Custom Task</label>
-                                <div className="flex gap-2">
+                                <h4 className="font-medium text-wool-700 mb-4 text-center">Smart Suggestions</h4>
+                                <div className="flex flex-wrap gap-2 justify-center mb-4">
+                                    {getSuggestionsForCategory(currentCategory.id)
+                                        .filter(suggestion => !selectedSuggestions.includes(suggestion))
+                                        .map(suggestion => (
+                                            <button
+                                                key={suggestion}
+                                                onClick={() => toggleSuggestion(suggestion)}
+                                                className="suggestion-bubble"
+                                            >
+                                                {suggestion}
+                                            </button>
+                                        ))}
+                                </div>
+                            </div>
+
+                            {/* 3. CUSTOM ENTRY THIRD - Following Needle Pattern */}
+                            <div className={`${(selectedSuggestions.length > 0 || customTasks.length > 0) ? 'border-t border-wool-200 pt-6' : ''}`}>
+                                <h4 className="font-medium text-wool-700 mb-3">Add Custom Task</h4>
+                                <div className="flex gap-3">
                                     <input
                                         type="text"
                                         value={customTaskText}
                                         onChange={(e) => setCustomTaskText(e.target.value)}
-                                        placeholder="e.g., Block aggressively - this yarn grows!"
+                                        placeholder="Enter custom task..."
                                         className="details-input-field flex-1"
                                         onKeyDown={(e) => {
                                             if (e.key === 'Enter' && customTaskText.trim()) {
@@ -591,22 +596,27 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                     <button
                                         onClick={handleAddCustomTask}
                                         disabled={!customTaskText.trim()}
-                                        className="btn-secondary whitespace-nowrap"
+                                        className="btn-tertiary whitespace-nowrap disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        Add
+                                        + Add
                                     </button>
                                 </div>
                             </div>
 
-                            {/* Action Buttons */}
+                            {/* 4. ACTION BUTTONS LAST - Standard Modal Pattern */}
                             <div className="flex gap-3 pt-2">
-                                <button onClick={handleCloseModal} className="btn-tertiary flex-1">
+                                <button
+                                    onClick={handleCloseModal}
+                                    data-modal-cancel
+                                    className="btn-tertiary flex-1"
+                                >
                                     Cancel
                                 </button>
                                 <button
                                     onClick={handleAddSelectedTasks}
                                     disabled={selectedSuggestions.length === 0 && customTasks.length === 0}
-                                    className="btn-primary flex-1"
+                                    data-modal-primary
+                                    className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
                                 >
                                     Add {selectedSuggestions.length + customTasks.length} Tasks
                                 </button>
@@ -615,6 +625,8 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                     </div>
                 </div>
             )}
+
+
         </div>
     );
 };
