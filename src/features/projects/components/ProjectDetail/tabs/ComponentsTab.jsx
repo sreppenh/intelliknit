@@ -18,21 +18,25 @@ const ComponentsTab = ({
         {
             status: 'edit_mode',
             title: '✏️ Edit Mode',
+            instruction: 'Tap component to add steps',
             headerStyle: 'bg-yarn-100 border-yarn-300 text-yarn-800',
         },
         {
             status: 'ready_to_knit',
             title: '⚡ Ready to Knit',
+            instruction: 'Tap component to continue knitting',
             headerStyle: 'bg-sage-100 border-sage-300 text-sage-800',
         },
         {
             status: 'currently_knitting',
             title: '🧶 Currently Knitting',
+            instruction: 'Tap component to continue knitting',
             headerStyle: 'bg-sage-200 border-sage-400 text-sage-800',
         },
         {
             status: 'finished',
             title: '✅ Finished',
+            instruction: 'Tap component to view details',
             headerStyle: 'bg-sage-300 border-sage-500 text-sage-800',
         }
     ];
@@ -332,6 +336,9 @@ const ComponentStatusSection = ({ category, components, onComponentAction, openM
                 <div>
                     <h3 className="text-base font-semibold flex items-center gap-2">
                         {category.title} ({components.length})
+                        <span className="text-xs font-normal opacity-75 ml-2">
+                            {category.instruction}
+                        </span>
                     </h3>
                 </div>
             </div>
