@@ -925,8 +925,6 @@ select {
 }
 
 
-
-
 /* ===== GLOBAL ANTI-BOUNCE FIXES ===== */
 /* Add this to components.css - fixes bouncing but preserves scrolling! */
 
@@ -1011,4 +1009,17 @@ body.modal-open {
   -webkit-overflow-scrolling: touch;
   /* But no bounce */
   overscroll-behavior: none;
+}
+
+/* Minimal fix - just add these to stop the flickering */
+html {
+  overflow-x: hidden;
+}
+
+body {
+  overflow-x: hidden;
+}
+
+* {
+  box-sizing: border-box;
 }

@@ -19,6 +19,9 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
     const [customTaskText, setCustomTaskText] = useState('');
     const [customTasks, setCustomTasks] = useState([]);
 
+    // Three-dot menu state (borrowed from Components tab)
+    const [openMenuId, setOpenMenuId] = useState(null);
+
     // Get or initialize checklist data
     const checklist = project.checklist || { categories: getDefaultCategories() };
 
@@ -174,24 +177,31 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
         });
     };
 
-    const handleReorderTasks = (categoryId, fromIndex, toIndex) => {
+    const handleMoveTask = (categoryId, taskId, direction) => {
         const updatedChecklist = {
             ...checklist,
             categories: checklist.categories.map(category => {
                 if (category.id === categoryId) {
-                    const reorderedTasks = [...category.tasks];
-                    const [movedTask] = reorderedTasks.splice(fromIndex, 1);
-                    reorderedTasks.splice(toIndex, 0, movedTask);
+                    const sortedTasks = [...category.tasks].sort((a, b) => (a.order || 0) - (b.order || 0));
+                    const currentIndex = sortedTasks.findIndex(task => task.id === taskId);
+
+                    if (direction === 'up' && currentIndex > 0) {
+                        // Swap with previous task
+                        [sortedTasks[currentIndex], sortedTasks[currentIndex - 1]] = [sortedTasks[currentIndex - 1], sortedTasks[currentIndex]];
+                    } else if (direction === 'down' && currentIndex < sortedTasks.length - 1) {
+                        // Swap with next task
+                        [sortedTasks[currentIndex], sortedTasks[currentIndex + 1]] = [sortedTasks[currentIndex + 1], sortedTasks[currentIndex]];
+                    }
 
                     // Update order values
-                    const tasksWithNewOrder = reorderedTasks.map((task, index) => ({
+                    const reorderedTasks = sortedTasks.map((task, index) => ({
                         ...task,
                         order: index
                     }));
 
                     return {
                         ...category,
-                        tasks: tasksWithNewOrder
+                        tasks: reorderedTasks
                     };
                 }
                 return category;
@@ -202,6 +212,30 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
             ...project,
             checklist: updatedChecklist
         });
+    };
+
+    // Three-dot menu handlers (adapted from Components tab)
+    const handleMenuToggle = (taskId, e) => {
+        e.stopPropagation();
+        if (openMenuId === taskId) {
+            setOpenMenuId(null);
+        } else {
+            setOpenMenuId(taskId);
+        }
+    };
+
+    const handleMenuAction = (action, categoryId, taskId, e) => {
+        e.stopPropagation();
+
+        if (action === 'delete') {
+            handleDeleteTask(categoryId, taskId);
+        } else if (action === 'move-up') {
+            handleMoveTask(categoryId, taskId, 'up');
+        } else if (action === 'move-down') {
+            handleMoveTask(categoryId, taskId, 'down');
+        }
+
+        setOpenMenuId(null);
     };
 
     const toggleSuggestion = (suggestion) => {
@@ -305,119 +339,83 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
 
     const stats = getCompletionStats();
 
-    // Task Item Component with Swipe-to-Delete and Reordering
+    // Task Item Component with Three-Dot Menu (adapted from Components tab)
     const TaskItem = ({ task, categoryId, index, totalTasks }) => {
-        const [swipeOffset, setSwipeOffset] = useState(0);
-        const [isDragging, setIsDragging] = useState(false);
-        const [startY, setStartY] = useState(0);
-        const [currentY, setCurrentY] = useState(0);
-        const swipeThreshold = 100; // pixels to trigger delete
-
-        // Touch handlers for swipe-to-delete
-        const handleTouchStart = (e) => {
-            const touch = e.touches[0];
-            setSwipeOffset(0);
-            document.body.style.userSelect = 'none';
-        };
-
-        const handleTouchMove = (e) => {
-            const touch = e.touches[0];
-            const deltaX = touch.clientX - e.changedTouches[0].clientX;
-
-            // Only allow left swipe (negative values)
-            if (deltaX < 0) {
-                setSwipeOffset(Math.max(deltaX, -150)); // Max swipe distance
-            }
-        };
-
-        const handleTouchEnd = (e) => {
-            document.body.style.userSelect = '';
-
-            if (Math.abs(swipeOffset) > swipeThreshold) {
-                // Trigger delete
-                handleDeleteTask(categoryId, task.id);
-            } else {
-                // Snap back
-                setSwipeOffset(0);
-            }
-        };
-
-        // Drag handlers for reordering
-        const handleDragStart = (e) => {
-            const touch = e.touches[0];
-            setIsDragging(true);
-            setStartY(touch.clientY);
-            setCurrentY(touch.clientY);
-        };
-
-        const handleDragMove = (e) => {
-            if (!isDragging) return;
-            const touch = e.touches[0];
-            setCurrentY(touch.clientY);
-        };
-
-        const handleDragEnd = (e) => {
-            if (!isDragging) return;
-            setIsDragging(false);
-
-            const deltaY = currentY - startY;
-            const itemHeight = 60; // approximate height of each task item
-            const positions = Math.round(deltaY / itemHeight);
-
-            if (Math.abs(positions) >= 1) {
-                const newIndex = Math.max(0, Math.min(totalTasks - 1, index + positions));
-                if (newIndex !== index) {
-                    handleReorderTasks(categoryId, index, newIndex);
-                }
-            }
-        };
+        const isFirst = index === 0;
+        const isLast = index === totalTasks - 1;
 
         return (
-            <div
-                className={`relative overflow-hidden transition-transform duration-200 ${isDragging ? 'scale-105 shadow-lg z-10' : ''
-                    }`}
-                style={{
-                    transform: `translateX(${swipeOffset}px) ${isDragging ? `translateY(${currentY - startY}px)` : ''}`
-                }}
-                onTouchStart={handleTouchStart}
-                onTouchMove={handleTouchMove}
-                onTouchEnd={handleTouchEnd}
-            >
-                {/* Delete Background (revealed on swipe) */}
-                <div className="absolute right-0 top-0 bottom-0 bg-red-500 flex items-center justify-center w-20 text-white font-bold">
-                    Delete
-                </div>
+            <div className="bg-white flex items-center gap-3 p-4 min-h-[60px] hover:bg-lavender-50 transition-colors relative">
+                {/* Checkbox - Large Touch Target */}
+                <button
+                    onClick={() => handleToggleTask(categoryId, task.id)}
+                    className={`w-8 h-8 rounded border-2 flex items-center justify-center transition-all ${task.completed
+                            ? 'bg-lavender-500 border-lavender-500 text-white shadow-sm'
+                            : 'border-lavender-400 hover:border-lavender-500 hover:bg-lavender-50'
+                        }`}
+                >
+                    {task.completed && '✓'}
+                </button>
 
-                {/* Main Task Content */}
-                <div className="bg-white flex items-center gap-3 p-4 min-h-[60px] hover:bg-lavender-50 transition-colors relative">
-                    {/* Checkbox - Large Touch Target */}
+                {/* Task Text - Larger, More Readable */}
+                <span className={`flex-1 transition-all text-base ${task.completed
+                        ? 'text-lavender-400 line-through'
+                        : 'text-wool-700'
+                    }`}>
+                    {task.text}
+                </span>
+
+                {/* Three-dot Menu (exact copy from Components tab) */}
+                <div className="relative ml-2 flex-shrink-0">
                     <button
-                        onClick={() => handleToggleTask(categoryId, task.id)}
-                        className={`w-8 h-8 rounded border-2 flex items-center justify-center transition-all ${task.completed
-                                ? 'bg-lavender-500 border-lavender-500 text-white shadow-sm'
-                                : 'border-lavender-400 hover:border-lavender-500 hover:bg-lavender-50'
+                        onClick={(e) => handleMenuToggle(task.id, e)}
+                        className={`p-1.5 text-wool-400 hover:text-wool-600 hover:bg-wool-200 rounded-full transition-colors ${openMenuId === task.id ? 'relative z-[101]' : ''
                             }`}
+                        aria-label={`Menu for ${task.text}`}
                     >
-                        {task.completed && '✓'}
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
+                            <circle cx="8" cy="3" r="1.5" />
+                            <circle cx="8" cy="8" r="1.5" />
+                            <circle cx="8" cy="13" r="1.5" />
+                        </svg>
                     </button>
 
-                    {/* Task Text - Larger, More Readable */}
-                    <span className={`flex-1 transition-all text-base ${task.completed
-                            ? 'text-lavender-400 line-through'
-                            : 'text-wool-700'
-                        }`}>
-                        {task.text}
-                    </span>
+                    {openMenuId === task.id && (
+                        <>
+                            {/* Backdrop for click-outside */}
+                            <div
+                                className="fixed inset-0 z-[90]"
+                                onMouseDown={() => setOpenMenuId(null)}
+                                aria-hidden="true"
+                            />
 
-                    {/* Drag Handle */}
-                    <div
-                        className="text-lavender-400 cursor-move p-2 touch-manipulation"
-                        onTouchStart={handleDragStart}
-                        onTouchMove={handleDragMove}
-                        onTouchEnd={handleDragEnd}
-                    >
-                        ⋮⋮
-                    </div>
+                            {/* Menu with smooth animation */}
+                            <div className="absolute right-0 top-10 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in">
+                                {!isFirst && (
+                                    <button
+                                        onClick={(e) => handleMenuAction('move-up', categoryId, task.id, e)}
+                                        className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
+                                    >
+                                        ↑ Move Up
+                                    </button>
+                                )}
+                                {!isLast && (
+                                    <button
+                                        onClick={(e) => handleMenuAction('move-down', categoryId, task.id, e)}
+                                        className={`w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium ${!isFirst ? 'border-t border-wool-100' : ''}`}
+                                    >
+                                        ↓ Move Down
+                                    </button>
+                                )}
+                                <button
+                                    onClick={(e) => handleMenuAction('delete', categoryId, task.id, e)}
+                                    className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
+                                >
+                                    🗑️ Delete
+                                </button>
+                            </div>
+                        </>
+                    )}
                 </div>
             </div>
         );
