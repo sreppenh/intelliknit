@@ -259,7 +259,7 @@ const YarnsSection = ({
 
             {/* 🎭 Modal Overlay */}
             <div className="modal-overlay" onClick={handleBackdropClick}>
-                <div className="modal-content-light" style={{ maxWidth: '500px' }}>
+                <div className="modal-content-light max-h-[90vh] overflow-y-auto" style={{ maxWidth: '500px' }}>
 
                     {/* 📋 Modal Header */}
                     <div className="modal-header-light">

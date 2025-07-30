@@ -195,7 +195,8 @@ const NeedlesSection = ({
 
             {/* 🎭 Modal Overlay */}
             <div className="modal-overlay" onClick={handleBackdropClick}>
-                <div className="modal-content-light">
+                <div className="modal-content-light max-h-[90vh] overflow-y-auto">
+
 
                     {/* 📋 Modal Header */}
                     <div className="modal-header-light">
@@ -276,7 +277,7 @@ const NeedlesSection = ({
 
                                 {/* Type Dropdown - Full Width */}
                                 <div>
-                                    <label className="form-label">Needle Type</label>
+                                    <label className="form-label">Needle Type (optional)</label>
                                     <select
                                         value={newNeedle.type}
                                         onChange={(e) => updateNewNeedle('type', e.target.value)}
