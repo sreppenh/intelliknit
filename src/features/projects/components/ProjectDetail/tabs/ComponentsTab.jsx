@@ -1,20 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 
 const ComponentsTab = ({
     project,
-    onProjectUpdate,
     onShowEnhancedCreation,
     onComponentManageSteps,
     onComponentMenuAction,
     openMenuId,
     setOpenMenuId
 }) => {
-    const [showSuggestionChoiceModal, setShowSuggestionChoiceModal] = useState(false);
-    const [selectedCopyComponent, setSelectedCopyComponent] = useState(null);
+    const [showComponentChoiceModal, setShowComponentChoiceModal] = useState(false);
     const [selectedSuggestion, setSelectedSuggestion] = useState(null);
-    const [showCopyWarningModal, setShowCopyWarningModal] = useState(false);
-    const [openMenu, setOpenMenu] = useState(null);
+    const [copyFromComponent, setCopyFromComponent] = useState('');
+    const [createMode, setCreateMode] = useState('new');
 
     // Generate smart suggestions based on project type
     const generateSmartSuggestions = (project) => {
@@ -22,7 +20,6 @@ const ComponentsTab = ({
         const components = project.components || [];
         const componentNames = components.map(c => c.name.toLowerCase());
 
-        // Project type-based suggestions
         if (project.projectType === 'sweater') {
             if (!componentNames.some(name => name.includes('left sleeve'))) {
                 suggestions.push({
@@ -35,11 +32,10 @@ const ComponentsTab = ({
 
             if (componentNames.some(name => name.includes('left sleeve')) &&
                 !componentNames.some(name => name.includes('right sleeve'))) {
-                const leftSleeve = components.find(c => c.name.toLowerCase().includes('left sleeve'));
                 suggestions.push({
                     type: 'copy',
                     name: 'Right Sleeve',
-                    sourceComponent: leftSleeve,
+                    construction: project.construction || 'flat',
                     setupNotes: 'Mirror of left sleeve'
                 });
             }
@@ -50,16 +46,6 @@ const ComponentsTab = ({
                     name: 'Collar',
                     construction: 'round',
                     setupNotes: 'Pick up stitches from neckline'
-                });
-            }
-
-            if (project.projectType === 'cardigan' &&
-                !componentNames.some(name => name.includes('button'))) {
-                suggestions.push({
-                    type: 'new',
-                    name: 'Button Band',
-                    construction: 'flat',
-                    setupNotes: 'Pick up stitches along front edge'
                 });
             }
         }
@@ -84,7 +70,6 @@ const ComponentsTab = ({
             }
         }
 
-        // Limit to 3 suggestions for clean UI
         return suggestions.slice(0, 3);
     };
 
@@ -92,49 +77,37 @@ const ComponentsTab = ({
         {
             status: 'edit_mode',
             title: '✏️ Edit Mode',
-            subtitle: '',
             headerStyle: 'bg-yarn-100 border-yarn-300 text-yarn-800',
-            priority: 1
         },
         {
             status: 'ready_to_knit',
             title: '⚡ Ready to Knit',
-            subtitle: '',
             headerStyle: 'bg-sage-100 border-sage-300 text-sage-800',
-            priority: 2
         },
         {
             status: 'currently_knitting',
             title: '🧶 Currently Knitting',
-            subtitle: '',
             headerStyle: 'bg-sage-200 border-sage-400 text-sage-800',
-            priority: 3
         },
         {
             status: 'finished',
             title: '✅ Finished',
-            subtitle: '',
             headerStyle: 'bg-sage-300 border-sage-500 text-sage-800',
-            priority: 4
         }
     ];
 
-    // Get component status using existing logic from CompactComponentCard
+    // Get component status (same logic as before)
     const getComponentStatus = (component) => {
-        // Handle finishing steps
         if (component.type === 'finishing') {
             if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
                 return 'finishing_in_progress';
             }
-
             const allComplete = component.steps.every(s => s.completed);
             const manuallyConfirmed = component.finishingComplete;
-
             if (allComplete && manuallyConfirmed) return 'finishing_done';
             return 'finishing_in_progress';
         }
 
-        // Regular component logic
         if (!component.steps || component.steps.length === 0) return 'edit_mode';
 
         const hasCastOn = component.steps.some(step =>
@@ -156,11 +129,9 @@ const ComponentsTab = ({
         return 'edit_mode';
     };
 
-    // Group components by status
     const getComponentsByStatus = (status) => {
         return project.components.filter(component => {
             const componentStatus = getComponentStatus(component);
-            // Map finishing statuses to main categories
             if (status === 'currently_knitting' &&
                 (componentStatus === 'finishing_in_progress' || componentStatus === 'finishing_done')) {
                 return true;
@@ -174,69 +145,68 @@ const ComponentsTab = ({
 
     // Handle suggestion selection
     const handleSuggestionSelect = (suggestion) => {
-        IntelliKnitLogger.debug('Suggestion selected', suggestion);
+        setSelectedSuggestion(suggestion);
+        setCreateMode('new');
+        setCopyFromComponent('');
+        setShowComponentChoiceModal(true);
+    };
 
-        if (suggestion.type === 'copy') {
-            // Check if other components exist
-            const otherComponents = project.components.filter(c => c.id !== suggestion.sourceComponent?.id);
-
-            if (otherComponents.length === 0) {
-                // No other components - launch creator with prefilled name
-                openSmartComponentCreation({
-                    name: suggestion.name,
-                    construction: suggestion.construction,
-                    setupNotes: suggestion.setupNotes
-                });
-            } else {
-                // Show copy/create choice popup
-                setSelectedSuggestion(suggestion);
-                setShowSuggestionChoiceModal(true);
+    // Modal behavior
+    useEffect(() => {
+        const handleEscKey = (event) => {
+            if (event.key === 'Escape' && showComponentChoiceModal) {
+                handleCloseModal();
             }
-        } else {
-            // Direct creation with prefilled data
-            openSmartComponentCreation({
-                name: suggestion.name,
-                construction: suggestion.construction,
-                setupNotes: suggestion.setupNotes
-            });
+        };
+
+        if (showComponentChoiceModal) {
+            document.addEventListener('keydown', handleEscKey);
+            setTimeout(() => {
+                const primaryButton = document.querySelector('[data-modal-primary]');
+                if (primaryButton) primaryButton.focus();
+            }, 100);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscKey);
+        };
+    }, [showComponentChoiceModal]);
+
+    const handleBackdropClick = (event) => {
+        if (event.target === event.currentTarget) {
+            handleCloseModal();
         }
     };
 
-    const handleConfirmCopy = () => {
-        const suggestion = selectedSuggestion;
-        const copiedComponent = {
-            ...suggestion.sourceComponent,
-            name: suggestion.name,
-            id: generateNewId(),
-            setupNotes: suggestion.setupNotes,
-            steps: suggestion.sourceComponent.steps.map(step => ({
-                ...step,
-                id: generateNewId(),
-                completed: false
-            }))
-        };
-
-        // Open wizard with copied data
-        openSmartComponentCreation(copiedComponent);
-        setShowCopyWarningModal(false);
+    const handleCloseModal = () => {
+        setShowComponentChoiceModal(false);
+        setSelectedSuggestion(null);
+        setCopyFromComponent('');
+        setCreateMode('new');
     };
 
-    // Open Smart Component Creation with prefilled data
-    const openSmartComponentCreation = (prefilledData = {}) => {
-        IntelliKnitLogger.debug('Opening SmartComponentCreation with data', prefilledData);
-        // This would integrate with existing SmartComponentCreation
-        // For now, falling back to existing creation method
-        onShowEnhancedCreation();
+    const handleCreateComponent = () => {
+        if (createMode === 'copy' && !copyFromComponent) {
+            return;
+        }
+
+        if (createMode === 'copy') {
+            onComponentMenuAction('copy', copyFromComponent);
+        } else {
+            onShowEnhancedCreation();
+        }
+
+        handleCloseModal();
     };
 
-    const generateNewId = () => {
-        return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    const canCreateComponent = () => {
+        if (createMode === 'copy') {
+            return copyFromComponent !== '';
+        }
+        return true;
     };
 
-    // Handle component actions
     const handleComponentAction = (component, action) => {
-        IntelliKnitLogger.debug('Component action', { component: component.name, action });
-
         switch (action) {
             case 'edit':
             case 'view':
@@ -253,20 +223,14 @@ const ComponentsTab = ({
         }
     };
 
-    // Handle more options (future enhancement)
-    const handleMoreOptions = () => {
-        IntelliKnitLogger.debug('More options clicked');
-        // Future: Show additional management options
-    };
-
     return (
         <div className="p-6">
-            {/* Header with maintenance focus */}
+            {/* Header */}
             <div className="content-header-with-buttons">
                 <h2 className="content-title">🧶 Components ({totalComponents})</h2>
                 <div className="button-group">
                     <button
-                        onClick={() => openSmartComponentCreation()}
+                        onClick={onShowEnhancedCreation}
                         className="btn-primary btn-sm"
                     >
                         + Add Component
@@ -279,11 +243,13 @@ const ComponentsTab = ({
                 <div className="mb-6">
                     <div className="flex flex-wrap gap-2">
                         {suggestedComponents.map(suggestion => (
-                            <SuggestionBubble
+                            <button
                                 key={`${suggestion.type}-${suggestion.name}`}
-                                suggestion={suggestion}
-                                onSelect={handleSuggestionSelect}
-                            />
+                                onClick={() => handleSuggestionSelect(suggestion)}
+                                className="suggestion-bubble"
+                            >
+                                {suggestion.name}
+                            </button>
                         ))}
                     </div>
                 </div>
@@ -314,96 +280,107 @@ const ComponentsTab = ({
                 </div>
             )}
 
-            {/* Simple Suggestion Choice Modal */}
-            {showSuggestionChoiceModal && selectedSuggestion && (
-                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            {/* Component Choice Modal */}
+            {showComponentChoiceModal && selectedSuggestion && (
+                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={handleBackdropClick}>
                     <div className="bg-white rounded-xl max-w-sm w-full">
                         <div className="p-4 border-b border-gray-200">
                             <h2 className="text-lg font-semibold">Create {selectedSuggestion.name}</h2>
                         </div>
-                        <div className="p-4 space-y-3">
-                            <button
-                                onClick={() => {
-                                    setShowSuggestionChoiceModal(false);
-                                    setShowCopyWarningModal(true);
-                                }}
-                                className="w-full btn-secondary"
-                            >
-                                📋 Copy from existing component
-                            </button>
-                            <button
-                                onClick={() => {
-                                    setShowSuggestionChoiceModal(false);
-                                    openSmartComponentCreation({
-                                        name: selectedSuggestion.name,
-                                        construction: selectedSuggestion.construction,
-                                        setupNotes: selectedSuggestion.setupNotes
-                                    });
-                                }}
-                                className="w-full btn-tertiary"
-                            >
-                                ✨ Create new component
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-            {showCopyWarningModal && selectedSuggestion && (
-                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-4 border-b border-gray-200">
-                            <div className="flex items-center gap-3">
-                                <div className="text-2xl">🔄</div>
-                                <div className="flex-1">
-                                    <h2 className="text-lg font-semibold">Copy Component</h2>
-                                    <p className="text-sage-600 text-sm">Copying from {selectedSuggestion.sourceComponent?.name}</p>
+
+                        <div className="p-4 space-y-4">
+                            {/* Create New Option */}
+                            <label className={`block cursor-pointer p-3 rounded-xl border-2 transition-all duration-200 ${createMode === 'new'
+                                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                                }`}>
+                                <div className="flex items-start gap-4">
+                                    <input
+                                        type="radio"
+                                        name="create_mode"
+                                        value="new"
+                                        checked={createMode === 'new'}
+                                        onChange={(e) => setCreateMode(e.target.value)}
+                                        className="w-4 h-4 text-sage-600 mt-1"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-1">
+                                            <span className="text-xl">✨</span>
+                                            <div className="text-left">
+                                                <div className="font-medium">Create New Component</div>
+                                                <div className="text-sm opacity-75">Start fresh with the component wizard</div>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
-                                <button
-                                    onClick={() => setShowCopyWarningModal(false)}
-                                    className="text-gray-400 hover:text-gray-600 text-xl font-bold w-8 h-8 flex items-center justify-center"
-                                >
-                                    ×
-                                </button>
-                            </div>
+                            </label>
+
+                            {/* Copy from Existing Option */}
+                            <label className={`block cursor-pointer p-3 rounded-xl border-2 transition-all duration-200 ${createMode === 'copy'
+                                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                                }`}>
+                                <div className="flex items-start gap-4">
+                                    <input
+                                        type="radio"
+                                        name="create_mode"
+                                        value="copy"
+                                        checked={createMode === 'copy'}
+                                        onChange={(e) => setCreateMode(e.target.value)}
+                                        className="w-4 h-4 text-sage-600 mt-1"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-3 mb-1">
+                                            <span className="text-xl">📋</span>
+                                            <div className="text-left">
+                                                <div className="font-medium">Copy from Existing</div>
+                                                <div className="text-sm opacity-75">Copy steps from another component</div>
+                                            </div>
+                                        </div>
+
+                                        {/* Nested content inside the radio option */}
+                                        {createMode === 'copy' && (
+                                            <div className="mt-3 space-y-3">
+                                                <select
+                                                    value={copyFromComponent}
+                                                    onChange={(e) => setCopyFromComponent(e.target.value)}
+                                                    className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                                                >
+                                                    <option value="">Select component...</option>
+                                                    {project.components.map(comp => (
+                                                        <option key={comp.id} value={comp.id}>
+                                                            {comp.name} ({comp.steps?.length || 0} steps)
+                                                        </option>
+                                                    ))}
+                                                </select>
+
+                                                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
+                                                    <strong>Note:</strong> To modify copied steps, only delete from the end working backwards. This maintains stitch count dependencies.
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                </div>
+                            </label>
                         </div>
 
-                        <div className="p-6">
-                            <div className="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
-                                <h4 className="font-medium text-amber-800 mb-2">⚠️ Step Editing Rules</h4>
-                                <div className="text-sm text-amber-700 space-y-1">
-                                    <p>This will copy all {selectedSuggestion.sourceComponent?.steps?.length || 0} steps from {selectedSuggestion.sourceComponent?.name}.</p>
-                                    <p><strong>To modify steps:</strong> Only delete from the end, working backwards.</p>
-                                    <p><strong>Reason:</strong> Maintains stitch count dependencies between steps.</p>
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowCopyWarningModal(false)}
-                                    className="btn-tertiary flex-1"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleConfirmCopy}
-                                    className="btn-primary flex-1"
-                                >
-                                    Continue with Copy
-                                </button>
-                                <button
-                                    onClick={() => {
-                                        setShowCopyWarningModal(false);
-                                        openSmartComponentCreation({
-                                            name: selectedSuggestion.name,
-                                            construction: selectedSuggestion.construction,
-                                            setupNotes: selectedSuggestion.setupNotes
-                                        });
-                                    }}
-                                    className="btn-secondary flex-1"
-                                >
-                                    Start Fresh Instead
-                                </button>
-                            </div>
+                        {/* Action Buttons */}
+                        <div className="p-4 border-t border-gray-100 flex gap-3">
+                            <button
+                                onClick={handleCloseModal}
+                                data-modal-cancel
+                                className="btn-tertiary flex-1"
+                            >
+                                Cancel
+                            </button>
+                            <button
+                                onClick={handleCreateComponent}
+                                disabled={!canCreateComponent()}
+                                data-modal-primary
+                                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                                Create
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -412,17 +389,7 @@ const ComponentsTab = ({
     );
 };
 
-// Suggestion Bubble Component
-const SuggestionBubble = ({ suggestion, onSelect }) => (
-    <button
-        onClick={() => onSelect(suggestion)}
-        className="bg-white border-2 border-sage-300 text-sage-700 px-4 py-2 rounded-full text-sm font-medium hover:bg-sage-50 hover:border-sage-400 transition-all duration-200 cursor-pointer active:scale-95"
-    >
-        {suggestion.name}
-    </button>
-);
-
-// Component Status Section Component
+// Component Status Section
 const ComponentStatusSection = ({ category, components, onComponentAction, openMenuId, setOpenMenuId }) => {
     if (components.length === 0) return null;
 
@@ -434,9 +401,6 @@ const ComponentStatusSection = ({ category, components, onComponentAction, openM
                     <h3 className="text-base font-semibold flex items-center gap-2">
                         {category.title} ({components.length})
                     </h3>
-                    {category.subtitle && (
-                        <p className="text-sm opacity-75">{category.subtitle}</p>
-                    )}
                 </div>
             </div>
 
@@ -457,10 +421,8 @@ const ComponentStatusSection = ({ category, components, onComponentAction, openM
     );
 };
 
-// Component Maintenance Card Component
+// Component Maintenance Card
 const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, setOpenMenuId }) => {
-    const [showMenu, setShowMenu] = useState(false);
-
     const getStepInfo = () => {
         const total = component.steps?.length || 0;
         const completed = component.steps?.filter(s => s.completed).length || 0;
@@ -473,11 +435,11 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
 
     const getMainAction = () => {
         switch (status) {
-            case 'edit_mode': return { icon: '✏️', label: 'Edit', action: 'edit' };
-            case 'ready_to_knit': return { icon: '🎯', label: 'Ready', action: 'edit' };
-            case 'currently_knitting': return { icon: '▶️', label: 'Continue', action: 'edit' };
-            case 'finished': return { icon: '👁️', label: 'View', action: 'view' };
-            default: return { icon: '✏️', label: 'Edit', action: 'edit' };
+            case 'edit_mode': return { icon: '✏️', action: 'edit' };
+            case 'ready_to_knit': return { icon: '🎯', action: 'edit' };
+            case 'currently_knitting': return { icon: '▶️', action: 'edit' };
+            case 'finished': return { icon: '👁️', action: 'view' };
+            default: return { icon: '✏️', action: 'edit' };
         }
     };
 
@@ -493,7 +455,7 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
     };
 
     return (
-        <div className="group relative">
+        <div className="group">
             {/* Clickable card body */}
             <div
                 className="flex items-center gap-3 p-4 min-h-[60px] hover:bg-gray-50 transition-colors cursor-pointer"
@@ -511,8 +473,8 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 relative z-10">
-                    {/* Main Action button (optional, can be removed if row is clickable) */}
-                    <button
+                    {/* Main Action button */}
+                    {/*}          <button
                         onClick={(e) => {
                             e.stopPropagation();
                             onAction(component, mainAction.action);
@@ -520,13 +482,14 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
                         className="btn-tertiary btn-sm flex items-center gap-1"
                     >
                         {mainAction.icon}
-                    </button>
+                    </button>.   */}
 
-                    {/* Menu Button */}
-                    <div className="relative z-[9999]">
+                    {/* Menu Button - WORKING PATTERN FROM COMPACTCOMPONENTCARD */}
+                    <div className="relative ml-2 flex-shrink-0">
                         <button
                             onClick={handleMenuToggle}
-                            className={`p-1.5 text-wool-400 hover:text-wool-600 hover:bg-wool-200 rounded-full transition-colors ${openMenuId === component.id ? 'relative z-[102]' : ''}`}
+                            className={`p-1.5 text-wool-400 hover:text-wool-600 hover:bg-wool-200 rounded-full transition-colors ${openMenuId === component.id ? 'relative z-[101]' : ''
+                                }`}
                         >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                 <circle cx="8" cy="3" r="1.5" />
@@ -536,12 +499,61 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
                         </button>
 
                         {openMenuId === component.id && (
-                            <ComponentActionMenu
-                                component={component}
-                                status={status}
-                                onAction={onAction}
-                                onClose={() => setOpenMenuId(null)}
-                            />
+                            <>
+                                {/* Backdrop for click-outside */}
+                                <div
+                                    className="fixed inset-0 z-[90]"
+                                    onMouseDown={() => setOpenMenuId(null)}
+                                    aria-hidden="true"
+                                />
+
+                                {/* Menu with simple absolute positioning */}
+                                <div className="absolute right-0 top-10 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in">
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onAction(component, 'rename');
+                                            setOpenMenuId(null);
+                                        }}
+                                        className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
+                                    >
+                                        ✏️ Rename
+                                    </button>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onAction(component, 'copy');
+                                            setOpenMenuId(null);
+                                        }}
+                                        className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
+                                    >
+                                        📋 Copy
+                                    </button>
+                                    {status === 'finished' && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                onAction(component, 'reset');
+                                                setOpenMenuId(null);
+                                            }}
+                                            className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
+                                        >
+                                            🔄 Reset Progress
+                                        </button>
+                                    )}
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            onAction(component, 'delete');
+                                            setOpenMenuId(null);
+                                        }}
+                                        className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
+                                        disabled={component.steps?.some(s => s.completed)}
+                                    >
+                                        🗑️ Delete
+                                    </button>
+                                </div>
+                            </>
                         )}
                     </div>
                 </div>
@@ -549,49 +561,5 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
         </div>
     );
 };
-
-
-// Component Action Menu Component
-const ComponentActionMenu = ({ component, status, onAction, onClose }) => (
-    <>
-        {/* Backdrop for click-outside */}
-        <div
-            className="fixed inset-0 z-[90]"
-            onMouseDown={onClose}
-            aria-hidden="true"
-        />
-
-        {/* Menu with smooth animation */}
-        <div className="absolute right-0 top-10 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[99999] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in">
-            <button
-                onClick={() => { onAction(component, 'rename'); onClose(); }}
-                className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
-            >
-                ✏️ Rename
-            </button>
-            <button
-                onClick={() => { onAction(component, 'copy'); onClose(); }}
-                className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
-            >
-                📋 Copy
-            </button>
-            {status === 'finished' && (
-                <button
-                    onClick={() => { onAction(component, 'reset'); onClose(); }}
-                    className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
-                >
-                    🔄 Reset Progress
-                </button>
-            )}
-            <button
-                onClick={() => { onAction(component, 'delete'); onClose(); }}
-                className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
-                disabled={component.steps?.some(s => s.completed)}
-            >
-                🗑️ Delete
-            </button>
-        </div>
-    </>
-);
 
 export default ComponentsTab;
