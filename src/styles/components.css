@@ -1011,15 +1011,20 @@ body.modal-open {
   overscroll-behavior: none;
 }
 
-/* Minimal fix - just add these to stop the flickering */
-html {
-  overflow-x: hidden;
-}
+/* Only apply on desktop - leave mobile untouched */
+@media (min-width: 768px) {
 
-body {
-  overflow-x: hidden;
-}
+  /* Disable problematic hover effects on desktop */
+  .hover\:scale-\[1\.02\] {
+    transform: none !important;
+  }
 
-* {
-  box-sizing: border-box;
+  .hover\:shadow-md {
+    box-shadow: none !important;
+  }
+
+  /* Or just hide scrollbars entirely on desktop */
+  ::-webkit-scrollbar {
+    display: none;
+  }
 }

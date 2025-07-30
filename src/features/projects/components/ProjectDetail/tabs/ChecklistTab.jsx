@@ -350,8 +350,8 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                 <button
                     onClick={() => handleToggleTask(categoryId, task.id)}
                     className={`w-8 h-8 rounded border-2 flex items-center justify-center transition-all ${task.completed
-                            ? 'bg-lavender-500 border-lavender-500 text-white shadow-sm'
-                            : 'border-lavender-400 hover:border-lavender-500 hover:bg-lavender-50'
+                        ? 'bg-lavender-500 border-lavender-500 text-white shadow-sm'
+                        : 'border-lavender-400 hover:border-lavender-500 hover:bg-lavender-50'
                         }`}
                 >
                     {task.completed && '✓'}
@@ -359,8 +359,8 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
 
                 {/* Task Text - Larger, More Readable */}
                 <span className={`flex-1 transition-all text-base ${task.completed
-                        ? 'text-lavender-400 line-through'
-                        : 'text-wool-700'
+                    ? 'text-lavender-400 line-through'
+                    : 'text-wool-700'
                     }`}>
                     {task.text}
                 </span>
@@ -454,7 +454,10 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                             ))}
                     </div>
                 ) : (
-                    <div className="p-4 text-center text-lavender-400">
+                    <div
+                        className="p-4 text-center text-lavender-400 cursor-pointer hover:text-lavender-600 hover:bg-lavender-50 transition-colors"
+                        onClick={() => handleAddTask(category.id)}
+                    >
                         + Add {category.name.toLowerCase()} tasks
                     </div>
                 )}
