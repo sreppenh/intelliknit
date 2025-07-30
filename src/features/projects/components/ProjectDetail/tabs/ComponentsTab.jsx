@@ -14,65 +14,6 @@ const ComponentsTab = ({
     const [copyFromComponent, setCopyFromComponent] = useState('');
     const [createMode, setCreateMode] = useState('new');
 
-    // Generate smart suggestions based on project type
-    const generateSmartSuggestions = (project) => {
-        const suggestions = [];
-        const components = project.components || [];
-        const componentNames = components.map(c => c.name.toLowerCase());
-
-        if (project.projectType === 'sweater') {
-            if (!componentNames.some(name => name.includes('left sleeve'))) {
-                suggestions.push({
-                    type: 'new',
-                    name: 'Left Sleeve',
-                    construction: project.construction || 'flat',
-                    setupNotes: 'Sleeve construction for sweater'
-                });
-            }
-
-            if (componentNames.some(name => name.includes('left sleeve')) &&
-                !componentNames.some(name => name.includes('right sleeve'))) {
-                suggestions.push({
-                    type: 'copy',
-                    name: 'Right Sleeve',
-                    construction: project.construction || 'flat',
-                    setupNotes: 'Mirror of left sleeve'
-                });
-            }
-
-            if (!componentNames.some(name => name.includes('collar') || name.includes('neckline'))) {
-                suggestions.push({
-                    type: 'new',
-                    name: 'Collar',
-                    construction: 'round',
-                    setupNotes: 'Pick up stitches from neckline'
-                });
-            }
-        }
-
-        if (project.projectType === 'hat') {
-            if (!componentNames.some(name => name.includes('crown'))) {
-                suggestions.push({
-                    type: 'new',
-                    name: 'Crown',
-                    construction: 'round',
-                    setupNotes: 'Decrease section for top of hat'
-                });
-            }
-
-            if (!componentNames.some(name => name.includes('brim'))) {
-                suggestions.push({
-                    type: 'new',
-                    name: 'Brim',
-                    construction: 'round',
-                    setupNotes: 'Bottom edge of hat'
-                });
-            }
-        }
-
-        return suggestions.slice(0, 3);
-    };
-
     const statusCategories = [
         {
             status: 'edit_mode',
@@ -140,7 +81,6 @@ const ComponentsTab = ({
         });
     };
 
-    const suggestedComponents = generateSmartSuggestions(project);
     const totalComponents = project.components.length;
 
     // Handle suggestion selection
@@ -238,22 +178,14 @@ const ComponentsTab = ({
                 </div>
             </div>
 
-            {/* Smart Suggestion Bubbles */}
-            {suggestedComponents.length > 0 && (
-                <div className="mb-6">
-                    <div className="flex flex-wrap gap-2">
-                        {suggestedComponents.map(suggestion => (
-                            <button
-                                key={`${suggestion.type}-${suggestion.name}`}
-                                onClick={() => handleSuggestionSelect(suggestion)}
-                                className="suggestion-bubble"
-                            >
-                                {suggestion.name}
-                            </button>
-                        ))}
-                    </div>
+            <div className="success-block-center mb-6">
+                <h4 className="text-sm font-semibold text-sage-700 mb-2">📋 Getting Started</h4>
+                <div className="text-sm text-sage-600">
+                    Break your {project.projectType} into major sections like sleeves, body, and collar.
+                    Each component will have its own step-by-step instructions.
                 </div>
-            )}
+            </div>
+
 
             {/* Status-Organized Component Lists */}
             <div className="space-y-6">
@@ -508,17 +440,16 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
                                 />
 
                                 {/* Menu with simple absolute positioning */}
-                                <div className="absolute right-0 top-10 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in">
-                                    <button
-                                        onClick={(e) => {
-                                            e.stopPropagation();
-                                            onAction(component, 'rename');
-                                            setOpenMenuId(null);
-                                        }}
-                                        className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
-                                    >
-                                        ✏️ Rename
-                                    </button>
+                                <div className="absolute right-4 top-2 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in"><button
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        onAction(component, 'rename');
+                                        setOpenMenuId(null);
+                                    }}
+                                    className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
+                                >
+                                    ✏️ Rename
+                                </button>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
