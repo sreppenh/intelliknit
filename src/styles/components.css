@@ -197,6 +197,22 @@ select {
   @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm;
 }
 
+/* ===== OPTIONAL: Enhanced Active States ===== */
+/* If users miss the bounce feedback, add these enhanced active states: */
+
+/* Enhanced shadow feedback for important cards */
+.card-component:active,
+.card-component-ready:active,
+.card-component-progress:active,
+.card-component-complete:active {
+  @apply shadow-lg;
+}
+
+/* Enhanced border feedback for selection */
+.card-interactive:active {
+  @apply shadow-md;
+}
+
 /* ===== Selection Button System (Based on Sequential Shaping Pattern) ===== */
 .selection-button {
   @apply p-4 border-2 rounded-xl transition-all duration-200 text-center cursor-pointer;
@@ -1047,20 +1063,4 @@ body.modal-open {
   * {
     scrollbar-width: none;
   }
-}
-
-/* ===== OPTIONAL: Enhanced Active States ===== */
-/* If users miss the bounce feedback, add these enhanced active states: */
-
-/* Enhanced shadow feedback for important cards */
-.card-component:active,
-.card-component-ready:active,
-.card-component-progress:active,
-.card-component-complete:active {
-  @apply shadow-lg;
-}
-
-/* Enhanced border feedback for selection */
-.card-interactive:active {
-  @apply shadow-md;
 }
