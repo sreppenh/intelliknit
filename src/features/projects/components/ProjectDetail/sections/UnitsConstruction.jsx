@@ -154,11 +154,19 @@ const UnitsConstructionSection = ({
             <div className="modal-overlay" onClick={handleBackdropClick}>
                 <div className="modal-content-light">
                     {/* Modal Header */}
-                    <div className="modal-header-light">
+                    <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
                         <div className="text-center">
                             <h2 className="text-lg font-semibold">📏 Units & Construction</h2>
                             <p className="text-sage-600 text-sm">Set your measurement preferences</p>
                         </div>
+
+                        <button
+                            onClick={handleCancelEdit} // Replace with your actual close handler
+                            className="absolute right-4 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                            aria-label="Close modal"
+                        >
+                            ×
+                        </button>
                     </div>
 
                     {/* Modal Content */}

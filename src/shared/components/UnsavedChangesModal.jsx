@@ -44,14 +44,21 @@ const UnsavedChangesModal = ({
     return (
         <div className="modal-overlay" onClick={handleBackdropClick}>
             <div className="modal-content">
-
                 {/* Header */}
-                <div className="bg-yarn-600 text-white px-6 py-4 rounded-t-2xl">
+                <div className="bg-yarn-600 text-white px-6 py-4 rounded-t-2xl relative flex items-center justify-center">
                     <div className="text-center">
                         <div className="text-2xl mb-2">🐸</div>
                         <h2 className="text-lg font-semibold">{title}</h2>
                         <p className="text-yarn-100 text-sm">Time to frog your work?</p>
                     </div>
+                    <button
+                        onClick={onCancel} // replace with your unsaved changes modal close handler
+                        className="absolute right-3 text-yarn-100 text-2xl hover:bg-yarn-500 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                        aria-label="Close Unsaved Changes modal"
+                    >
+                        ×
+                    </button>
+
                 </div>
 
                 {/* Content */}

@@ -240,7 +240,7 @@ const TimelineSection = ({
                                 </div>
                                 <button
                                     onClick={handleCloseModal}
-                                    className="text-sage-600 text-xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                                    className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-12 h-8 flex items-center justify-center transition-colors"
                                 >
                                     ×
                                 </button>

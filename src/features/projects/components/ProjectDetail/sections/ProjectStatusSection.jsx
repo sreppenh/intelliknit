@@ -358,11 +358,17 @@ const ProjectStatusSection = ({
             <div className="modal-overlay" onClick={handleBackdropClick}>
                 <div className="modal-content-light" style={{ maxWidth: '450px' }}>
                     {/* Modal Header */}
-                    <div className="modal-header-light">
+                    <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
                         <div className="text-center">
                             <h2 className="text-lg font-semibold">🎯 Edit Project Status</h2>
                             <p className="text-sage-600 text-sm">Adjust dates and progress</p>
                         </div>
+                        <button
+                            onClick={handleCancelEdit}
+                            className="absolute right-6 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                        >
+                            ×
+                        </button>
                     </div>
 
                     {/* Modal Content */}

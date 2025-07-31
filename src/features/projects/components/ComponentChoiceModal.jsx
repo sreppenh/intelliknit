@@ -36,12 +36,20 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
       <div className="modal-content-light">
 
         {/* Header with lighter celebration treatment */}
-        <div className="modal-header-light">
+        <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
           <div className="text-center">
             <div className="text-3xl mb-2">🎉</div>
             <h2 className="text-lg font-semibold">Component Created!</h2>
             <p className="text-sage-600 text-sm">🧶 {componentName} is ready to knit!</p>
           </div>
+          <button
+            onClick={onClose}  // Swap in your actual close handler
+            className="absolute right-3 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+            aria-label="Close modal"
+          >
+            ×
+          </button>
+
         </div>
 
         {/* Content with light sage background */}

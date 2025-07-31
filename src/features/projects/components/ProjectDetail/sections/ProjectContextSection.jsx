@@ -200,11 +200,18 @@ const ProjectContextSection = ({
             <div className="modal-overlay" onClick={handleBackdropClick}>
                 <div className="modal-content-light" style={{ maxWidth: '500px' }}>
                     {/* Modal Header */}
-                    <div className="modal-header-light">
+                    <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
                         <div className="text-center">
                             <h2 className="text-lg font-semibold">🎯 Project Context</h2>
                             <p className="text-sage-600 text-sm">Set project details and context</p>
                         </div>
+
+                        <button
+                            onClick={handleCancelEdit}
+                            className="absolute right-5 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                        >
+                            ×
+                        </button>
                     </div>
 
                     {/* Modal Content */}
@@ -257,8 +264,8 @@ const ProjectContextSection = ({
                                                 type="button"
                                                 onClick={() => handleTempInputChange('priority', priority)}
                                                 className={`py-2 px-3 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.priority === priority
-                                                        ? 'bg-lavender-500 text-white shadow-sm'
-                                                        : 'text-wool-600 hover:text-lavender-600'
+                                                    ? 'bg-lavender-500 text-white shadow-sm'
+                                                    : 'text-wool-600 hover:text-lavender-600'
                                                     }`}
                                             >
                                                 {priority.charAt(0).toUpperCase() + priority.slice(1)}

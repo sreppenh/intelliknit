@@ -194,12 +194,20 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
           <div className="modal-overlay">
             <div className="modal-content">
 
-              <div className="bg-red-500 text-white px-6 py-4 rounded-t-2xl">
+              <div className="bg-red-500 text-white px-6 py-4 rounded-t-2xl relative flex items-center justify-center">
                 <div className="text-center">
                   <div className="text-2xl mb-2">⚠️</div>
                   <h2 className="text-lg font-semibold">Delete Component?</h2>
                   <p className="text-red-100 text-sm">{component.name}</p>
                 </div>
+                <button
+                  onClick={() => setShowDeleteModal(false)}  // Replace with your close handler for delete modal
+                  className="absolute right-3 top-3 text-red-100 text-2xl hover:bg-red-600 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                  aria-label="Close delete confirmation modal"
+                >
+                  ×
+                </button>
+
               </div>
 
               <div className="p-6 bg-yarn-50">
