@@ -35,7 +35,7 @@ const NeedlesSection = ({
     // 🎨 Conversational Display Formatting
     const formatNeedleDisplay = (needle) => {
         let display = needle.size || 'Unknown size';
-        if (needle.type && needle.type !== 'straight') {
+        if (needle.type) {  // ← REMOVED the !== 'straight' condition
             display += ` ${needle.type}`;
         }
         return display;
@@ -52,6 +52,7 @@ const NeedlesSection = ({
 
         // If user has entered needle info but hasn't clicked "Add Another Needle", add it automatically
         if (newNeedle.size && newNeedle.size.trim()) {
+            console.log('🔧 AUTO-ADD DEBUG - newNeedle state:', newNeedle); // ADD THIS LINE
             const needleToAdd = {
                 size: newNeedle.size,
                 type: newNeedle.type || 'straight',
@@ -116,6 +117,9 @@ const NeedlesSection = ({
         console.log('=== NEEDLE UPDATE DEBUG ===');
         console.log('Field:', field);
         console.log('Value:', value);
+        console.log('Value type:', typeof value);
+        console.log('Value length:', value.length);
+        console.log('Is empty string?', value === '');
         console.log('Current newNeedle state before update:', newNeedle);
 
         setNewNeedle(prev => {
@@ -243,9 +247,6 @@ const NeedlesSection = ({
                                 {/* Size Dropdown - with Mobile Debug */}
                                 <div>
                                     <label className="form-label">Needle Size</label>
-
-
-
                                     <select
                                         value={newNeedle.size}
                                         onChange={(e) => updateNewNeedle('size', e.target.value)}

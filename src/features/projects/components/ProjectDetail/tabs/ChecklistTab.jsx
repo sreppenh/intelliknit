@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
 
 /**
  * 📋 ChecklistTab - The Ultimate Finishing Task Management System
@@ -19,8 +20,8 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
     const [customTaskText, setCustomTaskText] = useState('');
     const [customTasks, setCustomTasks] = useState([]);
 
-    // Three-dot menu state (borrowed from Components tab)
-    const [openMenuId, setOpenMenuId] = useState(null);
+    // Use shared three-dot menu behavior
+    const { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction } = useThreeDotMenu();
 
     // Get or initialize checklist data
     const checklist = project.checklist || { categories: getDefaultCategories() };
@@ -219,28 +220,20 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
         });
     };
 
-    // Three-dot menu handlers (adapted from Components tab)
-    const handleMenuToggle = (taskId, e) => {
-        e.stopPropagation();
-        if (openMenuId === taskId) {
-            setOpenMenuId(null);
-        } else {
-            setOpenMenuId(taskId);
-        }
+    const handleChecklistMenuToggle = (taskId, e) => {
+        handleMenuToggle(taskId, e); // Use the shared hook function
     };
 
-    const handleMenuAction = (action, categoryId, taskId, e) => {
-        e.stopPropagation();
+    const handleChecklistMenuAction = (action, categoryId, taskId, e) => {
+        const menuResult = handleMenuAction(action, taskId, { categoryId }, e); // Use shared hook
 
-        if (action === 'delete') {
+        if (menuResult.action === 'delete') {
             handleDeleteTask(categoryId, taskId);
-        } else if (action === 'move-up') {
+        } else if (menuResult.action === 'move-up') {
             handleMoveTask(categoryId, taskId, 'up');
-        } else if (action === 'move-down') {
+        } else if (menuResult.action === 'move-down') {
             handleMoveTask(categoryId, taskId, 'down');
         }
-
-        setOpenMenuId(null);
     };
 
     const toggleSuggestion = (suggestion) => {
@@ -363,7 +356,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                 </button>
 
                 {/* Task Text - Larger, More Readable */}
-                <span className={`flex-1 transition-all text-base ${task.completed
+                <span className={`flex-1 transition-all text-base text-left ${task.completed
                     ? 'text-lavender-400 line-through'
                     : 'text-wool-700'
                     }`}>
@@ -373,7 +366,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                 {/* Three-dot Menu (exact copy from Components tab) */}
                 <div className="relative ml-2 flex-shrink-0">
                     <button
-                        onClick={(e) => handleMenuToggle(task.id, e)}
+                        onClick={(e) => handleChecklistMenuToggle(task.id, e)}
                         className={`p-1.5 text-wool-400 hover:text-wool-600 hover:bg-wool-200 rounded-full transition-colors ${openMenuId === task.id ? 'relative z-[101]' : ''
                             }`}
                         aria-label={`Menu for ${task.text}`}
@@ -398,7 +391,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                             <div className="absolute right-0 top-10 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in">
                                 {!isFirst && (
                                     <button
-                                        onClick={(e) => handleMenuAction('move-up', categoryId, task.id, e)}
+                                        onClick={(e) => handleChecklistMenuAction('move-up', categoryId, task.id, e)}
                                         className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
                                     >
                                         ↑ Move Up

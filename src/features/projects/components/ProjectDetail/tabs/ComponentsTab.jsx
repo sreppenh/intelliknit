@@ -1,13 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
+import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
 
 const ComponentsTab = ({
     project,
     onShowEnhancedCreation,
     onComponentManageSteps,
     onComponentMenuAction,
-    openMenuId,
-    setOpenMenuId
 }) => {
 
     const statusCategories = [
@@ -36,6 +35,11 @@ const ComponentsTab = ({
             headerStyle: 'bg-sage-300 border-sage-500 text-sage-800',
         }
     ];
+
+    const { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction } = useThreeDotMenu();
+
+    // DEBUG: Let's see what we got from the hook
+    console.log('🔧 Hook values:', { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction });
 
     // Get component status (same logic as before)
     const getComponentStatus = (component) => {
@@ -99,7 +103,8 @@ const ComponentsTab = ({
             case 'copy':
             case 'delete':
             case 'reset':
-                onComponentMenuAction(action, component.id);
+                const menuResult = handleMenuAction(action, component.id);
+                onComponentMenuAction(menuResult.action, menuResult.itemId);
                 break;
             default:
                 IntelliKnitLogger.warn('Unknown component action', action);
@@ -142,6 +147,7 @@ const ComponentsTab = ({
                             onComponentAction={handleComponentAction}
                             openMenuId={openMenuId}
                             setOpenMenuId={setOpenMenuId}
+                            handleMenuToggle={handleMenuToggle}
                         />
                     );
                 })}
@@ -160,7 +166,9 @@ const ComponentsTab = ({
 };
 
 // Component Status Section
-const ComponentStatusSection = ({ category, components, onComponentAction, openMenuId, setOpenMenuId }) => {
+const ComponentStatusSection = ({ category, components, onComponentAction, openMenuId, setOpenMenuId, handleMenuToggle }) => {
+    console.log('🔧 ComponentStatusSection props:', { openMenuId, setOpenMenuId, handleMenuToggle });
+
     if (components.length === 0) return null;
 
     return (
@@ -186,7 +194,8 @@ const ComponentStatusSection = ({ category, components, onComponentAction, openM
                         status={category.status}
                         onAction={onComponentAction}
                         openMenuId={openMenuId}
-                        setOpenMenuId={setOpenMenuId}
+                        handleMenuToggle={handleMenuToggle}
+                        closeMenu={() => setOpenMenuId(null)}
                     />
                 ))}
             </div>
@@ -195,7 +204,11 @@ const ComponentStatusSection = ({ category, components, onComponentAction, openM
 };
 
 // Component Maintenance Card
-const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, setOpenMenuId }) => {
+const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, handleMenuToggle, closeMenu }) => {
+    const buttonRef = useRef(null);
+    const [menuPosition, setMenuPosition] = useState('bottom');
+
+
     const getStepInfo = () => {
         const total = component.steps?.length || 0;
         const completed = component.steps?.filter(s => s.completed).length || 0;
@@ -218,13 +231,20 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
 
     const mainAction = getMainAction();
 
-    const handleMenuToggle = (e) => {
-        e.stopPropagation();
-        if (openMenuId === component.id) {
-            setOpenMenuId(null);
-        } else {
-            setOpenMenuId(component.id);
+    // Smart positioning logic
+    useEffect(() => {
+        if (openMenuId === component.id && buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            const viewportHeight = window.innerHeight;
+            const spaceBelow = viewportHeight - rect.bottom;
+
+            // If less than 200px space below, show menu above
+            setMenuPosition(spaceBelow < 200 ? 'top' : 'bottom');
         }
+    }, [openMenuId, component.id]);
+
+    const handleComponentMenuToggle = (e) => {
+        handleMenuToggle(component.id, e);
     };
 
     return (
@@ -260,9 +280,9 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
                     {/* Menu Button - WORKING PATTERN FROM COMPACTCOMPONENTCARD */}
                     <div className="relative ml-2 flex-shrink-0">
                         <button
-                            onClick={handleMenuToggle}
-                            className={`p-1.5 text-wool-400 hover:text-wool-600 hover:bg-wool-200 rounded-full transition-colors ${openMenuId === component.id ? 'relative z-[101]' : ''
-                                }`}
+                            ref={buttonRef}
+                            onClick={handleComponentMenuToggle}
+                            className={`p-1.5 text-wool-400 hover:text-wool-600 hover:bg-wool-200 rounded-full transition-colors ${openMenuId && openMenuId === component.id ? 'relative z-[101]' : ''}`}
                         >
                             <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
                                 <circle cx="8" cy="3" r="1.5" />
@@ -271,21 +291,21 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
                             </svg>
                         </button>
 
-                        {openMenuId === component.id && (
+                        {(openMenuId && openMenuId === component.id) && (
                             <>
                                 {/* Backdrop for click-outside */}
                                 <div
                                     className="fixed inset-0 z-[90]"
-                                    onMouseDown={() => setOpenMenuId(null)}
+                                    onMouseDown={() => closeMenu()}
                                     aria-hidden="true"
                                 />
 
                                 {/* Menu with simple absolute positioning */}
-                                <div className="absolute right-4 top-2 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in"><button
+                                <div className={`absolute right-4 ${menuPosition === 'top' ? 'bottom-4' : 'top-2'} bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in`}><button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onAction(component, 'rename');
-                                        setOpenMenuId(null);
+                                        closeMenu();
                                     }}
                                     className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
                                 >
@@ -295,7 +315,7 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onAction(component, 'copy');
-                                            setOpenMenuId(null);
+                                            closeMenu();
                                         }}
                                         className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
                                     >
@@ -306,7 +326,7 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
                                             onClick={(e) => {
                                                 e.stopPropagation();
                                                 onAction(component, 'reset');
-                                                setOpenMenuId(null);
+                                                closeMenu();
                                             }}
                                             className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
                                         >
@@ -317,7 +337,7 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, set
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             onAction(component, 'delete');
-                                            setOpenMenuId(null);
+                                            closeMenu();
                                         }}
                                         className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
                                         disabled={component.steps?.some(s => s.completed)}

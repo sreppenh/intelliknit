@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import useProjectUpdate from '../../../../../shared/hooks/useProjectUpdate';
 import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
 import UnitsConstructionSection from '../sections/UnitsConstruction';
 import ProjectContextSection from '../sections/ProjectContextSection';
@@ -31,93 +32,16 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
         });
     };
 
+    // Use shared project update hook
+    const { updateField, addArrayItem, removeArrayItem } = useProjectUpdate(onProjectUpdate);
+
     const handleInputChange = (field, value) => {
         console.log('🔧 DetailsTab handleInputChange called:', { field, value });
-
-        // Store updates temporarily instead of applying immediately
-        if (!window.pendingUpdates) {
-            window.pendingUpdates = {};
+        // ADD THIS DEBUG LINE:
+        if (field === 'needles') {
+            console.log('🔧 NEEDLES DETAIL DEBUG:', JSON.stringify(value, null, 2));
         }
-
-        window.pendingUpdates[field] = value;
-
-        // Debounce the actual update
-        clearTimeout(window.updateTimeout);
-        window.updateTimeout = setTimeout(() => {
-            console.log('🔧 Applying batched updates:', window.pendingUpdates);
-
-            const updatedProject = {
-                ...project,
-                ...window.pendingUpdates
-            };
-
-            console.log('🔧 Final updated project:', updatedProject);
-            onProjectUpdate(updatedProject);
-
-            // Clear pending updates
-            window.pendingUpdates = {};
-        }, 100);
-    };
-
-    // Add these array management functions to DetailsTab.jsx
-    const addArrayItem = (field, itemData) => {
-        console.log('🔧 DetailsTab addArrayItem called:', { field, itemData });
-
-        if (!window.pendingUpdates) {
-            window.pendingUpdates = {};
-        }
-
-        const currentArray = project[field] || [];
-        const newArray = [...currentArray, itemData];
-
-        window.pendingUpdates[field] = newArray;
-
-        // Debounce the actual update
-        clearTimeout(window.updateTimeout);
-        window.updateTimeout = setTimeout(() => {
-            console.log('🔧 Applying batched updates:', window.pendingUpdates);
-
-            const updatedProject = {
-                ...project,
-                ...window.pendingUpdates
-            };
-
-            console.log('🔧 Final updated project:', updatedProject);
-            onProjectUpdate(updatedProject);
-
-            // Clear pending updates
-            window.pendingUpdates = {};
-        }, 100);
-    };
-
-    const removeArrayItem = (field, index) => {
-        console.log('🔧 DetailsTab removeArrayItem called:', { field, index });
-
-        if (!window.pendingUpdates) {
-            window.pendingUpdates = {};
-        }
-
-        const currentArray = project[field] || [];
-        const newArray = currentArray.filter((_, i) => i !== index);
-
-        window.pendingUpdates[field] = newArray;
-
-        // Debounce the actual update
-        clearTimeout(window.updateTimeout);
-        window.updateTimeout = setTimeout(() => {
-            console.log('🔧 Applying batched updates:', window.pendingUpdates);
-
-            const updatedProject = {
-                ...project,
-                ...window.pendingUpdates
-            };
-
-            console.log('🔧 Final updated project:', updatedProject);
-            onProjectUpdate(updatedProject);
-
-            // Clear pending updates
-            window.pendingUpdates = {};
-        }, 100);
+        updateField(project, field, value);
     };
 
     const formatYarnDisplay = (yarns) => {
@@ -304,8 +228,8 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                     project={project}
                     formData={project}
                     handleInputChange={handleInputChange}
-                    addArrayItem={addArrayItem}
-                    removeArrayItem={removeArrayItem}
+                    addArrayItem={(field, itemData) => addArrayItem(project, field, itemData)}
+                    removeArrayItem={(field, index) => removeArrayItem(project, field, index)}
                 />
 
                 {/* Gauge - Technical Precision Section */}
