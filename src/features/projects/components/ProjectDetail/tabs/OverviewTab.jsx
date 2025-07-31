@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
+import React, { useState } from 'react';
+import TabContent from '../../../../../shared/components/TabContent';
+import { validateKnittingTab } from '../types/TabProps';
 
 const OverviewTab = ({
     project,
@@ -10,44 +11,80 @@ const OverviewTab = ({
     onManageSteps,
     onStartKnitting,
     onChangeTab,
-    onProjectUpdate,
-    onDeleteProject
+    onProjectUpdate
 }) => {
+    // Validate props in development
+    if (process.env.NODE_ENV === 'development') {
+        validateKnittingTab({ project, onProjectUpdate: onProjectUpdate, totalComponents, completedComponents });
+    }
 
-    // Modal state management
+    // Modal states for project actions
     const [showFrogModal, setShowFrogModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    // Helper functions for date formatting and status
-    const formatRelativeDate = (dateString) => {
-        if (!dateString) return 'Unknown';
-        const date = new Date(dateString);
-        const now = new Date();
-        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+    // === SMART COMPONENT FILTERING (Reusing ComponentsTab logic) ===
+    const getComponentStatus = (component) => {
+        if (component.type === 'finishing') {
+            if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
+                return 'finishing_in_progress';
+            }
+            const allComplete = component.steps.every(s => s.completed);
+            const manuallyConfirmed = component.finishingComplete;
+            if (allComplete && manuallyConfirmed) return 'finishing_done';
+            return 'finishing_in_progress';
+        }
 
-        if (diffDays === 0) return 'Today';
-        if (diffDays === 1) return 'Yesterday';
-        if (diffDays < 7) return `${diffDays} days ago`;
-        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
-        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (!component.steps || component.steps.length === 0) return 'edit_mode';
+
+        const hasCastOn = component.steps.some(step =>
+            step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
+            step.description?.toLowerCase().includes('cast on')
+        );
+
+        const hasBindOff = component.steps.some(step =>
+            step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
+            step.description?.toLowerCase().includes('bind off')
+        );
+
+        const hasProgress = component.steps.some(s => s.completed);
+        const allStepsComplete = component.steps.length > 0 && component.steps.every(s => s.completed);
+
+        if (hasBindOff && allStepsComplete) return 'finished';
+        if (hasCastOn && hasProgress) return 'currently_knitting';
+        if (hasCastOn && hasBindOff && !hasProgress) return 'ready_to_knit';
+        return 'edit_mode';
     };
 
-    // Add this helper function near the top with the other helper functions
-    const getProjectIcon = (projectType) => {
-        const icons = {
-            sweater: '🧥',
-            shawl: '🌙',
-            hat: '🎩',
-            scarf_cowl: '🧣',
-            socks: '🧦',
-            blanket: '🛏️',
-            toys: '🧸',
-            other: '✨'
-        };
-        return icons[projectType] || '🧶';
+    // Smart filtering for Overview - only show actionable components
+    const getOverviewComponents = () => {
+        if (!project.components) return [];
+
+        return project.components
+            .filter(component => {
+                const status = getComponentStatus(component);
+                // Only show components that need action - hide finished
+                return ['currently_knitting', 'ready_to_knit', 'edit_mode', 'finishing_in_progress'].includes(status);
+            })
+            .sort((a, b) => {
+                // Priority sorting: Currently Knitting > Ready to Knit > Edit Mode
+                const getPriority = (component) => {
+                    const status = getComponentStatus(component);
+                    switch (status) {
+                        case 'currently_knitting': return 1;
+                        case 'ready_to_knit': return 2;
+                        case 'finishing_in_progress': return 3;
+                        case 'edit_mode': return 4;
+                        default: return 5;
+                    }
+                };
+                return getPriority(a) - getPriority(b);
+            })
+            .slice(0, 4); // Max 4 for focused experience
     };
 
-    // Handler functions for project actions
+    const overviewComponents = getOverviewComponents();
+
+    // === PROJECT ACTIONS (Reusing existing patterns) ===
     const handleFrogProject = () => {
         const today = new Date().toISOString().split('T')[0];
         const updatedProject = {
@@ -62,422 +99,283 @@ const OverviewTab = ({
         setShowFrogModal(false);
     };
 
-    const handleDeleteProject = () => {
-        onDeleteProject && onDeleteProject(project.id);
-        setShowDeleteModal(false);
-    };
+    // === COMPONENT ACTION HANDLERS ===
+    const handleComponentClick = (component) => {
+        const status = getComponentStatus(component);
 
-    // Modal behavior hooks - Warning Modal Pattern
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape') {
-                if (showFrogModal) setShowFrogModal(false);
-                if (showDeleteModal) setShowDeleteModal(false);
-            }
-        };
-
-        if (showFrogModal || showDeleteModal) {
-            document.addEventListener('keydown', handleEscKey);
-
-            // Focus destructive action button
-            setTimeout(() => {
-                const exitButton = document.querySelector('[data-modal-exit]');
-                if (exitButton) {
-                    exitButton.focus();
-                }
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-        };
-    }, [showFrogModal, showDeleteModal]);
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            setShowFrogModal(false);
-            setShowDeleteModal(false);
+        switch (status) {
+            case 'currently_knitting':
+            case 'ready_to_knit':
+                // Go to knitting mode
+                const componentIndex = project.components.findIndex(c => c.id === component.id);
+                onStartKnitting && onStartKnitting(componentIndex);
+                break;
+            case 'edit_mode':
+            case 'finishing_in_progress':
+                // Go to manage steps
+                onManageSteps && onManageSteps(component.id);
+                break;
+            default:
+                // Fallback to manage steps
+                onManageSteps && onManageSteps(component.id);
         }
     };
 
-    const status = getProjectStatus(project);
+    // === HELPER FUNCTIONS ===
+    const formatRelativeDate = (dateString) => {
+        if (!dateString) return 'Unknown';
+        const date = new Date(dateString);
+        const now = new Date();
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
 
-    // Component status analysis for smart sections  
-    const getComponentsByStatus = () => {
-        if (!project.components) return { currentlyKnitting: [], readyToKnit: [], needsWork: [] };
-
-        return project.components.reduce((acc, component) => {
-            const hasSteps = component.steps && component.steps.length > 0;
-            const hasProgress = hasSteps && component.steps.some(step => step.completed);
-            const hasCastOn = hasSteps && component.steps.some(step =>
-                step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-                step.description?.toLowerCase().includes('cast on')
-            );
-            const hasBindOff = hasSteps && component.steps.some(step =>
-                step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-                step.description?.toLowerCase().includes('bind off')
-            );
-            const isComplete = hasSteps && component.steps.every(step => step.completed);
-
-            if (isComplete) {
-                return acc; // Don't show finished components
-            } else if (hasProgress) {
-                acc.currentlyKnitting.push(component);
-            } else if (hasCastOn && hasBindOff) {
-                acc.readyToKnit.push(component);
-            } else {
-                acc.needsWork.push(component);
-            }
-
-            return acc;
-        }, { currentlyKnitting: [], readyToKnit: [], needsWork: [] });
+        if (diffDays === 0) return 'Today';
+        if (diffDays === 1) return 'Yesterday';
+        if (diffDays < 7) return `${diffDays} days ago`;
+        if (diffDays < 30) return `${Math.floor(diffDays / 7)} weeks ago`;
+        return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
     };
 
-    const componentsByStatus = getComponentsByStatus();
+    const getProjectIcon = (projectType) => {
+        const icons = {
+            sweater: '🧥',
+            shawl: '🌙',
+            hat: '🎩',
+            scarf_cowl: '🧣',
+            socks: '🧦',
+            blanket: '🛏️',
+            toys: '🧸',
+            other: '✨'
+        };
+        return icons[projectType] || '🧶';
+    };
 
+    // === RENDER ===
     return (
-        <>
+        <TabContent
+            showEmptyState={overviewComponents.length === 0}
+            emptyState={
+                <div>
+                    <div className="text-4xl mb-3">✨</div>
+                    <h3 className="font-semibold text-wool-700 mb-2">Ready to Begin</h3>
+                    <p className="text-wool-500 text-sm mb-4">Add your first component to start knitting</p>
+                    <button
+                        onClick={() => onChangeTab('components')}
+                        className="btn-primary"
+                    >
+                        Add Component
+                    </button>
+                </div>
+            }
+        >
             <div className="p-6 space-y-8">
-                {/* Project Hero - Name + Status */}
+                {/* === PROJECT HEADER - Spacious and welcoming === */}
                 <div className="text-center space-y-3">
-                    <h2 className="content-header-primary flex items-center justify-center gap-3">
-                        <span className="text-2xl">{getProjectIcon(project.projectType)}</span>
-                        {project.name}
-                    </h2>
-                    <div className="flex items-center justify-center gap-2 text-lg">
-                        <span>{status.emoji}</span>
-                        <span className="font-medium text-wool-700">{status.text}</span>
-                    </div>
-                    <div className="text-sm text-sage-600 space-y-1">
-                        <p>Created {formatRelativeDate(project.createdAt)}</p>
-                        {project.lastActivityAt && project.lastActivityAt !== project.createdAt && (
-                            <p>Last updated {formatRelativeDate(project.lastActivityAt)}</p>
-                        )}
-                    </div>
+                    <div className="text-4xl mb-2">{getProjectIcon(project.projectType)}</div>
+                    <h1 className="text-2xl font-bold text-wool-800">{project.name}</h1>
+                    {project.size && (
+                        <p className="text-wool-500 text-lg">Size: {project.size}</p>
+                    )}
                 </div>
 
-                {/* Currently Knitting - Hero Section with Beautiful Cards */}
-                {componentsByStatus.currentlyKnitting.length > 0 && (
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-wool-700">
-                                🧶 Currently Knitting
-                            </h3>
-                            <span className="text-xs text-sage-600 font-medium">
-                                Tap to continue knitting
-                            </span>
+                {/* === PROJECT STATS - Clean celebration === */}
+                <div className="bg-white rounded-2xl border-2 border-sage-200 p-6 space-y-4">
+                    <div className="grid grid-cols-2 gap-4 text-center">
+                        <div>
+                            <div className="text-2xl font-bold text-sage-600">{completedComponents}</div>
+                            <div className="text-sm text-wool-500">Components Done</div>
                         </div>
-
-                        <div className="space-y-4">
-                            {componentsByStatus.currentlyKnitting.map(component => {
-                                const componentIndex = project.components.findIndex(c => c.id === component.id);
-                                const completedSteps = component.steps?.filter(step => step.completed).length || 0;
-                                const totalSteps = component.steps?.length || 0;
-
-                                return (
-                                    <div
-                                        key={component.id}
-                                        className="bg-sage-100 border-2 border-sage-300 rounded-xl p-5 hover:bg-sage-150 transition-colors cursor-pointer"
-                                        onClick={() => onStartKnitting && onStartKnitting(componentIndex)}
-                                    >
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h4 className="text-lg font-medium text-sage-800">{component.name}</h4>
-                                            <span className="text-sm text-sage-600 bg-sage-200 px-3 py-1 rounded-full">
-                                                {completedSteps}/{totalSteps} steps
-                                            </span>
-                                        </div>
-
-                                        <button
-                                            className="w-full btn-secondary"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onStartKnitting && onStartKnitting(componentIndex);
-                                            }}
-                                        >
-                                            Continue
-                                        </button>
-                                    </div>
-                                );
-                            })}
+                        <div>
+                            <div className="text-2xl font-bold text-yarn-600">{totalComponents}</div>
+                            <div className="text-sm text-wool-500">Total Components</div>
                         </div>
                     </div>
-                )}
 
-                {/* Ready to Knit - Bright and Energetic */}
-                {componentsByStatus.readyToKnit.length > 0 && (
+                    {/* Activity Streak (if exists) */}
+                    {project.lastActivityDate && (
+                        <div className="text-center pt-2 border-t border-sage-100">
+                            <div className="text-sm text-sage-600">
+                                Last worked: {formatRelativeDate(project.lastActivityDate)}
+                            </div>
+                        </div>
+                    )}
+                </div>
+
+                {/* === ACTIVE COMPONENTS - Open and breathable === */}
+                {overviewComponents.length > 0 && (
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-wool-700">
-                                ⚡ Ready to Knit
-                            </h3>
-                            <span className="text-xs text-sage-600 font-medium">
-                                Tap to start knitting
-                            </span>
-                        </div>
-
-                        <div className="space-y-4">
-                            {componentsByStatus.readyToKnit.map(component => {
-                                const componentIndex = project.components.findIndex(c => c.id === component.id);
-                                const totalSteps = component.steps?.length || 0;
-
-                                return (
-                                    <div
-                                        key={component.id}
-                                        className="bg-yarn-100 border-2 border-yarn-300 rounded-xl p-5 hover:bg-yarn-150 transition-colors cursor-pointer"
-                                        onClick={() => onStartKnitting && onStartKnitting(componentIndex)}
-                                    >
-                                        <div className="flex items-center justify-between mb-4">
-                                            <h4 className="text-lg font-medium text-yarn-800">{component.name}</h4>
-                                            <span className="text-sm text-yarn-600 bg-yarn-200 px-3 py-1 rounded-full">
-                                                {totalSteps} steps ready
-                                            </span>
-                                        </div>
-
-                                        <button
-                                            className="w-full btn-primary"
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                onStartKnitting && onStartKnitting(componentIndex);
-                                            }}
-                                        >
-                                            🧶 Start Knitting
-                                        </button>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    </div>
-                )}
-
-                {/* Needs Work - Subtle but Clear */}
-                {componentsByStatus.needsWork.length > 0 && (
-                    <div className="space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h3 className="font-semibold text-wool-700">
-                                ✏️ Edit Mode
-                            </h3>
-                            <span className="text-xs text-sage-600 font-medium">
-                                Tap to add steps
-                            </span>
-                        </div>
-
+                        <h2 className="text-lg font-semibold text-wool-700 text-left">Up Next</h2>
                         <div className="space-y-3">
-                            {componentsByStatus.needsWork.map(component => {
-                                const componentIndex = project.components.findIndex(c => c.id === component.id);
-                                const stepCount = component.steps?.length || 0;
-
-                                return (
-                                    <div
-                                        key={component.id}
-                                        className="bg-wool-100 border-2 border-wool-200 rounded-xl p-4 hover:bg-wool-150 transition-colors cursor-pointer"
-                                        onClick={() => onManageSteps && onManageSteps(componentIndex)}
-                                    >
-                                        <div className="flex items-center justify-between">
-                                            <div>
-                                                <h4 className="font-medium text-wool-800">{component.name}</h4>
-                                                <p className="text-sm text-wool-600">
-                                                    {stepCount === 0 ? 'No steps yet' : `${stepCount} steps`}
-                                                </p>
-                                            </div>
-                                            <button
-                                                className="btn-tertiary btn-sm"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    onManageSteps && onManageSteps(componentIndex);
-                                                }}
-                                            >
-                                                Add Steps
-                                            </button>
-                                        </div>
-                                    </div>
-                                );
-                            })}
+                            {overviewComponents.map((component) => (
+                                <OverviewComponentCard
+                                    key={component.id}
+                                    component={component}
+                                    status={getComponentStatus(component)}
+                                    onClick={() => handleComponentClick(component)}
+                                />
+                            ))}
                         </div>
                     </div>
                 )}
 
-                {/* Empty Project State - Inspiring */}
-                {project.components?.length === 0 && (
-                    <div className="text-center space-y-6 py-8">
-                        <div className="text-5xl">🧶</div>
-                        <div className="space-y-2">
-                            <h3 className="text-xl font-semibold text-wool-700">Fresh Canvas</h3>
-                            <p className="text-wool-600">
-                                Ready to start planning your beautiful project?
-                            </p>
-                        </div>
+                {/* === PROJECT ACTIONS - Clean cards instead of big buttons === */}
+                <div className="space-y-4">
+                    <h2 className="text-lg font-semibold text-wool-700 text-left">Project Actions</h2>
+                    <div className="space-y-3">
                         <button
-                            className="w-full btn-primary"
-                            onClick={() => {
-                                if (onChangeTab) {
-                                    onChangeTab('components');
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
-                            }}
+                            onClick={onEditProjectDetails}
+                            className="w-full card-clickable text-left"
                         >
-                            Add Your First Component
+                            <div className="flex items-center gap-3">
+                                <span className="text-xl">⚙️</span>
+                                <div>
+                                    <div className="font-medium text-wool-700">Edit Project Details</div>
+                                    <div className="text-sm text-wool-500">Update yarns, needles, and notes</div>
+                                </div>
+                            </div>
                         </button>
-                    </div>
-                )}
 
-                {/* Project Actions - Clean and Minimal */}
-                <div className="pt-4 border-t border-wool-200 space-y-4">
-                    {/* Only show complete button if there's meaningful progress */}
-                    {(componentsByStatus.currentlyKnitting.length > 0 || completedComponents > 0) && (
                         <button
                             onClick={onCompleteProject}
-                            className="w-full btn-secondary text-center"
+                            className="w-full card-clickable text-left"
                         >
-                            🏆 Mark Project Complete
+                            <div className="flex items-center gap-3">
+                                <span className="text-xl">🎉</span>
+                                <div>
+                                    <div className="font-medium text-wool-700">Mark Project Complete</div>
+                                    <div className="text-sm text-wool-500">Celebrate your finished work!</div>
+                                </div>
+                            </div>
                         </button>
-                    )}
 
-                    {/* Secondary actions - Practical project lifecycle */}
-                    <div className="flex gap-3 justify-center">
                         <button
                             onClick={() => setShowFrogModal(true)}
-                            className="btn-tertiary btn-sm"
+                            className="w-full card-clickable text-left"
                         >
-                            🐸 Frog Project
-                        </button>
-
-                        <button
-                            onClick={() => setShowDeleteModal(true)}
-                            className="btn-tertiary btn-sm"
-                        >
-                            🗑️ Delete Project
-                        </button>
-
-                        <button
-                            onClick={() => {
-                                if (onChangeTab) {
-                                    onChangeTab('details');
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }
-                            }}
-                            className="btn-tertiary flex-1 btn-sm"
-                        >
-                            ✏️ Edit Project
+                            <div className="flex items-center gap-3">
+                                <span className="text-xl">🐸</span>
+                                <div>
+                                    <div className="font-medium text-wool-700">Frog Project</div>
+                                    <div className="text-sm text-wool-500">Start over with lessons learned</div>
+                                </div>
+                            </div>
                         </button>
                     </div>
                 </div>
-
-                {/* Project Summary - Minimal Footer */}
-                {project.components?.length > 0 && (
-                    <div className="text-center text-sm text-wool-500 pt-2">
-                        {project.components.length} component{project.components.length === 1 ? '' : 's'}
-                        {project.lastActivityAt && (
-                            <> • Last updated {formatRelativeDate(project.lastActivityAt)}</>
-                        )}
-                    </div>
-                )}
             </div>
 
-            {/* Frog Project Modal */}
+            {/* === MODALS (Reusing existing patterns) === */}
             {showFrogModal && (
-                <div className="modal-overlay" onClick={handleBackdropClick}>
+                <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowFrogModal(false)}>
                     <div className="modal-content-light">
-                        <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
-                            <div className="text-center">
-                                <div className="text-2xl mb-2">🐸</div>
-                                <h2 className="text-lg font-semibold">Frog Project?</h2>
-                                <p className="text-sage-600 text-sm">{project.name}</p>
-                            </div>
-                            <button
-                                onClick={() => setShowFrogModal(false)} // Close handler to hide modal
-                                className="absolute right-5 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                                aria-label="Close Frog Project modal"
-                            >
-                                ×
-                            </button>
-
-                        </div>
-
-                        <div className="p-6">
-                            <div className="text-center mb-6">
-                                <p className="text-wool-600 mb-2">
-                                    This will mark your project as frogged and reset progress to start over.
-                                </p>
-                                <p className="text-wool-500 text-sm">
-                                    Your project structure and steps will be preserved - you can restart anytime.
-                                </p>
-                            </div>
-
-                            <div className="stack-sm">
-                                <button
-                                    onClick={handleFrogProject}
-                                    data-modal-exit
-                                    className="w-full btn-secondary flex items-center justify-center gap-2"
-                                >
-                                    <span className="text-lg">🐸</span>
-                                    Yes, Frog Project
-                                </button>
-
+                        <div className="modal-header-light">
+                            <div className="flex items-center gap-3">
+                                <span className="text-2xl">🐸</span>
+                                <div>
+                                    <h2 className="text-lg font-semibold">Frog Project</h2>
+                                    <p className="text-sage-600 text-sm">Reset progress and start fresh</p>
+                                </div>
                                 <button
                                     onClick={() => setShowFrogModal(false)}
-                                    data-modal-cancel
-                                    className="w-full btn-tertiary"
+                                    className="text-sage-600 text-xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors ml-auto"
                                 >
-                                    Keep Project
+                                    ×
+                                </button>
+                            </div>
+                        </div>
+                        <div className="p-6 space-y-4">
+                            <p className="text-wool-600">
+                                Frogging will reset all progress while keeping your project structure intact.
+                                You can always restart when you're ready!
+                            </p>
+                            <div className="flex gap-3">
+                                <button
+                                    onClick={() => setShowFrogModal(false)}
+                                    className="btn-tertiary flex-1"
+                                >
+                                    Keep Going
+                                </button>
+                                <button
+                                    onClick={handleFrogProject}
+                                    className="btn-primary flex-1"
+                                >
+                                    Frog It
                                 </button>
                             </div>
                         </div>
                     </div>
                 </div>
             )}
+        </TabContent>
+    );
+};
 
-            {/* Delete Project Modal */}
-            {showDeleteModal && (
-                <div className="modal-overlay" onClick={handleBackdropClick}>
-                    <div className="modal-content-light">
-                        <div className="modal-header-light-danger relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-red-100">
-                            <div className="text-center">
-                                <div className="text-2xl mb-2">🗑️</div>
-                                <h2 className="text-lg font-semibold">Delete Project Forever?</h2>
-                                <p className="text-red-600 text-sm">{project.name}</p>
-                            </div>
-                            <button
-                                onClick={() => setShowDeleteModal(false)}  // Close handler for delete project modal
-                                className="absolute right-3 text-red-600 text-2xl hover:bg-red-200 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                                aria-label="Close Delete Project modal"
-                            >
-                                ×
-                            </button>
-                        </div>
+// === OVERVIEW COMPONENT CARD - Clean, focused, action-oriented ===
+const OverviewComponentCard = ({ component, status, onClick }) => {
+    const getStatusConfig = () => {
+        switch (status) {
+            case 'currently_knitting':
+                return {
+                    bgColor: 'bg-sage-200 border-sage-400',
+                    textColor: 'text-sage-800',
+                    icon: '🧶',
+                    label: 'Continue Knitting'
+                };
+            case 'ready_to_knit':
+                return {
+                    bgColor: 'bg-sage-100 border-sage-300',
+                    textColor: 'text-sage-700',
+                    icon: '🎯',
+                    label: 'Start Knitting'
+                };
+            case 'finishing_in_progress':
+                return {
+                    bgColor: 'bg-lavender-100 border-lavender-300',
+                    textColor: 'text-lavender-700',
+                    icon: '🪡',
+                    label: 'Continue Finishing'
+                };
+            case 'edit_mode':
+            default:
+                return {
+                    bgColor: 'bg-yarn-100 border-yarn-300',
+                    textColor: 'text-yarn-700',
+                    icon: '✏️',
+                    label: 'Add Steps'
+                };
+        }
+    };
 
-                        <div className="p-6">
-                            <div className="text-center mb-6">
-                                <p className="text-red-600 mb-2 font-medium">
-                                    This will permanently delete your project.
-                                </p>
-                                <p className="text-wool-500 text-sm">
-                                    All components, steps, and progress will be lost forever. This action cannot be undone.
-                                </p>
-                            </div>
+    const config = getStatusConfig();
+    const stepCount = component.steps?.length || 0;
+    const completedSteps = component.steps?.filter(s => s.completed).length || 0;
 
-                            <div className="stack-sm">
-                                <button
-                                    onClick={handleDeleteProject}
-                                    data-modal-exit
-                                    className="w-full btn-secondary bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-2"
-                                >
-                                    <span className="text-lg">🗑️</span>
-                                    Yes, Delete Forever
-                                </button>
-
-                                <button
-                                    onClick={() => setShowDeleteModal(false)}
-                                    data-modal-cancel
-                                    className="w-full btn-tertiary"
-                                >
-                                    Keep Project
-                                </button>
-                            </div>
-                        </div>
+    return (
+        <button
+            onClick={onClick}
+            className={`w-full ${config.bgColor} border-2 rounded-xl p-4 transition-all duration-200 cursor-pointer hover:shadow-md active:shadow-lg text-left`}
+        >
+            <div className="flex items-center gap-4">
+                <span className="text-2xl flex-shrink-0">{config.icon}</span>
+                <div className="flex-1 min-w-0">
+                    <h3 className={`font-semibold ${config.textColor} text-base`}>
+                        {component.name}
+                    </h3>
+                    <div className="flex items-center gap-3 mt-1">
+                        <span className={`text-sm ${config.textColor} opacity-75`}>
+                            {config.label}
+                        </span>
+                        {stepCount > 0 && (
+                            <span className={`text-xs ${config.textColor} opacity-60`}>
+                                {status === 'currently_knitting'
+                                    ? `${completedSteps}/${stepCount} steps`
+                                    : `${stepCount} steps`
+                                }
+                            </span>
+                        )}
                     </div>
                 </div>
-            )}
-        </>
+            </div>
+        </button>
     );
 };
 
