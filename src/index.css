@@ -2,10 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
-
 /* Import the design system components */
-@import './styles/components.css'; 
-
+@import './styles/components.css';
 
 body {
   margin: 0;
@@ -14,6 +12,21 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* 🧠 iOS Safari :active fix */
+html,
+body,
+button,
+[role="button"],
+.btn-secondary {
+  cursor: pointer;
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0.1);
+  touch-action: manipulation;
+}
+
+html {
+  -webkit-touch-callout: none;
 }
 
 code {
