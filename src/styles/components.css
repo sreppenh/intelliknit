@@ -818,6 +818,7 @@ select {
 .read-mode-section {
   @apply bg-white rounded-xl p-4 border-2 border-wool-200 shadow-sm;
   @apply hover:border-sage-200 hover:shadow-md transition-all duration-200;
+  @apply transform;
 }
 
 .read-mode-field {
