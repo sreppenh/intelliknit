@@ -357,7 +357,7 @@ const OverviewTab = ({
                             }}
                             className="btn-tertiary flex-1 btn-sm"
                         >
-                            ✏️ Edit
+                            ✏️ Edit Project
                         </button>
                     </div>
                 </div>
