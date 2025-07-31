@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateKnittingTab } from '../types/TabProps';
 
@@ -11,7 +11,9 @@ const OverviewTab = ({
     onManageSteps,
     onStartKnitting,
     onChangeTab,
-    onProjectUpdate
+    onProjectUpdate,
+    onDeleteProject,
+    onCopyProject
 }) => {
     // Validate props in development
     if (process.env.NODE_ENV === 'development') {
@@ -22,7 +24,7 @@ const OverviewTab = ({
     const [showFrogModal, setShowFrogModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    // === SMART COMPONENT FILTERING (Reusing ComponentsTab logic) ===
+    // === SMART COMPONENT FILTERING (From new version) ===
     const getComponentStatus = (component) => {
         if (component.type === 'finishing') {
             if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
@@ -55,7 +57,7 @@ const OverviewTab = ({
         return 'edit_mode';
     };
 
-    // Smart filtering for Overview - only show actionable components
+    // Smart filtering for Overview - only show actionable components (limit to 3)
     const getOverviewComponents = () => {
         if (!project.components) return [];
 
@@ -79,12 +81,12 @@ const OverviewTab = ({
                 };
                 return getPriority(a) - getPriority(b);
             })
-            .slice(0, 4); // Max 4 for focused experience
+            .slice(0, 3); // Max 3 for focused experience
     };
 
     const overviewComponents = getOverviewComponents();
 
-    // === PROJECT ACTIONS (Reusing existing patterns) ===
+    // === PROJECT ACTIONS (From old version patterns) ===
     const handleFrogProject = () => {
         const today = new Date().toISOString().split('T')[0];
         const updatedProject = {
@@ -97,6 +99,11 @@ const OverviewTab = ({
         };
         onProjectUpdate && onProjectUpdate(updatedProject);
         setShowFrogModal(false);
+    };
+
+    const handleDeleteProject = () => {
+        onDeleteProject && onDeleteProject(project.id);
+        setShowDeleteModal(false);
     };
 
     // === COMPONENT ACTION HANDLERS ===
@@ -149,10 +156,87 @@ const OverviewTab = ({
         return icons[projectType] || '🧶';
     };
 
+    // === CELEBRATION LOGIC (Fixed to use activityLog) ===
+    const getStreakMessage = () => {
+        if (!project.activityLog || project.activityLog.length === 0) return null;
+
+        const today = new Date().toISOString().split('T')[0];
+        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+
+        // Calculate streak days (consecutive days)
+        let streak = 0;
+        const msPerDay = 24 * 60 * 60 * 1000;
+
+        for (let i = 0; i < 30; i++) {
+            const checkDate = new Date(Date.now() - (i * msPerDay));
+            const dayString = checkDate.toISOString().split('T')[0];
+
+            if (project.activityLog.includes(dayString)) {
+                streak = i + 1;
+            } else if (i === 0) {
+                continue; // Allow for today being empty
+            } else {
+                break; // Streak broken
+            }
+        }
+
+        if (streak >= 3) {
+            return `🔥 On Fire! ${streak} day streak`;
+        } else if (project.activityLog.includes(today)) {
+            return "🔥 On Fire! Worked today";
+        } else if (project.activityLog.includes(yesterday)) {
+            return "⚡ Keep the momentum going!";
+        }
+        return null;
+    };
+
+    const streakMessage = getStreakMessage();
+
+    // === SIMPLE COMPONENT PROGRESS DISPLAY ===
+    const getProgressMessage = () => {
+        if (totalComponents === 0) {
+            return "Ready to add your first component";
+        }
+        return `${completedComponents}/${totalComponents} components complete`;
+    };
+
+    // === MODAL BEHAVIOR HOOKS (Warning Modal Pattern) ===
+    useEffect(() => {
+        const handleEscKey = (event) => {
+            if (event.key === 'Escape') {
+                if (showFrogModal) setShowFrogModal(false);
+                if (showDeleteModal) setShowDeleteModal(false);
+            }
+        };
+
+        if (showFrogModal || showDeleteModal) {
+            document.addEventListener('keydown', handleEscKey);
+
+            // Focus destructive action button
+            setTimeout(() => {
+                const exitButton = document.querySelector('[data-modal-exit]');
+                if (exitButton) {
+                    exitButton.focus();
+                }
+            }, 100);
+        }
+
+        return () => {
+            document.removeEventListener('keydown', handleEscKey);
+        };
+    }, [showFrogModal, showDeleteModal]);
+
+    const handleBackdropClick = (event) => {
+        if (event.target === event.currentTarget) {
+            if (showFrogModal) setShowFrogModal(false);
+            if (showDeleteModal) setShowDeleteModal(false);
+        }
+    };
+
     // === RENDER ===
     return (
         <TabContent
-            showEmptyState={overviewComponents.length === 0}
+            showEmptyState={overviewComponents.length === 0 && (!project.components || project.components.length === 0)}
             emptyState={
                 <div>
                     <div className="text-4xl mb-3">✨</div>
@@ -167,43 +251,35 @@ const OverviewTab = ({
                 </div>
             }
         >
-            <div className="p-6 space-y-8">
-                {/* === PROJECT HEADER - Spacious and welcoming === */}
-                <div className="text-center space-y-3">
-                    <div className="text-4xl mb-2">{getProjectIcon(project.projectType)}</div>
-                    <h1 className="text-2xl font-bold text-wool-800">{project.name}</h1>
-                    {project.size && (
-                        <p className="text-wool-500 text-lg">Size: {project.size}</p>
-                    )}
+            <div className="p-6 space-y-6">
+                {/* === COMPACT PROJECT HEADER (Icon next to name) === */}
+                <div className="text-center space-y-2">
+                    <h1 className="text-xl font-bold text-wool-800 flex items-center justify-center gap-2">
+                        <span className="text-2xl">{getProjectIcon(project.projectType)}</span>
+                        {project.name}
+                    </h1>
+                    <p className="text-wool-600 font-medium">
+                        {getProgressMessage()}
+                    </p>
                 </div>
 
-                {/* === PROJECT STATS - Clean celebration === */}
-                <div className="bg-white rounded-2xl border-2 border-sage-200 p-6 space-y-4">
-                    <div className="grid grid-cols-2 gap-4 text-center">
-                        <div>
-                            <div className="text-2xl font-bold text-sage-600">{completedComponents}</div>
-                            <div className="text-sm text-wool-500">Components Done</div>
-                        </div>
-                        <div>
-                            <div className="text-2xl font-bold text-yarn-600">{totalComponents}</div>
-                            <div className="text-sm text-wool-500">Total Components</div>
-                        </div>
-                    </div>
-
-                    {/* Activity Streak (if exists) */}
-                    {project.lastActivityDate && (
-                        <div className="text-center pt-2 border-t border-sage-100">
-                            <div className="text-sm text-sage-600">
-                                Last worked: {formatRelativeDate(project.lastActivityDate)}
+                {/* === CELEBRATION BANNER === */}
+                <div className="bg-white rounded-2xl border-2 border-sage-200 p-3">
+                    <div className="text-center">
+                        {streakMessage ? (
+                            <div className="text-lg font-semibold text-sage-600">{streakMessage}</div>
+                        ) : (
+                            <div className="text-base text-wool-600">
+                                Last worked: {formatRelativeDate(project.lastActivityAt || project.createdAt)}
                             </div>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
 
-                {/* === ACTIVE COMPONENTS - Open and breathable === */}
+                {/* === ACTIVE COMPONENTS (Max 3, stronger status) === */}
                 {overviewComponents.length > 0 && (
-                    <div className="space-y-4">
-                        <h2 className="text-lg font-semibold text-wool-700 text-left">Up Next</h2>
+                    <div className="space-y-3">
+                        <h2 className="text-base font-semibold text-wool-700">Up Next</h2>
                         <div className="space-y-3">
                             {overviewComponents.map((component) => (
                                 <OverviewComponentCard
@@ -217,55 +293,61 @@ const OverviewTab = ({
                     </div>
                 )}
 
-                {/* === PROJECT ACTIONS - Clean cards instead of big buttons === */}
+                {/* === PROJECT ACTIONS (Old version balance, with Copy) === */}
                 <div className="space-y-4">
-                    <h2 className="text-lg font-semibold text-wool-700 text-left">Project Actions</h2>
-                    <div className="space-y-3">
-                        <button
-                            onClick={onEditProjectDetails}
-                            className="w-full card-clickable text-left"
-                        >
-                            <div className="flex items-center gap-3">
-                                <span className="text-xl">⚙️</span>
-                                <div>
-                                    <div className="font-medium text-wool-700">Edit Project Details</div>
-                                    <div className="text-sm text-wool-500">Update yarns, needles, and notes</div>
-                                </div>
-                            </div>
-                        </button>
-
+                    {/* Primary CTA - Mark Complete */}
+                    {(completedComponents > 0 || overviewComponents.some(c => getComponentStatus(c) === 'currently_knitting')) && (
                         <button
                             onClick={onCompleteProject}
-                            className="w-full card-clickable text-left"
+                            className="w-full btn-primary"
                         >
-                            <div className="flex items-center gap-3">
-                                <span className="text-xl">🎉</span>
-                                <div>
-                                    <div className="font-medium text-wool-700">Mark Project Complete</div>
-                                    <div className="text-sm text-wool-500">Celebrate your finished work!</div>
-                                </div>
-                            </div>
+                            🎉 Mark Project Complete
                         </button>
+                    )}
 
-                        <button
-                            onClick={() => setShowFrogModal(true)}
-                            className="w-full card-clickable text-left"
-                        >
-                            <div className="flex items-center gap-3">
-                                <span className="text-xl">🐸</span>
-                                <div>
-                                    <div className="font-medium text-wool-700">Frog Project</div>
-                                    <div className="text-sm text-wool-500">Start over with lessons learned</div>
-                                </div>
-                            </div>
-                        </button>
+                    {/* Secondary Actions - Compact buttons */}
+                    <div className="space-y-2">
+                        <h3 className="text-sm font-medium text-wool-600">Project Actions</h3>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                onClick={() => {
+                                    onChangeTab('details');
+                                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                                }}
+                                className="btn-tertiary text-sm"
+                            >
+                                ⚙️ Edit Details
+                            </button>
+                            <button
+                                onClick={() => {
+                                    // TODO: Implement copy project functionality
+                                    // This will create a new project with reset progress
+                                    console.log('Copy project feature coming soon!');
+                                }}
+                                className="btn-tertiary text-sm"
+                            >
+                                📋 Copy Project
+                            </button>
+                            <button
+                                onClick={() => setShowFrogModal(true)}
+                                className="btn-tertiary text-sm"
+                            >
+                                🐸 Frog Project
+                            </button>
+                            <button
+                                onClick={() => setShowDeleteModal(true)}
+                                className="btn-tertiary text-sm"
+                            >
+                                🗑️ Delete
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            {/* === MODALS (Reusing existing patterns) === */}
+            {/* === MODALS (Improved with proper behavior) === */}
             {showFrogModal && (
-                <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowFrogModal(false)}>
+                <div className="modal-overlay" onClick={handleBackdropClick}>
                     <div className="modal-content-light">
                         <div className="modal-header-light">
                             <div className="flex items-center gap-3">
@@ -290,15 +372,68 @@ const OverviewTab = ({
                             <div className="flex gap-3">
                                 <button
                                     onClick={() => setShowFrogModal(false)}
+                                    data-modal-cancel
                                     className="btn-tertiary flex-1"
                                 >
                                     Keep Going
                                 </button>
                                 <button
                                     onClick={handleFrogProject}
+                                    data-modal-exit
                                     className="btn-primary flex-1"
                                 >
                                     Frog It
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {showDeleteModal && (
+                <div className="modal-overlay" onClick={handleBackdropClick}>
+                    <div className="modal-content-light">
+                        <div className="modal-header-light-danger relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-red-100">
+                            <div className="text-center">
+                                <div className="text-2xl mb-2">🗑️</div>
+                                <h2 className="text-lg font-semibold">Delete Project Forever?</h2>
+                                <p className="text-red-600 text-sm">{project.name}</p>
+                            </div>
+                            <button
+                                onClick={() => setShowDeleteModal(false)}
+                                className="absolute right-3 text-red-600 text-2xl hover:bg-red-200 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                                aria-label="Close Delete Project modal"
+                            >
+                                ×
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            <div className="text-center mb-6">
+                                <p className="text-red-600 mb-2 font-medium">
+                                    This will permanently delete your project.
+                                </p>
+                                <p className="text-wool-500 text-sm">
+                                    All components, steps, and progress will be lost forever. This action cannot be undone.
+                                </p>
+                            </div>
+
+                            <div className="stack-sm">
+                                <button
+                                    onClick={handleDeleteProject}
+                                    data-modal-exit
+                                    className="w-full btn-secondary bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-2"
+                                >
+                                    <span className="text-lg">🗑️</span>
+                                    Yes, Delete Forever
+                                </button>
+
+                                <button
+                                    onClick={() => setShowDeleteModal(false)}
+                                    data-modal-cancel
+                                    className="w-full btn-tertiary"
+                                >
+                                    Keep Project
                                 </button>
                             </div>
                         </div>
@@ -309,7 +444,7 @@ const OverviewTab = ({
     );
 };
 
-// === OVERVIEW COMPONENT CARD - Clean, focused, action-oriented ===
+// === OVERVIEW COMPONENT CARD (Stronger status indicators) ===
 const OverviewComponentCard = ({ component, status, onClick }) => {
     const getStatusConfig = () => {
         switch (status) {
@@ -352,16 +487,16 @@ const OverviewComponentCard = ({ component, status, onClick }) => {
     return (
         <button
             onClick={onClick}
-            className={`w-full ${config.bgColor} border-2 rounded-xl p-4 transition-all duration-200 cursor-pointer hover:shadow-md active:shadow-lg text-left`}
+            className={`w-full ${config.bgColor} card-clickable-compact`}
         >
             <div className="flex items-center gap-4">
                 <span className="text-2xl flex-shrink-0">{config.icon}</span>
-                <div className="flex-1 min-w-0">
-                    <h3 className={`font-semibold ${config.textColor} text-base`}>
+                <div className="flex-1 min-w-0 text-left">
+                    <h3 className={`font-semibold ${config.textColor} text-base text-left`}>
                         {component.name}
                     </h3>
                     <div className="flex items-center gap-3 mt-1">
-                        <span className={`text-sm ${config.textColor} opacity-75`}>
+                        <span className={`text-sm ${config.textColor}`}>
                             {config.label}
                         </span>
                         {stepCount > 0 && (
