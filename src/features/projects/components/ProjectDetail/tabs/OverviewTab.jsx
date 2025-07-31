@@ -343,7 +343,7 @@ const OverviewTab = ({
 
                         <button
                             onClick={() => setShowDeleteModal(true)}
-                            className="btn-tertiary btn-sm text-red-600 hover:text-red-700"
+                            className="btn-tertiary btn-sm"
                         >
                             🗑️ Delete Project
                         </button>
@@ -355,9 +355,9 @@ const OverviewTab = ({
                                     window.scrollTo({ top: 0, behavior: 'smooth' });
                                 }
                             }}
-                            className="btn-tertiary btn-sm"
+                            className="btn-tertiary flex-1 btn-sm"
                         >
-                            ✏️ Edit Details
+                            ✏️ Edit
                         </button>
                     </div>
                 </div>
