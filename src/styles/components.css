@@ -159,19 +159,19 @@ select {
 
 /* ===== Card System ===== */
 .card {
-  @apply bg-white border-2 border-wool-200 rounded-xl p-5 shadow-sm;
+  @apply bg-white border-2 border-wool-200 rounded-xl p-5 shadow-sm transition-colors duration-200;
 }
 
 .card-highlight {
-  @apply bg-gradient-to-r from-sage-50 to-yarn-50 border-2 border-sage-200 rounded-xl p-5 shadow-sm;
+  @apply bg-gradient-to-r from-sage-50 to-yarn-50 border-2 border-sage-200 rounded-xl p-5 shadow-sm transition-colors duration-200;
 }
 
 .card-info {
-  @apply bg-lavender-100 border-2 border-lavender-200 rounded-xl p-5;
+  @apply bg-lavender-100 border-2 border-lavender-200 rounded-xl p-5 transition-colors duration-200;
 }
 
 .card-compact {
-  @apply bg-white border-2 border-wool-200 rounded-xl p-3 shadow-sm;
+  @apply bg-white border-2 border-wool-200 rounded-xl p-3 shadow-sm transition-colors duration-200;
 }
 
 /* NEW: Interactive card patterns */
@@ -184,17 +184,39 @@ select {
 .card-selectable {
   @apply border-2 rounded-xl p-4 transition-all duration-200 text-center cursor-pointer;
   @apply border-wool-200 bg-white text-wool-700;
-  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm;
+  @apply hover:border-sage-300 hover:bg-sage-50;
+  @apply active:bg-sage-100;
 }
 
 .card-selectable-selected {
   @apply border-sage-500 bg-sage-100 text-sage-700 shadow-sm;
 }
 
+.card-selectable-compact {
+  @apply border-2 rounded-lg p-3 transition-all duration-200 text-center cursor-pointer;
+  @apply border-wool-200 bg-white text-wool-700;
+  @apply hover:border-sage-300 hover:bg-sage-50;
+  @apply active:bg-sage-100;
+}
+
 .card-pattern-option {
-  @apply border border-wool-200 rounded-lg p-3 transition-all duration-200 text-center;
+  @apply border border-wool-200 rounded-lg p-3 transition-all duration-200 text-center cursor-pointer;
   @apply bg-wool-50 text-wool-700;
-  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm;
+  @apply hover:border-sage-300 hover:bg-sage-50;
+  @apply active:bg-sage-100;
+}
+
+/* ===== 2. CLICKABLE CARDS (No bounce, subtle feedback) ===== */
+.card-clickable {
+  @apply bg-white border-2 border-wool-200 rounded-xl p-5 shadow-sm transition-all duration-200 cursor-pointer;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-md;
+  @apply active:bg-sage-100 active:border-sage-400;
+}
+
+.card-clickable-compact {
+  @apply bg-white border-2 border-wool-200 rounded-xl p-3 shadow-sm transition-all duration-200 cursor-pointer;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-md;
+  @apply active:bg-sage-100 active:border-sage-400;
 }
 
 /* ===== OPTIONAL: Enhanced Active States ===== */
@@ -540,36 +562,44 @@ select {
 /* ===== Project Personality Cards ===== */
 .card-project-base {
   @apply border-2 rounded-xl p-5 shadow-sm transition-all duration-200 cursor-pointer;
-  @apply hover:shadow-md hover:border-opacity-90;
+  @apply hover:shadow-md hover:border-opacity-80;
   @apply active:shadow-lg active:border-opacity-100;
 }
 
 .card-project-completed {
-  @apply card-project-base bg-gradient-to-r from-sage-50 to-yarn-50 border-sage-300 shadow-lg;
+  @apply card-project-base bg-gradient-to-r from-sage-50 to-yarn-50 border-sage-300;
+  @apply hover:from-sage-75 hover:to-yarn-75;
 }
+
 
 .card-project-frogged {
   @apply card-project-base bg-wool-50 border-wool-300;
+  @apply hover:bg-wool-75;
 }
 
 .card-project-fire {
-  @apply card-project-base bg-gradient-to-r from-orange-50 to-red-50 border-orange-300 shadow-lg;
+  @apply card-project-base bg-gradient-to-r from-orange-50 to-red-50 border-orange-300;
+  @apply hover:from-orange-75 hover:to-red-75;
 }
 
 .card-project-current {
-  @apply card-project-base bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300 shadow-lg;
+  @apply card-project-base bg-gradient-to-br from-sage-50 to-yarn-50 border-sage-300;
+  @apply hover:from-sage-75 hover:to-yarn-75;
 }
 
 .card-project-dormant {
   @apply card-project-base bg-wool-50 border-wool-300 opacity-90;
+  @apply hover:bg-wool-75 hover:opacity-100;
 }
 
 .card-project-empty {
   @apply card-project-base bg-lavender-50 border-lavender-200;
+  @apply hover:bg-lavender-75;
 }
 
 .card-project-active {
   @apply card-project-base bg-white border-wool-200;
+  @apply hover:bg-wool-25;
 }
 
 /* Icon backgrounds for personality cards */
@@ -883,39 +913,39 @@ select {
 
 /* ===== Component Card System - Complete Visual Progression ===== */
 
-/* 🧶 EDIT MODE - Warm yarn/beige theme (building phase) */
+/* 🧶 EDIT MODE - Warm yarn/beige theme */
 .card-component {
-  @apply bg-yarn-100 border-2 border-yarn-300 rounded-xl p-3 shadow-sm transition-all duration-200;
-  @apply hover:border-yarn-400 hover:bg-yarn-200 hover:shadow-md hover:transform hover:scale-[1.01];
-  @apply active:scale-[0.99] cursor-pointer;
+  @apply bg-yarn-100 border-2 border-yarn-300 rounded-xl p-3 shadow-sm transition-all duration-200 cursor-pointer;
+  @apply hover:border-yarn-400 hover:bg-yarn-150 hover:shadow-md;
+  @apply active:bg-yarn-200 active:border-yarn-500;
 }
 
-/* 🟢 READY TO KNIT - Light sage (ready to start) */
+/* 🟢 READY TO KNIT - Light sage */
 .card-component-ready {
-  @apply bg-sage-100 border-2 border-sage-400 rounded-xl p-3 shadow-sm transition-all duration-200;
-  @apply hover:border-sage-500 hover:bg-sage-200 hover:shadow-md hover:transform hover:scale-[1.01];
-  @apply active:scale-[0.99] cursor-pointer;
+  @apply bg-sage-100 border-2 border-sage-400 rounded-xl p-3 shadow-sm transition-all duration-200 cursor-pointer;
+  @apply hover:border-sage-500 hover:bg-sage-150 hover:shadow-md;
+  @apply active:bg-sage-200 active:border-sage-600;
 }
 
-/* 🧶 CURRENTLY KNITTING - Medium sage (actively working) */
+/* 🧶 CURRENTLY KNITTING - Medium sage */
 .card-component-progress {
-  @apply bg-sage-200 border-2 border-sage-500 rounded-xl p-3 shadow-md transition-all duration-200;
-  @apply hover:border-sage-600 hover:bg-sage-300 hover:shadow-lg hover:transform hover:scale-[1.01];
-  @apply active:scale-[0.99] cursor-pointer;
+  @apply bg-sage-200 border-2 border-sage-500 rounded-xl p-3 shadow-md transition-all duration-200 cursor-pointer;
+  @apply hover:border-sage-600 hover:bg-sage-250 hover:shadow-lg;
+  @apply active:bg-sage-300 active:border-sage-700;
 }
 
-/* ✅ FINISHED - Strong sage (celebration!) */
+/* ✅ FINISHED - Strong sage */
 .card-component-complete {
   @apply bg-sage-300 border-2 border-sage-600 rounded-xl p-3 shadow-lg transition-all duration-200 cursor-pointer;
-  @apply hover:border-sage-700 hover:bg-sage-400 hover:shadow-xl;
-  @apply active:bg-sage-500 active:border-sage-800;
+  @apply hover:border-sage-700 hover:bg-sage-350 hover:shadow-xl;
+  @apply active:bg-sage-400 active:border-sage-800;
 }
 
-/* 🪡 FINISHING STEPS - Lavender theme (special tasks) */
+/* 🪡 FINISHING STEPS - Lavender theme */
 .card-component-finishing {
   @apply bg-lavender-100 border-2 border-lavender-400 rounded-xl p-3 shadow-sm transition-all duration-200 cursor-pointer;
-  @apply hover:border-lavender-500 hover:bg-lavender-200 hover:shadow-md;
-  @apply active:bg-lavender-300 active:border-lavender-600;
+  @apply hover:border-lavender-500 hover:bg-lavender-150 hover:shadow-md;
+  @apply active:bg-lavender-200 active:border-lavender-600;
 }
 
 /* VISUAL PROGRESSION: beige → light green → medium green → strong green 

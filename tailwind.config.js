@@ -19,6 +19,10 @@ module.exports = {
           700: '#3a6b3a',  // Darker accents, text
           800: '#2d5a2d',  // Very dark accents
           900: '#1f3f1f',  // Darkest shade
+          150: '#c2ddc2',  // NEW - Between sage-100 and sage-200  
+          250: '#a3cda3',  // NEW - Between sage-200 and sage-300
+          350: '#84be84',  // NEW - Between sage-300 and sage-400
+          75: '#e0f1e0',   // 🆕 NEW - Between sage-50 and sage-100
         },
         yarn: {
           50: '#fefdf8',   // Very light cream/beige - warm background
@@ -31,6 +35,9 @@ module.exports = {
           700: '#a66914',  // Darker orange
           800: '#8a5511',  // Very dark warm accent
           900: '#6d410d',  // Darkest warm shade
+          150: '#fde7af',  // NEW - Between yarn-100 and yarn-200
+          250: '#fbe085',  // NEW - Between yarn-200 and yarn-300 
+          75: '#fef6de',   // 🆕 NEW - Between yarn-50 and yarn-100
         },
         wool: {
           50: '#fafafa',   // Very light gray
@@ -43,6 +50,8 @@ module.exports = {
           700: '#374151',  // Primary text, headings
           800: '#1f2937',  // Very dark text
           900: '#111827',  // Darkest text
+          25: '#fcfcfc',   // NEW - Very light (between wool-50 and white)
+          75: '#f7f7f8',   // NEW - Between wool-50 and wool-100
         },
         // Lavender accent color - enhanced with more shades
         lavender: {
@@ -56,6 +65,9 @@ module.exports = {
           700: '#6d3eff',  // Darker accent
           800: '#5e2fdf',  // Very dark accent
           900: '#4f20bf',  // Darkest shade
+          75: '#f7f1ff',   // NEW
+          150: '#eee0ff',  // NEW - Between lavender-100 and lavender-200
+
         },
         // Enhanced semantic colors
         red: {
@@ -69,6 +81,7 @@ module.exports = {
           700: '#b91c1c',  // Darker red
           800: '#991b1b',  // Very dark red
           900: '#7f1d1d',  // Darkest red
+          75: '#feeaea', // new red
         },
         // Additional semantic colors for future use
         green: {
@@ -95,11 +108,28 @@ module.exports = {
           800: '#1e40af',
           900: '#1e3a8a',
         },
+
+        orange: {
+          50: '#fff7ed',  // very light
+          75: '#ffeedf',  // custom value: between 50 and 100
+          100: '#ffedd5',
+          200: '#fed7aa',
+          300: '#fdba74',
+          400: '#fb923c',
+          500: '#f97316',
+          600: '#ea580c',
+          700: '#c2410c',
+          800: '#9a3412',
+          900: '#7c2d12',
+        },
+
+
+
       },
       fontFamily: {
         'sans': [
           '-apple-system',
-          'BlinkMacSystemFont', 
+          'BlinkMacSystemFont',
           'Segoe UI',
           'Roboto',
           'Oxygen',
