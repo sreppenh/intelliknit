@@ -1,13 +1,20 @@
 import React, { useState, useEffect, useRef } from 'react';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
+import TabContent from '../../../../../shared/components/TabContent';
+import { validateComponentTab, extractComponentProps } from '../types/TabProps';
 
-const ComponentsTab = ({
-    project,
-    onShowEnhancedCreation,
-    onComponentManageSteps,
-    onComponentMenuAction,
-}) => {
+const ComponentsTab = (props) => {
+    // Validate props in development
+    validateComponentTab(props);
+
+    // Extract standardized props
+    const {
+        project,
+        onShowEnhancedCreation,
+        onComponentManageSteps,
+        onComponentMenuAction
+    } = extractComponentProps(props);
 
     const statusCategories = [
         {
@@ -112,56 +119,57 @@ const ComponentsTab = ({
     };
 
     return (
-        <div className="p-6">
-            {/* Header */}
-            <div className="content-header-with-buttons">
-                <h2 className="content-title">🧶 Components ({totalComponents})</h2>
-                <div className="button-group">
-                    <button
-                        onClick={onShowEnhancedCreation}
-                        className="btn-primary btn-sm"
-                    >
-                        + Add Component
-                    </button>
-                </div>
-            </div>
-
-            <div className="success-block-center mb-6">
-                <h4 className="text-sm font-semibold text-sage-700 mb-2">📋 Getting Started</h4>
-                <div className="text-sm text-sage-600">
-                    Break your {project.projectType} into major sections like sleeves, body, and collar.
-                    Each component will have its own step-by-step instructions.
-                </div>
-            </div>
-
-
-            {/* Status-Organized Component Lists */}
-            <div className="space-y-6">
-                {statusCategories.map(category => {
-                    const components = getComponentsByStatus(category.status);
-                    return (
-                        <ComponentStatusSection
-                            key={category.status}
-                            category={category}
-                            components={components}
-                            onComponentAction={handleComponentAction}
-                            openMenuId={openMenuId}
-                            setOpenMenuId={setOpenMenuId}
-                            handleMenuToggle={handleMenuToggle}
-                        />
-                    );
-                })}
-            </div>
-
-            {/* Empty State */}
-            {totalComponents === 0 && (
-                <div className="mt-6 py-8 text-center">
+        <TabContent
+            showEmptyState={totalComponents === 0}
+            emptyState={
+                <div>
                     <div className="text-2xl mb-2">🧶</div>
                     <p className="text-wool-500 text-sm">Add your first component to get started</p>
                 </div>
-            )}
+            }
+        >
+            <div className="p-6">
+                {/* Header */}
+                <div className="content-header-with-buttons">
+                    <h2 className="content-title">🧶 Components ({totalComponents})</h2>
+                    <div className="button-group">
+                        <button
+                            onClick={onShowEnhancedCreation}
+                            className="btn-primary btn-sm"
+                        >
+                            + Add Component
+                        </button>
+                    </div>
+                </div>
 
-        </div>
+                <div className="success-block-center mb-6">
+                    <h4 className="text-sm font-semibold text-sage-700 mb-2">📋 Getting Started</h4>
+                    <div className="text-sm text-sage-600">
+                        Break your {project.projectType} into major sections like sleeves, body, and collar.
+                        Each component will have its own step-by-step instructions.
+                    </div>
+                </div>
+
+
+                {/* Status-Organized Component Lists */}
+                <div className="space-y-6">
+                    {statusCategories.map(category => {
+                        const components = getComponentsByStatus(category.status);
+                        return (
+                            <ComponentStatusSection
+                                key={category.status}
+                                category={category}
+                                components={components}
+                                onComponentAction={handleComponentAction}
+                                openMenuId={openMenuId}
+                                setOpenMenuId={setOpenMenuId}
+                                handleMenuToggle={handleMenuToggle}
+                            />
+                        );
+                    })}
+                </div>
+            </div>
+        </TabContent>
     );
 };
 

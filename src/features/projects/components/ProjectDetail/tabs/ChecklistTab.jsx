@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
+import useProjectUpdate from '../../../../../shared/hooks/useProjectUpdate';
 
 /**
  * 📋 ChecklistTab - The Ultimate Finishing Task Management System
@@ -22,6 +23,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
 
     // Use shared three-dot menu behavior
     const { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction } = useThreeDotMenu();
+    const { updateProject } = useProjectUpdate(onProjectUpdate);
 
     // Get or initialize checklist data
     const checklist = project.checklist || { categories: getDefaultCategories() };
@@ -157,10 +159,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
             })
         };
 
-        onProjectUpdate({
-            ...project,
-            checklist: updatedChecklist
-        });
+        updateProject(project, { checklist: updatedChecklist });
     };
 
     const handleDeleteTask = (categoryId, taskId) => {
@@ -177,10 +176,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
             })
         };
 
-        onProjectUpdate({
-            ...project,
-            checklist: updatedChecklist
-        });
+        updateProject(project, { checklist: updatedChecklist });
     };
 
     const handleMoveTask = (categoryId, taskId, direction) => {

@@ -52,7 +52,6 @@ const NeedlesSection = ({
 
         // If user has entered needle info but hasn't clicked "Add Another Needle", add it automatically
         if (newNeedle.size && newNeedle.size.trim()) {
-            console.log('🔧 AUTO-ADD DEBUG - newNeedle state:', newNeedle); // ADD THIS LINE
             const needleToAdd = {
                 size: newNeedle.size,
                 type: newNeedle.type || 'straight',
@@ -114,17 +113,8 @@ const NeedlesSection = ({
 
     // 🔧 New needle form handlers
     const updateNewNeedle = (field, value) => {
-        console.log('=== NEEDLE UPDATE DEBUG ===');
-        console.log('Field:', field);
-        console.log('Value:', value);
-        console.log('Value type:', typeof value);
-        console.log('Value length:', value.length);
-        console.log('Is empty string?', value === '');
-        console.log('Current newNeedle state before update:', newNeedle);
-
         setNewNeedle(prev => {
             const updated = { ...prev, [field]: value };
-            console.log('New needle state after update:', updated);
             return updated;
         });
     };
