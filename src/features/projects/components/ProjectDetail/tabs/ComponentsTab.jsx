@@ -9,10 +9,6 @@ const ComponentsTab = ({
     openMenuId,
     setOpenMenuId
 }) => {
-    const [showComponentChoiceModal, setShowComponentChoiceModal] = useState(false);
-    const [selectedSuggestion, setSelectedSuggestion] = useState(null);
-    const [copyFromComponent, setCopyFromComponent] = useState('');
-    const [createMode, setCreateMode] = useState('new');
 
     const statusCategories = [
         {
@@ -89,65 +85,8 @@ const ComponentsTab = ({
 
     // Handle suggestion selection
     const handleSuggestionSelect = (suggestion) => {
-        setSelectedSuggestion(suggestion);
-        setCreateMode('new');
-        setCopyFromComponent('');
-        setShowComponentChoiceModal(true);
-    };
-
-    // Modal behavior
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showComponentChoiceModal) {
-                handleCloseModal();
-            }
-        };
-
-        if (showComponentChoiceModal) {
-            document.addEventListener('keydown', handleEscKey);
-            setTimeout(() => {
-                const primaryButton = document.querySelector('[data-modal-primary]');
-                if (primaryButton) primaryButton.focus();
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-        };
-    }, [showComponentChoiceModal]);
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            handleCloseModal();
-        }
-    };
-
-    const handleCloseModal = () => {
-        setShowComponentChoiceModal(false);
-        setSelectedSuggestion(null);
-        setCopyFromComponent('');
-        setCreateMode('new');
-    };
-
-    const handleCreateComponent = () => {
-        if (createMode === 'copy' && !copyFromComponent) {
-            return;
-        }
-
-        if (createMode === 'copy') {
-            onComponentMenuAction('copy', copyFromComponent);
-        } else {
-            onShowEnhancedCreation();
-        }
-
-        handleCloseModal();
-    };
-
-    const canCreateComponent = () => {
-        if (createMode === 'copy') {
-            return copyFromComponent !== '';
-        }
-        return true;
+        // Route to proper enhanced creation flow
+        onShowEnhancedCreation();
     };
 
     const handleComponentAction = (component, action) => {
@@ -216,111 +155,6 @@ const ComponentsTab = ({
                 </div>
             )}
 
-            {/* Component Choice Modal */}
-            {showComponentChoiceModal && selectedSuggestion && (
-                <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center p-4" onClick={handleBackdropClick}>
-                    <div className="bg-white rounded-xl max-w-sm w-full">
-                        <div className="p-4 border-b border-gray-200">
-                            <h2 className="text-lg font-semibold">Create {selectedSuggestion.name}</h2>
-                        </div>
-
-                        <div className="p-4 space-y-4">
-                            {/* Create New Option */}
-                            <label className={`block cursor-pointer p-3 rounded-xl border-2 transition-all duration-200 ${createMode === 'new'
-                                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                                }`}>
-                                <div className="flex items-start gap-4">
-                                    <input
-                                        type="radio"
-                                        name="create_mode"
-                                        value="new"
-                                        checked={createMode === 'new'}
-                                        onChange={(e) => setCreateMode(e.target.value)}
-                                        className="w-4 h-4 text-sage-600 mt-1"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <span className="text-xl">✨</span>
-                                            <div className="text-left">
-                                                <div className="font-medium">Create New Component</div>
-                                                <div className="text-sm opacity-75">Start fresh with the component wizard</div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </label>
-
-                            {/* Copy from Existing Option */}
-                            <label className={`block cursor-pointer p-3 rounded-xl border-2 transition-all duration-200 ${createMode === 'copy'
-                                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                                }`}>
-                                <div className="flex items-start gap-4">
-                                    <input
-                                        type="radio"
-                                        name="create_mode"
-                                        value="copy"
-                                        checked={createMode === 'copy'}
-                                        onChange={(e) => setCreateMode(e.target.value)}
-                                        className="w-4 h-4 text-sage-600 mt-1"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <span className="text-xl">📋</span>
-                                            <div className="text-left">
-                                                <div className="font-medium">Copy from Existing</div>
-                                                <div className="text-sm opacity-75">Copy steps from another component</div>
-                                            </div>
-                                        </div>
-
-                                        {/* Nested content inside the radio option */}
-                                        {createMode === 'copy' && (
-                                            <div className="mt-3 space-y-3">
-                                                <select
-                                                    value={copyFromComponent}
-                                                    onChange={(e) => setCopyFromComponent(e.target.value)}
-                                                    className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                                                >
-                                                    <option value="">Select component...</option>
-                                                    {project.components.map(comp => (
-                                                        <option key={comp.id} value={comp.id}>
-                                                            {comp.name} ({comp.steps?.length || 0} steps)
-                                                        </option>
-                                                    ))}
-                                                </select>
-
-                                                <div className="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">
-                                                    <strong>Note:</strong> To modify copied steps, only delete from the end working backwards. This maintains stitch count dependencies.
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            </label>
-                        </div>
-
-                        {/* Action Buttons */}
-                        <div className="p-4 border-t border-gray-100 flex gap-3">
-                            <button
-                                onClick={handleCloseModal}
-                                data-modal-cancel
-                                className="btn-tertiary flex-1"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleCreateComponent}
-                                disabled={!canCreateComponent()}
-                                data-modal-primary
-                                className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                            >
-                                Create
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
