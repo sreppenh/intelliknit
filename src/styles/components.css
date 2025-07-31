@@ -524,7 +524,8 @@ select {
 /* ===== Project Personality Cards ===== */
 .card-project-base {
   @apply border-2 rounded-xl p-5 shadow-sm transition-all duration-200 cursor-pointer;
-  @apply hover:shadow-lg hover:scale-[1.01] active:scale-95;
+  @apply hover:shadow-md hover:border-opacity-90;
+  @apply active:shadow-lg active:border-opacity-100;
 }
 
 .card-project-completed {
@@ -801,7 +802,8 @@ select {
   @apply bg-sage-500 text-white text-xs px-3 py-1.5 rounded-md font-medium;
   @apply hover:bg-sage-600 active:bg-sage-700 transition-all duration-200;
   @apply focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
-  @apply transform hover:scale-105 active:scale-95;
+  @apply transition-colors duration-200;
+  @apply hover:bg-sage-100 active:bg-sage-200;
 }
 
 /* Section Headers */
@@ -888,16 +890,16 @@ select {
 
 /* ✅ FINISHED - Strong sage (celebration!) */
 .card-component-complete {
-  @apply bg-sage-300 border-2 border-sage-600 rounded-xl p-3 shadow-lg transition-all duration-200;
-  @apply hover:border-sage-700 hover:bg-sage-400 hover:shadow-xl hover:transform hover:scale-[1.01];
-  @apply active:scale-[0.99] cursor-pointer;
+  @apply bg-sage-300 border-2 border-sage-600 rounded-xl p-3 shadow-lg transition-all duration-200 cursor-pointer;
+  @apply hover:border-sage-700 hover:bg-sage-400 hover:shadow-xl;
+  @apply active:bg-sage-500 active:border-sage-800;
 }
 
 /* 🪡 FINISHING STEPS - Lavender theme (special tasks) */
 .card-component-finishing {
-  @apply bg-lavender-100 border-2 border-lavender-400 rounded-xl p-3 shadow-sm transition-all duration-200;
-  @apply hover:border-lavender-500 hover:bg-lavender-200 hover:shadow-md hover:transform hover:scale-[1.01];
-  @apply active:scale-[0.99] cursor-pointer;
+  @apply bg-lavender-100 border-2 border-lavender-400 rounded-xl p-3 shadow-sm transition-all duration-200 cursor-pointer;
+  @apply hover:border-lavender-500 hover:bg-lavender-200 hover:shadow-md;
+  @apply active:bg-lavender-300 active:border-lavender-600;
 }
 
 /* VISUAL PROGRESSION: beige → light green → medium green → strong green 
@@ -1045,4 +1047,20 @@ body.modal-open {
   * {
     scrollbar-width: none;
   }
+}
+
+/* ===== OPTIONAL: Enhanced Active States ===== */
+/* If users miss the bounce feedback, add these enhanced active states: */
+
+/* Enhanced shadow feedback for important cards */
+.card-component:active,
+.card-component-ready:active,
+.card-component-progress:active,
+.card-component-complete:active {
+  @apply shadow-lg;
+}
+
+/* Enhanced border feedback for selection */
+.card-interactive:active {
+  @apply shadow-md;
 }
