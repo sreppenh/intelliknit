@@ -197,6 +197,9 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               completedComponents={completedComponents}
               onCompleteProject={modalHandlers.showCompleteProject}
               onEditProjectDetails={projectActions.editProjectDetails}
+              onManageSteps={componentActions.manageSteps}
+              onStartKnitting={onStartKnitting}
+              onChangeTab={changeTab}
             />
           )}
           {currentTab === 'components' && (
