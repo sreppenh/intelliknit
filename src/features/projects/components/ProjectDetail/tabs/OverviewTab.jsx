@@ -86,8 +86,46 @@ const OverviewTab = ({
 
     const overviewComponents = getOverviewComponents();
 
-    // === PROJECT ACTIONS (From old version patterns) ===
+    // === PROJECT ACTIONS - FIXED AND IMPROVED ===
+    const handleCompleteProject = () => {
+        console.log('🎉 Complete Project clicked, using onCompleteProject callback');
+        console.log('🎉 onCompleteProject exists:', !!onCompleteProject);
+
+        if (onCompleteProject) {
+            console.log('🎉 Calling onCompleteProject...');
+            onCompleteProject();
+        } else {
+            console.error('❌ onCompleteProject callback not provided');
+            // Fallback: try direct update with completion date
+            if (onProjectUpdate) {
+                console.log('🎉 Fallback: using onProjectUpdate directly');
+                const today = new Date().toISOString().split('T')[0];
+                const updatedProject = {
+                    ...project,
+                    completed: true,
+                    frogged: false,
+                    completedAt: today,
+                    froggedAt: '',
+                    progress: 100
+                };
+                onProjectUpdate(updatedProject);
+            } else {
+                alert('Error: Cannot complete project - no update callback available');
+            }
+        }
+    };
+
     const handleFrogProject = () => {
+        console.log('🐸 handleFrogProject called!');
+        console.log('🐸 onProjectUpdate exists:', !!onProjectUpdate);
+        console.log('🐸 project:', project);
+
+        if (!onProjectUpdate) {
+            console.error('❌ onProjectUpdate callback not provided');
+            alert('Error: Cannot frog project - update callback missing');
+            return;
+        }
+
         const today = new Date().toISOString().split('T')[0];
         const updatedProject = {
             ...project,
@@ -97,13 +135,33 @@ const OverviewTab = ({
             completedAt: '',
             progress: 0
         };
-        onProjectUpdate && onProjectUpdate(updatedProject);
-        setShowFrogModal(false);
+
+        console.log('🐸 About to call onProjectUpdate with:', updatedProject);
+
+        try {
+            onProjectUpdate(updatedProject);
+            console.log('✅ onProjectUpdate called successfully');
+            setShowFrogModal(false);
+        } catch (error) {
+            console.error('❌ Error calling onProjectUpdate:', error);
+            alert('Error frogging project: ' + error.message);
+        }
     };
 
     const handleDeleteProject = () => {
-        onDeleteProject && onDeleteProject(project.id);
+        console.log('🗑️ Delete Project clicked, onDeleteProject:', !!onDeleteProject);
+
+        if (!onDeleteProject) {
+            console.error('onDeleteProject callback not provided');
+            return;
+        }
+        onDeleteProject(project.id);
         setShowDeleteModal(false);
+    };
+
+    const handleCopyProject = () => {
+        console.log('📋 Copy Project clicked');
+        alert('📋 Copy Project feature coming soon! This will create a new project with reset progress.');
     };
 
     // === COMPONENT ACTION HANDLERS ===
@@ -155,6 +213,51 @@ const OverviewTab = ({
         };
         return icons[projectType] || '🧶';
     };
+
+    // === STATUS DISPLAY LOGIC - NEW ===
+    const getProjectStatusDisplay = () => {
+        if (project.completed) {
+            const completedDate = project.completedAt ?
+                new Date(project.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) :
+                'Recently';
+            return {
+                show: true,
+                emoji: '🎉',
+                message: `Completed on ${completedDate}`,
+                bgColor: 'bg-sage-100 border-sage-300',
+                textColor: 'text-sage-700'
+            };
+        }
+
+        if (project.frogged) {
+            const froggedDate = project.froggedAt ?
+                new Date(project.froggedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) :
+                'Recently';
+            return {
+                show: true,
+                emoji: '🐸',
+                message: `Frogged on ${froggedDate}`,
+                bgColor: 'bg-lavender-100 border-lavender-300',
+                textColor: 'text-lavender-700'
+            };
+        }
+
+        return { show: false };
+    };
+
+    const projectStatus = getProjectStatusDisplay();
+
+    // === SMART BUTTON LOGIC - NEW ===
+    const getAvailableActions = () => {
+        return {
+            canComplete: !project.completed, // Can complete if not already completed
+            canFrog: !project.frogged,       // Can frog if not already frogged
+            canDelete: true,                 // Can always delete
+            showMarkComplete: !project.completed && (completedComponents > 0 || overviewComponents.some(c => getComponentStatus(c) === 'currently_knitting'))
+        };
+    };
+
+    const actions = getAvailableActions();
 
     // === CELEBRATION LOGIC (Fixed to use activityLog) ===
     const getStreakMessage = () => {
@@ -242,12 +345,21 @@ const OverviewTab = ({
                     <div className="text-4xl mb-3">✨</div>
                     <h3 className="font-semibold text-wool-700 mb-2">Ready to Begin</h3>
                     <p className="text-wool-500 text-sm mb-4">Add your first component to start knitting</p>
-                    <button
-                        onClick={() => onChangeTab('components')}
-                        className="btn-primary"
-                    >
-                        Add Component
-                    </button>
+                    <div className="space-y-3">
+                        <button
+                            onClick={() => onChangeTab('components')}
+                            className="btn-primary w-full"
+                        >
+                            Add Component
+                        </button>
+                        {/* FIXED: Delete button always available in empty state */}
+                        <button
+                            onClick={() => setShowDeleteModal(true)}
+                            className="btn-tertiary w-full text-sm"
+                        >
+                            🗑️ Delete Project
+                        </button>
+                    </div>
                 </div>
             }
         >
@@ -263,18 +375,32 @@ const OverviewTab = ({
                     </p>
                 </div>
 
-                {/* === CELEBRATION BANNER === */}
-                <div className="bg-white rounded-2xl border-2 border-sage-200 p-3">
-                    <div className="text-center">
-                        {streakMessage ? (
-                            <div className="text-lg font-semibold text-sage-600">{streakMessage}</div>
-                        ) : (
-                            <div className="text-base text-wool-600">
-                                Last worked: {formatRelativeDate(project.lastActivityAt || project.createdAt)}
+                {/* === PROJECT STATUS BANNER - NEW === */}
+                {projectStatus.show && (
+                    <div className={`rounded-2xl border-2 p-4 ${projectStatus.bgColor}`}>
+                        <div className="text-center">
+                            <div className={`text-lg font-semibold ${projectStatus.textColor} flex items-center justify-center gap-2`}>
+                                <span className="text-xl">{projectStatus.emoji}</span>
+                                {projectStatus.message}
                             </div>
-                        )}
+                        </div>
                     </div>
-                </div>
+                )}
+
+                {/* === CELEBRATION BANNER === */}
+                {!projectStatus.show && (
+                    <div className="bg-white rounded-2xl border-2 border-sage-200 p-3">
+                        <div className="text-center">
+                            {streakMessage ? (
+                                <div className="text-lg font-semibold text-sage-600">{streakMessage}</div>
+                            ) : (
+                                <div className="text-base text-wool-600">
+                                    Last worked: {formatRelativeDate(project.lastActivityAt || project.createdAt)}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
 
                 {/* === ACTIVE COMPONENTS (Max 3, stronger status) === */}
                 {overviewComponents.length > 0 && (
@@ -293,19 +419,19 @@ const OverviewTab = ({
                     </div>
                 )}
 
-                {/* === PROJECT ACTIONS (Old version balance, with Copy) === */}
+                {/* === PROJECT ACTIONS - IMPROVED WITH SMART LOGIC === */}
                 <div className="space-y-4">
-                    {/* Primary CTA - Mark Complete */}
-                    {(completedComponents > 0 || overviewComponents.some(c => getComponentStatus(c) === 'currently_knitting')) && (
+                    {/* Primary CTA - Mark Complete (smart logic) */}
+                    {actions.showMarkComplete && (
                         <button
-                            onClick={onCompleteProject}
+                            onClick={handleCompleteProject}
                             className="w-full btn-primary"
                         >
                             🎉 Mark Project Complete
                         </button>
                     )}
 
-                    {/* Secondary Actions - Compact buttons */}
+                    {/* Secondary Actions - Smart button visibility */}
                     <div className="space-y-2">
                         <h3 className="text-sm font-medium text-wool-600">Project Actions</h3>
                         <div className="grid grid-cols-2 gap-2">
@@ -319,21 +445,21 @@ const OverviewTab = ({
                                 ⚙️ Edit Details
                             </button>
                             <button
-                                onClick={() => {
-                                    // TODO: Implement copy project functionality
-                                    // This will create a new project with reset progress
-                                    console.log('Copy project feature coming soon!');
-                                }}
+                                onClick={handleCopyProject}
                                 className="btn-tertiary text-sm"
                             >
                                 📋 Copy Project
                             </button>
-                            <button
-                                onClick={() => setShowFrogModal(true)}
-                                className="btn-tertiary text-sm"
-                            >
-                                🐸 Frog Project
-                            </button>
+                            {/* Smart Frog Button - only show if not already frogged */}
+                            {actions.canFrog && (
+                                <button
+                                    onClick={() => setShowFrogModal(true)}
+                                    className="btn-tertiary text-sm"
+                                >
+                                    🐸 Frog Project
+                                </button>
+                            )}
+                            {/* Delete Button - always available */}
                             <button
                                 onClick={() => setShowDeleteModal(true)}
                                 className="btn-tertiary text-sm"
@@ -371,14 +497,20 @@ const OverviewTab = ({
                             </p>
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => setShowFrogModal(false)}
+                                    onClick={() => {
+                                        console.log('🐸 Modal Keep Going clicked');
+                                        setShowFrogModal(false);
+                                    }}
                                     data-modal-cancel
                                     className="btn-tertiary flex-1"
                                 >
                                     Keep Going
                                 </button>
                                 <button
-                                    onClick={handleFrogProject}
+                                    onClick={() => {
+                                        console.log('🐸 Modal Frog It clicked - calling handleFrogProject');
+                                        handleFrogProject();
+                                    }}
                                     data-modal-exit
                                     className="btn-primary flex-1"
                                 >

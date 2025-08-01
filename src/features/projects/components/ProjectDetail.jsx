@@ -200,6 +200,24 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               onManageSteps={componentActions.manageSteps}
               onStartKnitting={onStartKnitting}
               onChangeTab={changeTab}
+              onProjectUpdate={(updatedProject) => {
+                dispatch({
+                  type: 'UPDATE_PROJECT',
+                  payload: updatedProject
+                });
+              }}
+              onDeleteProject={(projectId) => {
+                dispatch({
+                  type: 'DELETE_PROJECT',
+                  payload: projectId
+                });
+                onBack(); // Navigate back after deletion
+              }}
+              onCopyProject={(projectData) => {
+                console.log('Copy project:', projectData);
+                // TODO: Implement copy project functionality
+                alert('📋 Copy Project feature coming soon!');
+              }}
             />
           )}
           {currentTab === 'components' && (
