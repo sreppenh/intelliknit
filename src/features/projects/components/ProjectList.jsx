@@ -3,6 +3,7 @@ import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getProjectStatus as getSharedProjectStatus } from '../../../shared/utils/projectStatus';
+import { getUnifiedProjectStatus, runStatusTests, testCompatibility } from '../../../shared/utils/unifiedProjectStatus';
 
 
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
@@ -74,91 +75,25 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     return streak;
   };
 
-  // Priority-based personality calculation (completed/frogged override everything)
-  const getProjectPersonality = (project, isTopProject = false) => {
-    const totalComponents = project.components?.length || 0;
-    const hasSteps = project.components?.some(comp => comp.steps?.length > 0);
-    const streakDays = getStreakDays(project);
+  // NEW: Use unified status system
+  const getProjectPersonality = (project) => {
+    const unified = getUnifiedProjectStatus(project);
 
-    // 1. COMPLETED - nothing else matters
-    if (project.completed) {
-      return {
-        state: 'completed',
-        emoji: '🎉',
-        mood: 'Celebration time!',
-        color: 'text-sage-600',
-        category: 'completed'
-      };
-    }
+    // Map unified status to our card border colors
+    const getBorderColor = (status, category) => {
+      switch (status) {
+        case 'Completed': return 'border-sage-400';
+        case 'Frogged': return 'border-blue-400';
+        case 'Currently Knitting': return unified.streak >= 3 ? 'border-orange-400' : 'border-yarn-400';
+        case 'Ready to Knit': return 'border-lavender-400';
+        case 'Planning': return 'border-wool-400';
+        default: return 'border-wool-200';
+      }
+    };
 
-    // 2. FROGGED - nothing else matters  
-    if (project.frogged) {
-      return {
-        state: 'frogged',
-        emoji: '🐸',
-        mood: 'Taking a break',
-        color: 'text-blue-600',
-        category: 'planning'
-      };
-    }
-
-    // 3. For active projects, calculate based on activity and progress
-
-    // Fire projects (3+ day streak)
-    if (streakDays >= 3) {
-      return {
-        state: 'fire',
-        emoji: '🔥',
-        mood: `${streakDays} day streak`,
-        color: 'text-orange-600',
-        category: 'active',
-        streakDays: streakDays
-      };
-    }
-
-    // Current project (top project override)
-    if (isTopProject && hasSteps) {
-      return {
-        state: 'current',
-        emoji: '⭐',
-        mood: 'Currently working',
-        color: 'text-sage-600',
-        category: 'active'
-      };
-    }
-
-    // Dormant projects (no activity for 14+ days but have steps)
-    const lastActivity = new Date(project.lastActivityAt || project.createdAt);
-    const daysSinceActivity = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
-
-    if (daysSinceActivity > 14 && hasSteps) {
-      return {
-        state: 'dormant',
-        emoji: '😴',
-        mood: 'Taking a nap',
-        color: 'text-wool-500',
-        category: 'planning'
-      };
-    }
-
-    // Empty projects (no components or steps)
-    if (totalComponents === 0 || !hasSteps) {
-      return {
-        state: 'planning',
-        emoji: '💭',
-        mood: 'Ready to begin',
-        color: 'text-lavender-600',
-        category: 'planning'
-      };
-    }
-
-    // Active projects (fallback)
     return {
-      state: 'active',
-      emoji: '🧶',
-      mood: 'In progress',
-      color: 'text-yarn-600',
-      category: 'active'
+      ...unified,
+      borderColor: getBorderColor(unified.status, unified.category)
     };
   };
 
@@ -174,7 +109,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     });
   };
 
-  // Filter projects by personality category
+  // Filter projects by unified status category
   const getFilteredProjects = () => {
     const sortedProjects = getSortedProjects();
 
@@ -184,15 +119,15 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
       const personality = getProjectPersonality(project);
 
       if (filterState === 'completed') {
-        return project.completed;
+        return personality.status === 'Completed';
       }
 
       if (filterState === 'planning') {
-        return personality.category === 'planning';
+        return personality.category === 'planning'; // Includes Planning + Dormant
       }
 
       if (filterState === 'active') {
-        return personality.category === 'active';
+        return personality.category === 'active'; // Currently Knitting + Ready to Knit
       }
 
       return true;
@@ -285,6 +220,35 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     }
   };
 
+  // 🧪 TESTING FUNCTIONS - Call these in browser console to verify
+  React.useEffect(() => {
+    // Make test functions available globally for easy console testing
+    window.IntelliKnitTests = {
+      runStatusTests,
+      testCompatibility: () => testCompatibility(projects),
+      testProject: (projectIndex) => {
+        const project = projects[projectIndex];
+        if (project) {
+          const old = getSharedProjectStatus(project);
+          const new_ = getUnifiedProjectStatus(project);
+          console.log('OLD:', old);
+          console.log('NEW:', new_);
+          return { old, new: new_ };
+        }
+        console.log('Project not found at index', projectIndex);
+      }
+    };
+
+    // Auto-run basic tests on load (only in development)
+    if (process.env.NODE_ENV === 'development') {
+      console.log('🧪 Auto-running status tests...');
+      runStatusTests();
+      if (projects.length > 0) {
+        testCompatibility(projects);
+      }
+    }
+  }, [projects]);
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
@@ -308,7 +272,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               onClick={onCreateProject}
               className="btn-secondary"
             >
-              ✨ Add New Project
+              Add New Project
             </button>
           </div>
         </div>
@@ -366,7 +330,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
         {/* Content area */}
         <div className="p-6 bg-yarn-50">
-          <p className="content-subheader mb-6">What would you like to work on?</p>
 
           {/* Project List or Welcome Screen */}
           {getFilteredProjects().length === 0 ? (
@@ -396,18 +359,17 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               </div>
             </div>
           ) : (
-            /* Enhanced chronological project cards */
+            /* Enhanced chronological project cards with unified status */
             <div className="space-y-3">
               {getFilteredProjects().map((project, index) => {
-                const isTopProject = index === 0 && getFilteredProjects().length > 1;
-                const personality = getProjectPersonality(project, isTopProject);
+                const personality = getProjectPersonality(project);
                 const componentInfo = getComponentInfo(project);
                 const projectIcon = getProjectIcon(project.projectType);
 
                 return (
                   <div
                     key={project.id}
-                    className="bg-white rounded-xl p-4 shadow-sm border border-wool-200 cursor-pointer hover:shadow-md hover:border-sage-300 transition-all duration-200"
+                    className={`bg-white rounded-xl p-4 shadow-sm border-2 ${personality.borderColor} cursor-pointer hover:shadow-md hover:border-sage-400 transition-all duration-200`}
                     onClick={() => handleProjectEdit(project)}
                   >
                     {/* Project Header - Icon, Name, Status */}
@@ -420,11 +382,11 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                           </h3>
                           <div className="flex items-center gap-2">
                             <span className={`text-sm font-medium ${personality.color}`}>
-                              {personality.state.charAt(0).toUpperCase() + personality.state.slice(1)}
+                              {personality.status}
                             </span>
-                            {personality.streakDays && (
+                            {personality.streak > 0 && (
                               <span className="text-sm text-orange-600 font-medium">
-                                🔥{personality.streakDays}d
+                                🔥{personality.streak}d
                               </span>
                             )}
                           </div>
@@ -432,7 +394,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                       </div>
 
                       {/* Personality Emoji */}
-                      <div className="text-xl flex-shrink-0">
+                      <div className="text-xl flex-shrink-0 flex items-center">
                         {personality.emoji}
                       </div>
                     </div>
