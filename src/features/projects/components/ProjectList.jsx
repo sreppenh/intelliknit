@@ -134,28 +134,68 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     });
   };
 
-  // Calculate component completion info
+  // Enhanced component info with creation date context
   const getComponentInfo = (project) => {
     const totalComponents = project.components?.length || 0;
-    if (totalComponents === 0) return { total: 0, completed: 0, text: 'No components yet' };
+    const creationDate = new Date(project.createdAt).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric'
+    });
 
-    const completedComponents = project.components.filter(comp =>
-      comp.steps?.length > 0 && comp.steps.every(step => step.completed)
-    ).length;
-
-    if (completedComponents === 0) {
-      return {
-        total: totalComponents,
-        completed: 0,
-        text: `${totalComponents} component${totalComponents > 1 ? 's' : ''}`
-      };
+    let componentText;
+    if (totalComponents === 0) {
+      componentText = 'No components yet';
+    } else {
+      const completedComponents = project.components.filter(comp =>
+        comp.steps?.length > 0 && comp.steps.every(step => step.completed)
+      ).length;
+      componentText = `${completedComponents} of ${totalComponents} components completed`;
     }
 
     return {
       total: totalComponents,
-      completed: completedComponents,
-      text: `${totalComponents} components, ${completedComponents} completed`
+      completed: totalComponents > 0 ? project.components.filter(comp =>
+        comp.steps?.length > 0 && comp.steps.every(step => step.completed)
+      ).length : 0,
+      text: `${componentText} • Created ${creationDate}`
     };
+  };
+
+  // Enhanced status text with integrated date context
+  const getStatusWithDate = (project, personality) => {
+    switch (personality.status) {
+      case 'Completed':
+        const completedDate = project.completedAt
+          ? new Date(project.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : '';
+        return completedDate ? `🎉 Completed ${completedDate}` : '🎉 Completed';
+
+      case 'Frogged':
+        const froggedDate = project.froggedAt
+          ? new Date(project.froggedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+          : '';
+        return froggedDate ? `🐸 Frogged ${froggedDate}` : '🐸 Frogged';
+
+      case 'Currently Knitting':
+        if (personality.streak >= 3) {
+          return `🔥 Currently Knitting - ${personality.streak} day streak`;
+        } else if (personality.isDormant) {
+          const daysSince = Math.floor((Date.now() - new Date(project.lastActivityAt || project.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+          return `😴 Last knit ${daysSince} days ago`;
+        } else if (personality.streak > 0) {
+          return `🔥 Currently Knitting - ${personality.streak} day${personality.streak > 1 ? 's' : ''}`;
+        }
+        return '🧶 Currently Knitting';
+
+      case 'Ready to Knit':
+        return '🚀 Ready to Knit';
+
+      case 'Planning':
+        return '💭 Planning';
+
+      default:
+        return `${personality.emoji} ${personality.status}`;
+    }
   };
 
   // Get last activity display
@@ -359,52 +399,58 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               </div>
             </div>
           ) : (
-            /* Enhanced chronological project cards with unified status */
+            /* Beautiful new card layout with integrated status */
             <div className="space-y-3">
               {getFilteredProjects().map((project, index) => {
                 const personality = getProjectPersonality(project);
                 const componentInfo = getComponentInfo(project);
                 const projectIcon = getProjectIcon(project.projectType);
+                const statusText = getStatusWithDate(project, personality);
+
+                // Get enhanced hover color based on status
+                const getHoverBorder = (borderColor) => {
+                  const colorMap = {
+                    'border-orange-400': 'hover:border-orange-500',
+                    'border-yarn-400': 'hover:border-yarn-500',
+                    'border-lavender-400': 'hover:border-lavender-500',
+                    'border-wool-400': 'hover:border-wool-500',
+                    'border-sage-400': 'hover:border-sage-500',
+                    'border-blue-400': 'hover:border-blue-500'
+                  };
+                  return colorMap[borderColor] || 'hover:border-sage-400';
+                };
 
                 return (
                   <div
                     key={project.id}
-                    className={`bg-white rounded-xl p-4 shadow-sm border-2 ${personality.borderColor} cursor-pointer hover:shadow-md hover:border-sage-400 transition-all duration-200`}
+                    className={`bg-white rounded-xl p-4 shadow-sm border-2 ${personality.borderColor} ${getHoverBorder(personality.borderColor)} cursor-pointer hover:shadow-md transition-all duration-200`}
                     onClick={() => handleProjectEdit(project)}
                   >
-                    {/* Project Header - Icon, Name, Status */}
-                    <div className="flex items-start justify-between mb-3">
+                    {/* First Line: Icon + Name + Big Status Icon */}
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-3 min-w-0 flex-1">
                         <span className="text-2xl flex-shrink-0">{projectIcon}</span>
-                        <div className="min-w-0 flex-1">
-                          <h3 className="font-semibold text-wool-700 text-base truncate mb-1">
-                            {project.name}
-                          </h3>
-                          <div className="flex items-center gap-2">
-                            <span className={`text-sm font-medium ${personality.color}`}>
-                              {personality.status}
-                            </span>
-                            {personality.streak > 0 && (
-                              <span className="text-sm text-orange-600 font-medium">
-                                🔥{personality.streak}d
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                        <h3 className="font-semibold text-wool-700 text-base truncate">
+                          {project.name}
+                        </h3>
                       </div>
 
-                      {/* Personality Emoji */}
-                      <div className="text-xl flex-shrink-0 flex items-center">
+                      {/* Big Status Icon */}
+                      <div className="text-2xl flex-shrink-0">
                         {personality.emoji}
                       </div>
                     </div>
 
-                    {/* Project Info - Components & Activity */}
-                    <div className="flex justify-between items-center text-sm text-wool-600">
-                      <span>{componentInfo.text}</span>
-                      <span className="text-xs">
-                        {getLastActivityDisplay(project)}
+                    {/* Second Line: Full Status with Date Context */}
+                    <div className="mb-2">
+                      <span className={`text-sm font-medium ${personality.color}`}>
+                        {statusText}
                       </span>
+                    </div>
+
+                    {/* Third Line: Component Progress */}
+                    <div className="text-sm text-wool-600">
+                      {componentInfo.text}
                     </div>
                   </div>
                 );
