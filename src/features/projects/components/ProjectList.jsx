@@ -310,7 +310,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           <div className="button-group">
             <button
               onClick={onCreateProject}
-              className="btn-secondary"
+              className="btn-secondary btn-sm"
             >
               Add New Project
             </button>
@@ -325,11 +325,11 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               <button
                 onClick={() => setFilterState('all')}
                 className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'all'
-                    ? 'text-sage-600'
-                    : 'text-wool-600 hover:text-sage-600'
+                  ? 'text-sage-600'
+                  : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
-                All Projects
+                All
                 {filterState === 'all' && (
                   <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
                 )}
@@ -337,8 +337,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               <button
                 onClick={() => setFilterState('active')}
                 className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'active'
-                    ? 'text-sage-600'
-                    : 'text-wool-600 hover:text-sage-600'
+                  ? 'text-sage-600'
+                  : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 Active
@@ -349,8 +349,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               <button
                 onClick={() => setFilterState('planning')}
                 className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'planning'
-                    ? 'text-sage-600'
-                    : 'text-wool-600 hover:text-sage-600'
+                  ? 'text-sage-600'
+                  : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 Planning
@@ -361,8 +361,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               <button
                 onClick={() => setFilterState('completed')}
                 className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'completed'
-                    ? 'text-sage-600'
-                    : 'text-wool-600 hover:text-sage-600'
+                  ? 'text-sage-600'
+                  : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 Completed
