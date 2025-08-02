@@ -317,46 +317,58 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           </div>
         </div>
 
-        {/* Subtle text link filters */}
+        {/* Subtle text link filters with fixed underlines */}
         <div className="px-6 py-3 bg-white border-b border-wool-100">
           <div className="flex items-center gap-6">
             <span className="text-sm text-wool-500">Show:</span>
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setFilterState('all')}
-                className={`text-sm font-medium transition-colors ${filterState === 'all'
-                    ? 'text-sage-600 border-b-2 border-sage-500 pb-1'
+                className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'all'
+                    ? 'text-sage-600'
                     : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 All Projects
+                {filterState === 'all' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
+                )}
               </button>
               <button
                 onClick={() => setFilterState('active')}
-                className={`text-sm font-medium transition-colors ${filterState === 'active'
-                    ? 'text-sage-600 border-b-2 border-sage-500 pb-1'
+                className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'active'
+                    ? 'text-sage-600'
                     : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 Active
+                {filterState === 'active' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
+                )}
               </button>
               <button
                 onClick={() => setFilterState('planning')}
-                className={`text-sm font-medium transition-colors ${filterState === 'planning'
-                    ? 'text-sage-600 border-b-2 border-sage-500 pb-1'
+                className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'planning'
+                    ? 'text-sage-600'
                     : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 Planning
+                {filterState === 'planning' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
+                )}
               </button>
               <button
                 onClick={() => setFilterState('completed')}
-                className={`text-sm font-medium transition-colors ${filterState === 'completed'
-                    ? 'text-sage-600 border-b-2 border-sage-500 pb-1'
+                className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'completed'
+                    ? 'text-sage-600'
                     : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 Completed
+                {filterState === 'completed' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
+                )}
               </button>
             </div>
           </div>
@@ -407,23 +419,23 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                 const projectIcon = getProjectIcon(project.projectType);
                 const statusText = getStatusWithDate(project, personality);
 
-                // Get enhanced hover color based on status
-                const getHoverBorder = (borderColor) => {
+                // Enhanced hover that coordinates with status color
+                const getHoverClass = (borderColor) => {
                   const colorMap = {
-                    'border-orange-400': 'hover:border-orange-500',
-                    'border-yarn-400': 'hover:border-yarn-500',
-                    'border-lavender-400': 'hover:border-lavender-500',
-                    'border-wool-400': 'hover:border-wool-500',
-                    'border-sage-400': 'hover:border-sage-500',
-                    'border-blue-400': 'hover:border-blue-500'
+                    'border-orange-400': 'hover:border-orange-500 hover:bg-orange-25',
+                    'border-yarn-400': 'hover:border-yarn-500 hover:bg-yarn-25',
+                    'border-lavender-400': 'hover:border-lavender-500 hover:bg-lavender-25',
+                    'border-wool-400': 'hover:border-wool-500 hover:bg-wool-50',
+                    'border-sage-400': 'hover:border-sage-500 hover:bg-sage-25',
+                    'border-blue-400': 'hover:border-blue-500 hover:bg-blue-25'
                   };
-                  return colorMap[borderColor] || 'hover:border-sage-400';
+                  return `${colorMap[borderColor] || 'hover:border-sage-400 hover:bg-wool-50'} hover:shadow-md`;
                 };
 
                 return (
                   <div
                     key={project.id}
-                    className={`bg-white rounded-xl p-4 shadow-sm border-2 ${personality.borderColor} ${getHoverBorder(personality.borderColor)} cursor-pointer hover:shadow-md transition-all duration-200`}
+                    className={`bg-white rounded-xl p-4 shadow-sm border-2 ${personality.borderColor} ${getHoverClass(personality.borderColor)} cursor-pointer transition-all duration-200`}
                     onClick={() => handleProjectEdit(project)}
                   >
                     {/* First Line: Icon + Name + Big Status Icon */}
