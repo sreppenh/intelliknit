@@ -106,14 +106,13 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
     // Fire projects (3+ day streak)
     if (streakDays >= 3) {
-      const fireLevel = streakDays >= 7 ? '🔥🔥🔥' : streakDays >= 5 ? '🔥🔥' : '🔥';
       return {
         state: 'fire',
         emoji: '🔥',
-        mood: `On fire! ${streakDays} day streak`,
+        mood: `${streakDays} day streak`,
         color: 'text-orange-600',
         category: 'active',
-        streakDisplay: `${fireLevel} ${streakDays}d`
+        streakDays: streakDays
       };
     }
 
@@ -136,7 +135,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
       return {
         state: 'dormant',
         emoji: '😴',
-        mood: 'Taking a nap...',
+        mood: 'Taking a nap',
         color: 'text-wool-500',
         category: 'planning'
       };
@@ -163,12 +162,12 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     };
   };
 
-  // Smart project sorting
+  // Smart project sorting (chronological like Ravelry)
   const getSortedProjects = () => {
     if (projects.length === 0) return [];
 
     return [...projects].sort((a, b) => {
-      // First priority: Most recent activity
+      // Sort by most recent activity (chronological timeline)
       const activityA = new Date(a.lastActivityAt || a.createdAt);
       const activityB = new Date(b.lastActivityAt || b.createdAt);
       return activityB - activityA;
@@ -198,6 +197,48 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
       return true;
     });
+  };
+
+  // Calculate component completion info
+  const getComponentInfo = (project) => {
+    const totalComponents = project.components?.length || 0;
+    if (totalComponents === 0) return { total: 0, completed: 0, text: 'No components yet' };
+
+    const completedComponents = project.components.filter(comp =>
+      comp.steps?.length > 0 && comp.steps.every(step => step.completed)
+    ).length;
+
+    if (completedComponents === 0) {
+      return {
+        total: totalComponents,
+        completed: 0,
+        text: `${totalComponents} component${totalComponents > 1 ? 's' : ''}`
+      };
+    }
+
+    return {
+      total: totalComponents,
+      completed: completedComponents,
+      text: `${totalComponents} components, ${completedComponents} completed`
+    };
+  };
+
+  // Get last activity display
+  const getLastActivityDisplay = (project) => {
+    if (!project.lastActivityAt) {
+      const daysSinceCreated = Math.floor((Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60 * 24));
+      if (daysSinceCreated === 0) return 'Created today';
+      if (daysSinceCreated === 1) return 'Created yesterday';
+      return `Created ${daysSinceCreated} days ago`;
+    }
+
+    const days = Math.floor((Date.now() - new Date(project.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
+
+    if (days === 0) return 'Active today';
+    if (days === 1) return 'Active yesterday';
+    if (days < 7) return `Active ${days} days ago`;
+    if (days < 30) return `Active ${Math.floor(days / 7)} weeks ago`;
+    return `Active ${Math.floor(days / 30)} months ago`;
   };
 
   const getEmptyStateContent = () => {
@@ -237,21 +278,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     }
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 0) return 'Today';
-    if (diffDays === 1) return 'Yesterday';
-    if (diffDays < 7) return `${diffDays} days ago`;
-
-    return date.toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric'
-    });
-  };
-
   // Handle navigation
   const handleBackToLanding = () => {
     if (onBack) {
@@ -260,8 +286,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-white">
-      <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+    <div className="min-h-screen bg-yarn-50">
+      <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
 
         {/* PageHeader */}
         <PageHeader
@@ -339,7 +365,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         </div>
 
         {/* Content area */}
-        <div className="p-6">
+        <div className="p-6 bg-yarn-50">
           <p className="content-subheader mb-6">What would you like to work on?</p>
 
           {/* Project List or Welcome Screen */}
@@ -370,52 +396,52 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               </div>
             </div>
           ) : (
-            <div className="space-y-4">
+            /* Enhanced chronological project cards */
+            <div className="space-y-3">
               {getFilteredProjects().map((project, index) => {
                 const isTopProject = index === 0 && getFilteredProjects().length > 1;
                 const personality = getProjectPersonality(project, isTopProject);
-                const streakDays = getStreakDays(project);
+                const componentInfo = getComponentInfo(project);
                 const projectIcon = getProjectIcon(project.projectType);
 
                 return (
                   <div
                     key={project.id}
-                    className="card-interactive p-4 cursor-pointer hover:shadow-md transition-all duration-200"
+                    className="bg-white rounded-xl p-4 shadow-sm border border-wool-200 cursor-pointer hover:shadow-md hover:border-sage-300 transition-all duration-200"
                     onClick={() => handleProjectEdit(project)}
                   >
-                    {/* Project Header */}
+                    {/* Project Header - Icon, Name, Status */}
                     <div className="flex items-start justify-between mb-3">
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{projectIcon}</span>
-                        <div>
-                          <h3 className="font-semibold text-wool-700 text-base">{project.name}</h3>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className={`font-medium ${personality.color}`}>
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <span className="text-2xl flex-shrink-0">{projectIcon}</span>
+                        <div className="min-w-0 flex-1">
+                          <h3 className="font-semibold text-wool-700 text-base truncate mb-1">
+                            {project.name}
+                          </h3>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-sm font-medium ${personality.color}`}>
                               {personality.state.charAt(0).toUpperCase() + personality.state.slice(1)}
                             </span>
-                            {streakDays > 0 && !project.completed && (
-                              <span className="text-xs text-orange-600 font-medium">
-                                🔥 {streakDays} day{streakDays > 1 ? 's' : ''}
+                            {personality.streakDays && (
+                              <span className="text-sm text-orange-600 font-medium">
+                                🔥{personality.streakDays}d
                               </span>
                             )}
                           </div>
                         </div>
                       </div>
 
-                      {/* Personality Indicator */}
-                      <div className="text-right">
-                        <div className="text-lg mb-1">{personality.emoji}</div>
-                        <div className="text-xs text-wool-500 max-w-20 text-right">
-                          {personality.mood}
-                        </div>
+                      {/* Personality Emoji */}
+                      <div className="text-xl flex-shrink-0">
+                        {personality.emoji}
                       </div>
                     </div>
 
-                    {/* Project Stats */}
+                    {/* Project Info - Components & Activity */}
                     <div className="flex justify-between items-center text-sm text-wool-600">
-                      <span>{project.components?.length || 0} component{(project.components?.length || 0) !== 1 ? 's' : ''}</span>
-                      <span>
-                        Started {formatDate(project.createdAt)}
+                      <span>{componentInfo.text}</span>
+                      <span className="text-xs">
+                        {getLastActivityDisplay(project)}
                       </span>
                     </div>
                   </div>
