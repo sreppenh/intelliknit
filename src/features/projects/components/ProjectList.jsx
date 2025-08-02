@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
-import ContextualBar from '../../../shared/components/ContextualBar';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getProjectStatus as getSharedProjectStatus } from '../../../shared/utils/projectStatus';
 
@@ -307,70 +306,66 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           onCancel={handleBackToLanding}
         />
 
-        {/* NEW: ContextualBar - Always present, adapts to content */}
-        <ContextualBar>
-          <ContextualBar.Left>
-            <div className="bg-sage-200 border border-sage-300 rounded-md p-0.5">
-              <div className="flex gap-0.5">
-                <button
-                  onClick={() => setFilterState('all')}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${filterState === 'all'
-                    ? 'bg-white text-sage-700 shadow-sm'
-                    : 'text-sage-600 hover:text-sage-800'
-                    }`}
-                >
-                  All
-                </button>
-                <button
-                  onClick={() => setFilterState('active')}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${filterState === 'active'
-                    ? 'bg-white text-sage-700 shadow-sm'
-                    : 'text-sage-600 hover:text-sage-800'
-                    }`}
-                >
-                  Active
-                </button>
-                <button
-                  onClick={() => setFilterState('done')}
-                  className={`px-2 py-1 rounded text-xs font-medium transition-all duration-200 ${filterState === 'done'
-                    ? 'bg-white text-sage-700 shadow-sm'
-                    : 'text-sage-600 hover:text-sage-800'
-                    }`}
-                >
-                  Done
-                </button>
-              </div>
-            </div>
-          </ContextualBar.Left>
-          <ContextualBar.Middle>
-            {/* Empty - no clutter */}
-          </ContextualBar.Middle>
-
-          <ContextualBar.Right>
+        {/* New prominent header with project count */}
+        <div className="content-header-with-buttons px-6 py-4 bg-white">
+          <div className="content-title">
+            Your Projects {projects.length > 0 && `(${projects.length})`}
+          </div>
+          <div className="button-group">
             <button
               onClick={onCreateProject}
-              className="bg-yarn-600 hover:bg-yarn-700 text-white text-xs px-2.5 py-1.5 rounded-lg font-medium flex items-center gap-1 transition-colors"
+              className="btn-secondary"
             >
-              {/* <span className="text-xs">✨</span>*/}
-              {/* <span className="hidden sm:inline">New </span>Project */}
-              <span className="text-xs">✨ New </span>
-
+              ✨ Add New Project
             </button>
-          </ContextualBar.Right>
-        </ContextualBar>
-
-
-        {/* Content Header */}
-        <div className="p-6 pb-4 bg-yarn-50">
-          <h2 className="content-header-primary">Your Knitting Projects</h2>
-          <p className="content-subheader">What would you like to work on?</p>
-
-
+          </div>
         </div>
 
+        {/* Clear filter section */}
+        <div className="px-6 py-4 bg-wool-50 border-b border-wool-200">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium text-wool-600">Show:</span>
+            <div className="bg-white border border-wool-200 rounded-lg p-1 flex gap-1">
+              <button
+                onClick={() => setFilterState('all')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-all duration-200 ${filterState === 'all'
+                    ? 'bg-sage-500 text-white shadow-sm'
+                    : 'text-wool-600 hover:text-sage-600 hover:bg-sage-50'
+                  }`}
+              >
+                All Projects
+              </button>
+              <button
+                onClick={() => setFilterState('active')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-all duration-200 ${filterState === 'active'
+                    ? 'bg-sage-500 text-white shadow-sm'
+                    : 'text-wool-600 hover:text-sage-600 hover:bg-sage-50'
+                  }`}
+              >
+                Active
+              </button>
+              <button
+                onClick={() => setFilterState('done')}
+                className={`px-3 py-1.5 rounded text-sm font-medium transition-all duration-200 ${filterState === 'done'
+                    ? 'bg-sage-500 text-white shadow-sm'
+                    : 'text-wool-600 hover:text-sage-600 hover:bg-sage-50'
+                  }`}
+              >
+                Completed
+              </button>
+            </div>
+            <span className="text-xs text-wool-500 ml-2">
+              ({getFilteredProjects().length} projects)
+            </span>
+          </div>
+        </div>
 
+        {/* Simplified content area */}
+        <div className="p-6 pb-4 bg-white">
+          <p className="content-subheader">What would you like to work on?</p>
+        </div>
 
-        <div className="p-4 bg-yarn-50">
+        <div className="p-4 bg-white">
 
           {/* Project List or Welcome Screen */}
           {getFilteredProjects().length === 0 ? (
