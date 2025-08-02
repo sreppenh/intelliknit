@@ -7,7 +7,7 @@ import { getProjectStatus as getSharedProjectStatus } from '../../../shared/util
 
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const { projects, dispatch } = useProjectsContext();
-  const [filterState, setFilterState] = useState('all'); // Add this line
+  const [filterState, setFilterState] = useState('all');
 
 
   const handleProjectEdit = (project) => {
@@ -34,7 +34,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     onOpenProject(updatedProject);
   };
 
-  // NEW: Project type icons (from existing ProjectDetail pattern)
+  // Project type icons
   const getProjectIcon = (projectType) => {
     const icons = {
       sweater: '🧥',
@@ -49,7 +49,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     return icons[projectType] || '🧶';
   };
 
-  // NEW: Calculate streak days (consecutive days of any activity)
+  // Calculate streak days (consecutive days of any activity)
   const getStreakDays = (project) => {
     if (!project.activityLog || project.activityLog.length === 0) return 0;
 
@@ -74,66 +74,61 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     return streak;
   };
 
-  // NEW: Calculate project personality state and styling
+  // Priority-based personality calculation (completed/frogged override everything)
   const getProjectPersonality = (project, isTopProject = false) => {
     const totalComponents = project.components?.length || 0;
     const hasSteps = project.components?.some(comp => comp.steps?.length > 0);
     const streakDays = getStreakDays(project);
 
-    // 1. Completed projects
+    // 1. COMPLETED - nothing else matters
     if (project.completed) {
       return {
         state: 'completed',
         emoji: '🎉',
         mood: 'Celebration time!',
-        cardClass: 'card-project-completed',
-        iconBg: 'icon-project-completed',
-        textColor: 'text-project-completed',
-        rightCorner: '🏆'
+        color: 'text-sage-600',
+        category: 'completed'
       };
     }
 
-    // 2. Frogged projects (placeholder - not implemented yet)
+    // 2. FROGGED - nothing else matters  
     if (project.frogged) {
       return {
         state: 'frogged',
         emoji: '🐸',
-        mood: 'Frogged',
-        cardClass: 'card-project-frogged',
-        iconBg: 'icon-project-frogged',
-        textColor: 'text-project-frogged',
-        rightCorner: '🐸'
+        mood: 'Taking a break',
+        color: 'text-blue-600',
+        category: 'planning'
       };
     }
 
-    // 3. Fire projects (3+ day streak)
+    // 3. For active projects, calculate based on activity and progress
+
+    // Fire projects (3+ day streak)
     if (streakDays >= 3) {
       const fireLevel = streakDays >= 7 ? '🔥🔥🔥' : streakDays >= 5 ? '🔥🔥' : '🔥';
       return {
         state: 'fire',
         emoji: '🔥',
         mood: `On fire! ${streakDays} day streak`,
-        cardClass: 'card-project-fire',
-        iconBg: 'icon-project-fire',
-        textColor: 'text-project-fire',
-        rightCorner: `${fireLevel} ${streakDays}d`
+        color: 'text-orange-600',
+        category: 'active',
+        streakDisplay: `${fireLevel} ${streakDays}d`
       };
     }
 
-    // 4. Current project (overrides sleeping/active/empty)
-    if (isTopProject) {
+    // Current project (top project override)
+    if (isTopProject && hasSteps) {
       return {
         state: 'current',
         emoji: '⭐',
         mood: 'Currently working',
-        cardClass: 'card-project-current',
-        iconBg: 'icon-project-current',
-        textColor: 'text-project-current',
-        rightCorner: '⭐ Current'
+        color: 'text-sage-600',
+        category: 'active'
       };
     }
 
-    // 5. Dormant projects (no activity for 14+ days)
+    // Dormant projects (no activity for 14+ days but have steps)
     const lastActivity = new Date(project.lastActivityAt || project.createdAt);
     const daysSinceActivity = Math.floor((Date.now() - lastActivity.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -142,91 +137,67 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         state: 'dormant',
         emoji: '😴',
         mood: 'Taking a nap...',
-        cardClass: 'card-project-dormant',
-        iconBg: 'icon-project-dormant',
-        textColor: 'text-project-dormant',
-        rightCorner: `😴 ${Math.floor(daysSinceActivity)}d ago`
+        color: 'text-wool-500',
+        category: 'planning'
       };
     }
 
-    // 6. Empty projects (no components)
-    if (totalComponents === 0) {
+    // Empty projects (no components or steps)
+    if (totalComponents === 0 || !hasSteps) {
       return {
-        state: 'empty',
+        state: 'planning',
         emoji: '💭',
         mood: 'Ready to begin',
-        cardClass: 'card-project-empty',
-        iconBg: 'icon-project-empty',
-        textColor: 'text-project-empty',
-        rightCorner: '✨ New'
+        color: 'text-lavender-600',
+        category: 'planning'
       };
     }
 
-    // 7. Active projects (fallback)
+    // Active projects (fallback)
     return {
       state: 'active',
       emoji: '🧶',
       mood: 'In progress',
-      cardClass: 'card-project-active',
-      iconBg: 'icon-project-active',
-      textColor: 'text-project-active',
-      rightCorner: '🧶 Active'
+      color: 'text-yarn-600',
+      category: 'active'
     };
   };
 
-
-  // NEW: Smart project sorting with featured top project
+  // Smart project sorting
   const getSortedProjects = () => {
     if (projects.length === 0) return [];
 
-    const sorted = [...projects].sort((a, b) => {
+    return [...projects].sort((a, b) => {
       // First priority: Most recent activity
       const activityA = new Date(a.lastActivityAt || a.createdAt);
       const activityB = new Date(b.lastActivityAt || b.createdAt);
-
-      if (activityA > activityB) return -1;
-      if (activityA < activityB) return 1;
-
-      // Second priority: Status-based ordering
-      const statusOrder = {
-        'Completed': 1,
-        'On fire': 2,
-        'In progress': 3,
-        'Ready to knit': 4,
-        'Planning': 5
-      };
-
-      const statusA = getSharedProjectStatus(a);
-      const statusB = getSharedProjectStatus(b);
-
-      // Extract text for comparison
-      const statusTextA = statusA.text || statusA;
-      const statusTextB = statusB.text || statusB;
-
-      if (statusOrder[statusTextA] !== statusOrder[statusTextB]) {
-        return statusOrder[statusTextA] - statusOrder[statusTextB];
-      }
-
-      // Final: Creation date (newest first)
-      return new Date(b.createdAt) - new Date(a.createdAt);
+      return activityB - activityA;
     });
-
-    return sorted;
   };
 
-  // Add this entire function after getSortedProjects()
+  // Filter projects by personality category
   const getFilteredProjects = () => {
     const sortedProjects = getSortedProjects();
 
-    switch (filterState) {
-      case 'active':
-        return sortedProjects.filter(project => !project.completed);
-      case 'done':
-        return sortedProjects.filter(project => project.completed);
-      case 'all':
-      default:
-        return sortedProjects;
-    }
+    if (filterState === 'all') return sortedProjects;
+
+    return sortedProjects.filter(project => {
+      const personality = getProjectPersonality(project);
+
+      if (filterState === 'completed') {
+        return project.completed;
+      }
+
+      if (filterState === 'planning') {
+        return personality.category === 'planning';
+      }
+
+      if (filterState === 'active') {
+        return personality.category === 'active';
+      }
+
+      return true;
+    });
   };
 
   const getEmptyStateContent = () => {
@@ -239,7 +210,15 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           buttonText: '✨ Start New Project'
         };
 
-      case 'done':
+      case 'planning':
+        return {
+          emoji: '💭',
+          title: 'No Projects in Planning',
+          message: 'You\'re all set! Your projects are either active or completed. Time to dream up something new?',
+          buttonText: '✨ Plan New Project'
+        };
+
+      case 'completed':
         return {
           emoji: '🏆',
           title: 'No Completed Projects Yet',
@@ -258,8 +237,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     }
   };
 
-
-
   const formatDate = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -275,18 +252,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     });
   };
 
-  // NEW: Generate project count display for contextual bar
-  const getProjectCountDisplay = () => {
-    if (projects.length === 0) return '';
-
-    const total = projects.length;
-    const active = projects.filter(p => !p.completed).length;
-    const completed = projects.filter(p => p.completed).length;
-
-    return `${total} project${total !== 1 ? 's' : ''} • ${active} active • ${completed} completed`;
-  };
-
-  // NEW: Handle both back and cancel navigation to Landing Page
+  // Handle navigation
   const handleBackToLanding = () => {
     if (onBack) {
       onBack();
@@ -294,10 +260,10 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   };
 
   return (
-    <div className="min-h-screen bg-yarn-50">
-      <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
+    <div className="min-h-screen bg-white">
+      <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
 
-        {/* Enhanced PageHeader with both back and cancel going to Landing */}
+        {/* PageHeader */}
         <PageHeader
           title="My Projects"
           onBack={handleBackToLanding}
@@ -306,8 +272,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           onCancel={handleBackToLanding}
         />
 
-        {/* New prominent header with project count */}
-        <div className="content-header-with-buttons px-6 py-4 bg-white">
+        {/* Clean header with project count */}
+        <div className="content-header-with-buttons px-6 py-4 bg-white border-b border-wool-100">
           <div className="content-title">
             Your Projects {projects.length > 0 && `(${projects.length})`}
           </div>
@@ -321,51 +287,60 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           </div>
         </div>
 
-        {/* Clear filter section */}
-        <div className="px-6 py-4 bg-wool-50 border-b border-wool-200">
-          <div className="flex items-center gap-4">
-            <span className="text-sm font-medium text-wool-600">Show:</span>
-            <div className="bg-white border border-wool-200 rounded-lg p-1 flex gap-1">
+        {/* Subtle text link filters */}
+        <div className="px-6 py-3 bg-white border-b border-wool-100">
+          <div className="flex items-center gap-6">
+            <span className="text-sm text-wool-500">Show:</span>
+            <div className="flex items-center gap-4">
               <button
                 onClick={() => setFilterState('all')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-all duration-200 ${filterState === 'all'
-                    ? 'bg-sage-500 text-white shadow-sm'
-                    : 'text-wool-600 hover:text-sage-600 hover:bg-sage-50'
+                className={`text-sm font-medium transition-colors ${filterState === 'all'
+                    ? 'text-sage-600 border-b-2 border-sage-500 pb-1'
+                    : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 All Projects
               </button>
               <button
                 onClick={() => setFilterState('active')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-all duration-200 ${filterState === 'active'
-                    ? 'bg-sage-500 text-white shadow-sm'
-                    : 'text-wool-600 hover:text-sage-600 hover:bg-sage-50'
+                className={`text-sm font-medium transition-colors ${filterState === 'active'
+                    ? 'text-sage-600 border-b-2 border-sage-500 pb-1'
+                    : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 Active
               </button>
               <button
-                onClick={() => setFilterState('done')}
-                className={`px-3 py-1.5 rounded text-sm font-medium transition-all duration-200 ${filterState === 'done'
-                    ? 'bg-sage-500 text-white shadow-sm'
-                    : 'text-wool-600 hover:text-sage-600 hover:bg-sage-50'
+                onClick={() => setFilterState('planning')}
+                className={`text-sm font-medium transition-colors ${filterState === 'planning'
+                    ? 'text-sage-600 border-b-2 border-sage-500 pb-1'
+                    : 'text-wool-600 hover:text-sage-600'
+                  }`}
+              >
+                Planning
+              </button>
+              <button
+                onClick={() => setFilterState('completed')}
+                className={`text-sm font-medium transition-colors ${filterState === 'completed'
+                    ? 'text-sage-600 border-b-2 border-sage-500 pb-1'
+                    : 'text-wool-600 hover:text-sage-600'
                   }`}
               >
                 Completed
               </button>
             </div>
-            <span className="text-xs text-wool-500 ml-2">
-              ({getFilteredProjects().length} projects)
+          </div>
+          {/* Project count on its own line */}
+          <div className="mt-2">
+            <span className="text-xs text-wool-500">
+              {getFilteredProjects().length} project{getFilteredProjects().length !== 1 ? 's' : ''}
             </span>
           </div>
         </div>
 
-        {/* Simplified content area */}
-        <div className="p-6 pb-4 bg-white">
-          <p className="content-subheader">What would you like to work on?</p>
-        </div>
-
-        <div className="p-4 bg-white">
+        {/* Content area */}
+        <div className="p-6">
+          <p className="content-subheader mb-6">What would you like to work on?</p>
 
           {/* Project List or Welcome Screen */}
           {getFilteredProjects().length === 0 ? (
@@ -396,61 +371,61 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
             </div>
           ) : (
             <div className="space-y-4">
-              {/* UPDATED: Removed redundant header since ContextualBar now shows count */}
-              <div className="stack-sm">
-                {getFilteredProjects().map((project, index) => {
-                  const isTopProject = index === 0 && getFilteredProjects().length > 1;
-                  const status = getSharedProjectStatus(project);
-                  const personality = getProjectPersonality(project, isTopProject);
-                  const totalComponents = project.components?.length || 0;
+              {getFilteredProjects().map((project, index) => {
+                const isTopProject = index === 0 && getFilteredProjects().length > 1;
+                const personality = getProjectPersonality(project, isTopProject);
+                const streakDays = getStreakDays(project);
+                const projectIcon = getProjectIcon(project.projectType);
 
-                  return (
-                    <div
-                      key={project.id}
-                      onClick={() => handleProjectEdit(project)}
-                      className={`${personality.cardClass} transition-all duration-200 cursor-pointer hover:shadow-lg hover:scale-[1.01] active:scale-95 relative`}
-                    >
-
-
-                      <div className="flex items-start gap-4">
-                        {/* Project Icon */}
-                        <div className="flex-shrink-0">
-                          <div className={`w-12 h-12 ${personality.iconBg} rounded-xl flex items-center justify-center text-xl border-2 shadow-sm`}>
-                            {getProjectIcon(project.projectType)}
-                          </div>
-                        </div>
-
-                        {/* Project Info - Simplified */}
-                        <div className="flex-1 min-w-0">
-                          {/* Project Name & Status Badge */}
-                          <div className="flex items-start justify-between mb-2">
-                            <h3 className={`font-semibold text-base ${personality.textColor} truncate flex-1 pr-2`}>
-                              {project.name}
-                            </h3>
-                            <div className={`text-xs font-medium ${personality.textColor} opacity-75 flex-shrink-0 text-right`}>
-                              {personality.rightCorner}
-                            </div>
-                          </div>
-                          {/* Single Info Line - Components • Start Date */}
-                          <div className="flex items-center gap-2 text-xs text-wool-500">
-                            <span className="flex items-center gap-1">
-                              <span>📐</span>
-                              <span>{totalComponents} component{totalComponents !== 1 ? 's' : ''}</span>
+                return (
+                  <div
+                    key={project.id}
+                    className="card-interactive p-4 cursor-pointer hover:shadow-md transition-all duration-200"
+                    onClick={() => handleProjectEdit(project)}
+                  >
+                    {/* Project Header */}
+                    <div className="flex items-start justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{projectIcon}</span>
+                        <div>
+                          <h3 className="font-semibold text-wool-700 text-base">{project.name}</h3>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className={`font-medium ${personality.color}`}>
+                              {personality.state.charAt(0).toUpperCase() + personality.state.slice(1)}
                             </span>
-                            <span>•</span>
-                            <span>Started {formatDate(project.createdAt)}</span>
+                            {streakDays > 0 && !project.completed && (
+                              <span className="text-xs text-orange-600 font-medium">
+                                🔥 {streakDays} day{streakDays > 1 ? 's' : ''}
+                              </span>
+                            )}
                           </div>
                         </div>
                       </div>
+
+                      {/* Personality Indicator */}
+                      <div className="text-right">
+                        <div className="text-lg mb-1">{personality.emoji}</div>
+                        <div className="text-xs text-wool-500 max-w-20 text-right">
+                          {personality.mood}
+                        </div>
+                      </div>
                     </div>
-                  );
-                })}
-              </div>
+
+                    {/* Project Stats */}
+                    <div className="flex justify-between items-center text-sm text-wool-600">
+                      <span>{project.components?.length || 0} component{(project.components?.length || 0) !== 1 ? 's' : ''}</span>
+                      <span>
+                        Started {formatDate(project.createdAt)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
 
           {/* Footer */}
-          <div className="text-center pt-4 pb-2">
+          <div className="text-center pt-6 pb-2">
             <p className="text-xs text-wool-400">Happy knitting! 🧶</p>
           </div>
         </div>
