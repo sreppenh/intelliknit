@@ -59,52 +59,51 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
 
   const getStateConfig = (state) => {
     const configs = {
-      currently_knitting: {
-        label: 'Currently Knitting',
-        background: 'color-status-currently-knitting',
-        textColor: 'text-sage-800',
-        icon: '🧶',
-        priority: 1
-      },
-      ready_to_knit: {
-        label: 'Ready to Knit',
-        background: 'color-status-ready-knit',
-        textColor: 'text-sage-800',
-        icon: '⚡',
-        priority: 2
-      },
       edit_mode: {
         label: 'Edit Mode',
-        background: 'color-status-edit-mode',
+        background: 'card-component', // ✅ NEW - yarn colors
         textColor: 'text-yarn-800',
         icon: '✏️',
         priority: 3
       },
+      ready_to_knit: {
+        label: 'Ready to Knit',
+        background: 'card-component-ready', // ✅ NEW - light sage
+        textColor: 'text-sage-800',
+        icon: '⚡',
+        priority: 2
+      },
+      currently_knitting: {
+        label: 'Currently Knitting',
+        background: 'card-component-progress', // ✅ NEW - medium sage
+        textColor: 'text-sage-900',
+        icon: '🧶',
+        priority: 1
+      },
       finished: {
         label: 'Finished',
-        background: 'color-status-finished',
+        background: 'card-component-complete', // ✅ NEW - strong sage
         textColor: 'text-sage-900',
         icon: '✅',
         priority: 4
       },
       finishing_in_progress: {
         label: 'In Progress',
-        background: 'color-status-in-progress',
+        background: 'card-component-finishing', // ✅ NEW - lavender
         textColor: 'text-lavender-800',
         icon: '🪡',
         priority: 3
       },
       finishing_done: {
         label: 'Completed',
-        background: 'color-status-finished',
-        textColor: 'text-lavender-900',
+        background: 'card-component-finishing', // ✅ NEW - lavender (same as in progress)
+        textColor: 'text-lavender-800',
         icon: '🪡',
         priority: 6
       }
     };
     return configs[state] || configs.edit_mode;
   };
-
   const state = getComponentState();
   const stateConfig = getStateConfig(state);
   const stepCount = component.steps?.length || 0;

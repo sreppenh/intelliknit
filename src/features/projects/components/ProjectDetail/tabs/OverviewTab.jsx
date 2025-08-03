@@ -585,26 +585,26 @@ const OverviewComponentCard = ({ component, status, onClick }) => {
         switch (status) {
             case 'currently_knitting':
                 return {
-                    colorClass: 'color-status-currently-knitting',
+                    colorClass: 'card-component-progress',
                     icon: '🧶',
                     label: 'Continue Knitting'
                 };
             case 'ready_to_knit':
                 return {
-                    colorClass: 'color-status-ready-knit',
+                    colorClass: 'card-component-ready',
                     icon: '🎯',
                     label: 'Start Knitting'
                 };
             case 'finishing_in_progress':
                 return {
-                    colorClass: 'color-status-finishing-in-progress',
+                    colorClass: 'card-component-finishing',
                     icon: '🪡',
                     label: 'Continue Finishing'
                 };
             case 'edit_mode':
             default:
                 return {
-                    colorClass: 'color-status-edit-mode',
+                    colorClass: 'card-component',
                     icon: '✏️',
                     label: 'Add Steps'
                 };
