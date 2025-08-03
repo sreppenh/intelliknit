@@ -349,7 +349,7 @@ const OverviewTab = ({
                     <div>
                         <div className="text-4xl mb-3">✨</div>
                         <h3 className="font-semibold text-wool-700 mb-2">Ready to Begin</h3>
-                        <p className="text-wool-500 text-sm mb-4">Add your first component to start knitting</p>
+                        <p className="text-wool-500 text-sm mb-4">Add your first component to start building your project</p>
                         <div className="space-y-3">
                             <button
                                 onClick={() => {

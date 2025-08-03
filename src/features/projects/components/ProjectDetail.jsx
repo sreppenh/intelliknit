@@ -164,12 +164,15 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
         {/* Header */}
         <PageHeader
           title={
-            <div className="flex items-center gap-2">
+            <div className={`flex items-center gap-2 ${!(currentProject.size && currentProject.size.trim() && currentProject.size !== 'Not specified')
+                ? 'justify-center'
+                : ''
+              }`}>
               <span className="text-base">
                 {getProjectIcon(currentProject.projectType)}
               </span>
               <span>{currentProject.name}</span>
-              {currentProject.size && (
+              {currentProject.size && currentProject.size.trim() && currentProject.size !== 'Not specified' && (
                 <span className="text-sage-100 font-normal">({currentProject.size})</span>
               )}
             </div>

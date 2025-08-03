@@ -56,7 +56,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
   const handleCreateProject = () => {
     const newProject = {
       name: projectData.name.trim(),
-      size: projectData.size.trim() || 'Not specified',
+      size: projectData.size.trim() || '',
       defaultUnits: projectData.defaultUnits,
       construction: projectData.construction,
       projectType: selectedProjectType,

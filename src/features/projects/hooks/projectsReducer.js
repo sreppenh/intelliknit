@@ -32,7 +32,7 @@ export const projectsReducer = (state, action) => {
       const newProject = {
         id: crypto.randomUUID(),
         name: action.payload.name.trim(),
-        size: action.payload.size?.trim() || 'Not specified',
+        size: action.payload.size?.trim() || '',
         defaultUnits: action.payload.defaultUnits || 'inches',
         projectType: action.payload.projectType || 'other', // NEW LINE
         components: [],
