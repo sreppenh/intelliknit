@@ -359,78 +359,77 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           </div>
         </div>
 
-        {/* Clean filter row with elegant sort dropdown */}
+        {/* Clean filter row with mobile-friendly sort */}
         <div className="px-6 py-3 bg-white border-b border-wool-100">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <button
-                onClick={() => setFilterState('all')}
-                className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'all'
-                  ? 'text-sage-600'
-                  : 'text-wool-600 hover:text-sage-600'
-                  }`}
-              >
-                All
-                {filterState === 'all' && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
-                )}
-              </button>
-              <button
-                onClick={() => setFilterState('active')}
-                className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'active'
-                  ? 'text-sage-600'
-                  : 'text-wool-600 hover:text-sage-600'
-                  }`}
-              >
-                Active
-                {filterState === 'active' && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
-                )}
-              </button>
-              <button
-                onClick={() => setFilterState('planning')}
-                className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'planning'
-                  ? 'text-sage-600'
-                  : 'text-wool-600 hover:text-sage-600'
-                  }`}
-              >
-                Planning
-                {filterState === 'planning' && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
-                )}
-              </button>
-              <button
-                onClick={() => setFilterState('completed')}
-                className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'completed'
-                  ? 'text-sage-600'
-                  : 'text-wool-600 hover:text-sage-600'
-                  }`}
-              >
-                Completed
-                {filterState === 'completed' && (
-                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
-                )}
-              </button>
-            </div>
-
-            {/* Small, elegant sort dropdown */}
-            {projects.length > 0 && (
-              <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value)}
-                className="text-xs text-wool-600 bg-white border border-wool-300 rounded px-2 py-1 focus:outline-none focus:border-sage-400"
-              >
-                <option value="activity">Recent Activity</option>
-                <option value="created">Date Created</option>
-              </select>
-            )}
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => setFilterState('all')}
+              className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'all'
+                ? 'text-sage-600'
+                : 'text-wool-600 hover:text-sage-600'
+                }`}
+            >
+              All
+              {filterState === 'all' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
+              )}
+            </button>
+            <button
+              onClick={() => setFilterState('active')}
+              className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'active'
+                ? 'text-sage-600'
+                : 'text-wool-600 hover:text-sage-600'
+                }`}
+            >
+              Active
+              {filterState === 'active' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
+              )}
+            </button>
+            <button
+              onClick={() => setFilterState('planning')}
+              className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'planning'
+                ? 'text-sage-600'
+                : 'text-wool-600 hover:text-sage-600'
+                }`}
+            >
+              Planning
+              {filterState === 'planning' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
+              )}
+            </button>
+            <button
+              onClick={() => setFilterState('completed')}
+              className={`relative text-sm font-medium transition-colors pb-1 ${filterState === 'completed'
+                ? 'text-sage-600'
+                : 'text-wool-600 hover:text-sage-600'
+                }`}
+            >
+              Completed
+              {filterState === 'completed' && (
+                <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-sage-500"></span>
+              )}
+            </button>
           </div>
 
-          {/* Project count */}
-          <div className="mt-2">
-            <span className="text-xs text-wool-500">
+          {/* Project count with inline sort */}
+          <div className="mt-2 flex items-center gap-2 text-xs text-wool-500">
+            <span>
               {getFilteredProjects().length} project{getFilteredProjects().length !== 1 ? 's' : ''}
             </span>
+            {projects.length > 0 && (
+              <>
+                <span>•</span>
+                <span>Sort by:</span>
+                <button
+                  onClick={() => setSortBy(sortBy === 'activity' ? 'created' : 'activity')}
+                  className="text-sage-600 hover:text-sage-700 font-medium flex items-center gap-1"
+                >
+                  {sortBy === 'activity' ? 'activity' : 'date'}
+                  <span className="text-[10px]"></span>
+                </button>
+              </>
+            )}
           </div>
         </div>
 
