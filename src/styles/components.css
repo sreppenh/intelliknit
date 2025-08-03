@@ -790,27 +790,18 @@ select {
   @apply active:bg-sage-300 active:border-sage-800;
 }
 
-/* Fire project with shimmer animation - using raw CSS for complex gradient */
+/* Fire project - enhanced version of active with more contrast */
 .card-project-fire {
-  background: linear-gradient(45deg, #b3d4b3, #84be84, #b3d4b3, #84be84);
-  background-size: 300% 300%;
-  border: 2px solid #4a8a4a;
-  color: #1f3f1f;
-  border-radius: 0.75rem;
-  padding: 1rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s;
-  cursor: pointer;
-  animation: shimmer 3s ease-in-out infinite;
+  @apply bg-sage-250 border-2 border-sage-700 text-sage-900 rounded-xl p-4 shadow-lg transition-all duration-200 cursor-pointer;
+  @apply hover:border-sage-800 hover:bg-sage-300 hover:shadow-xl;
+  @apply active:bg-sage-350 active:border-sage-900;
+  /* Add subtle glow for "fire" effect */
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 0 0 1px rgba(74, 138, 74, 0.3);
 }
 
 .card-project-fire:hover {
-  border-color: #3a6b3a;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-}
-
-.card-project-fire:active {
-  border-color: #2d5a2d;
+  box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.15), 0 0 0 1px rgba(74, 138, 74, 0.5);
+  transform: translateY(-1px);
 }
 
 .card-project-dormant {
@@ -819,10 +810,11 @@ select {
   @apply active:bg-sage-150 active:border-sage-500;
 }
 
+/* Completed project - celebratory yarn gold */
 .card-project-complete {
-  @apply bg-sage-400 border-2 border-sage-700 text-sage-900 rounded-xl p-4 shadow-lg transition-all duration-200 cursor-pointer;
-  @apply hover:border-sage-800 hover:bg-sage-500 hover:shadow-xl;
-  @apply active:bg-sage-600 active:border-sage-900;
+  @apply bg-lavender-150 border-2 border-lavender-300 text-lavender-700 rounded-xl p-4 shadow-lg transition-all duration-200 cursor-pointer;
+  @apply hover:border-lavender-400 hover:bg-lavender-200 hover:shadow-xl;
+  @apply active:bg-lavender-300 active:border-lavender-500;
 }
 
 .card-project-frogged {
@@ -858,8 +850,10 @@ select {
 }
 
 .header-status-complete {
-  @apply bg-sage-400 border-2 border-sage-700 text-sage-900 rounded-xl p-3;
+  @apply bg-lavender-150 border-2 border-lavender-300 text-lavender-700 rounded-xl p-3;
 }
+
+
 
 .header-status-finishing {
   @apply bg-lavender-100 border-2 border-lavender-400 text-lavender-800 rounded-xl p-3;
@@ -900,7 +894,11 @@ select {
 }
 
 .text-status-complete {
-  @apply text-sage-900;
+  @apply text-lavender-700;
+}
+
+.border-status-complete {
+  @apply border-lavender-300;
 }
 
 .text-status-finishing {

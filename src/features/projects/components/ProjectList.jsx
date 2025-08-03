@@ -9,6 +9,7 @@ import { getUnifiedProjectStatus, runStatusTests, testCompatibility } from '../.
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const { projects, dispatch } = useProjectsContext();
   const [filterState, setFilterState] = useState('all');
+  const [sortBy, setSortBy] = useState('activity'); // ✅ ADD THIS LINE
 
 
   const handleProjectEdit = (project) => {
@@ -129,15 +130,23 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     }
   };
 
-  // Smart project sorting (chronological like Ravelry)
+  // Enhanced project sorting with toggle support
   const getSortedProjects = () => {
     if (projects.length === 0) return [];
 
     return [...projects].sort((a, b) => {
-      // Sort by most recent activity (chronological timeline)
-      const activityA = new Date(a.lastActivityAt || a.createdAt);
-      const activityB = new Date(b.lastActivityAt || b.createdAt);
-      return activityB - activityA;
+      if (sortBy === 'activity') {
+        // Sort by most recent activity (default)
+        const activityA = new Date(a.lastActivityAt || a.createdAt);
+        const activityB = new Date(b.lastActivityAt || b.createdAt);
+        return activityB - activityA;
+      } else if (sortBy === 'created') {
+        // Sort by creation date (newest first)
+        const createdA = new Date(a.createdAt);
+        const createdB = new Date(b.createdAt);
+        return createdB - createdA;
+      }
+      return 0;
     });
   };
 
@@ -321,6 +330,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     }
   }, [projects]);
 
+  const filteredProjects = getFilteredProjects();
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
@@ -328,11 +339,10 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         {/* PageHeader */}
         <PageHeader
           title="My Projects"
-          onBack={handleBackToLanding}
-          showBackButton={true}
-          showCancelButton={true}
-          onCancel={handleBackToLanding}
+          subtitle={`${filteredProjects.length} ${filteredProjects.length === 1 ? 'project' : 'projects'}`}
+          onBack={onBack}
         />
+
 
         {/* Clean header with project count */}
         <div className="content-header-with-buttons px-6 py-4 bg-white border-b border-wool-100">
@@ -349,10 +359,9 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
           </div>
         </div>
 
-        {/* Subtle text link filters with fixed underlines */}
+        {/* Clean filter row with elegant sort dropdown */}
         <div className="px-6 py-3 bg-white border-b border-wool-100">
-          <div className="flex items-center gap-6">
-            <span className="text-sm text-wool-500">Show:</span>
+          <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
               <button
                 onClick={() => setFilterState('all')}
@@ -403,8 +412,21 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                 )}
               </button>
             </div>
+
+            {/* Small, elegant sort dropdown */}
+            {projects.length > 0 && (
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value)}
+                className="text-xs text-wool-600 bg-white border border-wool-300 rounded px-2 py-1 focus:outline-none focus:border-sage-400"
+              >
+                <option value="activity">Recent Activity</option>
+                <option value="created">Date Created</option>
+              </select>
+            )}
           </div>
-          {/* Project count on its own line */}
+
+          {/* Project count */}
           <div className="mt-2">
             <span className="text-xs text-wool-500">
               {getFilteredProjects().length} project{getFilteredProjects().length !== 1 ? 's' : ''}
