@@ -21,25 +21,25 @@ const ComponentsTab = (props) => {
             status: 'edit_mode',
             title: '✏️ Edit Mode',
             instruction: 'Tap card to add steps',
-            headerStyle: 'bg-yarn-100 border-yarn-300 text-yarn-800',
+            headerStyle: 'header-status-edit-mode',
         },
         {
             status: 'ready_to_knit',
             title: '⚡ Ready to Knit',
             instruction: 'Tap card to continue knitting',
-            headerStyle: 'bg-sage-100 border-sage-300 text-sage-800',
+            headerStyle: 'header-status-ready-knit',
         },
         {
             status: 'currently_knitting',
             title: '🧶 Currently Knitting',
             instruction: 'Tap card to continue knitting',
-            headerStyle: 'bg-sage-200 border-sage-400 text-sage-800',
+            headerStyle: 'header-status-currently-knitting',
         },
         {
             status: 'finished',
             title: '✅ Finished',
             instruction: 'Tap card to view details',
-            headerStyle: 'bg-sage-300 border-sage-500 text-sage-800',
+            headerStyle: 'header-status-finished',
         }
     ];
 

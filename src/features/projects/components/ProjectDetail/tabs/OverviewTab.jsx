@@ -585,30 +585,26 @@ const OverviewComponentCard = ({ component, status, onClick }) => {
         switch (status) {
             case 'currently_knitting':
                 return {
-                    bgColor: 'bg-sage-200 border-sage-400',
-                    textColor: 'text-sage-800',
+                    colorClass: 'color-status-currently-knitting',
                     icon: '🧶',
                     label: 'Continue Knitting'
                 };
             case 'ready_to_knit':
                 return {
-                    bgColor: 'bg-sage-100 border-sage-300',
-                    textColor: 'text-sage-700',
+                    colorClass: 'color-status-ready-knit',
                     icon: '🎯',
                     label: 'Start Knitting'
                 };
             case 'finishing_in_progress':
                 return {
-                    bgColor: 'bg-lavender-100 border-lavender-300',
-                    textColor: 'text-lavender-700',
+                    colorClass: 'color-status-finishing-in-progress',
                     icon: '🪡',
                     label: 'Continue Finishing'
                 };
             case 'edit_mode':
             default:
                 return {
-                    bgColor: 'bg-yarn-100 border-yarn-300',
-                    textColor: 'text-yarn-700',
+                    colorClass: 'color-status-edit-mode',
                     icon: '✏️',
                     label: 'Add Steps'
                 };
@@ -622,7 +618,7 @@ const OverviewComponentCard = ({ component, status, onClick }) => {
     return (
         <button
             onClick={onClick}
-            className={`w-full ${config.bgColor} card-clickable-compact`}
+            className={`w-full ${config.colorClass} rounded-xl border-2 p-4 transition-all duration-200 cursor-pointer hover:shadow-md hover:transform hover:scale-[1.02] active:scale-95`}
         >
             <div className="flex items-center gap-4">
                 <span className="text-2xl flex-shrink-0">{config.icon}</span>
