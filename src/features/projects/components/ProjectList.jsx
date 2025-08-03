@@ -218,13 +218,15 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         return froggedDate ? `🐸 Frogged ${froggedDate}` : '🐸 Frogged';
 
       case 'Currently Knitting':
+        // ✅ FIXED: Only show flame emoji when streak >= 3
         if (personality.streak >= 3) {
           return `🔥 Currently Knitting - ${personality.streak} day streak`;
         } else if (personality.isDormant) {
           const daysSince = Math.floor((Date.now() - new Date(project.lastActivityAt || project.createdAt).getTime()) / (1000 * 60 * 60 * 24));
           return `😴 Last knit ${daysSince} days ago`;
         } else if (personality.streak > 0) {
-          return `🔥 Currently Knitting - ${personality.streak} day${personality.streak > 1 ? 's' : ''}`;
+          // ✅ FIXED: No flame emoji for streaks < 3
+          return `🧶 Currently Knitting - ${personality.streak} day${personality.streak > 1 ? 's' : ''}`;
         }
         return '🧶 Currently Knitting';
 

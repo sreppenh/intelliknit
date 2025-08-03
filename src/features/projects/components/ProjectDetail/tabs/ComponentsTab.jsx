@@ -149,9 +149,9 @@ const ComponentsTab = (props) => {
                     </div>
                 </div>
 
-                <div className="success-block-center mb-6">
-                    <h4 className="text-sm font-semibold text-sage-700 mb-2">📋 Getting Started</h4>
-                    <div className="text-sm text-sage-600">
+                <div className="tip-block-center mb-6">
+                    <h4 className="text-sm font-semibold text-yarn-800 mb-2">📋 Getting Started</h4>
+                    <div className="text-sm text-yarn-700">
                         Break your {project.projectType} into major sections like sleeves, body, and collar.
                         Each component will have its own step-by-step instructions.
                     </div>

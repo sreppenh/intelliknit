@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
+import SetupNotesSection from '../../../../shared/components/SetUpNotesSection';
 
 const PATTERN_CATEGORIES = {
   // Quick Selection Categories
@@ -90,6 +91,7 @@ export const PatternSelector = ({
   onSavePrepNote // NEW: callback to save note to wizard state
 }) => {
   const [selectedQuickCategory, setSelectedQuickCategory] = useState(null);
+  const [showSetupNotes, setShowSetupNotes] = useState(false); // ← ADD THIS LINE
 
   // Use the enhanced prep note manager with persistence
   const {
@@ -217,25 +219,44 @@ export const PatternSelector = ({
     );
   }
 
+
+
   // Main category selection screen
   return (
     <>
       <div className="space-y-4 relative">
 
-        {/* Prep Note Button - Enhanced with state indicator */}
-        {/*}    <PrepStepButton
-          onClick={handleOpenOverlay}
-          hasNote={hasNote}
-          notePreview={notePreview}
-          position="top-right"
-          size="normal"
-          variant="ghost"
-        /> */}
 
         {/* Compact Header */}
         <div className="text-center">
-          <h2 className="content-header-primary">Choose Pattern</h2>
+          {/* With this */}
+          <div className="content-header-with-buttons">
+            <h2 className="content-title">Create Step</h2>
+            <div className="button-group">
+              <button
+                onClick={handleOpenOverlay}
+                className="btn-secondary btn-sm"
+              >
+                {hasNote ? 'Edit Preparation Note' : '+ Add Preparation Note'}
+              </button>
+            </div>
+          </div>
         </div>
+
+
+        {/* Keep the existing PrepStepOverlay */}
+        <PrepStepOverlay
+          isOpen={isOverlayOpen}
+          onClose={handleCloseOverlay}
+          onSave={handleSaveNote}
+          existingNote={currentNote}
+          {...prepConfig}
+        />
+
+        <div className="mb-3">
+          <h3 className="text-left text-sm font-semibold text-wool-700">Choose Pattern</h3>
+        </div>
+
 
         {/* Basic Patterns Section with Drawer */}
         <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">

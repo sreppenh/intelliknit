@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import EndingTypeSelector from './ending-wizard/EndingTypeSelector';
 import BindOffConfig from './ending-wizard/BindOffConfig';
 import AttachmentConfig from './ending-wizard/AttachmentConfig';
@@ -7,6 +6,7 @@ import OtherEndingConfig from './ending-wizard/OtherEndingConfig';
 import PageHeader from '../../../shared/components/PageHeader';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import SetupNotesSection from '../../../shared/components/SetUpNotesSection';
 
 const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   const [step, setStep] = useState(1);
@@ -20,22 +20,6 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   });
 
   const [showExitModal, setShowExitModal] = useState(false);
-
-  // Prep note management
-  const {
-    isOverlayOpen,
-    currentNote,
-    hasNote,
-    notePreview,
-    handleOpenOverlay,
-    handleCloseOverlay,
-    handleSaveNote
-  } = usePrepNoteManager(endingData.prepNote, (note) => {
-    setEndingData(prev => ({ ...prev, prepNote: note }));
-  });
-
-  // Get config for component ending
-  const prepConfig = getPrepNoteConfig('componentEnding');
 
   // Get current stitch count from last step
   const getCurrentStitchCount = () => {
@@ -185,7 +169,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     }
   };
 
-  // Step 1: What happens to stitches?
+  // STEP 1 - Clean version with SetupNotesSection
   if (step === 1) {
     return (
       <>
@@ -201,17 +185,17 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
               onCancel={handleExitToComponentSteps}
             />
 
-            <div className="p-6 bg-yarn-50 stack-lg relative">
+            <div className="p-6 bg-yarn-50 stack-lg">
 
-              {/* Prep Note Button */}
-              <PrepStepButton
-                onClick={handleOpenOverlay}
-                hasNote={hasNote}
-                notePreview={notePreview}
-                position="top-right"
-                size="normal"
-                variant="ghost"
-              />
+              {/* Setup Notes Section - ONLY on Step 1 
+              <SetupNotesSection
+                value={endingData.prepNote || ''}
+                onChange={(value) => setEndingData(prev => ({ ...prev, prepNote: value }))}
+                title="Finishing Notes"
+                subtitle="Preparation before finishing this component (optional)"
+                placeholder="e.g., Try on to check length, set up for three-needle bind off"
+                className="mb-6"
+              /> */}
 
               <EndingTypeSelector
                 onTypeSelect={handleEndingTypeSelect}
@@ -222,19 +206,16 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           </div>
         </div>
 
-        {/* Prep Note Overlay */}
-        <PrepStepOverlay
-          isOpen={isOverlayOpen}
-          onClose={handleCloseOverlay}
-          onSave={handleSaveNote}
-          existingNote={currentNote}
-          {...prepConfig}
+        <UnsavedChangesModal
+          isOpen={showExitModal}
+          onConfirmExit={handleConfirmExit}
+          onCancel={handleCancelExit}
         />
       </>
     );
   }
 
-  // Step 2: Configuration based on ending type
+  // STEP 2 - Clean version without setup notes
   return (
     <>
       <div className="min-h-screen bg-yarn-50">
@@ -249,17 +230,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             onCancel={handleExitToComponentSteps}
           />
 
-          <div className="p-6 bg-yarn-50 stack-lg relative">
-
-            {/* Prep Note Button */}
-            <PrepStepButton
-              onClick={handleOpenOverlay}
-              hasNote={hasNote}
-              notePreview={notePreview}
-              position="top-right"
-              size="normal"
-              variant="ghost"
-            />
+          <div className="p-6 bg-yarn-50 stack-lg">
 
             {/* Render appropriate configuration component */}
             {endingData.type === 'bind_off_all' && (
@@ -267,7 +238,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
                 endingData={endingData}
                 setEndingData={setEndingData}
                 currentStitches={currentStitches}
-                isFinishingComponent={true} // New prop to indicate this is "bind off all"
+                isFinishingComponent={true}
               />
             )}
 
@@ -301,15 +272,6 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           </div>
         </div>
       </div>
-
-      {/* Prep Note Overlay */}
-      <PrepStepOverlay
-        isOpen={isOverlayOpen}
-        onClose={handleCloseOverlay}
-        onSave={handleSaveNote}
-        existingNote={currentNote}
-        {...prepConfig}
-      />
 
       <UnsavedChangesModal
         isOpen={showExitModal}

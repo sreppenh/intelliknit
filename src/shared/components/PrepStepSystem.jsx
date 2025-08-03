@@ -98,53 +98,26 @@ export const PrepStepOverlay = ({
               value={note}
               onChange={(e) => setNote(e.target.value)}
               placeholder={placeholder}
-              rows={4}
+              rows={2}
               data-modal-focus
               className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white resize-none"
             />
           </div>
 
-          {/* Examples */}
-          <div className="help-block">
-            <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Example Notes</h4>
-            <div className="text-sm text-sage-600 space-y-1">
-              {examples.map((example, index) => (
-                <div key={index}>• {example}</div>
-              ))}
-            </div>
-          </div>
 
-          {/* Action Buttons */}
-          <div className="stack-sm">
-            {/* Primary action - Save */}
-            {canSave && (
-              <button
-                onClick={handleSave}
-                data-modal-primary
-                className="w-full btn-primary flex items-center justify-center gap-2"
-              >
-                <span>{icon}</span>
-                Save Note
-              </button>
-            )}
-
-            {/* Clear existing note */}
-            {hasExistingNote && (
-              <button
-                onClick={handleClear}
-                className="w-full btn-tertiary"
-              >
-                Clear Note
-              </button>
-            )}
-
-            {/* Cancel */}
+          <div className="flex gap-3">
             <button
               onClick={onClose}
-              data-modal-cancel
-              className="w-full btn-tertiary"
+              className="flex-1 btn-tertiary"
             >
               Cancel
+            </button>
+
+            <button
+              onClick={handleSave}
+              className="flex-1 btn-primary"
+            >
+              Save Note
             </button>
           </div>
         </div>

@@ -7,7 +7,6 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 import SegmentedControl from '../../../shared/components/SegmentedControl';
 
 
-
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
   const { currentProject } = useProjectsContext(); // ← ADD this line

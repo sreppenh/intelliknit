@@ -85,6 +85,7 @@ export const useStepSaveHelper = () => {
                 endingStitches: effect.endingStitches,
                 totalRows: effect.totalRows,
                 wizardConfig: wizardData,
+                prepNote: wizardData.prepNote || '',
                 advancedWizardConfig: {
                     hasShaping: wizardData.hasShaping || false,
                     shapingConfig: wizardData.shapingConfig
