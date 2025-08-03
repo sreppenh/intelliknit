@@ -264,6 +264,7 @@ select {
   @apply bg-wool-100 border-2 border-wool-200 rounded-xl p-1;
 }
 
+/* In your CSS file, update the segmented-option class: */
 .segmented-option {
   @apply py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200;
   @apply text-wool-600 hover:text-sage-600;
@@ -271,6 +272,12 @@ select {
 
 .segmented-option-active {
   @apply bg-sage-500 text-white shadow-sm;
+}
+
+/* ADD this new rule to prevent hover affecting active state: */
+.segmented-option-active:hover {
+  @apply text-white;
+  /* Keep text white even on hover */
 }
 
 /* ===== Transition Utilities ===== */

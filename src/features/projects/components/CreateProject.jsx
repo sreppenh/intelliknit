@@ -3,13 +3,15 @@ import { useProjectsContext } from '../hooks/useProjectsContext';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import PageHeader from '../../../shared/components/PageHeader';
+import SegmentedControl from '../../../shared/components/SegmentedControl';
 
 const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitToProjectList }) => {
   const { dispatch } = useProjectsContext();
   const [projectData, setProjectData] = useState({
     name: '',
     size: '',
-    defaultUnits: 'inches'
+    defaultUnits: 'inches',
+    construction: 'flat'
   });
 
   // Check if user has entered any data (unsaved data)
@@ -39,7 +41,10 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
   };
 
   const handleInputChange = (field, value) => {
-    setProjectData(prev => ({ ...prev, [field]: value }));
+    setProjectData(prev => ({
+      ...prev,
+      [field]: value
+    }));
   };
 
   const [showExitModal, setShowExitModal] = useState(false);
@@ -53,6 +58,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
       name: projectData.name.trim(),
       size: projectData.size.trim() || 'Not specified',
       defaultUnits: projectData.defaultUnits,
+      construction: projectData.construction,
       projectType: selectedProjectType,
       // Set empty defaults for additional details (can be added later)
       source: '',
@@ -121,35 +127,17 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
             </div>
 
             {/* Segmented Units Control */}
-            <div>
-              <label className="form-label">
-                Preferred Units
-              </label>
-              <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
-                <div className="grid grid-cols-2 gap-1">
-                  <button
-                    onClick={() => handleInputChange('defaultUnits', 'inches')}
-                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'inches'
-                      ? 'bg-sage-500 text-white shadow-sm'
-                      : 'text-wool-600 hover:text-sage-600'
-                      }`}
-                  >
-                    🇺🇸 Inches
-                  </button>
-
-                  <button
-                    onClick={() => handleInputChange('defaultUnits', 'cm')}
-                    className={`py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${projectData.defaultUnits === 'cm'
-                      ? 'bg-sage-500 text-white shadow-sm'
-                      : 'text-wool-600 hover:text-sage-600'
-                      }`}
-                  >
-                    🇪🇺 Centimeters
-                  </button>
-                </div>
-              </div>
-            </div>
+            <SegmentedControl.Units
+              value={projectData.defaultUnits}
+              onChange={(value) => handleInputChange('defaultUnits', value)}
+            />
           </div>
+
+          {/* Add this after the Units selector */}
+          <SegmentedControl.Construction
+            value={projectData.construction}
+            onChange={(value) => handleInputChange('construction', value)}
+          />
 
           {/* Compact Pro Tip */}
           <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-3">

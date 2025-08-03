@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import SegmentedControl from '../../../../../shared/components/SegmentedControl';
 
 /**
  * UnitsConstructionSection - Extracted Units & Construction fields
@@ -172,63 +173,17 @@ const UnitsConstructionSection = ({
                     {/* Modal Content */}
                     <div className="p-6">
                         <div className="space-y-4">
-                            {/* Units Toggle - Exact same styling as original */}
-                            <div>
-                                <label className="form-label">Preferred Units</label>
-                                <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
-                                    <div className="grid grid-cols-2 gap-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleTempInputChange('defaultUnits', 'inches')}
-                                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.defaultUnits === 'inches'
-                                                ? 'bg-sage-500 text-white shadow-sm'
-                                                : 'text-wool-600 hover:text-sage-600'
-                                                }`}
-                                        >
-                                            🇺🇸 Inches
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleTempInputChange('defaultUnits', 'cm')}
-                                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.defaultUnits === 'cm'
-                                                ? 'bg-sage-500 text-white shadow-sm'
-                                                : 'text-wool-600 hover:text-sage-600'
-                                                }`}
-                                        >
-                                            🇪🇺 Centimeters
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
 
-                            {/* Construction Toggle - Exact same styling as original */}
-                            <div>
-                                <label className="form-label">Construction</label>
-                                <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
-                                    <div className="grid grid-cols-2 gap-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => handleTempInputChange('construction', 'flat')}
-                                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.construction === 'flat'
-                                                ? 'bg-sage-500 text-white shadow-sm'
-                                                : 'text-wool-600 hover:text-sage-600'
-                                                }`}
-                                        >
-                                            📐 Flat
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() => handleTempInputChange('construction', 'round')}
-                                            className={`py-2 px-4 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.construction === 'round'
-                                                ? 'bg-sage-500 text-white shadow-sm'
-                                                : 'text-wool-600 hover:text-sage-600'
-                                                }`}
-                                        >
-                                            ⭕ Round
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
+                            <SegmentedControl.Units
+                                value={tempFormData.defaultUnits}
+                                onChange={(value) => handleTempInputChange('defaultUnits', value)}
+                            />
+
+
+                            <SegmentedControl.Construction
+                                value={tempFormData.construction}
+                                onChange={(value) => handleTempInputChange('construction', value)}
+                            />
                         </div>
 
                         {/* Modal Actions */}

@@ -1,12 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IncrementInput from '../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import SegmentedControl from '../../../shared/components/SegmentedControl';
+
+
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
+  const { currentProject } = useProjectsContext(); // ← ADD this line
 
   const [screen, setScreen] = useState(1);
   // REPLACE WITH:
@@ -185,6 +189,18 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     return typeMap[componentData.startType] || '';
   };
 
+  // In SmartComponentCreation.jsx, add this useEffect near the top after your state declarations:
+
+  useEffect(() => {
+    // Initialize with project defaults when component mounts
+    if (currentProject && !componentData.construction) {
+      setComponentData(prev => ({
+        ...prev,
+        construction: currentProject.construction || 'flat'
+      }));
+    }
+  }, [currentProject]);
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
@@ -247,29 +263,10 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
 
             {/* Construction Selection */}
-            <div>
-              <label className="form-label">Construction</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { value: 'flat', label: 'Flat' },
-                  { value: 'round', label: 'Round' }
-                ].map(option => (
-                  <button
-                    key={option.value}
-                    onClick={() => {
-                      IntelliKnitLogger.debug('Construction', `${option.value} button clicked`);
-                      setComponentData(prev => ({ ...prev, construction: option.value }));
-                    }}
-                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${componentData.construction === option.value
-                      ? 'border-sage-500 bg-sage-100 text-sage-700'
-                      : 'border-wool-200 hover:border-sage-300'
-                      }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <SegmentedControl.Construction
+              value={componentData.construction}
+              onChange={(value) => setComponentData(prev => ({ ...prev, construction: value }))}
+            />
 
             {/* How Does It Start */}
             <div>
