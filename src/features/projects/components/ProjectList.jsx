@@ -412,7 +412,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
             </button>
           </div>
 
-          {/* Project count with inline sort */}
+          {/* Project count with visible sort toggle */}
           <div className="mt-2 flex items-center gap-2 text-xs text-wool-500">
             <span>
               {getFilteredProjects().length} project{getFilteredProjects().length !== 1 ? 's' : ''}
@@ -421,13 +421,27 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
               <>
                 <span>•</span>
                 <span>Sort by:</span>
-                <button
-                  onClick={() => setSortBy(sortBy === 'activity' ? 'created' : 'activity')}
-                  className="text-sage-600 hover:text-sage-700 font-medium flex items-center gap-1"
-                >
-                  {sortBy === 'activity' ? 'activity' : 'date'}
-                  <span className="text-[10px]"></span>
-                </button>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setSortBy('activity')}
+                    className={`font-medium transition-colors ${sortBy === 'activity'
+                      ? 'text-sage-600'
+                      : 'text-wool-400 hover:text-sage-600'
+                      }`}
+                  >
+                    activity
+                  </button>
+                  <span className="text-wool-400">|</span>
+                  <button
+                    onClick={() => setSortBy('created')}
+                    className={`font-medium transition-colors ${sortBy === 'created'
+                      ? 'text-sage-600'
+                      : 'text-wool-400 hover:text-sage-600'
+                      }`}
+                  >
+                    date
+                  </button>
+                </div>
               </>
             )}
           </div>
