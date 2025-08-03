@@ -96,6 +96,27 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
     };
   };
 
+  // Add this function after getProjectPersonality
+  const getUnifiedColorClass = (project) => {
+    const personality = getProjectPersonality(project);
+
+    // Map status to unified color classes
+    switch (personality.status) {
+      case 'Completed':
+        return 'color-status-completed';
+      case 'Frogged':
+        return 'color-status-frogged';
+      case 'Currently Knitting':
+        return personality.streak >= 3 ? 'color-status-on-fire' : 'color-status-currently-knitting';
+      case 'Ready to Knit':
+        return 'color-status-ready';
+      case 'Planning':
+        return 'color-status-planning';
+      default:
+        return 'color-status-dormant';
+    }
+  };
+
   // Smart project sorting (chronological like Ravelry)
   const getSortedProjects = () => {
     if (projects.length === 0) return [];
@@ -434,7 +455,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
                 return (
                   <div
                     key={project.id}
-                    className={`bg-white rounded-xl p-4 shadow-sm border-2 ${personality.borderColor} ${getHoverClass(personality.borderColor)} cursor-pointer transition-all duration-200`}
+                    className={`${getUnifiedColorClass(project)} rounded-xl p-4 shadow-sm border-2 cursor-pointer`}
                     onClick={() => handleProjectEdit(project)}
                   >
                     {/* First Line: Icon + Name + Big Status Icon */}

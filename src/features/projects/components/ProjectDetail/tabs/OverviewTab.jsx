@@ -58,6 +58,25 @@ const OverviewTab = ({
         return 'edit_mode';
     };
 
+    // Add this function in OverviewTab.jsx
+    const getComponentColorClass = (status) => {
+        switch (status) {
+            case 'edit_mode':
+                return 'color-status-edit-mode';
+            case 'ready_to_knit':
+                return 'color-status-ready-knit';
+            case 'currently_knitting':
+                return 'color-status-currently-knitting';
+            case 'finishing_in_progress':
+                return 'color-status-in-progress';
+            case 'finished':
+            case 'finished_component':
+                return 'color-status-finished';
+            default:
+                return 'color-status-dormant';
+        }
+    };
+
     // Smart filtering for Overview - only show actionable components (limit to 3)
     const getOverviewComponents = () => {
         if (!project.components) return [];

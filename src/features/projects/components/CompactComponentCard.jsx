@@ -61,42 +61,42 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
     const configs = {
       currently_knitting: {
         label: 'Currently Knitting',
-        background: 'bg-sage-200 border-sage-300 hover:bg-sage-250',
+        background: 'color-status-currently-knitting',
         textColor: 'text-sage-800',
         icon: '🧶',
         priority: 1
       },
       ready_to_knit: {
         label: 'Ready to Knit',
-        background: 'bg-sage-100 border-sage-200 hover:bg-sage-150',
+        background: 'color-status-ready-knit',
         textColor: 'text-sage-800',
         icon: '⚡',
         priority: 2
       },
       edit_mode: {
         label: 'Edit Mode',
-        background: 'bg-yarn-100 border-yarn-200 hover:bg-yarn-150',
+        background: 'color-status-edit-mode',
         textColor: 'text-yarn-800',
         icon: '✏️',
         priority: 3
       },
       finished: {
         label: 'Finished',
-        background: 'bg-sage-400 border-sage-500 hover:bg-sage-450',
+        background: 'color-status-finished',
         textColor: 'text-sage-900',
         icon: '✅',
         priority: 4
       },
       finishing_in_progress: {
         label: 'In Progress',
-        background: 'bg-lavender-100 border-lavender-200 hover:bg-lavender-150',
+        background: 'color-status-in-progress',
         textColor: 'text-lavender-800',
         icon: '🪡',
         priority: 3
       },
       finishing_done: {
         label: 'Completed',
-        background: 'bg-lavender-400 border-lavender-500 hover:bg-lavender-450',
+        background: 'color-status-finished',
         textColor: 'text-lavender-900',
         icon: '🪡',
         priority: 6

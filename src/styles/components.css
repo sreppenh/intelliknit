@@ -1103,6 +1103,253 @@ body.modal-open {
   }
 }
 
+/* ===== UNIFIED PROJECT & COMPONENT COLOR SYSTEM ===== */
+/* Pure color classes - no layout impact, just visual status indicators */
+
+/* ===== UNIFIED PROJECT & COMPONENT COLOR SYSTEM ===== */
+/* Pure color classes - no layout impact, just visual status indicators */
+
+/* 📝 Setup Phase - Yarn Orange (Planning/Edit Mode) */
+.color-status-planning,
+.color-status-edit-mode {
+  background-color: #fef3cd;
+  border-color: #f59e0b;
+  color: #92400e;
+  transition: all 0.2s;
+}
+
+.color-status-planning:hover,
+.color-status-edit-mode:hover {
+  background-color: #fef3e7;
+  border-color: #ea8b47;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-planning:active,
+.color-status-edit-mode:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* ⚡ Prepared Phase - Lavender Purple (Ready to Knit) */
+.color-status-ready,
+.color-status-ready-knit {
+  background-color: #f3f4f6;
+  border-color: #a78bfa;
+  color: #6b21a8;
+  transition: all 0.2s;
+}
+
+.color-status-ready:hover,
+.color-status-ready-knit:hover {
+  background-color: #f4f1ff;
+  border-color: #9c88db;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-ready:active,
+.color-status-ready-knit:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* 🧶 Active Work - Sage Green (In Progress/Currently Knitting) */
+.color-status-in-progress,
+.color-status-currently-knitting {
+  background-color: #f0f9ff;
+  border-color: #22c55e;
+  color: #166534;
+  transition: all 0.2s;
+}
+
+.color-status-in-progress:hover,
+.color-status-currently-knitting:hover {
+  background-color: #f0f4f0;
+  border-color: #6b8e6b;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-in-progress:active,
+.color-status-currently-knitting:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* 🔥 High Activity - Orange Gradient (On Fire/Priority) */
+.color-status-on-fire {
+  background: linear-gradient(to right, #fff7ed, #fef2f2);
+  border-color: #fb923c;
+  color: #9a3412;
+  transition: all 0.2s;
+}
+
+.color-status-on-fire:hover {
+  background: linear-gradient(to right, #fef4e6, #fef2f2);
+  border-color: #dc6803;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-on-fire:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.color-status-priority-knitting {
+  background-color: #fff7ed;
+  border-color: #fb923c;
+  color: #9a3412;
+  transition: all 0.2s;
+}
+
+.color-status-priority-knitting:hover {
+  background-color: #fef4e6;
+  border-color: #dc6803;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-priority-knitting:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* ✅ Done Phase - Deep Sage (Completed/Finished) */
+.color-status-completed,
+.color-status-finished {
+  background-color: #dcfce7;
+  border-color: #16a34a;
+  color: #14532d;
+  transition: all 0.2s;
+}
+
+.color-status-completed:hover,
+.color-status-finished:hover {
+  background-color: #e8f0e8;
+  border-color: #5a7c5a;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-completed:active,
+.color-status-finished:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* 🐸 Reset Phase - Cool Blue (Frogged) */
+.color-status-frogged {
+  background-color: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
+  transition: all 0.2s;
+}
+
+.color-status-frogged:hover {
+  background-color: #eff6ff;
+  border-color: #60a5fa;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-frogged:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* 💤 Dormant/Stalled - Neutral Wool */
+.color-status-dormant,
+.color-status-stalled {
+  background-color: #f9fafb;
+  border-color: #9ca3af;
+  color: #374151;
+  transition: all 0.2s;
+}
+
+.color-status-dormant:hover,
+.color-status-stalled:hover {
+  background-color: #fafaf9;
+  border-color: #a8a29e;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-dormant:active,
+.color-status-stalled:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* 🌟 Empty/New - Light Lavender */
+.color-status-empty,
+.color-status-new {
+  background-color: #faf5ff;
+  border-color: #c084fc;
+  color: #7c3aed;
+  transition: all 0.2s;
+}
+
+.color-status-empty:hover,
+.color-status-new:hover {
+  background-color: #f9f7ff;
+  border-color: #c4b5fd;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+  transform: scale(1.02);
+}
+
+.color-status-empty:active,
+.color-status-new:active {
+  transform: scale(0.98);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+/* ===== HELPER CLASSES FOR STATUS HEADERS ===== */
+/* These match the card colors for section headers in ComponentsTab */
+
+.header-status-planning,
+.header-status-edit-mode {
+  background-color: #fef3cd;
+  border-color: #f59e0b;
+  color: #92400e;
+}
+
+.header-status-ready,
+.header-status-ready-knit {
+  background-color: #f3f4f6;
+  border-color: #a78bfa;
+  color: #6b21a8;
+}
+
+.header-status-in-progress,
+.header-status-currently-knitting {
+  background-color: #f0f9ff;
+  border-color: #22c55e;
+  color: #166534;
+}
+
+.header-status-completed,
+.header-status-finished {
+  background-color: #dcfce7;
+  border-color: #16a34a;
+  color: #14532d;
+}
+
+.header-status-on-fire {
+  background: linear-gradient(to right, #fff7ed, #fef2f2);
+  border-color: #fb923c;
+  color: #9a3412;
+}
+
+.header-status-frogged {
+  background-color: #dbeafe;
+  border-color: #3b82f6;
+  color: #1e40af;
+}
+
+
 /* 
 * {
   outline: 1px solid red;
