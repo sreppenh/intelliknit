@@ -78,7 +78,18 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const getProjectPersonality = (project) => {
     const unified = getUnifiedProjectStatus(project);
 
-    // Map unified status to our card border colors
+    // Fix the text colors to match our design system
+    const getTextColor = (status, streak) => {
+      switch (status) {
+        case 'Completed': return 'text-sage-700';
+        case 'Frogged': return 'text-wool-600';
+        case 'Currently Knitting': return streak >= 3 ? 'text-sage-700' : 'text-sage-700'; // ✅ Both sage, not red
+        case 'Ready to Knit': return 'text-sage-700'; // ✅ Sage, not purple
+        case 'Planning': return 'text-yarn-700';
+        default: return 'text-wool-600';
+      }
+    };
+
     const getBorderColor = (status, category) => {
       switch (status) {
         case 'Completed': return 'border-sage-400';
@@ -92,6 +103,7 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
     return {
       ...unified,
+      color: getTextColor(unified.status, unified.streak), // ✅ OVERRIDE with correct colors
       borderColor: getBorderColor(unified.status, unified.category)
     };
   };
@@ -100,20 +112,20 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
   const getUnifiedColorClass = (project) => {
     const personality = getProjectPersonality(project);
 
-    // Map status to unified color classes
+    // Map status to NEW unified color classes
     switch (personality.status) {
       case 'Completed':
-        return 'color-status-completed';
+        return 'card-project-complete';
       case 'Frogged':
-        return 'color-status-frogged';
+        return 'card-project-frogged';
       case 'Currently Knitting':
-        return personality.streak >= 3 ? 'color-status-on-fire' : 'color-status-currently-knitting';
+        return personality.streak >= 3 ? 'card-project-fire' : 'card-project-active'; // ✅ NEW - was 'color-status-on-fire' : 'color-status-currently-knitting'
       case 'Ready to Knit':
-        return 'color-status-ready';
+        return 'card-project-ready';
       case 'Planning':
-        return 'color-status-planning';
+        return 'card-project-planning';
       default:
-        return 'color-status-dormant';
+        return 'card-project-dormant';
     }
   };
 
