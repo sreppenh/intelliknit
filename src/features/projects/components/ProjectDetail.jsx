@@ -200,6 +200,7 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
               onManageSteps={componentActions.manageSteps}
               onStartKnitting={onStartKnitting}
               onChangeTab={changeTab}
+              onShowEnhancedCreation={componentActions.showEnhancedCreation}  // ✅ ADD THIS LINE
               onProjectUpdate={(updatedProject) => {
                 dispatch({
                   type: 'UPDATE_PROJECT',

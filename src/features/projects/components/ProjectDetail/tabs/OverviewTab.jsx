@@ -14,7 +14,8 @@ const OverviewTab = ({
     onChangeTab,
     onProjectUpdate,
     onDeleteProject,
-    onCopyProject
+    onCopyProject,
+    onShowEnhancedCreation
 }) => {
     // Validate props in development
     if (process.env.NODE_ENV === 'development') {
@@ -341,140 +342,148 @@ const OverviewTab = ({
 
     // === RENDER ===
     return (
-        <TabContent
-            showEmptyState={overviewComponents.length === 0 && (!project.components || project.components.length === 0)}
-            emptyState={
-                <div>
-                    <div className="text-4xl mb-3">✨</div>
-                    <h3 className="font-semibold text-wool-700 mb-2">Ready to Begin</h3>
-                    <p className="text-wool-500 text-sm mb-4">Add your first component to start knitting</p>
-                    <div className="space-y-3">
-                        <button
-                            onClick={() => onChangeTab('components')}
-                            className="btn-primary w-full"
-                        >
-                            Add Component
-                        </button>
-                        {/* FIXED: Delete button always available in empty state */}
-                        <button
-                            onClick={() => setShowDeleteModal(true)}
-                            className="btn-tertiary w-full text-sm"
-                        >
-                            🗑️ Delete Project
-                        </button>
+        <>
+            <TabContent
+                showEmptyState={overviewComponents.length === 0 && (!project.components || project.components.length === 0)}
+                emptyState={
+                    <div>
+                        <div className="text-4xl mb-3">✨</div>
+                        <h3 className="font-semibold text-wool-700 mb-2">Ready to Begin</h3>
+                        <p className="text-wool-500 text-sm mb-4">Add your first component to start knitting</p>
+                        <div className="space-y-3">
+                            <button
+                                onClick={() => {
+                                    console.log('🧶 Overview: Add Component clicked');
+                                    onShowEnhancedCreation();
+                                }}
+                                className="btn-primary w-full"
+                            >
+                                + Add Component
+                            </button>
+                            {/* FIXED: Delete button always available in empty state */}
+                            <button
+                                onClick={() => {
+                                    console.log('🗑️ Empty state delete button clicked!');
+                                    setShowDeleteModal(true);
+                                }}
+                                className="btn-tertiary w-full text-sm"
+                            >
+                                🗑️ Delete Project
+                            </button>
+                        </div>
                     </div>
-                </div>
-            }
-        >
-            <div className="p-6 space-y-6">
-                {/* === COMPACT PROJECT HEADER (Icon next to name) === */}
-                <div className="text-center space-y-2">
-                    <h1 className="text-xl font-bold text-wool-800 flex items-center justify-center gap-2">
-                        <span className="text-2xl">{getProjectIcon(project.projectType)}</span>
-                        {project.name}
-                    </h1>
-                    <p className="text-wool-600 font-medium">
-                        {getProgressMessage()}
-                    </p>
-                </div>
+                }
+            >
+                <div className="p-6 space-y-6">
+                    {/* === COMPACT PROJECT HEADER (Icon next to name) === */}
+                    <div className="text-center space-y-2">
+                        <h1 className="text-xl font-bold text-wool-800 flex items-center justify-center gap-2">
+                            <span className="text-2xl">{getProjectIcon(project.projectType)}</span>
+                            {project.name}
+                        </h1>
+                        <p className="text-wool-600 font-medium">
+                            {getProgressMessage()}
+                        </p>
+                    </div>
 
-                {/* === PROJECT STATUS BANNER - NEW === */}
-                {projectStatus.show && (
-                    <div className={`rounded-2xl border-2 p-4 ${projectStatus.bgColor}`}>
-                        <div className="text-center">
-                            <div className={`text-lg font-semibold ${projectStatus.textColor} flex items-center justify-center gap-2`}>
-                                <span className="text-xl">{projectStatus.emoji}</span>
-                                {projectStatus.message}
+                    {/* === PROJECT STATUS BANNER - NEW === */}
+                    {projectStatus.show && (
+                        <div className={`rounded-2xl border-2 p-4 ${projectStatus.bgColor}`}>
+                            <div className="text-center">
+                                <div className={`text-lg font-semibold ${projectStatus.textColor} flex items-center justify-center gap-2`}>
+                                    <span className="text-xl">{projectStatus.emoji}</span>
+                                    {projectStatus.message}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* === CELEBRATION BANNER === */}
+                    {!projectStatus.show && (
+                        <div className="bg-white rounded-2xl border-2 border-sage-200 p-3">
+                            <div className="text-center">
+                                {streakMessage ? (
+                                    <div className="text-lg font-semibold text-sage-600">{streakMessage}</div>
+                                ) : (
+                                    <div className="text-base text-wool-600">
+                                        Last worked: {formatRelativeDate(project.lastActivityAt || project.createdAt)}
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* === ACTIVE COMPONENTS (Max 3, stronger status) === */}
+                    {overviewComponents.length > 0 && (
+                        <div className="space-y-3">
+                            <h2 className="text-base font-semibold text-wool-700">Up Next</h2>
+                            <div className="space-y-3">
+                                {overviewComponents.map((component) => (
+                                    <OverviewComponentCard
+                                        key={component.id}
+                                        component={component}
+                                        status={getComponentStatus(component)}
+                                        onClick={() => handleComponentClick(component)}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* === PROJECT ACTIONS - IMPROVED WITH SMART LOGIC === */}
+                    <div className="space-y-4">
+                        {/* Primary CTA - Mark Complete (smart logic) */}
+                        {actions.showMarkComplete && (
+                            <button
+                                onClick={handleCompleteProject}
+                                className="w-full btn-primary"
+                            >
+                                🎉 Mark Project Complete
+                            </button>
+                        )}
+
+                        {/* Secondary Actions - Smart button visibility */}
+                        <div className="space-y-2">
+                            <h3 className="text-sm font-medium text-wool-600">Project Actions</h3>
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => {
+                                        onChangeTab('details');
+                                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                                    }}
+                                    className="btn-tertiary text-sm"
+                                >
+                                    ⚙️ Edit Details
+                                </button>
+                                <button
+                                    onClick={handleCopyProject}
+                                    className="btn-tertiary text-sm"
+                                >
+                                    📋 Copy Project
+                                </button>
+                                {/* Smart Frog Button - only show if not already frogged */}
+                                {actions.canFrog && (
+                                    <button
+                                        onClick={() => setShowFrogModal(true)}
+                                        className="btn-tertiary text-sm"
+                                    >
+                                        🐸 Frog Project
+                                    </button>
+                                )}
+                                {/* Delete Button - always available */}
+                                <button
+                                    onClick={() => setShowDeleteModal(true)}
+                                    className="btn-tertiary text-sm"
+                                >
+                                    🗑️ Delete
+                                </button>
                             </div>
                         </div>
                     </div>
-                )}
-
-                {/* === CELEBRATION BANNER === */}
-                {!projectStatus.show && (
-                    <div className="bg-white rounded-2xl border-2 border-sage-200 p-3">
-                        <div className="text-center">
-                            {streakMessage ? (
-                                <div className="text-lg font-semibold text-sage-600">{streakMessage}</div>
-                            ) : (
-                                <div className="text-base text-wool-600">
-                                    Last worked: {formatRelativeDate(project.lastActivityAt || project.createdAt)}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                )}
-
-                {/* === ACTIVE COMPONENTS (Max 3, stronger status) === */}
-                {overviewComponents.length > 0 && (
-                    <div className="space-y-3">
-                        <h2 className="text-base font-semibold text-wool-700">Up Next</h2>
-                        <div className="space-y-3">
-                            {overviewComponents.map((component) => (
-                                <OverviewComponentCard
-                                    key={component.id}
-                                    component={component}
-                                    status={getComponentStatus(component)}
-                                    onClick={() => handleComponentClick(component)}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}
-
-                {/* === PROJECT ACTIONS - IMPROVED WITH SMART LOGIC === */}
-                <div className="space-y-4">
-                    {/* Primary CTA - Mark Complete (smart logic) */}
-                    {actions.showMarkComplete && (
-                        <button
-                            onClick={handleCompleteProject}
-                            className="w-full btn-primary"
-                        >
-                            🎉 Mark Project Complete
-                        </button>
-                    )}
-
-                    {/* Secondary Actions - Smart button visibility */}
-                    <div className="space-y-2">
-                        <h3 className="text-sm font-medium text-wool-600">Project Actions</h3>
-                        <div className="grid grid-cols-2 gap-2">
-                            <button
-                                onClick={() => {
-                                    onChangeTab('details');
-                                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                                }}
-                                className="btn-tertiary text-sm"
-                            >
-                                ⚙️ Edit Details
-                            </button>
-                            <button
-                                onClick={handleCopyProject}
-                                className="btn-tertiary text-sm"
-                            >
-                                📋 Copy Project
-                            </button>
-                            {/* Smart Frog Button - only show if not already frogged */}
-                            {actions.canFrog && (
-                                <button
-                                    onClick={() => setShowFrogModal(true)}
-                                    className="btn-tertiary text-sm"
-                                >
-                                    🐸 Frog Project
-                                </button>
-                            )}
-                            {/* Delete Button - always available */}
-                            <button
-                                onClick={() => setShowDeleteModal(true)}
-                                className="btn-tertiary text-sm"
-                            >
-                                🗑️ Delete
-                            </button>
-                        </div>
-                    </div>
                 </div>
-            </div>
+            </TabContent>
 
-            {/* === MODALS (Improved with proper behavior) === */}
+            {/* === MODALS (Outside TabContent for proper rendering) === */}
             {showFrogModal && (
                 <div className="modal-overlay" onClick={handleBackdropClick}>
                     <div className="modal-content-light">
@@ -575,7 +584,7 @@ const OverviewTab = ({
                     </div>
                 </div>
             )}
-        </TabContent>
+        </>
     );
 };
 
