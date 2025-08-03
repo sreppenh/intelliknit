@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateKnittingTab } from '../types/TabProps';
+import { getProjectStatus as getSharedProjectStatus } from '../../../../../shared/utils/projectStatus';
 
 const OverviewTab = ({
     project,
@@ -216,33 +217,16 @@ const OverviewTab = ({
 
     // === STATUS DISPLAY LOGIC - NEW ===
     const getProjectStatusDisplay = () => {
-        if (project.completed) {
-            const completedDate = project.completedAt ?
-                new Date(project.completedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) :
-                'Recently';
-            return {
-                show: true,
-                emoji: '🎉',
-                message: `Completed on ${completedDate}`,
-                bgColor: 'bg-sage-100 border-sage-300',
-                textColor: 'text-sage-700'
-            };
-        }
+        const sharedStatus = getSharedProjectStatus(project);
 
-        if (project.frogged) {
-            const froggedDate = project.froggedAt ?
-                new Date(project.froggedAt).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) :
-                'Recently';
-            return {
-                show: true,
-                emoji: '🐸',
-                message: `Frogged on ${froggedDate}`,
-                bgColor: 'bg-lavender-100 border-lavender-300',
-                textColor: 'text-lavender-700'
-            };
-        }
-
-        return { show: false };
+        // Convert shared status to display format
+        return {
+            show: true,
+            emoji: sharedStatus.emoji,
+            message: sharedStatus.text,
+            bgColor: 'bg-sage-100 border-sage-300',
+            textColor: 'text-sage-700'
+        };
     };
 
     const projectStatus = getProjectStatusDisplay();

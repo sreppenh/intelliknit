@@ -1,4 +1,5 @@
 import React from 'react';
+import { getProjectStatus as getSharedProjectStatus } from '../../../shared/utils/projectStatus';
 
 /**
  * ProjectStatusBar - Enhanced status display for project dashboard
@@ -9,30 +10,8 @@ const ProjectStatusBar = ({ project, onEditProject, className = "" }) => {
 
     // Calculate project status
     const getProjectStatus = () => {
-        if (project.completed) return 'Complete';
-
-        const totalComponents = project.components?.length || 0;
-        if (totalComponents === 0) return 'Planning';
-
-        const readyComponents = project.components.filter(comp => {
-            const hasCastOn = comp.steps?.some(step =>
-                step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-                step.description?.toLowerCase().includes('cast on')
-            );
-            const hasBindOff = comp.steps?.some(step =>
-                step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-                step.description?.toLowerCase().includes('bind off')
-            );
-            return hasCastOn && hasBindOff;
-        }).length;
-
-        const inProgressComponents = project.components.filter(comp => {
-            return comp.steps?.some(s => s.completed);
-        }).length;
-
-        if (inProgressComponents > 0) return 'In Progress';
-        if (readyComponents > 0) return 'Ready to Knit';
-        return 'Planning';
+        const sharedStatus = getSharedProjectStatus(project);
+        return sharedStatus.text || 'Unknown';
     };
 
     // Format dates
