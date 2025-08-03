@@ -23,7 +23,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
     const updatedProject = {
       ...project,
-      lastActivityAt: new Date().toISOString(),
       activityLog: updatedActivityLog
     };
 

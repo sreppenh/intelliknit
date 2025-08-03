@@ -41,7 +41,7 @@ export const projectsReducer = (state, action) => {
         lastActivityAt: new Date().toISOString(), // NEW: Track activity on creation
         completed: false
       };
-      
+
       return {
         ...state,
         projects: [...state.projects, newProject],
@@ -52,13 +52,12 @@ export const projectsReducer = (state, action) => {
       const updatedProject = {
         ...action.payload,
         updatedAt: new Date().toISOString(),
-        lastActivityAt: new Date().toISOString() // NEW: Track activity on update
       };
 
       return {
         ...state,
         currentProject: updatedProject,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === updatedProject.id ? updatedProject : p
         )
       };
@@ -82,7 +81,7 @@ export const projectsReducer = (state, action) => {
         IntelliKnitLogger.error('ADD_COMPONENT: No current project');
         return state;
       }
-      
+
       const newComponent = {
         id: crypto.randomUUID(),
         name: action.payload.name.trim(),
@@ -101,14 +100,14 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithComponentActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithComponentActivity : p
         )
       };
 
     case 'ADD_ENHANCED_COMPONENT':
       if (!state.currentProject) return state;
-      
+
       // Create enhanced component with automatic Cast On step
       const enhancedComponent = {
         id: crypto.randomUUID(),
@@ -136,7 +135,7 @@ export const projectsReducer = (state, action) => {
           construction: action.payload.construction || 'flat',
           completed: false
         };
-        
+
         enhancedComponent.steps.push(castOnStep);
       }
 
@@ -151,7 +150,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithEnhancedActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithEnhancedActivity : p
         )
       };
@@ -161,11 +160,11 @@ export const projectsReducer = (state, action) => {
         IntelliKnitLogger.error('DELETE_COMPONENT: No current project');
         return state;
       }
-      
+
       const updatedComponents = state.currentProject.components.filter(
         (_, index) => index !== action.payload
       );
-      
+
       const projectWithDeletedComponent = {
         ...state.currentProject,
         components: updatedComponents
@@ -177,7 +176,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithDeleteActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithDeleteActivity : p
         )
       };
@@ -187,10 +186,10 @@ export const projectsReducer = (state, action) => {
         IntelliKnitLogger.error('COPY_COMPONENT: No current project or invalid source index');
         return state;
       }
-      
+
       const { sourceIndex, newName } = action.payload;
       const originalComponent = state.currentProject.components[sourceIndex];
-      
+
       if (!originalComponent) {
         IntelliKnitLogger.error('COPY_COMPONENT: Source component not found');
         return state;
@@ -218,7 +217,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithCopyActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithCopyActivity : p
         )
       };
@@ -228,11 +227,11 @@ export const projectsReducer = (state, action) => {
         IntelliKnitLogger.error('ADD_CALCULATED_STEP: No current project');
         return state;
       }
-      
+
       const { componentIndex: calcCompIndex, step: calcStep } = action.payload;
-      
-      if (calcCompIndex === null || calcCompIndex === undefined || 
-          !state.currentProject.components[calcCompIndex]) {
+
+      if (calcCompIndex === null || calcCompIndex === undefined ||
+        !state.currentProject.components[calcCompIndex]) {
         IntelliKnitLogger.error('ADD_CALCULATED_STEP: Invalid component index', calcCompIndex);
         return state;
       }
@@ -270,7 +269,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithCalculatedStepActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithCalculatedStepActivity : p
         )
       };
@@ -280,11 +279,11 @@ export const projectsReducer = (state, action) => {
         IntelliKnitLogger.error('ADD_STEP: No current project');
         return state;
       }
-      
+
       const { componentIndex, step } = action.payload;
-      
-      if (componentIndex === null || componentIndex === undefined || 
-          !state.currentProject.components[componentIndex]) {
+
+      if (componentIndex === null || componentIndex === undefined ||
+        !state.currentProject.components[componentIndex]) {
         IntelliKnitLogger.error('ADD_STEP: Invalid component index', componentIndex);
         return state;
       }
@@ -325,7 +324,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithStepActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithStepActivity : p
         )
       };
@@ -335,14 +334,14 @@ export const projectsReducer = (state, action) => {
         IntelliKnitLogger.error('DELETE_STEP: No current project');
         return state;
       }
-      
+
       const { componentIndex: compIndex, stepIndex } = action.payload;
-      
-      if (compIndex === null || compIndex === undefined || 
-          !state.currentProject.components[compIndex] ||
-          !state.currentProject.components[compIndex].steps ||
-          stepIndex === null || stepIndex === undefined ||
-          !state.currentProject.components[compIndex].steps[stepIndex]) {
+
+      if (compIndex === null || compIndex === undefined ||
+        !state.currentProject.components[compIndex] ||
+        !state.currentProject.components[compIndex].steps ||
+        stepIndex === null || stepIndex === undefined ||
+        !state.currentProject.components[compIndex].steps[stepIndex]) {
         IntelliKnitLogger.error('DELETE_STEP: Invalid indices', { compIndex, stepIndex });
         return state;
       }
@@ -363,7 +362,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithDeleteStepActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithDeleteStepActivity : p
         )
       };
@@ -373,20 +372,20 @@ export const projectsReducer = (state, action) => {
         IntelliKnitLogger.error('UPDATE_STEP: No current project');
         return state;
       }
-      
+
       const { componentIndex: updateCompIndex, stepIndex: updateStepIndex, step: updatedStepData } = action.payload;
-      
-      if (updateCompIndex === null || updateCompIndex === undefined || 
-          !state.currentProject.components[updateCompIndex] ||
-          !state.currentProject.components[updateCompIndex].steps ||
-          updateStepIndex === null || updateStepIndex === undefined ||
-          !state.currentProject.components[updateCompIndex].steps[updateStepIndex]) {
+
+      if (updateCompIndex === null || updateCompIndex === undefined ||
+        !state.currentProject.components[updateCompIndex] ||
+        !state.currentProject.components[updateCompIndex].steps ||
+        updateStepIndex === null || updateStepIndex === undefined ||
+        !state.currentProject.components[updateCompIndex].steps[updateStepIndex]) {
         IntelliKnitLogger.error('UPDATE_STEP: Invalid indices', { updateCompIndex, updateStepIndex });
         return state;
       }
 
       const componentsWithUpdatedStep = [...state.currentProject.components];
-      
+
       const originalStep = componentsWithUpdatedStep[updateCompIndex].steps[updateStepIndex];
       const updatedStep = {
         ...originalStep,
@@ -395,7 +394,7 @@ export const projectsReducer = (state, action) => {
         completed: originalStep.completed,
         advancedWizardConfig: updatedStepData.advancedWizardConfig || originalStep.advancedWizardConfig
       };
-      
+
       componentsWithUpdatedStep[updateCompIndex].steps[updateStepIndex] = updatedStep;
 
       const projectWithUpdatedStep = {
@@ -409,7 +408,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithUpdateStepActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithUpdateStepActivity : p
         )
       };
@@ -419,20 +418,20 @@ export const projectsReducer = (state, action) => {
         ...state,
         wizardType: action.payload
       };
-      
+
     case 'TOGGLE_STEP_COMPLETION':
       if (!state.currentProject) {
         IntelliKnitLogger.error('TOGGLE_STEP_COMPLETION: No current project');
         return state;
       }
-      
+
       const { componentIndex: toggleCompIndex, stepIndex: toggleStepIndex } = action.payload;
-      
-      if (toggleCompIndex === null || toggleCompIndex === undefined || 
-          !state.currentProject.components[toggleCompIndex] ||
-          !state.currentProject.components[toggleCompIndex].steps ||
-          toggleStepIndex === null || toggleStepIndex === undefined ||
-          !state.currentProject.components[toggleCompIndex].steps[toggleStepIndex]) {
+
+      if (toggleCompIndex === null || toggleCompIndex === undefined ||
+        !state.currentProject.components[toggleCompIndex] ||
+        !state.currentProject.components[toggleCompIndex].steps ||
+        toggleStepIndex === null || toggleStepIndex === undefined ||
+        !state.currentProject.components[toggleCompIndex].steps[toggleStepIndex]) {
         IntelliKnitLogger.error('TOGGLE_STEP_COMPLETION: Invalid indices', { toggleCompIndex, toggleStepIndex });
         return state;
       }
@@ -465,7 +464,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: projectWithToggleActivity,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? projectWithToggleActivity : p
         )
       };
@@ -475,7 +474,7 @@ export const projectsReducer = (state, action) => {
         IntelliKnitLogger.error('COMPLETE_PROJECT: No current project');
         return state;
       }
-      
+
       const completedProject = {
         ...state.currentProject,
         completed: true,
@@ -486,7 +485,7 @@ export const projectsReducer = (state, action) => {
       return {
         ...state,
         currentProject: completedProject,
-        projects: state.projects.map(p => 
+        projects: state.projects.map(p =>
           p.id === state.currentProject.id ? completedProject : p
         )
       };
