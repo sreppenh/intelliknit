@@ -8,7 +8,7 @@ export const shouldSkipConfiguration = (wizardData) => {
 export const shouldShowNavigation = (wizardStep) => {
   // Don't show nav buttons for choice screens or auto-advancing screens
   const choiceSteps = [3]; // Duration/Shaping choice
-  const autoAdvanceSteps = [1]; // Pattern selector auto-advances
+  const autoAdvanceSteps = []; // Pattern selector auto-advances
 
   return !choiceSteps.includes(wizardStep) &&
     !autoAdvanceSteps.includes(wizardStep) &&

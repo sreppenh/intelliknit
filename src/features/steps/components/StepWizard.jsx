@@ -176,13 +176,40 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     switch (wizard.wizardStep) {
       case 1:
         return (
-          <PatternSelector
-            wizardData={wizard.wizardData}
-            updateWizardData={wizard.updateWizardData}
-            navigation={customNavigation}
-            existingPrepNote={wizard.wizardData.prepNote || ''}
-            onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
-          />
+          <div className="stack-lg">
+            <PatternSelector
+              wizardData={wizard.wizardData}
+              updateWizardData={wizard.updateWizardData}
+              navigation={customNavigation}
+              existingPrepNote={wizard.wizardData.prepNote || ''}
+              onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
+            />
+
+            {/* Navigation buttons for Step 1 */}
+            <div className="pt-6 border-t border-wool-100">
+              <div className="flex gap-3">
+                <button
+                  onClick={onBack}
+                  className="flex-1 btn-tertiary"
+                >
+                  ← Cancel
+                </button>
+
+                <button
+                  onClick={() => {
+                    const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
+                    const nextStep = navigator.getNextStep();
+                    wizard.navigation.goToStep(nextStep);
+                  }}
+                  disabled={!navigator.canProceed()}
+                  className="flex-2 btn-primary"
+                  style={{ flexGrow: 2 }}
+                >
+                  Continue →
+                </button>
+              </div>
+            </div>
+          </div>
         );
 
       case 2:

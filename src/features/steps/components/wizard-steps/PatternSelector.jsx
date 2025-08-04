@@ -38,10 +38,12 @@ export const PatternSelector = ({
   };
 
   const handleAdvancedCategorySelect = (categoryKey) => {
-    setSelectedQuickCategory(null); // new code
+    setSelectedQuickCategory(null);
     const category = PATTERN_CATEGORIES[categoryKey];
 
+    // SIMPLIFIED: Just set the category, no automatic navigation
     if (category.patterns.length === 1) {
+      // Single pattern - set both category and pattern
       updateWizardData('stitchPattern', {
         category: categoryKey,
         pattern: category.patterns[0].name,
@@ -49,8 +51,9 @@ export const PatternSelector = ({
         rowsInPattern: '',
         method: ''
       });
-      navigation.nextStep();
+      // REMOVED: navigation.nextStep() - let user click Continue
     } else {
+      // Multiple patterns - set category only
       updateWizardData('stitchPattern', {
         category: categoryKey,
         pattern: null,
@@ -58,8 +61,10 @@ export const PatternSelector = ({
         rowsInPattern: '',
         method: ''
       });
+      // No navigation - React will re-render to show pattern selection
     }
   };
+
 
   const handlePatternSelect = (categoryKey, pattern) => {
     updateWizardData('stitchPattern', {
@@ -70,16 +75,15 @@ export const PatternSelector = ({
       method: ''
     });
 
-    setTimeout(() => {
-      navigation.goToStep(3);
-    }, 10);
+    // REMOVED: setTimeout(() => { navigation.goToStep(3); }, 10);
+    // User will click Continue button to proceed
   };
 
   const handleAdvancedPatternSelect = (pattern) => {
     updateWizardData('stitchPattern', { pattern: pattern.name });
-    setTimeout(() => {
-      navigation.nextStep();
-    }, 10);
+
+    // REMOVED: setTimeout(() => { navigation.nextStep(); }, 10);
+    // User will click Continue button to proceed
   };
 
   const selectedCategory = wizardData?.stitchPattern?.category;
