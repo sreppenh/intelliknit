@@ -172,13 +172,15 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
                 {wizardData.duration.type === 'length' && (
                   <div className="mt-3 stack-sm">
                     <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        step="0.25"
+                      <span className="text-sm text-sage-700">Add</span>
+                      <IncrementInput
                         value={wizardData.duration.value}
-                        onChange={(e) => updateWizardData('duration', { value: e.target.value })}
-                        placeholder="2"
-                        className="w-20 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                        onChange={(value) => updateWizardData('duration', { value })}
+                        label="length to add"
+                        min={0.25}
+                        useDecimals={true}
+                        step={0.25}
+                        size="sm"
                       />
                       <select
                         value={wizardData.duration.units || 'inches'}
@@ -208,6 +210,7 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
                     </div>
                   </div>
                 )}
+
               </div>
             </div>
           </label>
@@ -239,13 +242,14 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
                   <div className="mt-3 stack-sm">
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-sage-700">Work until piece measures</span>
-                      <input
-                        type="number"
-                        step="0.25"
+                      <IncrementInput
                         value={wizardData.duration.value}
-                        onChange={(e) => updateWizardData('duration', { value: e.target.value })}
-                        placeholder="18"
-                        className="w-20 border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                        onChange={(value) => updateWizardData('duration', { value })}
+                        label="target measurement"
+                        min={0.25}
+                        useDecimals={true}
+                        step={0.25}
+                        size="sm"
                       />
                       <select
                         value={wizardData.duration.units || 'inches'}
@@ -263,7 +267,7 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
                         value={wizardData.duration.reference || ''}
                         onChange={(e) => updateWizardData('duration', { reference: e.target.value })}
                         placeholder="from cast on, from start of armhole, etc."
-                        className="w-full border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white placeholder-sage-400"
+                        className="w-full border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white text-sage-600 placeholder-wool-400"
                       />
                       <p className="text-xs text-sage-600 mt-1">Reference point (e.g., from cast on, from start of armhole)</p>
                     </div>
