@@ -205,9 +205,9 @@ export const PatternSelector = ({
                     key={pattern.name}
                     onClick={() => handlePatternSelect(selectedQuickCategory, pattern)}
                     className={`card-pattern-option ${selectedPattern === pattern.name
-                      ? 'border-sage-500 bg-sage-100 text-sage-700'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
                       : ''
-                      }`}  // ✅ FIX #2: Add selected state styling
+                      }`}
                   >
                     <div className="text-lg mb-1">{pattern.icon}</div>
                     <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
