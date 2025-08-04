@@ -123,6 +123,7 @@ export const projectsReducer = (state, action) => {
           id: crypto.randomUUID(),
           description: `Cast on ${action.payload.startingStitches} stitches`,
           type: 'calculated',
+          prepNote: action.payload.prepNote || '', // ADD THIS LINE
           wizardConfig: {
             stitchPattern: {
               pattern: 'Cast On',

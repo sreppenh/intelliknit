@@ -3,6 +3,8 @@ import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import StepWizard from './StepWizard';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import PageHeader from '../../../shared/components/PageHeader';
+import StepsList from '../../projects/components/ManageSteps/StepsList';
+import { PrepNoteDisplay } from '../../../shared/components/PrepStepSystem'; // NEW
 
 const ManageSteps = ({ componentIndex, onBack }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -320,112 +322,18 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             </div>
           </div>
 
-          {/* Steps List */}
-          {component.steps.length > 0 ? (
-            <div className="stack-sm">
-              <div className="flex justify-between items-center">
-                <h3 className="content-header-secondary">Pattern Steps</h3>
-                <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
-                  {component.steps.filter(s => s.completed).length} of {component.steps.length}
-                </span>
-              </div>
-
-              {component.steps.map((step, stepIndex) => {
-                const isEditable = stepIndex === editableStepIndex;
-                const isCompleted = step.completed;
-                const isSpecial = isSpecialStep(step);
-
-                return (
-                  <div
-                    key={step.id}
-                    className="bg-sage-50 border-sage-300 border-2 rounded-xl p-4 transition-all duration-200"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-7 h-7 rounded-full bg-sage-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                        {stepIndex + 1}
-                      </div>
-
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <div className="min-w-0 flex-1 text-left">
-                            <h4 className={`text-sm font-semibold mb-1 text-left ${isCompleted ? 'text-wool-600' : 'text-wool-700'
-                              }`}>
-                              {getPatternDisplay(step)}{getMethodDisplay(step)}
-                            </h4>
-
-                            <div className="flex items-center gap-3 text-xs text-wool-500 text-left">
-                              <span>
-                                {step.startingStitches || 0} → {step.endingStitches || step.expectedStitches || 0} sts
-                              </span>
-                              {step.totalRows && (
-                                <span>{step.totalRows} rows</span>
-                              )}
-                              <span>{step.construction || 'flat'}</span>
-                            </div>
-                          </div>
-
-                          {/* NEW: Three-dot menu for editable steps OR bind-off steps */}
-                          {(isEditable && !isComponentFinished()) || (isSpecial && getPatternDisplay(step) === 'Bind Off') ? (
-                            <div className="relative flex-shrink-0">
-                              <button
-                                onClick={(e) => handleMenuToggle(step.id, e)}
-                                className="p-1 text-wool-400 hover:text-wool-600 hover:bg-wool-100 rounded-full transition-colors"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                                  <circle cx="8" cy="3" r="1.5" />
-                                  <circle cx="8" cy="8" r="1.5" />
-                                  <circle cx="8" cy="13" r="1.5" />
-                                </svg>
-                              </button>
-
-                              {/* Dropdown menu */}
-                              {openMenuId === step.id && (
-                                <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-36">
-                                  {isEditable && !isComponentFinished() && (
-                                    <>
-                                      <button
-                                        onClick={(e) => handleEditStepFromMenu(stepIndex, e)}
-                                        className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 rounded-t-lg text-sm flex items-center gap-2 transition-colors"
-                                      >
-                                        ✏️ Edit Step
-                                      </button>
-                                      <button
-                                        onClick={(e) => handleDeleteStepFromMenu(stepIndex, e)}
-                                        className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors"
-                                      >
-                                        🗑️ Delete Step
-                                      </button>
-                                    </>
-                                  )}
-
-                                  {/* Special case for Bind Off steps */}
-                                  {isSpecial && getPatternDisplay(step) === 'Bind Off' && (
-                                    <button
-                                      onClick={(e) => handleDeleteStepFromMenu(stepIndex, e)}
-                                      className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-lg text-sm flex items-center gap-2 transition-colors"
-                                    >
-                                      🗑️ Delete Step
-                                    </button>
-                                  )}
-                                </div>
-                              )}
-                            </div>
-                          ) : null}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            /* No Steps Yet */
-            <div className="text-center py-8 bg-white rounded-xl border-2 border-wool-200 shadow-sm">
-              <div className="text-4xl mb-3">📝</div>
-              <h3 className="text-lg font-semibold text-wool-600 mb-2">No Steps Yet</h3>
-              <p className="content-subheader">Add your first step to get started</p>
-            </div>
-          )}
+          <StepsList
+            component={component}
+            editableStepIndex={editableStepIndex}
+            isComponentFinished={isComponentFinished}
+            openMenuId={openMenuId}
+            onMenuToggle={handleMenuToggle}
+            onEditStep={handleEditStepFromMenu}
+            onDeleteStep={handleDeleteStepFromMenu}
+            getPatternDisplay={getPatternDisplay}
+            getMethodDisplay={getMethodDisplay}
+            isSpecialStep={isSpecialStep}
+          />
 
           {/* Editing Rules - Above buttons, only show if not finished */}
           {editableStepIndex !== -1 && !isComponentFinished() && (
