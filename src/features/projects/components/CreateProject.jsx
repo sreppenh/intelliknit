@@ -18,7 +18,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
   const hasUnsavedData = () => {
     return projectData.name.trim().length > 0 ||
       projectData.size.trim().length > 0 ||
-      projectData.defaultUnits !== 'inches'; // default changed
+      projectData.defaultUnits !== 'inches';
   };
 
   const handleXButtonClick = () => {
@@ -56,7 +56,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
   const handleCreateProject = () => {
     const newProject = {
       name: projectData.name.trim(),
-      size: projectData.size.trim() || '',
+      size: projectData.size.trim() || 'Not specified',
       defaultUnits: projectData.defaultUnits,
       construction: projectData.construction,
       projectType: selectedProjectType,

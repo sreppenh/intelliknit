@@ -10,6 +10,7 @@ import GaugeSection from '../sections/GaugeSection';
 import NotesSection from '../sections/NotesSection';
 import TimelineSection from '../sections/TimeLineSection';
 
+
 const DetailsTab = ({ project, onProjectUpdate }) => {
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
 

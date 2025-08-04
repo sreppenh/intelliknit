@@ -12,17 +12,18 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { currentProject } = useProjectsContext(); // ← ADD this line
 
   const [screen, setScreen] = useState(1);
-  // REPLACE WITH:
+  // Keep your existing useState exactly as it is:
   const [componentData, setComponentData] = useState({
     name: '',
-    setupNotes: '',           // ADD THIS
-    construction: null,       // ADD THIS  
+    setupNotes: '',
+    construction: null,       // ← Keep as null
     startType: null,
     startMethod: null,
     startStitches: '',
     startDescription: '',
     prepNote: ''
   });
+
 
   // State for which start type is expanded (like selectedQuickCategory)
   const [selectedStartType, setSelectedStartType] = useState(null);
@@ -190,6 +191,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
   // In SmartComponentCreation.jsx, add this useEffect near the top after your state declarations:
 
+  // Keep the existing useEffect exactly as it is:
   useEffect(() => {
     // Initialize with project defaults when component mounts
     if (currentProject && !componentData.construction) {
