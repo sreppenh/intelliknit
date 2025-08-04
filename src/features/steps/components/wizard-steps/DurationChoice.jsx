@@ -3,6 +3,7 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 // import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 const DurationChoice = ({ wizardData, updateWizardData, construction, project }) => {
+  console.log('🔧 DURATION CHOICE RENDER:', wizardData.duration); // ADD THIS
   const { pattern } = wizardData.stitchPattern;
 
   // SAFETY CHECK: Ensure duration exists
@@ -230,7 +231,7 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
                   <div className="text-2xl">📐</div>
                   <div className="text-left">
                     <div className="font-semibold text-base">Length until target</div>
-                    <div className="text-sm opacity-75">Work until piece measures target length</div>
+                    <div className="text-sm opacity-75">Work until piece measures a specified length</div>
                   </div>
                 </div>
 

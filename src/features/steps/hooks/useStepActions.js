@@ -12,7 +12,9 @@ export const useStepActions = (wizard, onBack) => {
 
   const handleAddStep = () => {
     console.log('🔧 DEBUG:', { isEditing: wizard.isEditing, editingStepIndex: wizard.editingStepIndex });
+    console.log('🔧 WIZARD DATA DEBUG:', wizard.wizardData);
     const instruction = generateInstruction(wizard.wizardData);
+    console.log('🔧 GENERATED INSTRUCTION:', instruction);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
     IntelliKnitLogger.debug('Step Actions', 'handleAddStep called');
 

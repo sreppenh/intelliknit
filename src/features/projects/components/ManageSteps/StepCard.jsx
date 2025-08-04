@@ -49,9 +49,36 @@ const StepCard = ({
                                     <span>
                                         {step.startingStitches || 0} → {step.endingStitches || step.expectedStitches || 0} sts
                                     </span>
-                                    {step.totalRows && (
-                                        <span>{step.totalRows} rows</span>
-                                    )}
+                                    {/* Duration display - extract from description or use totalRows as fallback */}
+                                    {(() => {
+                                        // Try to extract duration from description
+                                        const desc = step.description || '';
+
+                                        // Look for measurement patterns like "for 2 inches" or "until piece measures 3 cm"
+                                        const measurementMatch = desc.match(/(?:for|until piece measures)\s+(\d+(?:\.\d+)?)\s+(inches?|cm)/i);
+                                        if (measurementMatch) {
+                                            return <span>{measurementMatch[1]} {measurementMatch[2]}</span>;
+                                        }
+
+                                        // Look for row patterns like "for 5 rows"
+                                        const rowMatch = desc.match(/for\s+(\d+)\s+rows?/i);
+                                        if (rowMatch) {
+                                            return <span>{rowMatch[1]} rows</span>;
+                                        }
+
+                                        // Look for repeat patterns like "for 3 repeats"
+                                        const repeatMatch = desc.match(/for\s+(\d+)\s+repeats?/i);
+                                        if (repeatMatch) {
+                                            return <span>{repeatMatch[1]} repeats</span>;
+                                        }
+
+                                        // Fallback to totalRows if no pattern found
+                                        if (step.totalRows) {
+                                            return <span>{step.totalRows} rows</span>;
+                                        }
+
+                                        return null;
+                                    })()}
                                     <span>{step.construction || 'flat'}</span>
                                 </div>
                             </div>

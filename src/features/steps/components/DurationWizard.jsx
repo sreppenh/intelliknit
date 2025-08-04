@@ -56,15 +56,23 @@ const DurationWizard = ({
         }
     };
 
-    // Helper to generate instruction (extract from existing logic)
     const generateInstructionFromWizardData = (data) => {
+        console.log('🔧 DURATION WIZARD DATA:', data);
+        console.log('🔧 DURATION OBJECT:', data.duration);
         const pattern = data.stitchPattern.pattern;
         if (data.duration?.type === 'rows') {
+            console.log('🔧 MATCHED ROWS'); // ADD THIS
             return `${pattern} for ${data.duration.value} rows`;
-        } else if (data.duration?.type === 'measurement') {
+        } else if (data.duration?.type === 'length') {
+            console.log('🔧 MATCHED LENGTH'); // ADD THIS
+            return `${pattern} for ${data.duration.value} ${data.duration.units}`;
+        } else if (data.duration?.type === 'until_length') {
+            console.log('🔧 MATCHED UNTIL_LENGTH'); // ADD THIS
             return `${pattern} until piece measures ${data.duration.value} ${data.duration.units}`;
+        } else {
+            console.log('🔧 NO DURATION MATCH, TYPE WAS:', data.duration?.type); // ENHANCED THIS
+            return pattern;
         }
-        return pattern;
     };
 
     return (

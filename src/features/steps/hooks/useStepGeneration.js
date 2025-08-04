@@ -78,7 +78,7 @@ export const useStepGeneration = (construction = 'flat') => {
 
     if (wizardData.duration.type === 'rows') {
       instruction += ` for ${wizardData.duration.value} rows`;
-    } else if (wizardData.duration.type === 'measurement') {
+    } else if (wizardData.duration.type === 'until_length') {
       instruction += ` until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
     } else if (wizardData.duration.type === 'repeats') {
       instruction += ` for ${wizardData.duration.value} repeats`;

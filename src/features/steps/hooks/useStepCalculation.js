@@ -21,7 +21,7 @@ export const useStepCalculation = () => {
         isCastOn: true
       };
     }
-    
+
     // Handle Bind Off specially
     if (wizardData.stitchPattern.pattern === 'Bind Off') {
       const stitchesToBindOff = wizardData.duration.value ? parseInt(wizardData.duration.value) : currentStitches;
@@ -33,15 +33,15 @@ export const useStepCalculation = () => {
         isBindOff: true
       };
     }
-    
+
     // Handle patterns with advanced shaping using AdvancedPatternCalculator
     if (wizardData.hasShaping && wizardData.shapingConfig) {
       try {
         const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange, type, config } = wizardData.shapingConfig;
-        
+
         // Add debugging log
         IntelliKnitLogger.debug('Calculation debug - type', type, 'config exists:', !!config);
-        
+
         // Check for new shaping structure first (from ShapingWizard)
         if (type === 'even_distribution' && config && config.calculation) {
           return {
@@ -68,7 +68,7 @@ export const useStepCalculation = () => {
             phaseDetails: config.calculation.phases // Store phase breakdown for knitting mode
           };
         }
-        
+
         // Stepped Bind-Off
         else if (shapingMode === 'bindoff') {
           const bindOffResult = advancedCalculator.calculateSteppedBindOff(bindOffSequence, currentStitches, construction);
@@ -83,8 +83,8 @@ export const useStepCalculation = () => {
               shapingMode: 'bindoff'
             };
           }
-        } 
-        
+        }
+
         // Even Distribution (legacy fallback)
         else if (shapingMode === 'distribution') {
           const distributionResult = advancedCalculator.calculateEvenDistribution(
@@ -103,8 +103,8 @@ export const useStepCalculation = () => {
               shapingMode: 'distribution'
             };
           }
-        } 
-        
+        }
+
         // Regular and Raglan Shaping - use Multi-Point Shaping
         else if (shapingMode === 'regular' || shapingMode === 'raglan') {
           const shapingConfig = {
@@ -156,13 +156,13 @@ export const useStepCalculation = () => {
         IntelliKnitLogger.error('Advanced shaping calculation error', error);
       }
     }
-    
+
     // Handle patterns with repeats (Lace, Cable, Colorwork)
     if (wizardData.duration.type === 'repeats' && wizardData.stitchPattern.rowsInPattern) {
       const rowsPerRepeat = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
       const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
       const totalRows = rowsPerRepeat * numberOfRepeats;
-      
+
       return {
         success: true,
         totalRows: totalRows,
@@ -171,12 +171,12 @@ export const useStepCalculation = () => {
         isPatternRepeat: true
       };
     }
-    
+
     try {
       // Use existing PatternDetector for other patterns
       const instruction = generateInstructionForDetection(wizardData);
       const detection = detector.detectPattern(instruction);
-      
+
       if (detection.type !== PATTERN_TYPES.MANUAL) {
         const calculation = calculator.calculatePattern(
           detection.type,
@@ -184,7 +184,7 @@ export const useStepCalculation = () => {
           currentStitches,
           construction
         );
-        
+
         return {
           success: true,
           detection,
@@ -197,7 +197,7 @@ export const useStepCalculation = () => {
     } catch (error) {
       IntelliKnitLogger.error('Calculation error', error);
     }
-    
+
     // Fallback for patterns we can't calculate yet
     return {
       success: false,
@@ -210,16 +210,19 @@ export const useStepCalculation = () => {
   return { calculateEffect };
 };
 
-// Helper function to generate instruction for pattern detection
 function generateInstructionForDetection(wizardData) {
-  const pattern = wizardData.stitchPattern.pattern === 'Other' ? 
-    wizardData.stitchPattern.customText : 
+  const pattern = wizardData.stitchPattern.pattern === 'Other' ?
+    wizardData.stitchPattern.customText :
     wizardData.stitchPattern.pattern;
-  
+
   if (wizardData.duration.type === 'rows') {
     return `${pattern} for ${wizardData.duration.value} rows`;
-  } else if (wizardData.duration.type === 'measurement') {
+  } else if (wizardData.duration.type === 'length') {  // 🎯 ADD: Length from current position
+    return `${pattern} for ${wizardData.duration.value} ${wizardData.duration.units}`;
+  } else if (wizardData.duration.type === 'until_length') {  // 🎯 ADD: Length until target
     return `${pattern} until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
+  } else if (wizardData.duration.type === 'repeats') {  // 🎯 ADD: Pattern repeats
+    return `${pattern} for ${wizardData.duration.value} repeats`;
   } else {
     return pattern;
   }
