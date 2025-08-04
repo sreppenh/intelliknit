@@ -2,19 +2,12 @@ import React from 'react';
 import { CONSTRUCTION_TYPES } from '../../../../shared/utils/constants';
 import { createWizardNavigator } from '../wizard-navigation/WizardNavigator';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import { getCategoryPatternCount } from '../../../../shared/utils/PatternCategories';
 
 const WizardHeader = ({ wizard, onBack, onCancel }) => {
   const { currentProject } = useProjectsContext();
   // Handle back navigation - check internal component state first
   const handleBack = () => {
-    // CRITICAL: Check if this is a shaping wizard first
-    if (wizard.wizardData?.isShapingWizard) {
-      // For shaping wizard, always use the passed onBack prop
-      onBack();
-      return;
-    }
-
-    // Original StepWizard logic continues below...
     const { category, pattern } = wizard.wizardData.stitchPattern || {};
 
     // If we're on step 1 and have selected a category but not a pattern,
@@ -34,16 +27,7 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
     // if the category has multiple patterns or if it auto-selected
     if ((wizard.wizardStep === 2 || wizard.wizardStep === 3) && pattern && category) {
       // Check if this category has multiple patterns
-      const categoryPatternCounts = {
-        basic: 3,      // Stockinette, Garter, Reverse Stockinette
-        rib: 6,        // 1x1, 2x2, 3x3, 2x1, 1x1 Twisted, 2x2 Twisted
-        textured: 4,   // Seed, Moss, Double Seed, Basketweave
-        lace: 1,       // Lace Pattern
-        cable: 1,      // Cable Pattern
-        colorwork: 3   // Fair Isle, Intarsia, Stripes
-      };
-
-      const patternCount = categoryPatternCounts[category] || 1;
+      const patternCount = getCategoryPatternCount(category);
 
       if (patternCount > 1) {
         // Multiple patterns - clear pattern but keep category (go to pattern selector)
@@ -57,7 +41,7 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
       return;
     }
 
-    // For all other cases, use the standard navigation
+    // For other cases, use the SMART navigator that knows about skipping
     const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
     const previousStep = navigator.getPreviousStep();
 

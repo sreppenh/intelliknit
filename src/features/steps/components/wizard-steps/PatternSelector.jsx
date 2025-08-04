@@ -1,98 +1,19 @@
+// src/features/steps/components/wizard-steps/PatternSelector.jsx
 import React, { useState, useEffect } from 'react';
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
 import SetupNotesSection from '../../../../shared/components/SetUpNotesSection';
-
-const PATTERN_CATEGORIES = {
-  // Quick Selection Categories
-  basic: {
-    name: 'Basic Stitches',
-    icon: '📐',
-    type: 'quick',
-    patterns: [
-      { name: 'Stockinette', icon: '⬜', desc: 'Classic smooth fabric' },
-      { name: 'Garter', icon: '〰️', desc: 'Bumpy, stretchy texture' },
-      { name: 'Reverse Stockinette', icon: '⬛', desc: 'Purl side showing' }
-    ]
-  },
-  rib: {
-    name: 'Ribbing',
-    icon: '〰️',
-    type: 'quick',
-    patterns: [
-      { name: '1x1 Rib', icon: '|||', desc: 'K1, P1 alternating' },
-      { name: '2x2 Rib', icon: '||||', desc: 'K2, P2 alternating' },
-      { name: '3x3 Rib', icon: '||||||', desc: 'K3, P3 alternating' },
-      { name: '2x1 Rib', icon: '||', desc: 'K2, P1 alternating' },
-      { name: '1x1 Twisted Rib', icon: '🌀', desc: 'Twisted knit stitches' },
-      { name: '2x2 Twisted Rib', icon: '🌀🌀', desc: 'Twisted knit stitches' }
-    ]
-  },
-  textured: {
-    name: 'Textured',
-    icon: '🔹',
-    type: 'quick',
-    patterns: [
-      { name: 'Seed Stitch', icon: '🌱', desc: 'Bumpy alternating texture' },
-      { name: 'Moss Stitch', icon: '🍃', desc: 'British seed stitch' },
-      { name: 'Double Seed', icon: '🌿', desc: '2x2 seed variation' },
-      { name: 'Basketweave', icon: '🧺', desc: 'Alternating knit/purl blocks' },
-      { name: 'Linen Stitch', icon: '🪢', desc: 'Slip stitch texture' },
-      { name: 'Rice Stitch', icon: '🌾', desc: 'Seed stitch variation' },
-      { name: 'Trinity Stitch', icon: '🔮', desc: 'Bobble-like clusters' },
-      { name: 'Broken Rib', icon: '💔', desc: 'Interrupted ribbing pattern' }
-    ]
-  },
-
-  // Advanced Categories
-  lace: {
-    name: 'Lace',
-    icon: '🕸️',
-    type: 'advanced',
-    patterns: [
-      { name: 'Lace Pattern', icon: '🕸️', desc: 'Define your lace pattern' }
-    ]
-  },
-  cable: {
-    name: 'Cables',
-    icon: '🔗',
-    type: 'advanced',
-    patterns: [
-      { name: 'Cable Pattern', icon: '🔗', desc: 'Define your cable pattern' }
-    ]
-  },
-  colorwork: {
-    name: 'Colorwork',
-    icon: '🌈',
-    type: 'advanced',
-    patterns: [
-      { name: 'Fair Isle', icon: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', desc: 'Define your colorwork pattern' },
-      { name: 'Intarsia', icon: '🎨', desc: 'Large color blocks' },
-      { name: 'Stripes', icon: '🌈', desc: 'Define your stripe sequence' }
-    ]
-  },
-
-  // Custom Category
-  custom: {
-    name: 'Custom Pattern',
-    icon: '✨',
-    type: 'advanced',
-    patterns: [
-      { name: 'Custom pattern', icon: '📝', desc: 'Define your own pattern' }
-    ]
-  }
-};
+import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories'; // ✅ IMPORT
 
 export const PatternSelector = ({
   wizardData,
   updateWizardData,
   navigation,
   onCreatePrepStep,
-  existingPrepNote = '', // NEW: prop for existing note
-  onSavePrepNote // NEW: callback to save note to wizard state
+  existingPrepNote = '',
+  onSavePrepNote
 }) => {
   const [selectedQuickCategory, setSelectedQuickCategory] = useState(null);
-  const [showSetupNotes, setShowSetupNotes] = useState(false); // ← ADD THIS LINE
-
+  const [showSetupNotes, setShowSetupNotes] = useState(false);
 
   // Use the enhanced prep note manager with persistence
   const {
@@ -163,6 +84,7 @@ export const PatternSelector = ({
   const selectedCategory = wizardData?.stitchPattern?.category;
   const selectedPattern = wizardData?.stitchPattern?.pattern;
 
+  // ✅ FIX #2: Auto-open drawer when editing
   useEffect(() => {
     // Auto-open drawer when editing and we have a quick category selected
     const selectedCategory = wizardData?.stitchPattern?.category;
@@ -178,7 +100,6 @@ export const PatternSelector = ({
     return (
       <>
         <div className="space-y-4 relative">
-
           {/* Prep Note Button - Enhanced with state */}
           <PrepStepButton
             onClick={handleOpenOverlay}
@@ -228,17 +149,12 @@ export const PatternSelector = ({
     );
   }
 
-
-
   // Main category selection screen
   return (
     <>
       <div className="space-y-4 relative">
-
-
         {/* Compact Header */}
         <div className="text-center">
-          {/* With this */}
           <div className="content-header-with-buttons">
             <h2 className="content-title">Create Step</h2>
             <div className="button-group">
@@ -252,20 +168,9 @@ export const PatternSelector = ({
           </div>
         </div>
 
-
-        {/* Keep the existing PrepStepOverlay */}
-        <PrepStepOverlay
-          isOpen={isOverlayOpen}
-          onClose={handleCloseOverlay}
-          onSave={handleSaveNote}
-          existingNote={currentNote}
-          {...prepConfig}
-        />
-
         <div className="mb-3">
           <h3 className="text-left text-sm font-semibold text-wool-700">Choose Pattern</h3>
         </div>
-
 
         {/* Basic Patterns Section with Drawer */}
         <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
@@ -297,7 +202,7 @@ export const PatternSelector = ({
                     className={`card-pattern-option ${selectedPattern === pattern.name
                         ? 'border-sage-500 bg-sage-100 text-sage-700'
                         : ''
-                      }`}  // ✅ ADD SELECTED STATE STYLING
+                      }`}  // ✅ FIX #2: Add selected state styling
                   >
                     <div className="text-lg mb-1">{pattern.icon}</div>
                     <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
