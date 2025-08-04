@@ -464,6 +464,8 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
             {/* Header with Progress */}
             <div className="mb-6">
                 <h2 className="content-header-primary">📋 Checklist</h2>
+                <p className="content-subheader">Track your non-knitting project activities </p>
+
                 {stats.total > 0 && (
                     <p className="text-sm text-wool-500 mt-2 text-center">
                         {stats.completed} of {stats.total} tasks completed ({stats.percentage}%)

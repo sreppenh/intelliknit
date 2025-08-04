@@ -7,6 +7,14 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
   const { currentProject } = useProjectsContext();
   // Handle back navigation - check internal component state first
   const handleBack = () => {
+    // CRITICAL: Check if this is a shaping wizard first
+    if (wizard.wizardData?.isShapingWizard) {
+      // For shaping wizard, always use the passed onBack prop
+      onBack();
+      return;
+    }
+
+    // Original StepWizard logic continues below...
     const { category, pattern } = wizard.wizardData.stitchPattern || {};
 
     // If we're on step 1 and have selected a category but not a pattern,
@@ -49,7 +57,7 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
       return;
     }
 
-    // For other cases, use the SMART navigator that knows about skipping
+    // For all other cases, use the standard navigation
     const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
     const previousStep = navigator.getPreviousStep();
 
