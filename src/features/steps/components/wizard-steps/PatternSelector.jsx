@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
 import SetupNotesSection from '../../../../shared/components/SetUpNotesSection';
 
@@ -93,6 +93,7 @@ export const PatternSelector = ({
   const [selectedQuickCategory, setSelectedQuickCategory] = useState(null);
   const [showSetupNotes, setShowSetupNotes] = useState(false); // ← ADD THIS LINE
 
+
   // Use the enhanced prep note manager with persistence
   const {
     isOverlayOpen,
@@ -161,6 +162,14 @@ export const PatternSelector = ({
 
   const selectedCategory = wizardData?.stitchPattern?.category;
   const selectedPattern = wizardData?.stitchPattern?.pattern;
+
+  useEffect(() => {
+    // Auto-open drawer when editing and we have a quick category selected
+    const selectedCategory = wizardData?.stitchPattern?.category;
+    if (selectedCategory && PATTERN_CATEGORIES[selectedCategory]?.type === 'quick') {
+      setSelectedQuickCategory(selectedCategory);
+    }
+  }, [wizardData?.stitchPattern?.category]);
 
   // Show pattern selection screen for advanced categories
   if (selectedCategory && !selectedPattern && PATTERN_CATEGORIES[selectedCategory]?.type === 'advanced') {
@@ -285,7 +294,10 @@ export const PatternSelector = ({
                   <button
                     key={pattern.name}
                     onClick={() => handlePatternSelect(selectedQuickCategory, pattern)}
-                    className="card-pattern-option"
+                    className={`card-pattern-option ${selectedPattern === pattern.name
+                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                        : ''
+                      }`}  // ✅ ADD SELECTED STATE STYLING
                   >
                     <div className="text-lg mb-1">{pattern.icon}</div>
                     <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
