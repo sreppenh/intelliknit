@@ -12,7 +12,8 @@ const EvenDistributionConfig = ({
   componentIndex,
   onExitToComponentSteps,
   onComplete,
-  onBack
+  onBack,
+  editingStepIndex = null
 }) => {
   const [config, setConfig] = useState({
     action: 'decrease',
@@ -183,6 +184,7 @@ const EvenDistributionConfig = ({
       currentStitches,
       construction,
       componentIndex,
+      editingStepIndex,
       dispatch,
       skipNavigation: true // Don't interfere with existing navigation
     });

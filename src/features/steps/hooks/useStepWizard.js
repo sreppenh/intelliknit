@@ -193,6 +193,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     component,
     componentIndex,
     isEditing,
+    editingStepIndex, // ✅ ADD THIS LINE
     editingStep,
 
     // Actions

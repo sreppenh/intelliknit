@@ -78,6 +78,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         setCurrentStitches={wizard.setCurrentStitches}
         component={wizard.component}
         componentIndex={wizard.componentIndex} // ← ADD THIS LINE
+        editingStepIndex={wizard.editingStepIndex}
         onExitToComponentSteps={onBack} // ← ADD THIS LINE
         onBack={() => {
           setShowShapingWizard(false);
@@ -249,6 +250,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
             currentStitches={wizard.currentStitches}
             construction={wizard.construction}
             componentIndex={wizard.componentIndex}
+            editingStepIndex={wizard.editingStepIndex}
             project={currentProject}
             onBack={() => {
               // Go back to previous step in StepWizard

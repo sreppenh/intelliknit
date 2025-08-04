@@ -12,7 +12,8 @@ const DurationWizard = ({
     componentIndex,
     project,
     onBack,
-    onExitToComponentSteps
+    onExitToComponentSteps,
+    editingStepIndex = null
 }) => {
     IntelliKnitLogger.debug('DurationWizard props', { construction, currentStitches });
 
@@ -41,6 +42,7 @@ const DurationWizard = ({
                 currentStitches,
                 construction,
                 componentIndex,
+                editingStepIndex,
                 dispatch,
                 skipNavigation: true
             });

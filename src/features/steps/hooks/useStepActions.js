@@ -11,10 +11,19 @@ export const useStepActions = (wizard, onBack) => {
   const { generateInstruction } = useStepGeneration(wizard.construction);
 
   const handleAddStep = () => {
-
+    console.log('🔧 DEBUG:', { isEditing: wizard.isEditing, editingStepIndex: wizard.editingStepIndex });
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
     IntelliKnitLogger.debug('Step Actions', 'handleAddStep called');
+
+    IntelliKnitLogger.debug('Step Actions Debug', {
+      isEditing: wizard.isEditing,
+      editingStepIndex: wizard.editingStepIndex,
+      componentIndex: wizard.componentIndex
+    });
+
+
+
     if (wizard.isEditing) {
       // Update existing step
       dispatch({
