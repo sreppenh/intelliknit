@@ -33,13 +33,14 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
   // Check if user has entered any component data (across both screens)
   const hasUnsavedData = () => {
+    // Only consider it "dirty" if user has actually entered meaningful data
     return componentData.name.trim().length > 0 ||
-      componentData.setupNotes?.trim().length > 0 ||
-      componentData.construction !== null ||
+      (componentData.setupNotes && componentData.setupNotes.trim().length > 0) ||
+      (componentData.construction !== null && componentData.construction !== (currentProject?.construction || 'flat')) || // Only if different from project default
       componentData.startType !== null ||
       componentData.startMethod !== null ||
-      componentData.startStitches?.trim().length > 0 ||
-      componentData.startDescription?.trim().length > 0;
+      (componentData.startStitches && componentData.startStitches.trim().length > 0) ||
+      (componentData.startDescription && componentData.startDescription.trim().length > 0);
   };
 
   const handleXButtonClick = () => {

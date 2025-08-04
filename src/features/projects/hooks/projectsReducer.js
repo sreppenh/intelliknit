@@ -34,6 +34,7 @@ export const projectsReducer = (state, action) => {
         name: action.payload.name.trim(),
         size: action.payload.size?.trim() || '',
         defaultUnits: action.payload.defaultUnits || 'inches',
+        construction: action.payload.construction || 'flat', // ADD THIS LINE
         projectType: action.payload.projectType || 'other', // NEW LINE
         components: [],
         currentComponent: 0,

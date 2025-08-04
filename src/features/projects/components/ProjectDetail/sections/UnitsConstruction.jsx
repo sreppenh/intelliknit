@@ -21,8 +21,9 @@ const UnitsConstructionSection = ({
     const [tempFormData, setTempFormData] = useState({});
 
     // Initialize modal form data when opening
+    // CHANGE TO (prevent reset flash):
     useEffect(() => {
-        if (showEditModal) {
+        if (showEditModal && Object.keys(tempFormData).length === 0) { // Only set if empty
             setTempFormData({
                 defaultUnits: formData?.defaultUnits || project?.defaultUnits || 'inches',
                 construction: formData?.construction || project?.construction || 'flat'
@@ -69,6 +70,7 @@ const UnitsConstructionSection = ({
 
     const handleCancelEdit = () => {
         setShowEditModal(false);
+        setTempFormData({}); // ADD THIS LINE to clear for next time
     };
 
     const handleBackdropClick = (event) => {

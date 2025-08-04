@@ -17,9 +17,11 @@ const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing'); // Changed from 'project-list'
   const { dispatch, selectedComponentIndex } = useProjectsContext();
   const [selectedProjectType, setSelectedProjectType] = useState(null);
+  const [projectCreationSource, setProjectCreationSource] = useState(null); // ADD THIS LINE FOR TRACKING
 
-  // Landing Page Actions
+  // UPDATE handleAddNewProject (from Landing Page):
   const handleAddNewProject = () => {
+    setProjectCreationSource('landing'); // ADD THIS LINE
     setCurrentView('project-type-selector');
   };
 
@@ -38,8 +40,19 @@ const IntelliknitMVPContent = () => {
     alert('Notepad feature coming soon!');
   };
 
+  // UPDATE handleCreateProject (from Project List):
   const handleCreateProject = () => {
+    setProjectCreationSource('project-list'); // ADD THIS LINE
     setCurrentView('project-type-selector');
+  };
+
+  // ADD this new handler:
+  const handleBackFromProjectTypeSelector = () => {
+    if (projectCreationSource === 'project-list') {
+      setCurrentView('project-list');
+    } else {
+      setCurrentView('landing');
+    }
   };
 
   const handleProjectCreated = () => {
@@ -125,14 +138,15 @@ const IntelliknitMVPContent = () => {
           onBack={() => setCurrentView('project-type-selector')}
           onProjectCreated={handleProjectCreated}
           selectedProjectType={selectedProjectType}
-          onExitToProjectList={handleExitProjectCreationToProjectList}
+          onExitToProjectList={projectCreationSource === 'project-list' ? handleExitProjectCreationToProjectList : handleBackToLanding} // CHANGE THIS LINE
         />
       );
+
 
     case 'project-type-selector':
       return (
         <ProjectTypeSelector
-          onBack={handleBackToLanding}
+          onBack={handleBackFromProjectTypeSelector} // CHANGE THIS LINE
           onContinue={() => setCurrentView('create-project')}
           selectedType={selectedProjectType}
           onTypeSelect={setSelectedProjectType}
