@@ -1,7 +1,8 @@
 import React, { useEffect } from 'react';
-import { CastOnConfig, BindOffConfig, BasicPatternConfig } from '../pattern-configs';
+import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig } from '../pattern-configs';
 
-const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
+
+const PatternConfiguration = ({ wizardData, updateWizardData, navigation, construction }) => {
   const { pattern } = wizardData.stitchPattern;
 
   if (!pattern) {
@@ -20,6 +21,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
           <CastOnConfig
             wizardData={wizardData}
             updateWizardData={updateWizardData}
+            construction={construction}
           />
         );
 
@@ -28,6 +30,16 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
           <BindOffConfig
             wizardData={wizardData}
             updateWizardData={updateWizardData}
+            construction={construction}
+          />
+        );
+
+      case 'Colorwork':
+        return (
+          <ColorworkPatternConfig
+            wizardData={wizardData}
+            updateWizardData={updateWizardData}
+            construction={construction}
           />
         );
 
@@ -36,6 +48,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation }) => {
           <BasicPatternConfig
             wizardData={wizardData}
             updateWizardData={updateWizardData}
+            construction={construction}
           />
         );
     }

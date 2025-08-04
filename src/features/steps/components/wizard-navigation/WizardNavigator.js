@@ -100,6 +100,13 @@ export const createWizardNavigator = (wizardData, currentStep) => {
           return true;
         }
 
+        // Colorwork validation - requires colorworkType to be selected
+        if (pattern === 'Colorwork') {
+          return wizardData.stitchPattern.colorworkType &&
+            customText && customText.trim() !== '' &&
+            rowsInPattern && parseInt(rowsInPattern) > 0;
+        }
+
         // Complex patterns that need both description AND row count
         if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
           return customText && customText.trim() !== '' &&

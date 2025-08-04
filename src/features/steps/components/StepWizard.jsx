@@ -219,6 +219,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
               wizardData={wizard.wizardData}
               updateWizardData={wizard.updateWizardData}
               navigation={customNavigation}
+              construction={wizard.construction}
               existingPrepNote={wizard.wizardData.prepNote || ''}
               onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
             />

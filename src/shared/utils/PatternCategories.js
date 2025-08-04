@@ -64,14 +64,13 @@ export const PATTERN_CATEGORIES = {
             { name: 'Cable Pattern', icon: '🔗', desc: 'Define your cable pattern' }
         ]
     },
+    // AFTER:
     colorwork: {
         name: 'Colorwork',
         icon: '🌈',
         type: 'advanced',
         patterns: [
-            { name: 'Fair Isle', icon: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', desc: 'Define your colorwork pattern' },
-            { name: 'Intarsia', icon: '🎨', desc: 'Large color blocks' },
-            { name: 'Stripes', icon: '🌈', desc: 'Define your stripe sequence' }
+            { name: 'Colorwork', icon: '🌈', desc: 'Define your colorwork pattern' }
         ]
     },
 
