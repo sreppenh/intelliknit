@@ -163,6 +163,21 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   };
 
   const handleEditStepFromMenu = (stepIndex, event) => {
+
+    // SPECIAL HANDLING FOR FIRST STEP (Cast On)
+    if (stepIndex === 0) {
+      const step = component.steps[0];
+      const pattern = getPatternDisplay(step);
+
+      if (pattern === 'Cast On') {
+        // For Cast On steps, show helpful message for now
+        // TODO: In the future, this could redirect to SmartComponentCreation editing
+        alert('Cast On step editing is not yet supported. You can delete and recreate the component to change the cast on method.');
+        setOpenMenuId(null);
+        return;
+      }
+    }
+
     event.stopPropagation();
     setEditingStepIndex(stepIndex);
     setIsEditing(true);
@@ -171,6 +186,11 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
   const handleDeleteStepFromMenu = (stepIndex, event) => {
     event.stopPropagation();
+    if (stepIndex === 0) {
+      alert('The first step (Cast On) cannot be deleted as it defines how the component begins.');
+      setOpenMenuId(null);
+      return;
+    }
     const stepToDelete = component.steps[stepIndex];
     const confirmed = window.confirm(`Delete "${stepToDelete.description}"? This cannot be undone.`);
 

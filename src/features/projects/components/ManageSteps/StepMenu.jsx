@@ -17,6 +17,10 @@ const StepMenu = ({
 
     if (!shouldShowMenu) return null;
 
+    // CHECK IF THIS IS THE FIRST STEP (Cast On)
+    const isFirstStep = stepIndex === 0;
+    const isCastOnStep = getPatternDisplay(step) === 'Cast On';
+
     return (
         <div className="relative flex-shrink-0">
             <button
@@ -39,14 +43,18 @@ const StepMenu = ({
                                 onClick={(e) => onEditStep(stepIndex, e)}
                                 className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 rounded-t-lg text-sm flex items-center gap-2 transition-colors"
                             >
-                                ✏️ Edit Step
+                                ✏️ {isCastOnStep ? 'View Cast On' : 'Edit Step'}
                             </button>
-                            <button
-                                onClick={(e) => onDeleteStep(stepIndex, e)}
-                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors"
-                            >
-                                🗑️ Delete Step
-                            </button>
+
+                            {/* ONLY SHOW DELETE FOR NON-FIRST STEPS */}
+                            {!isFirstStep && (
+                                <button
+                                    onClick={(e) => onDeleteStep(stepIndex, e)}
+                                    className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors"
+                                >
+                                    🗑️ Delete Step
+                                </button>
+                            )}
                         </>
                     )}
 

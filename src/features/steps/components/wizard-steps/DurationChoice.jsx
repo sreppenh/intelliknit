@@ -5,6 +5,13 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 const DurationChoice = ({ wizardData, updateWizardData, construction, project }) => {
   const { pattern } = wizardData.stitchPattern;
 
+  // SAFETY CHECK: Ensure duration exists
+  if (!wizardData.duration) {
+    console.log('Missing duration in wizardData:', wizardData);
+    return <div>Loading...</div>;
+  }
+
+
   // Skip duration for Cast On (already configured)
   if (pattern === 'Cast On') {
     return (
