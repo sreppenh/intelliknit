@@ -155,6 +155,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   };
 
   const handleCreateComponent = () => {
+    console.log('Debug - componentData.prepNote:', componentData.prepNote);
+    console.log('Debug - full componentData:', componentData);
+
     const newComponent = {
       name: componentData.name.trim(),
       startType: componentData.startType,
