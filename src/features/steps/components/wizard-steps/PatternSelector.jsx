@@ -38,6 +38,7 @@ export const PatternSelector = ({
   };
 
   const handleAdvancedCategorySelect = (categoryKey) => {
+    setSelectedQuickCategory(null); // new code
     const category = PATTERN_CATEGORIES[categoryKey];
 
     if (category.patterns.length === 1) {
@@ -200,8 +201,8 @@ export const PatternSelector = ({
                     key={pattern.name}
                     onClick={() => handlePatternSelect(selectedQuickCategory, pattern)}
                     className={`card-pattern-option ${selectedPattern === pattern.name
-                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                        : ''
+                      ? 'border-sage-500 bg-sage-100 text-sage-700'
+                      : ''
                       }`}  // ✅ FIX #2: Add selected state styling
                   >
                     <div className="text-lg mb-1">{pattern.icon}</div>

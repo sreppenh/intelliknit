@@ -23,7 +23,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
       stitchCount: '',
       customDetails: ''
     },
-    duration: { type: '', value: '', units: defaultUnits },
+    duration: { type: '', value: '', units: defaultUnits, measurement: '', targetLength: '' },
     hasShaping: false,
     shapingConfig: {},
     prepNote: '' // NEW: Add prep note to wizard data
@@ -102,6 +102,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
 
   // Navigation functions
   const getNextStep = (currentStep) => {
+    console.log('Calculating next step from:', currentStep, 'with pattern category:', wizardData.stitchPattern.category);
     if (currentStep === 1) return 2;
     if (currentStep === 2) return 3; // Always go to step 3 (either Shaping or Duration)
     if (currentStep === 3) return 4; // From config go to preview
@@ -179,7 +180,10 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
 
   const navigation = {
     canProceed: () => canProceed(wizardStep),
-    nextStep: () => setWizardStep(getNextStep(wizardStep)),
+    nextStep: () =>
+
+      setWizardStep(getNextStep(wizardStep)),
+
     previousStep: () => setWizardStep(getPreviousStep(wizardStep)),
     goToStep: (step) => setWizardStep(step)
   };
