@@ -17,13 +17,7 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
     }
 
     // For everything else, use smart navigation
-    const result = wizard.navigation.previousStep();
-
-    // Handle exit if navigation stack is empty
-    if (result?.shouldExit) {
-      IntelliKnitLogger.debug('Wizard Header', 'Navigation stack empty - exiting wizard');
-      onBack();
-    }
+    onBack();
   };
 
   // Get project icon based on type
