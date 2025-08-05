@@ -8,20 +8,33 @@ import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminol
  * Custom hook for managing sequential phase state and operations
  * Extracts complex state management from PhaseConfig component
  */
-export const usePhaseManager = (currentStitches, construction) => {
+export const usePhaseManager = (currentStitches, construction, existingShapingData) => {
+  const getInitialPhases = () => {
+    if (existingShapingData?.config?.phases) {
+      return existingShapingData.config.phases;
+    }
+    return [];
+  };
+
+  const getInitialDescription = () => {
+    if (existingShapingData?.config?.description) {
+      return existingShapingData.config.description;
+    }
+    return '';
+  };
   const [phases, setPhases] = useState([]);
   const [currentScreen, setCurrentScreen] = useState('summary');
   const [editingPhaseId, setEditingPhaseId] = useState(null);
   const [tempPhaseConfig, setTempPhaseConfig] = useState({});
   const [stepDescription, setStepDescription] = useState('');
 
-// Fix empty state: Start with type selection when no phases exist
-useEffect(() => {
-  if (phases.length === 0 && currentScreen === 'summary') {
-    setCurrentScreen('type-select');
-    IntelliKnitLogger.debug('Phase Management', 'Empty state detected - starting with type selection');
-  }
-}, [phases.length, currentScreen]);
+  // Fix empty state: Start with type selection when no phases exist
+  useEffect(() => {
+    if (phases.length === 0 && currentScreen === 'summary') {
+      setCurrentScreen('type-select');
+      IntelliKnitLogger.debug('Phase Management', 'Empty state detected - starting with type selection');
+    }
+  }, [phases.length, currentScreen]);
 
   const phaseTypes = [
     {
@@ -32,7 +45,7 @@ useEffect(() => {
     },
     {
       id: 'increase',
-      name: 'Increase Phase', 
+      name: 'Increase Phase',
       icon: '📈',
       description: 'Add stitches over multiple rows'
     },
@@ -67,46 +80,46 @@ useEffect(() => {
     return PhaseCalculationService.getPhaseDescription(phase);
   };
 
- // Preview and calculation functions
+  // Preview and calculation functions
   const getPhasePreview = (config) => {
     if (!config.type) return 'Select options above';
-    
+
     const terms = getConstructionTerms(construction);
-    
+
     switch (config.type) {
       case 'decrease':
         if (!config.frequency || !config.times || !config.position) {
           return 'Configure decrease options above';
         }
         const amount = config.amount || 1;
-        const decFreq = config.frequency === 1 ? terms.everyRow : 
-                       config.frequency === 2 ? terms.everyOtherRow :
-                       terms.everyNthRow(config.frequency);
+        const decFreq = config.frequency === 1 ? terms.everyRow :
+          config.frequency === 2 ? terms.everyOtherRow :
+            terms.everyNthRow(config.frequency);
         const decPos = config.position === 'both_ends' ? terms.atBothEnds : `at ${config.position}`;
         const decRows = config.times * config.frequency;
         return `Dec ${amount} st ${decPos} ${decFreq} ${config.times} times (${decRows} ${terms.rows})`;
-        
+
       case 'increase':
         if (!config.frequency || !config.times || !config.position) {
           return 'Configure increase options above';
         }
         const incAmount = config.amount || 1;
-        const incFreq = config.frequency === 1 ? terms.everyRow : 
-                       config.frequency === 2 ? terms.everyOtherRow :
-                       terms.everyNthRow(config.frequency);
+        const incFreq = config.frequency === 1 ? terms.everyRow :
+          config.frequency === 2 ? terms.everyOtherRow :
+            terms.everyNthRow(config.frequency);
         const incPos = config.position === 'both_ends' ? terms.atBothEnds : `at ${config.position}`;
         const incRows = config.times * config.frequency;
         return `Inc ${incAmount} st ${incPos} ${incFreq} ${config.times} times (${incRows} ${terms.rows})`;
-        
+
       case 'setup':
         if (!config.rows) return 'Configure row count above';
         return `Work ${config.rows} plain ${config.rows === 1 ? terms.row : terms.rows}`;
-        
+
       case 'bind_off':
         if (!config.amount || !config.frequency) return 'Configure bind off options above';
         const bindPos = config.position === 'beginning' ? 'at beginning' : 'at end';
         return `Bind off ${config.amount} sts ${bindPos} of next ${config.frequency} ${config.frequency === 1 ? terms.row : terms.rows}`;
-        
+
       default:
         return 'Unknown phase type';
     }
@@ -114,40 +127,40 @@ useEffect(() => {
 
   const calculatePhaseEndingStitches = () => {
     if (!tempPhaseConfig.type) return getStitchContext().availableStitches;
-    
+
     const startingStitches = getStitchContext().availableStitches;
-    
+
     switch (tempPhaseConfig.type) {
       case 'decrease':
         if (!tempPhaseConfig.times || !tempPhaseConfig.position) return startingStitches;
         const amount = tempPhaseConfig.amount || 1;
-        
+
         // Apply the same max constraint logic as the input
         const availableStitches = getStitchContext().availableStitches;
         const stitchesPerRow = tempPhaseConfig.position === 'both_ends' ? 2 : 1;
         const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
         const correctedTimes = Math.min(tempPhaseConfig.times, maxTimes);
-        
-        const decChange = tempPhaseConfig.position === 'both_ends' ? 
-          amount * 2 * correctedTimes : 
+
+        const decChange = tempPhaseConfig.position === 'both_ends' ?
+          amount * 2 * correctedTimes :
           amount * correctedTimes;
         return startingStitches - decChange;
-        
+
       case 'increase':
         if (!tempPhaseConfig.times || !tempPhaseConfig.position) return startingStitches;
         const incAmount = tempPhaseConfig.amount || 1;
-        const incChange = tempPhaseConfig.position === 'both_ends' ? 
-          incAmount * 2 * tempPhaseConfig.times : 
+        const incChange = tempPhaseConfig.position === 'both_ends' ?
+          incAmount * 2 * tempPhaseConfig.times :
           incAmount * tempPhaseConfig.times;
         return startingStitches + incChange;
-        
+
       case 'bind_off':
         if (!tempPhaseConfig.amount || !tempPhaseConfig.frequency) return startingStitches;
         return startingStitches - (tempPhaseConfig.amount * tempPhaseConfig.frequency);
-        
+
       case 'setup':
         return startingStitches;
-        
+
       default:
         return startingStitches;
     }
@@ -189,7 +202,7 @@ useEffect(() => {
   const handleSavePhaseConfig = () => {
     // Create corrected config with validated values
     const correctedConfig = { ...tempPhaseConfig };
-    
+
     // Apply corrections for decrease phases only
     if (tempPhaseConfig.type === 'decrease') {
       if (tempPhaseConfig.times && tempPhaseConfig.position) {
@@ -206,7 +219,7 @@ useEffect(() => {
         correctedConfig.frequency = Math.max(tempPhaseConfig.frequency, 1);
       }
     }
-    
+
     // Apply corrections for other phase types
     if (tempPhaseConfig.type === 'setup' && tempPhaseConfig.rows) {
       correctedConfig.rows = Math.max(tempPhaseConfig.rows, 1);
@@ -223,8 +236,8 @@ useEffect(() => {
     if (editingPhaseId) {
       // Update existing phase
       IntelliKnitLogger.debug('Phase Management', `Updating phase: ${editingPhaseId}`);
-      setPhases(phases.map(p => 
-        p.id === editingPhaseId 
+      setPhases(phases.map(p =>
+        p.id === editingPhaseId
           ? { ...p, type: tempPhaseConfig.type, config: correctedConfig }
           : p
       ));
@@ -238,7 +251,7 @@ useEffect(() => {
       IntelliKnitLogger.debug('Phase Management', `Adding new phase: ${newPhase.id}`);
       setPhases([...phases, newPhase]);
     }
-    
+
     setCurrentScreen('summary');
     setEditingPhaseId(null);
     setTempPhaseConfig({});
@@ -268,25 +281,25 @@ useEffect(() => {
     tempPhaseConfig,
     phaseTypes,
     stepDescription,      // NEW: Add this line
-    
+
     // State setters (for PhaseConfigForm)
     setTempPhaseConfig,
     setStepDescription,   // NEW: Add this line
-    
+
     // Calculation functions
     getStitchContext,
     calculateSequentialPhases,
     getPhaseDescription,
     getPhasePreview,
     calculatePhaseEndingStitches,
-    
+
     // Event handlers
     handleAddPhase,
     handleEditPhase,
     handleDeletePhase,
     handleTypeSelect,
     handleSavePhaseConfig,
-    
+
     // Navigation
     goToSummary,
     goToTypeSelect,

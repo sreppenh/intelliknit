@@ -23,7 +23,7 @@ const PhaseConfig = ({
   wizardData
 }) => {
   // All state management and logic handled by custom hook
-  const phaseManager = usePhaseManager(currentStitches, construction);
+  const phaseManager = usePhaseManager(currentStitches, construction, shapingData);
 
   const {
     phases,
