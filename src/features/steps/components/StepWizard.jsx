@@ -3,24 +3,17 @@ import useStepWizard from '../hooks/useStepWizard';
 import { useStepActions } from '../hooks/useStepActions';
 import WizardLayout from './wizard-layout/WizardLayout';
 import WizardHeader from './wizard-layout/WizardHeader';
-// ❌ REMOVED: import WizardNavigation from './wizard-layout/WizardNavigation';
 import PatternSelector from './wizard-steps/PatternSelector';
 import PatternConfiguration from './wizard-steps/PatternConfiguration';
 import DurationChoice from './wizard-steps/DurationChoice';
-// import StepPreview from './wizard-steps/StepPreview';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import DurationShapingChoice from './wizard-steps/DurationShapingChoice';
-import { createWizardNavigator, shouldSkipConfiguration, shouldShowNavigation } from './wizard-navigation/WizardNavigator';
-import { renderStep } from './wizard-navigation/StepRenderer';
 import { useWizardState } from './wizard-navigation/WizardState';
 import ShapingWizard from './ShapingWizard';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import DurationWizard from './DurationWizard';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
-
-
-
 
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
@@ -29,7 +22,6 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizardState = useWizardState(wizard, onBack);
   const [showShapingWizard, setShowShapingWizard] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
-
 
   // Component validation
   if (!wizard.component) {
@@ -49,18 +41,24 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     );
   }
 
-  const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
+  // 🎯 NEW: Simple navigation object - no more calculations!
+  const navigation = {
+    canProceed: wizard.navigation.canProceed,
+    nextStep: wizard.navigation.nextStep,
+    previousStep: () => {
+      const result = wizard.navigation.previousStep();
 
-  const customNavigation = {
-    canProceed: navigator.canProceed,
-    nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
-    previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
+      // Handle exit from wizard if navigation stack is empty
+      if (result?.shouldExit) {
+        IntelliKnitLogger.debug('Step Wizard', 'Navigation stack empty - exiting wizard');
+        onBack();
+      }
+    },
     goToStep: wizard.navigation.goToStep
   };
 
   // Helper to get existing prep note when editing  
   const getExistingPrepNote = () => {
-    // Use the prop directly and make sure we're referencing the right variable
     const stepIndex = editingStepIndex;
 
     if (stepIndex !== null && wizard.component?.steps?.[stepIndex]) {
@@ -95,64 +93,50 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         setConstruction={wizard.setConstruction}
         setCurrentStitches={wizard.setCurrentStitches}
         component={wizard.component}
-        componentIndex={wizard.componentIndex} // ← ADD THIS LINE
+        componentIndex={wizard.componentIndex}
         editingStepIndex={wizard.editingStepIndex}
-        onExitToComponentSteps={onBack} // ← ADD THIS LINE
+        onExitToComponentSteps={onBack}
         onBack={() => {
           setShowShapingWizard(false);
-          // Check if shaping was actually COMPLETED (has config with calculation)
-          // vs just SELECTED (hasShaping=true but no actual config)
+
+          // Check if shaping was actually completed
           const hasCompletedShaping = wizard.wizardData.shapingConfig?.type &&
             wizard.wizardData.shapingConfig?.config?.calculation;
 
-          IntelliKnitLogger.debug('ShapingWizard onBack Logic', {
-            hasCompletedShaping: hasCompletedShaping,
-            hasShapingFlag: wizard.wizardData.hasShaping,
+          IntelliKnitLogger.debug('ShapingWizard onBack', {
+            hasCompletedShaping,
             shapingConfigType: wizard.wizardData.shapingConfig?.type,
-            hasCalculation: !!wizard.wizardData.shapingConfig?.config?.calculation,
-            currentStep: wizard.wizardStep
+            hasCalculation: !!wizard.wizardData.shapingConfig?.config?.calculation
           });
 
-
-
-
           if (hasCompletedShaping) {
-            // Shaping was completed - advance to next step
-            const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
-            const nextStep = navigator.getNextStep();
-            wizard.navigation.goToStep(nextStep);
+            // Shaping completed - advance to next step
+            wizard.navigation.nextStep();
           } else {
-            // Shaping was not completed - clear the selection and stay on current step
+            // Shaping not completed - clear selection and stay
             wizard.updateWizardData('hasShaping', false);
-            wizard.updateWizardData('choiceMade', false); // ← Optional cleanup
+            wizard.updateWizardData('choiceMade', false);
           }
-          // If hasShaping is still undefined/false, just return to where we came from
         }}
       />
     );
   }
 
-
-  // AFTER existing helper functions, ADD:
+  // Check for unsaved data
   const hasUnsavedData = () => {
     const { wizardStep, wizardData } = wizard;
 
     switch (wizardStep) {
       case 1: // Pattern Selection
         return wizardData.stitchPattern?.pattern || wizardData.stitchPattern?.category;
-
       case 2: // Pattern Configuration
         return true; // Always has pattern data from step 1
-
       case 3: // Duration/Shaping Choice
         return wizardData.hasShaping !== undefined || wizardData.choiceMade;
-
-      case 4: // Set Duration - How Long
+      case 4: // Duration Config
         return true; // Always show warning - user is in step creation flow
-
       case 5: // Preview
         return true; // Always show warning - user has complete step data 
-
       default:
         return false;
     }
@@ -168,7 +152,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
 
   const handleConfirmExit = () => {
     setShowExitModal(false);
-    wizard.resetWizardData(); // ✅ Clean data before exit
+    wizard.resetWizardData(); // Clean data before exit
     onBack();
   };
 
@@ -176,15 +160,8 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     setShowExitModal(false);
   };
 
+  // 🎯 NEW: Clean step rendering with smart navigation
   const renderCurrentStep = () => {
-    const handlers = {
-      handleAddStep: wizardState.handleAddStep,
-      handleAddStepAndContinue: wizardState.handleAddStepAndContinue,
-      handleFinishComponent: wizardState.handleFinishComponent,
-      onBack
-    };
-
-    // Enhanced step rendering with prep note support
     switch (wizard.wizardStep) {
       case 1:
         return (
@@ -192,28 +169,24 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
             <PatternSelector
               wizardData={wizard.wizardData}
               updateWizardData={wizard.updateWizardData}
-              navigation={customNavigation}
+              navigation={navigation}
               existingPrepNote={getExistingPrepNote()}
               onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
             />
 
-            {/* Navigation buttons for Step 1 */}
+            {/* 🎯 SIMPLIFIED: Navigation buttons for Step 1 */}
             <div className="pt-6 border-t border-wool-100">
               <div className="flex gap-3">
                 <button
-                  onClick={onBack}
+                  onClick={navigation.previousStep}
                   className="flex-1 btn-tertiary"
                 >
                   ← Cancel
                 </button>
 
                 <button
-                  onClick={() => {
-                    const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
-                    const nextStep = navigator.getNextStep();
-                    wizard.navigation.goToStep(nextStep);
-                  }}
-                  disabled={!navigator.canProceed()}
+                  onClick={navigation.nextStep}
+                  disabled={!navigation.canProceed()}
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
                 >
@@ -230,33 +203,25 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
             <PatternConfiguration
               wizardData={wizard.wizardData}
               updateWizardData={wizard.updateWizardData}
-              navigation={customNavigation}
+              navigation={navigation}
               construction={wizard.construction}
               existingPrepNote={getExistingPrepNote()}
               onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
             />
 
-            {/* Inline Navigation for Step 2 */}
+            {/* 🎯 SIMPLIFIED: Navigation for Step 2 */}
             <div className="pt-6 border-t border-wool-100">
               <div className="flex gap-3">
                 <button
-                  onClick={() => {
-                    const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
-                    const previousStep = navigator.getPreviousStep();
-                    wizard.navigation.goToStep(previousStep);
-                  }}
+                  onClick={navigation.previousStep}
                   className="flex-1 btn-tertiary"
                 >
                   ← Back
                 </button>
 
                 <button
-                  onClick={() => {
-                    const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
-                    const nextStep = navigator.getNextStep();
-                    wizard.navigation.goToStep(nextStep);
-                  }}
-                  disabled={!navigator.canProceed()}
+                  onClick={navigation.nextStep}
+                  disabled={!navigation.canProceed()}
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
                 >
@@ -268,7 +233,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         );
 
       case 3:
-        // Duration/Shaping choice - no nav buttons needed (auto-advances)
+        // Duration/Shaping choice - auto-advances, no nav buttons needed
         return (
           <DurationShapingChoice
             wizardData={wizard.wizardData}
@@ -292,28 +257,16 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
             componentIndex={wizard.componentIndex}
             editingStepIndex={wizard.editingStepIndex}
             project={currentProject}
-            onBack={() => {
-              // Go back to previous step in StepWizard
-              const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
-              const previousStep = navigator.getPreviousStep();
-              wizard.navigation.goToStep(previousStep);
-            }}
+            onBack={navigation.previousStep} // 🎯 SIMPLIFIED: Direct navigation call
             onExitToComponentSteps={onBack}
           />
         );
 
-      /*   case 5:
-          // Preview step (has custom buttons, no nav needed)
-          return (
-            <StepPreview
-              wizard={wizard}
-              onAddStep={handleAddStep}
-              onAddStepAndContinue={handleAddStepAndContinue}
-              onFinishComponent={wizardState.handleFinishComponent}
-              onBack={onBack}
-              prepNote={wizard.wizardData.prepNote || ''}
-            />
-          ); */
+      case 5:
+        // Preview step (has custom buttons, no nav needed)
+        return (
+          <div>Preview Step - Implementation needed</div>
+        );
 
       default:
         return <div>Step not found</div>;
@@ -322,11 +275,13 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
 
   return (
     <WizardLayout>
-      <WizardHeader wizard={wizard} onBack={onBack} onCancel={handleXButtonClick} />
+      <WizardHeader
+        wizard={wizard}
+        onBack={navigation.previousStep} // 🎯 SIMPLIFIED: Use smart navigation
+        onCancel={handleXButtonClick}
+      />
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}
-
-        {/* ❌ REMOVED: WizardNavigation component - no more conflicts! */}
       </div>
 
       <UnsavedChangesModal
@@ -334,8 +289,6 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
         onConfirmExit={handleConfirmExit}
         onCancel={handleCancelExit}
       />
-
-
     </WizardLayout>
   );
 };

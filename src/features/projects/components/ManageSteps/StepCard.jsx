@@ -102,8 +102,15 @@ const StepCard = ({
                     </div>
                 </div>
             </div>
+            {/* Debug output - remove or hide in production */}
+            {/* <pre className="text-xs text-left bg-gray-100 text-gray-800 mt-2 p-2 overflow-auto rounded-lg border border-gray-300">
+                {JSON.stringify(step, null, 2)}
+            </pre> */}
         </div>
+
     );
 };
+
+
 
 export default StepCard;

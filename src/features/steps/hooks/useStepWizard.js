@@ -1,10 +1,12 @@
+// src/features/steps/hooks/useStepWizard.js (ENHANCED VERSION)
 import { useState, useEffect } from 'react';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import { CONSTRUCTION_TYPES } from '../../../shared/utils/constants';
+import useSmartStepNavigation from '../../../shared/hooks/useSmartStepNavigation';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 export const useStepWizard = (componentIndex, editingStepIndex = null) => {
   const { currentProject } = useProjectsContext();
-  const [wizardStep, setWizardStep] = useState(1);
   const [construction, setConstruction] = useState(CONSTRUCTION_TYPES.FLAT);
   const [currentStitches, setCurrentStitches] = useState(0);
 
@@ -43,6 +45,11 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     return getInitialWizardData(currentProject?.defaultUnits);
   });
 
+  // 🎯 NEW: Smart Navigation Integration
+  const smartNav = useSmartStepNavigation(1, wizardData, (section, data) => {
+    updateWizardData(section, data);
+  });
+
   // Inherit construction from previous step
   useEffect(() => {
     if (component && component.steps.length > 0) {
@@ -71,6 +78,8 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
   }, [component?.steps, componentIndex]);
 
   const updateWizardData = (sectionOrKey, dataOrValue) => {
+    IntelliKnitLogger.debug('Step Wizard', `Updating wizard data: ${sectionOrKey}`, dataOrValue);
+
     setWizardData(prev => {
       // Handle root-level properties (like hasShaping, prepNote)
       if (typeof dataOrValue === 'boolean' || typeof dataOrValue === 'string' || typeof dataOrValue === 'number') {
@@ -91,7 +100,8 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
   // Reset wizard data function
   const resetWizardData = () => {
     setWizardData(getInitialWizardData(currentProject?.defaultUnits));
-    setWizardStep(1);
+    smartNav.clearCache(); // Clear navigation cache too
+    IntelliKnitLogger.debug('Step Wizard', 'Reset wizard data and navigation cache');
   };
 
   // Check if current pattern can have shaping
@@ -100,104 +110,163 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     return pattern && pattern !== 'Cast On' && pattern !== 'Bind Off';
   };
 
-  // Navigation functions
+  // 🎯 NEW: Smart Step Flow Logic
+  // These functions determine the actual flow based on wizard data
   const getNextStep = (currentStep) => {
-    console.log('Calculating next step from:', currentStep, 'with pattern category:', wizardData.stitchPattern.category);
-    if (currentStep === 1) return 2;
-    if (currentStep === 2) return 3; // Always go to step 3 (either Shaping or Duration)
-    if (currentStep === 3) return 4; // From config go to preview
-    return currentStep + 1;
+    const { pattern } = wizardData.stitchPattern;
+
+    switch (currentStep) {
+      case 1: // PatternSelector
+        // Check if we should skip configuration
+        if (shouldSkipConfiguration(wizardData)) {
+          return 3; // Skip directly to Duration/Shaping choice
+        }
+        return 2; // Go to configuration
+
+      case 2: // PatternConfiguration  
+        // Cast On and Bind Off patterns skip to preview
+        if (pattern === 'Cast On' && wizardData.stitchPattern.stitchCount) {
+          return 5; // Skip to preview
+        }
+        if (pattern === 'Bind Off') {
+          return 5; // Skip to preview
+        }
+        return 3; // Go to Duration/Shaping choice
+
+      case 3: // Duration/Shaping Choice
+        if (wizardData.hasShaping === false) {
+          return 4; // Go to duration config
+        }
+        return 5; // Go to preview (or future shaping step)
+
+      case 4: // Duration Config
+        return 5; // Go to preview
+
+      default:
+        return currentStep + 1;
+    }
   };
 
-  const getPreviousStep = (currentStep) => {
-    if (currentStep === 4) return 3; // From preview back to config
-    if (currentStep === 3) return 2; // From config back to pattern details
-    if (currentStep === 2) return 1; // From pattern details back to selector
-    return currentStep - 1;
+  // Helper function to check if configuration should be skipped
+  const shouldSkipConfiguration = (data) => {
+    const { pattern } = data.stitchPattern || {};
+    const basicPatterns = [
+      'Stockinette', 'Garter', 'Reverse Stockinette',
+      '1x1 Rib', '2x2 Rib', '3x3 Rib', '2x1 Rib', '1x1 Twisted Rib', '2x2 Twisted Rib',
+      'Seed Stitch', 'Moss Stitch', 'Double Seed', 'Basketweave'
+    ];
+    return basicPatterns.includes(pattern);
   };
 
-  // Validation function
+  // 🎯 NEW: Enhanced Validation Logic
   const canProceed = (step) => {
     switch (step) {
-      case 1:
-        return wizardData.stitchPattern.category;
+      case 1: // PatternSelector
+        return wizardData.stitchPattern.category && wizardData.stitchPattern.pattern;
 
-      case 2:
-        // Must have pattern selected
-        if (!wizardData.stitchPattern.pattern) return false;
-
-        // Cast On needs stitch count
-        if (wizardData.stitchPattern.pattern === 'Cast On') {
-          return wizardData.stitchPattern.stitchCount && parseInt(wizardData.stitchPattern.stitchCount) > 0;
+      case 2: // PatternConfiguration
+        if (shouldSkipConfiguration(wizardData)) {
+          return true; // Skip validation for basic patterns
         }
 
-        // Patterns that require rowsInPattern
-        if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern)) {
-          return wizardData.stitchPattern.rowsInPattern &&
-            parseInt(wizardData.stitchPattern.rowsInPattern) > 0 &&
-            wizardData.hasShaping !== undefined;
+        const { pattern, stitchCount, customText, rowsInPattern } = wizardData.stitchPattern;
+
+        if (pattern === 'Cast On') {
+          return stitchCount && parseInt(stitchCount) > 0;
+        }
+        if (pattern === 'Bind Off') {
+          return true;
         }
 
-        // Custom pattern needs description
-        if (wizardData.stitchPattern.pattern === 'Custom pattern') {
-          return wizardData.stitchPattern.customText && wizardData.hasShaping !== undefined;
+        // Complex patterns that need both description AND row count
+        if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
+          return customText && customText.trim() !== '' &&
+            rowsInPattern && parseInt(rowsInPattern) > 0;
         }
 
-        // Other patterns need to choose shaping
-        return wizardData.stitchPattern.pattern &&
-          (wizardData.stitchPattern.pattern !== 'Other' || wizardData.stitchPattern.customText) &&
-          wizardData.hasShaping !== undefined;
-
-      case 3:
-        if (wizardData.hasShaping) {
-          // Validate shaping config
-          const { shapingMode, shapingType, positions, bindOffSequence, targetChange } = wizardData.shapingConfig;
-
-          if (shapingMode === 'bindoff') {
-            return bindOffSequence && bindOffSequence.length > 0;
-          } else if (shapingMode === 'distribution') {
-            return targetChange !== undefined && targetChange !== null;
-          } else if (shapingMode === 'raglan') {
-            return shapingType;
-          } else {
-            return shapingType && positions && positions.length > 0;
-          }
-        } else {
-          // Validate duration config
-          if (wizardData.stitchPattern.pattern === 'Bind Off') {
-            return true; // Bind off can have empty value (means all stitches)
-          }
-          return wizardData.duration.type && wizardData.duration.value;
+        if (pattern === 'Custom pattern' || pattern === 'Other') {
+          return customText && customText.trim() !== '';
         }
 
-      case 4:
-        return true; // Preview step is always valid if we got here
+        return true;
+
+      case 3: // Duration/Shaping choice
+        return true; // Choice steps handle their own advancement
+
+      case 4: // Duration Config
+        if (wizardData.stitchPattern.pattern === 'Bind Off') {
+          return true;
+        }
+        const { type, value } = wizardData.duration || {};
+        return type && value;
+
+      case 5: // Preview
+        return true;
 
       default:
         return false;
     }
   };
 
+  // 🎯 NEW: Enhanced Navigation Object
   const navigation = {
-    canProceed: () => canProceed(wizardStep),
-    nextStep: () =>
+    canProceed: () => canProceed(smartNav.currentStep),
 
-      setWizardStep(getNextStep(wizardStep)),
+    nextStep: () => {
+      const nextStep = getNextStep(smartNav.currentStep);
+      IntelliKnitLogger.debug('Step Wizard', `Next step: ${smartNav.currentStep} → ${nextStep}`);
+      smartNav.goToStep(nextStep);
+    },
 
-    previousStep: () => setWizardStep(getPreviousStep(wizardStep)),
-    goToStep: (step) => setWizardStep(step)
+    previousStep: () => {
+      const result = smartNav.goBack();
+      IntelliKnitLogger.debug('Step Wizard', `Previous step result:`, result);
+
+      if (result.action === 'exit') {
+        // Will be handled by parent component
+        return { shouldExit: true };
+      }
+      return result;
+    },
+
+    goToStep: (step) => {
+      IntelliKnitLogger.debug('Step Wizard', `Direct navigation to step: ${step}`);
+      smartNav.goToStep(step);
+    },
+
+    // 🎯 NEW: Enhanced navigation methods
+    goToStepWithCycle: (step, cycleType) => {
+      smartNav.goToStep(step, { isCycleEntry: true, cycleType });
+    },
+
+    handleBackWithUnsavedChanges: () => {
+      // Integration point for unsaved changes modal
+      if (smartNav.hasUnsavedChanges()) {
+        return { shouldPrompt: true, changes: 'wizard-data' };
+      }
+      return smartNav.goBack();
+    }
+  };
+
+  // 🎯 NEW: Debug information
+  const getDebugInfo = () => {
+    return {
+      ...smartNav.getNavigationContext(),
+      wizardData: JSON.stringify(wizardData, null, 2),
+      canProceed: canProceed(smartNav.currentStep)
+    };
   };
 
   return {
-    // State
-    wizardStep,
+    // State (updated to use smart navigation)
+    wizardStep: smartNav.currentStep,
     wizardData,
     construction,
     currentStitches,
     component,
     componentIndex,
     isEditing,
-    editingStepIndex, // ✅ ADD THIS LINE
+    editingStepIndex,
     editingStep,
 
     // Actions
@@ -207,8 +276,16 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     resetWizardData,
     setCurrentStitches,
 
-    // Navigation
-    navigation
+    // Navigation (enhanced)
+    navigation,
+
+    // 🎯 NEW: Smart navigation utilities
+    smartNavigation: {
+      canGoBack: smartNav.canGoBack,
+      clearCache: smartNav.clearCache,
+      getDebugInfo,
+      hasUnsavedChanges: smartNav.hasUnsavedChanges
+    }
   };
 };
 

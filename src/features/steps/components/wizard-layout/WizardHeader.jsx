@@ -1,53 +1,27 @@
 import React from 'react';
-import { CONSTRUCTION_TYPES } from '../../../../shared/utils/constants';
-import { createWizardNavigator } from '../wizard-navigation/WizardNavigator';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
-import { getCategoryPatternCount } from '../../../../shared/utils/PatternCategories';
+import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
 const WizardHeader = ({ wizard, onBack, onCancel }) => {
   const { currentProject } = useProjectsContext();
-  // Handle back navigation - check internal component state first
+
+  // 🎯 NEW: Smart navigation - just 8 lines instead of 50!
   const handleBack = () => {
     const { category, pattern } = wizard.wizardData.stitchPattern || {};
 
-    // If we're on step 1 and have selected a category but not a pattern,
-    // we're on the "choose specific pattern" screen - go back to category selection
+    // Special case: Step 1 pattern selector sub-states
     if (wizard.wizardStep === 1 && category && !pattern) {
+      // User is on "choose specific pattern" screen - go back to category selection
       wizard.updateWizardData('stitchPattern', { category: null, pattern: null });
       return;
     }
 
-    // If we're on step 1 with no category, exit the wizard
-    if (wizard.wizardStep === 1) {
-      onBack();
-      return;
-    }
+    // For everything else, use smart navigation
+    const result = wizard.navigation.previousStep();
 
-    // Special case: If we're going back to step 1 from step 2 OR step 3, we need to check
-    // if the category has multiple patterns or if it auto-selected
-    if ((wizard.wizardStep === 2 || wizard.wizardStep === 3) && pattern && category) {
-      // Check if this category has multiple patterns
-      const patternCount = getCategoryPatternCount(category);
-
-      if (patternCount > 1) {
-        // Multiple patterns - clear pattern but keep category (go to pattern selector)
-        wizard.updateWizardData('stitchPattern', { pattern: null });
-        wizard.navigation.goToStep(1);
-      } else {
-        // Single pattern - clear both category and pattern (go to category selector)
-        wizard.updateWizardData('stitchPattern', { category: null, pattern: null });
-        wizard.navigation.goToStep(1);
-      }
-      return;
-    }
-
-    // For other cases, use the SMART navigator that knows about skipping
-    const navigator = createWizardNavigator(wizard.wizardData, wizard.wizardStep);
-    const previousStep = navigator.getPreviousStep();
-
-    if (previousStep && previousStep !== wizard.wizardStep) {
-      wizard.navigation.goToStep(previousStep);
-    } else {
+    // Handle exit if navigation stack is empty
+    if (result?.shouldExit) {
+      IntelliKnitLogger.debug('Wizard Header', 'Navigation stack empty - exiting wizard');
       onBack();
     }
   };
@@ -143,7 +117,6 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
           </button>
 
           <div className="flex-1 min-w-0">
-            {/* Project Name + Icon (Primary) */}
             {/* Project Name + Icon (Primary) */}
             <div className="flex items-center justify-center gap-2">
               <h1 className="text-lg font-semibold truncate">
