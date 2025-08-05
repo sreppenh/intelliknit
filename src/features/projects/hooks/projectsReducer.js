@@ -428,6 +428,46 @@ export const projectsReducer = (state, action) => {
         wizardType: action.payload
       };
 
+    case 'UPDATE_STEP_PREP_NOTE':
+      if (!state.currentProject) {
+        IntelliKnitLogger.error('UPDATE_STEP_PREP_NOTE: No current project');
+        return state;
+      }
+
+      const { componentIndex: prepCompIndex, stepIndex: prepStepIndex, prepNote } = action.payload;
+
+      if (prepCompIndex === null || prepCompIndex === undefined ||
+        !state.currentProject.components[prepCompIndex] ||
+        !state.currentProject.components[prepCompIndex].steps ||
+        prepStepIndex === null || prepStepIndex === undefined ||
+        !state.currentProject.components[prepCompIndex].steps[prepStepIndex]) {
+        IntelliKnitLogger.error('UPDATE_STEP_PREP_NOTE: Invalid indices', { prepCompIndex, prepStepIndex });
+        return state;
+      }
+
+      const componentsWithUpdatedPrepNote = [...state.currentProject.components];
+      const targetStep = { ...componentsWithUpdatedPrepNote[prepCompIndex].steps[prepStepIndex] };
+
+      // Update the prep note
+      targetStep.prepNote = prepNote;
+
+      componentsWithUpdatedPrepNote[prepCompIndex].steps[prepStepIndex] = targetStep;
+
+      const projectWithUpdatedPrepNote = {
+        ...state.currentProject,
+        components: componentsWithUpdatedPrepNote
+      };
+
+      const projectWithPrepNoteActivity = updateProjectActivity(projectWithUpdatedPrepNote);
+
+      return {
+        ...state,
+        currentProject: projectWithPrepNoteActivity,
+        projects: state.projects.map(p =>
+          p.id === state.currentProject.id ? projectWithPrepNoteActivity : p
+        )
+      };
+
     case 'TOGGLE_STEP_COMPLETION':
       if (!state.currentProject) {
         IntelliKnitLogger.error('TOGGLE_STEP_COMPLETION: No current project');

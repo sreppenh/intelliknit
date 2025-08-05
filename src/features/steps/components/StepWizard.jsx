@@ -19,6 +19,9 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 import DurationWizard from './DurationWizard';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 
+
+
+
 const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex);
   const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
@@ -53,6 +56,21 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     nextStep: () => wizard.navigation.goToStep(navigator.getNextStep()),
     previousStep: () => wizard.navigation.goToStep(navigator.getPreviousStep()),
     goToStep: wizard.navigation.goToStep
+  };
+
+  // Helper to get existing prep note when editing  
+  const getExistingPrepNote = () => {
+    // Use the prop directly and make sure we're referencing the right variable
+    const stepIndex = editingStepIndex;
+
+    if (stepIndex !== null && wizard.component?.steps?.[stepIndex]) {
+      const editingStep = wizard.component.steps[stepIndex];
+      return editingStep.prepNote ||
+        editingStep.wizardConfig?.prepNote ||
+        editingStep.advancedWizardConfig?.prepNote ||
+        '';
+    }
+    return wizard.wizardData.prepNote || '';
   };
 
   // If showing ending wizard
@@ -158,10 +176,6 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
     setShowExitModal(false);
   };
 
-
-
-
-
   const renderCurrentStep = () => {
     const handlers = {
       handleAddStep: wizardState.handleAddStep,
@@ -169,8 +183,6 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
       handleFinishComponent: wizardState.handleFinishComponent,
       onBack
     };
-
-
 
     // Enhanced step rendering with prep note support
     switch (wizard.wizardStep) {
@@ -181,7 +193,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
               wizardData={wizard.wizardData}
               updateWizardData={wizard.updateWizardData}
               navigation={customNavigation}
-              existingPrepNote={wizard.wizardData.prepNote || ''}
+              existingPrepNote={getExistingPrepNote()}
               onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
             />
 
@@ -220,7 +232,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
               updateWizardData={wizard.updateWizardData}
               navigation={customNavigation}
               construction={wizard.construction}
-              existingPrepNote={wizard.wizardData.prepNote || ''}
+              existingPrepNote={getExistingPrepNote()}
               onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
             />
 
