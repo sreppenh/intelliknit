@@ -82,7 +82,7 @@ export const createWizardNavigator = (wizardData, currentStep) => {
 
   const canProceed = () => {
     const { category, pattern, stitchCount, customText, rowsInPattern } = wizardData.stitchPattern;
-    const { type, value } = wizardData.duration;
+    const { type, value } = wizardData.duration || {};
 
     switch (currentStep) {
       case 1: // PatternSelector

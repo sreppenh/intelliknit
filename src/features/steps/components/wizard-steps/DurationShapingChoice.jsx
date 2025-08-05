@@ -26,6 +26,19 @@ const DurationShapingChoice = (props) => {
     }, 200);
   };
 
+  // 🔧 FIX: Enhanced selection logic that works for editing
+  const isDurationSelected = () => {
+    // When editing: check if hasShaping is explicitly false
+    // When creating: check for both hasShaping false AND choiceMade
+    return wizardData.hasShaping === false && (wizardData.choiceMade || wizardData.hasShaping !== undefined);
+  };
+
+  const isShapingSelected = () => {
+    // When editing: check if hasShaping is explicitly true  
+    // When creating: check for both hasShaping true AND choiceMade
+    return wizardData.hasShaping === true && (wizardData.choiceMade || wizardData.hasShaping !== undefined);
+  };
+
   return (
     <div className="stack-lg">
       <div>
@@ -39,7 +52,7 @@ const DurationShapingChoice = (props) => {
         {/* Set Duration Button */}
         <button
           onClick={handleDurationChoice}
-          className={`card-selectable p-6 text-left ${wizardData.hasShaping === false && wizardData.choiceMade
+          className={`card-selectable p-6 text-left ${isDurationSelected()
             ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-lg transform scale-[1.02]'
             : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.01]'
             }`}
@@ -63,7 +76,7 @@ const DurationShapingChoice = (props) => {
         {/* Add Shaping Button */}
         <button
           onClick={handleShapingChoice}
-          className={`card-selectable p-6 text-left relative ${wizardData.hasShaping === true && wizardData.choiceMade
+          className={`card-selectable p-6 text-left relative ${isShapingSelected()
             ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-lg transform scale-[1.02]'
             : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-md hover:transform hover:scale-[1.01]'
             }`}

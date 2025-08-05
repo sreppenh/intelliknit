@@ -10,12 +10,39 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack,
   setConstruction, setCurrentStitches, component, componentIndex, onExitToComponentSteps, editingStepIndex = null }) => {
   IntelliKnitLogger.debug('ShapingWizard props', { construction, currentStitches });
-  const [step, setStep] = useState(1);
-  const [shapingData, setShapingData] = useState({
-    type: null,
-    config: {},
-    description: ''
-  });
+
+  // 🔧 FIX: Initialize step based on whether we have existing data
+  const getInitialStep = () => {
+    // If we have existing shaping config with a type, go directly to config step
+    if (wizardData.shapingConfig?.type) {
+      return 2;
+    }
+    // Otherwise start at type selection
+    return 1;
+  };
+
+  // 🔧 FIX: Initialize shapingData from existing wizardData.shapingConfig
+  const getInitialShapingData = () => {
+    const existingConfig = wizardData.shapingConfig;
+
+    if (existingConfig?.type) {
+      return {
+        type: existingConfig.type,
+        config: existingConfig.config || {},
+        description: existingConfig.description || ''
+      };
+    }
+
+    // Default empty state for new shaping
+    return {
+      type: null,
+      config: {},
+      description: ''
+    };
+  };
+
+  const [step, setStep] = useState(getInitialStep());
+  const [shapingData, setShapingData] = useState(getInitialShapingData());
 
   const [showExitModal, setShowExitModal] = useState(false);
 
@@ -109,6 +136,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             onExitToComponentSteps={onExitToComponentSteps} // ← ADD THIS LINE
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
+            wizardData={wizardData}
           />
         );
 
@@ -123,6 +151,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             onExitToComponentSteps={onExitToComponentSteps} // ← ADD THIS LINE
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
+            wizardData={wizardData}
 
           />
         );

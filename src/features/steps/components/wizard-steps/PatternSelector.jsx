@@ -29,6 +29,19 @@ export const PatternSelector = ({
   // Get the config for step wizard
   const prepConfig = getPrepNoteConfig('stepWizard');
 
+  // 🔧 FIX: Reverse-lookup function to find category from pattern name
+  const findCategoryFromPattern = (patternName) => {
+    if (!patternName) return null;
+
+    for (const [categoryKey, category] of Object.entries(PATTERN_CATEGORIES)) {
+      const foundPattern = category.patterns.find(pattern => pattern.name === patternName);
+      if (foundPattern) {
+        return categoryKey;
+      }
+    }
+    return null;
+  };
+
   const handleQuickCategorySelect = (categoryKey) => {
     if (selectedQuickCategory === categoryKey) {
       setSelectedQuickCategory(null);
@@ -89,14 +102,30 @@ export const PatternSelector = ({
   const selectedCategory = wizardData?.stitchPattern?.category;
   const selectedPattern = wizardData?.stitchPattern?.pattern;
 
-  // ✅ FIX #2: Auto-open drawer when editing
+  // ✅ FIX: Enhanced auto-open drawer logic with reverse-lookup
   useEffect(() => {
-    // Auto-open drawer when editing and we have a quick category selected
     const selectedCategory = wizardData?.stitchPattern?.category;
+    const selectedPattern = wizardData?.stitchPattern?.pattern;
+
+    // First, try direct category match
     if (selectedCategory && PATTERN_CATEGORIES[selectedCategory]?.type === 'quick') {
       setSelectedQuickCategory(selectedCategory);
+      return;
     }
-  }, [wizardData?.stitchPattern?.category]);
+
+    // 🔧 NEW: If no category but we have a pattern, do reverse-lookup
+    if (!selectedCategory && selectedPattern) {
+      const foundCategory = findCategoryFromPattern(selectedPattern);
+      if (foundCategory && PATTERN_CATEGORIES[foundCategory]?.type === 'quick') {
+        setSelectedQuickCategory(foundCategory);
+        // Also update the wizardData to include the found category
+        updateWizardData('stitchPattern', {
+          ...wizardData.stitchPattern,
+          category: foundCategory
+        });
+      }
+    }
+  }, [wizardData?.stitchPattern?.category, wizardData?.stitchPattern?.pattern]);
 
   // Show pattern selection screen for advanced categories
   if (selectedCategory && !selectedPattern && PATTERN_CATEGORIES[selectedCategory]?.type === 'advanced') {

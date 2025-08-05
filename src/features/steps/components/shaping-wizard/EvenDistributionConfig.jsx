@@ -13,13 +13,29 @@ const EvenDistributionConfig = ({
   onExitToComponentSteps,
   onComplete,
   onBack,
-  editingStepIndex = null
+  editingStepIndex = null,
+  wizardData // ← Add this line
 }) => {
-  const [config, setConfig] = useState({
-    action: 'decrease',
-    amount: 1,
-    description: ''
-  });
+  // 🔧 FIX: Initialize config from existing shapingData if available
+  const getInitialConfig = () => {
+    // If we have existing config data, use it
+    if (shapingData.config && Object.keys(shapingData.config).length > 0) {
+      return {
+        action: shapingData.config.action || 'decrease',
+        amount: shapingData.config.amount || 1,
+        description: shapingData.config.description || ''
+      };
+    }
+
+    // Default new config
+    return {
+      action: 'decrease',
+      amount: 1,
+      description: ''
+    };
+  };
+
+  const [config, setConfig] = useState(getInitialConfig());
 
   // These are added to accommodate for the new StepSaveHelper function
   const { dispatch } = useProjectsContext();
@@ -174,7 +190,7 @@ const EvenDistributionConfig = ({
         error: result.error
       },
       wizardData: {
-        stitchPattern: { pattern: 'Even Distribution' },
+        stitchPattern: wizardData.stitchPattern, // ← Fixed! Use original pattern
         hasShaping: true,
         shapingConfig: {
           type: 'even_distribution',
