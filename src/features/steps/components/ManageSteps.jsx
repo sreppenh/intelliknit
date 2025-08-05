@@ -4,7 +4,7 @@ import StepWizard from './StepWizard';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import PageHeader from '../../../shared/components/PageHeader';
 import StepsList from '../../projects/components/ManageSteps/StepsList';
-import { PrepNoteDisplay } from '../../../shared/components/PrepStepSystem'; // NEW
+import { PrepNoteDisplay, usePrepNoteManager, PrepStepOverlay, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 
 const ManageSteps = ({ componentIndex, onBack }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -12,6 +12,28 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const [editingStepIndex, setEditingStepIndex] = useState(null);
   const [showEndingWizard, setShowEndingWizard] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [editingPrepNoteStepIndex, setEditingPrepNoteStepIndex] = useState(null);
+
+  // Add prep note manager
+  const {
+    isOverlayOpen: isPrepNoteOverlayOpen,
+    currentNote: currentPrepNote,
+    handleOpenOverlay: handleOpenPrepNoteOverlay,
+    handleCloseOverlay: handleClosePrepNoteOverlay,
+    handleSaveNote: handleSavePrepNote
+  } = usePrepNoteManager('', (note) => {
+    if (editingPrepNoteStepIndex !== null) {
+      dispatch({
+        type: 'UPDATE_STEP_PREP_NOTE',
+        payload: {
+          componentIndex,
+          stepIndex: editingPrepNoteStepIndex,
+          prepNote: note
+        }
+      });
+      setEditingPrepNoteStepIndex(null);
+    }
+  });
 
   // Component validation
   if (!currentProject || componentIndex === null || !currentProject.components[componentIndex]) {
@@ -32,6 +54,21 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   }
 
   const component = currentProject.components[componentIndex];
+
+
+
+  // Add prep note click handler
+  const handlePrepNoteClick = (stepIndex) => {
+    const step = component.steps[stepIndex];
+    const currentNote = step.prepNote ||
+      step.wizardConfig?.prepNote ||
+      step.advancedWizardConfig?.prepNote ||
+      '';
+
+    setEditingPrepNoteStepIndex(stepIndex);
+    handleSavePrepNote(currentNote);
+    handleOpenPrepNoteOverlay();
+  };
 
   // Helper functions for step display
   const getPatternDisplay = (step) => {
@@ -163,7 +200,6 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   };
 
   const handleEditStepFromMenu = (stepIndex, event) => {
-
     // SPECIAL HANDLING FOR FIRST STEP (Cast On)
     if (stepIndex === 0) {
       const step = component.steps[0];
@@ -352,6 +388,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             onDeleteStep={handleDeleteStepFromMenu}
             getPatternDisplay={getPatternDisplay}
             getMethodDisplay={getMethodDisplay}
+            onPrepNoteClick={handlePrepNoteClick}
             isSpecialStep={isSpecialStep}
           />
 
@@ -387,6 +424,17 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             </div>
           )}
         </div>
+
+        {/* Prep Note Editing Overlay */}
+        <PrepStepOverlay
+          isOpen={isPrepNoteOverlayOpen}
+          onClose={handleClosePrepNoteOverlay}
+          onSave={handleSavePrepNote}
+          existingNote={currentPrepNote}
+          title="Edit Preparation Note"
+          subtitle="Update the setup note for this step"
+          {...getPrepNoteConfig('stepWizard')}
+        />
       </div>
     </div>
   );

@@ -243,17 +243,31 @@ export const usePrepNoteManager = (initialNote = '', onSaveNote) => {
 };
 
 // Component to display prep notes in instruction lists
-export const PrepNoteDisplay = ({ note, className = "" }) => {
+// Component to display prep notes in instruction lists - NOW CLICKABLE
+// Component to display prep notes in instruction lists - NOW CLICKABLE with SAGE styling
+export const PrepNoteDisplay = ({ note, className = "", onClick }) => {
   if (!note || note.trim().length === 0) return null;
 
+  const isClickable = typeof onClick === 'function';
+
   return (
-    <div className={`bg-lavender-100 border-l-4 border-lavender-500 rounded-r-lg p-3 my-2 ${className}`}>
+    <div
+      className={`bg-sage-100 border-l-4 border-sage-500 rounded-r-lg p-3 my-2 ${className} ${isClickable ? 'cursor-pointer hover:bg-sage-150 transition-colors' : ''
+        }`}
+      onClick={isClickable ? onClick : undefined}
+      title={isClickable ? "Click to edit preparation note" : undefined}
+    >
       <div className="flex items-start gap-2">
-        <span className="text-lavender-600 text-sm">📝</span>
+        <span className="text-sage-600 text-sm">📝</span>
         <div className="flex-1">
-          <div className="text-xs font-semibold text-lavender-700 mb-1">Preparation Note:</div>
-          <div className="text-sm text-lavender-600 italic">"{note}"</div>
+          <div className="text-xs font-semibold text-sage-700 mb-1">
+            Preparation Note:{isClickable && <span className="ml-1 text-sage-500">(click to edit)</span>}
+          </div>
+          <div className="text-sm text-sage-600 italic">"{note}"</div>
         </div>
+        {isClickable && (
+          <div className="text-sage-500 text-xs opacity-70">✏️</div>
+        )}
       </div>
     </div>
   );

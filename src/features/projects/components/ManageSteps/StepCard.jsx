@@ -13,6 +13,7 @@ const StepCard = ({
     onMenuToggle,
     onEditStep,
     onDeleteStep,
+    onPrepNoteClick,
     getPatternDisplay,
     getMethodDisplay
 }) => {
@@ -28,6 +29,7 @@ const StepCard = ({
             <PrepNoteDisplay
                 note={prepNote}
                 className="mx-1" // Slight margin to align with step content
+                onClick={() => onPrepNoteClick && onPrepNoteClick(stepIndex)} // ADD onClick HERE
             />
 
             {/* Step Card */}

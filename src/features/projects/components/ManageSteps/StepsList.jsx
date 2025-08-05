@@ -9,6 +9,7 @@ const StepsList = ({
     onMenuToggle,
     onEditStep,
     onDeleteStep,
+    onPrepNoteClick,
     getPatternDisplay,
     getMethodDisplay,
     isSpecialStep
@@ -50,6 +51,7 @@ const StepsList = ({
                         onMenuToggle={onMenuToggle}
                         onEditStep={onEditStep}
                         onDeleteStep={onDeleteStep}
+                        onPrepNoteClick={onPrepNoteClick} // ADD THIS LINE
                         getPatternDisplay={getPatternDisplay}
                         getMethodDisplay={getMethodDisplay}
                     />
