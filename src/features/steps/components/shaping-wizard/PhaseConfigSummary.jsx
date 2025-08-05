@@ -19,44 +19,47 @@ const PhaseConfigSummary = ({
   onDeletePhase,
   onBack,
   onComplete,
-  getPhaseDescription
+  getPhaseDescription,
+  wizardData
 }) => {
 
   // ✅ ADD THE HELPER HOOKS RIGHT HERE:
   const { dispatch } = useProjectsContext();
   const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
 
-  // ✅ ADD THIS FUNCTION RIGHT HERE:
   const handleCompleteStep = async () => {
-
     console.log('🔧 PHASE HANDLE COMPLETE CALLED');
     console.log('🔧 PHASE DATA:', { phases, result, currentStitches, componentIndex });
-
 
     // 🎯 PRESERVE: Original data structure that parent expects
     const originalPhaseData = {
       phases: phases,
       construction: construction,
-      calculation: result,
+      calculation: result, // ← This IS the calculation data
       description: stepDescription
     };
 
-    // ✅ ADD: Save the step using our helper
+    // ✅ FIXED: Use result directly since it contains the calculated values
     const saveResult = await saveStepAndNavigate({
       instruction: result.instruction,
       effect: {
         success: !result.error,
-        endingStitches: result.calculation?.endingStitches || currentStitches,
-        startingStitches: result.calculation?.startingStitches || currentStitches,
-        totalRows: result.calculation?.totalRows || 1,
+        endingStitches: result.endingStitches || currentStitches, // ← Fixed!
+        startingStitches: result.startingStitches || currentStitches, // ← Fixed!
+        totalRows: result.totalRows || 1, // ← Fixed!
         error: result.error
       },
       wizardData: {
-        stitchPattern: { pattern: 'Sequential Phases' },
+        stitchPattern: wizardData.stitchPattern,
         hasShaping: true,
         shapingConfig: {
           type: 'phases',
-          config: originalPhaseData
+          config: {
+            calculation: result, // ← Fixed! Put result at config.calculation level
+            phases: phases,
+            construction: construction,
+            description: stepDescription
+          }
         }
       },
       currentStitches,
@@ -67,9 +70,7 @@ const PhaseConfigSummary = ({
     });
 
     if (saveResult.success) {
-      // 🔧 PRESERVE: Call original onComplete to maintain parent logic
-      onExitToComponentSteps(); // You'll need to pass this prop down
-      //onComplete(originalPhaseData);
+      onExitToComponentSteps();
     }
   };
 

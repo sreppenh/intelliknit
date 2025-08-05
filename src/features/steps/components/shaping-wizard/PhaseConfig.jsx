@@ -19,7 +19,8 @@ const PhaseConfig = ({
   componentIndex, // ADDED
   onExitToComponentSteps,
   onComplete,
-  onBack
+  onBack,
+  wizardData
 }) => {
   // All state management and logic handled by custom hook
   const phaseManager = usePhaseManager(currentStitches, construction);
@@ -100,6 +101,7 @@ const PhaseConfig = ({
         onBack={onBack}
         onComplete={handleComplete}
         getPhaseDescription={getPhaseDescription}
+        wizardData={wizardData} // ← Add this line
       />
     );
   }
