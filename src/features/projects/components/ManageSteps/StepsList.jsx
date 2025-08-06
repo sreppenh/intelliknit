@@ -8,6 +8,8 @@ const StepsList = ({
     openMenuId,
     onMenuToggle,
     onEditStep,
+    onEditPattern,
+    onEditConfig,
     onDeleteStep,
     onPrepNoteClick,
     getPatternDisplay,
@@ -50,6 +52,8 @@ const StepsList = ({
                         openMenuId={openMenuId}
                         onMenuToggle={onMenuToggle}
                         onEditStep={onEditStep}
+                        onEditPattern={onEditPattern}
+                        onEditConfig={onEditConfig}
                         onDeleteStep={onDeleteStep}
                         onPrepNoteClick={onPrepNoteClick} // ADD THIS LINE
                         getPatternDisplay={getPatternDisplay}

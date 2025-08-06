@@ -10,7 +10,9 @@ const StepMenu = ({
     onMenuToggle,
     onEditStep,
     onDeleteStep,
-    getPatternDisplay
+    getPatternDisplay,
+    onEditPattern,
+    onEditConfig
 }) => {
     const shouldShowMenu = (isEditable && !isComponentFinished()) ||
         (isSpecial && getPatternDisplay(step) === 'Bind Off');
