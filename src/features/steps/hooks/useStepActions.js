@@ -48,7 +48,9 @@ export const useStepActions = (wizard, onBack) => {
             advancedWizardConfig: {
               hasShaping: wizard.wizardData.hasShaping,
               shapingConfig: wizard.wizardData.shapingConfig
-            }
+            }, navigationStack: wizard.navigationStack,     // ✅ ADD THIS
+            navigationCache: wizard.navigationCache      // ✅ ADD THIS
+
           }
         }
       });
@@ -73,7 +75,9 @@ export const useStepActions = (wizard, onBack) => {
               advancedWizardConfig: {
                 hasShaping: wizard.wizardData.hasShaping,
                 shapingConfig: wizard.wizardData.shapingConfig
-              }
+              },
+              navigationStack: wizard.navigationStack,     // ✅ ADD THIS
+              navigationCache: wizard.navigationCache      // ✅ ADD THIS
             }
           }
         });
@@ -94,7 +98,9 @@ export const useStepActions = (wizard, onBack) => {
               advancedWizardConfig: {
                 hasShaping: wizard.wizardData.hasShaping,
                 shapingConfig: wizard.wizardData.shapingConfig
-              }
+              },
+              navigationStack: wizard.navigationStack,     // ✅ ADD THIS
+              navigationCache: wizard.navigationCache      // ✅ ADD THIS
             }
           }
         });

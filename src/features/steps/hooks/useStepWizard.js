@@ -25,28 +25,39 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     return basicPatterns.includes(pattern);
   };
 
-
-  // Helper function to determine starting step based on edit mode
+  // Helper function to determine starting step based on edit mode and saved stack
   const getStartingStep = () => {
+    console.log('🔧 Edit Mode:', editMode);
+    console.log('🔧 Saved Stack:', editingStep?.navigationStack);
     if (!editMode || !isEditing || !editingStep) {
+      console.log('🔧 Starting Step: 1 (default)');
       return 1; // Default: start at pattern selector
     }
 
-    if (editMode === 'pattern') {
-      // For pattern editing, start at the last pattern-related screen
-      const { pattern } = editingStep.wizardConfig?.stitchPattern || {};
+    const savedStack = editingStep.navigationStack;
+    if (!savedStack || savedStack.length === 0) {
+      console.log('🔧 Starting Step: 1 (no saved stack)');
+      return 1; // Fallback if no saved stack
+    }
 
-      if (shouldSkipConfiguration({ stitchPattern: { pattern } })) {
-        return 1; // Basic patterns: PatternSelector (with drawer)
-      } else {
-        return 2; // Complex patterns: PatternConfiguration
-      }
+    if (editMode === 'pattern') {
+      // Find the last pattern-related screen in the saved stack
+      // Pattern screens are typically 1 (PatternSelector) and 2 (PatternConfiguration)
+      const lastPatternScreen = savedStack.filter(step => step <= 2).slice(-1)[0];
+      const patternResult = lastPatternScreen || 1;
+      console.log('🔧 Starting Step:', patternResult, '(pattern mode)');
+      return patternResult;
     }
 
     if (editMode === 'configuration') {
-      return 3; // Configuration editing: start at Duration/Shaping choice
+      // For configuration, go to the last screen in the saved stack
+      // This will be the final config screen they were on
+      const configResult = savedStack[savedStack.length - 1];
+      console.log('🔧 Starting Step:', configResult, '(config mode)');
+      return configResult;
     }
 
+    console.log('🔧 Starting Step: 1 (fallback)');
     return 1; // Fallback
   };
 
@@ -84,10 +95,17 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     return getInitialWizardData(currentProject?.defaultUnits);
   });
 
-  // 🎯 NEW: Smart Navigation Integration with editMode support
-  const smartNav = useSmartStepNavigation(startingStep, wizardData, (section, data) => {
-    updateWizardData(section, data);
-  });
+  // Initialize smart navigation with saved data if editing
+  const smartNav = useSmartStepNavigation(
+    startingStep,
+    wizardData,
+    (section, data) => { updateWizardData(section, data); },
+    // ✅ NEW: Pass saved navigation data if editing
+    isEditing ? {
+      savedStack: editingStep?.navigationStack,
+      savedCache: editingStep?.navigationCache
+    } : null
+  );
 
   // Inherit construction from previous step
   useEffect(() => {
@@ -308,6 +326,10 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
 
     // Navigation (enhanced)
     navigation,
+
+    // Smart history for Edit
+    navigationStack: smartNav.navigationStack,
+    navigationCache: smartNav.dataCache,
 
     // 🎯 NEW: Smart navigation utilities
     smartNavigation: {

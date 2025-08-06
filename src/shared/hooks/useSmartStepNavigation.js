@@ -14,20 +14,23 @@ import IntelliKnitLogger from '../utils/ConsoleLogging';
  * - Cycle-aware back navigation (prevents unwinding loops)
  * - Unsaved changes detection integration ready
  */
-export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizardData) => {
-    // Navigation stack - tracks actual visited screens
-    const [navigationStack, setNavigationStack] = useState([initialStep]);
-    const [currentStep, setCurrentStep] = useState(initialStep);
-
-    // Data persistence cache - session scoped
-    const dataCache = useRef({
-        // Pattern data by category/pattern combination
-        patterns: {},
-        // Shaping data by shaping type
-        shaping: {},
-        // Sub-wizard entry points for cycle detection
-        cycleEntryPoints: new Map()
+export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizardData, savedNavigationData = null) => {
+    // Initialize with saved data if editing, otherwise start fresh
+    const [navigationStack, setNavigationStack] = useState(() => {
+        return savedNavigationData?.savedStack || [initialStep];
     });
+
+    const [currentStep, setCurrentStep] = useState(() => {
+        return savedNavigationData?.savedStack?.slice(-1)[0] || initialStep;
+    });
+
+    // Initialize cache with saved data if editing
+    const dataCache = useRef(
+        savedNavigationData?.savedCache || {
+            patterns: {},
+            shaping: {},
+            cycleEntryPoints: new Map()
+        });
 
     /**
      * Navigate to a specific step
@@ -252,8 +255,13 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
         getNavigationContext,
         hasUnsavedChanges,
 
+        // ✅ ADD THIS for edit preservation
+        dataCache: dataCache.current,
+
         // For integration with existing patterns
         navigationStack: [...navigationStack] // Read-only copy
+
+
     };
 };
 
