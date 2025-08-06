@@ -18,13 +18,14 @@ export const useStepActions = (wizard, onBack) => {
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
     IntelliKnitLogger.debug('Step Actions', 'handleAddStep called');
 
-    IntelliKnitLogger.debug('Step Actions Debug', {
+    {/* IntelliKnitLogger.debug('Step Actions Debug', {
       isEditing: wizard.isEditing,
       editingStepIndex: wizard.editingStepIndex,
       componentIndex: wizard.componentIndex
-    });
+    });  */}
 
-
+    console.log('🔧 WIZARD navigationStack:', wizard.navigationStack);
+    console.log('🔧 WIZARD navigationCache:', wizard.navigationCache);
 
     if (wizard.isEditing) {
       // Update existing step
