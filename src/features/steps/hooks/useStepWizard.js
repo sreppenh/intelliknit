@@ -5,7 +5,7 @@ import { CONSTRUCTION_TYPES } from '../../../shared/utils/constants';
 import useSmartStepNavigation from '../../../shared/hooks/useSmartStepNavigation';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
-export const useStepWizard = (componentIndex, editingStepIndex = null) => {
+export const useStepWizard = (componentIndex, editingStepIndex = null, editMode = null) => {
   const { currentProject } = useProjectsContext();
   const [construction, setConstruction] = useState(CONSTRUCTION_TYPES.FLAT);
   const [currentStitches, setCurrentStitches] = useState(0);
@@ -13,6 +13,45 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
   const component = currentProject?.components?.[componentIndex] || null;
   const isEditing = editingStepIndex !== null;
   const editingStep = isEditing ? component?.steps?.[editingStepIndex] : null;
+
+  // Helper function to check if configuration should be skipped
+  const shouldSkipConfiguration = (data) => {
+    const { pattern } = data.stitchPattern || {};
+    const basicPatterns = [
+      'Stockinette', 'Garter', 'Reverse Stockinette',
+      '1x1 Rib', '2x2 Rib', '3x3 Rib', '2x1 Rib', '1x1 Twisted Rib', '2x2 Twisted Rib',
+      'Seed Stitch', 'Moss Stitch', 'Double Seed', 'Basketweave'
+    ];
+    return basicPatterns.includes(pattern);
+  };
+
+
+  // Helper function to determine starting step based on edit mode
+  const getStartingStep = () => {
+    if (!editMode || !isEditing || !editingStep) {
+      return 1; // Default: start at pattern selector
+    }
+
+    if (editMode === 'pattern') {
+      // For pattern editing, start at the last pattern-related screen
+      const { pattern } = editingStep.wizardConfig?.stitchPattern || {};
+
+      if (shouldSkipConfiguration({ stitchPattern: { pattern } })) {
+        return 1; // Basic patterns: PatternSelector (with drawer)
+      } else {
+        return 2; // Complex patterns: PatternConfiguration
+      }
+    }
+
+    if (editMode === 'configuration') {
+      return 3; // Configuration editing: start at Duration/Shaping choice
+    }
+
+    return 1; // Fallback
+  };
+
+  const startingStep = getStartingStep();
+
 
   // Helper function to get initial wizard data
   const getInitialWizardData = (defaultUnits = 'inches') => ({
@@ -45,8 +84,8 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     return getInitialWizardData(currentProject?.defaultUnits);
   });
 
-  // 🎯 NEW: Smart Navigation Integration
-  const smartNav = useSmartStepNavigation(1, wizardData, (section, data) => {
+  // 🎯 NEW: Smart Navigation Integration with editMode support
+  const smartNav = useSmartStepNavigation(startingStep, wizardData, (section, data) => {
     updateWizardData(section, data);
   });
 
@@ -147,16 +186,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null) => {
     }
   };
 
-  // Helper function to check if configuration should be skipped
-  const shouldSkipConfiguration = (data) => {
-    const { pattern } = data.stitchPattern || {};
-    const basicPatterns = [
-      'Stockinette', 'Garter', 'Reverse Stockinette',
-      '1x1 Rib', '2x2 Rib', '3x3 Rib', '2x1 Rib', '1x1 Twisted Rib', '2x2 Twisted Rib',
-      'Seed Stitch', 'Moss Stitch', 'Double Seed', 'Basketweave'
-    ];
-    return basicPatterns.includes(pattern);
-  };
+
 
   // 🎯 NEW: Enhanced Validation Logic
   const canProceed = (step) => {

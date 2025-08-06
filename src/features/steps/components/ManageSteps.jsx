@@ -13,6 +13,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const [showEndingWizard, setShowEndingWizard] = useState(false);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingPrepNoteStepIndex, setEditingPrepNoteStepIndex] = useState(null);
+  const [editMode, setEditMode] = useState(null); // 'pattern' | 'configuration' | null
 
   // Add prep note manager
   const {
@@ -220,6 +221,24 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     setOpenMenuId(null);
   };
 
+  // ✅ NEW: Handle Edit Pattern
+  const handleEditPatternFromMenu = (stepIndex, event) => {
+    event.stopPropagation();
+    setEditingStepIndex(stepIndex);
+    setEditMode('pattern'); // New state variable needed
+    setIsEditing(true);
+    setOpenMenuId(null);
+  };
+
+  // ✅ NEW: Handle Edit Config  
+  const handleEditConfigFromMenu = (stepIndex, event) => {
+    event.stopPropagation();
+    setEditingStepIndex(stepIndex);
+    setEditMode('configuration'); // New state variable needed
+    setIsEditing(true);
+    setOpenMenuId(null);
+  };
+
   const handleDeleteStepFromMenu = (stepIndex, event) => {
     event.stopPropagation();
     if (stepIndex === 0) {
@@ -283,6 +302,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const handleBackFromWizard = () => {
     setIsEditing(false);
     setEditingStepIndex(null);
+    setEditMode(null); // ✅ ADD THIS LINE
   };
 
   const handleFinishComponent = () => {
@@ -328,6 +348,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
       <StepWizard
         componentIndex={componentIndex}
         editingStepIndex={editingStepIndex}
+        editMode={editMode} // ✅ ADD THIS LINE
         onBack={handleBackFromWizard}
       />
     );
@@ -385,6 +406,8 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             openMenuId={openMenuId}
             onMenuToggle={handleMenuToggle}
             onEditStep={handleEditStepFromMenu}
+            onEditPattern={handleEditPatternFromMenu} // ✅ ADD THIS
+            onEditConfig={handleEditConfigFromMenu}   // ✅ ADD THIS
             onDeleteStep={handleDeleteStepFromMenu}
             getPatternDisplay={getPatternDisplay}
             getMethodDisplay={getMethodDisplay}

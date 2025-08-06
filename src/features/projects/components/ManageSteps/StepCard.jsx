@@ -13,6 +13,8 @@ const StepCard = ({
     onMenuToggle,
     onEditStep,
     onDeleteStep,
+    onEditPattern, // NEW
+    onEditConfig,  //NEW
     onPrepNoteClick,
     getPatternDisplay,
     getMethodDisplay
@@ -95,8 +97,12 @@ const StepCard = ({
                                 openMenuId={openMenuId}
                                 onMenuToggle={onMenuToggle}
                                 onEditStep={onEditStep}
+                                onEditPattern={onEditPattern}     // ✅ NEW
+                                onEditConfig={onEditConfig}       // ✅ NEW
                                 onDeleteStep={onDeleteStep}
+                                onPrepNoteClick={onPrepNoteClick}
                                 getPatternDisplay={getPatternDisplay}
+                                getMethodDisplay={getMethodDisplay}
                             />
                         </div>
                     </div>

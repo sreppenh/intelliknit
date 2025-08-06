@@ -15,8 +15,8 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 import DurationWizard from './DurationWizard';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 
-const StepWizard = ({ componentIndex, editingStepIndex = null, onBack }) => {
-  const wizard = useStepWizard(componentIndex, editingStepIndex);
+const StepWizard = ({ componentIndex, editingStepIndex = null, editMode = null, onBack }) => {
+  const wizard = useStepWizard(componentIndex, editingStepIndex, editMode);
   const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
   const { currentProject } = useProjectsContext();
   const wizardState = useWizardState(wizard, onBack);

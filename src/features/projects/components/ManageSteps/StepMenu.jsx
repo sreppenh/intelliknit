@@ -21,6 +21,21 @@ const StepMenu = ({
     const isFirstStep = stepIndex === 0;
     const isCastOnStep = getPatternDisplay(step) === 'Cast On';
 
+    // ✅ NEW: Check if step has pattern that can be edited
+    const hasEditablePattern = step.wizardConfig?.stitchPattern?.pattern;
+
+    // ✅ NEW: Check if step has editable configuration
+    const hasEditableConfig = step.wizardConfig && (
+        // Has duration configuration
+        step.wizardConfig.duration?.type ||
+        // Has shaping configuration  
+        step.wizardConfig.hasShaping ||
+        step.wizardConfig.shapingConfig?.type ||
+        // Has custom pattern configuration (customText, rowsInPattern)
+        step.wizardConfig.stitchPattern?.customText ||
+        step.wizardConfig.stitchPattern?.rowsInPattern
+    );
+
     return (
         <div className="relative flex-shrink-0">
             <button
@@ -45,6 +60,26 @@ const StepMenu = ({
                             >
                                 ✏️ {isCastOnStep ? 'View Cast On' : 'Edit Step'}
                             </button>
+
+                            {/* ✅ NEW: Edit Pattern option */}
+                            {hasEditablePattern && !isCastOnStep && (
+                                <button
+                                    onClick={(e) => onEditPattern(stepIndex, e)}
+                                    className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors"
+                                >
+                                    🧶 Edit Pattern
+                                </button>
+                            )}
+
+                            {/* ✅ NEW: Edit Config option */}
+                            {hasEditableConfig && !isCastOnStep && (
+                                <button
+                                    onClick={(e) => onEditConfig(stepIndex, e)}
+                                    className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors"
+                                >
+                                    ⚙️ Edit Config
+                                </button>
+                            )}
 
                             {/* ONLY SHOW DELETE FOR NON-FIRST STEPS */}
                             {!isFirstStep && (
