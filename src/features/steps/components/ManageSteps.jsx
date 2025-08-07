@@ -4,6 +4,8 @@ import StepWizard from './StepWizard';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import PageHeader from '../../../shared/components/PageHeader';
 import StepsList from '../../projects/components/ManageSteps/StepsList';
+import EditPatternOverlay from './EditPatternOverlay';
+import EditConfigScreen from './EditConfigScreen'; // ✅ ADD THIS IMPORT
 import { PrepNoteDisplay, usePrepNoteManager, PrepStepOverlay, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 
 const ManageSteps = ({ componentIndex, onBack }) => {
@@ -14,6 +16,9 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingPrepNoteStepIndex, setEditingPrepNoteStepIndex] = useState(null);
   const [editMode, setEditMode] = useState(null); // 'pattern' | 'configuration' | null
+  const [showEditPatternOverlay, setShowEditPatternOverlay] = useState(false);
+  const [showEditConfigScreen, setShowEditConfigScreen] = useState(false); // ✅ ADD THIS STATE
+
 
   // Add prep note manager
   const {
@@ -221,21 +226,82 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     setOpenMenuId(null);
   };
 
-  // ✅ NEW: Handle Edit Pattern
+  // ✅ UPDATED: Handle Edit Pattern
   const handleEditPatternFromMenu = (stepIndex, event) => {
     event.stopPropagation();
     setEditingStepIndex(stepIndex);
-    setEditMode('pattern'); // New state variable needed
-    setIsEditing(true);
+    setShowEditPatternOverlay(true); // ✅ CHANGE: Show overlay instead of wizard
     setOpenMenuId(null);
   };
+
+  // ✅ NEW: Handle saving pattern changes with recalculation
+  const handleSavePatternChanges = (newPatternData) => {
+    const step = component.steps[editingStepIndex];
+    const hasRowsInPatternChanged = step.wizardConfig.stitchPattern.rowsInPattern !== newPatternData.rowsInPattern;
+
+    // Update the step's wizard config with new pattern data
+    const updatedWizardConfig = {
+      ...step.wizardConfig,
+      stitchPattern: {
+        ...step.wizardConfig.stitchPattern,
+        ...newPatternData
+      }
+    };
+
+
+    // If rowsInPattern changed and we have a duration with repeats, recalculate
+    if (hasRowsInPatternChanged && step.wizardConfig.duration?.type === 'repeats') {
+      const repeats = parseInt(step.wizardConfig.duration.value) || 1;
+      const newRowsInPattern = parseInt(newPatternData.rowsInPattern) || 1;
+      const newTotalRows = repeats * newRowsInPattern;
+
+      // Update the step with recalculated values
+      dispatch({
+        type: 'UPDATE_STEP',
+        payload: {
+          componentIndex,
+          stepIndex: editingStepIndex,
+          step: {
+            ...step,
+            wizardConfig: updatedWizardConfig,
+            totalRows: newTotalRows,
+            // Keep existing stitch counts unless this affects them
+            description: step.description // Will need regeneration in the future
+          }
+        }
+      });
+    } else {
+      // Normal update without recalculation
+      dispatch({
+        type: 'UPDATE_STEP',
+        payload: {
+          componentIndex,
+          stepIndex: editingStepIndex,
+          step: {
+            ...step,
+            wizardConfig: updatedWizardConfig
+          }
+        }
+      });
+    }
+
+    // Reset state
+    setShowEditPatternOverlay(false);
+    setEditingStepIndex(null);
+  };
+
+  // ✅ NEW: Handle closing pattern overlay
+  const handleClosePatternOverlay = () => {
+    setShowEditPatternOverlay(false);
+    setEditingStepIndex(null);
+  };
+
 
   // ✅ NEW: Handle Edit Config  
   const handleEditConfigFromMenu = (stepIndex, event) => {
     event.stopPropagation();
     setEditingStepIndex(stepIndex);
-    setEditMode('configuration'); // New state variable needed
-    setIsEditing(true);
+    setShowEditConfigScreen(true); // NEW - shows screen
     setOpenMenuId(null);
   };
 
@@ -365,6 +431,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     );
   }
 
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
@@ -406,8 +473,8 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             openMenuId={openMenuId}
             onMenuToggle={handleMenuToggle}
             onEditStep={handleEditStepFromMenu}
-            onEditPattern={handleEditPatternFromMenu} // ✅ ADD THIS
-            onEditConfig={handleEditConfigFromMenu}   // ✅ ADD THIS
+            onEditPattern={handleEditPatternFromMenu}
+            onEditConfig={handleEditConfigFromMenu}
             onDeleteStep={handleDeleteStepFromMenu}
             getPatternDisplay={getPatternDisplay}
             getMethodDisplay={getMethodDisplay}
@@ -457,6 +524,15 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           title="Edit Preparation Note"
           subtitle="Update the setup note for this step"
           {...getPrepNoteConfig('stepWizard')}
+        />
+
+        {/* ✅ NEW: Edit Pattern Overlay */}
+        <EditPatternOverlay
+          isOpen={showEditPatternOverlay}
+          onClose={handleClosePatternOverlay}
+          onSave={handleSavePatternChanges}
+          currentStep={editingStepIndex !== null ? component.steps[editingStepIndex] : null}
+          title="Edit Pattern"
         />
       </div>
     </div>
