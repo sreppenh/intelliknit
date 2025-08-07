@@ -9,24 +9,75 @@ import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminol
  * Extracts complex state management from PhaseConfig component
  */
 export const usePhaseManager = (currentStitches, construction, existingShapingData) => {
+  console.log('🔧 FULL DEBUG usePhaseManager:', {
+    existingShapingData,
+    'existingShapingData?.phases': existingShapingData?.phases,
+    'existingShapingData?.config?.phases': existingShapingData?.config?.phases,
+    'getInitialPhases() result': (() => {
+      if (existingShapingData?.phases) {
+        return existingShapingData.phases;
+      }
+      if (existingShapingData?.config?.phases) {
+        return existingShapingData.config.phases;
+      }
+      return [];
+    })()
+  });
+
+
   const getInitialPhases = () => {
+    // Edit mode: direct access to phases
+    if (existingShapingData?.phases) {
+      return existingShapingData.phases;
+    }
+    // Add mode: nested under config
     if (existingShapingData?.config?.phases) {
       return existingShapingData.config.phases;
     }
     return [];
   };
 
+
   const getInitialDescription = () => {
+    // Edit mode: direct access to description
+    if (existingShapingData?.description) {
+      return existingShapingData.description;
+    }
+    // Add mode: nested under config
     if (existingShapingData?.config?.description) {
       return existingShapingData.config.description;
     }
     return '';
   };
-  const [phases, setPhases] = useState([]);
+
+  // NEW:
+  const [phases, setPhases] = useState(() => {
+    if (existingShapingData?.phases) {
+      return existingShapingData.phases;
+    }
+    if (existingShapingData?.config?.phases) {
+      return existingShapingData.config.phases;
+    }
+    return [];
+  });
   const [currentScreen, setCurrentScreen] = useState('summary');
   const [editingPhaseId, setEditingPhaseId] = useState(null);
   const [tempPhaseConfig, setTempPhaseConfig] = useState({});
-  const [stepDescription, setStepDescription] = useState('');
+  const [stepDescription, setStepDescription] = useState(() => {
+    if (existingShapingData?.description) {
+      return existingShapingData.description;
+    }
+    if (existingShapingData?.config?.description) {
+      return existingShapingData.config.description;
+    }
+    return '';
+  });
+
+  console.log('🔧 INITIAL STATE:', {
+    'phases length': phases.length,
+    'currentScreen': currentScreen,
+    'phases array': phases
+  });
 
   // Fix empty state: Start with type selection when no phases exist
   useEffect(() => {

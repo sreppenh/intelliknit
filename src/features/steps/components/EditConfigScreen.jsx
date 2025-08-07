@@ -4,6 +4,8 @@ import EditDurationForm from './EditDurationForm';
 import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+import EditSequentialPhasesForm from './EditSequentialPhasesForm';
+import EditEvenDistributionForm from './EditEvenDistributionForm';
 
 const EditConfigScreen = ({
     componentIndex,
@@ -105,41 +107,20 @@ const EditConfigScreen = ({
 
         case 'even_distribution':
             return (
-                <div className="min-h-screen bg-yarn-50">
-                    <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-                        <EvenDistributionConfig
-                            shapingData={step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig || {}}
-                            setShapingData={() => { }} // Component handles its own save logic
-                            currentStitches={currentStitches}
-                            construction={construction}
-                            componentIndex={componentIndex}
-                            editingStepIndex={editingStepIndex}
-                            onExitToComponentSteps={onBack}
-                            onComplete={onBack}
-                            onBack={onBack}
-                            wizardData={step.wizardConfig}
-                        />
-                    </div>
-                </div>
+                <EditEvenDistributionForm
+                    componentIndex={componentIndex}
+                    editingStepIndex={editingStepIndex}
+                    onBack={onBack}
+                />
             );
 
         case 'sequential_phases':
             return (
-                <div className="min-h-screen bg-yarn-50">
-                    <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-                        <PhaseConfig
-                            shapingData={step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig || {}}
-                            setShapingData={() => { }} // Component handles its own save logic
-                            currentStitches={currentStitches}
-                            construction={construction}
-                            componentIndex={componentIndex}
-                            onExitToComponentSteps={onBack}
-                            onComplete={onBack}
-                            onBack={onBack}
-                            wizardData={step.wizardConfig}
-                        />
-                    </div>
-                </div>
+                <EditSequentialPhasesForm
+                    componentIndex={componentIndex}
+                    editingStepIndex={editingStepIndex}
+                    onBack={onBack}
+                />
             );
 
         default:

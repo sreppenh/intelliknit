@@ -65,7 +65,7 @@ const EditDurationForm = ({
 
     const canSave = () => {
         return formData.type && formData.value && (
-            formData.type === 'until_length' ? true : parseInt(formData.value) > 0
+            formData.type === 'until_length' ? true : parseFloat(formData.value) > 0
         );
     };
 
@@ -157,8 +157,8 @@ const EditDurationForm = ({
                             <div className="space-y-4">
                                 {/* Rows Option */}
                                 <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${formData.type === 'rows'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
                                     }`}>
                                     <div className="flex items-start gap-4">
                                         <input
@@ -198,8 +198,8 @@ const EditDurationForm = ({
 
                                 {/* Length from current position */}
                                 <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${formData.type === 'length'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
                                     }`}>
                                     <div className="flex items-start gap-4">
                                         <input
@@ -266,8 +266,8 @@ const EditDurationForm = ({
 
                                 {/* Length until target */}
                                 <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${formData.type === 'until_length'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
                                     }`}>
                                     <div className="flex items-start gap-4">
                                         <input
@@ -346,8 +346,8 @@ const EditDurationForm = ({
                                 {/* Pattern repeats - only show if pattern has repeats */}
                                 {patternHasRepeats && (
                                     <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${formData.type === 'repeats'
-                                            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                            : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
                                         }`}>
                                         <div className="flex items-start gap-4">
                                             <input

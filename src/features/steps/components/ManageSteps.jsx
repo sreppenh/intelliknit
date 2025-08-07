@@ -61,6 +61,22 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
   const component = currentProject.components[componentIndex];
 
+  // In ManageSteps.jsx, update the existing debug to also log phases:
+  console.log('=== STEP DEBUG INFO ===');
+  component.steps.forEach((step, index) => {
+    const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
+    if (hasShaping) {
+      const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+      if (shapingConfig?.type === 'phases') {
+        console.log(`Step ${index} Sequential Phases:`, {
+          type: shapingConfig.type,
+          config: shapingConfig.config,
+          wizardConfig: step.wizardConfig
+        });
+      }
+    }
+  });
+
 
 
   // Add prep note click handler

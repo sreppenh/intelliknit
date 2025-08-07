@@ -55,28 +55,44 @@ const StepCard = ({
                                     </span>
                                     {/* Duration display - extract from description or use totalRows as fallback */}
                                     {(() => {
-                                        // Try to extract duration from description
-                                        const desc = step.description || '';
+                                        // NEW: Read duration from wizardConfig first (most up-to-date)
+                                        const duration = step.wizardConfig?.duration;
 
-                                        // Look for measurement patterns like "for 2 inches" or "until piece measures 3 cm"
+                                        if (duration) {
+                                            switch (duration.type) {
+                                                case 'rows':
+                                                    return <span>{duration.value} {step.construction === 'round' ? 'rounds' : 'rows'}</span>;
+                                                case 'length':
+                                                    return <span>+{duration.value} {duration.units}</span>;
+                                                case 'until_length':
+                                                    return <span>until {duration.value} {duration.units}</span>;
+                                                case 'repeats':
+                                                    return <span>{duration.value} repeats</span>;
+                                                case 'stitches':
+                                                    return <span>{duration.value || 'all'} stitches</span>;
+                                                default:
+                                                    break;
+                                            }
+                                        }
+
+                                        // FALLBACK: Try to extract from description (for legacy steps)
+                                        const desc = step.description || '';
                                         const measurementMatch = desc.match(/(?:for|until piece measures)\s+(\d+(?:\.\d+)?)\s+(inches?|cm)/i);
                                         if (measurementMatch) {
                                             return <span>{measurementMatch[1]} {measurementMatch[2]}</span>;
                                         }
 
-                                        // Look for row patterns like "for 5 rows"
                                         const rowMatch = desc.match(/for\s+(\d+)\s+rows?/i);
                                         if (rowMatch) {
                                             return <span>{rowMatch[1]} rows</span>;
                                         }
 
-                                        // Look for repeat patterns like "for 3 repeats"
                                         const repeatMatch = desc.match(/for\s+(\d+)\s+repeats?/i);
                                         if (repeatMatch) {
                                             return <span>{repeatMatch[1]} repeats</span>;
                                         }
 
-                                        // Fallback to totalRows if no pattern found
+                                        // Final fallback to totalRows
                                         if (step.totalRows) {
                                             return <span>{step.totalRows} rows</span>;
                                         }
