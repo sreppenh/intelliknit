@@ -436,6 +436,11 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     );
   }
 
+  // Handle navigation to ProjectDetail from ComponentCompletionModal
+  const handleNavigateToProject = () => {
+    onBack(); // Navigate back to ProjectDetail (Overview tab will be default)
+  };
+
   // In the ComponentEndingWizard render, REMOVE the extra prop:
   if (showEndingWizard) {
     return (
@@ -444,6 +449,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
         projectName={currentProject?.name} // ✅ ADD THIS LINE
         onBack={handleBackFromEnding}
         onComplete={handleEndingComplete}
+        onNavigateToProject={handleNavigateToProject} // 🎯 NEW: Add this line
       />
     );
   }

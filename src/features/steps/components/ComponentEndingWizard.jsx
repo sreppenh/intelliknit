@@ -15,6 +15,7 @@ const ComponentEndingWizard = ({
   projectName, // Added
   onBack,
   onComplete,
+  onNavigateToProject,
 }) => {
   const [step, setStep] = useState(1);
   const [endingData, setEndingData] = useState({
@@ -83,6 +84,9 @@ const ComponentEndingWizard = ({
     setShowCompletionModal(false);
     // Complete the step first, then navigate to ProjectDetail Overview
     onComplete(completedEndingStep);
+    if (onNavigateToProject) {
+      onNavigateToProject();
+    }
   };
 
   const handleCloseModal = () => {
