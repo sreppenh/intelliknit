@@ -74,6 +74,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, editMode = null, 
   // If showing ending wizard
   if (wizardState.showEndingWizard) {
     return (
+
       <ComponentEndingWizard
         component={wizard.component}
         onBack={wizardState.handleBackFromEnding}

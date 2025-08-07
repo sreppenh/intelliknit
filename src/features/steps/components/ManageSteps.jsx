@@ -436,6 +436,19 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     );
   }
 
+  // If showing ending wizard - THIS IS THE MISSING CODE!!!
+  if (showEndingWizard) {
+    return (
+      <ComponentEndingWizard
+        component={component}
+        onBack={handleBackFromEnding}
+        onComplete={handleEndingComplete}
+      />
+    );
+  }
+
+
+
 
   if (showEditConfigScreen) {
     return (
