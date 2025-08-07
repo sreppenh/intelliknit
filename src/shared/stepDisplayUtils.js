@@ -1,0 +1,354 @@
+// src/shared/utils/stepDisplayUtils.js
+
+/**
+ * Step Display Utilities - Data-Driven Approach
+ * 
+ * Replaces string parsing with structured data access.
+ * Single source of truth for step display across the application.
+ */
+
+// ===== PATTERN MAPPINGS =====
+
+const CAST_ON_METHODS = {
+    'long_tail': 'Long Tail',
+    'cable': 'Cable Cast On',
+    'knitted': 'Knitted Cast On',
+    'backwards_loop': 'Backwards Loop',
+    'provisional': 'Provisional',
+    'judy': 'Judy\'s Magic',
+    'german_twisted': 'German Twisted'
+};
+
+const BIND_OFF_METHODS = {
+    'standard': 'Standard',
+    'stretchy': 'Stretchy',
+    'picot': 'Picot',
+    'three_needle': 'Three Needle',
+    'sewn': 'Sewn Bind Off'
+};
+
+const ATTACH_METHODS = {
+    'mattress_stitch': 'Mattress Stitch',
+    'backstitch': 'Backstitch',
+    'kitchener_stitch': 'Kitchener Stitch',
+    'three_needle_bindoff': 'Three Needle Bind Off'
+};
+
+const PATTERN_CATEGORIES = {
+    'construction': ['Cast On', 'Bind Off', 'Put on Holder', 'Attach to Piece'],
+    'texture': ['Stockinette', 'Garter', 'Reverse Stockinette', '1x1 Rib', '2x2 Rib', 'Seed Stitch', 'Moss Stitch'],
+    'colorwork': ['Stranded Colorwork', 'Intarsia', 'Fair Isle', 'Mosaic'],
+    'structure': ['Lace', 'Cable', 'Brioche']
+};
+
+// ===== CORE UTILITY FUNCTIONS =====
+
+/**
+ * Get step's pattern name from structured data
+ * NO string parsing - uses actual configuration
+ */
+export const getStepPatternName = (step) => {
+    // Priority 1: wizardConfig
+    if (step.wizardConfig?.stitchPattern?.pattern) {
+        return step.wizardConfig.stitchPattern.pattern;
+    }
+
+    // Priority 2: wizardConfig category fallback
+    if (step.wizardConfig?.stitchPattern?.category) {
+        return step.wizardConfig.stitchPattern.category;
+    }
+
+    // Priority 3: advancedWizardConfig
+    if (step.advancedWizardConfig?.stitchPattern?.pattern) {
+        return step.advancedWizardConfig.stitchPattern.pattern;
+    }
+
+    if (step.advancedWizardConfig?.stitchPattern?.category) {
+        return step.advancedWizardConfig.stitchPattern.category;
+    }
+
+    // Priority 4: Detect ending step variants from structured data
+    if (step.wizardConfig?.stitchPattern?.pattern === 'Bind Off') {
+        const method = step.wizardConfig.stitchPattern.method;
+        if (method === 'holder' || method === 'provisional') {
+            return 'Put on Holder';
+        }
+    }
+
+    // LAST RESORT: Check if this is ComponentEndingWizard output
+    if (step.type === 'attach_to_piece') return 'Attach to Piece';
+    if (step.type === 'put_on_holder') return 'Put on Holder';
+    if (step.type === 'bind_off_all') return 'Bind Off';
+
+    // Final fallback - only for truly legacy/corrupted data
+    return 'Unknown Pattern';
+};
+
+/**
+ * Get method display name for a step
+ * Returns empty string if no method applies
+ */
+export const getStepMethodDisplay = (step) => {
+    const pattern = getStepPatternName(step);
+    const method = step.wizardConfig?.stitchPattern?.method;
+    const customText = step.wizardConfig?.stitchPattern?.customText;
+
+    if (!method) return '';
+
+    switch (pattern) {
+        case 'Cast On':
+            return CAST_ON_METHODS[method] || (method === 'other' ? customText : method);
+
+        case 'Bind Off':
+            return BIND_OFF_METHODS[method] || (method === 'other' ? customText : method);
+
+        case 'Attach to Piece':
+            return ATTACH_METHODS[method] || (method === 'other' ? customText : method);
+
+        default:
+            return '';
+    }
+};
+
+/**
+ * Get full pattern display with method
+ * Example: "Cast On - Long Tail" or "Stockinette"
+ */
+export const getStepPatternDisplay = (step) => {
+    const pattern = getStepPatternName(step);
+    const method = getStepMethodDisplay(step);
+
+    return method ? `${pattern} - ${method}` : pattern;
+};
+
+/**
+ * Get step duration display from structured data
+ * NO regex parsing - uses actual configuration
+ */
+export const getStepDurationDisplay = (step) => {
+    const duration = step.wizardConfig?.duration;
+    const construction = step.construction || 'flat';
+
+    if (!duration?.type) {
+        // Fallback to totalRows if available
+        return step.totalRows ? `${step.totalRows} ${construction === 'round' ? 'rounds' : 'rows'}` : null;
+    }
+
+    switch (duration.type) {
+        case 'rows':
+        case 'rounds':
+            return `${duration.value} ${construction === 'round' ? 'rounds' : 'rows'}`;
+
+        case 'length':
+            return `+${duration.value} ${duration.units}`;
+
+        case 'until_length':
+            return `until ${duration.value} ${duration.units}`;
+
+        case 'repeats':
+            return `${duration.value} repeats`;
+
+        case 'stitches':
+            return `${duration.value || 'all'} stitches`;
+
+        default:
+            return null;
+    }
+};
+
+/**
+ * Get stitch count change display
+ * Returns formatted string like "+6" or "-12" or null
+ */
+export const getStitchChangeDisplay = (step) => {
+    if (typeof step.startingStitches === 'number' && typeof step.endingStitches === 'number') {
+        const change = step.endingStitches - step.startingStitches;
+        if (change !== 0) {
+            return change > 0 ? `+${change}` : `${change}`;
+        }
+    }
+    return null;
+};
+
+/**
+ * Get shaping info display
+ * Returns structured shaping information
+ */
+export const getShapingDisplay = (step) => {
+    const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
+
+    if (!hasShaping) return null;
+
+    const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+
+    if (!shapingConfig?.type) {
+        // Legacy shaping detection
+        return 'with shaping';
+    }
+
+    switch (shapingConfig.type) {
+        case 'even_distribution':
+            const action = shapingConfig.config?.action || 'changes';
+            const amount = shapingConfig.config?.amount;
+            return amount ? `${action} ${amount}` : action;
+
+        case 'phases':
+            const phases = shapingConfig.config?.phases?.length || 0;
+            return `${phases} phases`;
+
+        default:
+            return 'with shaping';
+    }
+};
+
+/**
+ * Check if step is a special construction step
+ * (Cast On, Bind Off, Attach to Piece, Put on Holder)
+ */
+export const isConstructionStep = (step) => {
+    const pattern = getStepPatternName(step);
+    return PATTERN_CATEGORIES.construction.includes(pattern);
+};
+
+/**
+ * Check if step is editable
+ * Based on completion status and step type rules
+ */
+export const isStepEditable = (step, isComponentFinished = false) => {
+    if (isComponentFinished) return false;
+    if (step.completed) return false;
+
+    // Cast On steps typically aren't editable after creation
+    const pattern = getStepPatternName(step);
+    if (pattern === 'Cast On') return false;
+
+    return true;
+};
+
+/**
+ * Get comprehensive step summary for display
+ * Returns object with all display properties
+ */
+export const getStepDisplayInfo = (step) => {
+    return {
+        pattern: getStepPatternName(step),
+        patternDisplay: getStepPatternDisplay(step),
+        method: getStepMethodDisplay(step),
+        duration: getStepDurationDisplay(step),
+        stitchChange: getStitchChangeDisplay(step),
+        shaping: getShapingDisplay(step),
+        isConstruction: isConstructionStep(step),
+        isEditable: isStepEditable(step),
+        startingStitches: step.startingStitches,
+        endingStitches: step.endingStitches,
+        totalRows: step.totalRows,
+        construction: step.construction || 'flat'
+    };
+};
+
+// ===== TARGET COMPONENT UTILITIES =====
+
+/**
+ * Get target component for Attach to Piece steps
+ */
+export const getAttachTargetDisplay = (step) => {
+    const pattern = getStepPatternName(step);
+    if (pattern !== 'Attach to Piece') return null;
+
+    return step.wizardConfig?.stitchPattern?.targetComponent || 'Unknown Component';
+};
+
+/**
+ * Get custom notes for ending steps
+ */
+export const getEndingNotes = (step) => {
+    const pattern = getStepPatternName(step);
+
+    if (pattern === 'Put on Holder' || pattern === 'Attach to Piece') {
+        return step.wizardConfig?.stitchPattern?.customText || null;
+    }
+
+    return null;
+};
+
+// ===== PREP NOTES UTILITIES =====
+
+/**
+ * Get prep note from any possible location
+ */
+export const getStepPrepNote = (step) => {
+    return step.prepNote ||
+        step.wizardConfig?.prepNote ||
+        step.advancedWizardConfig?.prepNote ||
+        '';
+};
+
+// ===== VALIDATION UTILITIES =====
+
+/**
+ * Validate step has required configuration
+ */
+export const validateStepConfiguration = (step) => {
+    const pattern = getStepPatternName(step);
+
+    if (pattern === 'Unknown Pattern') {
+        return { isValid: false, error: 'Missing pattern configuration' };
+    }
+
+    if (pattern === 'Cast On' && !step.wizardConfig?.stitchPattern?.stitchCount) {
+        return { isValid: false, error: 'Cast On missing stitch count' };
+    }
+
+    if (typeof step.startingStitches !== 'number' || typeof step.endingStitches !== 'number') {
+        return { isValid: false, error: 'Missing stitch count data' };
+    }
+
+    return { isValid: true };
+};
+
+// ===== COMPONENT STATE UTILITIES =====
+
+/**
+ * Determine component state based on its steps
+ * Used by CompactComponentCard and other component displays
+ */
+export const getComponentState = (component) => {
+    if (!component.steps || component.steps.length === 0) {
+        return 'edit_mode';
+    }
+
+    const hasCastOn = component.steps.some(step =>
+        getStepPatternName(step) === 'Cast On'
+    );
+
+    const hasEnding = component.steps.some(step => {
+        const pattern = getStepPatternName(step);
+        return ['Bind Off', 'Put on Holder', 'Attach to Piece'].includes(pattern);
+    });
+
+    const hasProgress = component.steps.some(step => step.completed);
+    const allComplete = component.steps.every(step => step.completed);
+
+    if (hasEnding && allComplete) return 'finished';
+    if (hasCastOn && hasProgress) return 'currently_knitting';
+    if (hasCastOn && hasEnding && !hasProgress) return 'ready_to_knit';
+
+    return 'edit_mode';
+};
+
+export default {
+    getStepPatternName,
+    getStepMethodDisplay,
+    getStepPatternDisplay,
+    getStepDurationDisplay,
+    getStitchChangeDisplay,
+    getShapingDisplay,
+    getStepDisplayInfo,
+    getAttachTargetDisplay,
+    getEndingNotes,
+    getStepPrepNote,
+    isConstructionStep,
+    isStepEditable,
+    validateStepConfiguration,
+    getComponentState
+};
