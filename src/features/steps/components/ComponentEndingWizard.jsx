@@ -12,9 +12,9 @@ import SetupNotesSection from '../../../shared/components/SetUpNotesSection';
 
 const ComponentEndingWizard = ({
   component,
+  projectName, // Added
   onBack,
   onComplete,
-  onNavigateToComponents // ✅ NEW PROP for Components tab navigation
 }) => {
   const [step, setStep] = useState(1);
   const [endingData, setEndingData] = useState({
@@ -79,14 +79,10 @@ const ComponentEndingWizard = ({
     // Navigation to ManageSteps (Pattern Steps) will happen via existing flow
   };
 
-  const handleViewComponents = () => {
+  const handleViewProject = () => {
     setShowCompletionModal(false);
-    // Complete the step first
+    // Complete the step first, then navigate to ProjectDetail Overview
     onComplete(completedEndingStep);
-    // Navigate to Components tab
-    if (onNavigateToComponents) {
-      onNavigateToComponents();
-    }
   };
 
   const handleCloseModal = () => {
@@ -235,10 +231,11 @@ const ComponentEndingWizard = ({
         <ComponentCompletionModal
           isOpen={showCompletionModal}
           componentName={component?.name || 'this component'}
+          projectName={projectName} // ✅ ADD THIS
           endingType={completedEndingStep?.type}
           currentStitches={currentStitches}
           onViewComponent={handleViewComponent}
-          onViewComponents={handleViewComponents} // ✅ CHANGED: Now goes to Components tab
+          onViewProject={handleViewProject} // ✅ ADD THIS
           onClose={handleCloseModal}
         />
 
@@ -318,10 +315,11 @@ const ComponentEndingWizard = ({
       <ComponentCompletionModal
         isOpen={showCompletionModal}
         componentName={component?.name || 'this component'}
+        projectName={projectName} // ✅ ADD THIS
         endingType={completedEndingStep?.type}
         currentStitches={currentStitches}
         onViewComponent={handleViewComponent}
-        onViewComponents={handleViewComponents} // ✅ CHANGED: Now goes to Components tab
+        onViewProject={handleViewProject} // ✅ ADD THIS
         onClose={handleCloseModal}
       />
 

@@ -436,21 +436,17 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     );
   }
 
+  // In the ComponentEndingWizard render, REMOVE the extra prop:
   if (showEndingWizard) {
     return (
       <ComponentEndingWizard
         component={component}
+        projectName={currentProject?.name} // ✅ ADD THIS LINE
         onBack={handleBackFromEnding}
         onComplete={handleEndingComplete}
-        onNavigateToComponents={() => {
-          // This needs to go back to ProjectDetail AND switch to Components tab
-          onBack(); // This goes back to ProjectDetail
-          // But we need a way to tell ProjectDetail to switch tabs...
-        }}
       />
     );
   }
-
 
 
 

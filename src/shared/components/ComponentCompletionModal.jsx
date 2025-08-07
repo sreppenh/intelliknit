@@ -3,10 +3,11 @@ import React, { useEffect } from 'react';
 const ComponentCompletionModal = ({
     isOpen,
     componentName,
+    projectName,
     endingType,
     currentStitches,
-    onViewComponent,
-    onViewComponents,  // ✅ NEW: Changed from onAddAnother
+    onViewComponent, // ✅ View component steps (stays on ManageSteps)
+    onViewProject,   // ✅ View project overview (goes to ProjectDetail)
     onClose
 }) => {
     // Standardized Simple Action Modal Behavior
@@ -41,7 +42,7 @@ const ComponentCompletionModal = ({
         }
     };
 
-    // ✅ FIXED: Correct messaging - step is CONFIGURED, not physically completed
+    // Correct messaging - step is CONFIGURED, not physically completed
     const getContent = () => {
         switch (endingType) {
             case 'put_on_holder':
@@ -49,35 +50,35 @@ const ComponentCompletionModal = ({
                     icon: '📎',
                     title: 'Holder Step Added!',
                     message: `Added step to put ${currentStitches} stitches on holder for ${componentName}.`,
-                    subtext: 'Your component is configured and ready to knit.'
+                    subtext: 'This step is ready to knit when you get to it. The stitches will be saved for later use.'
                 };
             case 'bind_off_all':
                 return {
                     icon: '✂️',
                     title: 'Bind Off Step Added!',
                     message: `Added final bind off step for ${componentName} (${currentStitches} stitches).`,
-                    subtext: 'Your component is configured and ready to knit.'
+                    subtext: 'This finishing step is now in your pattern sequence, ready to knit when you reach it.'
                 };
             case 'attach_to_piece':
                 return {
                     icon: '🔗',
                     title: 'Attachment Step Added!',
                     message: `Added step to attach ${componentName} to another component.`,
-                    subtext: 'Your component is configured and ready to knit..'
+                    subtext: 'This joining step is configured and ready for when you knit this component.'
                 };
             case 'other':
                 return {
                     icon: '✅',
                     title: 'Custom Ending Added!',
                     message: `Added custom finishing step for ${componentName}.`,
-                    subtext: 'Your component is configured and ready to knit.'
+                    subtext: 'Your custom ending step is now part of the pattern sequence.'
                 };
             default:
                 return {
                     icon: '🎉',
                     title: 'Step Added!',
                     message: `New step added to ${componentName} successfully.`,
-                    subtext: 'Your component is configured and ready to knit.'
+                    subtext: 'Your step is configured and ready to knit.'
                 };
         }
     };
@@ -115,10 +116,10 @@ const ComponentCompletionModal = ({
                     </div>
 
                     <div className="text-center mb-6">
-                        <p className="text-wool-600 font-medium">Where would you like to go next?</p>
+                        <p className="text-wool-600 font-medium">Component ending configured successfully!</p>
                     </div>
 
-                    {/* Navigation Options */}
+                    {/* ✅ TWO NAVIGATION OPTIONS */}
                     <div className="stack-sm">
                         {/* Primary: View Component (Pattern Steps) */}
                         <button
@@ -133,15 +134,15 @@ const ComponentCompletionModal = ({
                             </div>
                         </button>
 
-                        {/* ✅ CHANGED: Secondary: View Components (Components Tab) */}
+                        {/* Secondary: View Project (Overview Tab) */}
                         <button
-                            onClick={onViewComponents}
+                            onClick={onViewProject}
                             className="w-full btn-tertiary flex items-center justify-center gap-3 py-4"
                         >
-                            <span className="text-lg">📋</span>
+                            <span className="text-lg">🏠</span>
                             <div className="text-left">
-                                <div className="font-semibold">View Components</div>
-                                <div className="text-sm opacity-75">See all project components</div>
+                                <div className="font-semibold">View {projectName}</div>
+                                <div className="text-sm opacity-75">Return to project overview</div>
                             </div>
                         </button>
                     </div>
