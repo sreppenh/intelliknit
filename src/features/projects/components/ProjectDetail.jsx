@@ -27,11 +27,12 @@ import DeleteComponentModal from '../../../shared/components/DeleteComponentModa
 import RenameComponentModal from '../../../shared/components/RenameComponentModal';
 import CopyComponentModal from '../../../shared/components/CopyComponentModal';
 
-const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, onStartKnitting, onEditProjectDetails }) => {
+const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onManageSteps, onStartKnitting, onEditProjectDetails }) => {
   const { currentProject, dispatch } = useProjectsContext();
 
   // Tab navigation with memory management
-  const { currentTab, changeTab } = useTabNavigation(currentProject?.id);
+  const { currentTab, changeTab } = useTabNavigation(currentProject?.id, initialTab);
+
 
   // Extract all actions and modal states
   const {
@@ -165,8 +166,8 @@ const ProjectDetail = ({ onBack, onViewComponent, onEditSteps, onManageSteps, on
         <PageHeader
           title={
             <div className={`flex items-center gap-2 ${!(currentProject.size && currentProject.size.trim() && currentProject.size !== 'Not specified')
-                ? 'justify-center'
-                : ''
+              ? 'justify-center'
+              : ''
               }`}>
               <span className="text-base">
                 {getProjectIcon(currentProject.projectType)}

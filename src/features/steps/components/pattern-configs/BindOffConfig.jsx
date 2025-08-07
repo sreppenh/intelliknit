@@ -1,3 +1,5 @@
+// File used for partial bind-offs
+
 import React from 'react';
 
 const BindOffConfig = ({ wizardData, updateWizardData }) => {

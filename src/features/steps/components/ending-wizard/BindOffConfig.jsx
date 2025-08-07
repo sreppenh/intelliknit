@@ -1,3 +1,5 @@
+// File used for FINISHING COMPONENTS
+
 import React from 'react';
 
 const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishingComponent = false }) => {

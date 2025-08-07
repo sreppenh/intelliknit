@@ -3,23 +3,34 @@ import EndingTypeSelector from './ending-wizard/EndingTypeSelector';
 import BindOffConfig from './ending-wizard/BindOffConfig';
 import AttachmentConfig from './ending-wizard/AttachmentConfig';
 import OtherEndingConfig from './ending-wizard/OtherEndingConfig';
+import PutOnHolderConfig from './ending-wizard/PutOnHolderConfig'; // ✅ NEW IMPORT
 import PageHeader from '../../../shared/components/PageHeader';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import ComponentCompletionModal from '../../../shared/components/ComponentCompletionModal';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import SetupNotesSection from '../../../shared/components/SetUpNotesSection';
 
-const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
+const ComponentEndingWizard = ({
+  component,
+  onBack,
+  onComplete,
+  onNavigateToComponents // ✅ NEW PROP for Components tab navigation
+}) => {
   const [step, setStep] = useState(1);
   const [endingData, setEndingData] = useState({
     type: null,
-    method: 'standard', // Default to standard bind off
+    method: 'standard',
     targetComponent: '',
     customText: '',
     customMethod: '',
-    prepNote: '' // NEW: Add prep note to ending data
+    prepNote: ''
   });
 
   const [showExitModal, setShowExitModal] = useState(false);
+
+  // Component completion modal state
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completedEndingStep, setCompletedEndingStep] = useState(null);
 
   // Get current stitch count from last step
   const getCurrentStitchCount = () => {
@@ -33,14 +44,9 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
   const handleEndingTypeSelect = (type) => {
     setEndingData(prev => ({ ...prev, type }));
 
-    // Put on Holder is instant - no configuration needed
+    // ✅ CHANGED: Put on Holder now goes to config screen instead of immediate completion
     if (type === 'put_on_holder') {
-      handleComplete({
-        type,
-        description: `Put all ${currentStitches} stitches on holder for later use`,
-        stitchCount: currentStitches,
-        prepNote: endingData.prepNote // NEW: Include prep note
-      });
+      setStep(2); // Go to configuration screen
       return;
     }
 
@@ -48,7 +54,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     if (type === 'bind_off_all') {
       setEndingData(prev => ({
         ...prev,
-        stitchCount: currentStitches // Auto-populate with current count
+        stitchCount: currentStitches
       }));
     }
 
@@ -56,24 +62,60 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     setStep(2);
   };
 
+  // Modified to show modal instead of immediate navigation
   const handleComplete = (finalData = null) => {
     const endingStep = finalData || generateEndingStep();
-    onComplete(endingStep);
+
+    // Show completion modal with navigation options
+    setCompletedEndingStep(endingStep);
+    setShowCompletionModal(true);
+  };
+
+  // ✅ NEW: Handle modal navigation choices
+  const handleViewComponent = () => {
+    setShowCompletionModal(false);
+    // Complete the step first, then navigate
+    onComplete(completedEndingStep);
+    // Navigation to ManageSteps (Pattern Steps) will happen via existing flow
+  };
+
+  const handleViewComponents = () => {
+    setShowCompletionModal(false);
+    // Complete the step first
+    onComplete(completedEndingStep);
+    // Navigate to Components tab
+    if (onNavigateToComponents) {
+      onNavigateToComponents();
+    }
+  };
+
+  const handleCloseModal = () => {
+    // Close modal and stay on current screen
+    setShowCompletionModal(false);
   };
 
   const generateEndingStep = () => {
     const { type, method, targetComponent, customText, customMethod, stitchCount, prepNote } = endingData;
 
     switch (type) {
+      case 'put_on_holder':
+        return {
+          type,
+          description: `Put all ${currentStitches} stitches on holder${customText ? ` (${customText})` : ''}`,
+          stitchCount: currentStitches,
+          customText,
+          prepNote
+        };
+
       case 'bind_off_all':
         const methodName = method === 'other' ? customMethod : getMethodName(method);
-        const actualCount = stitchCount || currentStitches; // Fallback to current if somehow missing
+        const actualCount = stitchCount || currentStitches;
         return {
           type,
           method: method || 'standard',
           stitchCount: actualCount,
           description: `Bind off all ${actualCount} stitches${methodName ? ` using ${methodName}` : ''}`,
-          prepNote // NEW: Include prep note
+          prepNote
         };
 
       case 'attach_to_piece':
@@ -85,7 +127,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           targetComponent: target,
           stitchCount: currentStitches,
           description: `Attach to ${target}${attachMethod ? ` using ${attachMethod}` : ''}`,
-          prepNote // NEW: Include prep note
+          prepNote
         };
 
       case 'other':
@@ -94,7 +136,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           description: customText,
           customText,
           stitchCount: currentStitches,
-          prepNote // NEW: Include prep note
+          prepNote
         };
 
       default:
@@ -102,7 +144,7 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           type,
           description: 'Unknown ending',
           stitchCount: currentStitches,
-          prepNote // NEW: Include prep note
+          prepNote
         };
     }
   };
@@ -121,22 +163,16 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     return methodNames[methodId] || methodId;
   };
 
-  // Check for unsaved data - PM Claude specified: "validation for first screen only"
   const hasUnsavedData = () => {
-    // Step 1: Check if user has selected an ending type
     if (step === 1) {
       return endingData.type !== null;
     }
-
-    // Step 2: Always show warning (subsequent screens always have data)
     if (step === 2) {
       return true;
     }
-
     return false;
   };
 
-  // Handle exit with warning validation
   const handleExitToComponentSteps = () => {
     if (hasUnsavedData()) {
       setShowExitModal(true);
@@ -158,8 +194,10 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     const { type, method, targetComponent, customText, customMethod } = endingData;
 
     switch (type) {
+      case 'put_on_holder':
+        return true; // ✅ NEW: Put on Holder always ready to complete
       case 'bind_off_all':
-        return true; // Method is optional, stitch count is auto-populated
+        return true;
       case 'attach_to_piece':
         return method && targetComponent && (targetComponent !== 'Other...' || customText);
       case 'other':
@@ -169,14 +207,12 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     }
   };
 
-  // STEP 1 - Clean version with SetupNotesSection
+  // STEP 1
   if (step === 1) {
     return (
       <>
         <div className="min-h-screen bg-yarn-50">
           <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-
-            {/* Header */}
             <PageHeader
               title="Configure Ending"
               subtitle="Set up the details"
@@ -186,17 +222,6 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             />
 
             <div className="p-6 bg-yarn-50 stack-lg">
-
-              {/* Setup Notes Section - ONLY on Step 1 
-              <SetupNotesSection
-                value={endingData.prepNote || ''}
-                onChange={(value) => setEndingData(prev => ({ ...prev, prepNote: value }))}
-                title="Finishing Notes"
-                subtitle="Preparation before finishing this component (optional)"
-                placeholder="e.g., Try on to check length, set up for three-needle bind off"
-                className="mb-6"
-              /> */}
-
               <EndingTypeSelector
                 onTypeSelect={handleEndingTypeSelect}
                 component={component}
@@ -205,6 +230,17 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
             </div>
           </div>
         </div>
+
+        {/* Step Completion Modal */}
+        <ComponentCompletionModal
+          isOpen={showCompletionModal}
+          componentName={component?.name || 'this component'}
+          endingType={completedEndingStep?.type}
+          currentStitches={currentStitches}
+          onViewComponent={handleViewComponent}
+          onViewComponents={handleViewComponents} // ✅ CHANGED: Now goes to Components tab
+          onClose={handleCloseModal}
+        />
 
         <UnsavedChangesModal
           isOpen={showExitModal}
@@ -215,13 +251,11 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
     );
   }
 
-  // STEP 2 - Clean version without setup notes
+  // STEP 2
   return (
     <>
       <div className="min-h-screen bg-yarn-50">
         <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
-
-          {/* Header */}
           <PageHeader
             title="Configure Ending"
             subtitle="Set up the details"
@@ -232,7 +266,15 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
 
           <div className="p-6 bg-yarn-50 stack-lg">
 
-            {/* Render appropriate configuration component */}
+            {/* ✅ NEW: Put on Holder Config */}
+            {endingData.type === 'put_on_holder' && (
+              <PutOnHolderConfig
+                endingData={endingData}
+                setEndingData={setEndingData}
+                currentStitches={currentStitches}
+              />
+            )}
+
             {endingData.type === 'bind_off_all' && (
               <BindOffConfig
                 endingData={endingData}
@@ -258,7 +300,6 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
               />
             )}
 
-            {/* Finish Button */}
             <div className="pt-6 border-t border-wool-200">
               <button
                 onClick={() => handleComplete()}
@@ -272,6 +313,17 @@ const ComponentEndingWizard = ({ component, onBack, onComplete }) => {
           </div>
         </div>
       </div>
+
+      {/* Step Completion Modal for Step 2 completions */}
+      <ComponentCompletionModal
+        isOpen={showCompletionModal}
+        componentName={component?.name || 'this component'}
+        endingType={completedEndingStep?.type}
+        currentStitches={currentStitches}
+        onViewComponent={handleViewComponent}
+        onViewComponents={handleViewComponents} // ✅ CHANGED: Now goes to Components tab
+        onClose={handleCloseModal}
+      />
 
       <UnsavedChangesModal
         isOpen={showExitModal}

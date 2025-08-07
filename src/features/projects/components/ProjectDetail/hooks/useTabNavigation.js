@@ -11,8 +11,8 @@ import { useState, useCallback } from 'react';
 
 const DEFAULT_TAB = 'overview';
 
-const useTabNavigation = (projectId) => {
-    const [currentTab, setCurrentTab] = useState(DEFAULT_TAB);
+const useTabNavigation = (projectId, initialTab = 'overview') => {
+    const [currentTab, setCurrentTab] = useState(initialTab);
 
     // Change tab - simple state update only
     const changeTab = useCallback((tabId) => {

@@ -18,6 +18,14 @@ const IntelliknitMVPContent = () => {
   const { dispatch, selectedComponentIndex } = useProjectsContext();
   const [selectedProjectType, setSelectedProjectType] = useState(null);
   const [projectCreationSource, setProjectCreationSource] = useState(null); // ADD THIS LINE FOR TRACKING
+  const [projectDetailTab, setProjectDetailTab] = useState('overview');
+
+
+  // Update the navigation handler:
+  const handleNavigateToProjectDetailTab = (tabId) => {
+    setProjectDetailTab(tabId);
+    setCurrentView('project-detail');
+  };
 
   // UPDATE handleAddNewProject (from Landing Page):
   const handleAddNewProject = () => {
@@ -157,6 +165,7 @@ const IntelliknitMVPContent = () => {
     case 'project-detail':
       return (
         <ProjectDetail
+          initialTab={projectDetailTab}
           onBack={handleBackToProjectList}
           onViewComponent={handleViewComponent}
           onEditSteps={handleEditSteps}
@@ -196,6 +205,7 @@ const IntelliknitMVPContent = () => {
         <ManageSteps
           componentIndex={selectedComponentIndex}
           onBack={handleBackToProjectDetail}
+          onNavigateToComponents={() => handleNavigateToProjectDetailTab('components')}
         />
       );
 
