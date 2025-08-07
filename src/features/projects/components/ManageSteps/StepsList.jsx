@@ -29,7 +29,7 @@ const StepsList = ({
     return (
         <div className="stack-sm">
             <div className="flex justify-between items-center">
-                <h3 className="content-header-secondary">Pattern Steps</h3>
+                <h3 className="content-header-secondary">{component.name} Steps</h3>
                 <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
                     {component.steps.filter(s => s.completed).length} of {component.steps.length}
                 </span>
