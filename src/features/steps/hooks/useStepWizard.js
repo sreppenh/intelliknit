@@ -27,16 +27,12 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
 
   // Helper function to determine starting step based on edit mode and saved stack
   const getStartingStep = () => {
-    console.log('🔧 Edit Mode:', editMode);
-    console.log('🔧 Saved Stack:', editingStep?.navigationStack);
     if (!editMode || !isEditing || !editingStep) {
-      console.log('🔧 Starting Step: 1 (default)');
       return 1; // Default: start at pattern selector
     }
 
     const savedStack = editingStep.navigationStack;
     if (!savedStack || savedStack.length === 0) {
-      console.log('🔧 Starting Step: 1 (no saved stack)');
       return 1; // Fallback if no saved stack
     }
 
@@ -45,7 +41,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
       // Pattern screens are typically 1 (PatternSelector) and 2 (PatternConfiguration)
       const lastPatternScreen = savedStack.filter(step => step <= 2).slice(-1)[0];
       const patternResult = lastPatternScreen || 1;
-      console.log('🔧 Starting Step:', patternResult, '(pattern mode)');
+
       return patternResult;
     }
 
@@ -53,7 +49,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
       // For configuration, go to the last screen in the saved stack
       // This will be the final config screen they were on
       const configResult = savedStack[savedStack.length - 1];
-      console.log('🔧 Starting Step:', configResult, '(config mode)');
+
       return configResult;
     }
 

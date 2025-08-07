@@ -314,8 +314,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
         if (project) {
           const old = getSharedProjectStatus(project);
           const new_ = getUnifiedProjectStatus(project);
-          console.log('OLD:', old);
-          console.log('NEW:', new_);
           return { old, new: new_ };
         }
         console.log('Project not found at index', projectIndex);

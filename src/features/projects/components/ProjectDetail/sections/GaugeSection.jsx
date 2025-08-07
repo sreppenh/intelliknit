@@ -187,7 +187,6 @@ const GaugeSection = ({
 
     // 🔧 Temp gauge form handlers - SIMPLIFIED AND FIXED
     const updateTempGaugeField = (category, field, value) => {
-        console.log('Updating:', category, field, value);
         setTempGaugeData(prev => {
             const newData = {
                 ...prev,
@@ -196,15 +195,12 @@ const GaugeSection = ({
                     [field]: value
                 }
             };
-            console.log('New temp data:', newData);
             return newData;
         });
     };
     const updateTempGaugeSimple = (field, value) => {
-        console.log('Updating SIMPLE field:', field, 'to:', value);
         setTempGaugeData(prev => {
             const updated = { ...prev, [field]: value };
-            console.log('Updated simple temp data:', updated);
             return updated;
         });
     };
@@ -327,7 +323,6 @@ const GaugeSection = ({
                                     <IncrementInput
                                         value={tempGaugeData.stitchGauge?.stitches ? parseFloat(tempGaugeData.stitchGauge.stitches) : 18}
                                         onChange={(value) => {
-                                            console.log('INCREMENT: New value from button:', value);
                                             updateTempGaugeField('stitchGauge', 'stitches', value);
                                         }}
                                         min={1}

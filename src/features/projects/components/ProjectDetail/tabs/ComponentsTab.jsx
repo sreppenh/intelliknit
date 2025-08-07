@@ -45,9 +45,6 @@ const ComponentsTab = (props) => {
 
     const { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction } = useThreeDotMenu();
 
-    // DEBUG: Let's see what we got from the hook
-    console.log('🔧 Hook values:', { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction });
-
     // Get component status (same logic as before)
     const getComponentStatus = (component) => {
         if (component.type === 'finishing') {
@@ -182,7 +179,6 @@ const ComponentsTab = (props) => {
 
 // Component Status Section
 const ComponentStatusSection = ({ category, components, onComponentAction, openMenuId, setOpenMenuId, handleMenuToggle }) => {
-    console.log('🔧 ComponentStatusSection props:', { openMenuId, setOpenMenuId, handleMenuToggle });
 
     if (components.length === 0) return null;
 

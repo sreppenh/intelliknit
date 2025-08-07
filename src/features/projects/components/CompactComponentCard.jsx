@@ -126,7 +126,6 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
   };
 
   const handleMenuAction = (action, e) => {
-    console.log('handleMenuAction called with:', action);
     e.stopPropagation();
     onMenuAction(action, component.id);
     setOpenMenuId(null);
