@@ -420,16 +420,21 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     );
   }
 
-  // If showing ending wizard
-  if (showEndingWizard) {
+
+  if (showEditConfigScreen) {
     return (
-      <ComponentEndingWizard
-        component={component}
-        onBack={handleBackFromEnding}
-        onComplete={handleEndingComplete}
+      <EditConfigScreen
+        componentIndex={componentIndex}
+        editingStepIndex={editingStepIndex}
+        onBack={() => {
+          setShowEditConfigScreen(false);
+          setEditingStepIndex(null);
+        }}
       />
     );
   }
+
+
 
 
   return (
