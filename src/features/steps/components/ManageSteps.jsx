@@ -7,6 +7,7 @@ import StepsList from '../../projects/components/ManageSteps/StepsList';
 import EditPatternOverlay from './EditPatternOverlay';
 import EditConfigScreen from './EditConfigScreen'; // ✅ ADD THIS IMPORT
 import { PrepNoteDisplay, usePrepNoteManager, PrepStepOverlay, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
+import { getStepPatternName, getStepPatternDisplay, getStepMethodDisplay, isConstructionStep } from '../../../shared/utils/stepDisplayUtils';
 
 const ManageSteps = ({ componentIndex, onBack }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -90,146 +91,24 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     handleOpenPrepNoteOverlay();
   };
 
-  // Helper function to determine the actual pattern type from step data
+  // Clean utility wrappers
   const determineActualPattern = (step) => {
-
-    // First check wizard config
-    let pattern = step.wizardConfig?.stitchPattern?.pattern ||
-      step.wizardConfig?.stitchPattern?.category ||
-      step.advancedWizardConfig?.stitchPattern?.pattern ||
-      step.advancedWizardConfig?.stitchPattern?.category;
-
-    // If it's a "Bind Off" pattern, check description for actual ending type
-    if (pattern === 'Bind Off' && step.description) {
-      const desc = step.description.toLowerCase();
-      if (desc.includes('put') && desc.includes('holder')) {
-        return 'Put on Holder';
-      } else if (desc.includes('attach to')) {
-        return 'Attach to Piece';
-      } else if (!desc.includes('bind off')) {
-        return 'Other Ending';
-      }
-      // If description contains "bind off", keep it as "Bind Off"
-    }
-
-    // Parse from description as fallback
-    if (!pattern && step.description) {
-      const desc = step.description.toLowerCase();
-
-      if (desc.includes('cast on')) return 'Cast On';
-      else if (desc.includes('bind off')) return 'Bind Off';
-      else if (desc.includes('put') && desc.includes('holder')) return 'Put on Holder';
-      else if (desc.includes('attach to')) return 'Attach to Piece';
-      else if (desc.includes('stockinette')) return 'Stockinette';
-      else if (desc.includes('garter')) return 'Garter';
-      else if (desc.includes('rib')) return 'Ribbing';
-      else if (desc.includes('lace')) return 'Lace';
-      else if (desc.includes('cable')) return 'Cable';
-      else {
-        const words = step.description.split(' ');
-        return words.slice(0, 2).join(' ');
-      }
-    }
-
-    return pattern || 'Unknown Pattern';
+    return getStepPatternName(step);
   };
 
-  // Helper functions for step display
   const getPatternDisplay = (step) => {
-    let pattern = null;
-
-    // Check wizard config stitchPattern
-    if (step.wizardConfig?.stitchPattern) {
-      pattern = step.wizardConfig.stitchPattern.pattern ||
-        step.wizardConfig.stitchPattern.category;
-    }
-
-    // Check advanced wizard config
-    if (!pattern && step.advancedWizardConfig?.stitchPattern) {
-      pattern = step.advancedWizardConfig.stitchPattern.pattern ||
-        step.advancedWizardConfig.stitchPattern.category;
-    }
-
-    // Parse from description as fallback
-    if (!pattern) {
-      const desc = step.description.toLowerCase();
-
-      if (desc.includes('cast on')) pattern = 'Cast On';
-      else if (desc.includes('bind off')) pattern = 'Bind Off';
-      else if (desc.includes('stockinette')) pattern = 'Stockinette';
-      else if (desc.includes('garter')) pattern = 'Garter';
-      else if (desc.includes('rib')) pattern = 'Ribbing';
-      else if (desc.includes('lace')) pattern = 'Lace';
-      else if (desc.includes('cable')) pattern = 'Cable';
-      else {
-        const words = step.description.split(' ');
-        pattern = words.slice(0, 2).join(' ');
-      }
-    }
-
-    // Add shaping info if applicable
-    const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
-
-    if (hasShaping && pattern !== 'Cast On' && pattern !== 'Bind Off') {
-      const shapingType = step.wizardConfig?.shapingConfig?.shapingType ||
-        step.advancedWizardConfig?.shapingConfig?.shapingType || 'changes';
-      return `${pattern} with ${shapingType}s`;
-    }
-
-    return pattern || 'Unknown Pattern';
+    return getStepPatternName(step);
   };
 
   const getMethodDisplay = (step) => {
-    const pattern = determineActualPattern(step);
-
-
-    if (pattern === 'Cast On' && step.wizardConfig?.stitchPattern?.method) {
-      const methodId = step.wizardConfig.stitchPattern.method;
-      const methodMap = {
-        'long_tail': 'Long Tail',
-        'cable': 'Cable Cast On',
-        'provisional': 'Provisional',
-        'german_twisted': 'German Twisted',
-        'backward_loop': 'Backward Loop',
-        'other': step.wizardConfig.stitchPattern.customText || 'Other'
-      };
-      return ` - ${methodMap[methodId] || methodId}`;
-    }
-
-    if (pattern === 'Bind Off' && step.wizardConfig?.stitchPattern?.method) {
-      const methodId = step.wizardConfig.stitchPattern.method;
-      const methodMap = {
-        'standard': 'Standard',
-        'stretchy': 'Stretchy',
-        'picot': 'Picot',
-        'three_needle': 'Three Needle',
-        'provisional': 'Put on Holder',
-        'other': step.wizardConfig.stitchPattern.customText || 'Other'
-      };
-      return ` - ${methodMap[methodId] || methodId}`;
-    }
-
-    // 🎯 NEW: Handle Attach to Piece methods
-    if (pattern === 'Attach to Piece' && step.wizardConfig?.stitchPattern?.method) {
-      const methodId = step.wizardConfig.stitchPattern.method;
-
-      const methodMap = {
-        'mattress_stitch': 'Mattress Stitch',
-        'backstitch': 'Backstitch',
-        'kitchener_stitch': 'Kitchener Stitch',
-        'three_needle_bindoff': 'Three Needle Bind Off',
-        'other': step.wizardConfig.stitchPattern.customText || 'Other'
-      };
-      return ` - ${methodMap[methodId] || methodId}`;
-    }
-
-    return '';
+    const method = getStepMethodDisplay(step);
+    return method ? ` - ${method}` : '';
   };
 
   const isSpecialStep = (step) => {
-    const pattern = determineActualPattern(step);
-    return pattern === 'Cast On' || pattern === 'Bind Off' || pattern === 'Put on Holder' || pattern === 'Attach to Piece' || pattern === 'Other Ending';
+    return isConstructionStep(step);
   };
+
 
   const isComponentFinished = () => {
     return component.steps.some(step => {
