@@ -1,6 +1,7 @@
 import React from 'react';
 import { PrepNoteDisplay } from '../../../../shared/components/PrepStepSystem';
 import StepMenu from './StepMenu';
+import { getStepDurationDisplay } from '../../../../shared/utils/stepDisplayUtils';
 
 const StepCard = ({
     step,
@@ -53,51 +54,11 @@ const StepCard = ({
                                     <span>
                                         {step.startingStitches || 0} → {step.endingStitches || step.expectedStitches || 0} sts
                                     </span>
-                                    {/* Duration display - extract from description or use totalRows as fallback */}
+
+                                    {/* Duration display */}
                                     {(() => {
-                                        // NEW: Read duration from wizardConfig first (most up-to-date)
-                                        const duration = step.wizardConfig?.duration;
-
-                                        if (duration) {
-                                            switch (duration.type) {
-                                                case 'rows':
-                                                    return <span>{duration.value} {step.construction === 'round' ? 'rounds' : 'rows'}</span>;
-                                                case 'length':
-                                                    return <span>+{duration.value} {duration.units}</span>;
-                                                case 'until_length':
-                                                    return <span>until {duration.value} {duration.units}</span>;
-                                                case 'repeats':
-                                                    return <span>{duration.value} repeats</span>;
-                                                case 'stitches':
-                                                    return <span>{duration.value || 'all'} stitches</span>;
-                                                default:
-                                                    break;
-                                            }
-                                        }
-
-                                        // FALLBACK: Try to extract from description (for legacy steps)
-                                        const desc = step.description || '';
-                                        const measurementMatch = desc.match(/(?:for|until piece measures)\s+(\d+(?:\.\d+)?)\s+(inches?|cm)/i);
-                                        if (measurementMatch) {
-                                            return <span>{measurementMatch[1]} {measurementMatch[2]}</span>;
-                                        }
-
-                                        const rowMatch = desc.match(/for\s+(\d+)\s+rows?/i);
-                                        if (rowMatch) {
-                                            return <span>{rowMatch[1]} rows</span>;
-                                        }
-
-                                        const repeatMatch = desc.match(/for\s+(\d+)\s+repeats?/i);
-                                        if (repeatMatch) {
-                                            return <span>{repeatMatch[1]} repeats</span>;
-                                        }
-
-                                        // Final fallback to totalRows
-                                        if (step.totalRows) {
-                                            return <span>{step.totalRows} rows</span>;
-                                        }
-
-                                        return null;
+                                        const duration = getStepDurationDisplay(step);
+                                        return duration ? <span>{duration}</span> : null;
                                     })()}
                                     <span>{step.construction || 'flat'}</span>
                                 </div>
