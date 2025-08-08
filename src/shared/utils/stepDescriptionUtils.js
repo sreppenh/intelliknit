@@ -45,6 +45,11 @@ export const getHumanReadableDescription = (step) => {
  */
 export const getContextualNotes = (step) => {
     const pattern = getStepPatternName(step);
+    // For Cast On with "other" method, show custom text
+    if (pattern === 'Cast On' && step.wizardConfig?.stitchPattern?.method === 'other') {
+        const customText = step.wizardConfig?.stitchPattern?.customText;
+        return customText ? customText.trim() : null;
+    }
 
     // For holders, show any custom text the user provided
     if (pattern === 'Put on Holder') {
@@ -90,12 +95,33 @@ export const getFormattedStepDisplay = (step) => {
 /**
  * Generate cast on description
  */
+/**
+ * Generate cast on description
+ */
 const getCastOnDescription = (step) => {
-    const method = getStepMethodDisplay(step);
+    const method = step.wizardConfig?.stitchPattern?.method;
     const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
 
-    if (method) {
-        return `Using ${method.toLowerCase()}, cast on ${stitchCount} stitches`;
+    // Handle "other" method specially - no method name, just cast on
+    if (method === 'other') {
+        return `Cast on ${stitchCount} stitches`;
+    }
+
+    // Get display name for method
+    const CAST_ON_METHODS = {
+        'long_tail': 'long tail cast on',
+        'cable': 'cable cast on',
+        'knitted': 'knitted cast on',
+        'backwards_loop': 'backwards loop cast on',
+        'provisional': 'provisional cast on',
+        'judy': 'judy\'s magic cast on',
+        'german_twisted': 'german twisted cast on'
+    };
+
+    const methodDisplay = CAST_ON_METHODS[method];
+
+    if (methodDisplay) {
+        return `Using ${methodDisplay}, cast on ${stitchCount} stitches`;
     }
 
     return `Cast on ${stitchCount} stitches`;

@@ -61,14 +61,6 @@ const EditSequentialPhasesForm = ({
         handleConfigureBack
     } = phaseManager;
 
-    // In EditSequentialPhasesForm.jsx, add right after the phaseManager initialization:
-    console.log('🔧 EDIT PHASES DEBUG:', {
-        existingShapingData,
-        initialShapingData,
-        phasesFromManager: phases,
-        currentScreen,
-        stepWizardConfig: step.wizardConfig
-    });
     // Calculate result for validation and preview
     const result = calculateSequentialPhases();
 

@@ -1,7 +1,10 @@
 import React from 'react';
 import { PrepNoteDisplay } from '../../../../shared/components/PrepStepSystem';
 import StepMenu from './StepMenu';
-import { getStepDurationDisplay, getStepPatternName, getStepMethodDisplay } from '../../../../shared/utils/stepDisplayUtils';
+import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
+import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
+
+// remove getStepPatternName from above
 
 const StepCard = ({
     step,
@@ -14,8 +17,8 @@ const StepCard = ({
     onMenuToggle,
     onEditStep,
     onDeleteStep,
-    onEditPattern, // NEW
-    onEditConfig,  //NEW
+    onEditPattern,
+    onEditConfig,
     onPrepNoteClick,
 }) => {
     // Extract prep note from various possible locations
@@ -24,13 +27,16 @@ const StepCard = ({
         step.advancedWizardConfig?.prepNote ||
         '';
 
+    // ✅ NEW: Get formatted display data
+    const { description, contextualNotes, technicalData } = getFormattedStepDisplay(step);
+
     return (
         <div className="space-y-2">
             {/* PrepNote Display - Above the step, not numbered */}
             <PrepNoteDisplay
                 note={prepNote}
                 className="mx-1" // Slight margin to align with step content
-                onClick={() => onPrepNoteClick && onPrepNoteClick(stepIndex)} // ADD onClick HERE
+                onClick={() => onPrepNoteClick && onPrepNoteClick(stepIndex)}
             />
 
             {/* Step Card */}
@@ -43,22 +49,22 @@ const StepCard = ({
                     <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1 text-left">
+                                {/* ✅ NEW: Human-readable description */}
                                 <h4 className={`text-sm font-semibold mb-1 text-left ${isCompleted ? 'text-wool-600' : 'text-wool-700'
                                     }`}>
-                                    {getStepPatternName(step)}{getStepMethodDisplay(step) ? ` - ${getStepMethodDisplay(step)}` : ''}
+                                    {description}
                                 </h4>
 
-                                <div className="flex items-center gap-3 text-xs text-wool-500 text-left">
-                                    <span>
-                                        {step.startingStitches || 0} → {step.endingStitches || step.expectedStitches || 0} sts
-                                    </span>
+                                {/* ✅ NEW: Contextual notes in italics (when available) */}
+                                {contextualNotes && (
+                                    <p className="text-xs text-wool-600 italic mb-1 text-left">
+                                        {contextualNotes}
+                                    </p>
+                                )}
 
-                                    {/* Duration display */}
-                                    {(() => {
-                                        const duration = getStepDurationDisplay(step);
-                                        return duration ? <span>{duration}</span> : null;
-                                    })()}
-                                    <span>{step.construction || 'flat'}</span>
+                                {/* ✅ UPDATED: Technical data display */}
+                                <div className="text-xs text-wool-500 text-left">
+                                    {technicalData}
                                 </div>
                             </div>
 
@@ -72,8 +78,8 @@ const StepCard = ({
                                 openMenuId={openMenuId}
                                 onMenuToggle={onMenuToggle}
                                 onEditStep={onEditStep}
-                                onEditPattern={onEditPattern}     // ✅ NEW
-                                onEditConfig={onEditConfig}       // ✅ NEW
+                                onEditPattern={onEditPattern}
+                                onEditConfig={onEditConfig}
                                 onDeleteStep={onDeleteStep}
                                 onPrepNoteClick={onPrepNoteClick}
                             />
@@ -81,15 +87,8 @@ const StepCard = ({
                     </div>
                 </div>
             </div>
-            {/* Debug output - remove or hide in production */}
-            {/* <pre className="text-xs text-left bg-gray-100 text-gray-800 mt-2 p-2 overflow-auto rounded-lg border border-gray-300">
-                {JSON.stringify(step, null, 2)}
-            </pre> */}
         </div>
-
     );
 };
-
-
 
 export default StepCard;

@@ -120,12 +120,6 @@ export const projectsReducer = (state, action) => {
       // Auto-add Cast On step if startingStitches provided
       if (action.payload.startingStitches && action.payload.startingStitches > 0) {
 
-
-        // TEMPORARY DEBUG - replace the previous debug line with this:
-        console.log('Debug - Full payload:', action.payload);
-        console.log('Debug - payload.prepNote:', action.payload.prepNote);
-        console.log('Debug - payload keys:', Object.keys(action.payload));
-
         const castOnStep = {
           id: crypto.randomUUID(),
           description: `Cast on ${action.payload.startingStitches} stitches`,

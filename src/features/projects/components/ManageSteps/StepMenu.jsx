@@ -14,14 +14,16 @@ const StepMenu = ({
     onEditPattern,
     onEditConfig
 }) => {
+
+
+    const isCastOnStep = getStepPatternName(step) === 'Cast On';
     const shouldShowMenu = (isEditable && !isComponentFinished()) ||
-        isSpecial;
+        (isSpecial && !isCastOnStep);
 
     if (!shouldShowMenu) return null;
 
     // CHECK IF THIS IS THE FIRST STEP (Cast On)
     const isFirstStep = stepIndex === 0;
-    const isCastOnStep = getStepPatternName(step) === 'Cast On';
 
     // ✅ NEW: Check if step has pattern that can be edited
     const hasEditablePattern = step.wizardConfig?.stitchPattern?.pattern;
