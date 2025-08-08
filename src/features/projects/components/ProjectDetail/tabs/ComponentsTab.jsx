@@ -3,6 +3,7 @@ import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateComponentTab, extractComponentProps } from '../types/TabProps';
+import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
 
 const ComponentsTab = (props) => {
     // Validate props in development
@@ -45,8 +46,9 @@ const ComponentsTab = (props) => {
 
     const { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction } = useThreeDotMenu();
 
-    // Get component status (same logic as before)
+    // Get component status (cleaned up with utility)
     const getComponentStatus = (component) => {
+        // Handle finishing steps (keep existing logic)
         if (component.type === 'finishing') {
             if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
                 return 'finishing_in_progress';
@@ -57,25 +59,8 @@ const ComponentsTab = (props) => {
             return 'finishing_in_progress';
         }
 
-        if (!component.steps || component.steps.length === 0) return 'edit_mode';
-
-        const hasCastOn = component.steps.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-            step.description?.toLowerCase().includes('cast on')
-        );
-
-        const hasBindOff = component.steps.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-            step.description?.toLowerCase().includes('bind off')
-        );
-
-        const hasProgress = component.steps.some(s => s.completed);
-        const allStepsComplete = component.steps.length > 0 && component.steps.every(s => s.completed);
-
-        if (hasBindOff && allStepsComplete) return 'finished';
-        if (hasCastOn && hasProgress) return 'currently_knitting';
-        if (hasCastOn && hasBindOff && !hasProgress) return 'ready_to_knit';
-        return 'edit_mode';
+        // ✅ Use utility for regular components (replaces all the string parsing!)
+        return getUtilityComponentState(component);
     };
 
     const getComponentsByStatus = (status) => {

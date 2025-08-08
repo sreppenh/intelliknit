@@ -27,6 +27,8 @@ import DeleteComponentModal from '../../../shared/components/DeleteComponentModa
 import RenameComponentModal from '../../../shared/components/RenameComponentModal';
 import CopyComponentModal from '../../../shared/components/CopyComponentModal';
 
+import { getStepPatternName, getComponentState } from '../../../shared/utils/stepDisplayUtils';
+
 const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onManageSteps, onStartKnitting, onEditProjectDetails }) => {
   const { currentProject, dispatch } = useProjectsContext();
 
@@ -68,12 +70,10 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
 
   // Calculate project stats
   const totalComponents = currentProject.components?.length || 0;
-  const completedComponents = currentProject.components?.filter(comp =>
-    comp.steps?.some(step =>
-      step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-      step.description?.toLowerCase().includes('bind off')
-    )
-  ).length || 0;
+  const completedComponents = currentProject.components?.filter(comp => {
+    const state = getComponentState(comp);
+    return state === 'finished';
+  }).length || 0;
 
   // Component sorting logic (unchanged from original)
   const getSortedComponentsWithFinishing = () => {
@@ -106,13 +106,11 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
         if (!item.steps || item.steps.length === 0) return 4;
 
         const hasCastOn = item.steps.some(step =>
-          step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-          step.description?.toLowerCase().includes('cast on')
+          getStepPatternName(step) === 'Cast On'
         );
 
         const hasBindOff = item.steps.some(step =>
-          step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-          step.description?.toLowerCase().includes('bind off')
+          getStepPatternName(step) === 'Bind Off'
         );
 
         const hasProgress = item.steps.some(s => s.completed);
