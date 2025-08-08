@@ -6,7 +6,7 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
   };
 
   const getMethodDisplay = (component) => {
-    const { startType, startMethod, startDescription } = component;
+    const { startType, startMethod, startDescription, startInstructions } = component;
 
     // Cast On methods
     if (startType === 'cast_on') {
@@ -25,7 +25,11 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
 
     // Pick Up methods
     if (startType === 'pick_up') {
-      return `Pick up and knit from ${startDescription || 'edge'}`;
+      const location = startDescription || 'edge';
+      if (startInstructions && startInstructions.trim()) {
+        return `Pick up and knit from ${location} (${startInstructions})`;
+      }
+      return `Pick up and knit from ${location}`;
     }
 
     // Continue methods  
