@@ -6,6 +6,7 @@ import PhaseConfig from './shaping-wizard/PhaseConfig';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';
 import EditEvenDistributionForm from './EditEvenDistributionForm';
+import { getShapingDisplay } from '../../../shared/utils/stepDisplayUtils';
 
 const EditConfigScreen = ({
     componentIndex,
@@ -54,11 +55,11 @@ const EditConfigScreen = ({
 
     // Determine configuration type from step data
     const getConfigType = () => {
-        // Check if step has shaping - use wizardConfig first, then advancedWizardConfig
-        const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
+        // Check if step has shaping using utility
+        const shapingInfo = getShapingDisplay(step);
 
-        if (hasShaping) {
-            // Determine shaping type from wizardConfig first, then advancedWizardConfig
+        if (shapingInfo) {
+            // Use the same reliable shaping detection logic as everywhere else
             const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
             const shapingType = shapingConfig?.type;
 
