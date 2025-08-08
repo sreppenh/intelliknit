@@ -1,6 +1,34 @@
 import { useMemo } from 'react';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminology';
+import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
+
+// Helper to create mock step for utility usage
+const createMockStep = (wizardData, construction) => ({
+  wizardConfig: {
+    stitchPattern: wizardData.stitchPattern,
+    duration: wizardData.duration
+  },
+  construction: construction
+});
+
+// Helper for consistent duration text
+const getDurationText = (wizardData, construction) => {
+  const { duration } = wizardData;
+
+  switch (duration.type) {
+    case 'rows':
+      return ` for ${duration.value} ${construction === 'round' ? 'rounds' : 'rows'}`;
+    case 'until_length':
+      return ` until piece measures ${duration.value} ${duration.units}`;
+    case 'repeats':
+      return ` for ${duration.value} repeats`;
+    case 'measurement': // Handle legacy type
+      return ` until piece measures ${duration.value} ${duration.units}`;
+    default:
+      return '';
+  }
+};
 
 export const useStepGeneration = (construction = 'flat') => {
   const generateInstruction = useMemo(() => (wizardData) => {
@@ -10,8 +38,9 @@ export const useStepGeneration = (construction = 'flat') => {
 
     // Handle Cast On
     if (pattern === 'Cast On') {
-      const methodText = wizardData.stitchPattern.method && wizardData.stitchPattern.method !== 'Other' ?
-        ` using ${wizardData.stitchPattern.method} cast on` : '';
+      const mockStep = createMockStep(wizardData, construction);
+      const methodDisplay = getStepMethodDisplay(mockStep);
+      const methodText = methodDisplay ? ` using ${methodDisplay.toLowerCase()}` : '';
       const detailsText = wizardData.stitchPattern.customDetails ?
         ` (${wizardData.stitchPattern.customDetails})` : '';
       return `Cast on ${wizardData.stitchPattern.stitchCount} stitches${methodText}${detailsText}`;
@@ -19,8 +48,9 @@ export const useStepGeneration = (construction = 'flat') => {
 
     // Handle Bind Off
     if (pattern === 'Bind Off') {
-      const methodText = wizardData.stitchPattern.method && wizardData.stitchPattern.method !== 'Other' ?
-        ` using ${wizardData.stitchPattern.method} bind off` : '';
+      const mockStep = createMockStep(wizardData, construction);
+      const methodDisplay = getStepMethodDisplay(mockStep);
+      const methodText = methodDisplay ? ` using ${methodDisplay.toLowerCase()}` : '';
       const detailsText = wizardData.stitchPattern.customDetails ?
         ` (${wizardData.stitchPattern.customDetails})` : '';
       return wizardData.duration.value ?
@@ -36,14 +66,7 @@ export const useStepGeneration = (construction = 'flat') => {
         ` (${wizardData.stitchPattern.customDetails})` : '';
 
       let instruction = `${rowsText}${pattern.toLowerCase()}${detailsText}`;
-
-      if (wizardData.duration.type === 'rows') {
-        instruction += ` for ${wizardData.duration.value} rows`;
-      } else if (wizardData.duration.type === 'measurement') {
-        instruction += ` until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
-      } else if (wizardData.duration.type === 'repeats') {
-        instruction += ` for ${wizardData.duration.value} repeats`;
-      }
+      instruction += getDurationText(wizardData, construction);
 
       return instruction;
     }
@@ -57,14 +80,7 @@ export const useStepGeneration = (construction = 'flat') => {
         ` (${wizardData.stitchPattern.customDetails})` : '';
 
       let instruction = `${rowsText}${baseText}${detailsText}`;
-
-      if (wizardData.duration.type === 'rows') {
-        instruction += ` for ${wizardData.duration.value} rows`;
-      } else if (wizardData.duration.type === 'measurement') {
-        instruction += ` until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
-      } else if (wizardData.duration.type === 'repeats') {
-        instruction += ` for ${wizardData.duration.value} repeats`;
-      }
+      instruction += getDurationText(wizardData, construction);
 
       return instruction;
     }
@@ -75,14 +91,7 @@ export const useStepGeneration = (construction = 'flat') => {
       ` (${wizardData.stitchPattern.customDetails})` : '';
 
     instruction += detailsText;
-
-    if (wizardData.duration.type === 'rows') {
-      instruction += ` for ${wizardData.duration.value} rows`;
-    } else if (wizardData.duration.type === 'until_length') {
-      instruction += ` until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
-    } else if (wizardData.duration.type === 'repeats') {
-      instruction += ` for ${wizardData.duration.value} repeats`;
-    }
+    instruction += getDurationText(wizardData, construction);
 
     // Add shaping description if applicable
     if (wizardData.hasShaping && wizardData.shapingConfig) {
