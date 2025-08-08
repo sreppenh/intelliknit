@@ -475,7 +475,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           )}
         </div>
 
-        {/* Prep Note Editing Ove rlay */}
+        {/* Prep Note Editing Overlay */}
         <PrepStepOverlay
           isOpen={isPrepNoteOverlayOpen}
           onClose={handleClosePrepNoteOverlay}

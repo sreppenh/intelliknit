@@ -45,11 +45,19 @@ export const getHumanReadableDescription = (step) => {
  */
 export const getContextualNotes = (step) => {
     const pattern = getStepPatternName(step);
+
     // For Cast On with "other" method, show custom text
     if (pattern === 'Cast On' && step.wizardConfig?.stitchPattern?.method === 'other') {
         const customText = step.wizardConfig?.stitchPattern?.customText;
         return customText ? customText.trim() : null;
     }
+
+    // ✅ FIX: For ALL other Cast On methods, show NO contextual notes
+    if (pattern === 'Cast On') {
+        return null;
+    }
+
+    // Rest of function stays the same...
 
     // For holders, show any custom text the user provided
     if (pattern === 'Put on Holder') {
@@ -99,6 +107,17 @@ export const getFormattedStepDisplay = (step) => {
  * Generate cast on description
  */
 const getCastOnDescription = (step) => {
+
+    // DEBUG: Let's see what we're actually getting
+    console.log('🔍 Cast On Debug:', {
+        method: step.wizardConfig?.stitchPattern?.method,
+        fullStitchPattern: step.wizardConfig?.stitchPattern,
+        fullWizardConfig: step.wizardConfig,
+        stepDescription: step.description
+    });
+
+
+
     const method = step.wizardConfig?.stitchPattern?.method;
     const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
 

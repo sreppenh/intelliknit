@@ -129,7 +129,8 @@ export const projectsReducer = (state, action) => {
             stitchPattern: {
               pattern: 'Cast On',
               stitchCount: action.payload.startingStitches.toString(),
-              method: 'long_tail' // Default method
+              method: action.payload.startMethod || 'long_tail', // ✅ FIX: Use selected method
+              customText: action.payload.startDescription || '' // ✅ FIX: Add custom text for "other" method
             }
           },
           startingStitches: 0,
