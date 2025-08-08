@@ -7,8 +7,10 @@ import StepsList from '../../projects/components/ManageSteps/StepsList';
 import EditPatternOverlay from './EditPatternOverlay';
 import EditConfigScreen from './EditConfigScreen'; // ✅ ADD THIS IMPORT
 import { PrepNoteDisplay, usePrepNoteManager, PrepStepOverlay, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
-import { getStepPatternName, getStepPatternDisplay, getStepMethodDisplay, isConstructionStep } from '../../../shared/utils/stepDisplayUtils';
-import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
+import {
+  getStepPatternName, getStepPatternDisplay, getStepMethodDisplay, isConstructionStep,
+  isInitializationStep, isFinishingStep, isMiddleStep
+} from '../../../shared/utils/stepDisplayUtils'; import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
 
 
 const ManageSteps = ({ componentIndex, onBack }) => {
@@ -113,10 +115,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
 
   const isComponentFinished = () => {
-    return component.steps.some(step => {
-      const pattern = determineActualPattern(step);
-      return pattern === 'Bind Off' || pattern === 'Put on Holder' || pattern === 'Attach to Piece' || pattern === 'Other Ending';
-    });
+    return component.steps.some(step => isFinishingStep(step));
   };
 
   // Determine which step can be edited (last non-completed step, working backwards)
@@ -160,15 +159,14 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   };
 
   const handleEditStepFromMenu = (stepIndex, event) => {
-    // SPECIAL HANDLING FOR FIRST STEP (Cast On)
+    // SPECIAL HANDLING FOR INITIALIZATION STEPS
     if (stepIndex === 0) {
       const step = component.steps[0];
-      const pattern = getPatternDisplay(step);
 
-      if (pattern === 'Cast On') {
-        // For Cast On steps, show helpful message for now
+      if (isInitializationStep(step)) {
+        // For initialization steps, show helpful message for now
         // TODO: In the future, this could redirect to SmartComponentCreation editing
-        alert('Cast On step editing is not yet supported. You can delete and recreate the component to change the cast on method.');
+        alert('Initialization step editing is not yet supported. You can delete and recreate the component to change the cast on method.');
         setOpenMenuId(null);
         return;
       }
@@ -262,7 +260,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const handleDeleteStepFromMenu = (stepIndex, event) => {
     event.stopPropagation();
     if (stepIndex === 0) {
-      alert('The first step (Cast On) cannot be deleted as it defines how the component begins.');
+      alert('The first step cannot be deleted as it defines how the component begins.');
       setOpenMenuId(null);
       return;
     }
