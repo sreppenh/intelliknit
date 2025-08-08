@@ -123,16 +123,6 @@ export const getFormattedStepDisplay = (step) => {
  */
 const getCastOnDescription = (step) => {
 
-    // DEBUG: Let's see what we're actually getting
-    console.log('🔍 Cast On Debug:', {
-        method: step.wizardConfig?.stitchPattern?.method,
-        fullStitchPattern: step.wizardConfig?.stitchPattern,
-        fullWizardConfig: step.wizardConfig,
-        stepDescription: step.description
-    });
-
-
-
     const method = step.wizardConfig?.stitchPattern?.method;
     const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
 

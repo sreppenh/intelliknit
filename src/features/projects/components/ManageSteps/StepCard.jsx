@@ -30,19 +30,6 @@ const StepCard = ({
     // ✅ NEW: Get formatted display data
     const { description, contextualNotes, technicalData } = getFormattedStepDisplay(step);
 
-    // 🔧 DEBUG: Log Pick Up & Knit step data
-    if (step.wizardConfig?.stitchPattern?.pattern === 'Pick Up & Knit') {
-        console.log('🔍 Pick Up & Knit Step Debug:', {
-            stepId: step.id,
-            fullStep: step,
-            wizardConfig: step.wizardConfig,
-            stitchPattern: step.wizardConfig?.stitchPattern,
-            description: description,
-            contextualNotes: contextualNotes
-        });
-    }
-
-
     return (
         <div className="space-y-2">
             {/* PrepNote Display - Above the step, not numbered */}

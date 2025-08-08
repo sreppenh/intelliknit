@@ -11,9 +11,12 @@ import {
   getStepPatternName, getStepPatternDisplay, getStepMethodDisplay, isConstructionStep,
   isInitializationStep, isFinishingStep, isMiddleStep
 } from '../../../shared/utils/stepDisplayUtils'; import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
+import DeleteStepModal from '../../../shared/components/DeleteStepModal';
 
 
 const ManageSteps = ({ componentIndex, onBack }) => {
+  const [showDeleteStepModal, setShowDeleteStepModal] = useState(false);
+  const [stepToDelete, setStepToDelete] = useState(null);
   const { currentProject, dispatch } = useProjectsContext();
   const [isEditing, setIsEditing] = useState(false);
   const [editingStepIndex, setEditingStepIndex] = useState(null);
@@ -24,8 +27,6 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const [showEditPatternOverlay, setShowEditPatternOverlay] = useState(false);
   const [showEditConfigScreen, setShowEditConfigScreen] = useState(false); // ✅ ADD THIS STATE
 
-
-  // Add prep note manager
   const {
     isOverlayOpen: isPrepNoteOverlayOpen,
     currentNote: currentPrepNote,
@@ -66,21 +67,6 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   }
 
   const component = currentProject.components[componentIndex];
-
-  // In ManageSteps.jsx, update the existing debug to also log phases:
-  component.steps.forEach((step, index) => {
-    const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
-    if (hasShaping) {
-      const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
-      if (shapingConfig?.type === 'phases') {
-        console.log(`Step ${index} Sequential Phases:`, {
-          type: shapingConfig.type,
-          config: shapingConfig.config,
-          wizardConfig: step.wizardConfig
-        });
-      }
-    }
-  });
 
   // Add prep note click handler
   const handlePrepNoteClick = (stepIndex) => {
@@ -134,8 +120,6 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const editableStepIndex = getEditableStepIndex();
 
   const handleDeleteStep = () => {
-    if (editableStepIndex === -1) return;
-
     const stepToDelete = component.steps[editableStepIndex];
     const confirmed = window.confirm(`Delete "${stepToDelete.description}"? This cannot be undone.`);
 
@@ -145,6 +129,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
         payload: { componentIndex, stepIndex: editableStepIndex }
       });
     }
+
   };
 
   const handleEditStep = () => {
@@ -264,15 +249,9 @@ const ManageSteps = ({ componentIndex, onBack }) => {
       setOpenMenuId(null);
       return;
     }
-    const stepToDelete = component.steps[stepIndex];
-    const confirmed = window.confirm(`Delete "${stepToDelete.description}"? This cannot be undone.`);
-
-    if (confirmed) {
-      dispatch({
-        type: 'DELETE_STEP',
-        payload: { componentIndex, stepIndex }
-      });
-    }
+    const stepToDelete = component.steps[editableStepIndex];
+    setStepToDelete({ step: stepToDelete, index: editableStepIndex });
+    setShowDeleteStepModal(true);
     setOpenMenuId(null);
   };
 
@@ -475,6 +454,22 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           )}
         </div>
 
+        {/* Delete Step Modal */}
+        {showDeleteStepModal && stepToDelete && (
+          <DeleteStepModal
+            step={stepToDelete.step}
+            onClose={() => {
+              setShowDeleteStepModal(false);
+              setStepToDelete(null);
+            }}
+            onDelete={() => {
+              dispatch({
+                type: 'DELETE_STEP',
+                payload: { componentIndex, stepIndex: stepToDelete.index }
+              });
+            }}
+          />
+        )}
         {/* Prep Note Editing Overlay */}
         <PrepStepOverlay
           isOpen={isPrepNoteOverlayOpen}
