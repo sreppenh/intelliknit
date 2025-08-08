@@ -8,6 +8,8 @@ import EditPatternOverlay from './EditPatternOverlay';
 import EditConfigScreen from './EditConfigScreen'; // ✅ ADD THIS IMPORT
 import { PrepNoteDisplay, usePrepNoteManager, PrepStepOverlay, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import { getStepPatternName, getStepPatternDisplay, getStepMethodDisplay, isConstructionStep } from '../../../shared/utils/stepDisplayUtils';
+import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
+
 
 const ManageSteps = ({ componentIndex, onBack }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -328,29 +330,16 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   };
 
   const handleEndingComplete = (endingStep) => {
-    // Create a proper Bind Off step instead of using endingStep
-    const bindOffStep = {
-      description: endingStep.description || 'Bind off all stitches',
-      type: 'calculated',
-      wizardConfig: {
-        stitchPattern: {
-          pattern: 'Bind Off',
-          method: endingStep.method || 'standard',
-          customText: endingStep.customText,
-          stitchCount: endingStep.stitchCount
-        }
-      },
-      construction: 'flat',
-      startingStitches: component.steps.length > 0 ?
-        component.steps[component.steps.length - 1]?.endingStitches ||
-        component.steps[component.steps.length - 1]?.expectedStitches || 0 : 0,
-      endingStitches: 0,
-      totalRows: 1
-    };
+    const currentStitches = component.steps.length > 0 ?
+      component.steps[component.steps.length - 1]?.endingStitches ||
+      component.steps[component.steps.length - 1]?.expectedStitches || 0 : 0;
+
+    // ✅ USE CREATION UTILITY: Single source of truth for step structure
+    const stepData = createEndingStep(endingStep, currentStitches);
 
     dispatch({
       type: 'ADD_CALCULATED_STEP',
-      payload: { componentIndex, step: bindOffStep }
+      payload: { componentIndex, step: stepData }
     });
 
     setShowEndingWizard(false);
