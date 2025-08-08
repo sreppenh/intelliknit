@@ -22,6 +22,15 @@ export const getHumanReadableDescription = (step) => {
         case 'Cast On':
             return getCastOnDescription(step);
 
+        case 'Pick Up & Knit':
+            return getPickUpKnitDescription(step);
+
+        case 'Continue from Stitches':
+            return getContinueDescription(step);
+
+        case 'Custom Initialization':
+            return getCustomInitializationDescription(step);
+
         case 'Bind Off':
             return getBindOffDescription(step);
 
@@ -72,10 +81,10 @@ export const getContextualNotes = (step) => {
     }
 
     // For other steps, check for prep notes or custom instructions
-    const prepNote = getStepPrepNote(step);
-    if (prepNote) {
-        return prepNote.trim();
-    }
+    //const prepNote = getStepPrepNote(step);
+    //if (prepNote) {
+    //    return prepNote.trim();
+    // }
 
     // Check for custom pattern text
     const customText = step.wizardConfig?.stitchPattern?.customText;
@@ -162,6 +171,48 @@ const getBindOffDescription = (step) => {
     }
 
     return `Bind off ${countText}`;
+};
+
+/**
+ * Generate pick up & knit description
+ */
+const getPickUpKnitDescription = (step) => {
+    const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
+    const location = step.wizardConfig?.stitchPattern?.customText; // This is the "where"
+
+    if (location && location.trim()) {
+        return `Pick up and knit ${stitchCount} stitches from ${location.trim()}`;
+    }
+
+    return `Pick up and knit ${stitchCount} stitches`;
+};
+
+/**
+ * Generate continue from stitches description  
+ */
+const getContinueDescription = (step) => {
+    const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
+    const source = step.wizardConfig?.stitchPattern?.customText; // This is the "where continuing from"
+
+    if (source && source.trim()) {
+        return `Continue knitting from ${source.trim()} with ${stitchCount} stitches`;
+    }
+
+    return `Continue knitting with ${stitchCount} stitches`;
+};
+
+/**
+ * Generate custom initialization description
+ */
+const getCustomInitializationDescription = (step) => {
+    const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
+    const customText = step.wizardConfig?.stitchPattern?.customText;
+
+    if (customText && customText.trim()) {
+        return `${customText.trim()} - ${stitchCount} stitches`;
+    }
+
+    return `Custom setup with ${stitchCount} stitches`;
 };
 
 /**
@@ -255,6 +306,8 @@ const getTechnicalDataDisplay = (step) => {
 export const hasContextualNotes = (step) => {
     return getContextualNotes(step) !== null;
 };
+
+
 
 /**
  * Check if step is an ending/completion step
