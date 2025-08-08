@@ -19,6 +19,18 @@ const CAST_ON_METHODS = {
     'german_twisted': 'German Twisted'
 };
 
+const PICK_UP_KNIT_METHODS = {
+    'pick_up_knit': 'Pick Up & Knit'
+};
+
+const CONTINUE_METHODS = {
+    'from_stitches': 'From Live Stitches'
+};
+
+const CUSTOM_INITIALIZATION_METHODS = {
+    'custom': 'Custom Setup'
+};
+
 const BIND_OFF_METHODS = {
     'standard': 'Standard',
     'stretchy': 'Stretchy',
@@ -35,7 +47,7 @@ const ATTACH_METHODS = {
 };
 
 const PATTERN_CATEGORIES = {
-    'construction': ['Cast On', 'Bind Off', 'Put on Holder', 'Attach to Piece'],
+    'construction': ['Cast On', 'Pick Up & Knit', 'Continue from Stitches', 'Custom Initialization', 'Bind Off', 'Put on Holder', 'Attach to Piece'],
     'texture': ['Stockinette', 'Garter', 'Reverse Stockinette', '1x1 Rib', '2x2 Rib', 'Seed Stitch', 'Moss Stitch'],
     'colorwork': ['Stranded Colorwork', 'Intarsia', 'Fair Isle', 'Mosaic'],
     'structure': ['Lace', 'Cable', 'Brioche']
@@ -98,6 +110,15 @@ export const getStepMethodDisplay = (step) => {
     switch (pattern) {
         case 'Cast On':
             return CAST_ON_METHODS[method] || (method === 'other' ? customText : method);
+
+        case 'Pick Up & Knit':
+            return PICK_UP_KNIT_METHODS[method] || (method === 'other' ? customText : method);
+
+        case 'Continue from Stitches':
+            return CONTINUE_METHODS[method] || (method === 'other' ? customText : method);
+
+        case 'Custom Initialization':
+            return CUSTOM_INITIALIZATION_METHODS[method] || (method === 'other' ? customText : method);
 
         case 'Bind Off':
             return BIND_OFF_METHODS[method] || (method === 'other' ? customText : method);
@@ -212,11 +233,16 @@ export const isConstructionStep = (step) => {
 
 /**
  * Check if step is an initialization step
- * Only Cast On steps start components
+ * Any step that starts a component (Cast On, Pick Up & Knit, Continue from Stitches, Custom Initialization)
  */
 export const isInitializationStep = (step) => {
     const pattern = getStepPatternName(step);
-    return pattern === 'Cast On';
+    return [
+        'Cast On',
+        'Pick Up & Knit',
+        'Continue from Stitches',
+        'Custom Initialization'
+    ].includes(pattern);
 };
 
 /**

@@ -8,6 +8,82 @@ export const initialState = {
   wizardType: 'enhanced'
 };
 
+/**
+ * Get the default method for a given start type
+ */
+const getDefaultMethod = (startType) => {
+  switch (startType) {
+    case 'cast_on':
+      return 'long_tail';
+    case 'pick_up':
+      return 'pick_up_knit';
+    case 'continue':
+      return 'from_stitches';
+    case 'other':
+      return 'custom';
+    default:
+      return 'long_tail';
+  }
+};
+
+/**
+ * Get the correct pattern name for initialization steps based on start type and method
+ */
+const getInitializationPattern = (startType, startMethod) => {
+  switch (startType) {
+    case 'cast_on':
+      return 'Cast On';
+
+    case 'pick_up':
+      return 'Pick Up & Knit';
+
+    case 'continue':
+      return 'Continue from Stitches';
+
+    case 'other':
+      // For 'other' type, we might want to use the method or create a generic pattern
+      return 'Custom Initialization';
+
+    default:
+      // Fallback - should rarely happen but good to have
+      IntelliKnitLogger.warn('Unknown startType in getInitializationPattern', { startType, startMethod });
+      return 'Cast On';
+  }
+};
+
+/**
+ * Get the correct description for initialization steps based on start type and component data
+ */
+const getInitializationDescription = (component) => {
+  const stitchCount = component.startingStitches;
+  const { startType, startMethod, startDescription } = component;
+
+  switch (startType) {
+    case 'cast_on':
+      if (startMethod === 'other' && startDescription) {
+        return `${startDescription} - ${stitchCount} stitches`;
+      }
+      return `Cast on ${stitchCount} stitches`;
+
+    case 'pick_up':
+      const location = startDescription || 'edge';
+      return `Pick up and knit ${stitchCount} stitches from ${location}`;
+
+    case 'continue':
+      const source = startDescription || 'previous section';
+      return `Continue with ${stitchCount} stitches from ${source}`;
+
+    case 'other':
+      if (startDescription) {
+        return `${startDescription} - ${stitchCount} stitches`;
+      }
+      return `Custom setup with ${stitchCount} stitches`;
+
+    default:
+      return `Cast on ${stitchCount} stitches`;
+  }
+};
+
 // Helper function to update project activity timestamp
 const updateProjectActivity = (project) => ({
   ...project,
@@ -127,10 +203,10 @@ export const projectsReducer = (state, action) => {
           prepNote: action.payload.setupNotes || '',
           wizardConfig: {
             stitchPattern: {
-              pattern: 'Cast On',
+              pattern: getInitializationPattern(action.payload.startType, action.payload.startMethod),
               stitchCount: action.payload.startingStitches.toString(),
-              method: action.payload.startMethod || 'long_tail', // ✅ FIX: Use selected method
-              customText: action.payload.startDescription || '' // ✅ FIX: Add custom text for "other" method
+              method: action.payload.startMethod || 'long_tail',
+              customText: action.payload.startDescription || ''
             }
           },
           startingStitches: 0,
