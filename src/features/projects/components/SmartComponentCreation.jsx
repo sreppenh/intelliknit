@@ -21,6 +21,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     startMethod: null,
     startStitches: '',
     startDescription: '',
+    startInstructions: '',
     prepNote: ''
   });
 
@@ -40,7 +41,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       componentData.startType !== null ||
       componentData.startMethod !== null ||
       (componentData.startStitches && componentData.startStitches.trim().length > 0) ||
-      (componentData.startDescription && componentData.startDescription.trim().length > 0);
+      (componentData.startDescription && componentData.startDescription.trim().length > 0) ||
+      (componentData.startInstructions && componentData.startInstructions.trim().length > 0);
   };
 
   const handleXButtonClick = () => {
@@ -113,7 +115,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       startType: null,
       startMethod: null,
       startStitches: '',
-      startDescription: ''
+      startDescription: '',
+      startInstructions: ''
     }));
   };
 
@@ -136,6 +139,10 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       componentData.startMethod === 'other';
   };
 
+  const needsInstructions = () => {
+    return componentData.startType === 'pick_up';
+  };
+
   const canProceedToDetails = () => {
     return componentData.name.trim() &&
       componentData.startType &&
@@ -151,6 +158,10 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       return false;
     }
 
+    if (needsInstructions() && !componentData.startInstructions?.trim()) {
+      return false;
+    }
+
     return true;
   };
 
@@ -159,6 +170,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       name: componentData.name.trim(),
       startType: componentData.startType,
       startDescription: componentData.startDescription || getDefaultDescription(),
+      startInstructions: componentData.startInstructions || '',
       startingStitches: parseInt(componentData.startStitches),
       startMethod: componentData.startMethod,
       endType: null,
@@ -428,6 +440,23 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                     className="input-field-lg"
                   />
                 </div>
+
+                {/* ✅ NEW: Instructions Field - HOW to pick up (only for pick_up) */}
+                {componentData.startType === 'pick_up' && (
+                  <div>
+                    <label className="form-label">Pick Up Instructions</label>
+                    <input
+                      type="text"
+                      value={componentData.startInstructions}
+                      onChange={(e) => setComponentData(prev => ({ ...prev, startInstructions: e.target.value }))}
+                      placeholder="e.g., pick up 2 of every 3 stitches, pick up 1 stitch per row"
+                      className="input-field-lg"
+                    />
+                    <div className="text-xs text-wool-500 mt-1">
+                      💡 <strong>Hint:</strong> Describe the pickup ratio or technique (e.g., "pick up 3 stitches for every 4 rows")
+                    </div>
+                  </div>
+                )}
 
                 {/* Stitch Count */}
                 <div>
