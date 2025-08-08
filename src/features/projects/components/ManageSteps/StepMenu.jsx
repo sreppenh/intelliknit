@@ -15,7 +15,7 @@ const StepMenu = ({
     onEditConfig
 }) => {
     const shouldShowMenu = (isEditable && !isComponentFinished()) ||
-        (isSpecial && getStepPatternName(step) === 'Bind Off');
+        isSpecial;
 
     if (!shouldShowMenu) return null;
 

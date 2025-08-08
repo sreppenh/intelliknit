@@ -1,0 +1,248 @@
+// src/shared/utils/stepDescriptionUtils.js
+
+/**
+ * Step Description Utilities - Human-Readable Display
+ * 
+ * Companion to stepDisplayUtils.js and stepCreationUtils.js
+ * Generates human-friendly descriptions and contextual notes for step display.
+ */
+
+import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote } from './stepDisplayUtils';
+
+// ===== HUMAN-READABLE DESCRIPTIONS =====
+
+/**
+ * Generate human-readable description for any step
+ * Returns better, more natural language than technical pattern names
+ */
+export const getHumanReadableDescription = (step) => {
+    const pattern = getStepPatternName(step);
+
+    switch (pattern) {
+        case 'Cast On':
+            return getCastOnDescription(step);
+
+        case 'Bind Off':
+            return getBindOffDescription(step);
+
+        case 'Put on Holder':
+            return getHolderDescription(step);
+
+        case 'Attach to Piece':
+            return getAttachmentDescription(step);
+
+        case 'Other Ending':
+            return getOtherEndingDescription(step);
+
+        default:
+            return getPatternStepDescription(step);
+    }
+};
+
+/**
+ * Get contextual notes (user-provided text in italics)
+ * Returns formatted string or null if no context available
+ */
+export const getContextualNotes = (step) => {
+    const pattern = getStepPatternName(step);
+
+    // For holders, show any custom text the user provided
+    if (pattern === 'Put on Holder') {
+        const customText = step.wizardConfig?.stitchPattern?.customText;
+        return customText ? customText.trim() : null;
+    }
+
+    // For attachments, could show assembly notes
+    if (pattern === 'Attach to Piece') {
+        const customText = step.wizardConfig?.stitchPattern?.customText;
+        return customText ? customText.trim() : null;
+    }
+
+    // For other steps, check for prep notes or custom instructions
+    const prepNote = getStepPrepNote(step);
+    if (prepNote) {
+        return prepNote.trim();
+    }
+
+    // Check for custom pattern text
+    const customText = step.wizardConfig?.stitchPattern?.customText;
+    if (customText && customText.trim() !== '') {
+        return customText.trim();
+    }
+
+    return null;
+};
+
+/**
+ * Get complete formatted step display
+ * Returns object with description, notes, and technical data
+ */
+export const getFormattedStepDisplay = (step) => {
+    return {
+        description: getHumanReadableDescription(step),
+        contextualNotes: getContextualNotes(step),
+        technicalData: getTechnicalDataDisplay(step)
+    };
+};
+
+// ===== SPECIFIC DESCRIPTION GENERATORS =====
+
+/**
+ * Generate cast on description
+ */
+const getCastOnDescription = (step) => {
+    const method = getStepMethodDisplay(step);
+    const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
+
+    if (method) {
+        return `Using ${method.toLowerCase()}, cast on ${stitchCount} stitches`;
+    }
+
+    return `Cast on ${stitchCount} stitches`;
+};
+
+/**
+ * Generate bind off description
+ */
+const getBindOffDescription = (step) => {
+    const method = getStepMethodDisplay(step);
+    const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount;
+
+    // Handle specific stitch counts vs "all"
+    const countText = stitchCount && stitchCount !== 'all' ?
+        `${stitchCount} stitches` : 'all stitches';
+
+    if (method) {
+        return `Using ${method.toLowerCase()}, bind off ${countText}`;
+    }
+
+    return `Bind off ${countText}`;
+};
+
+/**
+ * Generate holder description
+ */
+const getHolderDescription = (step) => {
+    const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount;
+
+    if (stitchCount && stitchCount !== 'all') {
+        return `Put ${stitchCount} stitches on hold`;
+    }
+
+    return 'Put all stitches on hold';
+};
+
+/**
+ * Generate attachment description
+ */
+const getAttachmentDescription = (step) => {
+    const method = getStepMethodDisplay(step);
+    const targetComponent = step.wizardConfig?.stitchPattern?.targetComponent;
+
+    // Handle user-entered component names
+    const target = targetComponent || 'selected component';
+
+    if (method) {
+        return `Using ${method.toLowerCase()}, attach this component to ${target}`;
+    }
+
+    return `Attach this component to ${target}`;
+};
+
+/**
+ * Generate other ending description
+ */
+const getOtherEndingDescription = (step) => {
+    const customText = step.wizardConfig?.stitchPattern?.customText;
+
+    if (customText && customText.trim() !== '') {
+        return customText.trim();
+    }
+
+    return 'Complete component with custom ending';
+};
+
+/**
+ * Generate regular pattern step description
+ */
+const getPatternStepDescription = (step) => {
+    const pattern = getStepPatternName(step);
+    const duration = getStepDurationDisplay(step);
+
+    if (duration) {
+        return `Work ${duration} in ${pattern.toLowerCase()}`;
+    }
+
+    return `Work in ${pattern.toLowerCase()}`;
+};
+
+// ===== TECHNICAL DATA FORMATTING =====
+
+/**
+ * Format technical data display (the "good data - do not remove")
+ */
+const getTechnicalDataDisplay = (step) => {
+    const parts = [];
+
+    // Stitch counts
+    const startingStitches = step.startingStitches || 0;
+    const endingStitches = step.endingStitches || step.expectedStitches || 0;
+    parts.push(`${startingStitches} → ${endingStitches} sts`);
+
+    // Duration
+    const duration = getStepDurationDisplay(step);
+    if (duration) {
+        parts.push(duration);
+    }
+
+    // Construction
+    const construction = step.construction || 'flat';
+    parts.push(construction);
+
+    return parts.join(' • ');
+};
+
+// ===== UTILITY FUNCTIONS =====
+
+/**
+ * Check if step has contextual notes to display
+ */
+export const hasContextualNotes = (step) => {
+    return getContextualNotes(step) !== null;
+};
+
+/**
+ * Check if step is an ending/completion step
+ */
+export const isEndingStep = (step) => {
+    const pattern = getStepPatternName(step);
+    return ['Bind Off', 'Put on Holder', 'Attach to Piece', 'Other Ending'].includes(pattern);
+};
+
+/**
+ * Get step display priority for sorting/organizing
+ */
+export const getStepDisplayPriority = (step) => {
+    const pattern = getStepPatternName(step);
+
+    // Construction steps have specific ordering
+    if (pattern === 'Cast On') return 1;
+    if (pattern === 'Bind Off') return 100;
+    if (pattern === 'Put on Holder') return 95;
+    if (pattern === 'Attach to Piece') return 98;
+    if (pattern === 'Other Ending') return 97;
+
+    // Regular pattern steps in middle
+    return 50;
+};
+
+// ===== EXPORTS =====
+
+export default {
+    getHumanReadableDescription,
+    getContextualNotes,
+    getFormattedStepDisplay,
+    hasContextualNotes,
+    isEndingStep,
+    getStepDisplayPriority
+};
