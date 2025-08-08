@@ -44,11 +44,11 @@ const PATTERN_CATEGORIES = {
 // ===== CORE UTILITY FUNCTIONS =====
 
 /**
- * Get step's pattern name from structured data ONLY
- * NO string parsing - 100% structured data access
+ * Get step's pattern name from structured data
+ * NO string parsing - uses actual configuration
  */
 export const getStepPatternName = (step) => {
-    // Priority 1: wizardConfig pattern
+    // Priority 1: wizardConfig
     if (step.wizardConfig?.stitchPattern?.pattern) {
         return step.wizardConfig.stitchPattern.pattern;
     }
@@ -58,17 +58,16 @@ export const getStepPatternName = (step) => {
         return step.wizardConfig.stitchPattern.category;
     }
 
-    // Priority 3: advancedWizardConfig pattern
+    // Priority 3: advancedWizardConfig
     if (step.advancedWizardConfig?.stitchPattern?.pattern) {
         return step.advancedWizardConfig.stitchPattern.pattern;
     }
 
-    // Priority 4: advancedWizardConfig category
     if (step.advancedWizardConfig?.stitchPattern?.category) {
         return step.advancedWizardConfig.stitchPattern.category;
     }
 
-    // Priority 5: Detect ending step variants from structured data
+    // Priority 4: Detect ending step variants from structured data
     if (step.wizardConfig?.stitchPattern?.pattern === 'Bind Off') {
         const method = step.wizardConfig.stitchPattern.method;
         if (method === 'holder' || method === 'provisional') {
@@ -76,21 +75,12 @@ export const getStepPatternName = (step) => {
         }
     }
 
-    // Priority 6: ComponentEndingWizard output (structured step.type)
+    // LAST RESORT: Check if this is ComponentEndingWizard output
     if (step.type === 'attach_to_piece') return 'Attach to Piece';
     if (step.type === 'put_on_holder') return 'Put on Holder';
     if (step.type === 'bind_off_all') return 'Bind Off';
 
-    // 🚨 LOG WARNING: Step missing structured data
-    console.warn('⚠️ Step missing pattern configuration:', {
-        stepId: step.id,
-        description: step.description,
-        type: step.type,
-        wizardConfig: step.wizardConfig,
-        advancedWizardConfig: step.advancedWizardConfig
-    });
-
-    // Return fallback - this indicates a creation bug that needs fixing
+    // Final fallback - only for truly legacy/corrupted data
     return 'Unknown Pattern';
 };
 
@@ -255,8 +245,7 @@ export const isStepEditable = (step, isComponentFinished = false) => {
     if (step.completed) return false;
 
     // Cast On steps typically aren't editable after creation
-    const pattern = getStepPatternName(step);
-    if (pattern === 'Cast On') return false;
+    if (isInitializationStep(step)) return false;
 
     return true;
 };
@@ -354,12 +343,11 @@ export const getComponentState = (component) => {
     }
 
     const hasCastOn = component.steps.some(step =>
-        getStepPatternName(step) === 'Cast On'
+        isInitializationStep(step)
     );
 
     const hasEnding = component.steps.some(step => {
-        const pattern = getStepPatternName(step);
-        return ['Bind Off', 'Put on Holder', 'Attach to Piece'].includes(pattern);
+        isFinishingStep(step)
     });
 
     const hasProgress = component.steps.some(step => step.completed);
@@ -384,9 +372,6 @@ export default {
     getEndingNotes,
     getStepPrepNote,
     isConstructionStep,
-    isInitializationStep,
-    isFinishingStep,
-    isMiddleStep,
     isStepEditable,
     validateStepConfiguration,
     getComponentState
