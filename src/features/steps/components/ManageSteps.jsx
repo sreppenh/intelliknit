@@ -452,10 +452,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             onEditPattern={handleEditPatternFromMenu}
             onEditConfig={handleEditConfigFromMenu}
             onDeleteStep={handleDeleteStepFromMenu}
-            getPatternDisplay={getPatternDisplay}
-            getMethodDisplay={getMethodDisplay}
             onPrepNoteClick={handlePrepNoteClick}
-            isSpecialStep={isSpecialStep}
           />
 
           {/* Editing Rules - Above buttons, only show if not finished */}

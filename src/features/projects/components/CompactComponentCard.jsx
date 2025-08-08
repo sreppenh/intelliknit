@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import DeleteComponentModal from '../../../shared/components/DeleteComponentModal';
+import { getComponentState as getUtilityComponentState } from '../../../shared/utils/stepDisplayUtils';
 
 const getCardClassName = (state) => {
   switch (state) {
@@ -22,7 +23,7 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   // Enhanced component state detection with finishing steps support
   const getComponentState = () => {
-    // Handle finishing steps
+    // Handle finishing steps (keep existing logic)
     if (component.type === 'finishing') {
       if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
         return 'finishing_in_progress'; // Empty placeholder shows as "in progress"
@@ -35,26 +36,8 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
       return 'finishing_in_progress';
     }
 
-    // Regular component logic
-    if (!component.steps || component.steps.length === 0) return 'edit_mode';
-
-    const hasCastOn = component.steps.some(step =>
-      step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-      step.description?.toLowerCase().includes('cast on')
-    );
-
-    const hasBindOff = component.steps.some(step =>
-      step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-      step.description?.toLowerCase().includes('bind off')
-    );
-
-    const hasProgress = component.steps.some(s => s.completed);
-    const allStepsComplete = component.steps.length > 0 && component.steps.every(s => s.completed);
-
-    if (hasBindOff && allStepsComplete) return 'finished';
-    if (hasCastOn && hasProgress) return 'currently_knitting';
-    if (hasCastOn && hasBindOff && !hasProgress) return 'ready_to_knit';
-    return 'edit_mode';
+    // ✅ Use utility for regular components (replaces all the string parsing!)
+    return getUtilityComponentState(component);
   };
 
   const getStateConfig = (state) => {

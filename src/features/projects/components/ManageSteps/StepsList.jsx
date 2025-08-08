@@ -1,5 +1,6 @@
 import React from 'react';
 import StepCard from './StepCard';
+import { isConstructionStep } from '../../../../shared/utils/stepDisplayUtils';
 
 const StepsList = ({
     component,
@@ -12,9 +13,6 @@ const StepsList = ({
     onEditConfig,
     onDeleteStep,
     onPrepNoteClick,
-    getPatternDisplay,
-    getMethodDisplay,
-    isSpecialStep
 }) => {
     if (component.steps.length === 0) {
         return (
@@ -38,7 +36,7 @@ const StepsList = ({
             {component.steps.map((step, stepIndex) => {
                 const isEditable = stepIndex === editableStepIndex;
                 const isCompleted = step.completed;
-                const isSpecial = isSpecialStep(step);
+                const isSpecial = isConstructionStep(step);
 
                 return (
                     <StepCard
@@ -56,8 +54,7 @@ const StepsList = ({
                         onEditConfig={onEditConfig}
                         onDeleteStep={onDeleteStep}
                         onPrepNoteClick={onPrepNoteClick} // ADD THIS LINE
-                        getPatternDisplay={getPatternDisplay}
-                        getMethodDisplay={getMethodDisplay}
+
                     />
                 );
             })}

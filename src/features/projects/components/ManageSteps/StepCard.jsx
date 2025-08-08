@@ -1,7 +1,7 @@
 import React from 'react';
 import { PrepNoteDisplay } from '../../../../shared/components/PrepStepSystem';
 import StepMenu from './StepMenu';
-import { getStepDurationDisplay } from '../../../../shared/utils/stepDisplayUtils';
+import { getStepDurationDisplay, getStepPatternName, getStepMethodDisplay } from '../../../../shared/utils/stepDisplayUtils';
 
 const StepCard = ({
     step,
@@ -17,8 +17,6 @@ const StepCard = ({
     onEditPattern, // NEW
     onEditConfig,  //NEW
     onPrepNoteClick,
-    getPatternDisplay,
-    getMethodDisplay
 }) => {
     // Extract prep note from various possible locations
     const prepNote = step.prepNote ||
@@ -47,7 +45,7 @@ const StepCard = ({
                             <div className="min-w-0 flex-1 text-left">
                                 <h4 className={`text-sm font-semibold mb-1 text-left ${isCompleted ? 'text-wool-600' : 'text-wool-700'
                                     }`}>
-                                    {getPatternDisplay(step)}{getMethodDisplay(step)}
+                                    {getStepPatternName(step)}{getStepMethodDisplay(step) ? ` - ${getStepMethodDisplay(step)}` : ''}
                                 </h4>
 
                                 <div className="flex items-center gap-3 text-xs text-wool-500 text-left">
@@ -78,8 +76,6 @@ const StepCard = ({
                                 onEditConfig={onEditConfig}       // ✅ NEW
                                 onDeleteStep={onDeleteStep}
                                 onPrepNoteClick={onPrepNoteClick}
-                                getPatternDisplay={getPatternDisplay}
-                                getMethodDisplay={getMethodDisplay}
                             />
                         </div>
                     </div>

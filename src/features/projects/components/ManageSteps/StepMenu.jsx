@@ -1,4 +1,5 @@
 import React from 'react';
+import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
 
 const StepMenu = ({
     step,
@@ -10,18 +11,17 @@ const StepMenu = ({
     onMenuToggle,
     onEditStep,
     onDeleteStep,
-    getPatternDisplay,
     onEditPattern,
     onEditConfig
 }) => {
     const shouldShowMenu = (isEditable && !isComponentFinished()) ||
-        (isSpecial && getPatternDisplay(step) === 'Bind Off');
+        (isSpecial && getStepPatternName(step) === 'Bind Off');
 
     if (!shouldShowMenu) return null;
 
     // CHECK IF THIS IS THE FIRST STEP (Cast On)
     const isFirstStep = stepIndex === 0;
-    const isCastOnStep = getPatternDisplay(step) === 'Cast On';
+    const isCastOnStep = getStepPatternName(step) === 'Cast On';
 
     // ✅ NEW: Check if step has pattern that can be edited
     const hasEditablePattern = step.wizardConfig?.stitchPattern?.pattern;
@@ -96,7 +96,7 @@ const StepMenu = ({
                     )}
 
                     {/* Special case for Bind Off steps */}
-                    {isSpecial && getPatternDisplay(step) === 'Bind Off' && (
+                    {isSpecial && getStepPatternName(step) === 'Bind Off' && (
                         <button
                             onClick={(e) => onDeleteStep(stepIndex, e)}
                             className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-lg text-sm flex items-center gap-2 transition-colors"
