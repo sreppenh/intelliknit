@@ -55,6 +55,12 @@ export const getHumanReadableDescription = (step) => {
 export const getContextualNotes = (step) => {
     const pattern = getStepPatternName(step);
 
+    // For Pick Up & Knit, show the instruction (how to pick up)
+    if (pattern === 'Pick Up & Knit') {
+        const instruction = step.wizardConfig?.stitchPattern?.instruction;
+        return instruction ? instruction.trim() : null;
+    }
+
     // For Cast On with "other" method, show custom text
     if (pattern === 'Cast On' && step.wizardConfig?.stitchPattern?.method === 'other') {
         const customText = step.wizardConfig?.stitchPattern?.customText;

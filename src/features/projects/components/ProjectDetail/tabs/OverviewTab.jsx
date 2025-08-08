@@ -44,6 +44,22 @@ const OverviewTab = ({
         return getUtilityComponentState(component);
     };
 
+    // 🔧 DEBUG: Log ALL components to see problematic data
+    console.log('🔧 All Components Debug:', project.components?.map((comp, index) => ({
+        index,
+        name: comp.name,
+        status: getComponentStatus(comp),
+        stepCount: comp.steps?.length || 0,
+        steps: comp.steps?.map((step, stepIndex) => ({
+            stepIndex,
+            pattern: step.wizardConfig?.stitchPattern?.pattern,
+            description: step.description,
+            completed: step.completed,
+            startingStitches: step.startingStitches,
+            endingStitches: step.endingStitches
+        }))
+    })));
+
     // Add this function in OverviewTab.jsx
     const getComponentColorClass = (status) => {
         switch (status) {
@@ -324,6 +340,7 @@ const OverviewTab = ({
             if (showDeleteModal) setShowDeleteModal(false);
         }
     };
+
 
     // === RENDER ===
     return (

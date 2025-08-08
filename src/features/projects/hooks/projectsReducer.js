@@ -196,9 +196,9 @@ export const projectsReducer = (state, action) => {
       // Auto-add Cast On step if startingStitches provided
       if (action.payload.startingStitches && action.payload.startingStitches > 0) {
 
-        const castOnStep = {
+        const initializationStep = {
           id: crypto.randomUUID(),
-          description: `Cast on ${action.payload.startingStitches} stitches`,
+          description: getInitializationDescription(action.payload),
           type: 'calculated',
           prepNote: action.payload.setupNotes || '',
           wizardConfig: {
@@ -206,7 +206,8 @@ export const projectsReducer = (state, action) => {
               pattern: getInitializationPattern(action.payload.startType, action.payload.startMethod),
               stitchCount: action.payload.startingStitches.toString(),
               method: action.payload.startMethod || 'long_tail',
-              customText: action.payload.startDescription || ''
+              customText: action.payload.startDescription || '',
+              instruction: action.payload.startInstructions || ''
             }
           },
           startingStitches: 0,
@@ -216,7 +217,7 @@ export const projectsReducer = (state, action) => {
           completed: false
         };
 
-        enhancedComponent.steps.push(castOnStep);
+        enhancedComponent.steps.push(initializationStep);
       }
 
       const updatedProjectWithEnhanced = {
