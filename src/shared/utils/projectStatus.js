@@ -1,3 +1,5 @@
+import { getStepPatternName } from './stepDisplayUtils';
+
 export const getProjectStatus = (project) => {
     if (!project) {
         return { emoji: '❓', text: 'Unknown' };
@@ -52,12 +54,10 @@ export const getProjectStatus = (project) => {
     // No progress yet - check if ready to start
     const isReadyToKnit = project.components?.some(comp => {
         const hasCastOn = comp.steps?.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-            step.description?.toLowerCase().includes('cast on')
+            getStepPatternName(step) === 'Cast On'
         );
         const hasBindOff = comp.steps?.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-            step.description?.toLowerCase().includes('bind off')
+            getStepPatternName(step) === 'Bind Off'
         );
         return hasCastOn && hasBindOff;
     });
@@ -129,12 +129,10 @@ export const getSmartProjectStatus = (project) => {
     // No progress yet - check if ready to start
     const isReadyToKnit = project.components?.some(comp => {
         const hasCastOn = comp.steps?.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-            step.description?.toLowerCase().includes('cast on')
+            getStepPatternName(step) === 'Cast On'
         );
         const hasBindOff = comp.steps?.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-            step.description?.toLowerCase().includes('bind off')
+            getStepPatternName(step) === 'Bind Off'
         );
         return hasCastOn && hasBindOff;
     });
