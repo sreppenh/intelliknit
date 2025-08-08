@@ -183,6 +183,7 @@ export const projectsReducer = (state, action) => {
       };
 
     case 'ADD_ENHANCED_COMPONENT':
+      console.log('🔧 ADD_ENHANCED_COMPONENT Debug:', action.payload);
       if (!state.currentProject) return state;
 
       // Create enhanced component with automatic Cast On step
@@ -304,6 +305,12 @@ export const projectsReducer = (state, action) => {
       };
 
     case 'ADD_CALCULATED_STEP':
+
+      console.log('🔧 ADD_CALCULATED_STEP:', {
+        componentIndex: action.payload.componentIndex,
+        stepPattern: action.payload.step?.wizardConfig?.stitchPattern?.pattern,
+        stepDescription: action.payload.step?.description
+      });
       if (!state.currentProject) {
         IntelliKnitLogger.error('ADD_CALCULATED_STEP: No current project');
         return state;
@@ -356,6 +363,12 @@ export const projectsReducer = (state, action) => {
       };
 
     case 'ADD_STEP':
+
+      console.log('🔧 ADD_STEP:', {
+        componentIndex: action.payload.componentIndex,
+        stepPattern: action.payload.step?.wizardConfig?.stitchPattern?.pattern,
+        stepDescription: action.payload.step?.description
+      });
       if (!state.currentProject) {
         IntelliKnitLogger.error('ADD_STEP: No current project');
         return state;

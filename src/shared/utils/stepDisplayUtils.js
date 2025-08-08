@@ -364,6 +364,7 @@ export const validateStepConfiguration = (step) => {
  * Used by CompactComponentCard and other component displays
  */
 export const getComponentState = (component) => {
+
     if (!component.steps || component.steps.length === 0) {
         return 'edit_mode';
     }
@@ -372,9 +373,9 @@ export const getComponentState = (component) => {
         isInitializationStep(step)
     );
 
-    const hasEnding = component.steps.some(step => {
+    const hasEnding = component.steps.some(step =>
         isFinishingStep(step)
-    });
+    );
 
     const hasProgress = component.steps.some(step => step.completed);
     const allComplete = component.steps.every(step => step.completed);

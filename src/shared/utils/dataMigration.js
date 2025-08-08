@@ -1,11 +1,22 @@
 /**
- * Data Migration Helper - Convert legacy components to new architecture
- * Converts components with startingStitches/endingStep to proper step arrays
+ * Data Migration Helper - DISABLED
+ * 
+ * 🚫 ALL MIGRATION LOGIC HAS BEEN DISABLED 🚫
+ * 
+ * This file was causing duplicate Cast On steps to be added to Pick Up & Knit components.
+ * Rather than fix the complex legacy logic, we've disabled all migrations.
+ * 
+ * Original functionality commented out below for reference.
  */
 
-import { getStepPatternName } from './stepDisplayUtils';
+import { getStepPatternName, isInitializationStep } from './stepDisplayUtils';
 
 export const migrateComponentToNewArchitecture = (component) => {
+  // 🚫 MIGRATION DISABLED - no more "helpful" modifications!
+  return { component, hasChanges: false };
+
+  /*
+  // ORIGINAL CODE - DISABLED TO PREVENT BUGS
   const migratedComponent = { ...component };
   const newSteps = [...(component.steps || [])];
   let hasChanges = false;
@@ -13,7 +24,7 @@ export const migrateComponentToNewArchitecture = (component) => {
   // 1. Convert startingStitches to Cast On step (if not already present)
   if (component.startingStitches && component.startingStitches > 0) {
     const hasCastOnStep = newSteps.some(step =>
-      getStepPatternName(step) === 'Cast On'
+      getStepPatternName(step) === 'Cast On'  // ❌ BUG: This only checks for 'Cast On', not Pick Up & Knit!
     );
 
     if (!hasCastOnStep) {
@@ -108,9 +119,15 @@ export const migrateComponentToNewArchitecture = (component) => {
     component: migratedComponent,
     hasChanges
   };
+  */
 };
 
 export const migrateProjectToNewArchitecture = (project) => {
+  // 🚫 MIGRATION DISABLED - no more "helpful" modifications!
+  return { project, hasChanges: false };
+
+  /*
+  // ORIGINAL CODE - DISABLED TO PREVENT BUGS
   const migratedProject = { ...project };
   let hasAnyChanges = false;
 
@@ -143,15 +160,19 @@ export const migrateProjectToNewArchitecture = (project) => {
     hasAnyChanges = true;
   }
 
-
-
   return {
     project: migratedProject,
     hasChanges: hasAnyChanges
   };
+  */
 };
 
 export const migrateAllProjectsToNewArchitecture = (projects) => {
+  // 🚫 MIGRATION DISABLED - no more "helpful" modifications!
+  return { projects, migratedCount: 0 };
+
+  /*
+  // ORIGINAL CODE - DISABLED TO PREVENT BUGS
   const migratedProjects = [];
   let totalChanges = 0;
 
@@ -165,4 +186,5 @@ export const migrateAllProjectsToNewArchitecture = (projects) => {
     projects: migratedProjects,
     migratedCount: totalChanges
   };
+  */
 };
