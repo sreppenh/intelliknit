@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateKnittingTab } from '../types/TabProps';
 import { getProjectStatus as getSharedProjectStatus } from '../../../../../shared/utils/projectStatus';
+import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
 
 const OverviewTab = ({
     project,
@@ -26,8 +27,9 @@ const OverviewTab = ({
     const [showFrogModal, setShowFrogModal] = useState(false);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-    // === SMART COMPONENT FILTERING (From new version) ===
+    // === SMART COMPONENT FILTERING (cleaned up with utility) ===
     const getComponentStatus = (component) => {
+        // Handle finishing steps (keep existing logic)
         if (component.type === 'finishing') {
             if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
                 return 'finishing_in_progress';
@@ -38,25 +40,8 @@ const OverviewTab = ({
             return 'finishing_in_progress';
         }
 
-        if (!component.steps || component.steps.length === 0) return 'edit_mode';
-
-        const hasCastOn = component.steps.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-            step.description?.toLowerCase().includes('cast on')
-        );
-
-        const hasBindOff = component.steps.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-            step.description?.toLowerCase().includes('bind off')
-        );
-
-        const hasProgress = component.steps.some(s => s.completed);
-        const allStepsComplete = component.steps.length > 0 && component.steps.every(s => s.completed);
-
-        if (hasBindOff && allStepsComplete) return 'finished';
-        if (hasCastOn && hasProgress) return 'currently_knitting';
-        if (hasCastOn && hasBindOff && !hasProgress) return 'ready_to_knit';
-        return 'edit_mode';
+        // ✅ Use utility for regular components (replaces all the string parsing!)
+        return getUtilityComponentState(component);
     };
 
     // Add this function in OverviewTab.jsx
