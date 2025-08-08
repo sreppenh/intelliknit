@@ -20,6 +20,10 @@ const StepMenu = ({
     const shouldShowMenu = (isEditable && !isComponentFinished()) ||
         (isSpecial && !isCastOnStep);
 
+
+    // const shouldShowMenu = (isEditable && !isCastOnStep);
+
+
     if (!shouldShowMenu) return null;
 
     // CHECK IF THIS IS THE FIRST STEP (Cast On)
@@ -58,12 +62,12 @@ const StepMenu = ({
                 <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-36">
                     {isEditable && !isComponentFinished() && (
                         <>
-                            <button
+                            {/*}       <button
                                 onClick={(e) => onEditStep(stepIndex, e)}
                                 className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 rounded-t-lg text-sm flex items-center gap-2 transition-colors"
                             >
                                 ✏️ {isCastOnStep ? 'View Cast On' : 'Edit Step'}
-                            </button>
+                            </button> */}
 
                             {/* ✅ NEW: Edit Pattern option */}
                             {hasEditablePattern && !isCastOnStep && (
