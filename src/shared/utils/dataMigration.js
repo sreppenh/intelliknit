@@ -3,6 +3,8 @@
  * Converts components with startingStitches/endingStep to proper step arrays
  */
 
+import { getStepPatternName } from './stepDisplayUtils';
+
 export const migrateComponentToNewArchitecture = (component) => {
   const migratedComponent = { ...component };
   const newSteps = [...(component.steps || [])];
@@ -11,8 +13,7 @@ export const migrateComponentToNewArchitecture = (component) => {
   // 1. Convert startingStitches to Cast On step (if not already present)
   if (component.startingStitches && component.startingStitches > 0) {
     const hasCastOnStep = newSteps.some(step =>
-      step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-      step.description?.toLowerCase().includes('cast on')
+      getStepPatternName(step) === 'Cast On'
     );
 
     if (!hasCastOnStep) {
@@ -47,8 +48,7 @@ export const migrateComponentToNewArchitecture = (component) => {
   // 2. Convert endingStep to Bind Off step (if present)
   if (component.endingStep) {
     const hasBindOffStep = newSteps.some(step =>
-      step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-      step.description?.toLowerCase().includes('bind off')
+      getStepPatternName(step) === 'Bind Off'
     );
 
     if (!hasBindOffStep) {
