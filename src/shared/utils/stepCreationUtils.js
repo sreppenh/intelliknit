@@ -1,0 +1,361 @@
+// src/shared/utils/stepCreationUtils.js
+
+/**
+ * Step Creation Utilities - Structured Data Generation
+ * 
+ * Companion to stepDisplayUtils.js for creating properly structured steps.
+ * Single source of truth for step creation across the application.
+ */
+
+// ===== PATTERN MAPPINGS (mirrors stepDisplayUtils.js) =====
+
+const CAST_ON_METHODS = {
+    'long_tail': 'Long Tail',
+    'cable': 'Cable Cast On',
+    'knitted': 'Knitted Cast On',
+    'backwards_loop': 'Backwards Loop',
+    'provisional': 'Provisional',
+    'judy': 'Judy\'s Magic',
+    'german_twisted': 'German Twisted'
+};
+
+const BIND_OFF_METHODS = {
+    'standard': 'Standard',
+    'stretchy': 'Stretchy',
+    'picot': 'Picot',
+    'three_needle': 'Three Needle',
+    'sewn': 'Sewn Bind Off'
+};
+
+const ATTACH_METHODS = {
+    'mattress_stitch': 'Mattress Stitch',
+    'backstitch': 'Backstitch',
+    'kitchener_stitch': 'Kitchener Stitch',
+    'three_needle_bindoff': 'Three Needle Bind Off'
+};
+
+// ===== CORE CREATION FUNCTIONS =====
+
+/**
+ * Create ending step from ComponentEndingWizard data
+ * Handles: put_on_holder, bind_off_all, attach_to_piece, other
+ */
+export const createEndingStep = (endingData, currentStitches) => {
+    // Base step structure
+    const baseStep = {
+        description: endingData.description,
+        type: endingData.type,
+        construction: 'flat', // Default for ending steps
+        startingStitches: currentStitches,
+        totalRows: 1,
+        prepNote: endingData.prepNote || ''
+    };
+
+    switch (endingData.type) {
+        case 'put_on_holder':
+            return {
+                ...baseStep,
+                endingStitches: currentStitches, // ✅ HOLDER: Stitches stay alive
+                wizardConfig: {
+                    stitchPattern: {
+                        pattern: 'Put on Holder',
+                        stitchCount: endingData.stitchCount || currentStitches,
+                        customText: endingData.customText
+                    },
+                    prepNote: endingData.prepNote
+                }
+            };
+
+        case 'bind_off_all':
+            return {
+                ...baseStep,
+                endingStitches: 0, // ✅ BIND OFF: Stitches consumed
+                wizardConfig: {
+                    stitchPattern: {
+                        pattern: 'Bind Off',
+                        method: endingData.method || 'standard',
+                        stitchCount: endingData.stitchCount || currentStitches
+                    },
+                    prepNote: endingData.prepNote
+                }
+            };
+
+        case 'attach_to_piece':
+            return {
+                ...baseStep,
+                endingStitches: 0, // ✅ ATTACH: Stitches consumed in attachment
+                wizardConfig: {
+                    stitchPattern: {
+                        pattern: 'Attach to Piece',
+                        method: endingData.method,
+                        targetComponent: endingData.targetComponent,
+                        customText: endingData.customText
+                    },
+                    prepNote: endingData.prepNote
+                }
+            };
+
+        case 'other':
+            return {
+                ...baseStep,
+                endingStitches: 0, // ✅ DEFAULT: Assume stitches consumed
+                wizardConfig: {
+                    stitchPattern: {
+                        pattern: 'Other Ending',
+                        customText: endingData.customText
+                    },
+                    prepNote: endingData.prepNote
+                }
+            };
+
+        default:
+            // Fallback for unknown ending types
+            return {
+                ...baseStep,
+                endingStitches: 0,
+                wizardConfig: {
+                    stitchPattern: {
+                        pattern: 'Bind Off',
+                        method: 'standard'
+                    }
+                }
+            };
+    }
+};
+
+/**
+ * Create cast on step from wizard data
+ * Used by: StepWizard, ComponentCreationWizard
+ */
+export const createCastOnStep = (castOnData) => {
+    const methodDisplay = CAST_ON_METHODS[castOnData.method] || castOnData.method;
+    const stitchCount = parseInt(castOnData.stitchCount) || 0;
+
+    return {
+        description: `Cast on ${stitchCount} stitches using ${methodDisplay.toLowerCase()}`,
+        type: 'calculated',
+        construction: castOnData.construction || 'flat',
+        startingStitches: 0,
+        endingStitches: stitchCount,
+        totalRows: 1,
+        wizardConfig: {
+            stitchPattern: {
+                category: 'construction',
+                pattern: 'Cast On',
+                method: castOnData.method,
+                stitchCount: castOnData.stitchCount
+            },
+            prepNote: castOnData.prepNote || ''
+        }
+    };
+};
+
+/**
+ * Create basic pattern step from wizard data
+ * Used by: StepWizard for texture/colorwork/structure patterns
+ */
+export const createPatternStep = (patternData, context = {}) => {
+    const {
+        startingStitches = 0,
+        construction = 'flat'
+    } = context;
+
+    return {
+        description: generatePatternDescription(patternData),
+        type: 'calculated',
+        construction,
+        startingStitches,
+        endingStitches: startingStitches, // No stitch change for basic patterns
+        totalRows: calculateTotalRows(patternData),
+        wizardConfig: {
+            stitchPattern: {
+                category: getPatternCategory(patternData.pattern),
+                pattern: patternData.pattern,
+                customText: patternData.customText,
+                rowsInPattern: patternData.rowsInPattern
+            },
+            duration: patternData.duration,
+            prepNote: patternData.prepNote || ''
+        }
+    };
+};
+
+/**
+ * Create shaping step from wizard data
+ * Used by: StepWizard with shaping configuration
+ */
+export const createShapingStep = (shapingData, patternData, context = {}) => {
+    const {
+        startingStitches = 0,
+        construction = 'flat'
+    } = context;
+
+    const baseStep = createPatternStep(patternData, context);
+
+    return {
+        ...baseStep,
+        description: generateShapingDescription(shapingData, patternData),
+        endingStitches: calculateEndingStitches(startingStitches, shapingData),
+        wizardConfig: {
+            ...baseStep.wizardConfig,
+            hasShaping: true,
+            shapingConfig: {
+                type: shapingData.type,
+                config: shapingData.config
+            }
+        }
+    };
+};
+
+// ===== HELPER FUNCTIONS =====
+
+/**
+ * Generate human-readable description for pattern steps
+ */
+const generatePatternDescription = (patternData) => {
+    let description = `Work in ${patternData.pattern.toLowerCase()}`;
+
+    if (patternData.duration?.type === 'rows' && patternData.duration?.value) {
+        description += ` for ${patternData.duration.value} rows`;
+    } else if (patternData.duration?.type === 'repeats' && patternData.duration?.value) {
+        description += ` for ${patternData.duration.value} repeats`;
+    } else if (patternData.duration?.type === 'length') {
+        description += ` for ${patternData.duration.value} ${patternData.duration.units}`;
+    }
+
+    return description;
+};
+
+/**
+ * Generate human-readable description for shaping steps
+ */
+const generateShapingDescription = (shapingData, patternData) => {
+    let description = generatePatternDescription(patternData);
+
+    if (shapingData.type === 'even_distribution') {
+        const action = shapingData.config?.action === 'increase' ? 'increasing' : 'decreasing';
+        const amount = shapingData.config?.amount;
+        if (amount) {
+            description += `, ${action} ${amount} stitches evenly`;
+        }
+    } else if (shapingData.type === 'phases') {
+        const phases = shapingData.config?.phases?.length || 0;
+        description += ` with ${phases} shaping phases`;
+    }
+
+    return description;
+};
+
+/**
+ * Calculate total rows for pattern step
+ */
+const calculateTotalRows = (patternData) => {
+    const duration = patternData.duration;
+
+    if (!duration) return 1;
+
+    switch (duration.type) {
+        case 'rows':
+        case 'rounds':
+            return parseInt(duration.value) || 1;
+
+        case 'repeats':
+            const repeats = parseInt(duration.value) || 1;
+            const rowsInPattern = parseInt(patternData.rowsInPattern) || 1;
+            return repeats * rowsInPattern;
+
+        default:
+            return 1;
+    }
+};
+
+/**
+ * Calculate ending stitches for shaping steps
+ */
+const calculateEndingStitches = (startingStitches, shapingData) => {
+    if (shapingData.type === 'even_distribution') {
+        const amount = shapingData.config?.amount || 0;
+        const action = shapingData.config?.action;
+
+        if (action === 'increase') {
+            return startingStitches + amount;
+        } else if (action === 'decrease') {
+            return startingStitches - amount;
+        }
+    } else if (shapingData.type === 'phases') {
+        // For sequential phases, use the final stitch count from calculation
+        return shapingData.config?.calculation?.endingStitches || startingStitches;
+    }
+
+    return startingStitches; // No change for unknown shaping types
+};
+
+/**
+ * Get pattern category for step classification
+ */
+const getPatternCategory = (pattern) => {
+    const categories = {
+        'construction': ['Cast On', 'Bind Off', 'Put on Holder', 'Attach to Piece'],
+        'texture': ['Stockinette', 'Garter', 'Reverse Stockinette', '1x1 Rib', '2x2 Rib', 'Seed Stitch', 'Moss Stitch'],
+        'colorwork': ['Stranded Colorwork', 'Intarsia', 'Fair Isle', 'Mosaic'],
+        'structure': ['Lace', 'Cable', 'Brioche']
+    };
+
+    for (const [category, patterns] of Object.entries(categories)) {
+        if (patterns.includes(pattern)) {
+            return category;
+        }
+    }
+
+    return 'texture'; // Default category
+};
+
+/**
+ * Validate step creation data
+ * Returns { isValid: boolean, errors: string[] }
+ */
+export const validateStepCreationData = (stepType, data) => {
+    const errors = [];
+
+    switch (stepType) {
+        case 'ending':
+            if (!data.type) errors.push('Ending type is required');
+            if (data.type === 'attach_to_piece' && !data.targetComponent) {
+                errors.push('Target component is required for attachment');
+            }
+            if (data.type === 'other' && !data.customText) {
+                errors.push('Custom description is required for other endings');
+            }
+            break;
+
+        case 'cast_on':
+            if (!data.stitchCount || parseInt(data.stitchCount) <= 0) {
+                errors.push('Valid stitch count is required');
+            }
+            if (!data.method) errors.push('Cast on method is required');
+            break;
+
+        case 'pattern':
+            if (!data.pattern) errors.push('Pattern type is required');
+            if (!data.duration?.type) errors.push('Duration type is required');
+            break;
+
+        default:
+            errors.push('Unknown step type');
+    }
+
+    return {
+        isValid: errors.length === 0,
+        errors
+    };
+};
+
+// ===== EXPORTS =====
+
+export default {
+    createEndingStep,
+    createCastOnStep,
+    createPatternStep,
+    createShapingStep,
+    validateStepCreationData
+};
