@@ -4,6 +4,7 @@ import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import { CONSTRUCTION_TYPES } from '../../../shared/utils/constants';
 import useSmartStepNavigation from '../../../shared/hooks/useSmartStepNavigation';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import { validatePatternConfiguration } from '../../../shared/utils/stepDisplayUtils';
 
 export const useStepWizard = (componentIndex, editingStepIndex = null, editMode = null) => {
   const { currentProject } = useProjectsContext();
@@ -213,26 +214,9 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
           return true; // Skip validation for basic patterns
         }
 
-        const { pattern, stitchCount, customText, rowsInPattern } = wizardData.stitchPattern;
+        // Use centralized validation from stepDisplayUtils
+        return validatePatternConfiguration(wizardData.stitchPattern);
 
-        if (pattern === 'Cast On') {
-          return stitchCount && parseInt(stitchCount) > 0;
-        }
-        if (pattern === 'Bind Off') {
-          return true;
-        }
-
-        // Complex patterns that need both description AND row count
-        if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
-          return customText && customText.trim() !== '' &&
-            rowsInPattern && parseInt(rowsInPattern) > 0;
-        }
-
-        if (pattern === 'Custom pattern' || pattern === 'Other') {
-          return customText && customText.trim() !== '';
-        }
-
-        return true;
 
       case 3: // Duration/Shaping choice
         return true; // Choice steps handle their own advancement
