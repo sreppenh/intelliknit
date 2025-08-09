@@ -1,13 +1,16 @@
 // src/features/steps/components/EditPatternOverlay.jsx
 import React, { useState, useEffect } from 'react';
 import { PATTERN_CATEGORIES } from '../../../shared/utils/PatternCategories';
+import { requiresAdvancedPatternEdit } from '../../../shared/utils/stepDisplayUtils';
+
 
 const EditPatternOverlay = ({
     isOpen,
     onClose,
     onSave,
     currentStep,
-    title = "Edit Pattern"
+    title = "Edit Pattern",
+    onRouteToAdvancedEdit,
 }) => {
     const [patternData, setPatternData] = useState({
         category: '',
@@ -38,6 +41,19 @@ const EditPatternOverlay = ({
             }
         }
     }, [isOpen, currentStep]);
+
+    // ===== NEW: Check if this is an advanced pattern that needs full-screen editing =====
+    const shouldRouteToAdvancedEdit = currentStep ? requiresAdvancedPatternEdit(currentStep) : false;
+
+    // ===== NEW: Route to advanced edit if needed =====
+    useEffect(() => {
+        if (isOpen && shouldRouteToAdvancedEdit && onRouteToAdvancedEdit) {
+            // Close this overlay and route to advanced edit
+            onClose();
+            onRouteToAdvancedEdit();
+        }
+    }, [isOpen, shouldRouteToAdvancedEdit, onRouteToAdvancedEdit, onClose]);
+
 
     // Standard modal behavior (ESC key + backdrop click)
     useEffect(() => {
@@ -126,6 +142,10 @@ const EditPatternOverlay = ({
         return false;
     };
 
+    if (shouldRouteToAdvancedEdit) {
+        return null;
+    }
+
     if (!isOpen) return null;
 
     return (
@@ -167,8 +187,8 @@ const EditPatternOverlay = ({
                                                     key={key}
                                                     onClick={() => handleQuickCategorySelect(key)}
                                                     className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${selectedQuickCategory === key
-                                                            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                                            : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
+                                                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                                        : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
                                                         }`}
                                                 >
                                                     <div className="text-xl mb-1">{category.icon}</div>
@@ -185,8 +205,8 @@ const EditPatternOverlay = ({
                                                         key={pattern.name}
                                                         onClick={() => handleBasicPatternSelect(selectedQuickCategory, pattern)}
                                                         className={`card-pattern-option ${patternData.pattern === pattern.name
-                                                                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
-                                                                : ''
+                                                            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
+                                                            : ''
                                                             }`}
                                                     >
                                                         <div className="text-lg mb-1">{pattern.icon}</div>
@@ -227,8 +247,8 @@ const EditPatternOverlay = ({
                                                         key={type.name}
                                                         onClick={() => updatePatternData({ colorworkType: type.name })}
                                                         className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${patternData.colorworkType === type.name
-                                                                ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                                                                : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
+                                                            ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
+                                                            : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
                                                             }`}
                                                     >
                                                         <div className="flex items-center gap-4">

@@ -355,6 +355,22 @@ export const validateStepConfiguration = (step) => {
     }
 
     return { isValid: true };
+
+
+};
+
+/**
+ * Check if step requires advanced row-by-row pattern editing
+ * Used for both create and edit flows
+ */
+export const requiresAdvancedPatternEdit = (step) => {
+    const pattern = getStepPatternName(step);
+    return ['Custom pattern', 'Cable Pattern', 'Lace Pattern'].includes(pattern);
+};
+
+// And also add this overloaded version for when you just have the pattern name:
+export const isAdvancedRowByRowPattern = (patternName) => {
+    return ['Custom pattern', 'Cable Pattern', 'Lace Pattern'].includes(patternName);
 };
 
 // ===== COMPONENT STATE UTILITIES =====
@@ -385,6 +401,109 @@ export const getComponentState = (component) => {
     if (hasCastOn && hasEnding && !hasProgress) return 'ready_to_knit';
 
     return 'edit_mode';
+};
+
+/**
+ * Validate pattern configuration based on pattern type and entry mode
+ * Centralized validation for all pattern types
+ */
+export const validatePatternConfiguration = (stitchPattern) => {
+    if (!stitchPattern || !stitchPattern.pattern) {
+        return false;
+    }
+
+    const { pattern, entryMode, customText, rowsInPattern, rowInstructions, stitchCount, colorworkType } = stitchPattern;
+
+    // Cast On patterns - need stitch count
+    if (pattern === 'Cast On') {
+        return stitchCount && parseInt(stitchCount) > 0;
+    }
+
+    // Bind Off patterns - always valid (minimal config needed)
+    if (pattern === 'Bind Off') {
+        return true;
+    }
+
+    // Advanced Row-by-Row patterns (Custom, Cable, Lace)
+    if (isAdvancedRowByRowPattern(pattern)) {
+        if (entryMode === 'row_by_row') {
+            // Row-by-row mode: need at least one row instruction
+            return rowInstructions && rowInstructions.length > 0;
+        } else {
+            // Description mode: need customText AND rowsInPattern
+            return customText && customText.trim() !== '' &&
+                rowsInPattern && parseInt(rowsInPattern) > 0;
+        }
+    }
+
+    // Colorwork patterns - need type selection, description, and row count
+    if (pattern === 'Colorwork') {
+        return colorworkType &&
+            customText && customText.trim() !== '' &&
+            rowsInPattern && parseInt(rowsInPattern) > 0;
+    }
+
+    // Traditional complex patterns (Fair Isle, Intarsia, Stripes)
+    if (['Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
+        return customText && customText.trim() !== '' &&
+            rowsInPattern && parseInt(rowsInPattern) > 0;
+    }
+
+    // Other pattern - needs description
+    if (pattern === 'Other') {
+        return customText && customText.trim() !== '';
+    }
+
+    // Basic patterns (Stockinette, Garter, etc.) - always valid
+    return true;
+};
+
+/**
+ * Get user-friendly validation error message
+ * Helps with debugging and user feedback
+ */
+export const getPatternValidationError = (stitchPattern) => {
+    if (!stitchPattern || !stitchPattern.pattern) {
+        return 'No pattern selected';
+    }
+
+    const { pattern, entryMode, customText, rowsInPattern, rowInstructions, stitchCount, colorworkType } = stitchPattern;
+
+    if (pattern === 'Cast On' && (!stitchCount || parseInt(stitchCount) <= 0)) {
+        return 'Cast On requires a valid stitch count';
+    }
+
+    if (isAdvancedRowByRowPattern(pattern)) {
+        if (entryMode === 'row_by_row') {
+            if (!rowInstructions || rowInstructions.length === 0) {
+                return 'Row-by-row mode requires at least one row instruction';
+            }
+        } else {
+            if (!customText || customText.trim() === '') {
+                return 'Description mode requires pattern description';
+            }
+            if (!rowsInPattern || parseInt(rowsInPattern) <= 0) {
+                return 'Description mode requires number of rows in pattern';
+            }
+        }
+    }
+
+    if (pattern === 'Colorwork') {
+        if (!colorworkType) return 'Colorwork requires type selection';
+        if (!customText || customText.trim() === '') return 'Colorwork requires description';
+        if (!rowsInPattern || parseInt(rowsInPattern) <= 0) return 'Colorwork requires rows in pattern';
+    }
+
+    if (['Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
+        if (!customText || customText.trim() === '') return `${pattern} requires description`;
+        if (!rowsInPattern || parseInt(rowsInPattern) <= 0) return `${pattern} requires rows in pattern`;
+    }
+
+    if (pattern === 'Other' && (!customText || customText.trim() === '')) {
+        return 'Other pattern requires description';
+    }
+
+    return null; // No validation errors
 };
 
 export default {

@@ -1,4 +1,5 @@
 import { shouldSkipConfiguration as shouldSkipPatternConfiguration } from '../../../../shared/utils/PatternCategories';
+import { validatePatternConfiguration } from '../../../../shared/utils/stepDisplayUtils';
 
 export const shouldSkipConfiguration = (wizardData) => {
   return shouldSkipPatternConfiguration(wizardData);
@@ -93,35 +94,8 @@ export const createWizardNavigator = (wizardData, currentStep) => {
           return true;
         }
 
-        if (pattern === 'Cast On') {
-          return stitchCount && parseInt(stitchCount) > 0;
-        }
-        if (pattern === 'Bind Off') {
-          return true;
-        }
-
-        // Colorwork validation - requires colorworkType to be selected
-        if (pattern === 'Colorwork') {
-          return wizardData.stitchPattern.colorworkType &&
-            customText && customText.trim() !== '' &&
-            rowsInPattern && parseInt(rowsInPattern) > 0;
-        }
-
-        // Complex patterns that need both description AND row count
-        if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
-          return customText && customText.trim() !== '' &&
-            rowsInPattern && parseInt(rowsInPattern) > 0;
-        }
-
-        if (pattern === 'Custom pattern') {
-          return customText && customText.trim() !== '';
-        }
-
-        if (pattern === 'Other') {
-          return customText && customText.trim() !== '';
-        }
-
-        return true;
+        // Use centralized validation from stepDisplayUtils
+        return validatePatternConfiguration(wizardData.stitchPattern);
 
       case 3: // Duration/Shaping choice
         // Choice steps handle their own advancement

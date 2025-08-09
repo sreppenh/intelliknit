@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig, RowByRowPatternConfig } from '../pattern-configs';
-
+import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
 
 const PatternConfiguration = ({ wizardData, updateWizardData, navigation, construction }) => {
   const { pattern } = wizardData.stitchPattern;
@@ -42,19 +42,19 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation, constr
             construction={construction}
           />
         );
-      // ===== UPDATED: Route advanced patterns to RowByRowPatternConfig =====
-      case 'Custom pattern':
-      case 'Cable Pattern':
-      case 'Lace Pattern':
-        return (
-          <RowByRowPatternConfig
-            wizardData={wizardData}
-            updateWizardData={updateWizardData}
-            construction={construction}
-          />
-        );
 
       default:
+        // ===== UPDATED: Use utility function to determine routing =====
+        if (isAdvancedRowByRowPattern(pattern)) {
+          return (
+            <RowByRowPatternConfig
+              wizardData={wizardData}
+              updateWizardData={updateWizardData}
+              construction={construction}
+            />
+          );
+        }
+
         return (
           <BasicPatternConfig
             wizardData={wizardData}

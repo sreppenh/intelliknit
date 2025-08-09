@@ -18,13 +18,13 @@ const WizardNavigation = ({ wizard, onBack }) => {
         >
           ← Back
         </button>
-        
+
         {/* Primary button - larger, 2/3 width */}
         <button
           onClick={wizard.navigation.nextStep}
           disabled={!wizard.navigation.canProceed()}
           className="flex-2 btn-primary"
-          style={{flexGrow: 2}}
+          style={{ flexGrow: 2 }}
         >
           {getButtonText()}
         </button>
