@@ -1,3 +1,5 @@
+import IntelliKnitLogger from "./ConsoleLogging";
+
 // src/shared/utils/stepCreationUtils.js
 
 /**
@@ -348,6 +350,44 @@ export const validateStepCreationData = (stepType, data) => {
         isValid: errors.length === 0,
         errors
     };
+};
+
+/**
+ * MIGRATION HELPER: Convert legacy shaping to new format
+ * Call this before processing any shaping config
+ */
+export const migrateLegacyShaping = (shapingConfig) => {
+    if (!shapingConfig) return null;
+
+    // Already new format
+    if (shapingConfig.type) return shapingConfig;
+
+    // Has legacy fields but no type - needs migration
+    if (shapingConfig.shapingMode || shapingConfig.shapingType) {
+        IntelliKnitLogger.warn('🔄 Migrating legacy shaping data', shapingConfig);
+
+        // Convert distribution mode to even_distribution
+        if (shapingConfig.shapingMode === 'distribution') {
+            return {
+                type: 'even_distribution',
+                config: {
+                    action: shapingConfig.shapingType || 'decrease',
+                    amount: shapingConfig.targetChange || 1,
+                    calculation: {
+                        instruction: `${shapingConfig.shapingType || 'decrease'} evenly`,
+                        startingStitches: shapingConfig.currentStitches || 0,
+                        endingStitches: (shapingConfig.currentStitches || 0) + (shapingConfig.targetChange || 0),
+                        changeCount: Math.abs(shapingConfig.targetChange || 0)
+                    }
+                }
+            };
+        }
+
+        // Other legacy types can be converted here as needed
+        IntelliKnitLogger.warn('🚨 Unknown legacy shaping type - keeping as-is', shapingConfig);
+    }
+
+    return shapingConfig;
 };
 
 // ===== EXPORTS =====

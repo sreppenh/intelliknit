@@ -97,33 +97,46 @@ export const useStepGeneration = (construction = 'flat') => {
     if (wizardData.hasShaping && wizardData.shapingConfig) {
       const { shapingMode, shapingType, positions, frequency, times, comments, type, config } = wizardData.shapingConfig;
 
-      // Add debugging log
+      // PHASE 1: Legacy detection (already implemented)
       IntelliKnitLogger.debug('Shaping debug - type:', type, 'config exists:', !!config);
 
-      // Check for new shaping structure first (from ShapingWizard)
-      if (type === 'even_distribution' && config && config.calculation && config.calculation.instruction) {
-        instruction += ` with ${config.calculation.instruction}`;
+      if (shapingMode && !type) {
+        IntelliKnitLogger.warn('🚨 LEGACY SHAPING DETECTED', {
+          shapingMode, shapingType, positions, frequency, times,
+          suggestion: 'Consider migrating to new format'
+        });
       }
-      else if (type === 'phases' && config && config.calculation && config.calculation.instruction) {
-        instruction += ` with ${config.calculation.instruction}`;
-      }
-      // Fall back to old shaping structure
-      else if (shapingMode === 'raglan') {
-        const terms = getConstructionTerms(construction);
-        const freqText = frequency === 2 ? terms.everyOtherRow.replace('every ', '') : `${frequency}th ${terms.row}`;
-        instruction += ` with raglan ${shapingType}s ${freqText} ${times} times`;
 
-      } else if (shapingMode === 'bindoff') {
+      // PHASE 2: Clean logic flow - New system FIRST, then legacy fallbacks
+      if (type === 'even_distribution' && config?.calculation?.instruction) {
+        instruction += ` with ${config.calculation.instruction}`;
+      }
+      else if (type === 'phases' && config?.calculation?.instruction) {
+        instruction += ` with ${config.calculation.instruction}`;
+      }
+      // Legacy fallbacks (only when no new format exists)
+      else if (shapingMode === 'raglan') {
+        IntelliKnitLogger.warn('Using legacy raglan shaping - consider migrating');
+        const terms = getConstructionTerms(construction);
+        const freqText = frequency === 2 ?
+          terms.everyOtherRow.replace('every ', '') : `${frequency}th ${terms.row}`;
+        instruction += ` with raglan ${shapingType}s ${freqText} ${times} times`;
+      }
+      else if (shapingMode === 'bindoff') {
+        IntelliKnitLogger.warn('Using legacy bind-off shaping - consider migrating');
         instruction += ` with bind-off shaping`;
       }
-      // REMOVED: The redundant 'distribution' fallback block that was handling the same case as 'even_distribution'
       else if (positions && shapingType && frequency && times) {
+        IntelliKnitLogger.warn('Using legacy position-based shaping - consider migrating');
         const terms = getConstructionTerms(construction);
         const positionText = positions.includes('both_ends') ? terms.atBothEnds : positions.join(' and ');
         const freqText = frequency === 2 ? terms.everyOtherRow.replace('every ', '') : `${frequency}th ${terms.row}`;
         instruction += ` with ${shapingType}s at ${positionText} ${freqText} ${times} times`;
       }
-      // If no valid legacy data, just skip the shaping text entirely
+      else {
+        // No valid shaping data found - this is actually fine for pattern-only steps
+        IntelliKnitLogger.debug('No shaping data found - pattern-only step');
+      }
 
       if (comments) {
         instruction += ` (${comments})`;

@@ -294,7 +294,7 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
       </div>
 
       {/* CSS Grid Styles */}
-      <style jsx>{`
+      <style>{`
         .project-detail-grid {
           display: grid;
           grid-template-rows: auto auto 1fr;

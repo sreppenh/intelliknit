@@ -39,8 +39,12 @@ export const useStepCalculation = () => {
       try {
         const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange, type, config } = wizardData.shapingConfig;
 
-        // Add debugging log
-        IntelliKnitLogger.debug('Calculation debug - type', type, 'config exists:', !!config);
+        // SAFETY: Warn about legacy data usage
+        if (shapingMode && !type) {
+          IntelliKnitLogger.warn('🚨 LEGACY SHAPING DETECTED in calculation', {
+            shapingMode, shapingType, positions, frequency, times
+          });
+        }
 
         // Check for new shaping structure first (from ShapingWizard)
         if (type === 'even_distribution' && config && config.calculation) {
