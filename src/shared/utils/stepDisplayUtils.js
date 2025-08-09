@@ -575,5 +575,6 @@ export default {
     isConstructionStep,
     isStepEditable,
     validateStepConfiguration,
-    getComponentState
+    getComponentState,
+    getPatternPlaceholderText
 };

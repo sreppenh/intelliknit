@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import { getPatternQuickActions } from '../../../../shared/utils/stepDisplayUtils';
+import { getPatternQuickActions, getPatternPlaceholderText } from '../../../../shared/utils/stepDisplayUtils';
 
 const RowByRowPatternConfig = ({ wizardData, updateWizardData, construction }) => {
     // ===== ROW-BY-ROW STATE MANAGEMENT =====
