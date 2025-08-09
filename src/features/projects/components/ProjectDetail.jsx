@@ -177,12 +177,19 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
         />
 
         {/* Tab Navigation - Now functions as secondary header */}
-        <TabBar activeTab={currentTab} onTabChange={changeTab}>
+        <TabBar
+          activeTab={currentTab}
+          onTabChange={changeTab}
+          sticky={true}
+          topOffset="72px"
+          zIndex={18}
+        >
           <TabBar.Tab id="overview" label="Overview" />
           <TabBar.Tab id="components" label="Components" />
           <TabBar.Tab id="details" label="Details" />
           <TabBar.Tab id="checklist" label="Checklist" />
         </TabBar>
+        */
 
         {/* Tab Content */}
         <div className="bg-yarn-50">

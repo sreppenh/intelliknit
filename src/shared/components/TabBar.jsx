@@ -1,33 +1,24 @@
 import React, { useState, useEffect } from 'react';
 
-/**
- * Enhanced TabBar Component with Memory Management
- * 
- * Features:
- * - Smooth transition animations
- * - Visual feedback for touch interactions
- * - Accessibility improvements
- * - Performance optimizations
- * - Mobile-optimized touch targets
- * - Backward compatible with existing TabBar API
- */
-
 const TabBar = ({
     activeTab,
     onTabChange,
     children,
     className = "",
-    animated = true
+    animated = true,
+    // NEW: Sticky behavior props
+    sticky = true,
+    zIndex = 18,
+    topOffset = '72px' // Default for single PageHeader
 }) => {
     const [isTransitioning, setIsTransitioning] = useState(false);
 
-    // Handle tab change with smooth transition
+    // Handle tab change with smooth transition (your existing logic)
     const handleTabChange = (tabId) => {
         if (tabId === activeTab || isTransitioning) return;
 
         if (animated) {
             setIsTransitioning(true);
-            // Brief transition state for visual feedback
             setTimeout(() => {
                 onTabChange(tabId);
                 setIsTransitioning(false);
@@ -37,8 +28,15 @@ const TabBar = ({
         }
     };
 
+    // Build container classes with sticky support
+    const getContainerClasses = () => {
+        const baseClasses = `bg-sage-100 border-b border-sage-200`;
+        const stickyClasses = sticky ? `sticky top-[${topOffset}] z-${zIndex} shadow-sm` : '';
+        return `${baseClasses} ${stickyClasses} ${className}`;
+    };
+
     return (
-        <div className={`bg-sage-100 border-b border-sage-200 ${className}`}>
+        <div className={getContainerClasses()}>
             <div className="flex relative">
                 {React.Children.map(children, (child) => {
                     if (React.isValidElement(child) && child.type === Tab) {
@@ -110,7 +108,7 @@ const Tab = ({
                 {label}
             </span>
 
-            {/* Active indicator with smooth animation */}
+            {/* Active indicator with smooth animation - your existing logic */}
             {isActive && animated && (
                 <div className="absolute bottom-0 left-0 right-0 h-1 bg-sage-500 rounded-t-full transform transition-all duration-300 ease-out" />
             )}
@@ -118,7 +116,5 @@ const Tab = ({
     );
 };
 
-// Attach Tab as a property for clean usage
 TabBar.Tab = Tab;
-
 export default TabBar;

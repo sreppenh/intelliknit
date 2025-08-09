@@ -1,4 +1,3 @@
-// src/shared/components/PageHeader.jsx
 import React from 'react';
 
 const PageHeader = ({
@@ -6,19 +5,24 @@ const PageHeader = ({
   subtitle,
   onBack,
   showBackButton = true,
-  // New props for wizard support
   showCancelButton = false,
   onCancel,
   showConstructionBar = false,
   constructionInfo = {},
-  // New props for contextual info bar
   showContextualBar = false,
-  contextualInfo = {}
+  contextualInfo = {},
+  // NEW: Sticky behavior props
+  sticky = true,
+  zIndex = 20
 }) => {
   return (
     <>
-      {/* Main Header */}
-      <div className="bg-sage-500 text-white px-6 py-4">
+      {/* Main Header with optional sticky positioning */}
+      <div className={`
+        bg-sage-500 text-white px-6 py-4
+        ${sticky ? `sticky top-0 z-${zIndex} shadow-sm` : ''}
+        transition-shadow duration-200
+      `}>
         <div className="flex items-center gap-3">
           {showBackButton && (
             <button
@@ -44,9 +48,12 @@ const PageHeader = ({
         </div>
       </div>
 
-      {/* Optional Construction Info Bar (existing) */}
+      {/* Optional Construction Info Bar with sticky positioning */}
       {showConstructionBar && (
-        <div className="px-6 py-3 bg-sage-100 border-b border-sage-200">
+        <div className={`
+          px-6 py-3 bg-sage-100 border-b border-sage-200
+          ${sticky ? `sticky top-[72px] z-${zIndex - 1}` : ''}
+        `}>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-4">
               <span className="font-medium text-sage-700">Construction:</span>
@@ -80,9 +87,12 @@ const PageHeader = ({
         </div>
       )}
 
-      {/* New: Generic Contextual Info Bar */}
+      {/* Generic Contextual Info Bar with sticky positioning */}
       {showContextualBar && (
-        <div className="px-6 py-3 bg-sage-100 border-b border-sage-200">
+        <div className={`
+          px-6 py-3 bg-sage-100 border-b border-sage-200
+          ${sticky ? `sticky top-[${showConstructionBar ? '132px' : '72px'}] z-${zIndex - 2}` : ''}
+        `}>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-4">
               {contextualInfo.label && (

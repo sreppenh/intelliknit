@@ -1003,22 +1003,9 @@ body {
   @apply active:scale-95;
 }
 
-/* ===== SMART HEADER LOCKING ===== */
-.page-header {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 10 !important;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
+/* ===== MOBILE UX IMPROVEMENTS ===== */
 
-.tab-bar {
-  position: sticky !important;
-  top: 0 !important;
-  z-index: 9 !important;
-  background: white;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-}
+/* Remove the conflicting sticky header rules - now handled by components */
 
 /* ===== TOUCH IMPROVEMENTS ===== */
 button,
@@ -1055,6 +1042,25 @@ body.modal-open {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   overscroll-behavior: none;
+}
+
+/* ===== ENHANCED MOBILE SCROLL BEHAVIOR ===== */
+html {
+  scroll-behavior: smooth;
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+body {
+  overscroll-behavior: none;
+  touch-action: manipulation;
+}
+
+/* Mobile safe area support */
+@supports (padding-top: env(safe-area-inset-top)) {
+  .mobile-header {
+    padding-top: env(safe-area-inset-top);
+  }
 }
 
 /* Only apply on desktop - leave mobile untouched */
