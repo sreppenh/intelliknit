@@ -13,18 +13,18 @@ const TabBar = ({
 }) => {
     const [isTransitioning, setIsTransitioning] = useState(false);
 
-    // Handle tab change with smooth transition (your existing logic)
+    // REPLACE this function in your TabBar:
     const handleTabChange = (tabId) => {
         if (tabId === activeTab || isTransitioning) return;
 
         if (animated) {
             setIsTransitioning(true);
             setTimeout(() => {
-                onTabChange(tabId);
+                onTabChange(tabId);  // ← This should be the ORIGINAL onTabChange prop
                 setIsTransitioning(false);
             }, 50);
         } else {
-            onTabChange(tabId);
+            onTabChange(tabId);  // ← And this should call the ORIGINAL prop
         }
     };
 
@@ -42,7 +42,7 @@ const TabBar = ({
                     if (React.isValidElement(child) && child.type === Tab) {
                         return React.cloneElement(child, {
                             isActive: activeTab === child.props.id,
-                            onClick: () => handleTabChange(child.props.id),
+                            onClick: () => handleTabChange(child.props.id),  // ← Use handleTabChange
                             isTransitioning,
                             animated
                         });

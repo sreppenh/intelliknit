@@ -189,7 +189,6 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
           <TabBar.Tab id="details" label="Details" />
           <TabBar.Tab id="checklist" label="Checklist" />
         </TabBar>
-        */
 
         {/* Tab Content */}
         <div className="bg-yarn-50">
