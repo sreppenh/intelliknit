@@ -46,26 +46,6 @@ const EditPatternOverlay = ({
     // ===== NEW: Check if this is an advanced pattern that needs full-screen editing =====
     const shouldRouteToAdvancedEdit = currentStep ? requiresAdvancedPatternEdit(currentStep) : false;
 
-    // ===== DEBUGGING - REMOVE AFTER FIXING =====
-    console.log('🔧 EditPatternOverlay Debug:', {
-        isOpen,
-        currentStep: currentStep ? {
-            pattern: currentStep.wizardConfig?.stitchPattern?.pattern,
-            category: currentStep.wizardConfig?.stitchPattern?.category,
-            fullWizardConfig: currentStep.wizardConfig
-        } : null,
-        shouldRouteToAdvancedEdit,
-        hasOnRouteToAdvancedEdit: !!onRouteToAdvancedEdit
-    });
-
-    if (currentStep) {
-        console.log('🔧 Pattern Detection:', {
-            stepPatternName: getStepPatternName(currentStep),
-            requiresAdvanced: requiresAdvancedPatternEdit(currentStep)
-        });
-    }
-    // ===== END DEBUGGING =====
-
     // ===== NEW: Route to advanced edit if needed =====
     useEffect(() => {
         if (isOpen && shouldRouteToAdvancedEdit && onRouteToAdvancedEdit) {
