@@ -1,27 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import TabContent from '../../../../../shared/components/TabContent';
-import { validateKnittingTab } from '../types/TabProps';
+import { validateOverviewTab, extractOverviewTabProps } from '../types/TabProps';
 import { getProjectStatus as getSharedProjectStatus } from '../../../../../shared/utils/projectStatus';
 import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
+import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 
-const OverviewTab = ({
-    project,
-    totalComponents,
-    completedComponents,
-    onCompleteProject,
-    onEditProjectDetails,
-    onManageSteps,
-    onStartKnitting,
-    onChangeTab,
-    onProjectUpdate,
-    onDeleteProject,
-    onCopyProject,
-    onShowEnhancedCreation
-}) => {
+const OverviewTab = (props) => {
     // Validate props in development
     if (process.env.NODE_ENV === 'development') {
-        validateKnittingTab({ project, onProjectUpdate: onProjectUpdate, totalComponents, completedComponents });
+        validateOverviewTab(props);
     }
+
+    // Extract standardized props
+    const {
+        project,
+        onProjectUpdate,
+        // Overview-specific props
+        totalComponents,
+        completedComponents,
+        onCompleteProject,
+        onEditProjectDetails,
+        onManageSteps,
+        onStartKnitting,
+        onChangeTab,
+        onDeleteProject,
+        onCopyProject,
+        onShowEnhancedCreation
+    } = extractOverviewTabProps(props);
 
     // Modal states for project actions
     const [showFrogModal, setShowFrogModal] = useState(false);
@@ -40,25 +45,9 @@ const OverviewTab = ({
             return 'finishing_in_progress';
         }
 
-        // ✅ Use utility for regular components (replaces all the string parsing!)
+        // ✅ Use utility for regular components
         return getUtilityComponentState(component);
     };
-
-    // 🔧 DEBUG: Log ALL components to see problematic data
-    console.log('🔧 All Components Debug:', project.components?.map((comp, index) => ({
-        index,
-        name: comp.name,
-        status: getComponentStatus(comp),
-        stepCount: comp.steps?.length || 0,
-        steps: comp.steps?.map((step, stepIndex) => ({
-            stepIndex,
-            pattern: step.wizardConfig?.stitchPattern?.pattern,
-            description: step.description,
-            completed: step.completed,
-            startingStitches: step.startingStitches,
-            endingStitches: step.endingStitches
-        }))
-    })));
 
     // Add this function in OverviewTab.jsx
     const getComponentColorClass = (status) => {
@@ -110,17 +99,15 @@ const OverviewTab = ({
 
     // === PROJECT ACTIONS - FIXED AND IMPROVED ===
     const handleCompleteProject = () => {
-        console.log('🎉 Complete Project clicked, using onCompleteProject callback');
-        console.log('🎉 onCompleteProject exists:', !!onCompleteProject);
+        IntelliKnitLogger.success('Complete Project clicked');
 
         if (onCompleteProject) {
-            console.log('🎉 Calling onCompleteProject...');
+            IntelliKnitLogger.debug('Overview', 'Calling onCompleteProject callback');
             onCompleteProject();
         } else {
-            console.error('❌ onCompleteProject callback not provided');
+            IntelliKnitLogger.warn('onCompleteProject callback not provided, using fallback');
             // Fallback: try direct update with completion date
             if (onProjectUpdate) {
-                console.log('🎉 Fallback: using onProjectUpdate directly');
                 const today = new Date().toISOString().split('T')[0];
                 const updatedProject = {
                     ...project,
@@ -132,18 +119,17 @@ const OverviewTab = ({
                 };
                 onProjectUpdate(updatedProject);
             } else {
+                IntelliKnitLogger.error('No update callback available for project completion');
                 alert('Error: Cannot complete project - no update callback available');
             }
         }
     };
 
     const handleFrogProject = () => {
-        console.log('🐸 handleFrogProject called!');
-        console.log('🐸 onProjectUpdate exists:', !!onProjectUpdate);
-        console.log('🐸 project:', project);
+        IntelliKnitLogger.debug('Overview', 'Frog project initiated');
 
         if (!onProjectUpdate) {
-            console.error('❌ onProjectUpdate callback not provided');
+            IntelliKnitLogger.error('onProjectUpdate callback not provided');
             alert('Error: Cannot frog project - update callback missing');
             return;
         }
@@ -158,23 +144,21 @@ const OverviewTab = ({
             progress: 0
         };
 
-        console.log('🐸 About to call onProjectUpdate with:', updatedProject);
-
         try {
             onProjectUpdate(updatedProject);
-            console.log('✅ onProjectUpdate called successfully');
+            IntelliKnitLogger.success('Project frogged successfully');
             setShowFrogModal(false);
         } catch (error) {
-            console.error('❌ Error calling onProjectUpdate:', error);
+            IntelliKnitLogger.error('Error frogging project', error);
             alert('Error frogging project: ' + error.message);
         }
     };
 
     const handleDeleteProject = () => {
-        console.log('🗑️ Delete Project clicked, onDeleteProject:', !!onDeleteProject);
+        IntelliKnitLogger.debug('Overview', 'Delete project initiated');
 
         if (!onDeleteProject) {
-            console.error('onDeleteProject callback not provided');
+            IntelliKnitLogger.error('onDeleteProject callback not provided');
             return;
         }
         onDeleteProject(project.id);
@@ -182,7 +166,7 @@ const OverviewTab = ({
     };
 
     const handleCopyProject = () => {
-        console.log('📋 Copy Project clicked');
+        IntelliKnitLogger.debug('Overview', 'Copy project clicked');
         alert('📋 Copy Project feature coming soon! This will create a new project with reset progress.');
     };
 
@@ -236,7 +220,7 @@ const OverviewTab = ({
         return icons[projectType] || '🧶';
     };
 
-    // === STATUS DISPLAY LOGIC - NEW ===
+    // === STATUS DISPLAY LOGIC ===
     const getProjectStatusDisplay = () => {
         const sharedStatus = getSharedProjectStatus(project);
 
@@ -252,7 +236,7 @@ const OverviewTab = ({
 
     const projectStatus = getProjectStatusDisplay();
 
-    // === SMART BUTTON LOGIC - NEW ===
+    // === SMART BUTTON LOGIC ===
     const getAvailableActions = () => {
         return {
             canComplete: !project.completed, // Can complete if not already completed
@@ -308,7 +292,7 @@ const OverviewTab = ({
         return `${completedComponents}/${totalComponents} components complete`;
     };
 
-    // === MODAL BEHAVIOR HOOKS (Warning Modal Pattern) ===
+    // === STANDARDIZED MODAL BEHAVIOR (Warning Modal Pattern) ===
     useEffect(() => {
         const handleEscKey = (event) => {
             if (event.key === 'Escape') {
@@ -341,7 +325,6 @@ const OverviewTab = ({
         }
     };
 
-
     // === RENDER ===
     return (
         <>
@@ -355,17 +338,16 @@ const OverviewTab = ({
                         <div className="space-y-3">
                             <button
                                 onClick={() => {
-                                    console.log('🧶 Overview: Add Component clicked');
+                                    IntelliKnitLogger.debug('Overview', 'Add Component clicked from empty state');
                                     onShowEnhancedCreation();
                                 }}
                                 className="btn-primary w-full"
                             >
                                 + Add Component
                             </button>
-                            {/* FIXED: Delete button always available in empty state */}
                             <button
                                 onClick={() => {
-                                    console.log('🗑️ Empty state delete button clicked!');
+                                    IntelliKnitLogger.debug('Overview', 'Delete button clicked from empty state');
                                     setShowDeleteModal(true);
                                 }}
                                 className="btn-tertiary w-full text-sm"
@@ -377,7 +359,7 @@ const OverviewTab = ({
                 }
             >
                 <div className="p-6 space-y-6">
-                    {/* === COMPACT PROJECT HEADER (Icon next to name) === */}
+                    {/* === COMPACT PROJECT HEADER === */}
                     <div className="text-center space-y-2">
                         <h1 className="text-xl font-bold text-wool-800 flex items-center justify-center gap-2">
                             <span className="text-2xl">{getProjectIcon(project.projectType)}</span>
@@ -388,7 +370,7 @@ const OverviewTab = ({
                         </p>
                     </div>
 
-                    {/* === PROJECT STATUS BANNER - NEW === */}
+                    {/* === PROJECT STATUS BANNER === */}
                     {projectStatus.show && (
                         <div className={`rounded-2xl border-2 p-4 ${projectStatus.bgColor}`}>
                             <div className="text-center">
@@ -415,7 +397,7 @@ const OverviewTab = ({
                         </div>
                     )}
 
-                    {/* === ACTIVE COMPONENTS (Max 3, stronger status) === */}
+                    {/* === ACTIVE COMPONENTS === */}
                     {overviewComponents.length > 0 && (
                         <div className="space-y-3">
                             <h2 className="text-base font-semibold text-wool-700">Up Next</h2>
@@ -432,9 +414,9 @@ const OverviewTab = ({
                         </div>
                     )}
 
-                    {/* === PROJECT ACTIONS - IMPROVED WITH SMART LOGIC === */}
+                    {/* === PROJECT ACTIONS === */}
                     <div className="space-y-4">
-                        {/* Primary CTA - Mark Complete (smart logic) */}
+                        {/* Primary CTA - Mark Complete */}
                         {actions.showMarkComplete && (
                             <button
                                 onClick={handleCompleteProject}
@@ -444,7 +426,7 @@ const OverviewTab = ({
                             </button>
                         )}
 
-                        {/* Secondary Actions - Smart button visibility */}
+                        {/* Secondary Actions */}
                         <div className="space-y-2">
                             <h3 className="text-sm font-medium text-wool-600">Project Actions</h3>
                             <div className="grid grid-cols-2 gap-2">
@@ -463,7 +445,6 @@ const OverviewTab = ({
                                 >
                                     📋 Copy Project
                                 </button>
-                                {/* Smart Frog Button - only show if not already frogged */}
                                 {actions.canFrog && (
                                     <button
                                         onClick={() => setShowFrogModal(true)}
@@ -472,7 +453,6 @@ const OverviewTab = ({
                                         🐸 Frog Project
                                     </button>
                                 )}
-                                {/* Delete Button - always available */}
                                 <button
                                     onClick={() => setShowDeleteModal(true)}
                                     className="btn-tertiary text-sm"
@@ -485,7 +465,7 @@ const OverviewTab = ({
                 </div>
             </TabContent>
 
-            {/* === MODALS (Outside TabContent for proper rendering) === */}
+            {/* === STANDARDIZED MODALS === */}
             {showFrogModal && (
                 <div className="modal-overlay" onClick={handleBackdropClick}>
                     <div className="modal-content-light">
@@ -511,20 +491,14 @@ const OverviewTab = ({
                             </p>
                             <div className="flex gap-3">
                                 <button
-                                    onClick={() => {
-                                        console.log('🐸 Modal Keep Going clicked');
-                                        setShowFrogModal(false);
-                                    }}
+                                    onClick={() => setShowFrogModal(false)}
                                     data-modal-cancel
                                     className="btn-tertiary flex-1"
                                 >
                                     Keep Going
                                 </button>
                                 <button
-                                    onClick={() => {
-                                        console.log('🐸 Modal Frog It clicked - calling handleFrogProject');
-                                        handleFrogProject();
-                                    }}
+                                    onClick={handleFrogProject}
                                     data-modal-exit
                                     className="btn-primary flex-1"
                                 >
@@ -590,7 +564,7 @@ const OverviewTab = ({
     );
 };
 
-// === OVERVIEW COMPONENT CARD (Stronger status indicators) ===
+// === OVERVIEW COMPONENT CARD ===
 const OverviewComponentCard = ({ component, status, onClick }) => {
     const getStatusConfig = () => {
         switch (status) {

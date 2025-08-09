@@ -40,6 +40,19 @@ export const knittingTabProps = {
     completedComponents: 0,         // Completed component count
 };
 
+// Props for OverviewTab (combines multiple capabilities)
+export const overviewTabProps = {
+    ...baseTabProps,
+    ...knittingTabProps,
+    ...navigationTabProps,
+    // Overview-specific props
+    onDeleteProject: null,          // Delete project action
+    onCopyProject: null,            // Copy project action  
+    onShowEnhancedCreation: null,   // Show component creation flow
+    onManageSteps: null,            // Navigate to step management
+    onStartKnitting: null,          // Start knitting mode
+};
+
 // Validation helper for development mode
 export const validateTabProps = (props, requiredProps) => {
     if (process.env.NODE_ENV !== 'development') return;
@@ -68,6 +81,20 @@ export const validateNavigationTab = (props) => {
 
 export const validateKnittingTab = (props) => {
     const required = ['project', 'onProjectUpdate', 'totalComponents', 'completedComponents'];
+    validateTabProps(props, required);
+};
+
+// Validation for OverviewTab
+export const validateOverviewTab = (props) => {
+    const required = [
+        'project',
+        'onProjectUpdate',
+        'totalComponents',
+        'completedComponents',
+        'onCompleteProject',
+        'onChangeTab',
+        'onShowEnhancedCreation'
+    ];
     validateTabProps(props, required);
 };
 
@@ -116,5 +143,38 @@ export const extractNavigationProps = (props) => {
         onNavigate,
         onEditProjectDetails,
         onCompleteProject
+    };
+};
+
+// Prop extraction for OverviewTab
+export const extractOverviewTabProps = (props) => {
+    const {
+        project,
+        onProjectUpdate,
+        totalComponents,
+        completedComponents,
+        onCompleteProject,
+        onEditProjectDetails,
+        onManageSteps,
+        onStartKnitting,
+        onChangeTab,
+        onDeleteProject,
+        onCopyProject,
+        onShowEnhancedCreation
+    } = props;
+
+    return {
+        project,
+        onProjectUpdate,
+        totalComponents,
+        completedComponents,
+        onCompleteProject,
+        onEditProjectDetails,
+        onManageSteps,
+        onStartKnitting,
+        onChangeTab,
+        onDeleteProject,
+        onCopyProject,
+        onShowEnhancedCreation
     };
 };
