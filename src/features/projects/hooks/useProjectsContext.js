@@ -17,13 +17,13 @@ export const ProjectsProvider = ({ children }) => {
         if (savedProjects && savedProjects.length > 0) {
           // Automatically migrate legacy data to new architecture
           const { projects: migratedProjects, migratedCount } = migrateAllProjectsToNewArchitecture(savedProjects);
-          
+
           if (migratedCount > 0) {
             IntelliKnitLogger.success(`Migrated ${migratedCount} projects to new architecture`);
           }
-          
+
           dispatch({ type: 'LOAD_PROJECTS', payload: migratedProjects });
-          
+
           // Save migrated data back to storage if any migrations occurred
           if (migratedCount > 0) {
             await StorageService.saveProjects(migratedProjects);
@@ -33,7 +33,7 @@ export const ProjectsProvider = ({ children }) => {
         IntelliKnitLogger.error('IntelliKnit Error: Failed to load projects', error);
       }
     };
-    
+
     loadProjects();
   }, []); // Empty dependency array - no more useMigration dependency
 
