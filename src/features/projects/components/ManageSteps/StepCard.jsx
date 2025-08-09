@@ -20,6 +20,7 @@ const StepCard = ({
     onEditPattern,
     onEditConfig,
     onPrepNoteClick,
+    editableStepIndex,
 }) => {
     // Extract prep note from various possible locations
     const prepNote = step.prepNote ||
@@ -82,6 +83,7 @@ const StepCard = ({
                                 onEditConfig={onEditConfig}
                                 onDeleteStep={onDeleteStep}
                                 onPrepNoteClick={onPrepNoteClick}
+                                editableStepIndex={editableStepIndex} // ← ADD THIS
                             />
                         </div>
                     </div>

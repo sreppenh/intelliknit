@@ -5,6 +5,7 @@ const StepMenu = ({
     step,
     stepIndex,
     component,
+    editableStepIndex,
     isComponentFinished,
     openMenuId,
     onMenuToggle,
@@ -24,8 +25,8 @@ const StepMenu = ({
         }
 
         if (isMiddleStep(step)) {
-            // Only show for middle steps if component isn't finished
-            return !isComponentFinished();
+            // Only show for middle steps that are the currently editable step
+            return !isComponentFinished() && stepIndex === editableStepIndex;
         }
 
         return false;

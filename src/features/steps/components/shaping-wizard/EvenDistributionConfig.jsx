@@ -366,37 +366,11 @@ const EvenDistributionConfig = ({
             <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
             <div className="space-y-2 text-sm">
               <div className="text-lavender-700">
-                <span className="font-medium">Instruction:</span> {result.instruction}
+                <span className="font-medium">Instruction:</span> {formatKnittingInstruction(result.instruction)}
               </div>
               <div className="text-lavender-600">
                 {result.startingStitches} stitches → {result.endingStitches} stitches
                 ({result.construction})
-              </div>
-            </div>
-          </div>
-
-          {/* 🧶 NEW: Knitting Notation Test Display */}
-          <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
-            <h4 className="text-sm font-semibold text-purple-700 mb-3">
-              🧶 Knitting Notation Test
-            </h4>
-            <div className="space-y-3 text-sm">
-              <div>
-                <span className="font-medium text-purple-700">Raw calculation:</span>
-                <div className="bg-white rounded-lg p-2 mt-1 border border-purple-200 font-mono text-xs">
-                  {result.instruction}
-                </div>
-              </div>
-              <div>
-                <span className="font-medium text-purple-700">Formatted notation:</span>
-                <div className="bg-white rounded-lg p-2 mt-1 border border-purple-200 font-mono text-xs">
-                  {formatKnittingInstruction(result.instruction)}
-                </div>
-              </div>
-              <div className="text-purple-600 text-xs">
-                {formatKnittingInstruction(result.instruction) !== result.instruction
-                  ? "✅ Formatting improved!"
-                  : "ℹ️ No pattern detected - showing original"}
               </div>
             </div>
           </div>

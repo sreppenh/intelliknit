@@ -49,6 +49,7 @@ const StepsList = ({
                         isComponentFinished={isComponentFinished}
                         openMenuId={openMenuId}
                         onMenuToggle={onMenuToggle}
+                        editableStepIndex={editableStepIndex} // ← ADD THIS
                         onEditStep={onEditStep}
                         onEditPattern={onEditPattern}
                         onEditConfig={onEditConfig}

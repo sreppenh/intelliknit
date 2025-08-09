@@ -161,7 +161,7 @@ export const getStepDurationDisplay = (step) => {
             return `${duration.value} ${construction === 'round' ? 'rounds' : 'rows'}`;
 
         case 'length':
-            return `+${duration.value} ${duration.units}`;
+            return `${duration.value} ${duration.units}`;
 
         case 'until_length':
             return `until ${duration.value} ${duration.units}`;
