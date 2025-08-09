@@ -3,47 +3,13 @@ import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import IncrementInput from '../../../shared/components/IncrementInput';
 import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
+import {
+    getPatternQuickActions,
+    getPatternPlaceholderText,
+    getPatternDescriptionPlaceholder
+} from '../../../shared/utils/stepDisplayUtils';
 
 // ===== PATTERN-SPECIFIC HELPER FUNCTIONS (reused from RowByRowPatternConfig) =====
-
-const getQuickActions = (patternType) => {
-    switch (patternType) {
-        case 'Cable Pattern':
-            return ['K all', 'P all', 'C6F', 'C6B', 'T2F', 'T2B'];
-        case 'Lace Pattern':
-            return ['K all', 'P all', 'YO', 'K2tog', 'SSK', 'CDD'];
-        case 'Custom pattern':
-            return ['K all', 'P all'];
-        default:
-            return ['K all', 'P all'];
-    }
-};
-
-const getPlaceholderText = (patternType) => {
-    switch (patternType) {
-        case 'Cable Pattern':
-            return "e.g., 'K2, P2, C6F, P2, K2'";
-        case 'Lace Pattern':
-            return "e.g., 'K1, YO, K2tog, K3, SSK, YO, K1'";
-        case 'Custom pattern':
-            return "e.g., '5 rows stockinette, 1 bobble row'";
-        default:
-            return "Enter row instruction...";
-    }
-};
-
-const getDescriptionPlaceholder = (patternType) => {
-    switch (patternType) {
-        case 'Cable Pattern':
-            return "Describe your cable pattern crossings, directions, and any background stitches...";
-        case 'Lace Pattern':
-            return "Describe your lace pattern with key techniques and any chart references...";
-        case 'Custom pattern':
-            return "e.g., '5 rows stockinette, 1 bobble row'";
-        default:
-            return "Describe your pattern...";
-    }
-};
 
 const EditRowByRowPatternForm = ({
     componentIndex,
@@ -129,9 +95,8 @@ const EditRowByRowPatternForm = ({
     }
 
     // ===== PATTERN-SPECIFIC DATA =====
-    const quickActions = getQuickActions(formData.pattern);
-    const placeholderText = getPlaceholderText(formData.pattern);
-    const descriptionPlaceholder = getDescriptionPlaceholder(formData.pattern);
+    const quickActions = getPatternQuickActions(formData.pattern);
+    const placeholderText = getPatternPlaceholderText(formData.pattern);
 
     // ===== FORM HANDLERS =====
     const updateFormData = (updates) => {
@@ -270,8 +235,8 @@ const EditRowByRowPatternForm = ({
                         <label className="form-label">Pattern Entry Method</label>
                         <div className="flex gap-3">
                             <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${formData.entryMode === 'description'
-                                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
                                 }`}>
                                 <input
                                     type="radio"
@@ -289,8 +254,8 @@ const EditRowByRowPatternForm = ({
                             </label>
 
                             <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${formData.entryMode === 'row_by_row'
-                                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
                                 }`}>
                                 <input
                                     type="radio"
@@ -317,7 +282,7 @@ const EditRowByRowPatternForm = ({
                                 <textarea
                                     value={formData.customText}
                                     onChange={(e) => updateFormData({ customText: e.target.value })}
-                                    placeholder={descriptionPlaceholder}
+                                    placeholder={getPatternDescriptionPlaceholder(formData.pattern)}
                                     rows={3}
                                     className="input-field-lg resize-none"
                                 />

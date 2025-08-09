@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
+import { getPatternQuickActions } from '../../../../shared/utils/stepDisplayUtils';
 
-const CustomPatternConfig = ({ wizardData, updateWizardData, construction }) => {
+const RowByRowPatternConfig = ({ wizardData, updateWizardData, construction }) => {
     // ===== ROW-BY-ROW STATE MANAGEMENT =====
     const [showRowEntryOverlay, setShowRowEntryOverlay] = useState(false);
     const [editingRowIndex, setEditingRowIndex] = useState(null);
@@ -10,6 +11,12 @@ const CustomPatternConfig = ({ wizardData, updateWizardData, construction }) => 
     // Initialize entryMode if not set (backwards compatibility)
     const currentEntryMode = wizardData.stitchPattern.entryMode || 'description';
     const rowInstructions = wizardData.stitchPattern.rowInstructions || [];
+
+    // ✅ ADD THESE LINES:
+    // Get pattern-specific data
+    const patternType = wizardData.stitchPattern.pattern;
+    const quickActions = getPatternQuickActions(patternType);
+    const placeholderText = getPatternPlaceholderText(patternType);
 
     // ===== MODE TOGGLE HANDLING =====
     const handleModeToggle = (newMode) => {
@@ -71,18 +78,15 @@ const CustomPatternConfig = ({ wizardData, updateWizardData, construction }) => 
     };
 
     const handleQuickAction = (action) => {
-        switch (action) {
-            case 'k_all':
-                setTempRowText('Knit all stitches');
-                break;
-            case 'p_all':
-                setTempRowText('Purl all stitches');
-                break;
-            default:
-                if (action.startsWith('copy_')) {
-                    const rowIndex = parseInt(action.split('_')[1]);
-                    setTempRowText(rowInstructions[rowIndex] || '');
-                }
+        if (action === 'K all') {
+            setTempRowText('K all');
+        } else if (action === 'P all') {
+            setTempRowText('P all');
+        } else if (action.startsWith('copy_')) {
+            const rowIndex = parseInt(action.split('_')[1]);
+            setTempRowText(rowInstructions[rowIndex] || '');
+        } else {
+            setTempRowText(prev => prev ? `${prev}, ${action}` : action);
         }
     };
 
@@ -267,7 +271,7 @@ const CustomPatternConfig = ({ wizardData, updateWizardData, construction }) => 
                                 <textarea
                                     value={tempRowText}
                                     onChange={(e) => setTempRowText(e.target.value)}
-                                    placeholder="Enter row instruction..."
+                                    placeholder={placeholderText}
                                     rows={3}
                                     className="w-full border-2 border-wool-200 rounded-lg px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors resize-none"
                                     autoFocus
@@ -278,21 +282,18 @@ const CustomPatternConfig = ({ wizardData, updateWizardData, construction }) => 
                             <div className="mb-4">
                                 <div className="text-sm font-medium text-wool-600 mb-2">Quick Actions:</div>
                                 <div className="flex flex-wrap gap-2">
-                                    <button
-                                        onClick={() => handleQuickAction('k_all')}
-                                        className="px-3 py-1 bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors"
-                                    >
-                                        K all
-                                    </button>
-                                    <button
-                                        onClick={() => handleQuickAction('p_all')}
-                                        className="px-3 py-1 bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors"
-                                    >
-                                        P all
-                                    </button>
+                                    {quickActions.map(action => (
+                                        <button
+                                            key={action}
+                                            onClick={() => handleQuickAction(action)}
+                                            className="px-3 py-1 bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors"
+                                        >
+                                            {action}
+                                        </button>
+                                    ))}
                                     {rowInstructions.map((instruction, index) => (
                                         <button
-                                            key={index}
+                                            key={`copy_${index}`}
                                             onClick={() => handleQuickAction(`copy_${index}`)}
                                             className="px-3 py-1 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 transition-colors"
                                         >
@@ -326,4 +327,4 @@ const CustomPatternConfig = ({ wizardData, updateWizardData, construction }) => 
     );
 };
 
-export default CustomPatternConfig;
+export default RowByRowPatternConfig;

@@ -458,6 +458,61 @@ export const validatePatternConfiguration = (stitchPattern) => {
     return true;
 };
 
+// Add these functions to the end of stepDisplayUtils.js, before the existing exports
+
+// ===== PATTERN-SPECIFIC HELPER FUNCTIONS =====
+
+/**
+ * Get quick action buttons for pattern type
+ * Used by: RowByRowPatternConfig, EditRowByRowPatternForm
+ */
+export const getPatternQuickActions = (patternType) => {
+    switch (patternType) {
+        case 'Cable Pattern':
+            return ['K all', 'P all', 'C6F', 'C6B', 'T2F', 'T2B'];
+        case 'Lace Pattern':
+            return ['K all', 'P all', 'YO', 'K2tog', 'SSK', 'CDD'];
+        case 'Custom pattern':
+            return ['K all', 'P all'];
+        default:
+            return ['K all', 'P all'];
+    }
+};
+
+/**
+ * Get placeholder text for pattern row input
+ * Used by: RowByRowPatternConfig, EditRowByRowPatternForm
+ */
+export const getPatternPlaceholderText = (patternType) => {
+    switch (patternType) {
+        case 'Cable Pattern':
+            return "e.g., 'K2, P2, C6F, P2, K2'";
+        case 'Lace Pattern':
+            return "e.g., 'K1, YO, K2tog, K3, SSK, YO, K1'";
+        case 'Custom pattern':
+            return "e.g., '5 rows stockinette, 1 bobble row'";
+        default:
+            return "Enter row instruction...";
+    }
+};
+
+/**
+ * Get description placeholder for pattern configuration
+ * Used by: EditRowByRowPatternForm
+ */
+export const getPatternDescriptionPlaceholder = (patternType) => {
+    switch (patternType) {
+        case 'Cable Pattern':
+            return "Describe your cable pattern crossings, directions, and any background stitches...";
+        case 'Lace Pattern':
+            return "Describe your lace pattern with key techniques and any chart references...";
+        case 'Custom pattern':
+            return "e.g., '5 rows stockinette, 1 bobble row'";
+        default:
+            return "Describe your pattern...";
+    }
+};
+
 /**
  * Get user-friendly validation error message
  * Helps with debugging and user feedback
