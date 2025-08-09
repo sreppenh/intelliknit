@@ -1,6 +1,7 @@
 // Enhanced ProjectDetail.jsx implementation
 // Refactored with extracted components and centralized actions
 // STRUCTURAL CLEANUP: Removed ProjectStatusBar for clean hierarchy
+// CSS GRID LAYOUT: Fixed sticky header positioning
 
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
@@ -34,7 +35,6 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
 
   // Tab navigation with memory management
   const { currentTab, changeTab } = useTabNavigation(currentProject?.id, initialTab);
-
 
   // Extract all actions and modal states
   const {
@@ -147,119 +147,119 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
     );
   }
 
-  // Photos tab placeholder
-  const renderPhotosTab = () => (
-    <div className="p-6 text-center py-12">
-      <div className="text-4xl mb-3">📷</div>
-      <h3 className="font-semibold text-wool-700 mb-2">Photos Coming Soon</h3>
-      <p className="text-wool-500 text-sm">Project photo gallery will be available in a future update</p>
-    </div>
-  );
-
-  // Main render
+  // Main render with CSS Grid Layout
   return (
     <div className="min-h-screen bg-yarn-50">
-      <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
-        {/* Header */}
-        <PageHeader
-          title={
-            <div className="flex items-center gap-2 justify-center">
-              <span className="text-base">
-                {getProjectIcon(currentProject.projectType)}
-              </span>
-              <span>{currentProject.name}</span>
+      <div className="app-container bg-yarn-50 min-h-screen shadow-lg">
+
+        {/* CSS GRID CONTAINER - Fixes sticky positioning */}
+        <div className="project-detail-grid">
+
+          {/* FIXED HEADER ROW */}
+          <div className="header-row">
+            <PageHeader
+              title={
+                <div className="flex items-center gap-2 justify-center">
+                  <span className="text-base">
+                    {getProjectIcon(currentProject.projectType)}
+                  </span>
+                  <span>{currentProject.name}</span>
+                </div>
+              }
+              subtitle="Project Dashboard"
+              onBack={onBack}
+              showCancelButton={true}
+              onCancel={onBack}
+              sticky={false} // Grid handles positioning
+            />
+          </div>
+
+          {/* FIXED TABS ROW */}
+          <div className="tabs-row">
+            <TabBar
+              activeTab={currentTab}
+              onTabChange={changeTab}
+              sticky={false} // Grid handles positioning
+            >
+              <TabBar.Tab id="overview" label="Overview" />
+              <TabBar.Tab id="components" label="Components" />
+              <TabBar.Tab id="details" label="Details" />
+              <TabBar.Tab id="checklist" label="Checklist" />
+            </TabBar>
+          </div>
+
+          {/* SCROLLABLE CONTENT ROW */}
+          <div className="content-row">
+            <div className="bg-yarn-50">
+              {currentTab === 'overview' && (
+                <OverviewTab
+                  project={currentProject}
+                  totalComponents={totalComponents}
+                  completedComponents={completedComponents}
+                  onCompleteProject={modalHandlers.showCompleteProject}
+                  onEditProjectDetails={projectActions.editProjectDetails}
+                  onManageSteps={componentActions.manageSteps}
+                  onStartKnitting={onStartKnitting}
+                  onChangeTab={changeTab}
+                  onShowEnhancedCreation={componentActions.showEnhancedCreation}
+                  onProjectUpdate={(updatedProject) => {
+                    dispatch({
+                      type: 'UPDATE_PROJECT',
+                      payload: updatedProject
+                    });
+                  }}
+                  onDeleteProject={(projectId) => {
+                    dispatch({
+                      type: 'DELETE_PROJECT',
+                      payload: projectId
+                    });
+                    onBack();
+                  }}
+                  onCopyProject={(projectData) => {
+                    console.log('Copy project:', projectData);
+                    alert('📋 Copy Project feature coming soon!');
+                  }}
+                />
+              )}
+              {currentTab === 'components' && (
+                <ComponentsTab
+                  project={currentProject}
+                  sortedComponents={getSortedComponentsWithFinishing()}
+                  onShowEnhancedCreation={componentActions.showEnhancedCreation}
+                  onComponentManageSteps={componentActions.manageSteps}
+                  onComponentMenuAction={componentActions.menuAction}
+                  openMenuId={modalStates.openMenuId}
+                  setOpenMenuId={modalStates.setOpenMenuId}
+                />
+              )}
+              {currentTab === 'details' && (
+                <DetailsTab
+                  project={currentProject}
+                  onProjectUpdate={(updatedProject) => {
+                    dispatch({
+                      type: 'UPDATE_PROJECT',
+                      payload: updatedProject
+                    });
+                  }}
+                />
+              )}
+              {currentTab === 'checklist' && (
+                <ChecklistTab
+                  project={currentProject}
+                  onProjectUpdate={(updatedProject) => {
+                    dispatch({
+                      type: 'UPDATE_PROJECT',
+                      payload: updatedProject
+                    });
+                  }}
+                />
+              )}
             </div>
-          }
-          subtitle="Project Dashboard"
-          onBack={onBack}
-          showCancelButton={true}
-          onCancel={onBack}
-        />
+          </div>
 
-        {/* Tab Navigation - Now functions as secondary header */}
-        <TabBar
-          activeTab={currentTab}
-          onTabChange={changeTab}
-          sticky={true}
-          topOffset="72px"
-          zIndex={18}
-        >
-          <TabBar.Tab id="overview" label="Overview" />
-          <TabBar.Tab id="components" label="Components" />
-          <TabBar.Tab id="details" label="Details" />
-          <TabBar.Tab id="checklist" label="Checklist" />
-        </TabBar>
-
-
-        {/* Tab Content */}
-        <div className="bg-yarn-50">
-          {currentTab === 'overview' && (
-            <OverviewTab
-              project={currentProject}
-              totalComponents={totalComponents}
-              completedComponents={completedComponents}
-              onCompleteProject={modalHandlers.showCompleteProject}
-              onEditProjectDetails={projectActions.editProjectDetails}
-              onManageSteps={componentActions.manageSteps}
-              onStartKnitting={onStartKnitting}
-              onChangeTab={changeTab}
-              onShowEnhancedCreation={componentActions.showEnhancedCreation}  // ✅ ADD THIS LINE
-              onProjectUpdate={(updatedProject) => {
-                dispatch({
-                  type: 'UPDATE_PROJECT',
-                  payload: updatedProject
-                });
-              }}
-              onDeleteProject={(projectId) => {
-                dispatch({
-                  type: 'DELETE_PROJECT',
-                  payload: projectId
-                });
-                onBack(); // Navigate back after deletion
-              }}
-              onCopyProject={(projectData) => {
-                console.log('Copy project:', projectData);
-                // TODO: Implement copy project functionality
-                alert('📋 Copy Project feature coming soon!');
-              }}
-            />
-          )}
-          {currentTab === 'components' && (
-            <ComponentsTab
-              project={currentProject}
-              sortedComponents={getSortedComponentsWithFinishing()}
-              onShowEnhancedCreation={componentActions.showEnhancedCreation}
-              onComponentManageSteps={componentActions.manageSteps}
-              onComponentMenuAction={componentActions.menuAction}
-              openMenuId={modalStates.openMenuId}
-              setOpenMenuId={modalStates.setOpenMenuId}
-            />
-          )}
-          {currentTab === 'details' && (
-            <DetailsTab
-              project={currentProject}
-              onProjectUpdate={(updatedProject) => {
-                dispatch({
-                  type: 'UPDATE_PROJECT',
-                  payload: updatedProject
-                });
-              }}
-            />
-          )}
-          {currentTab === 'checklist' && (
-            <ChecklistTab
-              project={currentProject}
-              onProjectUpdate={(updatedProject) => {
-                dispatch({
-                  type: 'UPDATE_PROJECT',
-                  payload: updatedProject
-                });
-              }}
-            />
-          )}
         </div>
 
-        {/* Modals */}
+        {/* All Modals (unchanged) */}
         {modalStates.showCompleteProjectModal && (
           <CompleteProjectModal
             projectName={currentProject.name}
@@ -292,6 +292,53 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
           />
         )}
       </div>
+
+      {/* CSS Grid Styles */}
+      <style jsx>{`
+        .project-detail-grid {
+          display: grid;
+          grid-template-rows: auto auto 1fr;
+          height: 100vh;
+          overflow: hidden;
+        }
+
+        .header-row {
+          position: sticky;
+          top: 0;
+          z-index: 30;
+          grid-row: 1;
+        }
+
+        .tabs-row {
+          position: sticky;
+          top: 72px;
+          z-index: 25;
+          grid-row: 2;
+        }
+
+        .content-row {
+          grid-row: 3;
+          overflow-y: auto;
+          -webkit-overflow-scrolling: touch;
+          overscroll-behavior: none;
+        }
+
+        /* Mobile safe area support */
+        @media (max-width: 768px) {
+          .header-row {
+            top: env(safe-area-inset-top, 0);
+          }
+          
+          .tabs-row {
+            top: calc(72px + env(safe-area-inset-top, 0));
+          }
+        }
+
+        /* Smooth scrolling */
+        .content-row {
+          scroll-behavior: smooth;
+        }
+      `}</style>
     </div>
   );
 };

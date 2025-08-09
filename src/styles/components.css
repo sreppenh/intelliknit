@@ -1081,3 +1081,327 @@ body {
     scrollbar-width: none;
   }
 }
+
+/* ===== SITE-WIDE TABLET SUPPORT ===== */
+/* Add this to your components.css file */
+
+/* === GLOBAL CONTAINER SYSTEM === */
+.app-container {
+  margin-left: auto;
+  margin-right: auto;
+  background-color: #fefcf9;
+  /* yarn-50 */
+  min-height: 100vh;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
+  max-width: min(100vw, 448px);
+  /* Mobile: same as max-w-md */
+}
+
+@media (min-width: 768px) {
+  .app-container {
+    max-width: min(100vw, 600px);
+    /* Tablet: comfortable width */
+    border-radius: 0.75rem;
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: min(100vw, 768px);
+    /* Desktop: wider but still mobile-first */
+  }
+}
+
+/* === TABLET SPACING OVERRIDES === */
+@media (min-width: 768px) {
+
+  /* Increase base padding on tablet */
+  .app-container .p-4 {
+    padding: 1.5rem;
+  }
+
+  .app-container .p-6 {
+    padding: 2rem;
+  }
+
+  .app-container .px-4 {
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+  }
+
+  .app-container .px-6 {
+    padding-left: 2rem;
+    padding-right: 2rem;
+  }
+
+  .app-container .py-4 {
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  .app-container .py-6 {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+  }
+
+  /* Better spacing between elements */
+  .app-container .space-y-3>*+* {
+    margin-top: 1rem;
+  }
+
+  .app-container .space-y-4>*+* {
+    margin-top: 1.5rem;
+  }
+
+  .app-container .space-y-6>*+* {
+    margin-top: 2rem;
+  }
+
+  /* Gap improvements */
+  .app-container .gap-3 {
+    gap: 1rem;
+  }
+
+  .app-container .gap-4 {
+    gap: 1.5rem;
+  }
+
+}
+
+/* === TABLET TYPOGRAPHY === */
+@media (min-width: 768px) {
+
+  .app-container {
+    font-size: 16px;
+    line-height: 1.6;
+  }
+
+  /* Header scaling */
+  .app-container .text-xl {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+
+  .app-container .text-lg {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+
+  .app-container .text-base {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+
+  .app-container .text-sm {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+
+  /* Content headers */
+  .app-container .content-header-primary {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .app-container .content-header-secondary {
+    font-size: 1.5rem;
+    line-height: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .app-container .page-title {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+    margin-bottom: 2rem;
+  }
+
+}
+
+/* === TABLET INTERACTIVE ELEMENTS === */
+@media (min-width: 768px) {
+
+  /* All buttons get better touch targets */
+  .app-container .btn-primary,
+  .app-container .btn-secondary,
+  .app-container .btn-tertiary,
+  .app-container button {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    min-height: 48px;
+    border-radius: 0.75rem;
+  }
+
+  /* Form elements */
+  .app-container input[type="text"],
+  .app-container input[type="number"],
+  .app-container input[type="email"],
+  .app-container input[type="password"],
+  .app-container textarea,
+  .app-container select {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    padding: 0.75rem 1rem;
+    min-height: 48px;
+    border-radius: 0.75rem;
+  }
+
+  /* Ensure all clickable elements meet 48px minimum */
+  .app-container button,
+  .app-container [role="button"],
+  .app-container .clickable,
+  .app-container .btn-sm {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+}
+
+/* === TABLET CARD SYSTEM === */
+@media (min-width: 768px) {
+
+  .app-container .card,
+  .app-container .card-interactive,
+  .app-container .card-info,
+  .app-container .step-card {
+    padding: 1.5rem;
+    border-radius: 1rem;
+  }
+
+  /* Project cards */
+  .app-container .card-project-ready,
+  .app-container .card-project-active,
+  .app-container .card-project-complete,
+  .app-container .card-project-fire,
+  .app-container .card-project-dormant,
+  .app-container .card-project-frogged,
+  .app-container .card-project-planning {
+    padding: 1.5rem;
+    border-radius: 1rem;
+  }
+
+}
+
+/* === TABLET MODAL IMPROVEMENTS === */
+@media (min-width: 768px) {
+
+  .modal-content,
+  .modal-content-light {
+    max-width: 32rem;
+    /* lg */
+    padding: 2rem;
+    border-radius: 1rem;
+  }
+
+  .modal-overlay {
+    padding: 2rem;
+  }
+
+}
+
+/* === TABLET NAVIGATION === */
+@media (min-width: 768px) {
+
+  /* Header improvements */
+  .app-container .header-primary,
+  .app-container .header-secondary {
+    padding-left: 2rem;
+    padding-right: 2rem;
+    padding-top: 1.25rem;
+    padding-bottom: 1.25rem;
+  }
+
+  /* Tab bar improvements */
+  .app-container .tab-button {
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    min-height: 52px;
+  }
+
+  /* Three-dot menus */
+  .app-container .menu-item {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    line-height: 1.5rem;
+    min-height: 48px;
+  }
+
+}
+
+/* === TABLET GRID LAYOUTS === */
+@media (min-width: 768px) {
+
+  .app-container .grid-2-equal {
+    gap: 1.5rem;
+  }
+
+  .app-container .grid-3-equal {
+    gap: 1rem;
+  }
+
+  .app-container .grid-auto-fit {
+    gap: 1rem;
+  }
+
+}
+
+/* === TABLET PROGRESS & STATUS === */
+@media (min-width: 768px) {
+
+  .app-container .progress-bar {
+    height: 8px;
+    /* Thicker progress bars */
+  }
+
+  .app-container .badge {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    padding: 0.25rem 0.75rem;
+  }
+
+  .app-container .status-indicator {
+    font-size: 1rem;
+    line-height: 1.5rem;
+    padding: 0.5rem 1rem;
+  }
+
+}
+
+/* === TABLET LIST IMPROVEMENTS === */
+@media (min-width: 768px) {
+
+  /* Component lists */
+  .app-container .component-list-item {
+    padding: 1.5rem;
+    border-radius: 1rem;
+  }
+
+  /* Step lists */
+  .app-container .step-list-item {
+    padding: 1.25rem;
+    border-radius: 0.75rem;
+  }
+
+}
+
+/* === SPECIAL TABLET HEADER HANDLING === */
+@media (min-width: 768px) {
+
+  /* Round the top corners of sticky headers when in tablet container */
+  .app-container .header-primary:first-child,
+  .app-container .header-secondary:first-child {
+    border-top-left-radius: 0.75rem;
+    border-top-right-radius: 0.75rem;
+    overflow: hidden;
+  }
+
+}

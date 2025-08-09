@@ -94,7 +94,7 @@ const EditProjectDetails = ({ onBack }) => {
 
   return (
     <div className="min-h-screen bg-yarn-50">
-      <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
+      <div className="app-container bg-yarn-50 min-h-screen shadow-lg">
 
         {/* Header */}
         <PageHeader

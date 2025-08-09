@@ -219,7 +219,7 @@ const EditRowByRowPatternForm = ({
     // ===== RENDER =====
     return (
         <div className="min-h-screen bg-yarn-50">
-            <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+            <div className="app-container bg-white min-h-screen shadow-lg">
                 <PageHeader
                     title={`Edit ${formData.pattern}`}
                     subtitle="Pattern configuration"

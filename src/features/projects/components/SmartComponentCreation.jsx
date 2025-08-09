@@ -217,7 +217,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
   return (
     <div className="min-h-screen bg-yarn-50">
-      <div className="max-w-md mx-auto bg-yarn-50 min-h-screen shadow-lg">
+      <div className="app-container bg-yarn-50 min-h-screen shadow-lg">
 
         {/* Header */}
         <div className="bg-sage-500 text-white px-6 py-4">

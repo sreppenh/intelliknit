@@ -212,7 +212,7 @@ const ComponentEndingWizard = ({
     return (
       <>
         <div className="min-h-screen bg-yarn-50">
-          <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+          <div className="app-container bg-white min-h-screen shadow-lg">
             <PageHeader
               title="Configure Ending"
               subtitle="Set up the details"
@@ -256,7 +256,7 @@ const ComponentEndingWizard = ({
   return (
     <>
       <div className="min-h-screen bg-yarn-50">
-        <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+        <div className="app-container bg-white min-h-screen shadow-lg">
           <PageHeader
             title="Configure Ending"
             subtitle="Set up the details"

@@ -390,7 +390,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
   return (
     <div className="min-h-screen bg-yarn-50">
-      <div className="max-w-md mx-auto bg-white min-h-screen shadow-lg">
+      <div className="app-container bg-white min-h-screen shadow-lg">
         {/* Header */}
         <PageHeader
           title="Manage Steps"
