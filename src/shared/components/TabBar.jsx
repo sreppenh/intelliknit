@@ -36,6 +36,7 @@ const TabBar = ({
     };
 
     return (
+
         <div className={getContainerClasses()}>
             <div className="flex relative">
                 {React.Children.map(children, (child) => {
