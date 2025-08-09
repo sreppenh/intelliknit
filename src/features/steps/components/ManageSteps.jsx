@@ -13,6 +13,7 @@ import {
 } from '../../../shared/utils/stepDisplayUtils'; import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
 import DeleteStepModal from '../../../shared/components/DeleteStepModal';
 import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
+import EditRowByRowPatternForm from './EditPatternRowByRowPatternForm';
 
 
 const ManageSteps = ({ componentIndex, onBack }) => {
