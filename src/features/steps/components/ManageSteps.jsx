@@ -12,6 +12,8 @@ import {
   isInitializationStep, isFinishingStep, isMiddleStep
 } from '../../../shared/utils/stepDisplayUtils'; import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
 import DeleteStepModal from '../../../shared/components/DeleteStepModal';
+import { useStepGeneration } from '../hooks/useStepGeneration';
+import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
 
 
 const ManageSteps = ({ componentIndex, onBack }) => {
@@ -171,7 +173,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     setOpenMenuId(null);
   };
 
-  // ✅ NEW: Handle saving pattern changes with recalculation
+  // ✅ COMPLETED: Handle saving pattern changes with recalculation
   const handleSavePatternChanges = (newPatternData) => {
     const step = component.steps[editingStepIndex];
     const hasRowsInPatternChanged = step.wizardConfig.stitchPattern.rowsInPattern !== newPatternData.rowsInPattern;
@@ -185,6 +187,12 @@ const ManageSteps = ({ componentIndex, onBack }) => {
       }
     };
 
+    // ✅ FIXED: Generate new description using the correct function
+    const mockStep = {
+      ...step,
+      wizardConfig: updatedWizardConfig
+    };
+    const regeneratedDescription = getHumanReadableDescription(mockStep);
 
     // If rowsInPattern changed and we have a duration with repeats, recalculate
     if (hasRowsInPatternChanged && step.wizardConfig.duration?.type === 'repeats') {
@@ -202,8 +210,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             ...step,
             wizardConfig: updatedWizardConfig,
             totalRows: newTotalRows,
-            // Keep existing stitch counts unless this affects them
-            description: step.description // Will need regeneration in the future
+            description: regeneratedDescription
           }
         }
       });
@@ -216,7 +223,8 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           stepIndex: editingStepIndex,
           step: {
             ...step,
-            wizardConfig: updatedWizardConfig
+            wizardConfig: updatedWizardConfig,
+            description: regeneratedDescription
           }
         }
       });
