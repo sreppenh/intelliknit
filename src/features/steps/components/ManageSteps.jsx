@@ -241,6 +241,13 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     setEditingStepIndex(null);
   };
 
+  // ✅ NEW: Handle routing to advanced edit for Cable/Lace patterns  
+  const handleRouteToAdvancedEdit = () => {
+    setShowEditPatternOverlay(false);
+    setEditMode('pattern');
+    setIsEditing(true);
+  };
+
 
   // ✅ NEW: Handle Edit Config  
   const handleEditConfigFromMenu = (stepIndex, event) => {
@@ -496,6 +503,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           onSave={handleSavePatternChanges}
           currentStep={editingStepIndex !== null ? component.steps[editingStepIndex] : null}
           title="Edit Pattern"
+          onRouteToAdvancedEdit={handleRouteToAdvancedEdit} // ✅ ADD THIS LINE
         />
       </div>
     </div>
