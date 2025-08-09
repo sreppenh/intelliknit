@@ -15,7 +15,6 @@ import DeleteStepModal from '../../../shared/components/DeleteStepModal';
 import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
 import EditRowByRowPatternForm from './EditRowByRowPatternForm';
 
-
 const ManageSteps = ({ componentIndex, onBack }) => {
   const [showDeleteStepModal, setShowDeleteStepModal] = useState(false);
   const [stepToDelete, setStepToDelete] = useState(null);

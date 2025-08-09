@@ -163,17 +163,11 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
         {/* Header */}
         <PageHeader
           title={
-            <div className={`flex items-center gap-2 ${!(currentProject.size && currentProject.size.trim() && currentProject.size !== 'Not specified')
-              ? 'justify-center'
-              : ''
-              }`}>
+            <div className="flex items-center gap-2 justify-center">
               <span className="text-base">
                 {getProjectIcon(currentProject.projectType)}
               </span>
               <span>{currentProject.name}</span>
-              {currentProject.size && currentProject.size.trim() && currentProject.size !== 'Not specified' && (
-                <span className="text-sage-100 font-normal">({currentProject.size})</span>
-              )}
             </div>
           }
           subtitle="Project Dashboard"

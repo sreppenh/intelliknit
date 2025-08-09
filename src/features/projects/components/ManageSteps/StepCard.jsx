@@ -2,9 +2,6 @@ import React from 'react';
 import { PrepNoteDisplay } from '../../../../shared/components/PrepStepSystem';
 import StepMenu from './StepMenu';
 import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
-import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
-
-// remove getStepPatternName from above
 
 const StepCard = ({
     step,
@@ -28,8 +25,13 @@ const StepCard = ({
         step.advancedWizardConfig?.prepNote ||
         '';
 
-    // ✅ NEW: Get formatted display data
-    const { description, contextualNotes, technicalData } = getFormattedStepDisplay(step);
+    // ✅ Get formatted display data
+    const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step);
+
+    // Check if we have both types of notes for divider logic
+    const hasPatternNotes = contextualPatternNotes && contextualPatternNotes.trim().length > 0;
+    const hasConfigNotes = contextualConfigNotes && contextualConfigNotes.trim().length > 0;
+    const hasBothNotes = hasPatternNotes && hasConfigNotes;
 
     return (
         <div className="space-y-2">
@@ -50,20 +52,37 @@ const StepCard = ({
                     <div className="flex-1 min-w-0">
                         <div className="flex items-start justify-between gap-2">
                             <div className="min-w-0 flex-1 text-left">
-                                {/* ✅ NEW: Human-readable description */}
+                                {/* Human-readable description */}
                                 <h4 className={`text-sm font-semibold mb-1 text-left ${isCompleted ? 'text-wool-600' : 'text-wool-700'
                                     }`}>
                                     {description}
                                 </h4>
 
-                                {/* ✅ NEW: Contextual notes in italics (when available) */}
-                                {contextualNotes && (
-                                    <p className="text-xs text-wool-600 italic mb-1 text-left">
-                                        {contextualNotes}
-                                    </p>
+                                {/* Dual Contextual Notes Section */}
+                                {(hasPatternNotes || hasConfigNotes) && (
+                                    <div className="text-xs text-wool-600 italic mb-1 text-left">
+                                        {/* Pattern Notes */}
+                                        {hasPatternNotes && (
+                                            <div className="whitespace-pre-line">
+                                                {contextualPatternNotes}
+                                            </div>
+                                        )}
+
+                                        {/* Minimal Divider Rule - Only when both notes present */}
+                                        {hasBothNotes && (
+                                            <div className="my-1.5 border-t border-wool-300 opacity-30"></div>
+                                        )}
+
+                                        {/* Config Notes */}
+                                        {hasConfigNotes && (
+                                            <div className="whitespace-pre-line">
+                                                {contextualConfigNotes}
+                                            </div>
+                                        )}
+                                    </div>
                                 )}
 
-                                {/* ✅ UPDATED: Technical data display */}
+                                {/* Technical data display */}
                                 <div className="text-xs text-wool-500 text-left">
                                     {technicalData}
                                 </div>
@@ -83,7 +102,7 @@ const StepCard = ({
                                 onEditConfig={onEditConfig}
                                 onDeleteStep={onDeleteStep}
                                 onPrepNoteClick={onPrepNoteClick}
-                                editableStepIndex={editableStepIndex} // ← ADD THIS
+                                editableStepIndex={editableStepIndex}
                             />
                         </div>
                     </div>

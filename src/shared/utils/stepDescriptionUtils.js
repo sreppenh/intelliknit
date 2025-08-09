@@ -52,7 +52,7 @@ export const getHumanReadableDescription = (step) => {
  * Get contextual notes (user-provided text in italics)
  * Returns formatted string or null if no context available
  */
-export const getContextualNotes = (step) => {
+export const getContextualPatternNotes = (step) => {
     const pattern = getStepPatternName(step);
 
     // For Pick Up & Knit, show the instruction (how to pick up)
@@ -102,13 +102,75 @@ export const getContextualNotes = (step) => {
 };
 
 /**
+ * Get configuration-specific contextual notes
+ * Used for shaping details, timing specifics, duration notes
+ */
+export const getContextualConfigNotes = (step) => {
+    const notes = [];
+
+    // Check for shaping configuration notes
+    const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+    if (shapingConfig?.type) {
+        if (shapingConfig.type === 'even_distribution') {
+            // Could show distribution pattern details for complex cases
+            const calculation = shapingConfig.config?.calculation;
+            if (calculation?.instruction && calculation.instruction.length > 50) {
+                // Only show as config note if it's complex enough to need detail
+                notes.push(`Distribution: ${calculation.instruction}`);
+            }
+        } else if (shapingConfig.type === 'phases') {
+            // Show phase breakdown for complex shaping
+            const phases = shapingConfig.config?.phases;
+            if (phases && phases.length > 1) {
+                const phaseDescriptions = phases.map((phase, index) => {
+                    const type = phase.type;
+                    const config = phase.config;
+
+                    if (type === 'setup') {
+                        return `Phase ${index + 1}: ${config.rows} setup rows`;
+                    } else if (type === 'decrease' || type === 'increase') {
+                        const action = type === 'decrease' ? 'dec' : 'inc';
+                        const position = config.position === 'both_ends' ? 'both ends' : config.position;
+                        return `Phase ${index + 1}: ${action} at ${position} every ${config.frequency} rows`;
+                    } else if (type === 'bind_off') {
+                        return `Phase ${index + 1}: bind off ${config.amount} sts`;
+                    }
+                    return `Phase ${index + 1}: ${type}`;
+                });
+
+                notes.push(phaseDescriptions.join('\n'));
+            }
+        }
+    }
+
+    // Check for duration-specific notes (future expansion)
+    const duration = step.wizardConfig?.duration;
+    if (duration?.type === 'repeats' && duration?.value) {
+        const rowsInPattern = step.wizardConfig?.stitchPattern?.rowsInPattern;
+        if (rowsInPattern && parseInt(rowsInPattern) > 4) {
+            // Only show for complex patterns
+            notes.push(`${duration.value} repeats of ${rowsInPattern}-row pattern`);
+        }
+    }
+
+    // Future: Add other config-specific notes here
+    // - Gauge adjustments
+    // - Construction-specific timing
+    // - Row-by-row guidance notes
+
+    return notes.length > 0 ? notes.join('\n') : null;
+};
+
+
+/**
  * Get complete formatted step display
  * Returns object with description, notes, and technical data
  */
 export const getFormattedStepDisplay = (step) => {
     return {
         description: getHumanReadableDescription(step),
-        contextualNotes: getContextualNotes(step),
+        contextualPatternNotes: getContextualPatternNotes(step),
+        contextualConfigNotes: getContextualConfigNotes(step),
         technicalData: getTechnicalDataDisplay(step)
     };
 };
@@ -299,10 +361,13 @@ const getTechnicalDataDisplay = (step) => {
 /**
  * Check if step has contextual notes to display
  */
-export const hasContextualNotes = (step) => {
-    return getContextualNotes(step) !== null;
+export const hasContextualPatternNotes = (step) => {
+    return getContextualPatternNotes(step) !== null;
 };
 
+export const hasContextualConfigNotes = (step) => {
+    return getContextualConfigNotes(step) !== null;
+};
 
 
 /**
@@ -334,9 +399,11 @@ export const getStepDisplayPriority = (step) => {
 
 export default {
     getHumanReadableDescription,
-    getContextualNotes,
+    getContextualPatternNotes,
+    getContextualConfigNotes,
     getFormattedStepDisplay,
-    hasContextualNotes,
+    hasContextualPatternNotes,
+    hasContextualConfigNotes,
     isEndingStep,
     getStepDisplayPriority
 };
