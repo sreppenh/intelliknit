@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig } from '../pattern-configs';
+import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig, RowByRowPatternConfig } from '../pattern-configs';
 
 
 const PatternConfiguration = ({ wizardData, updateWizardData, navigation, construction }) => {
@@ -37,6 +37,17 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation, constr
       case 'Colorwork':
         return (
           <ColorworkPatternConfig
+            wizardData={wizardData}
+            updateWizardData={updateWizardData}
+            construction={construction}
+          />
+        );
+      // ===== UPDATED: Route advanced patterns to RowByRowPatternConfig =====
+      case 'Custom pattern':
+      case 'Cable Pattern':
+      case 'Lace Pattern':
+        return (
+          <RowByRowPatternConfig
             wizardData={wizardData}
             updateWizardData={updateWizardData}
             construction={construction}

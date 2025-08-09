@@ -3,9 +3,9 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
-  const needsRowInput = ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes', 'Custom pattern'].includes(wizardData.stitchPattern.pattern);
-  const needsDescription = ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern);
-  const isCustomPattern = wizardData.stitchPattern.pattern === 'Custom pattern';
+  // ===== UPDATED: Remove advanced patterns from needsRowInput and needsDescription =====
+  const needsRowInput = ['Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern);
+  const needsDescription = ['Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern);
   const isOtherPattern = wizardData.stitchPattern.pattern === 'Other';
 
   // Check if this is a Basic/Rib/Textured pattern that can have optional repeats
@@ -35,23 +35,6 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
           </label>
         </div>
       )}
-
-      {/* Custom pattern input */}
-      {isCustomPattern && (
-        <div>
-          <label className="form-label">
-            Pattern Description
-          </label>
-          <textarea
-            value={wizardData.stitchPattern.customText}
-            onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
-            placeholder="e.g., '5 rows stockinette, 1 bobble row'"
-            rows={3}
-            className="input-field-lg resize-none"
-          />
-        </div>
-      )}
-
 
       {/* Lace/Cable/Colorwork - Required row input */}
       {needsRowInput && (
@@ -109,32 +92,16 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
         </div>
       )}
 
-
-
-      {/* Helper info for complex patterns */}
+      {/* ===== UPDATED: Simplified helper info (removed Cable and Lace) ===== */}
       {needsDescription && (
         <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
           <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Pattern Tips</h4>
           <div className="text-sm text-yarn-600 space-y-1">
-            {wizardData.stitchPattern.pattern === 'Lace Pattern' && (
-              <>
-                <div>• Include key techniques: YO, K2tog, SSK, etc.</div>
-                <div>• Note any edge stitches or pattern placement</div>
-                <div>• Mention if it's a chart-based pattern</div>
-              </>
-            )}
             {wizardData.stitchPattern.pattern === 'Stripes' && (
               <>
                 <div>• List colors and row counts: "2 rows Navy, 4 rows Cream"</div>
                 <div>• Note any special color change techniques</div>
                 <div>• Include total repeat if complex sequence</div>
-              </>
-            )}
-            {wizardData.stitchPattern.pattern === 'Cable Pattern' && (
-              <>
-                <div>• Describe cable crossings and directions</div>
-                <div>• Note cable needle size if specific</div>
-                <div>• Include any background stitches (reverse stockinette, etc.)</div>
               </>
             )}
             {(wizardData.stitchPattern.pattern === 'Fair Isle' || wizardData.stitchPattern.pattern === 'Intarsia') && (
