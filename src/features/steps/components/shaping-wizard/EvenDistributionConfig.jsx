@@ -3,6 +3,8 @@ import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import { formatKnittingInstruction } from '../../../../shared/utils/knittingNotation';
+
 
 const EvenDistributionConfig = ({
   shapingData,
@@ -113,12 +115,30 @@ const EvenDistributionConfig = ({
         sections.push(shouldBeLarger ? baseSize + 1 : baseSize);
       }
     } else {
-      // Flat: center-weight the larger sections  
+      // FIXED FLAT: Center-weight, but respect remainder count exactly
+      const center = Math.floor(numSections / 2);
+
+      // Create array of distances from center with their indices
+      const distanceMap = [];
       for (let i = 0; i < numSections; i++) {
-        const center = Math.floor(numSections / 2);
-        const distanceFromCenter = Math.abs(i - center);
-        const shouldBeLarger = remainder > 0 && distanceFromCenter <= Math.floor(remainder / 2);
-        sections.push(shouldBeLarger ? baseSize + 1 : baseSize);
+        distanceMap.push({
+          index: i,
+          distance: Math.abs(i - center)
+        });
+      }
+
+      // Sort by distance (closest to center first)
+      distanceMap.sort((a, b) => a.distance - b.distance);
+
+      // Give +1 to exactly `remainder` closest positions to center
+      const largerIndices = new Set();
+      for (let i = 0; i < remainder; i++) {
+        largerIndices.add(distanceMap[i].index);
+      }
+
+      // Build sections array
+      for (let i = 0; i < numSections; i++) {
+        sections.push(largerIndices.has(i) ? baseSize + 1 : baseSize);
       }
     }
 
@@ -331,7 +351,7 @@ const EvenDistributionConfig = ({
         />
       </div>
 
-      {/* Preview */}
+      {/* Enhanced Preview with Knitting Notation Testing */}
       {result.error ? (
         <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
           <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
@@ -340,16 +360,44 @@ const EvenDistributionConfig = ({
           </div>
         </div>
       ) : result.instruction && (
-        <div className="card-info">
-          <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
-
-          <div className="space-y-2 text-sm">
-            <div className="text-lavender-700">
-              <span className="font-medium">Instruction:</span> {result.instruction}
+        <div className="space-y-3">
+          {/* Original Preview Box */}
+          <div className="card-info">
+            <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
+            <div className="space-y-2 text-sm">
+              <div className="text-lavender-700">
+                <span className="font-medium">Instruction:</span> {result.instruction}
+              </div>
+              <div className="text-lavender-600">
+                {result.startingStitches} stitches → {result.endingStitches} stitches
+                ({result.construction})
+              </div>
             </div>
-            <div className="text-lavender-600">
-              {result.startingStitches} stitches → {result.endingStitches} stitches
-              ({result.construction})
+          </div>
+
+          {/* 🧶 NEW: Knitting Notation Test Display */}
+          <div className="bg-purple-50 border-2 border-purple-200 rounded-xl p-4">
+            <h4 className="text-sm font-semibold text-purple-700 mb-3">
+              🧶 Knitting Notation Test
+            </h4>
+            <div className="space-y-3 text-sm">
+              <div>
+                <span className="font-medium text-purple-700">Raw calculation:</span>
+                <div className="bg-white rounded-lg p-2 mt-1 border border-purple-200 font-mono text-xs">
+                  {result.instruction}
+                </div>
+              </div>
+              <div>
+                <span className="font-medium text-purple-700">Formatted notation:</span>
+                <div className="bg-white rounded-lg p-2 mt-1 border border-purple-200 font-mono text-xs">
+                  {formatKnittingInstruction(result.instruction)}
+                </div>
+              </div>
+              <div className="text-purple-600 text-xs">
+                {formatKnittingInstruction(result.instruction) !== result.instruction
+                  ? "✅ Formatting improved!"
+                  : "ℹ️ No pattern detected - showing original"}
+              </div>
             </div>
           </div>
         </div>

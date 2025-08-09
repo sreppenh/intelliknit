@@ -12,7 +12,6 @@ import {
   isInitializationStep, isFinishingStep, isMiddleStep
 } from '../../../shared/utils/stepDisplayUtils'; import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
 import DeleteStepModal from '../../../shared/components/DeleteStepModal';
-import { useStepGeneration } from '../hooks/useStepGeneration';
 import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
 
 
