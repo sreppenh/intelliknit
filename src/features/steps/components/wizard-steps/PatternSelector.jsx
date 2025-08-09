@@ -1,8 +1,7 @@
-// src/features/steps/components/wizard-steps/PatternSelector.jsx
+// Enhanced PatternSelector with Quick/Advanced Toggle
 import React, { useState, useEffect } from 'react';
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
-import SetupNotesSection from '../../../../shared/components/SetUpNotesSection';
-import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories'; // ✅ IMPORT
+import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
 
 export const PatternSelector = ({
   wizardData,
@@ -12,10 +11,11 @@ export const PatternSelector = ({
   existingPrepNote = '',
   onSavePrepNote
 }) => {
+  // State for toggle between Quick and Advanced
+  const [activeTab, setActiveTab] = useState('quick');
   const [selectedQuickCategory, setSelectedQuickCategory] = useState(null);
-  const [showSetupNotes, setShowSetupNotes] = useState(false);
 
-  // Use the enhanced prep note manager with persistence
+  // Prep note management
   const {
     isOverlayOpen,
     currentNote,
@@ -26,22 +26,68 @@ export const PatternSelector = ({
     handleSaveNote
   } = usePrepNoteManager(existingPrepNote, onSavePrepNote);
 
-  // Get the config for step wizard
   const prepConfig = getPrepNoteConfig('stepWizard');
 
-  // 🔧 FIX: Reverse-lookup function to find category from pattern name
+  // Helper to determine if pattern is quick or advanced
   const findCategoryFromPattern = (patternName) => {
     if (!patternName) return null;
-
     for (const [categoryKey, category] of Object.entries(PATTERN_CATEGORIES)) {
       const foundPattern = category.patterns.find(pattern => pattern.name === patternName);
       if (foundPattern) {
-        return categoryKey;
+        return { categoryKey, type: category.type };
       }
     }
     return null;
   };
 
+  // Initialize tab based on existing selection
+  useEffect(() => {
+    const selectedCategory = wizardData?.stitchPattern?.category;
+    const selectedPattern = wizardData?.stitchPattern?.pattern;
+
+    if (selectedCategory && PATTERN_CATEGORIES[selectedCategory]) {
+      const categoryType = PATTERN_CATEGORIES[selectedCategory].type;
+      setActiveTab(categoryType === 'quick' ? 'quick' : 'advanced');
+
+      if (categoryType === 'quick') {
+        setSelectedQuickCategory(selectedCategory);
+      }
+    } else if (selectedPattern) {
+      // Reverse lookup if we only have pattern
+      const found = findCategoryFromPattern(selectedPattern);
+      if (found) {
+        setActiveTab(found.type === 'quick' ? 'quick' : 'advanced');
+        if (found.type === 'quick') {
+          setSelectedQuickCategory(found.categoryKey);
+        }
+        // Update wizardData with found category
+        updateWizardData('stitchPattern', {
+          ...wizardData.stitchPattern,
+          category: found.categoryKey
+        });
+      }
+      // NEW: Default to Basic Stitches for new steps
+      if (!selectedCategory && !selectedPattern && activeTab === 'quick') {
+        setSelectedQuickCategory('basic');
+      }
+    }
+  }, [wizardData?.stitchPattern?.category, wizardData?.stitchPattern?.pattern]);
+
+  // Tab switching
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setSelectedQuickCategory(null);
+    // Clear selection when switching tabs (optional - could preserve)
+    updateWizardData('stitchPattern', {
+      category: null,
+      pattern: null,
+      customText: '',
+      rowsInPattern: '',
+      method: ''
+    });
+  };
+
+  // Quick pattern handlers
   const handleQuickCategorySelect = (categoryKey) => {
     if (selectedQuickCategory === categoryKey) {
       setSelectedQuickCategory(null);
@@ -50,11 +96,20 @@ export const PatternSelector = ({
     }
   };
 
+  const handleQuickPatternSelect = (categoryKey, pattern) => {
+    updateWizardData('stitchPattern', {
+      category: categoryKey,
+      pattern: pattern.name,
+      customText: '',
+      rowsInPattern: '',
+      method: ''
+    });
+  };
+
+  // Advanced pattern handlers
   const handleAdvancedCategorySelect = (categoryKey) => {
-    setSelectedQuickCategory(null);
     const category = PATTERN_CATEGORIES[categoryKey];
 
-    // SIMPLIFIED: Just set the category, no automatic navigation
     if (category.patterns.length === 1) {
       // Single pattern - set both category and pattern
       updateWizardData('stitchPattern', {
@@ -64,7 +119,6 @@ export const PatternSelector = ({
         rowsInPattern: '',
         method: ''
       });
-      // REMOVED: navigation.nextStep() - let user click Continue
     } else {
       // Multiple patterns - set category only
       updateWizardData('stitchPattern', {
@@ -74,67 +128,27 @@ export const PatternSelector = ({
         rowsInPattern: '',
         method: ''
       });
-      // No navigation - React will re-render to show pattern selection
     }
-  };
-
-
-  const handlePatternSelect = (categoryKey, pattern) => {
-    updateWizardData('stitchPattern', {
-      category: categoryKey,
-      pattern: pattern.name,
-      customText: '',
-      rowsInPattern: '',
-      method: ''
-    });
-
-    // REMOVED: setTimeout(() => { navigation.goToStep(3); }, 10);
-    // User will click Continue button to proceed
   };
 
   const handleAdvancedPatternSelect = (pattern) => {
-    updateWizardData('stitchPattern', { pattern: pattern.name });
-
-    // REMOVED: setTimeout(() => { navigation.nextStep(); }, 10);
-    // User will click Continue button to proceed
+    updateWizardData('stitchPattern', {
+      ...wizardData.stitchPattern,
+      pattern: pattern.name
+    });
   };
 
+  // Get current selections
   const selectedCategory = wizardData?.stitchPattern?.category;
   const selectedPattern = wizardData?.stitchPattern?.pattern;
 
-  // ✅ FIX: Enhanced auto-open drawer logic with reverse-lookup
-  useEffect(() => {
-    const selectedCategory = wizardData?.stitchPattern?.category;
-    const selectedPattern = wizardData?.stitchPattern?.pattern;
-
-    // First, try direct category match
-    if (selectedCategory && PATTERN_CATEGORIES[selectedCategory]?.type === 'quick') {
-      setSelectedQuickCategory(selectedCategory);
-      return;
-    }
-
-    // 🔧 NEW: If no category but we have a pattern, do reverse-lookup
-    if (!selectedCategory && selectedPattern) {
-      const foundCategory = findCategoryFromPattern(selectedPattern);
-      if (foundCategory && PATTERN_CATEGORIES[foundCategory]?.type === 'quick') {
-        setSelectedQuickCategory(foundCategory);
-        // Also update the wizardData to include the found category
-        updateWizardData('stitchPattern', {
-          ...wizardData.stitchPattern,
-          category: foundCategory
-        });
-      }
-    }
-  }, [wizardData?.stitchPattern?.category, wizardData?.stitchPattern?.pattern]);
-
-  // Show pattern selection screen for advanced categories
-  if (selectedCategory && !selectedPattern && PATTERN_CATEGORIES[selectedCategory]?.type === 'advanced') {
+  // Render advanced pattern detail screen
+  if (activeTab === 'advanced' && selectedCategory && !selectedPattern && PATTERN_CATEGORIES[selectedCategory]?.type === 'advanced') {
     const category = PATTERN_CATEGORIES[selectedCategory];
 
     return (
       <>
         <div className="space-y-4 relative">
-          {/* Prep Note Button - Enhanced with state */}
           <PrepStepButton
             onClick={handleOpenOverlay}
             hasNote={hasNote}
@@ -144,7 +158,7 @@ export const PatternSelector = ({
             variant="ghost"
           />
 
-          <div>
+          <div className="text-center">
             <h2 className="content-header-secondary mb-1">Configure {category.name}</h2>
             <p className="text-sm text-wool-500">Define your pattern details</p>
           </div>
@@ -171,7 +185,6 @@ export const PatternSelector = ({
           </button>
         </div>
 
-        {/* Prep Note Overlay */}
         <PrepStepOverlay
           isOpen={isOverlayOpen}
           onClose={handleCloseOverlay}
@@ -183,11 +196,11 @@ export const PatternSelector = ({
     );
   }
 
-  // Main category selection screen
+  // Main pattern selector with toggle
   return (
     <>
       <div className="space-y-4 relative">
-        {/* Compact Header */}
+        {/* Header with Prep Note */}
         <div className="text-center">
           <div className="content-header-with-buttons">
             <h2 className="content-title">Create Step</h2>
@@ -202,78 +215,120 @@ export const PatternSelector = ({
           </div>
         </div>
 
-        <div className="mb-3">
-          <h3 className="text-left text-sm font-semibold text-wool-700">Choose Pattern</h3>
-        </div>
-
-        {/* Basic Patterns Section with Drawer */}
-        <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
-          <div className="grid grid-cols-3 gap-2 mb-4">
-            {Object.entries(PATTERN_CATEGORIES)
-              .filter(([_, category]) => category.type === 'quick')
-              .map(([key, category]) => (
-                <button
-                  key={key}
-                  onClick={() => handleQuickCategorySelect(key)}
-                  className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${selectedQuickCategory === key
-                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                    : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
-                    }`}
-                >
-                  <div className="text-xl mb-1">{category.icon}</div>
-                  <div className="text-xs font-medium">{category.name}</div>
-                </button>
-              ))}
-          </div>
-
-          {selectedQuickCategory && (
-            <div className="border-t border-wool-200 pt-4">
-              <div className="grid grid-cols-2 gap-3">
-                {PATTERN_CATEGORIES[selectedQuickCategory].patterns.map(pattern => (
-                  <button
-                    key={pattern.name}
-                    onClick={() => handlePatternSelect(selectedQuickCategory, pattern)}
-                    className={`card-pattern-option ${selectedPattern === pattern.name
-                      ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
-                      : ''
-                      }`}
-                  >
-                    <div className="text-lg mb-1">{pattern.icon}</div>
-                    <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
-                    <div className="text-xs opacity-70">{pattern.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Advanced Patterns */}
-        <div className="grid grid-cols-2 gap-2">
-          {Object.entries(PATTERN_CATEGORIES)
-            .filter(([_, category]) => category.type === 'advanced')
-            .map(([key, category]) => (
+        {/* Pattern Type Toggle - Construction Slider Style */}
+        <div className="mb-4">
+          <div className="bg-sage-200 border border-sage-300 rounded-md p-0.5">
+            <div className="grid grid-cols-2 gap-1">
               <button
-                key={key}
-                onClick={() => handleAdvancedCategorySelect(key)}
-                className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${selectedCategory === key
-                  ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
+                onClick={() => handleTabChange('quick')}
+                className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 ${activeTab === 'quick'
+                  ? 'bg-white text-sage-700 shadow-sm'
+                  : 'text-sage-600 hover:text-sage-800'
                   }`}
               >
-                <div className="text-xl mb-1">{category.icon}</div>
-                <div className="text-xs font-medium">{category.name}</div>
-                <div className="text-xs opacity-60 mt-0.5">Configure</div>
+                Quick Patterns
               </button>
-            ))}
-        </div>
-
-        {/* Compact help text */}
-        <div className="help-block">
-          <div className="text-xs text-sage-600 text-center">
-            💡 <strong>Quick:</strong> Tap to see patterns • <strong>Advanced:</strong> Configure details • <strong>Custom:</strong> Any pattern + repeats
+              <button
+                onClick={() => handleTabChange('advanced')}
+                className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 ${activeTab === 'advanced'
+                  ? 'bg-white text-sage-700 shadow-sm'
+                  : 'text-sage-600 hover:text-sage-800'
+                  }`}
+              >
+                Advanced Patterns
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Quick Patterns View */}
+        {activeTab === 'quick' && (
+          <div className="space-y-4">
+            <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
+              {/* Category Selection - Always Visible */}
+              <div className="grid grid-cols-3 gap-2 mb-4">
+                {Object.entries(PATTERN_CATEGORIES)
+                  .filter(([_, category]) => category.type === 'quick')
+                  .map(([key, category]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleQuickCategorySelect(key)}
+                      className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${selectedQuickCategory === key
+                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                        : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
+                        }`}
+                    >
+                      <div className="text-xl mb-1">{category.icon}</div>
+                      <div className="text-xs font-medium">{category.name}</div>
+                    </button>
+                  ))}
+              </div>
+
+              {/* Pattern Selection - Always Open When Category Selected */}
+              {selectedQuickCategory && (
+                <div className="border-t border-wool-200 pt-4">
+                  <h4 className="text-sm font-semibold text-wool-700 mb-3 text-left">
+                    {PATTERN_CATEGORIES[selectedQuickCategory].name} Patterns
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {PATTERN_CATEGORIES[selectedQuickCategory].patterns.map(pattern => (
+                      <button
+                        key={pattern.name}
+                        onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
+                        className={`card-pattern-option ${selectedPattern === pattern.name
+                          ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
+                          : ''
+                          }`}
+                      >
+                        <div className="text-lg mb-1">{pattern.icon}</div>
+                        <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
+                        <div className="text-xs opacity-70">{pattern.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Quick Help Text */}
+            <div className="help-block">
+              <div className="text-xs text-sage-600 text-center">
+                💡 <strong>Quick patterns</strong> work right out of the box with simple setup
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Advanced Patterns View */}
+        {activeTab === 'advanced' && (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              {Object.entries(PATTERN_CATEGORIES)
+                .filter(([_, category]) => category.type === 'advanced')
+                .map(([key, category]) => (
+                  <button
+                    key={key}
+                    onClick={() => handleAdvancedCategorySelect(key)}
+                    className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${selectedCategory === key
+                      ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
+                      : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
+                      }`}
+                  >
+                    <div className="text-2xl mb-2">{category.icon}</div>
+                    <div className="text-sm font-medium mb-1">{category.name}</div>
+                    <div className="text-xs opacity-60">Needs configuration</div>
+                  </button>
+                ))}
+            </div>
+
+            {/* Advanced Help Text */}
+            <div className="help-block">
+              <div className="text-xs text-yarn-600 text-center">
+                ⚙️ <strong>Advanced patterns</strong> require additional setup and configuration
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Prep Note Overlay */}
