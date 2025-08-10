@@ -4,6 +4,7 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 import ComponentCompletionModal from '../../../shared/components/ComponentCompletionModal';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import SetupNotesSection from '../../../shared/components/SetUpNotesSection';
+import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
 
 const ComponentEndingWizard = ({
   component,
@@ -103,7 +104,7 @@ const ComponentEndingWizard = ({
         };
 
       case 'bind_off_all':
-        const methodName = getMethodName(method);
+        const methodName = getMethodName(method, 'Bind Off');
         return {
           type,
           method,
@@ -113,7 +114,7 @@ const ComponentEndingWizard = ({
         };
 
       case 'attach_to_piece':
-        const attachMethod = method === 'other' ? customMethod : getMethodName(method);
+        const attachMethod = method === 'other' ? customMethod : getMethodName(method, 'Attach to Piece');
         const target = targetComponent === 'Other...' ? customText : targetComponent;
         return {
           type,
@@ -143,19 +144,18 @@ const ComponentEndingWizard = ({
     }
   };
 
-  // ✅ KEEPING EXISTING LOGIC - Will be replaced in Step 3
-  const getMethodName = (methodId) => {
-    const methodNames = {
-      'standard': 'standard bind off',
-      'stretchy': 'stretchy bind off',
-      'picot': 'picot bind off',
-      'three_needle': 'three needle bind off',
-      'mattress_stitch': 'mattress stitch',
-      'backstitch': 'backstitch',
-      'kitchener_stitch': 'kitchener stitch',
-      'three_needle_bindoff': 'three needle bind off'
+  // ✅ STEP 3: Use stepDisplayUtils instead of duplicate logic
+  const getMethodName = (methodId, patternType) => {
+    // Create mock step to use stepDisplayUtils function
+    const mockStep = {
+      wizardConfig: {
+        stitchPattern: {
+          pattern: patternType,
+          method: methodId
+        }
+      }
     };
-    return methodNames[methodId] || methodId;
+    return getStepMethodDisplay(mockStep);
   };
 
   const hasUnsavedData = () => {
