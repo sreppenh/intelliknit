@@ -1,5 +1,6 @@
 // ===== NEW UNIFIED STATUS SYSTEM =====
 // File: src/shared/utils/unifiedProjectStatus.js
+import { isInitializationStep, isFinishingStep } from './stepDisplayUtils';
 
 export const getUnifiedProjectStatus = (project) => {
     if (!project) {
@@ -129,17 +130,11 @@ export const getUnifiedProjectStatus = (project) => {
         };
     }
 
-    // Ready to Knit (has cast-on + bind-off but no progress)
+    // ✅ NEW - Proper stepDisplayUtils function usage:
     const isReadyToKnit = project.components?.some(comp => {
-        const hasCastOn = comp.steps?.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Cast On' ||
-            step.description?.toLowerCase().includes('cast on')
-        );
-        const hasBindOff = comp.steps?.some(step =>
-            step.wizardConfig?.stitchPattern?.pattern === 'Bind Off' ||
-            step.description?.toLowerCase().includes('bind off')
-        );
-        return hasCastOn && hasBindOff;
+        const hasInitialization = comp.steps?.some(step => isInitializationStep(step));
+        const hasFinalization = comp.steps?.some(step => isFinishingStep(step));
+        return hasInitialization && hasFinalization;
     });
 
     if (isReadyToKnit) {
