@@ -134,7 +134,7 @@ export const createCastOnStep = (castOnData) => {
     const stitchCount = parseInt(castOnData.stitchCount) || 0;
 
     return {
-        description: `Cast on ${stitchCount} stitches using ${methodDisplay.toLowerCase()}`,
+        description: `Cast on ${stitchCount} stitches using ${methodDisplay}`,
         type: 'calculated',
         construction: castOnData.construction || 'flat',
         startingStitches: 0,
@@ -215,7 +215,7 @@ export const createShapingStep = (shapingData, patternData, context = {}) => {
  * Generate human-readable description for pattern steps
  */
 const generatePatternDescription = (patternData) => {
-    let description = `Work in ${patternData.pattern.toLowerCase()}`;
+    let description = `Work in ${patternData.pattern}`;
 
     if (patternData.duration?.type === 'rows' && patternData.duration?.value) {
         description += ` for ${patternData.duration.value} rows`;

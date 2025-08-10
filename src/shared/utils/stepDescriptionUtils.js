@@ -181,7 +181,7 @@ const getInitializationStepDescription = (step) => {
         case 'Custom Initialization':
             return getCustomInitializationDescription(step);
         default:
-            return `Initialize component with ${pattern.toLowerCase()}`;
+            return `Initialize component with ${pattern}`;
     }
 };
 
@@ -201,7 +201,7 @@ const getFinalizationStepDescription = (step) => {
         case 'Other Ending':
             return getOtherEndingDescription(step);
         default:
-            return `Complete component with ${pattern.toLowerCase()}`;
+            return `Complete component with ${pattern}`;
     }
 };
 
@@ -233,10 +233,10 @@ const getShapingStepDescription = (step) => {
 
     // Build the description: [pattern][shaping config]
     if (duration) {
-        return `Work ${duration} in ${pattern.toLowerCase()}${shapingText}`;
+        return `Work ${duration} in ${pattern}${shapingText}`;
     }
 
-    return `Work in ${pattern.toLowerCase()}${shapingText}`;
+    return `Work in ${pattern}${shapingText}`;
 };
 
 /**
@@ -249,10 +249,10 @@ const getNonShapingStepDescription = (step) => {
 
     // Build the description: [pattern][duration config]
     if (duration) {
-        return `Work ${duration} in ${pattern.toLowerCase()}`;
+        return `Work ${duration} in ${pattern}`;
     }
 
-    return `Work in ${pattern.toLowerCase()}`;
+    return `Work in ${pattern}`;
 };
 
 // ===== ORIGINAL SPECIFIC DESCRIPTION GENERATORS =====
@@ -273,12 +273,12 @@ const getCastOnDescription = (step) => {
     // Get display name for method
     const CAST_ON_METHODS = {
         'long_tail': 'Long Tail Cast On',
-        'cable': 'cable cast on',
-        'knitted': 'knitted cast on',
-        'backwards_loop': 'backwards loop cast on',
-        'provisional': 'provisional cast on',
-        'judy': 'judy\'s magic cast on',
-        'german_twisted': 'german twisted cast on'
+        'cable': 'Cable Cast On',
+        'knitted': 'Knitted Cast On',
+        'backwards_loop': 'Backwards Loop Cast On',
+        'provisional': 'Provisional Cast On',
+        'judy': 'Judy\'s Magic Cast On',
+        'german_twisted': 'German Twisted Cast On'
     };
 
     const methodDisplay = CAST_ON_METHODS[method];
@@ -310,7 +310,7 @@ const getBindOffDescription = (step) => {
     // Handle standard methods
     const methodDisplay = getStepMethodDisplay(step);
     if (methodDisplay && method !== 'other') {
-        return `Using ${methodDisplay.toLowerCase()}, bind off ${countText}`;
+        return `Using ${methodDisplay}, bind off ${countText}`;
     }
 
     return `Bind off ${countText}`;
@@ -386,7 +386,7 @@ const getAttachmentDescription = (step) => {
     // Handle standard methods
     const methodDisplay = getStepMethodDisplay(step);
     if (methodDisplay && method !== 'other') {
-        return `Using ${methodDisplay.toLowerCase()}, attach this component to ${target}`;
+        return `Using ${methodDisplay}, attach this component to ${target}`;
     }
 
     return `Attach this component to ${target}`;
@@ -434,10 +434,10 @@ const getPatternStepDescription = (step) => {
 
     // Build the description: [base pattern info][base configuration info]
     if (duration) {
-        return `Work ${duration} in ${pattern.toLowerCase()}${shapingText}`;
+        return `Work ${duration} in ${pattern}${shapingText}`;
     }
 
-    return `Work in ${pattern.toLowerCase()}${shapingText}`;
+    return `Work in ${pattern}${shapingText}`;
 };
 
 // ===== TECHNICAL DATA FORMATTING =====
