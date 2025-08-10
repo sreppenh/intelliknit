@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import IncrementInput from '../../../shared/components/IncrementInput';
 import PageHeader from '../../../shared/components/PageHeader';
+import { formatKnittingInstruction } from '../../../shared/utils/knittingNotation';
 
 const EditEvenDistributionForm = ({
     componentIndex,
@@ -313,7 +314,7 @@ const EditEvenDistributionForm = ({
                                 <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
                                 <div className="space-y-2 text-sm">
                                     <div className="text-lavender-700">
-                                        <span className="font-medium">Instruction:</span> {result.instruction}
+                                        <span className="font-medium">Instruction:</span> {formatKnittingInstruction(result.instruction)}
                                     </div>
                                     <div className="text-lavender-600">
                                         {result.startingStitches} stitches → {result.endingStitches} stitches

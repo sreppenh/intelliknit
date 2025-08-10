@@ -8,6 +8,7 @@
  */
 
 import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote } from './stepDisplayUtils';
+import { formatKnittingInstruction } from './knittingNotation';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
@@ -72,8 +73,6 @@ export const getContextualPatternNotes = (step) => {
         return null;
     }
 
-    // Rest of function stays the same...
-
     // For holders, show any custom text the user provided
     if (pattern === 'Put on Holder') {
         const customText = step.wizardConfig?.stitchPattern?.customText;
@@ -85,12 +84,6 @@ export const getContextualPatternNotes = (step) => {
         const customText = step.wizardConfig?.stitchPattern?.customText;
         return customText ? customText.trim() : null;
     }
-
-    // For other steps, check for prep notes or custom instructions
-    //const prepNote = getStepPrepNote(step);
-    //if (prepNote) {
-    //    return prepNote.trim();
-    // }
 
     // Check for custom pattern text
     const customText = step.wizardConfig?.stitchPattern?.customText;
@@ -112,11 +105,11 @@ export const getContextualConfigNotes = (step) => {
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
     if (shapingConfig?.type) {
         if (shapingConfig.type === 'even_distribution') {
-            // Could show distribution pattern details for complex cases
+            // ✅ FIXED: Show beautifully formatted even distribution instruction
             const calculation = shapingConfig.config?.calculation;
-            if (calculation?.instruction && calculation.instruction.length > 50) {
-                // Only show as config note if it's complex enough to need detail
-                notes.push(`Distribution: ${calculation.instruction}`);
+            if (calculation?.instruction) {
+                const formattedInstruction = formatKnittingInstruction(calculation.instruction);
+                notes.push(formattedInstruction);
             }
         } else if (shapingConfig.type === 'phases') {
             // Show phase breakdown for complex shaping
@@ -161,7 +154,6 @@ export const getContextualConfigNotes = (step) => {
     return notes.length > 0 ? notes.join('\n') : null;
 };
 
-
 /**
  * Get complete formatted step display
  * Returns object with description, notes, and technical data
@@ -180,11 +172,7 @@ export const getFormattedStepDisplay = (step) => {
 /**
  * Generate cast on description
  */
-/**
- * Generate cast on description
- */
 const getCastOnDescription = (step) => {
-
     const method = step.wizardConfig?.stitchPattern?.method;
     const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
 
@@ -317,215 +305,38 @@ const getOtherEndingDescription = (step) => {
 };
 
 /**
- * Generate regular pattern step description
- */
-/**
- * Generate enhanced human-readable description for regular pattern steps
- * Now with construction awareness and more natural language
+ * ✅ RESTORED: Generate regular pattern step description
+ * Back to the beautiful, simple original format!
  */
 const getPatternStepDescription = (step) => {
     const pattern = getStepPatternName(step);
     const duration = getStepDurationDisplay(step);
-    const construction = step.construction || 'flat';
 
-    // Construction-aware terms
-    const rowTerm = construction === 'round' ? 'rounds' : 'rows';
+    // ✅ NEW: Add shaping configuration to base description
+    const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+    let shapingText = '';
 
-    switch (pattern) {
-        // ===== BASIC PATTERNS - More natural language =====
-        case 'Stockinette':
-            return duration
-                ? `Work ${duration} in stockinette stitch`
-                : 'Work in stockinette stitch';
-
-        case 'Garter':
-            return duration
-                ? `Work ${duration} in garter stitch`
-                : 'Work in garter stitch';
-
-        case 'Reverse Stockinette':
-            return duration
-                ? `Work ${duration} in reverse stockinette`
-                : 'Work in reverse stockinette';
-
-        // ===== RIBBING - More descriptive with stitch pattern =====
-        case '1x1 Rib':
-            return duration
-                ? `Work ${duration} in 1x1 ribbing (K1, P1)`
-                : 'Work in 1x1 ribbing (K1, P1)';
-
-        case '2x2 Rib':
-            return duration
-                ? `Work ${duration} in 2x2 ribbing (K2, P2)`
-                : 'Work in 2x2 ribbing (K2, P2)';
-
-        case '3x3 Rib':
-            return duration
-                ? `Work ${duration} in 3x3 ribbing (K3, P3)`
-                : 'Work in 3x3 ribbing (K3, P3)';
-
-        case '2x1 Rib':
-            return duration
-                ? `Work ${duration} in 2x1 ribbing (K2, P1)`
-                : 'Work in 2x1 ribbing (K2, P1)';
-
-        case '1x1 Twisted Rib':
-            return duration
-                ? `Work ${duration} in 1x1 twisted rib`
-                : 'Work in 1x1 twisted rib';
-
-        case '2x2 Twisted Rib':
-            return duration
-                ? `Work ${duration} in 2x2 twisted rib`
-                : 'Work in 2x2 twisted rib';
-
-        // ===== TEXTURED PATTERNS - More helpful descriptions =====
-        case 'Seed Stitch':
-            return duration
-                ? `Work ${duration} in seed stitch`
-                : 'Work in seed stitch';
-
-        case 'Moss Stitch':
-            return duration
-                ? `Work ${duration} in moss stitch`
-                : 'Work in moss stitch';
-
-        case 'Double Seed':
-            return duration
-                ? `Work ${duration} in double seed stitch`
-                : 'Work in double seed stitch';
-
-        case 'Basketweave':
-            return duration
-                ? `Work ${duration} in basketweave pattern`
-                : 'Work in basketweave pattern';
-
-        // ===== COLORWORK PATTERNS - More specific =====
-        case 'Stranded Colorwork':
-            return duration
-                ? `Work ${duration} in stranded colorwork`
-                : 'Work in stranded colorwork';
-
-        case 'Fair Isle':
-            return duration
-                ? `Work ${duration} in Fair Isle pattern`
-                : 'Work in Fair Isle pattern';
-
-        case 'Intarsia':
-            return duration
-                ? `Work ${duration} in intarsia colorwork`
-                : 'Work in intarsia colorwork';
-
-        case 'Mosaic':
-            return duration
-                ? `Work ${duration} in mosaic pattern`
-                : 'Work in mosaic pattern';
-
-        // ===== ADVANCED PATTERNS - More descriptive =====
-        case 'Lace Pattern':
-            return duration
-                ? `Work ${duration} in lace pattern`
-                : 'Work in lace pattern';
-
-        case 'Cable Pattern':
-            return duration
-                ? `Work ${duration} in cable pattern`
-                : 'Work in cable pattern';
-
-        case 'Colorwork':
-            return duration
-                ? `Work ${duration} in colorwork`
-                : 'Work in colorwork';
-
-        case 'Custom pattern':
-            return duration
-                ? `Work ${duration} in custom pattern`
-                : 'Work in custom pattern';
-
-        // ===== ADVANCED TEXTURED PATTERNS =====
-        case 'Brioche':
-            return duration
-                ? `Work ${duration} in brioche stitch`
-                : 'Work in brioche stitch';
-
-        // ===== CONSTRUCTION-AWARE DEFAULT =====
-        default:
-            // Convert technical names to friendlier versions
-            const friendlyPattern = pattern
-                .replace(/([A-Z])/g, ' $1') // Add spaces before capitals
-                .toLowerCase()
-                .trim();
-
-            if (duration) {
-                return `Work ${duration} in ${friendlyPattern}`;
-            }
-            return `Work in ${friendlyPattern}`;
-    }
-};
-
-// ===== ENHANCED DURATION DISPLAY WITH CONSTRUCTION AWARENESS =====
-// Also update getStepDurationDisplay if needed for construction awareness
-
-const getConstructionAwareDurationDisplay = (step) => {
-    const duration = step.wizardConfig?.duration;
-    const construction = step.construction || 'flat';
-    const rowTerm = construction === 'round' ? 'rounds' : 'rows';
-
-    if (!duration?.type) {
-        // Fallback to totalRows if available
-        return step.totalRows ? `${step.totalRows} ${rowTerm}` : null;
+    if (shapingConfig?.type === 'even_distribution') {
+        const action = shapingConfig.config?.action;
+        const amount = shapingConfig.config?.amount;
+        if (action && amount) {
+            const actionText = action === 'increase' ? 'increases' : 'decreases';
+            shapingText = ` with ${amount} ${actionText} evenly distributed`;
+        }
+    } else if (shapingConfig?.type === 'phases') {
+        const phases = shapingConfig.config?.phases?.length || 0;
+        if (phases > 0) {
+            shapingText = ` with ${phases} shaping phases`;
+        }
     }
 
-    switch (duration.type) {
-        case 'rows':
-        case 'rounds':
-            // Use construction-aware term
-            return `${duration.value} ${rowTerm}`;
-
-        case 'length':
-            return `${duration.value} ${duration.units || 'inches'}`;
-
-        case 'until_length':
-            return `until piece measures ${duration.value} ${duration.units || 'inches'}`;
-
-        case 'repeats':
-            const rowsInPattern = step.wizardConfig?.stitchPattern?.rowsInPattern;
-            if (rowsInPattern && parseInt(rowsInPattern) > 1) {
-                return `${duration.value} repeats (${parseInt(duration.value) * parseInt(rowsInPattern)} ${rowTerm})`;
-            }
-            return `${duration.value} repeats`;
-
-        case 'stitches':
-            return duration.value === 'all' ? 'all stitches' : `${duration.value} stitches`;
-
-        default:
-            return null;
+    // Build the description: [base pattern info][base configuration info]
+    if (duration) {
+        return `Work ${duration} in ${pattern.toLowerCase()}${shapingText}`;
     }
+
+    return `Work in ${pattern.toLowerCase()}${shapingText}`;
 };
-
-// ===== PATTERN-SPECIFIC ENHANCEMENT HELPERS =====
-
-/**
- * Get pattern-specific enhancement for descriptions
- * Adds helpful context for certain pattern types
- */
-const getPatternEnhancement = (step) => {
-    const pattern = getStepPatternName(step);
-    const construction = step.construction || 'flat';
-
-    const enhancements = {
-        'Garter': construction === 'round' ? ' (knit every round)' : ' (knit every row)',
-        'Stockinette': construction === 'round' ? ' (knit every round)' : ' (knit RS, purl WS)',
-        'Reverse Stockinette': construction === 'round' ? ' (purl every round)' : ' (purl RS, knit WS)',
-        'Seed Stitch': ' (alternate K1, P1)',
-        'Moss Stitch': ' (UK seed stitch)',
-        '1x1 Twisted Rib': ' (knit through back loop)',
-        '2x2 Twisted Rib': ' (knit through back loop)'
-    };
-
-    return enhancements[pattern] || '';
-};
-
 
 // ===== TECHNICAL DATA FORMATTING =====
 
@@ -565,7 +376,6 @@ export const hasContextualPatternNotes = (step) => {
 export const hasContextualConfigNotes = (step) => {
     return getContextualConfigNotes(step) !== null;
 };
-
 
 /**
  * Check if step is an ending/completion step
