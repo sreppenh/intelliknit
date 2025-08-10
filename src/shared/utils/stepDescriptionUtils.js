@@ -7,44 +7,29 @@
  * Generates human-friendly descriptions and contextual notes for step display.
  */
 
-import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote } from './stepDisplayUtils';
+import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote, getStepType, hasShaping } from './stepDisplayUtils';
 import { formatKnittingInstruction } from './knittingNotation';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
 /**
- * Generate human-readable description for any step
- * Returns better, more natural language than technical pattern names
+ * ✅ REFACTORED: Generate human-readable description for any step
+ * Now routes by step type instead of pattern type for cleaner architecture
  */
 export const getHumanReadableDescription = (step) => {
-    const pattern = getStepPatternName(step);
+    const stepType = getStepType(step);
 
-    switch (pattern) {
-        case 'Cast On':
-            return getCastOnDescription(step);
-
-        case 'Pick Up & Knit':
-            return getPickUpKnitDescription(step);
-
-        case 'Continue from Stitches':
-            return getContinueDescription(step);
-
-        case 'Custom Initialization':
-            return getCustomInitializationDescription(step);
-
-        case 'Bind Off':
-            return getBindOffDescription(step);
-
-        case 'Put on Holder':
-            return getHolderDescription(step);
-
-        case 'Attach to Piece':
-            return getAttachmentDescription(step);
-
-        case 'Other Ending':
-            return getOtherEndingDescription(step);
-
+    switch (stepType) {
+        case 'initialization':
+            return getInitializationStepDescription(step);
+        case 'finalization':
+            return getFinalizationStepDescription(step);
+        case 'shaping':
+            return getShapingStepDescription(step);
+        case 'non-shaping':
+            return getNonShapingStepDescription(step);
         default:
+            // Fallback to pattern-based routing for edge cases
             return getPatternStepDescription(step);
     }
 };
@@ -83,6 +68,11 @@ export const getContextualPatternNotes = (step) => {
     if (pattern === 'Attach to Piece') {
         const customText = step.wizardConfig?.stitchPattern?.customText;
         return customText ? customText.trim() : null;
+    }
+
+    // ✅ FIXED: Don't show contextual notes for Continue from Stitches
+    if (pattern === 'Continue from Stitches') {
+        return null;
     }
 
     // Check for custom pattern text
@@ -167,7 +157,100 @@ export const getFormattedStepDisplay = (step) => {
     };
 };
 
-// ===== SPECIFIC DESCRIPTION GENERATORS =====
+// ===== STEP TYPE DESCRIPTION GENERATORS =====
+
+/**
+ * ✅ NEW: Generate descriptions for initialization steps
+ */
+const getInitializationStepDescription = (step) => {
+    const pattern = getStepPatternName(step);
+
+    switch (pattern) {
+        case 'Cast On':
+            return getCastOnDescription(step);
+        case 'Pick Up & Knit':
+            return getPickUpKnitDescription(step);
+        case 'Continue from Stitches':
+            return getContinueDescription(step);
+        case 'Custom Initialization':
+            return getCustomInitializationDescription(step);
+        default:
+            return `Initialize component with ${pattern.toLowerCase()}`;
+    }
+};
+
+/**
+ * ✅ NEW: Generate descriptions for finalization steps
+ */
+const getFinalizationStepDescription = (step) => {
+    const pattern = getStepPatternName(step);
+
+    switch (pattern) {
+        case 'Bind Off':
+            return getBindOffDescription(step);
+        case 'Put on Holder':
+            return getHolderDescription(step);
+        case 'Attach to Piece':
+            return getAttachmentDescription(step);
+        case 'Other Ending':
+            return getOtherEndingDescription(step);
+        default:
+            return `Complete component with ${pattern.toLowerCase()}`;
+    }
+};
+
+/**
+ * ✅ NEW: Generate descriptions for shaping steps
+ * Handles the [pattern][shaping config] format
+ */
+const getShapingStepDescription = (step) => {
+    const pattern = getStepPatternName(step);
+    const duration = getStepDurationDisplay(step);
+
+    // Get shaping configuration details
+    const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+    let shapingText = '';
+
+    if (shapingConfig?.type === 'even_distribution') {
+        const action = shapingConfig.config?.action;
+        const amount = shapingConfig.config?.amount;
+        if (action && amount) {
+            const actionText = action === 'increase' ? 'increases' : 'decreases';
+            shapingText = ` with ${amount} ${actionText} evenly distributed`;
+        }
+    } else if (shapingConfig?.type === 'phases') {
+        const phases = shapingConfig.config?.phases?.length || 0;
+        if (phases > 0) {
+            shapingText = ` with ${phases} shaping phases`;
+        }
+    }
+
+    // Build the description: [pattern][shaping config]
+    if (duration) {
+        return `Work ${duration} in ${pattern.toLowerCase()}${shapingText}`;
+    }
+
+    return `Work in ${pattern.toLowerCase()}${shapingText}`;
+};
+
+/**
+ * ✅ NEW: Generate descriptions for non-shaping steps  
+ * Handles the [pattern][duration config] format
+ */
+const getNonShapingStepDescription = (step) => {
+    const pattern = getStepPatternName(step);
+    const duration = getStepDurationDisplay(step);
+
+    // Build the description: [pattern][duration config]
+    if (duration) {
+        return `Work ${duration} in ${pattern.toLowerCase()}`;
+    }
+
+    return `Work in ${pattern.toLowerCase()}`;
+};
+
+// ===== ORIGINAL SPECIFIC DESCRIPTION GENERATORS =====
+// These are used by the step-type functions above
 
 /**
  * Generate cast on description
@@ -238,10 +321,11 @@ const getPickUpKnitDescription = (step) => {
  */
 const getContinueDescription = (step) => {
     const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
-    const source = step.wizardConfig?.stitchPattern?.customText; // This is the "where continuing from"
+    const source = step.wizardConfig?.stitchPattern?.customText;
 
     if (source && source.trim()) {
-        return `Continue knitting from ${source.trim()} with ${stitchCount} stitches`;
+        // ✅ FIXED: Use dash format like other initialization steps
+        return `Continue knitting from ${source.trim()} - ${stitchCount} stitches`;
     }
 
     return `Continue knitting with ${stitchCount} stitches`;
@@ -252,12 +336,7 @@ const getContinueDescription = (step) => {
  */
 const getCustomInitializationDescription = (step) => {
     const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount || step.endingStitches;
-    const customText = step.wizardConfig?.stitchPattern?.customText;
-
-    if (customText && customText.trim()) {
-        return `${customText.trim()} - ${stitchCount} stitches`;
-    }
-
+    // ✅ FIXED: Always use "Custom setup" as main description
     return `Custom setup with ${stitchCount} stitches`;
 };
 
@@ -305,14 +384,14 @@ const getOtherEndingDescription = (step) => {
 };
 
 /**
- * ✅ RESTORED: Generate regular pattern step description
- * Back to the beautiful, simple original format!
+ * ✅ LEGACY: Original pattern step description (kept as fallback)
+ * This is now only used as a fallback for edge cases
  */
 const getPatternStepDescription = (step) => {
     const pattern = getStepPatternName(step);
     const duration = getStepDurationDisplay(step);
 
-    // ✅ NEW: Add shaping configuration to base description
+    // ✅ Add shaping configuration to base description (legacy support)
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
     let shapingText = '';
 

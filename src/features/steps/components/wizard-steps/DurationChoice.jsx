@@ -3,7 +3,6 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 // import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 const DurationChoice = ({ wizardData, updateWizardData, construction, project }) => {
-  console.log('🔧 DURATION CHOICE RENDER:', wizardData.duration); // ADD THIS
   const { pattern } = wizardData.stitchPattern;
 
   // SAFETY CHECK: Ensure duration exists

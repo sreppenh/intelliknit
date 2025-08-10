@@ -257,6 +257,16 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   };
 
   const handleDeleteStepFromMenu = (stepIndex, event) => {
+
+    // DEBUG LOGS
+    console.log('🚨 DELETE DEBUG:', {
+      'stepIndex passed to function': stepIndex,
+      'editableStepIndex calculated': editableStepIndex,
+      'component.steps.length': component.steps.length,
+      'step being deleted': component.steps[stepIndex]?.description,
+      'editable step': component.steps[editableStepIndex]?.description
+    });
+
     event.stopPropagation();
     if (stepIndex === 0) {
       alert('The first step cannot be deleted as it defines how the component begins.');

@@ -191,13 +191,17 @@ export const getStitchChangeDisplay = (step) => {
     return null;
 };
 
+export const hasShaping = (step) => {
+    return step.wizardConfig?.hasShaping === true ||
+        step.advancedWizardConfig?.hasShaping === true;
+};
+
 /**
  * Get shaping info display
  * Returns structured shaping information
  */
-export const getShapingDisplay = (step) => {
-    const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
+export const getShapingDisplay = (step) => {
     if (!hasShaping) return null;
 
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
@@ -231,6 +235,7 @@ export const isConstructionStep = (step) => {
     return PATTERN_CATEGORIES.construction.includes(pattern);
 };
 
+
 /**
  * Check if step is an initialization step
  * Any step that starts a component (Cast On, Pick Up & Knit, Continue from Stitches, Custom Initialization)
@@ -260,6 +265,17 @@ export const isFinishingStep = (step) => {
  */
 export const isMiddleStep = (step) => {
     return !isInitializationStep(step) && !isFinishingStep(step);
+};
+
+/**
+ * ✅ NEW: Determine step type for routing and classification
+ * Returns: 'initialization' | 'finalization' | 'shaping' | 'non-shaping'
+ */
+export const getStepType = (step) => {
+    if (isInitializationStep(step)) return 'initialization';
+    if (isFinishingStep(step)) return 'finalization';
+    if (hasShaping(step)) return 'shaping';
+    return 'non-shaping';
 };
 
 /**
@@ -576,5 +592,6 @@ export default {
     isStepEditable,
     validateStepConfiguration,
     getComponentState,
-    getPatternPlaceholderText
+    getPatternPlaceholderText,
+    getStepType
 };
