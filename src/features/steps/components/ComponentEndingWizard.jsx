@@ -3,7 +3,6 @@ import PageHeader from '../../../shared/components/PageHeader';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import ComponentCompletionModal from '../../../shared/components/ComponentCompletionModal';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
-import SetupNotesSection from '../../../shared/components/SetUpNotesSection';
 import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
 
 const ComponentEndingWizard = ({
