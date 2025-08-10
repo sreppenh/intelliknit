@@ -70,6 +70,12 @@ export const getContextualPatternNotes = (step) => {
         return customText ? customText.trim() : null;
     }
 
+    // ✅ NEW: Show custom text for Other Ending in italics
+    if (pattern === 'Other Ending') {
+        const customText = step.wizardConfig?.stitchPattern?.customText;
+        return customText ? customText.trim() : null;
+    }
+
     // ✅ FIXED: Don't show contextual notes for Continue from Stitches
     if (pattern === 'Continue from Stitches') {
         return null;
@@ -266,7 +272,7 @@ const getCastOnDescription = (step) => {
 
     // Get display name for method
     const CAST_ON_METHODS = {
-        'long_tail': 'long tail cast on',
+        'long_tail': 'Long Tail Cast On',
         'cable': 'cable cast on',
         'knitted': 'knitted cast on',
         'backwards_loop': 'backwards loop cast on',
@@ -288,15 +294,23 @@ const getCastOnDescription = (step) => {
  * Generate bind off description
  */
 const getBindOffDescription = (step) => {
-    const method = getStepMethodDisplay(step);
+    const method = step.wizardConfig?.stitchPattern?.method;
+    const customMethod = step.wizardConfig?.stitchPattern?.customMethod || step.wizardConfig?.stitchPattern?.customText;
     const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount;
 
     // Handle specific stitch counts vs "all"
     const countText = stitchCount && stitchCount !== 'all' ?
         `${stitchCount} stitches` : 'all stitches';
 
-    if (method) {
-        return `Using ${method.toLowerCase()}, bind off ${countText}`;
+    // ✅ FIX: Handle custom method properly
+    if (method === 'other' && customMethod) {
+        return `Bind off ${countText} using ${customMethod}`;
+    }
+
+    // Handle standard methods
+    const methodDisplay = getStepMethodDisplay(step);
+    if (methodDisplay && method !== 'other') {
+        return `Using ${methodDisplay.toLowerCase()}, bind off ${countText}`;
     }
 
     return `Bind off ${countText}`;
@@ -357,14 +371,22 @@ const getHolderDescription = (step) => {
  * Generate attachment description
  */
 const getAttachmentDescription = (step) => {
-    const method = getStepMethodDisplay(step);
+    const method = step.wizardConfig?.stitchPattern?.method;
+    const customMethod = step.wizardConfig?.stitchPattern?.customMethod || step.wizardConfig?.stitchPattern?.customText;
     const targetComponent = step.wizardConfig?.stitchPattern?.targetComponent;
 
     // Handle user-entered component names
     const target = targetComponent || 'selected component';
 
-    if (method) {
-        return `Using ${method.toLowerCase()}, attach this component to ${target}`;
+    // ✅ FIX: Handle custom method properly
+    if (method === 'other' && customMethod) {
+        return `Attach this component to ${target} using ${customMethod}`;
+    }
+
+    // Handle standard methods
+    const methodDisplay = getStepMethodDisplay(step);
+    if (methodDisplay && method !== 'other') {
+        return `Using ${methodDisplay.toLowerCase()}, attach this component to ${target}`;
     }
 
     return `Attach this component to ${target}`;
@@ -377,7 +399,8 @@ const getOtherEndingDescription = (step) => {
     const customText = step.wizardConfig?.stitchPattern?.customText;
 
     if (customText && customText.trim() !== '') {
-        return customText.trim();
+        // ✅ FIX: Better wording for other ending
+        return `Complete component - ${customText.trim()}`;
     }
 
     return 'Complete component with custom ending';

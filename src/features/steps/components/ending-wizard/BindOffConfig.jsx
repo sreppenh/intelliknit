@@ -6,27 +6,21 @@ const BindOffConfig = ({ endingData, setEndingData, currentStitches, isFinishing
   const methods = [
     {
       id: 'standard',
-      name: 'Standard',
+      name: 'Standard Bind-Off',
       icon: '✂️',
       description: 'Basic bind off, most common'
     },
     {
       id: 'stretchy',
-      name: 'Stretchy',
+      name: 'Stretchy Bind-Off',
       icon: '🌊',
       description: 'Extra stretch for ribbing'
     },
     {
       id: 'picot',
-      name: 'Picot',
+      name: 'Picot Bind-Off',
       icon: '🌸',
       description: 'Decorative scalloped edge'
-    },
-    {
-      id: 'three_needle',
-      name: 'Three Needle',
-      icon: '🔗',
-      description: 'Joins two pieces together'
     },
     {
       id: 'other',

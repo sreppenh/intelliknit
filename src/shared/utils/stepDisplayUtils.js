@@ -32,10 +32,10 @@ const CUSTOM_INITIALIZATION_METHODS = {
 };
 
 const BIND_OFF_METHODS = {
-    'standard': 'Standard',
-    'stretchy': 'Stretchy',
-    'picot': 'Picot',
-    'three_needle': 'Three Needle',
+    'standard': 'Standard Bind Off',
+    'stretchy': 'Stretchy Bind Off',
+    'picot': 'Picot Bind Off',
+    'three_needle': 'Three Needle Bind Off',
     'sewn': 'Sewn Bind Off'
 };
 
@@ -43,7 +43,8 @@ const ATTACH_METHODS = {
     'mattress_stitch': 'Mattress Stitch',
     'backstitch': 'Backstitch',
     'kitchener_stitch': 'Kitchener Stitch',
-    'three_needle_bindoff': 'Three Needle Bind Off'
+    'three_needle_bindoff': 'Three Needle Bind Off',
+    'three_needle': 'Three Needle Bind Off'
 };
 
 const PATTERN_CATEGORIES = {

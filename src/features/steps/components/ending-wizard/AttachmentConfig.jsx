@@ -31,6 +31,12 @@ const AttachmentConfig = ({ endingData, setEndingData }) => {
       description: 'Invisible graft'
     },
     {
+      id: 'three_needle',
+      name: 'Three Needle',
+      icon: '🔗',
+      description: 'Joins two pieces together'
+    },
+    {
       id: 'other',
       name: 'Other Method',
       icon: '📝',
