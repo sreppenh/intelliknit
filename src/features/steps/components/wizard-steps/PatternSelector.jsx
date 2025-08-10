@@ -39,7 +39,6 @@ export const PatternSelector = ({
     return null;
   }, []); // Empty dependency array since PATTERN_CATEGORIES is static
 
-  // Initialize tab based on existing selection
   useEffect(() => {
     const selectedCategory = wizardData?.stitchPattern?.category;
     const selectedPattern = wizardData?.stitchPattern?.pattern;
@@ -66,9 +65,8 @@ export const PatternSelector = ({
         });
       }
     } else {
-      // 🎯 FIX: Default to Basic Stitches for new steps
-      if (!selectedCategory && !selectedPattern) {
-        setActiveTab('quick');
+      // 🎯 FIX: Only auto-select Basic Stitches on FIRST LOAD
+      if (!selectedCategory && !selectedPattern && activeTab === 'quick' && !selectedQuickCategory) {
         setSelectedQuickCategory('basic');
         // Auto-select Basic Stitches category
         updateWizardData('stitchPattern', {
@@ -84,22 +82,27 @@ export const PatternSelector = ({
     wizardData?.stitchPattern?.category,
     wizardData?.stitchPattern?.pattern,
     updateWizardData,
-    findCategoryFromPattern  // ✅ Now stable thanks to useCallback
-  ]); // ✅ Removed wizardData since we only need the specific properties
+    findCategoryFromPattern,
+    activeTab,
+    selectedQuickCategory
+  ]);
 
   // Rest of your component code stays exactly the same...
   // Tab switching
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setSelectedQuickCategory(null);
-    // Clear selection when switching tabs (optional - could preserve)
-    updateWizardData('stitchPattern', {
-      category: null,
-      pattern: null,
-      customText: '',
-      rowsInPattern: '',
-      method: ''
-    });
+
+    // Only clear selection if user actually had selections
+    if (wizardData?.stitchPattern?.category || wizardData?.stitchPattern?.pattern) {
+      updateWizardData('stitchPattern', {
+        category: null,
+        pattern: null,
+        customText: '',
+        rowsInPattern: '',
+        method: ''
+      });
+    }
   };
 
   // Quick pattern handlers
