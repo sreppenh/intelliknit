@@ -65,10 +65,9 @@ export const PatternSelector = ({
         });
       }
     } else {
-      // 🎯 FIX: Only auto-select Basic Stitches on FIRST LOAD
-      if (!selectedCategory && !selectedPattern && activeTab === 'quick' && !selectedQuickCategory) {
+      // Auto-select Basic Stitches on FIRST LOAD only
+      if (!selectedCategory && !selectedPattern && activeTab === 'quick') {
         setSelectedQuickCategory('basic');
-        // Auto-select Basic Stitches category
         updateWizardData('stitchPattern', {
           category: 'basic',
           pattern: null,
@@ -83,8 +82,8 @@ export const PatternSelector = ({
     wizardData?.stitchPattern?.pattern,
     updateWizardData,
     findCategoryFromPattern,
-    activeTab,
-    selectedQuickCategory
+    activeTab
+    // 🎯 ONLY REMOVED: selectedQuickCategory (this was the loop maker!)
   ]);
 
   // Rest of your component code stays exactly the same...
