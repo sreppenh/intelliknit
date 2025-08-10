@@ -118,6 +118,15 @@ const ManageSteps = ({ componentIndex, onBack }) => {
     return -1; // No editable steps
   };
 
+  const getDeletableStepIndex = (targetStepIndex) => {
+    // You can delete any step except the first one (initialization)
+    if (targetStepIndex === 0) return -1;
+
+    // You can delete any step after the first, even if completed
+    // This allows "rewinding" to fix earlier mistakes
+    return targetStepIndex;
+  };
+
   const editableStepIndex = getEditableStepIndex();
 
   const handleDeleteStep = () => {
@@ -257,24 +266,27 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   };
 
   const handleDeleteStepFromMenu = (stepIndex, event) => {
-
-    // DEBUG LOGS
-    console.log('🚨 DELETE DEBUG:', {
-      'stepIndex passed to function': stepIndex,
-      'editableStepIndex calculated': editableStepIndex,
-      'component.steps.length': component.steps.length,
-      'step being deleted': component.steps[stepIndex]?.description,
-      'editable step': component.steps[editableStepIndex]?.description
-    });
-
     event.stopPropagation();
-    if (stepIndex === 0) {
+
+    if (getDeletableStepIndex(stepIndex) === -1) {
       alert('The first step cannot be deleted as it defines how the component begins.');
       setOpenMenuId(null);
       return;
     }
-    const stepToDelete = component.steps[editableStepIndex];
-    setStepToDelete({ step: stepToDelete, index: editableStepIndex });
+
+    // ✅ FIX: Use the actual stepIndex for the step being deleted
+    const stepToDelete = component.steps[stepIndex];
+
+    // ✅ FIX: Generate proper description for the modal using our new function
+    const stepDescription = getHumanReadableDescription(stepToDelete);
+
+    setStepToDelete({
+      step: {
+        ...stepToDelete,
+        description: stepDescription  // Ensure modal gets proper description
+      },
+      index: stepIndex
+    });
     setShowDeleteStepModal(true);
     setOpenMenuId(null);
   };
@@ -491,9 +503,13 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                 type: 'DELETE_STEP',
                 payload: { componentIndex, stepIndex: stepToDelete.index }
               });
+              // ✅ FIX: Close modal after successful deletion
+              setShowDeleteStepModal(false);
+              setStepToDelete(null);
             }}
           />
         )}
+
         {/* Prep Note Editing Overlay */}
         <PrepStepOverlay
           isOpen={isPrepNoteOverlayOpen}
