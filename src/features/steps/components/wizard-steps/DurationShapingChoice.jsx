@@ -42,7 +42,8 @@ const DurationShapingChoice = (props) => {
   return (
     <div className="stack-lg">
       <div>
-        <h2 className="content-header-primary">Select your configuration method</h2>
+        <h2 className="content-header-primary">Will this step include shaping?</h2>
+        <p className="content-subheader">Choose whether you need to change stitch counts or just work the pattern</p>
         {/* <p className="content-subheader">Choose how you want to specify your pattern</p> */}
       </div>
 
@@ -60,7 +61,7 @@ const DurationShapingChoice = (props) => {
           <div className="flex items-start gap-4">
             <div className="text-4xl flex-shrink-0">⏱️</div>
             <div className="flex-1">
-              <h3 className="text-lg font-semibold mb-2">Set Duration</h3>
+              <h3 className="text-lg font-semibold mb-2">No Shaping</h3>
               <p className="text-sm opacity-75 mb-3">
                 Work the pattern for a specific number of {construction === 'round' ? 'rounds' : 'rows'} or until a certain length
               </p>
@@ -103,7 +104,7 @@ const DurationShapingChoice = (props) => {
       <div className="success-block-center">
         <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Quick Guide</h4>
         <div className="text-sm text-sage-600 space-y-1">
-          <div><strong>Set Duration:</strong> Perfect for straightforward sections like "work stockinette for 6 inches"</div>
+          <div><strong>No Shaping:</strong> Perfect for straightforward sections like "work stockinette for 6 inches"</div>
           <div><strong>Add Shaping:</strong> Great for sleeves, waist shaping, necklines, and armholes</div>
         </div>
       </div>
