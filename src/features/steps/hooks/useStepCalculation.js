@@ -34,20 +34,23 @@ export const useStepCalculation = () => {
       };
     }
 
-    // Handle patterns with advanced shaping using AdvancedPatternCalculator
+    // Handle patterns with modern shaping system
     if (wizardData.hasShaping && wizardData.shapingConfig) {
       try {
-        const { shapingMode, shapingType, positions, frequency, times, bindOffSequence, distributionType, targetChange, type, config } = wizardData.shapingConfig;
+        const { shapingMode, shapingType, positions, frequency, times, type, config } = wizardData.shapingConfig;
 
-        // SAFETY: Warn about legacy data usage
+        // Legacy detection (safety check)
+        IntelliKnitLogger.debug('Calculation debug - type:', type, 'config exists:', !!config);
+
         if (shapingMode && !type) {
-          IntelliKnitLogger.warn('🚨 LEGACY SHAPING DETECTED in calculation', {
-            shapingMode, shapingType, positions, frequency, times
+          IntelliKnitLogger.warn('🚨 UNEXPECTED LEGACY SHAPING DETECTED in calculation', {
+            shapingMode, shapingType, positions, frequency, times,
+            suggestion: 'This should not happen in modern system'
           });
         }
 
-        // Check for new shaping structure first (from ShapingWizard)
-        if (type === 'even_distribution' && config && config.calculation) {
+        // Modern shaping system (type-based)
+        if (type === 'even_distribution' && config?.calculation) {
           return {
             success: true,
             totalRows: 1,
@@ -58,9 +61,7 @@ export const useStepCalculation = () => {
             netStitchChange: config.calculation.changeCount * (config.action === 'increase' ? 1 : -1)
           };
         }
-
-        // Handle sequential phases shaping
-        else if (type === 'phases' && config && config.calculation) {
+        else if (type === 'phases' && config?.calculation) {
           return {
             success: true,
             totalRows: config.calculation.totalRows,
@@ -72,92 +73,12 @@ export const useStepCalculation = () => {
             phaseDetails: config.calculation.phases // Store phase breakdown for knitting mode
           };
         }
-
-        // Stepped Bind-Off
-        else if (shapingMode === 'bindoff') {
-          const bindOffResult = advancedCalculator.calculateSteppedBindOff(bindOffSequence, currentStitches, construction);
-          if (bindOffResult.success) {
-            return {
-              success: true,
-              totalRows: bindOffResult.totalRows,
-              startingStitches: bindOffResult.startingStitches,
-              endingStitches: bindOffResult.endingStitches,
-              rows: bindOffResult.rows,
-              hasShaping: true,
-              shapingMode: 'bindoff'
-            };
-          }
-        }
-
-        // Even Distribution (legacy fallback)
-        else if (shapingMode === 'distribution') {
-          const distributionResult = advancedCalculator.calculateEvenDistribution(
-            currentStitches,
-            targetChange,
-            distributionType
-          );
-          if (distributionResult.success) {
-            return {
-              success: true,
-              totalRows: distributionResult.totalRows,
-              startingStitches: distributionResult.startingStitches,
-              endingStitches: distributionResult.endingStitches,
-              rows: distributionResult.rows,
-              hasShaping: true,
-              shapingMode: 'distribution'
-            };
-          }
-        }
-
-        // Regular and Raglan Shaping - use Multi-Point Shaping
-        else if (shapingMode === 'regular' || shapingMode === 'raglan') {
-          const shapingConfig = {
-            frequency: { every: frequency, times: times },
-            points: [],
-            shapingType
-          };
-
-          // Configure points based on shaping mode
-          if (shapingMode === 'raglan') {
-            // Raglan: 4-point shaping (decrease 4 stitches per shaping row)
-            shapingConfig.points = [
-              { position: 'beginning', technique: null, stitchChange: shapingType === 'increase' ? 1 : -1, borderStitches: 1 },
-              { position: 'center', technique: null, stitchChange: shapingType === 'increase' ? 2 : -2, borderStitches: 0 },
-              { position: 'end', technique: null, stitchChange: shapingType === 'increase' ? 1 : -1, borderStitches: 1 }
-            ];
-          } else {
-            // Regular shaping
-            if (positions.includes('both_ends')) {
-              shapingConfig.points = [
-                { position: 'beginning', technique: null, stitchChange: shapingType === 'increase' ? 1 : -1, borderStitches: 1 },
-                { position: 'end', technique: null, stitchChange: shapingType === 'increase' ? 1 : -1, borderStitches: 1 }
-              ];
-            } else {
-              shapingConfig.points = positions.map(pos => ({
-                position: pos,
-                technique: null,
-                stitchChange: shapingType === 'increase' ? 1 : -1,
-                borderStitches: pos === 'center' ? 0 : 1
-              }));
-            }
-          }
-
-          const multiPointResult = advancedCalculator.calculateMultiPointShaping(shapingConfig, currentStitches, construction);
-          if (multiPointResult.success) {
-            return {
-              success: true,
-              totalRows: multiPointResult.totalRows,
-              startingStitches: multiPointResult.startingStitches,
-              endingStitches: multiPointResult.endingStitches,
-              rows: multiPointResult.rows,
-              hasShaping: true,
-              shapingMode: shapingMode,
-              netStitchChange: multiPointResult.netStitchChange
-            };
-          }
+        else {
+          // No valid modern shaping data found
+          IntelliKnitLogger.debug('No modern shaping data found in calculation');
         }
       } catch (error) {
-        IntelliKnitLogger.error('Advanced shaping calculation error', error);
+        IntelliKnitLogger.error('Modern shaping calculation error', error);
       }
     }
 
@@ -221,11 +142,11 @@ function generateInstructionForDetection(wizardData) {
 
   if (wizardData.duration.type === 'rows') {
     return `${pattern} for ${wizardData.duration.value} rows`;
-  } else if (wizardData.duration.type === 'length') {  // 🎯 ADD: Length from current position
+  } else if (wizardData.duration.type === 'length') {
     return `${pattern} for ${wizardData.duration.value} ${wizardData.duration.units}`;
-  } else if (wizardData.duration.type === 'until_length') {  // 🎯 ADD: Length until target
+  } else if (wizardData.duration.type === 'until_length') {
     return `${pattern} until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
-  } else if (wizardData.duration.type === 'repeats') {  // 🎯 ADD: Pattern repeats
+  } else if (wizardData.duration.type === 'repeats') {
     return `${pattern} for ${wizardData.duration.value} repeats`;
   } else {
     return pattern;

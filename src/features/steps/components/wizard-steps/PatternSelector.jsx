@@ -1,5 +1,4 @@
-// Enhanced PatternSelector with Quick/Advanced Toggle
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react'; // ✅ Add useCallback import
 import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
 import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
 
@@ -28,8 +27,8 @@ export const PatternSelector = ({
 
   const prepConfig = getPrepNoteConfig('stepWizard');
 
-  // Helper to determine if pattern is quick or advanced
-  const findCategoryFromPattern = (patternName) => {
+  // ✅ FIX: Wrap helper function in useCallback to stabilize it
+  const findCategoryFromPattern = useCallback((patternName) => {
     if (!patternName) return null;
     for (const [categoryKey, category] of Object.entries(PATTERN_CATEGORIES)) {
       const foundPattern = category.patterns.find(pattern => pattern.name === patternName);
@@ -38,7 +37,7 @@ export const PatternSelector = ({
       }
     }
     return null;
-  };
+  }, []); // Empty dependency array since PATTERN_CATEGORIES is static
 
   // Initialize tab based on existing selection
   useEffect(() => {
@@ -66,13 +65,29 @@ export const PatternSelector = ({
           category: found.categoryKey
         });
       }
-      // NEW: Default to Basic Stitches for new steps
-      if (!selectedCategory && !selectedPattern && activeTab === 'quick') {
+    } else {
+      // 🎯 FIX: Default to Basic Stitches for new steps
+      if (!selectedCategory && !selectedPattern) {
+        setActiveTab('quick');
         setSelectedQuickCategory('basic');
+        // Auto-select Basic Stitches category
+        updateWizardData('stitchPattern', {
+          category: 'basic',
+          pattern: null,
+          customText: '',
+          rowsInPattern: '',
+          method: ''
+        });
       }
     }
-  }, [wizardData?.stitchPattern?.category, wizardData?.stitchPattern?.pattern]);
+  }, [
+    wizardData?.stitchPattern?.category,
+    wizardData?.stitchPattern?.pattern,
+    updateWizardData,
+    findCategoryFromPattern  // ✅ Now stable thanks to useCallback
+  ]); // ✅ Removed wizardData since we only need the specific properties
 
+  // Rest of your component code stays exactly the same...
   // Tab switching
   const handleTabChange = (tab) => {
     setActiveTab(tab);

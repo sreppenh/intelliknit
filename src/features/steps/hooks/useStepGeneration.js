@@ -97,44 +97,25 @@ export const useStepGeneration = (construction = 'flat') => {
     if (wizardData.hasShaping && wizardData.shapingConfig) {
       const { shapingMode, shapingType, positions, frequency, times, comments, type, config } = wizardData.shapingConfig;
 
-      // PHASE 1: Legacy detection (already implemented)
+      // Legacy detection (safety check)
       IntelliKnitLogger.debug('Shaping debug - type:', type, 'config exists:', !!config);
 
       if (shapingMode && !type) {
-        IntelliKnitLogger.warn('🚨 LEGACY SHAPING DETECTED', {
+        IntelliKnitLogger.warn('🚨 UNEXPECTED LEGACY SHAPING DETECTED', {
           shapingMode, shapingType, positions, frequency, times,
-          suggestion: 'Consider migrating to new format'
+          suggestion: 'This should not happen in modern system'
         });
       }
 
-      // PHASE 2: Clean logic flow - New system FIRST, then legacy fallbacks
+      // Modern shaping system (type-based)
       if (type === 'even_distribution' && config?.calculation?.instruction) {
         instruction += ` with ${config.calculation.instruction}`;
       }
       else if (type === 'phases' && config?.calculation?.instruction) {
         instruction += ` with ${config.calculation.instruction}`;
       }
-      // Legacy fallbacks (only when no new format exists)
-      else if (shapingMode === 'raglan') {
-        IntelliKnitLogger.warn('Using legacy raglan shaping - consider migrating');
-        const terms = getConstructionTerms(construction);
-        const freqText = frequency === 2 ?
-          terms.everyOtherRow.replace('every ', '') : `${frequency}th ${terms.row}`;
-        instruction += ` with raglan ${shapingType}s ${freqText} ${times} times`;
-      }
-      else if (shapingMode === 'bindoff') {
-        IntelliKnitLogger.warn('Using legacy bind-off shaping - consider migrating');
-        instruction += ` with bind-off shaping`;
-      }
-      else if (positions && shapingType && frequency && times) {
-        IntelliKnitLogger.warn('Using legacy position-based shaping - consider migrating');
-        const terms = getConstructionTerms(construction);
-        const positionText = positions.includes('both_ends') ? terms.atBothEnds : positions.join(' and ');
-        const freqText = frequency === 2 ? terms.everyOtherRow.replace('every ', '') : `${frequency}th ${terms.row}`;
-        instruction += ` with ${shapingType}s at ${positionText} ${freqText} ${times} times`;
-      }
       else {
-        // No valid shaping data found - this is actually fine for pattern-only steps
+        // No shaping data found - pattern-only step
         IntelliKnitLogger.debug('No shaping data found - pattern-only step');
       }
 
@@ -144,7 +125,7 @@ export const useStepGeneration = (construction = 'flat') => {
     }
 
     return instruction;
-  }, []);
+  }, [construction]); // 🎯 FIX: Add construction to dependency array
 
   return { generateInstruction };
 };
