@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateOverviewTab, extractOverviewTabProps } from '../types/TabProps';
 import { getProjectStatus as getSharedProjectStatus } from '../../../../../shared/utils/projectStatus';
-import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
+// import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
+import { getComponentState as getUtilityComponentState, getComponentStatusWithDisplay } from '../../../../../shared/utils/stepDisplayUtils';
 
 const OverviewTab = (props) => {
     // Validate props in development
@@ -34,19 +35,8 @@ const OverviewTab = (props) => {
 
     // === SMART COMPONENT FILTERING (cleaned up with utility) ===
     const getComponentStatus = (component) => {
-        // Handle finishing steps (keep existing logic)
-        if (component.type === 'finishing') {
-            if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
-                return 'finishing_in_progress';
-            }
-            const allComplete = component.steps.every(s => s.completed);
-            const manuallyConfirmed = component.finishingComplete;
-            if (allComplete && manuallyConfirmed) return 'finishing_done';
-            return 'finishing_in_progress';
-        }
-
-        // ✅ Use utility for regular components
-        return getUtilityComponentState(component);
+        const result = getComponentStatusWithDisplay(component);
+        return result.status; // Extract just the status string for existing logic
     };
 
     // Add this function in OverviewTab.jsx

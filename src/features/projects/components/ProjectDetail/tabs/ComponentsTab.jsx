@@ -3,7 +3,8 @@ import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateComponentTab, extractComponentProps } from '../types/TabProps';
-import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
+// import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
+import { getComponentState as getUtilityComponentState, getComponentStatusWithDisplay } from '../../../../../shared/utils/stepDisplayUtils';
 
 const ComponentsTab = (props) => {
     // Validate props in development
@@ -46,21 +47,9 @@ const ComponentsTab = (props) => {
 
     const { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction } = useThreeDotMenu();
 
-    // Get component status (cleaned up with utility)
     const getComponentStatus = (component) => {
-        // Handle finishing steps (keep existing logic)
-        if (component.type === 'finishing') {
-            if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
-                return 'finishing_in_progress';
-            }
-            const allComplete = component.steps.every(s => s.completed);
-            const manuallyConfirmed = component.finishingComplete;
-            if (allComplete && manuallyConfirmed) return 'finishing_done';
-            return 'finishing_in_progress';
-        }
-
-        // ✅ Use utility for regular components (replaces all the string parsing!)
-        return getUtilityComponentState(component);
+        const result = getComponentStatusWithDisplay(component);
+        return result.status; // Extract just the status string for existing logic
     };
 
     const getComponentsByStatus = (status) => {
