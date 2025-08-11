@@ -218,6 +218,15 @@ select {
   @apply active:bg-wool-100 active:border-sage-400;
 }
 
+/* ===== Sequence Creation Cards ===== */
+.sequence-creation-card {
+  @apply bg-yarn-100 border-2 border-yarn-300 rounded-xl p-4 transition-all duration-200;
+}
+
+.sequence-creation-card .sequence-number {
+  @apply w-7 h-7 rounded-full bg-yarn-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0;
+}
+
 /* ===== Selection Button System ===== */
 .selection-button {
   @apply p-4 border-2 rounded-xl transition-all duration-200 text-center cursor-pointer;

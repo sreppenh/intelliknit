@@ -245,22 +245,23 @@ export class PhaseCalculationService {
         const decFreqText = config.frequency === 1 ? terms.everyRow :
           config.frequency === 2 ? terms.everyOtherRow :
             terms.everyNthRow(config.frequency);
-        const decPosText = config.position === 'both_ends' ? terms.atBothEnds :
+        const decPosText = config.position === 'both_ends' ? 'at both ends' :
           config.position === 'beginning' ? 'at beginning' :
             'at end';
         const decTotalRows = config.times * config.frequency;
-        return `Dec ${config.amount} st ${decPosText} ${decFreqText} ${config.times} times (${decTotalRows} ${terms.rows})`;
+        const stitchWord = config.amount === 1 ? 'stitch' : 'stitches';
+        return `Decrease ${config.amount} ${stitchWord} ${decPosText} ${decFreqText} ${config.times} times (${decTotalRows} ${terms.rows})`;
 
       case 'increase':
         const incFreqText = config.frequency === 1 ? terms.everyRow :
           config.frequency === 2 ? terms.everyOtherRow :
             terms.everyNthRow(config.frequency);
-        const incPosText = config.position === 'both_ends' ? terms.atBothEnds :
+        const incPosText = config.position === 'both_ends' ? 'at both ends' :
           config.position === 'beginning' ? 'at beginning' :
             'at end';
         const incTotalRows = config.times * config.frequency;
-        return `Inc ${config.amount} st ${incPosText} ${incFreqText} ${config.times} times (${incTotalRows} ${terms.rows})`;
-
+        const incStitchWord = config.amount === 1 ? 'stitch' : 'stitches';
+        return `Increase ${config.amount} ${incStitchWord} ${incPosText} ${incFreqText} ${config.times} times (${incTotalRows} ${terms.rows})`;
       case 'setup':
         return `Work ${config.rows} plain ${config.rows === 1 ? terms.row : terms.rows}`;
 
