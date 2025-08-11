@@ -402,8 +402,12 @@ export const getComponentState = (component) => {
         isInitializationStep(step)
     );
 
-    const hasEnding = component.steps.some(step =>
+    {/* const hasEnding = component.steps.some(step =>
         isFinishingStep(step)
+    ); */}
+
+    const hasEnding = component.steps.some(step =>
+        isFinishingStep(step) || (typeof step.endingStitches === 'number' && step.endingStitches === 0)
     );
 
     const hasProgress = component.steps.some(step => step.completed);

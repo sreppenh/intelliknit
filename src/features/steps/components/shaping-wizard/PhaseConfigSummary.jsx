@@ -31,6 +31,10 @@ const PhaseConfigSummary = ({
     console.log('🔧 PHASE HANDLE COMPLETE CALLED');
     console.log('🔧 PHASE DATA:', { phases, result, currentStitches, componentIndex });
 
+    // ADD THIS DEBUG:
+    console.log('🔍 RESULT OBJECT:', result);
+    console.log('🔍 ENDING STITCHES:', result.endingStitches);
+
     // 🎯 PRESERVE: Original data structure that parent expects
     const originalPhaseData = {
       phases: phases,

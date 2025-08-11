@@ -119,6 +119,7 @@ const PhaseConfigForm = ({
                   <button
                     onClick={() => {
                       const availableStitches = getStitchContext().availableStitches;
+                      console.log('🔍 Button clicked - available stitches:', availableStitches);
                       setTempPhaseConfig(prev => ({
                         ...prev,
                         amount: availableStitches,
@@ -211,19 +212,14 @@ const PhaseConfigForm = ({
             {/* Real-time validation for bind offs */}
             {tempPhaseConfig.type === 'bind_off' && tempPhaseConfig.amount && tempPhaseConfig.frequency && (() => {
               const totalBindOff = tempPhaseConfig.amount * tempPhaseConfig.frequency;
-              let stitchesAfterPreviousPhases = currentStitches;
-              for (const phase of phases) {
-                if (phase.type === 'bind_off') {
-                  stitchesAfterPreviousPhases -= (phase.config.amount * phase.config.frequency);
-                }
-              }
+              const availableStitches = getStitchContext().availableStitches; // ✅ USE THE CORRECT CALCULATION
 
-              if (totalBindOff > stitchesAfterPreviousPhases) {
+              if (totalBindOff > availableStitches) {
                 return (
                   <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
                     <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
                     <div className="text-sm text-red-600">
-                      Cannot bind off {totalBindOff} stitches - only {stitchesAfterPreviousPhases} stitches available
+                      Cannot bind off {totalBindOff} stitches - only {availableStitches} stitches available
                     </div>
                   </div>
                 );
@@ -336,7 +332,6 @@ const PhaseConfigForm = ({
                 onChange={(value) => {
                   const maxTimes = getMaxTimes();
                   const correctedValue = Math.min(Math.max(value, 1), maxTimes);
-                  IntelliKnitLogger.debug('Times Input', `Original: ${value}, Corrected: ${correctedValue}, Max: ${maxTimes}`);
                   setTempPhaseConfig(prev => ({ ...prev, times: correctedValue }));
                 }}
                 label="number of times"

@@ -396,7 +396,7 @@ export const projectsReducer = (state, action) => {
         wizardConfig: step.wizardConfig,
         advancedWizardConfig: step.advancedWizardConfig,
         startingStitches: step.startingStitches,
-        endingStitches: step.endingStitches || step.expectedStitches,
+        endingStitches: step.endingStitches !== undefined ? step.endingStitches : step.expectedStitches,
         totalRows: step.totalRows,
         completed: false
       };

@@ -9,7 +9,6 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 
 const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack,
   setConstruction, setCurrentStitches, component, componentIndex, onExitToComponentSteps, editingStepIndex = null }) => {
-  IntelliKnitLogger.debug('ShapingWizard props', { construction, currentStitches });
 
   // 🔧 FIX: Initialize step based on whether we have existing data
   const getInitialStep = () => {
@@ -209,7 +208,6 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
               construction={construction}
             />
           ) : (
-            IntelliKnitLogger.debug('Rendering config step', { step }),
             renderConfigStep()
           )}
         </div>

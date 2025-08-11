@@ -9,21 +9,6 @@ import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminol
  * Extracts complex state management from PhaseConfig component
  */
 export const usePhaseManager = (currentStitches, construction, existingShapingData) => {
-  console.log('🔧 FULL DEBUG usePhaseManager:', {
-    existingShapingData,
-    'existingShapingData?.phases': existingShapingData?.phases,
-    'existingShapingData?.config?.phases': existingShapingData?.config?.phases,
-    'getInitialPhases() result': (() => {
-      if (existingShapingData?.phases) {
-        return existingShapingData.phases;
-      }
-      if (existingShapingData?.config?.phases) {
-        return existingShapingData.config.phases;
-      }
-      return [];
-    })()
-  });
-
 
   const getInitialPhases = () => {
     // Edit mode: direct access to phases
@@ -73,17 +58,10 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
     return '';
   });
 
-  console.log('🔧 INITIAL STATE:', {
-    'phases length': phases.length,
-    'currentScreen': currentScreen,
-    'phases array': phases
-  });
-
   // Fix empty state: Start with type selection when no phases exist
   useEffect(() => {
     if (phases.length === 0 && currentScreen === 'summary') {
       setCurrentScreen('type-select');
-      IntelliKnitLogger.debug('Phase Management', 'Empty state detected - starting with type selection');
     }
   }, [phases.length, currentScreen]);
 
@@ -219,13 +197,11 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
 
   // Event Handlers
   const handleAddPhase = () => {
-    IntelliKnitLogger.debug('Phase Management', 'Adding new phase');
     setEditingPhaseId(null);
     setCurrentScreen('type-select');
   };
 
   const handleEditPhase = (phaseId) => {
-    IntelliKnitLogger.debug('Phase Management', `Editing phase: ${phaseId}`);
     const phase = phases.find(p => p.id === phaseId);
     setEditingPhaseId(phaseId);
     setTempPhaseConfig(phase.config);
@@ -233,12 +209,10 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
   };
 
   const handleDeletePhase = (phaseId) => {
-    IntelliKnitLogger.debug('Phase Management', `Deleting phase: ${phaseId}`);
     setPhases(phases.filter(p => p.id !== phaseId));
   };
 
   const handleTypeSelect = (type) => {
-    IntelliKnitLogger.debug('Phase Management', `Type selected: ${type}`);
     if (editingPhaseId) {
       // Editing existing phase - keep existing config but change type
       const existingPhase = phases.find(p => p.id === editingPhaseId);
@@ -286,7 +260,6 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
 
     if (editingPhaseId) {
       // Update existing phase
-      IntelliKnitLogger.debug('Phase Management', `Updating phase: ${editingPhaseId}`);
       setPhases(phases.map(p =>
         p.id === editingPhaseId
           ? { ...p, type: tempPhaseConfig.type, config: correctedConfig }
@@ -299,7 +272,6 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
         type: tempPhaseConfig.type,
         config: correctedConfig
       };
-      IntelliKnitLogger.debug('Phase Management', `Adding new phase: ${newPhase.id}`);
       setPhases([...phases, newPhase]);
     }
 
