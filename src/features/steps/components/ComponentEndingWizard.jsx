@@ -5,6 +5,7 @@ import ComponentCompletionModal from '../../../shared/components/ComponentComple
 import { PrepStepOverlay, usePrepNoteManager, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
+import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
 
 const ComponentEndingWizard = ({
   component,
@@ -57,7 +58,7 @@ const ComponentEndingWizard = ({
   };
 
   const handleComplete = (finalStep = null) => {
-    const endingStep = finalStep || createEndingStepData();
+    const endingStep = finalStep || createEndingStep(endingData, currentStitches);
 
     IntelliKnitLogger.success('ComponentEndingWizard', 'Component ending completed', {
       endingType: endingStep.type,
@@ -89,65 +90,6 @@ const ComponentEndingWizard = ({
     setShowCompletionModal(false);
     if (completedEndingStep) {
       onComplete(completedEndingStep);
-    }
-  };
-
-  const createEndingStepData = () => {
-    const { type, method, targetComponent, customText, customMethod, prepNote, afterNote, stitchCount } = endingData;
-
-    switch (type) {
-      case 'put_on_holder':
-        return {
-          type,
-          stitchCount: stitchCount || currentStitches,
-          description: `Put ${stitchCount || currentStitches} stitches on hold`,
-          customText,
-          prepNote,
-          afterNote
-        };
-
-      case 'bind_off_all':
-        const methodName = getMethodName(method, 'Bind Off');
-        let description = `Bind off all stitches`;
-
-        // Handle three-needle bind off with target component
-        if (method === 'three_needle' && targetComponent) {
-          const target = targetComponent === 'Other...' ? customText : targetComponent;
-          description = `Join to ${target} using three-needle bind off`;
-        } else if (methodName && method !== 'standard') {
-          description += ` using ${methodName}`;
-        }
-
-        return {
-          type,
-          method,
-          targetComponent: method === 'three_needle' ? targetComponent : undefined,
-          stitchCount: currentStitches,
-          description,
-          customText: method === 'three_needle' && targetComponent === 'Other...' ? customText : undefined,
-          customMethod: method === 'other' ? customMethod : undefined,
-          prepNote,
-          afterNote
-        };
-
-      case 'other':
-        return {
-          type,
-          description: customText,
-          customText,
-          stitchCount: stitchCount || currentStitches,
-          prepNote,
-          afterNote
-        };
-
-      default:
-        return {
-          type,
-          description: 'Unknown ending',
-          stitchCount: currentStitches,
-          prepNote,
-          afterNote
-        };
     }
   };
 
@@ -331,7 +273,7 @@ const ComponentEndingWizard = ({
       {/* After note */}
       <div>
         <label className="form-label">
-          After Completion Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+          Assembly Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
         </label>
         <input
           type="text"
@@ -516,7 +458,7 @@ const ComponentEndingWizard = ({
       </div>
 
       <div>
-        <label className="form-label">Ending Description</label>
+        <label className="form-label">Description</label>
         <textarea
           value={endingData.customText || ''}
           onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
@@ -526,27 +468,11 @@ const ComponentEndingWizard = ({
         />
       </div>
 
-      {/* Optional stitch count specification */}
-      <div>
-        <label className="form-label">
-          Remaining Stitches <span className="text-wool-400 text-sm font-normal">(Optional)</span>
-        </label>
-        <input
-          type="number"
-          value={endingData.stitchCount}
-          onChange={(e) => setEndingData(prev => ({ ...prev, stitchCount: e.target.value }))}
-          placeholder="How many stitches remain? (0 if all consumed)"
-          min="0"
-          max={currentStitches}
-          className="w-32 border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-        />
-        <p className="text-xs text-wool-500 mt-1">Leave blank if unclear - we'll assume 0</p>
-      </div>
 
       {/* After note */}
       <div>
         <label className="form-label">
-          Assembly Notes<span className="text-wool-400 text-sm font-normal">(Optional)</span>
+          Assembly Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
         </label>
         <input
           type="text"

@@ -43,11 +43,36 @@ const ATTACH_METHODS = {
  * Handles: put_on_holder, bind_off_all, attach_to_piece, other
  */
 export const createEndingStep = (endingData, currentStitches) => {
+    // Generate description based on ending type
+    const generateDescription = () => {
+        switch (endingData.type) {
+            case 'put_on_holder':
+                return `Put ${currentStitches} stitches on hold`;
+
+            case 'bind_off_all':
+                if (endingData.method === 'three_needle' && endingData.targetComponent) {
+                    const target = endingData.targetComponent === 'Other...' ? endingData.customText : endingData.targetComponent;
+                    return `Join to ${target} using three-needle bind off`;
+                } else if (endingData.method === 'other' && endingData.customMethod) {
+                    return `Bind off all stitches using ${endingData.customMethod}`;
+                } else if (endingData.method && endingData.method !== 'standard') {
+                    return `Bind off all stitches using ${endingData.method} bind off`;
+                }
+                return `Bind off all stitches`;
+
+            case 'other':
+                return endingData.customText || 'Complete component with custom ending';
+
+            default:
+                return 'Complete component';
+        }
+    };
+
     // Base step structure
     const baseStep = {
-        description: endingData.description,
+        description: generateDescription(), // ← Generate internally
         type: endingData.type,
-        construction: 'flat', // Default for ending steps
+        construction: 'flat',
         startingStitches: currentStitches,
         totalRows: 1,
         prepNote: endingData.prepNote || ''
@@ -57,61 +82,51 @@ export const createEndingStep = (endingData, currentStitches) => {
         case 'put_on_holder':
             return {
                 ...baseStep,
-                endingStitches: currentStitches, // ✅ HOLDER: Stitches stay alive
+                endingStitches: currentStitches,
                 wizardConfig: {
                     stitchPattern: {
                         pattern: 'Put on Holder',
                         stitchCount: endingData.stitchCount || currentStitches,
                         customText: endingData.customText
                     },
-                    prepNote: endingData.prepNote
+                    prepNote: endingData.prepNote || '',
+                    afterNote: endingData.afterNote || ''
                 }
             };
 
         case 'bind_off_all':
             return {
                 ...baseStep,
-                endingStitches: 0, // ✅ BIND OFF: Stitches consumed
+                endingStitches: 0,
                 wizardConfig: {
                     stitchPattern: {
                         pattern: 'Bind Off',
                         method: endingData.method || 'standard',
-                        stitchCount: endingData.stitchCount || currentStitches
-                    },
-                    prepNote: endingData.prepNote
-                }
-            };
-
-        case 'attach_to_piece':
-            return {
-                ...baseStep,
-                endingStitches: 0, // ✅ ATTACH: Stitches consumed in attachment
-                wizardConfig: {
-                    stitchPattern: {
-                        pattern: 'Attach to Piece',
-                        method: endingData.method,
+                        stitchCount: endingData.stitchCount || currentStitches,
                         targetComponent: endingData.targetComponent,
-                        customText: endingData.customText
+                        customText: endingData.customText,
+                        customMethod: endingData.customMethod
                     },
-                    prepNote: endingData.prepNote
+                    prepNote: endingData.prepNote || '',
+                    afterNote: endingData.afterNote || ''
                 }
             };
 
         case 'other':
             return {
                 ...baseStep,
-                endingStitches: 0, // ✅ DEFAULT: Assume stitches consumed
+                endingStitches: endingData.stitchCount || 0,
                 wizardConfig: {
                     stitchPattern: {
                         pattern: 'Other Ending',
                         customText: endingData.customText
                     },
-                    prepNote: endingData.prepNote
+                    prepNote: endingData.prepNote || '',
+                    afterNote: endingData.afterNote || ''
                 }
             };
 
         default:
-            // Fallback for unknown ending types
             return {
                 ...baseStep,
                 endingStitches: 0,
@@ -119,12 +134,13 @@ export const createEndingStep = (endingData, currentStitches) => {
                     stitchPattern: {
                         pattern: 'Bind Off',
                         method: 'standard'
-                    }
+                    },
+                    prepNote: endingData.prepNote || '',
+                    afterNote: endingData.afterNote || ''
                 }
             };
     }
 };
-
 /**
  * Create cast on step from wizard data
  * Used by: StepWizard, ComponentCreationWizard
