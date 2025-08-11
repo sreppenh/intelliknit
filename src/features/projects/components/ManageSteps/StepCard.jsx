@@ -19,6 +19,7 @@ const StepCard = ({
     onPrepNoteClick,
     onAfterNoteClick,
     editableStepIndex,
+    componentName
 }) => {
     // Extract prep note from various possible locations
     const prepNote = step.prepNote ||
@@ -33,7 +34,7 @@ const StepCard = ({
         '';
 
     // ✅ Get formatted display data
-    const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step);
+    const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step, componentName);
 
     // Check if we have both types of notes for divider logic
     const hasPatternNotes = contextualPatternNotes && contextualPatternNotes.trim().length > 0;

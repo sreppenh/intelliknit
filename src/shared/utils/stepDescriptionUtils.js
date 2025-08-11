@@ -16,14 +16,14 @@ import { formatKnittingInstruction } from './knittingNotation';
  * ✅ REFACTORED: Generate human-readable description for any step
  * Now routes by step type instead of pattern type for cleaner architecture
  */
-export const getHumanReadableDescription = (step) => {
+export const getHumanReadableDescription = (step, componentName = null) => {
     const stepType = getStepType(step);
 
     switch (stepType) {
         case 'initialization':
             return getInitializationStepDescription(step);
         case 'finalization':
-            return getFinalizationStepDescription(step);
+            return getFinalizationStepDescription(step, componentName);
         case 'shaping':
             return getShapingStepDescription(step);
         case 'non-shaping':
@@ -56,6 +56,12 @@ export const getContextualPatternNotes = (step) => {
     // ✅ FIX: For ALL other Cast On methods, show NO contextual notes
     if (pattern === 'Cast On') {
         return null;
+    }
+
+    // ✅ NEW: Show custom method for bind-off "other" method in italics
+    if (pattern === 'Bind Off' && step.wizardConfig?.stitchPattern?.method === 'other') {
+        const customMethod = step.wizardConfig?.stitchPattern?.customMethod;
+        return customMethod ? customMethod.trim() : null;
     }
 
     // For holders, show any custom text the user provided
@@ -182,12 +188,12 @@ const getInitializationStepDescription = (step) => {
 /**
  * ✅ NEW: Generate descriptions for finalization steps
  */
-const getFinalizationStepDescription = (step) => {
+const getFinalizationStepDescription = (step, componentName) => {
     const pattern = getStepPatternName(step);
 
     switch (pattern) {
         case 'Bind Off':
-            return getBindOffDescription(step);
+            return getBindOffDescription(step, componentName);
         case 'Put on Holder':
             return getHolderDescription(step);
         case 'Other Ending':
@@ -285,10 +291,16 @@ const getCastOnDescription = (step) => {
 /**
  * Generate bind off description
  */
-const getBindOffDescription = (step) => {
+const getBindOffDescription = (step, componentName) => {
     const method = step.wizardConfig?.stitchPattern?.method;
     const customMethod = step.wizardConfig?.stitchPattern?.customMethod || step.wizardConfig?.stitchPattern?.customText;
     const stitchCount = step.wizardConfig?.stitchPattern?.stitchCount;
+    const targetComponent = step.wizardConfig?.stitchPattern?.targetComponent;
+
+    if (method === 'three_needle' && targetComponent) {
+        const currentComponent = componentName || 'this component';
+        return `Using Three Needle Bind Off, attach ${currentComponent} to ${targetComponent}`;
+    }
 
     // Handle specific stitch counts vs "all"
     const countText = stitchCount && stitchCount !== 'all' ?
@@ -388,14 +400,8 @@ const getAttachmentDescription = (step) => {
  * Generate other ending description
  */
 const getOtherEndingDescription = (step) => {
-    const customText = step.wizardConfig?.stitchPattern?.customText;
-
-    if (customText && customText.trim() !== '') {
-        // ✅ FIX: Better wording for other ending
-        return `Complete component - ${customText.trim()}`;
-    }
-
-    return 'Complete component with custom ending';
+    // ✅ FIX: Always show "Custom completion method"
+    return 'Custom completion method';
 };
 
 /**

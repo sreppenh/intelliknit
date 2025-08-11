@@ -474,6 +474,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
           <StepsList
             component={component}
+            componentName={component.name}  // ← ADD THIS LINE
             editableStepIndex={editableStepIndex}
             isComponentFinished={isComponentFinished}
             openMenuId={openMenuId}
