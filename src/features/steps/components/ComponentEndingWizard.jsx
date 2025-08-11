@@ -19,7 +19,9 @@ const ComponentEndingWizard = ({
     targetComponent: '',
     customText: '',
     customMethod: '',
-    prepNote: ''
+    stitchCount: '',
+    prepNote: '',
+    afterNote: '' // ✅ NEW: Add after note capability
   });
 
   const [showExitModal, setShowExitModal] = useState(false);
@@ -37,19 +39,6 @@ const ComponentEndingWizard = ({
 
   const handleEndingTypeSelect = (type) => {
     setEndingData(prev => ({ ...prev, type }));
-
-    if (type === 'put_on_holder') {
-      setStep(2);
-      return;
-    }
-
-    if (type === 'bind_off_all') {
-      setEndingData(prev => ({
-        ...prev,
-        stitchCount: currentStitches
-      }));
-    }
-
     setStep(2);
   };
 
@@ -90,38 +79,41 @@ const ComponentEndingWizard = ({
   };
 
   const createEndingStepData = () => {
-    const { type, method, targetComponent, customText, customMethod, prepNote } = endingData;
+    const { type, method, targetComponent, customText, customMethod, prepNote, afterNote, stitchCount } = endingData;
 
     switch (type) {
       case 'put_on_holder':
         return {
           type,
-          stitchCount: currentStitches,
-          description: `Put ${currentStitches} stitches on hold`,
+          stitchCount: stitchCount || currentStitches,
+          description: `Put ${stitchCount || currentStitches} stitches on hold`,
           customText,
-          prepNote
+          prepNote,
+          afterNote
         };
 
       case 'bind_off_all':
         const methodName = getMethodName(method, 'Bind Off');
-        return {
-          type,
-          method,
-          stitchCount: currentStitches,
-          description: `Bind off all stitches${methodName ? ` using ${methodName}` : ''}`,
-          prepNote
-        };
+        let description = `Bind off all stitches`;
 
-      case 'attach_to_piece':
-        const attachMethod = method === 'other' ? customMethod : getMethodName(method, 'Attach to Piece');
-        const target = targetComponent === 'Other...' ? customText : targetComponent;
+        // ✅ IMPROVED: Handle three-needle bind off with target component
+        if (method === 'three_needle' && targetComponent) {
+          const target = targetComponent === 'Other...' ? customText : targetComponent;
+          description = `Join to ${target} using three-needle bind off`;
+        } else if (methodName && method !== 'standard') {
+          description += ` using ${methodName}`;
+        }
+
         return {
           type,
           method,
-          targetComponent: target,
+          targetComponent: method === 'three_needle' ? targetComponent : undefined,
           stitchCount: currentStitches,
-          description: `Attach to ${target}${attachMethod ? ` using ${attachMethod}` : ''}`,
-          prepNote
+          description,
+          customText: method === 'three_needle' && targetComponent === 'Other...' ? customText : undefined,
+          customMethod: method === 'other' ? customMethod : undefined,
+          prepNote,
+          afterNote
         };
 
       case 'other':
@@ -129,8 +121,9 @@ const ComponentEndingWizard = ({
           type,
           description: customText,
           customText,
-          stitchCount: currentStitches,
-          prepNote
+          stitchCount: stitchCount || currentStitches,
+          prepNote,
+          afterNote
         };
 
       default:
@@ -138,14 +131,14 @@ const ComponentEndingWizard = ({
           type,
           description: 'Unknown ending',
           stitchCount: currentStitches,
-          prepNote
+          prepNote,
+          afterNote
         };
     }
   };
 
-  // ✅ STEP 3: Use stepDisplayUtils instead of duplicate logic
+  // ✅ Use stepDisplayUtils instead of duplicate logic
   const getMethodName = (methodId, patternType) => {
-    // Create mock step to use stepDisplayUtils function
     const mockStep = {
       wizardConfig: {
         stitchPattern: {
@@ -185,23 +178,24 @@ const ComponentEndingWizard = ({
   };
 
   const canComplete = () => {
-    const { type, method, targetComponent, customText, customMethod } = endingData;
+    const { type, method, targetComponent, customText, customMethod, stitchCount } = endingData;
 
     switch (type) {
       case 'put_on_holder':
-        return true;
+        return true; // Always valid - will use current stitches if not specified
 
       case 'bind_off_all':
+        // Three-needle bind off needs target component
+        if (method === 'three_needle') {
+          const hasValidTarget = targetComponent && targetComponent !== '';
+          const hasCustomText = targetComponent !== 'Other...' || (customText && customText.trim() !== '');
+          return hasValidTarget && hasCustomText;
+        }
+        // Other method needs custom description
         if (method === 'other') {
           return customMethod && customMethod.trim() !== '';
         }
         return true;
-
-      case 'attach_to_piece':
-        const hasValidTarget = targetComponent && targetComponent !== '';
-        const hasValidMethod = method !== 'other' || (customMethod && customMethod.trim() !== '');
-        const hasCustomText = targetComponent !== 'Other...' || (customText && customText.trim() !== '');
-        return hasValidTarget && hasValidMethod && hasCustomText;
 
       case 'other':
         return customText && customText.trim() !== '';
@@ -211,7 +205,7 @@ const ComponentEndingWizard = ({
     }
   };
 
-  // ===== INLINED COMPONENT 1: EndingTypeSelector =====
+  // ===== SIMPLIFIED COMPONENT 1: EndingTypeSelector =====
   const renderEndingTypeSelector = () => (
     <div className="stack-lg">
       <div>
@@ -228,8 +222,8 @@ const ComponentEndingWizard = ({
           <div className="flex items-center gap-4">
             <div className="text-3xl">✂️</div>
             <div>
-              <div className="font-semibold text-base mb-1">Bind Off All Stitches</div>
-              <div className="text-sm opacity-75">Complete this component ({currentStitches} stitches)</div>
+              <div className="font-semibold text-base mb-1">Finish Component</div>
+              <div className="text-sm opacity-75">Bind off all stitches (0 stitches remaining)</div>
             </div>
           </div>
         </button>
@@ -242,22 +236,8 @@ const ComponentEndingWizard = ({
           <div className="flex items-center gap-4">
             <div className="text-3xl">📎</div>
             <div>
-              <div className="font-semibold text-base mb-1">Put on Holder</div>
+              <div className="font-semibold text-base mb-1">Hold Component</div>
               <div className="text-sm opacity-75">Keep stitches live for later use</div>
-            </div>
-          </div>
-        </button>
-
-        {/* Attach to Piece - Join components */}
-        <button
-          onClick={() => handleEndingTypeSelect('attach_to_piece')}
-          className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
-        >
-          <div className="flex items-center gap-4">
-            <div className="text-3xl">🔗</div>
-            <div>
-              <div className="font-semibold text-base mb-1">Attach to Another Component</div>
-              <div className="text-sm opacity-75">Connect to another component</div>
             </div>
           </div>
         </button>
@@ -268,33 +248,33 @@ const ComponentEndingWizard = ({
           className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
         >
           <div className="flex items-center gap-4">
-            <div className="text-3xl">📝</div>
+            <div className="text-3xl">⚙️</div>
             <div>
-              <div className="font-semibold text-base mb-1">Other Ending</div>
-              <div className="text-sm opacity-75">Custom finishing method</div>
+              <div className="font-semibold text-base mb-1">Custom Combination</div>
+              <div className="text-sm opacity-75">Complex ending (partial bind off, etc.)</div>
             </div>
           </div>
         </button>
       </div>
 
-      {/* Helpful context for complex scenarios */}
+      {/* Helpful context */}
       <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Need Something Complex?</h4>
-        <div className="text-sm text-yarn-600">
-          Use "Other Ending" for scenarios like "Bind off center 24 stitches, put remaining 20 on holders" or other custom combinations.
+        <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Choose Your Path</h4>
+        <div className="text-sm text-yarn-600 space-y-1">
+          <div>• <strong>Finish:</strong> Complete component with bind off (including 3-needle join)</div>
+          <div>• <strong>Hold:</strong> Pause with live stitches for later seaming or grafting</div>
+          <div>• <strong>Custom:</strong> Complex scenarios like "bind off center 24, hold remaining"</div>
         </div>
       </div>
     </div>
   );
 
-  // ===== INLINED COMPONENT 2: PutOnHolderConfig =====
+  // ===== SIMPLIFIED COMPONENT 2: PutOnHolderConfig =====
   const renderPutOnHolderConfig = () => (
     <div className="stack-lg">
       <div>
-        <h2 className="content-header-primary">Put on Holder</h2>
-        <p className="content-subheader">
-          Keep these stitches live for later use
-        </p>
+        <h2 className="content-header-primary">Put Stitches on Hold</h2>
+        <p className="content-subheader">Keep stitches live for later use</p>
       </div>
 
       {/* Stitch Count Display */}
@@ -302,9 +282,7 @@ const ComponentEndingWizard = ({
         <div className="flex items-center justify-between mb-3">
           <div>
             <h3 className="text-sm font-semibold text-sage-700">Stitches to Hold</h3>
-            <p className="text-xs text-sage-600 mt-1">
-              All stitches will be placed on holder for later use
-            </p>
+            <p className="text-xs text-sage-600 mt-1">Live stitches available for seaming, grafting, or continuing</p>
           </div>
           <div className="text-right">
             <div className="text-2xl font-bold text-sage-700">{currentStitches}</div>
@@ -313,7 +291,24 @@ const ComponentEndingWizard = ({
         </div>
       </div>
 
-      {/* Optional Comments */}
+      {/* Custom stitch count (optional) */}
+      <div>
+        <label className="form-label">
+          Stitches to Hold <span className="text-wool-400 text-sm font-normal">(Optional - defaults to all)</span>
+        </label>
+        <input
+          type="number"
+          value={endingData.stitchCount}
+          onChange={(e) => setEndingData(prev => ({ ...prev, stitchCount: e.target.value }))}
+          placeholder={currentStitches.toString()}
+          min="1"
+          max={currentStitches}
+          className="w-24 border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+        />
+        <p className="text-xs text-wool-500 mt-1">Leave blank to hold all {currentStitches} stitches</p>
+      </div>
+
+      {/* Optional holder notes */}
       <div>
         <label className="form-label">
           Holder Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
@@ -322,25 +317,28 @@ const ComponentEndingWizard = ({
           type="text"
           value={endingData.customText || ''}
           onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
-          placeholder="e.g., Use metal holder, transfer to waste yarn, leave on needle"
+          placeholder="e.g., Use metal holder, transfer to waste yarn"
           className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
         />
       </div>
 
-      {/* Helpful Info */}
-      <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Holder Tips</h4>
-        <div className="text-sm text-yarn-600 space-y-1">
-          <div>• <strong>Stitch holders:</strong> Best for small numbers of stitches</div>
-          <div>• <strong>Waste yarn:</strong> Good for large numbers or tight spaces</div>
-          <div>• <strong>Spare needles:</strong> Keep stitches ready to knit immediately</div>
-          <div>• <strong>Live stitches:</strong> These {currentStitches} stitches will be ready for seaming, grafting, or continuing</div>
-        </div>
+      {/* After note */}
+      <div>
+        <label className="form-label">
+          After Completion Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+        </label>
+        <input
+          type="text"
+          value={endingData.afterNote || ''}
+          onChange={(e) => setEndingData(prev => ({ ...prev, afterNote: e.target.value }))}
+          placeholder="e.g., Keep stitches for later grafting to front panel"
+          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+        />
       </div>
     </div>
   );
 
-  // ===== INLINED COMPONENT 3: BindOffConfig =====
+  // ===== SIMPLIFIED COMPONENT 3: BindOffConfig =====
   const renderBindOffConfig = () => {
     const methods = [
       {
@@ -365,7 +363,7 @@ const ComponentEndingWizard = ({
         id: 'three_needle',
         name: 'Three Needle Bind Off',
         icon: '🔗',
-        description: 'Joins two pieces together'
+        description: 'Joins to another component'
       },
       {
         id: 'other',
@@ -375,21 +373,28 @@ const ComponentEndingWizard = ({
       }
     ];
 
+    const availableComponents = [
+      'Left Sleeve',
+      'Right Sleeve',
+      'Back Panel',
+      'Front Panel',
+      'Collar',
+      'Other...'
+    ];
+
     return (
       <div className="stack-lg">
         <div>
           <h2 className="content-header-primary">Bind Off Method</h2>
-          <p className="content-subheader">How do you want to finish these {currentStitches} stitches?</p>
+          <p className="content-subheader">Choose how to finish these {currentStitches} stitches</p>
         </div>
 
         {/* Stitch Count Display */}
         <div className="warning-block">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-semibold text-amber-700">Finishing Component</h3>
-              <p className="text-xs text-amber-600 mt-1">
-                This will complete your component
-              </p>
+              <h3 className="text-sm font-semibold text-amber-700">Component Completion</h3>
+              <p className="text-xs text-amber-600 mt-1">This will consume all stitches and finish the component</p>
             </div>
             <div className="text-right">
               <div className="text-2xl font-bold text-amber-700">{currentStitches}</div>
@@ -398,19 +403,17 @@ const ComponentEndingWizard = ({
           </div>
         </div>
 
-        {/* Method Selection - Grid Layout */}
+        {/* Method Selection */}
         <div>
-          <label className="form-label">
-            Bind Off Method (optional)
-          </label>
+          <label className="form-label">Bind Off Method</label>
           <div className="grid grid-cols-2 gap-3">
             {methods.map((method) => (
               <button
                 key={method.id}
                 onClick={() => setEndingData(prev => ({ ...prev, method: method.id }))}
                 className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${endingData.method === method.id
-                  ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
+                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
                   }`}
               >
                 <div className="text-2xl mb-2">{method.icon}</div>
@@ -421,12 +424,39 @@ const ComponentEndingWizard = ({
           </div>
         </div>
 
-        {/* Custom Method Input */}
+        {/* Three-needle bind off target component */}
+        {endingData.method === 'three_needle' && (
+          <div>
+            <label className="form-label">Join to Component</label>
+            <select
+              value={endingData.targetComponent || ''}
+              onChange={(e) => setEndingData(prev => ({ ...prev, targetComponent: e.target.value }))}
+              className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+            >
+              <option value="">Choose component...</option>
+              {availableComponents.map(comp => (
+                <option key={comp} value={comp}>{comp}</option>
+              ))}
+            </select>
+
+            {endingData.targetComponent === 'Other...' && (
+              <div className="mt-3">
+                <input
+                  type="text"
+                  value={endingData.customText || ''}
+                  onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
+                  placeholder="Describe the component to join to"
+                  className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Custom method input */}
         {endingData.method === 'other' && (
           <div>
-            <label className="form-label">
-              Describe Your Bind Off Method
-            </label>
+            <label className="form-label">Describe Your Bind Off Method</label>
             <input
               type="text"
               value={endingData.customMethod || ''}
@@ -437,177 +467,81 @@ const ComponentEndingWizard = ({
           </div>
         )}
 
-        {/* Helpful Info */}
-        <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Bind Off Tips</h4>
-          <div className="text-sm text-yarn-600 space-y-1">
-            <div>• <strong>Standard:</strong> Works for most situations</div>
-            <div>• <strong>Stretchy:</strong> Essential for necklines and cuffs</div>
-            <div>• <strong>Three Needle:</strong> Great for shoulder seams</div>
-            <div>• <strong>Finishing:</strong> This will complete your {currentStitches}-stitch component</div>
-          </div>
-        </div>
-      </div>
-    );
-  };
-
-  // ===== INLINED COMPONENT 4: AttachmentConfig =====
-  const renderAttachmentConfig = () => {
-    // Get existing components for the dropdown (mock data for now)
-    const availableComponents = [
-      'Left Sleeve',
-      'Right Sleeve',
-      'Back Panel',
-      'Front Panel',
-      'Collar',
-      'Other...'
-    ];
-
-    const methods = [
-      {
-        id: 'mattress_stitch',
-        name: 'Mattress Stitch',
-        icon: '🧵',
-        description: 'Invisible side seam'
-      },
-      {
-        id: 'backstitch',
-        name: 'Backstitch',
-        icon: '⬅️',
-        description: 'Strong, visible seam'
-      },
-      {
-        id: 'kitchener_stitch',
-        name: 'Kitchener Stitch',
-        icon: '🪡',
-        description: 'Invisible graft'
-      },
-      {
-        id: 'three_needle',
-        name: 'Three Needle',
-        icon: '🔗',
-        description: 'Joins two pieces together'
-      },
-      {
-        id: 'other',
-        name: 'Other Method',
-        icon: '📝',
-        description: 'Specify your own'
-      }
-    ];
-
-    return (
-      <div className="stack-lg">
-        <div>
-          <h2 className="content-header-primary">Attachment Details</h2>
-          <p className="content-subheader">Choose method and target component</p>
-        </div>
-
-        {/* Attachment Method - Oval Radio List */}
-        <div>
-          <h3 className="text-sm font-semibold text-wool-700 mb-3 text-left">Attachment Method</h3>
-          <div className="stack-sm">
-            {methods.map((method) => (
-              <label
-                key={method.id}
-                className={`flex items-center cursor-pointer p-4 rounded-2xl border-2 transition-all duration-200 ${endingData.method === method.id
-                  ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                  }`}
-              >
-                <input
-                  type="radio"
-                  name="attach_method"
-                  value={method.id}
-                  checked={endingData.method === method.id}
-                  onChange={(e) => setEndingData(prev => ({ ...prev, method: e.target.value }))}
-                  className="w-4 h-4 text-sage-600 mr-4"
-                />
-                <div className="flex items-center gap-3 flex-1">
-                  <span className="text-xl">{method.icon}</span>
-                  <div className="text-left">
-                    <div className="font-medium">{method.name}</div>
-                    <div className="text-sm opacity-75">{method.description}</div>
-                  </div>
-                </div>
-              </label>
-            ))}
-          </div>
-
-          {endingData.method === 'other' && (
-            <div className="mt-4">
-              <input
-                type="text"
-                value={endingData.customMethod || ''}
-                onChange={(e) => setEndingData(prev => ({ ...prev, customMethod: e.target.value }))}
-                placeholder="Describe your attachment method"
-                className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-              />
-            </div>
-          )}
-        </div>
-
-        {/* Component Dropdown */}
+        {/* After note */}
         <div>
           <label className="form-label">
-            Attach to Component
+            After Completion Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
           </label>
-          <select
-            value={endingData.targetComponent || ''}
-            onChange={(e) => setEndingData(prev => ({ ...prev, targetComponent: e.target.value }))}
-            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-          >
-            <option value="">Choose component...</option>
-            {availableComponents.map(comp => (
-              <option key={comp} value={comp}>{comp}</option>
-            ))}
-          </select>
-
-          {endingData.targetComponent === 'Other...' && (
-            <div className="mt-3">
-              <input
-                type="text"
-                value={endingData.customText || ''}
-                onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
-                placeholder="Describe the component to attach to"
-                className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-              />
-            </div>
-          )}
+          <input
+            type="text"
+            value={endingData.afterNote || ''}
+            onChange={(e) => setEndingData(prev => ({ ...prev, afterNote: e.target.value }))}
+            placeholder="e.g., Component ready for blocking and seaming"
+            className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+          />
         </div>
       </div>
     );
   };
 
-  // ===== INLINED COMPONENT 5: OtherEndingConfig =====
+  // ===== SIMPLIFIED COMPONENT 4: OtherEndingConfig =====
   const renderOtherEndingConfig = () => (
     <div className="stack-lg">
       <div>
-        <h2 className="content-header-primary">Describe Your Ending</h2>
-        <p className="content-subheader">What happens to complete this component?</p>
+        <h2 className="content-header-primary">Custom Combination Ending</h2>
+        <p className="content-subheader">Describe your complex finishing method</p>
       </div>
 
       <div>
-        <label className="form-label">
-          Ending Description
-        </label>
+        <label className="form-label">Ending Description</label>
         <textarea
           value={endingData.customText || ''}
           onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
-          placeholder="Describe how this component ends..."
+          placeholder="e.g., Bind off center 24 stitches, put remaining 20 stitches on holders (10 each side)"
           rows={4}
-          className="input-field-lg resize-none"
+          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
+        />
+      </div>
+
+      {/* Optional stitch count specification */}
+      <div>
+        <label className="form-label">
+          Remaining Stitches <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+        </label>
+        <input
+          type="number"
+          value={endingData.stitchCount}
+          onChange={(e) => setEndingData(prev => ({ ...prev, stitchCount: e.target.value }))}
+          placeholder="How many stitches remain? (0 if all consumed)"
+          min="0"
+          max={currentStitches}
+          className="w-32 border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+        />
+        <p className="text-xs text-wool-500 mt-1">Leave blank if unclear - we'll assume 0</p>
+      </div>
+
+      {/* After note */}
+      <div>
+        <label className="form-label">
+          After Completion Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+        </label>
+        <input
+          type="text"
+          value={endingData.afterNote || ''}
+          onChange={(e) => setEndingData(prev => ({ ...prev, afterNote: e.target.value }))}
+          placeholder="e.g., Held stitches ready for neckband pickup"
+          className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
         />
       </div>
 
       {/* Helpful examples */}
       <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
-        <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Examples</h4>
+        <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Custom Ending Examples</h4>
         <div className="text-sm text-yarn-600 space-y-1">
-          <div>• Transfer stitches to circular needle for next section</div>
-          <div>• Place markers for button band pickup</div>
-          <div>• Divide stitches equally onto two needles</div>
-          <div>• Special cast off sequence for lace pattern</div>
+          <div>• Bind off center 24 stitches, put remaining 20 on holders</div>
+          <div>• Transfer stitches to circular needle for neckband</div>
+          <div>• Divide stitches for split hem construction</div>
+          <div>• Special cast off sequence following pattern instructions</div>
         </div>
       </div>
     </div>
@@ -673,7 +607,6 @@ const ComponentEndingWizard = ({
             {/* Render appropriate config based on ending type */}
             {endingData.type === 'put_on_holder' && renderPutOnHolderConfig()}
             {endingData.type === 'bind_off_all' && renderBindOffConfig()}
-            {endingData.type === 'attach_to_piece' && renderAttachmentConfig()}
             {endingData.type === 'other' && renderOtherEndingConfig()}
 
             <div className="pt-6 border-t border-wool-200">
