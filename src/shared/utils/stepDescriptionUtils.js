@@ -9,6 +9,7 @@
 
 import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote, getStepType, hasShaping } from './stepDisplayUtils';
 import { formatKnittingInstruction } from './knittingNotation';
+import { PhaseCalculationService } from './PhaseCalculationService';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
@@ -110,23 +111,11 @@ export const getContextualConfigNotes = (step) => {
         } else if (shapingConfig.type === 'phases') {
             // Show phase breakdown for complex shaping
             const phases = shapingConfig.config?.phases;
-            if (phases && phases.length > 1) {
+            const construction = step.construction || 'flat';
+            if (phases && phases.length > 0) {
                 const phaseDescriptions = phases.map((phase, index) => {
-                    const type = phase.type;
-                    const config = phase.config;
-
-                    if (type === 'setup') {
-                        return `Phase ${index + 1}: ${config.rows} setup rows`;
-                    } else if (type === 'decrease' || type === 'increase') {
-                        const action = type === 'decrease' ? 'dec' : 'inc';
-                        const position = config.position === 'both_ends' ? 'both ends' : config.position;
-                        return `Phase ${index + 1}: ${action} at ${position} every ${config.frequency} rows`;
-                    } else if (type === 'bind_off') {
-                        return `Phase ${index + 1}: bind off ${config.amount} sts`;
-                    }
-                    return `Phase ${index + 1}: ${type}`;
+                    return `Phase ${index + 1}: ${PhaseCalculationService.getPhaseDescription(phase, construction)}`;
                 });
-
                 notes.push(phaseDescriptions.join('\n'));
             }
         }
