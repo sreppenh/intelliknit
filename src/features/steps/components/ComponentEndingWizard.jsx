@@ -60,6 +60,10 @@ const ComponentEndingWizard = ({
   const handleComplete = (finalStep = null) => {
     const endingStep = finalStep || createEndingStep(endingData, currentStitches);
 
+    // DEBUG: Check what we're actually passing
+    console.log('🔧 EndingStep before onComplete:', JSON.stringify(endingStep, null, 2));
+
+
     IntelliKnitLogger.success('ComponentEndingWizard', 'Component ending completed', {
       endingType: endingStep.type,
       stitchCount: endingStep.stitchCount

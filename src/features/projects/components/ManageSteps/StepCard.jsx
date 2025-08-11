@@ -32,6 +32,17 @@ const StepCard = ({
         step.advancedWizardConfig?.afterNote ||
         '';
 
+    // DEBUG: Add this line temporarily
+    console.log('🔧 AfterNote Debug:', {
+        stepIndex,
+        afterNote,
+        stepAfterNote: step.afterNote,
+        wizardAfterNote: step.wizardConfig?.afterNote,
+        advancedAfterNote: step.advancedWizardConfig?.afterNote
+    });
+
+
+
     // ✅ Get formatted display data
     const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step);
 

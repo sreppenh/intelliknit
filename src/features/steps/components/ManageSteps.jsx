@@ -377,16 +377,10 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   };
 
   const handleEndingComplete = (endingStep) => {
-    const currentStitches = component.steps.length > 0 ?
-      component.steps[component.steps.length - 1]?.endingStitches ||
-      component.steps[component.steps.length - 1]?.expectedStitches || 0 : 0;
-
-    // ✅ USE CREATION UTILITY: Single source of truth for step structure
-    const stepData = createEndingStep(endingStep, currentStitches);
-
+    // ComponentEndingWizard already created the complete step, just use it directly
     dispatch({
-      type: 'ADD_CALCULATED_STEP',
-      payload: { componentIndex, step: stepData }
+      type: 'ADD_STEP',  // ← Change to ADD_STEP
+      payload: { componentIndex, step: endingStep }  // ← Use endingStep directly
     });
 
     setShowEndingWizard(false);

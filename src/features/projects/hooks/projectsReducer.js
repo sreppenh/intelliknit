@@ -553,6 +553,57 @@ export const projectsReducer = (state, action) => {
         )
       };
 
+    case 'UPDATE_STEP_AFTER_NOTE':
+      console.log('🔧 UPDATE_STEP_AFTER_NOTE Debug:', action.payload); // ← Add this
+      if (!state.currentProject) {
+        IntelliKnitLogger.error('UPDATE_STEP_AFTER_NOTE: No current project');
+        return state;
+      }
+
+      const { componentIndex: afterCompIndex, stepIndex: afterStepIndex, afterNote } = action.payload;
+
+      if (afterCompIndex === null || afterCompIndex === undefined ||
+        !state.currentProject.components[afterCompIndex] ||
+        !state.currentProject.components[afterCompIndex].steps ||
+        afterStepIndex === null || afterStepIndex === undefined ||
+        !state.currentProject.components[afterCompIndex].steps[afterStepIndex]) {
+        IntelliKnitLogger.error('UPDATE_STEP_AFTER_NOTE: Invalid indices', { afterCompIndex, afterStepIndex });
+        return state;
+      }
+
+      const componentsWithUpdatedAfterNote = [...state.currentProject.components];
+      const stepWithAfterNote = { ...componentsWithUpdatedAfterNote[afterCompIndex].steps[afterStepIndex] };
+
+      // Update the after note in wizardConfig to match our storage pattern
+      if (!stepWithAfterNote.wizardConfig) {
+        stepWithAfterNote.wizardConfig = {};
+      }
+      stepWithAfterNote.wizardConfig.afterNote = afterNote;
+
+      componentsWithUpdatedAfterNote[afterCompIndex].steps[afterStepIndex] = stepWithAfterNote;
+
+      const projectWithUpdatedAfterNote = {
+        ...state.currentProject,
+        components: componentsWithUpdatedAfterNote
+      };
+
+      const projectWithAfterNoteActivity = updateProjectActivity(projectWithUpdatedAfterNote);
+
+      return {
+        ...state,
+        currentProject: projectWithAfterNoteActivity,
+        projects: state.projects.map(p =>
+          p.id === state.currentProject.id ? projectWithAfterNoteActivity : p
+        )
+      };
+
+
+
+
+
+
+
+
     case 'TOGGLE_STEP_COMPLETION':
       if (!state.currentProject) {
         IntelliKnitLogger.error('TOGGLE_STEP_COMPLETION: No current project');
