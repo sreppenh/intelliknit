@@ -46,9 +46,12 @@ const PhaseConfigSummary = ({
     const saveResult = await saveStepAndNavigate({
       instruction: result.instruction,
       effect: {
+        // success: !result.error,
         success: !result.error,
-        endingStitches: result.endingStitches || currentStitches, // ← Fixed!
-        startingStitches: result.startingStitches || currentStitches, // ← Fixed!
+        //endingStitches: result.endingStitches || currentStitches, // ← Fixed!
+        endingStitches: result.endingStitches ?? currentStitches, // ← Fix: Use nullish coalescing
+        //startingStitches: result.startingStitches || currentStitches, // ← Fixed!
+        startingStitches: result.startingStitches ?? currentStitches, // ← Same fix
         totalRows: result.totalRows || 1, // ← Fixed!
         error: result.error
       },

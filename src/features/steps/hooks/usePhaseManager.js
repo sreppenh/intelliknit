@@ -126,7 +126,7 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
             terms.everyNthRow(config.frequency);
         const decPos = config.position === 'both_ends' ? terms.atBothEnds : `at ${config.position}`;
         const decRows = config.times * config.frequency;
-        return `Dec ${amount} st ${decPos} ${decFreq} ${config.times} times (${decRows} ${terms.rows})`;
+        return `Dec ${amount} stitch ${decPos} ${decFreq} ${config.times} times (${decRows} ${terms.rows})`;
 
       case 'increase':
         if (!config.frequency || !config.times || !config.position) {
@@ -138,7 +138,7 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
             terms.everyNthRow(config.frequency);
         const incPos = config.position === 'both_ends' ? terms.atBothEnds : `at ${config.position}`;
         const incRows = config.times * config.frequency;
-        return `Inc ${incAmount} st ${incPos} ${incFreq} ${config.times} times (${incRows} ${terms.rows})`;
+        return `Inc ${incAmount} stitch ${incPos} ${incFreq} ${config.times} times (${incRows} ${terms.rows})`;
 
       case 'setup':
         if (!config.rows) return 'Configure row count above';
@@ -147,7 +147,7 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
       case 'bind_off':
         if (!config.amount || !config.frequency) return 'Configure bind off options above';
         const bindPos = config.position === 'beginning' ? 'at beginning' : 'at end';
-        return `Bind off ${config.amount} sts ${bindPos} of next ${config.frequency} ${config.frequency === 1 ? terms.row : terms.rows}`;
+        return `Bind off ${config.amount} stitches ${bindPos} of next ${config.frequency} ${config.frequency === 1 ? terms.row : terms.rows}`;
 
       default:
         return 'Unknown phase type';

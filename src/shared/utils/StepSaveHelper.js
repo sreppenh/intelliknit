@@ -93,6 +93,9 @@ export const useStepSaveHelper = () => {
             };
 
             console.log('🔍 STEP DATA BEING SENT TO REDUCER:', stepData);
+            console.log('🔍 SPECIFIC VALUES - startingStitches:', stepData.startingStitches, 'endingStitches:', stepData.endingStitches);
+
+            // Dispatch appropriate action...
 
             // Dispatch appropriate action (following exact pattern from useStepActions)
             if (editingStepIndex !== null) {

@@ -21,6 +21,17 @@ const StepCard = ({
     editableStepIndex,
     componentName
 }) => {
+
+    console.log('🐛 STEP DEBUG:', {
+        stepIndex,
+        stepDescription: step.description,
+        startingStitches: step.startingStitches,
+        endingStitches: step.endingStitches,
+        hasShaping: step.wizardConfig?.hasShaping,
+        shapingType: step.wizardConfig?.shapingConfig?.type,
+        calculationEndingStitches: step.wizardConfig?.shapingConfig?.config?.calculation?.endingStitches
+    });
+
     // Extract prep note from various possible locations
     const prepNote = step.prepNote ||
         step.wizardConfig?.prepNote ||
@@ -89,6 +100,8 @@ const StepCard = ({
                                         )}
                                     </div>
                                 )}
+
+
 
                                 {/* Technical data display */}
                                 <div className="text-xs text-wool-500 text-left">

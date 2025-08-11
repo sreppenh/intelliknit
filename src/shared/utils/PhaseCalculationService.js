@@ -136,7 +136,7 @@ export class PhaseCalculationService {
         netStitchChange -= totalBindOff;
 
         const positionText = config.position === 'beginning' ? 'at beginning' : 'at end';
-        instructions.push(`bind off ${config.amount} sts ${positionText} of next ${config.frequency} rows`);
+        instructions.push(`bind off ${config.amount} stitches ${positionText} of next ${config.frequency} rows`);
 
         phaseDetails.push({
           type: 'bind_off',
@@ -182,7 +182,7 @@ export class PhaseCalculationService {
           config.frequency === 2 ? terms.everyOtherRow :
             terms.everyNthRow(config.frequency);
 
-        instructions.push(`${actionText} ${config.amount} st ${positionText} ${frequencyText} ${config.times} times`);
+        instructions.push(`${actionText} ${config.amount} stitch ${positionText} ${frequencyText} ${config.times} times`);
 
         phaseDetails.push({
           type: type,
@@ -219,6 +219,9 @@ export class PhaseCalculationService {
       netStitchChange
     });
 
+
+    // Add this right before the return statement in calculateSequentialPhases:
+    console.log('🐛 FINAL INSTRUCTION BEING GENERATED:', instructions.join(', then '));
     return {
       instruction: instructions.join(', then '),
       startingStitches: currentStitches,
@@ -268,7 +271,7 @@ export class PhaseCalculationService {
       case 'bind_off':
         const bindPosText = config.position === 'beginning' ? 'at beginning' : 'at end';
         const bindTotalStitches = config.amount * config.frequency;
-        return `Bind off ${config.amount} sts ${bindPosText} of next ${config.frequency} ${config.frequency === 1 ? terms.row : terms.rows} (${bindTotalStitches} sts total)`;
+        return `Bind off ${config.amount} stitches ${bindPosText} of next ${config.frequency} ${config.frequency === 1 ? terms.row : terms.rows} (${bindTotalStitches} stitches total)`;
 
       default:
         return 'Unknown phase';
