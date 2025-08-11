@@ -71,6 +71,10 @@ const PhaseConfigSummary = ({
       skipNavigation: true
     });
 
+    // ADD THIS RIGHT HERE:
+    console.log('🔧 SAVE RESULT:', saveResult);
+    console.log('🔧 WHAT WE TRIED TO SAVE - endingStitches:', result.endingStitches);
+
     if (saveResult.success) {
       onExitToComponentSteps();
     }
