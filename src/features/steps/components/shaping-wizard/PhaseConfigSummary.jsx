@@ -12,8 +12,6 @@ const PhaseConfigSummary = ({
   result,
   construction,
   currentStitches, //NEW
-  stepDescription,        // NEW: Add this line
-  setStepDescription,     // NEW: Add this line
   componentIndex,
   onExitToComponentSteps,
   onAddPhase,
@@ -42,7 +40,6 @@ const PhaseConfigSummary = ({
       phases: phases,
       construction: construction,
       calculation: result, // ← This IS the calculation data
-      description: stepDescription
     };
 
     // ✅ FIXED: Use result directly since it contains the calculated values
@@ -64,7 +61,6 @@ const PhaseConfigSummary = ({
             calculation: result, // ← Fixed! Put result at config.calculation level
             phases: phases,
             construction: construction,
-            description: stepDescription
           }
         }
       },

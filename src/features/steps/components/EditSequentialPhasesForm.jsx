@@ -91,8 +91,6 @@ const EditSequentialPhasesForm = ({
         tempPhaseConfig,
         setTempPhaseConfig,
         editingPhaseId,
-        stepDescription,
-        setStepDescription,
         calculateSequentialPhases,
         getPhaseDescription,
         getPhasePreview,
@@ -137,7 +135,6 @@ const EditSequentialPhasesForm = ({
                 phases: phases,
                 construction: construction,
                 calculation: result,
-                description: stepDescription
             }
         };
 
@@ -334,23 +331,6 @@ const EditSequentialPhasesForm = ({
                                 </div>
                             </div>
                         )}
-
-                        {/* Step Description */}
-                        <div>
-                            <label className="form-label">
-                                Step Description <span className="text-wool-400">(Optional)</span>
-                            </label>
-                            <textarea
-                                value={stepDescription}
-                                onChange={(e) => setStepDescription(e.target.value)}
-                                placeholder="e.g., sleeve decrease shaping, waist shaping, shoulder cap decreases..."
-                                rows={3}
-                                className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white resize-none"
-                            />
-                            <div className="text-xs text-wool-500 mt-1">
-                                Add a meaningful description to help identify this shaping sequence in your step list
-                            </div>
-                        </div>
 
                         {/* Preview */}
                         {result.instruction && (
