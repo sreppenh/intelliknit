@@ -248,23 +248,6 @@ const PhaseConfigSummary = ({
             </div>
           )}
 
-          {/* Step Description */}
-          <div>
-            <label className="form-label">
-              Step Description <span className="text-wool-400">(Optional)</span>
-            </label>
-            <textarea
-              value={stepDescription}
-              onChange={(e) => setStepDescription(e.target.value)}
-              placeholder="e.g., sleeve decrease shaping, waist shaping, shoulder cap decreases..."
-              rows={3}
-              className="input-field-lg resize-none"
-            />
-            <div className="form-help">
-              Add a meaningful description to help identify this shaping sequence in your step list
-            </div>
-          </div>
-
           {/* Navigation */}
           <div className="flex gap-3 pt-4">
             <button

@@ -5,6 +5,7 @@ import { usePhaseManager } from '../hooks/usePhaseManager';
 import PageHeader from '../../../shared/components/PageHeader';
 import PhaseConfigTypeSelector from './shaping-wizard/PhaseConfigTypeSelector';
 import PhaseConfigForm from './shaping-wizard/PhaseConfigForm';
+import { PhaseCalculationService } from '../../../shared/utils/PhaseCalculationService';
 
 const EditSequentialPhasesForm = ({
     componentIndex,
@@ -26,7 +27,51 @@ const EditSequentialPhasesForm = ({
         return previousStep?.endingStitches || previousStep?.expectedStitches || 0;
     };
 
+    // Helper functions for phase calculations (identical to main config)
+    const calculatePhaseStitchChange = (phase) => {
+        const { type, config } = phase;
+
+        switch (type) {
+            case 'decrease':
+                const decStitchChangePerRow = config.position === 'both_ends' ?
+                    config.amount * 2 : config.amount;
+                return -(decStitchChangePerRow * config.times);
+
+            case 'increase':
+                const incStitchChangePerRow = config.position === 'both_ends' ?
+                    config.amount * 2 : config.amount;
+                return incStitchChangePerRow * config.times;
+
+            case 'bind_off':
+                return -(config.amount * config.frequency);
+
+            case 'setup':
+                return 0;
+
+            default:
+                return 0;
+        }
+    };
+
+    const calculatePhaseRows = (phase) => {
+        const { type, config } = phase;
+
+        switch (type) {
+            case 'decrease':
+            case 'increase':
+                return config.times * config.frequency;
+            case 'setup':
+                return config.rows;
+            case 'bind_off':
+                return config.frequency;
+            default:
+                return 0;
+        }
+    };
+
     const currentStitches = getCurrentStitches();
+
+
 
     // Initialize existing shaping data
     const existingShapingData = step.wizardConfig?.shapingConfig?.config || {};
@@ -204,40 +249,70 @@ const EditSequentialPhasesForm = ({
                             <h3 className="content-header-secondary mb-3 text-left">Your Sequence</h3>
 
                             <div className="stack-sm">
-                                {phases.map((phase, index) => (
-                                    <div key={phase.id} className="card">
-                                        <div className="bg-wool-50 p-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className="w-8 h-8 bg-sage-100 rounded-full flex items-center justify-center text-sm font-bold text-sage-700">
+                                {phases.map((phase, index) => {
+                                    const phaseType = phaseTypes.find(t => t.id === phase.type);
+                                    const isLastPhase = index === phases.length - 1;
+
+                                    // Calculate stitch context for this phase
+                                    let runningStitches = currentStitches;
+                                    for (let i = 0; i < index; i++) {
+                                        const stitchChange = calculatePhaseStitchChange(phases[i]);
+                                        runningStitches += stitchChange;
+                                    }
+                                    const thisPhaseChange = calculatePhaseStitchChange(phase);
+                                    const thisPhaseRows = calculatePhaseRows(phase);
+                                    const isComplete = runningStitches + thisPhaseChange === 0;
+
+                                    return (
+                                        <div key={phase.id} className="sequence-creation-card">
+                                            <div className="flex items-start gap-3">
+                                                <div className="sequence-number">
                                                     {index + 1}
                                                 </div>
-                                                <div>
-                                                    <div className="font-semibold text-wool-700 flex items-center gap-2">
-                                                        <span>{phaseTypes.find(t => t.id === phase.type)?.icon}</span>
-                                                        {phaseTypes.find(t => t.id === phase.type)?.name}
-                                                    </div>
-                                                    <div className="text-sm text-wool-500">
-                                                        {getPhaseDescription(phase)}
+
+                                                <div className="flex-1 min-w-0">
+                                                    <div className="flex items-start justify-between gap-2">
+                                                        <div className="min-w-0 flex-1 text-left">
+                                                            {/* Phase type header */}
+                                                            <h4 className="text-sm font-semibold mb-1 text-left text-wool-700 flex items-center gap-2">
+                                                                <span>{phaseType?.icon}</span>
+                                                                {phaseType?.name}
+                                                            </h4>
+
+                                                            {/* Phase description */}
+                                                            <div className="text-sm text-wool-600 mb-1 text-left">
+                                                                {PhaseCalculationService.getPhaseDescription(phase, construction)}
+                                                            </div>
+
+                                                            {/* Technical data display */}
+                                                            <div className="text-xs text-wool-500 text-left">
+                                                                {runningStitches} → {runningStitches + thisPhaseChange} sts • {thisPhaseRows} {thisPhaseRows === 1 ? (construction === 'round' ? 'round' : 'row') : (construction === 'round' ? 'rounds' : 'rows')}{isComplete ? ' • COMPLETE' : ''}
+                                                            </div>
+                                                        </div>
+
+                                                        {/* Edit/Delete buttons - only show for last phase */}
+                                                        {isLastPhase && (
+                                                            <div className="flex gap-1">
+                                                                <button
+                                                                    onClick={() => handleEditPhase(phase.id)}
+                                                                    className="p-2 text-wool-500 hover:bg-wool-200 rounded-lg transition-colors"
+                                                                >
+                                                                    ✏️
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDeletePhase(phase.id)}
+                                                                    className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                                                                >
+                                                                    ✕
+                                                                </button>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div className="flex gap-2">
-                                                <button
-                                                    onClick={() => handleEditPhase(phase.id)}
-                                                    className="p-2 text-wool-500 hover:bg-wool-200 rounded-lg transition-colors"
-                                                >
-                                                    ✏️
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeletePhase(phase.id)}
-                                                    className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
                         </div>
 
