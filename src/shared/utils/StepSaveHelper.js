@@ -46,16 +46,6 @@ export const useStepSaveHelper = () => {
             setIsLoading(true);
             setError(null);
 
-            IntelliKnitLogger.debug('StepSaveHelper', {
-                action: editingStepIndex !== null ? 'EDIT_STEP' : 'ADD_STEP',
-                componentIndex,
-                editingStepIndex,
-                instruction,
-                effect,
-                currentStitches,
-                construction
-            });
-
             // Validate required parameters
             if (!instruction) {
                 throw new Error('Instruction is required');
@@ -96,7 +86,6 @@ export const useStepSaveHelper = () => {
 
             // Dispatch appropriate action (following exact pattern from useStepActions)
             if (editingStepIndex !== null) {
-                IntelliKnitLogger.success(`Updating step ${editingStepIndex}`, stepData);
                 dispatch({
                     type: 'UPDATE_STEP',
                     payload: {
@@ -106,7 +95,6 @@ export const useStepSaveHelper = () => {
                     }
                 });
             } else {
-                IntelliKnitLogger.success('Adding new step to component', stepData);
                 dispatch({
                     type: 'ADD_STEP',
                     payload: {
@@ -114,9 +102,6 @@ export const useStepSaveHelper = () => {
                         step: stepData
                     }
                 });
-
-                // 🔧 ADD THIS DEBUG LINE:
-                console.log('🔧 DISPATCH CALLED:', { componentIndex, stepData });
             }
 
             // Navigate if not skipped
@@ -132,7 +117,6 @@ export const useStepSaveHelper = () => {
 
         } catch (saveError) {
             const errorMessage = saveError.message || 'Failed to save step';
-            IntelliKnitLogger.error('Step save failed', saveError);
             setError(errorMessage);
 
             return {

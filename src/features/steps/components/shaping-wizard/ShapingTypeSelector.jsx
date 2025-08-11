@@ -2,7 +2,6 @@ import React from 'react';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
 const ShapingTypeSelector = ({ onTypeSelect, currentStitches, construction }) => {
-  IntelliKnitLogger.debug('ShapingTypeSelector', { construction, currentStitches });
   const shapingTypes = [
     {
       id: 'even_distribution',

@@ -191,7 +191,6 @@ const EvenDistributionConfig = ({
   */
 
   const handleComplete = async () => {
-    console.log('🔧 HANDLE COMPLETE CALLED');
     // 🎯 PRESERVE: Original data structure and flow - EXACTLY as before
     const originalShapingData = {
       ...config,

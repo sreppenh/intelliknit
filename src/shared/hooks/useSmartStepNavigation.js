@@ -43,12 +43,6 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
             preserveData = true
         } = options;
 
-        IntelliKnitLogger.debug('Smart Navigation', `Navigating from ${currentStep} to ${targetStep}`, {
-            isCycleEntry,
-            cycleType,
-            stackBefore: [...navigationStack]
-        });
-
         // Handle cycle entry points (like entering Sequential Phases)
         if (isCycleEntry && cycleType) {
             dataCache.current.cycleEntryPoints.set(cycleType, currentStep);
@@ -75,14 +69,12 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
         const { forceExit = false } = options;
 
         if (navigationStack.length <= 1) {
-            IntelliKnitLogger.debug('Smart Navigation', 'Stack empty - exiting wizard');
             return { action: 'exit', targetStep: null };
         }
 
         // Check for cycle exit
         const cycleExitInfo = checkCycleExit(currentStep);
         if (cycleExitInfo && !forceExit) {
-            IntelliKnitLogger.debug('Smart Navigation', 'Cycle exit detected', cycleExitInfo);
 
             // Go back to cycle entry point instead of unwinding
             const entryStep = dataCache.current.cycleEntryPoints.get(cycleExitInfo.cycleType);
@@ -97,11 +89,6 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
         const newStack = [...navigationStack];
         newStack.pop(); // Remove current step
         const previousStep = newStack[newStack.length - 1];
-
-        IntelliKnitLogger.debug('Smart Navigation', `Going back from ${currentStep} to ${previousStep}`, {
-            stackBefore: [...navigationStack],
-            stackAfter: [...newStack]
-        });
 
         setNavigationStack(newStack);
         setCurrentStep(previousStep);
@@ -125,7 +112,6 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
                 ...stitchPattern,
                 timestamp: Date.now()
             };
-            IntelliKnitLogger.debug('Smart Navigation', `Persisted pattern data: ${patternKey}`);
         }
 
         // Persist shaping data by type
@@ -134,7 +120,6 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
                 ...shapingConfig,
                 timestamp: Date.now()
             };
-            IntelliKnitLogger.debug('Smart Navigation', `Persisted shaping data: ${shapingConfig.type}`);
         }
 
         // Duration persists with current session (no special key needed)
@@ -159,7 +144,6 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
                 const cachedPattern = dataCache.current.patterns[patternKey];
 
                 if (cachedPattern && isRecentData(cachedPattern.timestamp)) {
-                    IntelliKnitLogger.debug('Smart Navigation', `Restoring pattern data: ${patternKey}`);
                     updateWizardData('stitchPattern', cachedPattern);
                 }
             }
@@ -171,7 +155,6 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
             if (currentShapingType) {
                 const cachedShaping = dataCache.current.shaping[currentShapingType];
                 if (cachedShaping && isRecentData(cachedShaping.timestamp)) {
-                    IntelliKnitLogger.debug('Smart Navigation', `Restoring shaping data: ${currentShapingType}`);
                     updateWizardData('shapingConfig', cachedShaping);
                 }
             }
@@ -213,7 +196,6 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
             shaping: {},
             cycleEntryPoints: new Map()
         };
-        IntelliKnitLogger.debug('Smart Navigation', 'Cleared all cached data');
     }, []);
 
     /**

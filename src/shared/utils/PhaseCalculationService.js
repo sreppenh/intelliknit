@@ -1,7 +1,6 @@
 // src/shared/utils/PhaseCalculationService.js
 import IntelliKnitLogger from './ConsoleLogging';
 import { getConstructionTerms } from './ConstructionTerminology';
-console.log('🧶 PhaseCalculationService loaded');
 
 /**
  * Phase Calculation Service
@@ -26,12 +25,9 @@ export class PhaseCalculationService {
       const editingIndex = phases.findIndex(p => p.id === editingPhaseId);
       phaseNumber = editingIndex + 1;
 
-      console.log('🔍 Editing phase at index:', editingIndex);
-
       // Calculate stitches consumed by previous phases only
       for (let i = 0; i < editingIndex; i++) {
         const stitchChange = PhaseCalculationService.calculatePhaseStitchChange(phases[i]); // ✅ CORRECT
-        console.log(`🔍 Phase ${i} stitch change:`, stitchChange);
         currentStitchCount += stitchChange;
       }
     } else {
@@ -209,17 +205,11 @@ export class PhaseCalculationService {
       };
     }
 
-    IntelliKnitLogger.debug('Sequential Phases', {
-      totalPhases: phases.length,
-      startingStitches: currentStitches,
-      endingStitches: currentStitchCount,
-      totalRows,
-      netStitchChange
-    });
+    // Only log major calculation results, not every re-render
+    if (phases.length > 0 && currentStitches !== currentStitchCount) {
+      IntelliKnitLogger.success(`Sequential phases calculated: ${phases.length} phases, ${currentStitches} → ${currentStitchCount} stitches`);
+    }
 
-
-    // Add this right before the return statement in calculateSequentialPhases:
-    console.log('🐛 FINAL INSTRUCTION BEING GENERATED:', instructions.join(', then '));
     return {
       instruction: instructions.join(', then '),
       startingStitches: currentStitches,

@@ -3,7 +3,7 @@ import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getProjectStatus as getSharedProjectStatus } from '../../../shared/utils/projectStatus';
-import { getUnifiedProjectStatus, runStatusTests, testCompatibility } from '../../../shared/utils/unifiedProjectStatus';
+import { getUnifiedProjectStatus } from '../../../shared/utils/unifiedProjectStatus';
 
 
 const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
@@ -302,33 +302,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
       onBack();
     }
   };
-
-  // 🧪 TESTING FUNCTIONS - Call these in browser console to verify
-  React.useEffect(() => {
-    // Make test functions available globally for easy console testing
-    window.IntelliKnitTests = {
-      runStatusTests,
-      testCompatibility: () => testCompatibility(projects),
-      testProject: (projectIndex) => {
-        const project = projects[projectIndex];
-        if (project) {
-          const old = getSharedProjectStatus(project);
-          const new_ = getUnifiedProjectStatus(project);
-          return { old, new: new_ };
-        }
-        console.log('Project not found at index', projectIndex);
-      }
-    };
-
-    // Auto-run basic tests on load (only in development)
-    if (process.env.NODE_ENV === 'development') {
-      console.log('🧪 Auto-running status tests...');
-      runStatusTests();
-      if (projects.length > 0) {
-        testCompatibility(projects);
-      }
-    }
-  }, [projects]);
 
   const filteredProjects = getFilteredProjects();
 

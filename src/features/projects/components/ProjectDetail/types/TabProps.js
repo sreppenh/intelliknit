@@ -62,9 +62,6 @@ export const validateTabProps = (props, requiredProps) => {
     });
 
     if (missing.length > 0) {
-        console.warn(`🎯 Tab Validation Warning: Missing required props: ${missing.join(', ')}`);
-        console.warn('Props received:', Object.keys(props));
-        console.warn('Required props:', requiredProps);
     }
 };
 

@@ -119,7 +119,6 @@ const PhaseConfigForm = ({
                   <button
                     onClick={() => {
                       const availableStitches = getStitchContext().availableStitches;
-                      console.log('🔍 Button clicked - available stitches:', availableStitches);
                       setTempPhaseConfig(prev => ({
                         ...prev,
                         amount: availableStitches,

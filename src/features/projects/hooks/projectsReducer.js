@@ -183,7 +183,6 @@ export const projectsReducer = (state, action) => {
       };
 
     case 'ADD_ENHANCED_COMPONENT':
-      console.log('🔧 ADD_ENHANCED_COMPONENT Debug:', action.payload);
       if (!state.currentProject) return state;
 
       // Create enhanced component with automatic Cast On step
