@@ -13,6 +13,7 @@ const StepsList = ({
     onEditConfig,
     onDeleteStep,
     onPrepNoteClick,
+    onAfterNoteClick,
 }) => {
     if (component.steps.length === 0) {
         return (
@@ -55,7 +56,7 @@ const StepsList = ({
                         onEditConfig={onEditConfig}
                         onDeleteStep={onDeleteStep}
                         onPrepNoteClick={onPrepNoteClick} // ADD THIS LINE
-
+                        onAfterNoteClick={onAfterNoteClick}
                     />
                 );
             })}

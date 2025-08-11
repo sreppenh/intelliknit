@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import PageHeader from '../../../shared/components/PageHeader';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import ComponentCompletionModal from '../../../shared/components/ComponentCompletionModal';
+import { PrepStepOverlay, usePrepNoteManager, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
 
@@ -21,12 +22,25 @@ const ComponentEndingWizard = ({
     customMethod: '',
     stitchCount: '',
     prepNote: '',
-    afterNote: '' // ✅ NEW: Add after note capability
+    afterNote: ''
   });
 
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedEndingStep, setCompletedEndingStep] = useState(null);
+
+  // Prep note management
+  const {
+    isOverlayOpen: isPrepNoteOverlayOpen,
+    currentNote: currentPrepNote,
+    handleOpenOverlay: handleOpenPrepNoteOverlay,
+    handleCloseOverlay: handleClosePrepNoteOverlay,
+    handleSaveNote: handleSavePrepNote
+  } = usePrepNoteManager(endingData.prepNote, (note) => {
+    setEndingData(prev => ({ ...prev, prepNote: note }));
+  });
+
+  const prepConfig = getPrepNoteConfig('componentEnding');
 
   // Get current stitch count from last step
   const getCurrentStitchCount = () => {
@@ -96,7 +110,7 @@ const ComponentEndingWizard = ({
         const methodName = getMethodName(method, 'Bind Off');
         let description = `Bind off all stitches`;
 
-        // ✅ IMPROVED: Handle three-needle bind off with target component
+        // Handle three-needle bind off with target component
         if (method === 'three_needle' && targetComponent) {
           const target = targetComponent === 'Other...' ? customText : targetComponent;
           description = `Join to ${target} using three-needle bind off`;
@@ -137,7 +151,7 @@ const ComponentEndingWizard = ({
     }
   };
 
-  // ✅ Use stepDisplayUtils instead of duplicate logic
+  // Use stepDisplayUtils instead of duplicate logic
   const getMethodName = (methodId, patternType) => {
     const mockStep = {
       wizardConfig: {
@@ -178,11 +192,11 @@ const ComponentEndingWizard = ({
   };
 
   const canComplete = () => {
-    const { type, method, targetComponent, customText, customMethod, stitchCount } = endingData;
+    const { type, method, targetComponent, customText, customMethod } = endingData;
 
     switch (type) {
       case 'put_on_holder':
-        return true; // Always valid - will use current stitches if not specified
+        return true;
 
       case 'bind_off_all':
         // Three-needle bind off needs target component
@@ -205,16 +219,25 @@ const ComponentEndingWizard = ({
     }
   };
 
-  // ===== SIMPLIFIED COMPONENT 1: EndingTypeSelector =====
+  // EndingTypeSelector
   const renderEndingTypeSelector = () => (
     <div className="stack-lg">
-      <div>
-        <h2 className="content-header-primary">How does this component end?</h2>
-        <p className="content-subheader">Choose the finishing method for your {currentStitches} stitches</p>
+      <div className="content-header-with-buttons">
+        <div>
+          <h2 className="content-header-primary">Finish Component</h2>
+        </div>
+        <div className="button-group">
+          <button
+            onClick={handleOpenPrepNoteOverlay}
+            className="btn-secondary btn-sm"
+          >
+            {currentPrepNote.trim().length > 0 ? 'Edit Preparation Note' : '+ Add Preparation Note'}
+          </button>
+        </div>
       </div>
 
       <div className="stack-sm">
-        {/* Bind Off All - Most common finishing */}
+        {/* Bind Off All */}
         <button
           onClick={() => handleEndingTypeSelect('bind_off_all')}
           className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
@@ -222,13 +245,13 @@ const ComponentEndingWizard = ({
           <div className="flex items-center gap-4">
             <div className="text-3xl">✂️</div>
             <div>
-              <div className="font-semibold text-base mb-1">Finish Component</div>
-              <div className="text-sm opacity-75">Bind off all stitches (0 stitches remaining)</div>
+              <div className="font-semibold text-base mb-1">Bind Off Stitches</div>
+              <div className="text-sm opacity-75">Complete this component</div>
             </div>
           </div>
         </button>
 
-        {/* Put on Holder - For later use */}
+        {/* Put on Holder */}
         <button
           onClick={() => handleEndingTypeSelect('put_on_holder')}
           className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
@@ -236,13 +259,13 @@ const ComponentEndingWizard = ({
           <div className="flex items-center gap-4">
             <div className="text-3xl">📎</div>
             <div>
-              <div className="font-semibold text-base mb-1">Hold Component</div>
+              <div className="font-semibold text-base mb-1">Put Stitches on Hold</div>
               <div className="text-sm opacity-75">Keep stitches live for later use</div>
             </div>
           </div>
         </button>
 
-        {/* Other Ending - For complex scenarios */}
+        {/* Other Ending */}
         <button
           onClick={() => handleEndingTypeSelect('other')}
           className="w-full p-4 border-2 rounded-xl transition-all duration-200 text-left border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02]"
@@ -261,7 +284,7 @@ const ComponentEndingWizard = ({
       <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
         <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Choose Your Path</h4>
         <div className="text-sm text-yarn-600 space-y-1">
-          <div>• <strong>Finish:</strong> Complete component with bind off (including 3-needle join)</div>
+          <div>• <strong>Bind Off:</strong> Complete component with bind off (including 3-needle join)</div>
           <div>• <strong>Hold:</strong> Pause with live stitches for later seaming or grafting</div>
           <div>• <strong>Custom:</strong> Complex scenarios like "bind off center 24, hold remaining"</div>
         </div>
@@ -269,7 +292,7 @@ const ComponentEndingWizard = ({
     </div>
   );
 
-  // ===== SIMPLIFIED COMPONENT 2: PutOnHolderConfig =====
+  // PutOnHolderConfig
   const renderPutOnHolderConfig = () => (
     <div className="stack-lg">
       <div>
@@ -289,23 +312,6 @@ const ComponentEndingWizard = ({
             <div className="text-xs text-sage-600">stitches</div>
           </div>
         </div>
-      </div>
-
-      {/* Custom stitch count (optional) */}
-      <div>
-        <label className="form-label">
-          Stitches to Hold <span className="text-wool-400 text-sm font-normal">(Optional - defaults to all)</span>
-        </label>
-        <input
-          type="number"
-          value={endingData.stitchCount}
-          onChange={(e) => setEndingData(prev => ({ ...prev, stitchCount: e.target.value }))}
-          placeholder={currentStitches.toString()}
-          min="1"
-          max={currentStitches}
-          className="w-24 border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-        />
-        <p className="text-xs text-wool-500 mt-1">Leave blank to hold all {currentStitches} stitches</p>
       </div>
 
       {/* Optional holder notes */}
@@ -338,7 +344,7 @@ const ComponentEndingWizard = ({
     </div>
   );
 
-  // ===== SIMPLIFIED COMPONENT 3: BindOffConfig =====
+  // BindOffConfig
   const renderBindOffConfig = () => {
     const methods = [
       {
@@ -390,93 +396,110 @@ const ComponentEndingWizard = ({
         </div>
 
         {/* Stitch Count Display */}
-        <div className="warning-block">
+        <div className="success-block">
           <div className="flex items-center justify-between mb-3">
             <div>
-              <h3 className="text-sm font-semibold text-amber-700">Component Completion</h3>
-              <p className="text-xs text-amber-600 mt-1">This will consume all stitches and finish the component</p>
+              <h3 className="text-sm font-semibold text-sage-700">Stitches to Bind Off</h3>
+              <p className="text-xs text-sage-600 mt-1">This will consume all stitches and complete the component</p>
             </div>
             <div className="text-right">
-              <div className="text-2xl font-bold text-amber-700">{currentStitches}</div>
-              <div className="text-xs text-amber-600">stitches</div>
+              <div className="text-2xl font-bold text-sage-700">{currentStitches}</div>
+              <div className="text-xs text-sage-600">stitches</div>
             </div>
           </div>
         </div>
 
-        {/* Method Selection */}
-        <div>
-          <label className="form-label">Bind Off Method</label>
-          <div className="grid grid-cols-2 gap-3">
-            {methods.map((method) => (
-              <button
-                key={method.id}
-                onClick={() => setEndingData(prev => ({ ...prev, method: method.id }))}
-                className={`p-4 border-2 rounded-xl transition-all duration-200 text-center ${endingData.method === method.id
-                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm'
-                  }`}
-              >
-                <div className="text-2xl mb-2">{method.icon}</div>
-                <div className="font-semibold text-sm mb-1">{method.name}</div>
-                <div className="text-xs opacity-75">{method.description}</div>
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Three-needle bind off target component */}
-        {endingData.method === 'three_needle' && (
-          <div>
-            <label className="form-label">Join to Component</label>
-            <select
-              value={endingData.targetComponent || ''}
-              onChange={(e) => setEndingData(prev => ({ ...prev, targetComponent: e.target.value }))}
-              className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+        {/* Method Selection - Radio Style */}
+        <div className="space-y-3">
+          {methods.map((method) => (
+            <label
+              key={method.id}
+              className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${endingData.method === method.id
+                ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                }`}
             >
-              <option value="">Choose component...</option>
-              {availableComponents.map(comp => (
-                <option key={comp} value={comp}>{comp}</option>
-              ))}
-            </select>
-
-            {endingData.targetComponent === 'Other...' && (
-              <div className="mt-3">
+              <div className="flex items-start gap-4">
                 <input
-                  type="text"
-                  value={endingData.customText || ''}
-                  onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
-                  placeholder="Describe the component to join to"
-                  className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                  type="radio"
+                  name="bind_off_method"
+                  value={method.id}
+                  checked={endingData.method === method.id}
+                  onChange={() => setEndingData(prev => ({ ...prev, method: method.id }))}
+                  className="w-4 h-4 text-sage-600 mt-1"
                 />
-              </div>
-            )}
-          </div>
-        )}
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-2xl">{method.icon}</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-base">{method.name}</div>
+                      <div className="text-sm opacity-75">{method.description}</div>
+                    </div>
+                  </div>
 
-        {/* Custom method input */}
-        {endingData.method === 'other' && (
-          <div>
-            <label className="form-label">Describe Your Bind Off Method</label>
-            <input
-              type="text"
-              value={endingData.customMethod || ''}
-              onChange={(e) => setEndingData(prev => ({ ...prev, customMethod: e.target.value }))}
-              placeholder="e.g., Jeny's surprisingly stretchy bind off"
-              className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
-            />
-          </div>
-        )}
+                  {/* Three Needle - Target Component Selection */}
+                  {endingData.method === 'three_needle' && method.id === 'three_needle' && (
+                    <div className="mt-3 space-y-3">
+                      <div>
+                        <label className="text-sm font-medium text-sage-700 block mb-2">Join to Component</label>
+                        <select
+                          value={endingData.targetComponent || ''}
+                          onChange={(e) => setEndingData(prev => ({ ...prev, targetComponent: e.target.value }))}
+                          className="w-full border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                        >
+                          <option value="">Choose component...</option>
+                          {availableComponents.map(comp => (
+                            <option key={comp} value={comp}>{comp}</option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {endingData.targetComponent === 'Other...' && (
+                        <div>
+                          <input
+                            type="text"
+                            value={endingData.customText || ''}
+                            onChange={(e) => setEndingData(prev => ({ ...prev, customText: e.target.value }))}
+                            placeholder="Describe the component to join to"
+                            className="w-full border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                          />
+                        </div>
+                      )}
+
+                      <div className="text-xs text-sage-600">
+                        💡 Three-needle bind off joins two pieces together while binding off
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Other Method - Custom Input */}
+                  {endingData.method === 'other' && method.id === 'other' && (
+                    <div className="mt-3">
+                      <input
+                        type="text"
+                        value={endingData.customMethod || ''}
+                        onChange={(e) => setEndingData(prev => ({ ...prev, customMethod: e.target.value }))}
+                        placeholder="e.g., Jeny's surprisingly stretchy bind off"
+                        className="w-full border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                      />
+                    </div>
+                  )}
+                </div>
+              </div>
+            </label>
+          ))}
+        </div>
 
         {/* After note */}
         <div>
           <label className="form-label">
-            After Completion Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+            Assembly Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
           </label>
           <input
             type="text"
             value={endingData.afterNote || ''}
             onChange={(e) => setEndingData(prev => ({ ...prev, afterNote: e.target.value }))}
-            placeholder="e.g., Component ready for blocking and seaming"
+            placeholder="e.g. using Kitchener Stitch, attach to shoulder"
             className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
           />
         </div>
@@ -484,7 +507,7 @@ const ComponentEndingWizard = ({
     );
   };
 
-  // ===== SIMPLIFIED COMPONENT 4: OtherEndingConfig =====
+  // OtherEndingConfig
   const renderOtherEndingConfig = () => (
     <div className="stack-lg">
       <div>
@@ -523,7 +546,7 @@ const ComponentEndingWizard = ({
       {/* After note */}
       <div>
         <label className="form-label">
-          After Completion Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+          Assembly Notes<span className="text-wool-400 text-sm font-normal">(Optional)</span>
         </label>
         <input
           type="text"
@@ -547,7 +570,7 @@ const ComponentEndingWizard = ({
     </div>
   );
 
-  // ===== MAIN RENDER =====
+  // MAIN RENDER
 
   // STEP 1 - Type Selection
   if (step === 1) {
@@ -585,6 +608,14 @@ const ComponentEndingWizard = ({
           onConfirmExit={handleConfirmExit}
           onCancel={handleCancelExit}
         />
+
+        <PrepStepOverlay
+          isOpen={isPrepNoteOverlayOpen}
+          onClose={handleClosePrepNoteOverlay}
+          onSave={handleSavePrepNote}
+          existingNote={currentPrepNote}
+          {...prepConfig}
+        />
       </>
     );
   }
@@ -603,7 +634,6 @@ const ComponentEndingWizard = ({
           />
 
           <div className="p-6 bg-yarn-50 stack-lg">
-
             {/* Render appropriate config based on ending type */}
             {endingData.type === 'put_on_holder' && renderPutOnHolderConfig()}
             {endingData.type === 'bind_off_all' && renderBindOffConfig()}
@@ -638,6 +668,14 @@ const ComponentEndingWizard = ({
         isOpen={showExitModal}
         onConfirmExit={handleConfirmExit}
         onCancel={handleCancelExit}
+      />
+
+      <PrepStepOverlay
+        isOpen={isPrepNoteOverlayOpen}
+        onClose={handleClosePrepNoteOverlay}
+        onSave={handleSavePrepNote}
+        existingNote={currentPrepNote}
+        {...prepConfig}
       />
     </>
   );

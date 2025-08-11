@@ -6,7 +6,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import StepsList from '../../projects/components/ManageSteps/StepsList';
 import EditPatternOverlay from './EditPatternOverlay';
 import EditConfigScreen from './EditConfigScreen'; // ✅ ADD THIS IMPORT
-import { PrepNoteDisplay, usePrepNoteManager, PrepStepOverlay, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
+import { PrepNoteDisplay, usePrepNoteManager, PrepStepOverlay, getPrepNoteConfig, useAfterNoteManager, AssemblyNoteOverlay } from '../../../shared/components/PrepStepSystem';
 import {
   getStepPatternName, getStepPatternDisplay, getStepMethodDisplay, isConstructionStep,
   isInitializationStep, isFinishingStep, isMiddleStep
@@ -27,6 +27,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   const [editMode, setEditMode] = useState(null); // 'pattern' | 'configuration' | null
   const [showEditPatternOverlay, setShowEditPatternOverlay] = useState(false);
   const [showEditConfigScreen, setShowEditConfigScreen] = useState(false); // ✅ ADD THIS STATE
+  const [editingAfterNoteStepIndex, setEditingAfterNoteStepIndex] = useState(null);
 
   const {
     isOverlayOpen: isPrepNoteOverlayOpen,
@@ -45,6 +46,26 @@ const ManageSteps = ({ componentIndex, onBack }) => {
         }
       });
       setEditingPrepNoteStepIndex(null);
+    }
+  });
+
+  const {
+    isOverlayOpen: isAfterNoteOverlayOpen,
+    currentNote: currentAfterNote,
+    handleOpenOverlay: handleOpenAfterNoteOverlay,
+    handleCloseOverlay: handleCloseAfterNoteOverlay,
+    handleSaveNote: handleSaveAfterNote
+  } = useAfterNoteManager('', (note) => {
+    if (editingAfterNoteStepIndex !== null) {
+      dispatch({
+        type: 'UPDATE_STEP_AFTER_NOTE',
+        payload: {
+          componentIndex,
+          stepIndex: editingAfterNoteStepIndex,
+          afterNote: note
+        }
+      });
+      setEditingAfterNoteStepIndex(null);
     }
   });
 
@@ -77,9 +98,22 @@ const ManageSteps = ({ componentIndex, onBack }) => {
       step.advancedWizardConfig?.prepNote ||
       '';
 
+
     setEditingPrepNoteStepIndex(stepIndex);
     handleSavePrepNote(currentNote);
     handleOpenPrepNoteOverlay();
+  };
+
+  const handleAfterNoteClick = (stepIndex) => {
+    const step = component.steps[stepIndex];
+    const currentNote = step.afterNote ||
+      step.wizardConfig?.afterNote ||
+      step.advancedWizardConfig?.afterNote ||
+      '';
+
+    setEditingAfterNoteStepIndex(stepIndex);
+    handleSaveAfterNote(currentNote);
+    handleOpenAfterNoteOverlay();
   };
 
   // Clean utility wrappers
@@ -509,6 +543,16 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             }}
           />
         )}
+
+        {/* Assembly Note Overlay */}
+        <AssemblyNoteOverlay
+          isOpen={isAfterNoteOverlayOpen}
+          onClose={handleCloseAfterNoteOverlay}
+          onSave={handleSaveAfterNote}
+          existingNote={currentAfterNote}
+          title="Assembly Notes"
+          subtitle="Add notes for what to do after completing this step"
+        />
 
         {/* Prep Note Editing Overlay */}
         <PrepStepOverlay
