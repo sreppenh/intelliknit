@@ -332,22 +332,6 @@ const EditSequentialPhasesForm = ({
                             </div>
                         )}
 
-                        {/* Preview */}
-                        {result.instruction && (
-                            <div className="card-info">
-                                <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
-                                <div className="space-y-2 text-sm">
-                                    <div className="text-lavender-700">
-                                        <span className="font-medium">Instruction:</span> {result.instruction}
-                                    </div>
-                                    <div className="text-lavender-600">
-                                        {result.startingStitches || currentStitches} stitches → {result.endingStitches || currentStitches} stitches
-                                        ({construction}) • {result.totalRows || 1} total rows
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
                         {/* Save Button */}
                         <div className="pt-4 border-t border-wool-200">
                             <div className="flex gap-3">

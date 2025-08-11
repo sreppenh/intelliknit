@@ -342,22 +342,6 @@ const PhaseConfigForm = ({
         )}
       </div>
 
-      {/* Live Preview Box */}
-      {tempPhaseConfig.type && (
-        <div className="card-info">
-          <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
-
-          <div className="space-y-2 text-sm">
-            <div className="text-lavender-700">
-              <span className="font-medium">Instruction:</span> {getPhasePreview(tempPhaseConfig)}
-            </div>
-            <div className="text-lavender-600">
-              {getStitchContext().availableStitches} stitches → {calculatePhaseEndingStitches()} stitches ({construction})
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* Navigation */}
       <div className="flex gap-3 pt-6">
         <button
