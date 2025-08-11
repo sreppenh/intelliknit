@@ -32,17 +32,6 @@ const StepCard = ({
         step.advancedWizardConfig?.afterNote ||
         '';
 
-    // DEBUG: Add this line temporarily
-    console.log('🔧 AfterNote Debug:', {
-        stepIndex,
-        afterNote,
-        stepAfterNote: step.afterNote,
-        wizardAfterNote: step.wizardConfig?.afterNote,
-        advancedAfterNote: step.advancedWizardConfig?.afterNote
-    });
-
-
-
     // ✅ Get formatted display data
     const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step);
 
@@ -130,8 +119,10 @@ const StepCard = ({
             {/* ✅ NEW: AfterNote Display - Below the step, not numbered */}
             <AfterNoteDisplay
                 note={afterNote}
-                className="mx-1" // Slight margin to align with step content
-                onClick={() => onAfterNoteClick && onAfterNoteClick(stepIndex)}
+                className="mx-1"
+                onClick={() => {
+                    onAfterNoteClick && onAfterNoteClick(stepIndex)
+                }}
             />
         </div>
     );

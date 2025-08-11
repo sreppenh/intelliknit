@@ -483,6 +483,7 @@ const ManageSteps = ({ componentIndex, onBack }) => {
             onEditConfig={handleEditConfigFromMenu}
             onDeleteStep={handleDeleteStepFromMenu}
             onPrepNoteClick={handlePrepNoteClick}
+            onAfterNoteClick={handleAfterNoteClick}
           />
 
           {/* Editing Rules - Above buttons, only show if not finished */}

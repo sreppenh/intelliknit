@@ -327,21 +327,21 @@ export const AfterNoteDisplay = ({ note, className = "", onClick }) => {
 
   return (
     <div
-      className={`bg-yarn-100 border-l-4 border-yarn-500 rounded-r-lg p-3 my-2 ${className} ${isClickable ? 'cursor-pointer hover:bg-yarn-150 transition-colors' : ''
+      className={`bg-sage-100 border-l-4 border-sage-500 rounded-r-lg p-3 my-2 ${className} ${isClickable ? 'cursor-pointer hover:bg-sage-150 transition-colors' : ''
         }`}
       onClick={isClickable ? onClick : undefined}
       title={isClickable ? "Click to edit assembly note" : undefined}
     >
       <div className="flex items-start gap-2">
-        <span className="text-yarn-600 text-sm">🔧</span>
+        <span className="text-sage-600 text-sm">🔧</span>
         <div className="flex-1">
-          <div className="text-xs font-semibold text-yarn-700 mb-1">
-            Assembly Notes:{isClickable && <span className="ml-1 text-yarn-500">(click to edit)</span>}
+          <div className="text-xs font-semibold text-sage-700 mb-1">
+            Assembly Notes:{isClickable && <span className="ml-1 text-sage-500">(click to edit)</span>}
           </div>
-          <div className="text-sm text-yarn-600 italic">"{note}"</div>
+          <div className="text-sm text-sage-600 italic">"{note}"</div>
         </div>
         {isClickable && (
-          <div className="text-yarn-500 text-xs opacity-70">✏️</div>
+          <div className="text-sage-500 text-xs opacity-70">✏️</div>
         )}
       </div>
     </div>
@@ -396,12 +396,6 @@ export const AssemblyNoteOverlay = ({
   title = "Assembly Notes",
   subtitle = "Add notes for what to do after completing this step",
   icon = "🔧",
-  examples = [
-    "Using Kitchener stitch, attach to shoulder",
-    "Block piece before seaming",
-    "Steam lightly and lay flat to dry",
-    "Seam using mattress stitch"
-  ],
   placeholder = "e.g., Using Kitchener stitch, attach to shoulder"
 }) => {
   const [note, setNote] = React.useState(existingNote);
@@ -448,17 +442,17 @@ export const AssemblyNoteOverlay = ({
     <div className="modal-overlay">
       <div className="modal-content-light max-h-[80vh] overflow-y-auto">
 
-        {/* Header with yarn theme */}
+        {/* Header with sage theme */}
         <div className="modal-header-light">
           <div className="flex items-center gap-3">
             <div className="text-2xl">{icon}</div>
             <div className="flex-1">
               <h2 className="text-lg font-semibold">{title}</h2>
-              <p className="text-yarn-600 text-sm">{subtitle}</p>
+              <p className="text-sage-600 text-sm">{subtitle}</p>
             </div>
             <button
               onClick={onClose}
-              className="text-yarn-600 text-2xl hover:bg-yarn-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+              className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
             >
               ×
             </button>
@@ -478,18 +472,8 @@ export const AssemblyNoteOverlay = ({
               placeholder={placeholder}
               rows={2}
               data-modal-focus
-              className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-yarn-500 focus:ring-0 transition-colors bg-white resize-none"
+              className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white resize-none"
             />
-          </div>
-
-          {/* Examples */}
-          <div className="bg-yarn-50 border border-yarn-200 rounded-xl p-4">
-            <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Assembly Examples</h4>
-            <div className="text-sm text-yarn-600 space-y-1">
-              {examples.map((example, index) => (
-                <div key={index}>• {example}</div>
-              ))}
-            </div>
           </div>
 
           <div className="flex gap-3">
