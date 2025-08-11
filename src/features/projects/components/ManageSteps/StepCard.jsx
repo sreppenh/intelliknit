@@ -1,5 +1,5 @@
 import React from 'react';
-import { PrepNoteDisplay } from '../../../../shared/components/PrepStepSystem';
+import { PrepNoteDisplay, AfterNoteDisplay } from '../../../../shared/components/PrepStepSystem';
 import StepMenu from './StepMenu';
 import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
 
@@ -17,12 +17,19 @@ const StepCard = ({
     onEditPattern,
     onEditConfig,
     onPrepNoteClick,
+    onAfterNoteClick,
     editableStepIndex,
 }) => {
     // Extract prep note from various possible locations
     const prepNote = step.prepNote ||
         step.wizardConfig?.prepNote ||
         step.advancedWizardConfig?.prepNote ||
+        '';
+
+    // ✅ NEW: Extract after note from various possible locations
+    const afterNote = step.afterNote ||
+        step.wizardConfig?.afterNote ||
+        step.advancedWizardConfig?.afterNote ||
         '';
 
     // ✅ Get formatted display data
@@ -108,6 +115,13 @@ const StepCard = ({
                     </div>
                 </div>
             </div>
+
+            {/* ✅ NEW: AfterNote Display - Below the step, not numbered */}
+            <AfterNoteDisplay
+                note={afterNote}
+                className="mx-1" // Slight margin to align with step content
+                onClick={() => onAfterNoteClick && onAfterNoteClick(stepIndex)}
+            />
         </div>
     );
 };
