@@ -1,6 +1,6 @@
 import React from 'react';
 import StepCard from './StepCard';
-import { isConstructionStep } from '../../../../shared/utils/stepDisplayUtils';
+import { isConstructionStep, getComponentStatusWithDisplay } from '../../../../shared/utils/stepDisplayUtils';
 
 const StepsList = ({
     component,
@@ -28,9 +28,9 @@ const StepsList = ({
     return (
         <div className="stack-sm">
             <div className="flex justify-between items-center">
-                <h3 className="content-header-secondary">{component.name} Steps</h3>
-                <span className="text-xs text-wool-500 bg-white px-2 py-1 rounded-full border border-wool-200">
-                    {component.steps.filter(s => s.completed).length} of {component.steps.length}
+                <h3 className="content-header-secondary">{component.name} Steps ({component.steps.length})</h3>
+                <span className="text-xs text-wool-600 bg-white px-3 py-1 rounded-full border border-wool-200 font-medium">
+                    {getComponentStatusWithDisplay(component).display}
                 </span>
             </div>
 

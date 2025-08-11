@@ -475,6 +475,67 @@ export const validatePatternConfiguration = (stitchPattern) => {
     return true;
 };
 
+/**
+ * Get component status with display formatting
+ * Centralized logic for all component status displays
+ * Used by: ComponentsTab, ManageSteps, and other component displays
+ */
+export const getComponentStatusWithDisplay = (component) => {
+    // Status categories with display information
+    const statusCategories = {
+        'edit_mode': {
+            display: '✏️ Edit Mode',
+            headerStyle: 'header-status-edit-mode'
+        },
+        'ready_to_knit': {
+            display: '⚡ Ready to Knit',
+            headerStyle: 'header-status-ready'
+        },
+        'currently_knitting': {
+            display: '🧶 Currently Knitting',
+            headerStyle: 'header-status-progress'
+        },
+        'finished': {
+            display: '✅ Finished',
+            headerStyle: 'header-status-complete'
+        },
+        'finishing_in_progress': {
+            display: '🔄 Finishing',
+            headerStyle: 'header-status-progress'
+        },
+        'finishing_done': {
+            display: '✅ Finished',
+            headerStyle: 'header-status-complete'
+        }
+    };
+
+    // Handle finishing components (special case)
+    if (component.type === 'finishing') {
+        if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
+            const status = 'finishing_in_progress';
+            return {
+                status,
+                ...statusCategories[status]
+            };
+        }
+        const allComplete = component.steps.every(s => s.completed);
+        const manuallyConfirmed = component.finishingComplete;
+        const status = (allComplete && manuallyConfirmed) ? 'finishing_done' : 'finishing_in_progress';
+        return {
+            status,
+            ...statusCategories[status]
+        };
+    }
+
+    // Use existing utility for regular components
+    const status = getComponentState(component);
+
+    return {
+        status,
+        ...statusCategories[status]
+    };
+};
+
 // Add these functions to the end of stepDisplayUtils.js, before the existing exports
 
 // ===== PATTERN-SPECIFIC HELPER FUNCTIONS =====
@@ -594,5 +655,6 @@ export default {
     validateStepConfiguration,
     getComponentState,
     getPatternPlaceholderText,
-    getStepType
+    getStepType,
+    getComponentStatusWithDisplay
 };

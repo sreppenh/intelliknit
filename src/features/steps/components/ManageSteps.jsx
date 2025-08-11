@@ -14,6 +14,7 @@ import {
 import DeleteStepModal from '../../../shared/components/DeleteStepModal';
 import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
 import EditRowByRowPatternForm from './EditRowByRowPatternForm';
+import { getComponentStatusWithDisplay } from '../../../shared/utils/stepDisplayUtils';
 
 const ManageSteps = ({ componentIndex, onBack }) => {
   const [showDeleteStepModal, setShowDeleteStepModal] = useState(false);
@@ -137,6 +138,32 @@ const ManageSteps = ({ componentIndex, onBack }) => {
 
   const isComponentFinished = () => {
     return component.steps.some(step => isFinishingStep(step));
+  };
+
+  const isComponentFullyEntered = () => {
+    // Formal finishing step
+    if (isComponentFinished()) return true;
+
+    // OR ending with 0 stitches  
+    if (component.steps.length > 0) {
+      const lastStep = component.steps[component.steps.length - 1];
+      return lastStep.endingStitches === 0;
+    }
+
+    return false;
+  };
+
+  const getComponentStatus = () => {
+    return getComponentStatusWithDisplay(component);
+  };
+
+  const handleKnittingView = () => {
+    // TODO: Navigate to Tracking component
+    console.log('Navigate to knitting view for component:', component.id);
+  };
+
+  const handleViewAllComponents = () => {
+    onBack(); // Navigate back to Components tab
   };
 
   // Determine which step can be edited (last non-completed step, working backwards)
@@ -497,7 +524,8 @@ const ManageSteps = ({ componentIndex, onBack }) => {
           )}
 
           {/* Action Buttons - Only show if component not finished */}
-          {!isComponentFinished() && (
+          {/* Action Buttons */}
+          {!isComponentFullyEntered() ? (
             <div className="flex gap-3">
               <button
                 onClick={handleAddNewStep}
@@ -516,6 +544,23 @@ const ManageSteps = ({ componentIndex, onBack }) => {
                   Finish
                 </button>
               )}
+            </div>
+          ) : (
+            <div className="flex gap-3">
+              <button
+                onClick={handleKnittingView}
+                className="flex-1 bg-sage-600 text-white py-4 rounded-xl font-semibold text-base hover:bg-sage-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+              >
+                <span className="text-lg">🧶</span>
+                Start Knitting
+              </button>
+              <button
+                onClick={handleViewAllComponents}
+                className="flex-1 bg-yarn-600 text-white py-4 rounded-xl font-semibold text-base hover:bg-yarn-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+              >
+                <span className="text-m">📋</span>
+                Project Overview
+              </button>
             </div>
           )}
         </div>

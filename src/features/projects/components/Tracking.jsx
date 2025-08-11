@@ -4,7 +4,6 @@ import PageHeader from '../../../shared/components/PageHeader';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 
-
 const Tracking = ({ onBack, onEditSteps }) => {
   const { currentProject, activeComponentIndex, dispatch } = useProjectsContext();
   const [localActiveIndex, setLocalActiveIndex] = useState(activeComponentIndex || 0);
