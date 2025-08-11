@@ -28,12 +28,6 @@ const PhaseConfigSummary = ({
   const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
 
   const handleCompleteStep = async () => {
-    console.log('🔧 PHASE HANDLE COMPLETE CALLED');
-    console.log('🔧 PHASE DATA:', { phases, result, currentStitches, componentIndex });
-
-    // ADD THIS DEBUG:
-    console.log('🔍 RESULT OBJECT:', result);
-    console.log('🔍 ENDING STITCHES:', result.endingStitches);
 
     // 🎯 PRESERVE: Original data structure that parent expects
     const originalPhaseData = {
@@ -73,10 +67,6 @@ const PhaseConfigSummary = ({
       dispatch,
       skipNavigation: true
     });
-
-    // ADD THIS RIGHT HERE:
-    console.log('🔧 SAVE RESULT:', saveResult);
-    console.log('🔧 WHAT WE TRIED TO SAVE - endingStitches:', result.endingStitches);
 
     if (saveResult.success) {
       onExitToComponentSteps();

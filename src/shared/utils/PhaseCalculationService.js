@@ -50,8 +50,6 @@ export class PhaseCalculationService {
       totalPhases: editingPhaseId ? phases.length : phases.length + 1
     };
 
-    console.log('🔍 calculateStitchContext result:', result);
-
     return result;
   }
 

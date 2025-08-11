@@ -363,12 +363,6 @@ export const projectsReducer = (state, action) => {
       };
 
     case 'ADD_STEP':
-
-      console.log('🔧 ADD_STEP:', {
-        componentIndex: action.payload.componentIndex,
-        stepPattern: action.payload.step?.wizardConfig?.stitchPattern?.pattern,
-        stepDescription: action.payload.step?.description
-      });
       if (!state.currentProject) {
         IntelliKnitLogger.error('ADD_STEP: No current project');
         return state;
