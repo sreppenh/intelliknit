@@ -253,8 +253,6 @@ const PhaseConfigForm = ({
                           const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
                           const correctedTimes = Math.min(newConfig.times, maxTimes);
 
-                          IntelliKnitLogger.debug('Position Change', `Position: ${option.value}, Times: ${newConfig.times} → ${correctedTimes}`);
-
                           newConfig.times = correctedTimes;
                         }
 

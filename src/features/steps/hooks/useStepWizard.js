@@ -132,7 +132,6 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
   }, [component?.steps, componentIndex]);
 
   const updateWizardData = (sectionOrKey, dataOrValue) => {
-    IntelliKnitLogger.debug('Step Wizard', `Updating wizard data: ${sectionOrKey}`, dataOrValue);
 
     setWizardData(prev => {
       // Handle root-level properties (like hasShaping, prepNote)
@@ -155,7 +154,6 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
   const resetWizardData = () => {
     setWizardData(getInitialWizardData(currentProject?.defaultUnits));
     smartNav.clearCache(); // Clear navigation cache too
-    IntelliKnitLogger.debug('Step Wizard', 'Reset wizard data and navigation cache');
   };
 
   // Check if current pattern can have shaping
@@ -242,13 +240,11 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
 
     nextStep: () => {
       const nextStep = getNextStep(smartNav.currentStep);
-      IntelliKnitLogger.debug('Step Wizard', `Next step: ${smartNav.currentStep} → ${nextStep}`);
       smartNav.goToStep(nextStep);
     },
 
     previousStep: () => {
       const result = smartNav.goBack();
-      IntelliKnitLogger.debug('Step Wizard', `Previous step result:`, result);
 
       if (result.action === 'exit') {
         // Will be handled by parent component
@@ -258,7 +254,6 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     },
 
     goToStep: (step) => {
-      IntelliKnitLogger.debug('Step Wizard', `Direct navigation to step: ${step}`);
       smartNav.goToStep(step);
     },
 

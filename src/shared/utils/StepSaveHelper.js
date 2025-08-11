@@ -92,6 +92,8 @@ export const useStepSaveHelper = () => {
                 }
             };
 
+            console.log('🔍 STEP DATA BEING SENT TO REDUCER:', stepData);
+
             // Dispatch appropriate action (following exact pattern from useStepActions)
             if (editingStepIndex !== null) {
                 IntelliKnitLogger.success(`Updating step ${editingStepIndex}`, stepData);

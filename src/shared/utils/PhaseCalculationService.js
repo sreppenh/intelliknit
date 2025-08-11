@@ -30,7 +30,7 @@ export class PhaseCalculationService {
 
       // Calculate stitches consumed by previous phases only
       for (let i = 0; i < editingIndex; i++) {
-        const stitchChange = this.calculatePhaseStitchChange(phases[i]);
+        const stitchChange = PhaseCalculationService.calculatePhaseStitchChange(phases[i]); // ✅ CORRECT
         console.log(`🔍 Phase ${i} stitch change:`, stitchChange);
         currentStitchCount += stitchChange;
       }
@@ -39,7 +39,7 @@ export class PhaseCalculationService {
       phaseNumber = phases.length + 1;
 
       for (let i = 0; i < phases.length; i++) {
-        const stitchChange = this.calculatePhaseStitchChange(phases[i]);
+        const stitchChange = PhaseCalculationService.calculatePhaseStitchChange(phases[i]); // ✅ CORRECT
         currentStitchCount += stitchChange;
       }
     }

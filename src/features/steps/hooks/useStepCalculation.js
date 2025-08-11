@@ -75,7 +75,6 @@ export const useStepCalculation = () => {
         }
         else {
           // No valid modern shaping data found
-          IntelliKnitLogger.debug('No modern shaping data found in calculation');
         }
       } catch (error) {
         IntelliKnitLogger.error('Modern shaping calculation error', error);

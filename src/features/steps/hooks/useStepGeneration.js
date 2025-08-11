@@ -98,7 +98,6 @@ export const useStepGeneration = (construction = 'flat') => {
       const { shapingMode, shapingType, positions, frequency, times, comments, type, config } = wizardData.shapingConfig;
 
       // Legacy detection (safety check)
-      IntelliKnitLogger.debug('Shaping debug - type:', type, 'config exists:', !!config);
 
       if (shapingMode && !type) {
         IntelliKnitLogger.warn('🚨 UNEXPECTED LEGACY SHAPING DETECTED', {
@@ -116,7 +115,6 @@ export const useStepGeneration = (construction = 'flat') => {
       }
       else {
         // No shaping data found - pattern-only step
-        IntelliKnitLogger.debug('No shaping data found - pattern-only step');
       }
 
       if (comments) {
