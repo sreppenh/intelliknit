@@ -196,6 +196,7 @@ const IntelliknitMVPContent = () => {
         <ManageSteps
           componentIndex={selectedComponentIndex}
           onBack={handleBackToProjectDetail}
+          onStartKnitting={handleStartKnitting}  // ← ADD THIS LINE
         />
       );
 

@@ -16,7 +16,7 @@ import { getHumanReadableDescription } from '../../../shared/utils/stepDescripti
 import EditRowByRowPatternForm from './EditRowByRowPatternForm';
 import { getComponentStatusWithDisplay } from '../../../shared/utils/stepDisplayUtils';
 
-const ManageSteps = ({ componentIndex, onBack }) => {
+const ManageSteps = ({ componentIndex, onBack, onStartKnitting }) => {
   const [showDeleteStepModal, setShowDeleteStepModal] = useState(false);
   const [stepToDelete, setStepToDelete] = useState(null);
   const { currentProject, dispatch } = useProjectsContext();
@@ -158,8 +158,11 @@ const ManageSteps = ({ componentIndex, onBack }) => {
   };
 
   const handleKnittingView = () => {
-    // TODO: Navigate to Tracking component
-    console.log('Navigate to knitting view for component:', component.id);
+    if (onStartKnitting) {
+      onStartKnitting(componentIndex);
+    } else {
+      console.log('onStartKnitting prop not provided');
+    }
   };
 
   const handleViewAllComponents = () => {
