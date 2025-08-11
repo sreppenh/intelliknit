@@ -64,12 +64,6 @@ export const getContextualPatternNotes = (step) => {
         return customText ? customText.trim() : null;
     }
 
-    // For attachments, could show assembly notes
-    if (pattern === 'Attach to Piece') {
-        const customText = step.wizardConfig?.stitchPattern?.customText;
-        return customText ? customText.trim() : null;
-    }
-
     // ✅ NEW: Show custom text for Other Ending in italics
     if (pattern === 'Other Ending') {
         const customText = step.wizardConfig?.stitchPattern?.customText;
@@ -196,8 +190,6 @@ const getFinalizationStepDescription = (step) => {
             return getBindOffDescription(step);
         case 'Put on Holder':
             return getHolderDescription(step);
-        case 'Attach to Piece':
-            return getAttachmentDescription(step);
         case 'Other Ending':
             return getOtherEndingDescription(step);
         default:
@@ -484,7 +476,7 @@ export const hasContextualConfigNotes = (step) => {
  */
 export const isEndingStep = (step) => {
     const pattern = getStepPatternName(step);
-    return ['Bind Off', 'Put on Holder', 'Attach to Piece', 'Other Ending'].includes(pattern);
+    return ['Bind Off', 'Put on Holder', 'Other Ending'].includes(pattern);
 };
 
 /**
@@ -497,7 +489,6 @@ export const getStepDisplayPriority = (step) => {
     if (pattern === 'Cast On') return 1;
     if (pattern === 'Bind Off') return 100;
     if (pattern === 'Put on Holder') return 95;
-    if (pattern === 'Attach to Piece') return 98;
     if (pattern === 'Other Ending') return 97;
 
     // Regular pattern steps in middle

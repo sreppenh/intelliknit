@@ -89,7 +89,6 @@ export const getStepPatternName = (step) => {
     }
 
     // LAST RESORT: Check if this is ComponentEndingWizard output
-    if (step.type === 'attach_to_piece') return 'Attach to Piece';
     if (step.type === 'put_on_holder') return 'Put on Holder';
     if (step.type === 'bind_off_all') return 'Bind Off';
 
@@ -123,9 +122,6 @@ export const getStepMethodDisplay = (step) => {
 
         case 'Bind Off':
             return BIND_OFF_METHODS[method] || (method === 'other' ? customText : method);
-
-        case 'Attach to Piece':
-            return ATTACH_METHODS[method] || (method === 'other' ? customText : method);
 
         default:
             return '';
@@ -257,7 +253,7 @@ export const isInitializationStep = (step) => {
  */
 export const isFinishingStep = (step) => {
     const pattern = getStepPatternName(step);
-    return ['Bind Off', 'Put on Holder', 'Attach to Piece'].includes(pattern);
+    return ['Bind Off', 'Put on Holder', 'Other Ending'].includes(pattern);
 };
 
 /**

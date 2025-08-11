@@ -313,7 +313,7 @@ const calculateEndingStitches = (startingStitches, shapingData) => {
  */
 const getPatternCategory = (pattern) => {
     const categories = {
-        'construction': ['Cast On', 'Bind Off', 'Put on Holder', 'Attach to Piece'],
+        'construction': ['Cast On', 'Bind Off', 'Put on Holder', 'Other Ending'],
         'texture': ['Stockinette', 'Garter', 'Reverse Stockinette', '1x1 Rib', '2x2 Rib', 'Seed Stitch', 'Moss Stitch'],
         'colorwork': ['Stranded Colorwork', 'Intarsia', 'Fair Isle', 'Mosaic'],
         'structure': ['Lace', 'Cable', 'Brioche']
