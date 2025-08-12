@@ -14,7 +14,7 @@ import {
 const EditRowByRowPatternForm = ({
     componentIndex,
     editingStepIndex,
-    onBack
+    onBack, onGoToLanding
 }) => {
     const { currentProject, dispatch } = useProjectsContext();
 
@@ -221,13 +221,12 @@ const EditRowByRowPatternForm = ({
         <div className="min-h-screen bg-yarn-50">
             <div className="app-container bg-white min-h-screen shadow-lg">
                 <PageHeader
-                    title={`Edit ${formData.pattern}`}
-                    subtitle="Pattern configuration"
+                    useBranding={true}
+                    onHome={onGoToLanding}
+                    compact={true}
                     onBack={onBack}
-                    showBackButton={true}
                     showCancelButton={true}
-                    onCancel={onBack}
-                />
+                    onCancel={onBack}></PageHeader>
 
                 <div className="p-6 space-y-6">
                     {/* Entry Mode Toggle */}

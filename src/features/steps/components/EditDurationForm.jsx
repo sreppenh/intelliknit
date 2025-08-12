@@ -7,7 +7,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 const EditDurationForm = ({
     componentIndex,
     editingStepIndex,
-    onBack
+    onBack, onGoToLanding
 }) => {
     const { currentProject, dispatch } = useProjectsContext();
 
@@ -110,10 +110,10 @@ const EditDurationForm = ({
         <div className="min-h-screen bg-yarn-50">
             <div className="app-container bg-white min-h-screen shadow-lg">
                 <PageHeader
-                    title="Edit Configuration"
-                    subtitle="Duration settings"
+                    useBranding={true}
+                    onHome={onGoToLanding}
+                    compact={true}
                     onBack={onBack}
-                    showBackButton={true}
                     showCancelButton={true}
                     onCancel={onBack}
                 />

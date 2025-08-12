@@ -85,6 +85,8 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
           onHome={onGoToLanding}
           compact={true}
           onBack={onBack}
+          showCancelButton={true}
+          onCancel={handleXButtonClick}
         // Remove title/subtitle
         />
 

@@ -34,6 +34,8 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
           onHome={onGoToLanding}  // ✨ ADD  
           compact={true}          // ✨ ADD
           onBack={onBack}
+          showCancelButton={true}
+          onCancel={onBack}
         />
 
         {/* Component Tabs */}

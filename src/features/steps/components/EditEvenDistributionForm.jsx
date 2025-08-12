@@ -8,7 +8,7 @@ import { formatKnittingInstruction } from '../../../shared/utils/knittingNotatio
 const EditEvenDistributionForm = ({
     componentIndex,
     editingStepIndex,
-    onBack
+    onBack, onGoToLanding
 }) => {
     const { currentProject, dispatch } = useProjectsContext();
 
@@ -177,10 +177,10 @@ const EditEvenDistributionForm = ({
         <div className="min-h-screen bg-yarn-50">
             <div className="app-container bg-white min-h-screen shadow-lg">
                 <PageHeader
-                    title="Edit Configuration"
-                    subtitle="Even Distribution settings"
+                    useBranding={true}
+                    onHome={onGoToLanding}
+                    compact={true}
                     onBack={onBack}
-                    showBackButton={true}
                     showCancelButton={true}
                     onCancel={onBack}
                 />

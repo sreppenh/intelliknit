@@ -102,6 +102,8 @@ const EditProjectDetails = ({ onBack, onGoToLanding }) => {
           onHome={onGoToLanding}
           compact={true}
           onBack={onBack}
+          showCancelButton={true}
+          onCancel={onBack}
         // Remove title/subtitle
         />
 

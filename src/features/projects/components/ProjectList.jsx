@@ -315,6 +315,8 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack, onGoToLanding }) 
           onHome={onGoToLanding}
           compact={true}
           onBack={onBack}
+          showCancelButton={true}
+          onCancel={onBack}
         />
 
 

@@ -61,6 +61,8 @@ const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect, o
           onHome={onGoToLanding}
           compact={true}
           onBack={onBack}
+          showCancelButton={true}
+          onCancel={handleXButtonClick}
         // Remove title/subtitle
         />
 

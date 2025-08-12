@@ -477,6 +477,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
           onHome={onGoToLanding}  // ✨ ADD  
           compact={true}          // ✨ ADD
           onBack={onBack}
+          showCancelButton={true}
+          onCancel={onBack}
         />
 
         <div className="p-6 bg-yarn-50 stack-lg">

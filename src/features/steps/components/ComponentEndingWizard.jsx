@@ -12,7 +12,7 @@ const ComponentEndingWizard = ({
   projectName,
   onBack,
   onComplete,
-  onNavigateToProject,
+  onNavigateToProject, onGoToLanding
 }) => {
   const [step, setStep] = useState(1);
   const [endingData, setEndingData] = useState({
@@ -552,9 +552,10 @@ const ComponentEndingWizard = ({
       <div className="min-h-screen bg-yarn-50">
         <div className="app-container bg-white min-h-screen shadow-lg">
           <PageHeader
-            title="Configure Ending"
-            subtitle="Set up the details"
-            onBack={() => setStep(1)}
+            useBranding={true}
+            onHome={onGoToLanding}
+            compact={true}
+            onBack={onBack}
             showCancelButton={true}
             onCancel={handleExitToComponentSteps}
           />

@@ -33,8 +33,8 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
 
         {/* Header with app branding */}
         <PageHeader
-          title="🧶 IntelliKnit"
-          showBackButton={false}
+          useBranding={true}
+          compact={true}
         />
         {/* Greeting Section */}
         <div className="px-6 py-6 bg-gradient-to-b from-sage-100 to-yarn-50">

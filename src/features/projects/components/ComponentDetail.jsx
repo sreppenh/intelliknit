@@ -66,6 +66,8 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
           onHome={onGoToLanding}
           compact={true}
           onBack={onBack}
+          showCancelButton={true}
+          onCancel={onBack}
         // Remove title/subtitle
         />
 
