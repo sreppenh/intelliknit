@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
-import { getProjectStatus as getSharedProjectStatus } from '../../../shared/utils/projectStatus';
 import { getUnifiedProjectStatus } from '../../../shared/utils/unifiedProjectStatus';
 
 

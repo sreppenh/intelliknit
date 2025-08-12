@@ -19,10 +19,12 @@ const PhaseConfig = ({
   componentIndex, // ADDED
   onExitToComponentSteps,
   onComplete,
+  onCancel,
   onBack,
   wizardData,
   onGoToLanding,     // Should be here
   wizard             // Should be here too
+
 }) => {
   // All state management and logic handled by custom hook
   const phaseManager = usePhaseManager(currentStitches, construction, shapingData);
@@ -106,6 +108,7 @@ const PhaseConfig = ({
         wizardData={wizardData} // ← Add this line
         wizard={wizard}  // Make sure this line exists
         onGoToLanding={onGoToLanding}  // And this line
+        onCancel={onCancel}
       />
     );
   }
@@ -122,6 +125,7 @@ const PhaseConfig = ({
         wizard={wizard}
         onGoToLanding={onGoToLanding}  // And this line
         wizardData={wizardData} // ← Add this line
+        onCancel={onCancel}
       />
     );
   }
@@ -146,6 +150,7 @@ const PhaseConfig = ({
         onGoToLanding={onGoToLanding}  // And this line
         wizard={wizard}  // Make sure this line exists
         wizardData={wizardData} // ← Add this line
+        onCancel={onCancel}
       />
     );
   }

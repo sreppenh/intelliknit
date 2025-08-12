@@ -1,5 +1,5 @@
 // src/features/steps/components/shaping-wizard/PhaseConfigSummary.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
@@ -31,6 +31,12 @@ const PhaseConfigSummary = ({
   // ✅ ADD THE HELPER HOOKS RIGHT HERE:
   const { dispatch } = useProjectsContext();
   const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
+  const [showBackWarning, setShowBackWarning] = useState(false);
+
+  const [showExitModal, setShowExitModal] = useState(false);
+  const [exitType, setExitType] = useState('exit'); // NEW: Track exit type
+  const [customNavigation, setCustomNavigation] = useState(null); // NEW: Track custom navigation
+
 
   const handleCompleteStep = async () => {
 
@@ -75,6 +81,14 @@ const PhaseConfigSummary = ({
 
     if (saveResult.success) {
       onExitToComponentSteps();
+    }
+  };
+
+  const handleBackWithWarning = () => {
+    if (phases.length > 0) {
+      setShowBackWarning(true);  // Show our custom modal
+    } else {
+      onBack();  // Safe to go back
     }
   };
 
@@ -129,10 +143,10 @@ const PhaseConfigSummary = ({
 
     <div>
       <ShapingHeader
-        onBack={onBack}
+        onBack={handleBackWithWarning}
         onGoToLanding={onGoToLanding}
         wizard={wizard}
-        onCancel={onCancel}
+        onCancel={() => onCancel('exit')} // Default exit behavior
       />
 
 
@@ -259,7 +273,7 @@ const PhaseConfigSummary = ({
             {/* Navigation */}
             <div className="flex gap-3 pt-4">
               <button
-                onClick={onBack}
+                onClick={handleBackWithWarning}  // Change from onBack to handleBackWithWarning
                 className="btn-tertiary flex-1"
               >
                 ← Back
@@ -283,8 +297,70 @@ const PhaseConfigSummary = ({
           onClose={clearError}
           onRetry={handleCompleteStep}
         />
-      </div></div>
+      </div>
+
+      {/* Add this modal at the end of your return statement */}
+      {showBackWarning && (
+        <div className="modal-overlay" onClick={(event) => {
+          if (event.target === event.currentTarget) {
+            setShowBackWarning(false);
+          }
+        }}>
+          <div className="modal-content">
+            {/* Header */}
+            <div className="bg-yarn-600 text-white px-6 py-4 rounded-t-2xl relative flex items-center justify-center">
+              <div className="text-center">
+                <div className="text-2xl mb-2">⚠️</div>
+                <h2 className="text-lg font-semibold">Lose Shaping Configuration?</h2>
+                <p className="text-yarn-100 text-sm">Your phase sequence will be deleted</p>
+              </div>
+              <button
+                onClick={() => setShowBackWarning(false)}
+                className="absolute right-3 text-yarn-100 text-2xl hover:bg-yarn-500 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                aria-label="Close modal"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Content */}
+            <div className="p-6 bg-yarn-50">
+              <div className="text-center mb-6">
+                <p className="text-wool-600 mb-2">
+                  Going back will delete your current phase sequence. This cannot be undone.
+                </p>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="stack-sm">
+                {/* Primary action - Go Back */}
+                <button
+                  onClick={() => { setShowBackWarning(false); onBack(); }}
+                  data-modal-exit
+                  className="w-full btn-danger flex items-center justify-center gap-2"
+                >
+                  Go Back Anyway
+                </button>
+
+                {/* Secondary action - Stay */}
+                <button
+                  onClick={() => setShowBackWarning(false)}
+                  className="w-full btn-primary"
+                >
+                  Stay Here
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+
+
   );
+
+
 };
 
 export default PhaseConfigSummary;
