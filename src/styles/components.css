@@ -845,6 +845,8 @@ select {
   }
 }
 
+
+
 /* ===== SECTION HEADERS (For ComponentsTab status sections) ===== */
 .header-status-edit-mode {
   @apply bg-yarn-100 border-2 border-yarn-300 text-yarn-800 rounded-xl p-3;

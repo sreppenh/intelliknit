@@ -11,13 +11,26 @@ import Tracking from './Tracking';
 import StepWizard from '../../steps/components/StepWizard';
 import ManageSteps from '../../steps/components/ManageSteps';
 import ProjectTypeSelector from './ProjectTypeSelector';
+import { useAppNavigation } from '../../../shared/hooks/useAppNavigation';
 
 
 const IntelliknitMVPContent = () => {
-  const [currentView, setCurrentView] = useState('landing'); // Changed from 'project-list'
+  const [currentView, setCurrentView] = useState('landing');
   const { dispatch, selectedComponentIndex } = useProjectsContext();
   const [selectedProjectType, setSelectedProjectType] = useState(null);
-  const [projectCreationSource, setProjectCreationSource] = useState(null); // ADD THIS LINE FOR TRACKING
+  const [projectCreationSource, setProjectCreationSource] = useState(null);
+
+  const {
+    goToLanding,
+    goToProjectList,
+    goToProjectDetail,
+    goToStepWizard,
+    goToManageSteps,
+    goToTracking,
+    goToComponentDetail,
+    goToEditProjectDetails
+  } = useAppNavigation(setCurrentView, setSelectedProjectType, setProjectCreationSource);
+
 
   // UPDATE handleAddNewProject (from Landing Page):
   const handleAddNewProject = () => {
@@ -129,6 +142,7 @@ const IntelliknitMVPContent = () => {
           onCreateProject={handleCreateProject}
           onOpenProject={handleOpenProject}
           onBack={handleBackToLanding} // NEW: Add back to landing
+          onGoToLanding={goToLanding}  // ✨ ADD THIS LINE
         />
       );
 
@@ -163,6 +177,7 @@ const IntelliknitMVPContent = () => {
           onManageSteps={handleManageSteps}
           onStartKnitting={handleStartKnitting}
           onEditProjectDetails={handleEditProjectDetails}
+          onGoToLanding={goToLanding}  // ✨ ADD THIS LINE
         />
       );
 
@@ -188,6 +203,7 @@ const IntelliknitMVPContent = () => {
         <StepWizard
           componentIndex={selectedComponentIndex}
           onBack={handleBackToProjectDetail}
+          onGoToLanding={goToLanding}  // ✨ ADD THIS LINE
         />
       );
 
@@ -197,6 +213,7 @@ const IntelliknitMVPContent = () => {
           componentIndex={selectedComponentIndex}
           onBack={handleBackToProjectDetail}
           onStartKnitting={handleStartKnitting}  // ← ADD THIS LINE
+          onGoToLanding={goToLanding}
         />
       );
 
@@ -205,6 +222,7 @@ const IntelliknitMVPContent = () => {
         <Tracking
           onBack={handleBackToProjectDetail}
           onEditSteps={handleEditSteps}
+          onGoToLanding={goToLanding}
         />
       );
 

@@ -15,7 +15,7 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 import DurationWizard from './DurationWizard';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 
-const StepWizard = ({ componentIndex, editingStepIndex = null, editMode = null, onBack }) => {
+const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex, editMode);
   const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
   const { currentProject } = useProjectsContext();
@@ -280,6 +280,7 @@ const StepWizard = ({ componentIndex, editingStepIndex = null, editMode = null, 
         wizard={wizard}
         onBack={navigation.previousStep} // 🎯 SIMPLIFIED: Use smart navigation
         onCancel={handleXButtonClick}
+        onGoToLanding={onGoToLanding}
       />
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}

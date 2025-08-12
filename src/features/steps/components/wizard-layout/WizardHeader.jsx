@@ -1,8 +1,9 @@
 import React from 'react';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
+import PageHeader from '../../../../shared/components/PageHeader';
 
-const WizardHeader = ({ wizard, onBack, onCancel }) => {
+const WizardHeader = ({ wizard, onBack, onCancel, onGoToLanding }) => {
   const { currentProject } = useProjectsContext();
 
   // 🎯 NEW: Smart navigation - just 8 lines instead of 50!
@@ -99,49 +100,17 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
   };
 
   return (
-    <>
-      {/* 1. Main Header (Dark Green) - Project Context */}
-      <div className="bg-sage-500 text-white px-6 py-4">
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleBack}
-            className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors flex-shrink-0"
-          >
-            ←
-          </button>
-
-          <div className="flex-1 min-w-0">
-            {/* Project Name + Icon (Primary) */}
-            <div className="flex items-center justify-center gap-2">
-              <h1 className="text-lg font-semibold truncate">
-                {getProjectContext().projectName}
-              </h1>
-              <span className="text-lg flex-shrink-0">
-                {getProjectContext().projectIcon}
-              </span>
-            </div>
-
-            {/* Component Name (Secondary) */}
-            <p className="text-sage-100 text-sm truncate">
-              {getProjectContext().componentName}
-            </p>
-          </div>
-
-          {onCancel && (
-            <button
-              onClick={onCancel}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors flex-shrink-0"
-              title="Cancel step creation"
-            >
-              ✕
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* 2. Contextual Subheader (Light Green) - Technical Context */}
-      <div className="px-6 py-3 bg-sage-100 border-b border-sage-200">
-        <div className="flex items-center justify-between text-sm">
+    <PageHeader
+      useBranding={true}
+      onHome={onGoToLanding}
+      onBack={handleBack}
+      showCancelButton={!!onCancel}
+      onCancel={onCancel}
+      compact={true}
+      sticky={true}
+      showContextualBar={true}
+      contextualInfo={{
+        leftContent: (
           <div className="flex items-center gap-2 text-sage-700">
             <span>{getConstructionDisplay()}</span>
             <span>•</span>
@@ -151,9 +120,9 @@ const WizardHeader = ({ wizard, onBack, onCancel }) => {
               {getStitchCountDisplay()}
             </span>
           </div>
-        </div>
-      </div>
-    </>
+        )
+      }}
+    />
   );
 };
 

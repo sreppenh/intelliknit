@@ -2,6 +2,7 @@
 // Refactored with extracted components and centralized actions
 // STRUCTURAL CLEANUP: Removed ProjectStatusBar for clean hierarchy
 // CSS GRID LAYOUT: Fixed sticky header positioning
+// ✨ NEW: Upgraded to use compact branding header with perfect tab connection
 
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
@@ -48,6 +49,14 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
     onManageSteps,
     onEditProjectDetails
   });
+
+  // ✨ NEW: Home navigation handler
+  const handleHomeNavigation = () => {
+    // Navigate back to landing page
+    // This assumes you have a way to navigate to landing page
+    // You might need to pass this as a prop or use your navigation system
+    onBack(); // For now, this goes back - you can enhance this later
+  };
 
   if (!currentProject) {
     return <div>No project selected</div>;
@@ -155,21 +164,15 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
         {/* CSS GRID CONTAINER - Fixes sticky positioning */}
         <div className="project-detail-grid">
 
-          {/* FIXED HEADER ROW */}
+          {/* FIXED HEADER ROW - ✨ NOW WITH COMPACT BRANDING! */}
           <div className="header-row">
             <PageHeader
-              title={
-                <div className="flex items-center gap-2 justify-center">
-                  <span className="text-base">
-                    {getProjectIcon(currentProject.projectType)}
-                  </span>
-                  <span>{currentProject.name}</span>
-                </div>
-              }
-              subtitle="Project Dashboard"
+              useBranding={true}
+              onHome={handleHomeNavigation}
               onBack={onBack}
               showCancelButton={true}
               onCancel={onBack}
+              compact={true}  // ✨ NEW: Makes it streamlined (py-2)
               sticky={false} // Grid handles positioning
             />
           </div>
@@ -293,7 +296,7 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
         )}
       </div>
 
-      {/* CSS Grid Styles */}
+      {/* ✨ FIXED CSS Grid Styles - Now matches compact header height */}
       <style>{`
         .project-detail-grid {
           display: grid;
@@ -311,9 +314,10 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
 
         .tabs-row {
           position: sticky;
-          top: 72px;
+          top: 56px;  /* ✨ FIXED: 56px for compact header (py-2) */
           z-index: 25;
           grid-row: 2;
+          margin-top: -1px; /* ✨ Overlap by 1px for seamless connection */
         }
 
         .content-row {
@@ -323,6 +327,17 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
           overscroll-behavior: none;
         }
 
+        /* ✨ NEW: Ensure tabs connect seamlessly to header */
+        .tabs-row .bg-sage-100 {
+          border-top: none !important;
+        }
+
+        /* ✨ NEW: Remove any browser default spacing */
+        .tabs-row > div {
+          margin: 0 !important;
+          padding-top: 0 !important;
+        }
+
         /* Mobile safe area support */
         @media (max-width: 768px) {
           .header-row {
@@ -330,7 +345,8 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
           }
           
           .tabs-row {
-            top: calc(72px + env(safe-area-inset-top, 0));
+            top: calc(56px + env(safe-area-inset-top, 0));  /* ✨ FIXED: 56px for compact */
+            margin-top: -1px;
           }
         }
 

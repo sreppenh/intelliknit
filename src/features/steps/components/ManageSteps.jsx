@@ -16,7 +16,7 @@ import { getHumanReadableDescription } from '../../../shared/utils/stepDescripti
 import EditRowByRowPatternForm from './EditRowByRowPatternForm';
 import { getComponentStatusWithDisplay } from '../../../shared/utils/stepDisplayUtils';
 
-const ManageSteps = ({ componentIndex, onBack, onStartKnitting }) => {
+const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding }) => {
   const [showDeleteStepModal, setShowDeleteStepModal] = useState(false);
   const [stepToDelete, setStepToDelete] = useState(null);
   const { currentProject, dispatch } = useProjectsContext();
@@ -473,12 +473,10 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting }) => {
       <div className="app-container bg-white min-h-screen shadow-lg">
         {/* Header */}
         <PageHeader
-          title="Manage Steps"
-          subtitle={isComponentFinished() ? "Completed" : component.name}
+          useBranding={true}      // ✨ ADD
+          onHome={onGoToLanding}  // ✨ ADD  
+          compact={true}          // ✨ ADD
           onBack={onBack}
-          showBackButton={!isComponentFinished()}
-          showCancelButton={true}
-          onCancel={onBack}
         />
 
         <div className="p-6 bg-yarn-50 stack-lg">

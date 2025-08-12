@@ -4,7 +4,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 
-const Tracking = ({ onBack, onEditSteps }) => {
+const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const { currentProject, activeComponentIndex, dispatch } = useProjectsContext();
   const [localActiveIndex, setLocalActiveIndex] = useState(activeComponentIndex || 0);
 
@@ -30,14 +30,15 @@ const Tracking = ({ onBack, onEditSteps }) => {
     <div className="min-h-screen bg-gray-50">
       <div className="app-container bg-white min-h-screen shadow-lg">
         <PageHeader
-          title={currentProject.name}
-          subtitle="Knitting Mode"
+          useBranding={true}      // ✨ ADD
+          onHome={onGoToLanding}  // ✨ ADD  
+          compact={true}          // ✨ ADD
           onBack={onBack}
         />
 
         {/* Component Tabs */}
         <div className="bg-white border-b border-gray-200 px-4 py-2">
-          <div className="flex gap-2 overflow-x-auto">
+          <div className="flex gap-2 overflow-x-auto pb-2">
             {currentProject.components.map((component, index) => (
               <button
                 key={component.id}

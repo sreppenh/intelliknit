@@ -6,7 +6,7 @@ import { getProjectStatus as getSharedProjectStatus } from '../../../shared/util
 import { getUnifiedProjectStatus } from '../../../shared/utils/unifiedProjectStatus';
 
 
-const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
+const ProjectList = ({ onCreateProject, onOpenProject, onBack, onGoToLanding }) => {
   const { projects, dispatch } = useProjectsContext();
   const [filterState, setFilterState] = useState('all');
   const [sortBy, setSortBy] = useState('activity'); // ✅ ADD THIS LINE
@@ -311,8 +311,9 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack }) => {
 
         {/* PageHeader */}
         <PageHeader
-          title="My Projects"
-          subtitle={`${filteredProjects.length} ${filteredProjects.length === 1 ? 'project' : 'projects'}`}
+          useBranding={true}
+          onHome={onGoToLanding}
+          compact={true}
           onBack={onBack}
         />
 
