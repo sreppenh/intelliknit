@@ -425,13 +425,13 @@ const OverviewTab = (props) => {
                                         onChangeTab('details');
                                         window.scrollTo({ top: 0, behavior: 'smooth' });
                                     }}
-                                    className="btn-tertiary text-sm"
+                                    className="btn-tertiary"
                                 >
                                     ⚙️ Edit Details
                                 </button>
                                 <button
                                     onClick={handleCopyProject}
-                                    className="btn-tertiary text-sm"
+                                    className="btn-tertiary"
                                 >
                                     📋 Copy Project
                                 </button>

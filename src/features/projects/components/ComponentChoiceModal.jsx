@@ -64,7 +64,7 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
             <button
               onClick={onAddSteps}
               data-modal-primary
-              className="w-full btn-secondary flex items-center justify-center gap-2"
+              className="w-full btn-primary flex items-center justify-center gap-2"
             >
               <span className="text-lg">📝</span>
               Add Steps to {componentName}
@@ -73,7 +73,7 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
             {/* Secondary action - Add Another */}
             <button
               onClick={onAddAnother}
-              className="w-full btn-primary flex items-center justify-center gap-2"
+              className="w-full btn-secondary flex items-center justify-center gap-2"
             >
               <span className="text-lg">🧶</span>
               Add Another Component

@@ -173,7 +173,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                 {canDelete && (
                   <button
                     onClick={() => setShowDeleteModal(true)}
-                    className="w-full bg-red-50 text-red-700 py-3 px-4 rounded-xl font-semibold text-base hover:bg-red-100 transition-colors border border-red-200 flex items-center justify-center gap-2"
+                    className="w-full btn-danger flex items-center justify-center gap-2"
                   >
                     <span>🗑️</span>
                     Delete Component
