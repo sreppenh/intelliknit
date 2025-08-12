@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 
-const EditProjectDetails = ({ onBack }) => {
+const EditProjectDetails = ({ onBack, onGoToLanding }) => {
   const { currentProject, dispatch } = useProjectsContext();
 
   const [projectData, setProjectData] = useState({
@@ -98,9 +98,11 @@ const EditProjectDetails = ({ onBack }) => {
 
         {/* Header */}
         <PageHeader
-          title="Edit Project Details"
-          subtitle={currentProject.name}
+          useBranding={true}
+          onHome={onGoToLanding}
+          compact={true}
           onBack={onBack}
+        // Remove title/subtitle
         />
 
 

@@ -3,7 +3,7 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import PageHeader from '../../../shared/components/PageHeader';
 
-const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect, onExitToProjectList }) => {
+const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect, onExitToProjectList, onGoToLanding }) => {
   const [showExitModal, setShowExitModal] = useState(false);
 
   const projectTypes = [
@@ -57,11 +57,11 @@ const ProjectTypeSelector = ({ onBack, onContinue, selectedType, onTypeSelect, o
         {/* Compact Header */}
 
         <PageHeader
-          title="What are you making?"
-          subtitle="Choose your project type"
+          useBranding={true}
+          onHome={onGoToLanding}
+          compact={true}
           onBack={onBack}
-          showCancelButton={true}
-          onCancel={handleXButtonClick}
+        // Remove title/subtitle
         />
 
         <div className="p-4 bg-yarn-50 space-y-4">

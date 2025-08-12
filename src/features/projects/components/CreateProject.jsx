@@ -5,7 +5,7 @@ import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal'
 import PageHeader from '../../../shared/components/PageHeader';
 import SegmentedControl from '../../../shared/components/SegmentedControl';
 
-const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitToProjectList }) => {
+const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitToProjectList, onGoToLanding }) => {
   const { dispatch } = useProjectsContext();
   const [projectData, setProjectData] = useState({
     name: '',
@@ -81,11 +81,11 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
 
         {/* Compact Header */}
         <PageHeader
-          title="Create New Project"
-          subtitle="Just the essentials"
+          useBranding={true}
+          onHome={onGoToLanding}
+          compact={true}
           onBack={onBack}
-          showCancelButton={true}
-          onCancel={handleXButtonClick}
+        // Remove title/subtitle
         />
 
         <div className="p-4 bg-yarn-50 space-y-4">

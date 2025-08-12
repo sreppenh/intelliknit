@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 
-const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnitting }) => {
+const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnitting, onGoToLanding }) => {
   const { currentProject, dispatch } = useProjectsContext();
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
@@ -61,11 +61,12 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
     <div className="min-h-screen bg-yarn-50">
       <div className="app-container bg-yarn-50 min-h-screen shadow-lg">
 
-        {/* Header */}
         <PageHeader
-          title={component.name}
-          subtitle={currentProject.name}
+          useBranding={true}
+          onHome={onGoToLanding}
+          compact={true}
           onBack={onBack}
+        // Remove title/subtitle
         />
 
         <div className="p-6 bg-yarn-50">
