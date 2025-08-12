@@ -47,7 +47,7 @@ const ProjectStatusSection = ({
         }
     }, [showEditModal, displayData]);
 
-    // Handle ESC key for modal
+    // Handle ESC key for modal + focus management
     useEffect(() => {
         const handleEscKey = (event) => {
             if (event.key === 'Escape' && showEditModal) {
@@ -57,6 +57,14 @@ const ProjectStatusSection = ({
 
         if (showEditModal) {
             document.addEventListener('keydown', handleEscKey);
+
+            // Focus management - focus save button
+            setTimeout(() => {
+                const saveButton = document.querySelector('[data-modal-primary]');
+                if (saveButton) {
+                    saveButton.focus();
+                }
+            }, 100);
         }
 
         return () => {
@@ -449,6 +457,7 @@ const ProjectStatusSection = ({
                             </button>
                             <button
                                 onClick={handleSaveEdit}
+                                data-modal-primary
                                 className="flex-1 btn-primary"
                             >
                                 Save Changes

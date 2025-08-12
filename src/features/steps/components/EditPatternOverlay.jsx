@@ -56,7 +56,8 @@ const EditPatternOverlay = ({
     }, [isOpen, shouldRouteToAdvancedEdit, onRouteToAdvancedEdit, onClose]);
 
 
-    // Standard modal behavior (ESC key + backdrop click)
+    // Standard modal behavior (ESC key + backdrop click + focus)
+    // Standard modal behavior (ESC key + backdrop click + focus)
     useEffect(() => {
         const handleEscKey = (event) => {
             if (event.key === 'Escape') {
@@ -66,6 +67,14 @@ const EditPatternOverlay = ({
 
         if (isOpen) {
             document.addEventListener('keydown', handleEscKey);
+
+            // Focus management - focus save button
+            setTimeout(() => {
+                const saveButton = document.querySelector('[data-modal-primary]');
+                if (saveButton) {
+                    saveButton.focus();
+                }
+            }, 100);
         }
 
         return () => {

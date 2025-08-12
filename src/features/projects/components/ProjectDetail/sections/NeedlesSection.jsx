@@ -69,7 +69,7 @@ const NeedlesSection = ({
         setShowEditModal(false);
     };
 
-    // Handle ESC key and backdrop click
+    // Handle ESC key and backdrop click + focus management
     useEffect(() => {
         const handleEscKey = (event) => {
             if (event.key === 'Escape' && showEditModal) {
@@ -79,13 +79,20 @@ const NeedlesSection = ({
 
         if (showEditModal) {
             document.addEventListener('keydown', handleEscKey);
+
+            // Focus management - focus save button
+            setTimeout(() => {
+                const saveButton = document.querySelector('[data-modal-primary]');
+                if (saveButton) {
+                    saveButton.focus();
+                }
+            }, 100);
         }
 
         return () => {
             document.removeEventListener('keydown', handleEscKey);
         };
     }, [showEditModal]);
-
     const handleBackdropClick = (event) => {
         if (event.target === event.currentTarget) {
             handleCancelEdit();

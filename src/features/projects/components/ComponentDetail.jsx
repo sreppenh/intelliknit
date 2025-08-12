@@ -194,26 +194,25 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="modal-overlay">
-            <div className="modal-content">
+          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteModal(false)}>
+            <div className="modal-content-light">
 
-              <div className="bg-red-500 text-white px-6 py-4 rounded-t-2xl relative flex items-center justify-center">
+              <div className="modal-header-light-danger relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-red-100">
                 <div className="text-center">
                   <div className="text-2xl mb-2">⚠️</div>
                   <h2 className="text-lg font-semibold">Delete Component?</h2>
-                  <p className="text-red-100 text-sm">{component.name}</p>
+                  <p className="text-red-600 text-sm">{component.name}</p>
                 </div>
                 <button
-                  onClick={() => setShowDeleteModal(false)}  // Replace with your close handler for delete modal
-                  className="absolute right-3 top-3 text-red-100 text-2xl hover:bg-red-600 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                  onClick={() => setShowDeleteModal(false)}
+                  className="absolute right-3 text-red-600 text-2xl hover:bg-red-200 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
                   aria-label="Close delete confirmation modal"
                 >
                   ×
                 </button>
-
               </div>
 
-              <div className="p-6 bg-yarn-50">
+              <div className="p-6">
                 <div className="text-center mb-6">
                   <p className="text-wool-600 mb-2">
                     This will permanently delete <strong>{component.name}</strong> and all its steps.
@@ -226,13 +225,16 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                 <div className="stack-sm">
                   <button
                     onClick={handleDeleteComponent}
-                    className="w-full btn-danger"
+                    data-modal-primary
+                    className="w-full bg-red-500 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
                   >
+                    <span>🗑️</span>
                     Yes, Delete Component
                   </button>
 
                   <button
                     onClick={() => setShowDeleteModal(false)}
+                    data-modal-cancel
                     className="w-full btn-tertiary"
                   >
                     Cancel

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getPatternQuickActions, getPatternPlaceholderText } from '../../../../shared/utils/stepDisplayUtils';
 
@@ -11,6 +11,22 @@ const RowByRowPatternConfig = ({ wizardData, updateWizardData, construction }) =
     // Initialize entryMode if not set (backwards compatibility)
     const currentEntryMode = wizardData.stitchPattern.entryMode || 'description';
     const rowInstructions = wizardData.stitchPattern.rowInstructions || [];
+
+
+
+    // ✨ ADD THIS ESC KEY HANDLING HERE:
+    useEffect(() => {
+        const handleEscKey = (event) => {
+            if (event.key === 'Escape' && showRowEntryOverlay) {
+                setShowRowEntryOverlay(false);
+            }
+        };
+
+        document.addEventListener('keydown', handleEscKey);
+        return () => {
+            document.removeEventListener('keydown', handleEscKey);
+        };
+    }, [showRowEntryOverlay]);
 
     // ✅ ADD THESE LINES:
     // Get pattern-specific data
@@ -243,11 +259,8 @@ const RowByRowPatternConfig = ({ wizardData, updateWizardData, construction }) =
 
             {/* ===== ROW ENTRY OVERLAY ===== */}
             {showRowEntryOverlay && (
-                <div
-                    className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
-                    onClick={handleOverlayBackdrop}
-                >
-                    <div className="bg-white rounded-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div className="modal-overlay" onClick={handleOverlayBackdrop}>
+                    <div className="modal-content-light max-w-md w-full max-h-[90vh] overflow-y-auto">
                         <div className="p-6">
                             <div className="flex justify-between items-center mb-4">
                                 <h3 className="text-lg font-semibold text-wool-700">
@@ -260,7 +273,8 @@ const RowByRowPatternConfig = ({ wizardData, updateWizardData, construction }) =
                                 </h3>
                                 <button
                                     onClick={() => setShowRowEntryOverlay(false)}
-                                    className="text-wool-400 hover:text-wool-600 text-xl"
+                                    className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                                    aria-label="Close modal"
                                 >
                                     ×
                                 </button>
