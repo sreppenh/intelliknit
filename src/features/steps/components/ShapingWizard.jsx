@@ -95,6 +95,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
     }
   };
 
+
   const handleConfirmExit = () => {
     setShowExitModal(false);
     onExitToComponentSteps();
@@ -196,10 +197,10 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
     <WizardLayout>
       <WizardHeader
         wizard={shapingWizard}
-        onBack={step === 1 ? onBack : () => setStep(1)}
+        onBack={onBack}
         onCancel={handleShapingWizardExit}
       />
-      <div className="p-6 bg-yarn-50 min-h-screen">
+      <div className=" bg-yarn-50 min-h-screen">
         <div className="stack-lg">
           {step === 1 ? (
             <ShapingTypeSelector

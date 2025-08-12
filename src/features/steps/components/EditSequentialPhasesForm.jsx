@@ -10,7 +10,7 @@ import { PhaseCalculationService } from '../../../shared/utils/PhaseCalculationS
 const EditSequentialPhasesForm = ({
     componentIndex,
     editingStepIndex,
-    onBack
+    onBack, onGoToLanding
 }) => {
     const { currentProject, dispatch } = useProjectsContext();
 
@@ -125,6 +125,21 @@ const EditSequentialPhasesForm = ({
             phaseManager.goToSummary(); // Go back to summary
         }
     };
+
+    // Add this somewhere before your return statement
+    const getBackHandler = () => {
+        switch (currentScreen) {
+            case 'summary':
+                return onBack;
+            case 'type-select':
+                return handleTypeSelectBack;
+            case 'configure':
+                return handleConfigureBack;
+            default:
+                return onBack;
+        }
+    };
+
 
     // Handle saving all changes
     const handleSave = () => {
@@ -362,13 +377,15 @@ const EditSequentialPhasesForm = ({
                 {/* Only show PageHeader on summary screen */}
                 {currentScreen === 'summary' && (
                     <PageHeader
-                        title="Edit Configuration"
-                        subtitle="Sequential Phases settings"
-                        onBack={onBack}
-                        showBackButton={true}
+                        useBranding={true}
+                        onHome={onGoToLanding}
+                        compact={true}
+                        onBack={getBackHandler()}
                         showCancelButton={true}
+                        showBackButton={true}
                         onCancel={onBack}
-                    />
+                    ></PageHeader>
+
                 )}
 
                 {renderCurrentScreen()}

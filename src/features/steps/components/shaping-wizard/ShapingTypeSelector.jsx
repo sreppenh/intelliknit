@@ -37,7 +37,7 @@ const ShapingTypeSelector = ({ onTypeSelect, currentStitches, construction }) =>
   ];
 
   return (
-    <div className="stack-lg">
+    <div className="p-6 stack-lg">
       <div>
         <h2 className="content-header-primary">Choose Shaping Method</h2>
         <p className="content-subheader">How do you want to shape your {currentStitches} stitches?</p>
