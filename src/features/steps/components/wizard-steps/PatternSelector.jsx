@@ -232,25 +232,19 @@ export const PatternSelector = ({
           </div>
         </div>
 
-        {/* Pattern Type Toggle - Construction Slider Style */}
+        {/* Pattern Type Toggle - Standardized Segmented Control */}
         <div className="mb-4">
-          <div className="bg-sage-200 border border-sage-300 rounded-md p-0.5">
+          <div className="segmented-control">
             <div className="grid grid-cols-2 gap-1">
               <button
                 onClick={() => handleTabChange('quick')}
-                className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 ${activeTab === 'quick'
-                  ? 'bg-white text-sage-700 shadow-sm'
-                  : 'text-sage-600 hover:text-sage-800'
-                  }`}
+                className={`segmented-option ${activeTab === 'quick' ? 'segmented-option-active' : ''}`}
               >
                 Quick Patterns
               </button>
               <button
                 onClick={() => handleTabChange('advanced')}
-                className={`px-3 py-2 rounded text-sm font-medium transition-all duration-200 ${activeTab === 'advanced'
-                  ? 'bg-white text-sage-700 shadow-sm'
-                  : 'text-sage-600 hover:text-sage-800'
-                  }`}
+                className={`segmented-option ${activeTab === 'advanced' ? 'segmented-option-active' : ''}`}
               >
                 Advanced Patterns
               </button>
@@ -327,7 +321,7 @@ export const PatternSelector = ({
                     key={key}
                     onClick={() => handleAdvancedCategorySelect(key)}
                     className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${selectedCategory === key
-                      ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-sm'
+                      ? 'border-yarn-500 bg-yarn-100 text-yarn-800 shadow-sm'
                       : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
                       }`}
                   >
@@ -339,8 +333,8 @@ export const PatternSelector = ({
             </div>
 
             {/* Advanced Help Text */}
-            <div className="help-block">
-              <div className="text-xs text-yarn-600 text-center">
+            <div className="tip-block">
+              <div className="text-xs text-yarn-700 text-center">
                 ⚙️ <strong>Advanced patterns</strong> require additional setup and configuration
               </div>
             </div>

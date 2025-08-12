@@ -53,14 +53,14 @@ select {
 
 .btn-increment-plus {
   @apply btn-increment;
-  @apply bg-sage-200 hover:bg-sage-300 text-sage-800;
+  @apply bg-sage-200 hover:bg-sage-300 text-sage-900;
   @apply focus:ring-sage-500;
   @apply active:bg-sage-400;
 }
 
 .btn-increment-minus {
   @apply btn-increment;
-  @apply bg-red-200 hover:bg-red-300 text-red-800;
+  @apply bg-red-200 hover:bg-red-300 text-red-900;
   @apply focus:ring-red-500;
   @apply active:bg-red-400;
 }
@@ -761,9 +761,9 @@ select {
 }
 
 .card-component-complete {
-  @apply bg-sage-400 border-2 border-sage-700 text-sage-900 rounded-xl p-3 shadow-lg transition-all duration-200 cursor-pointer;
-  @apply hover:border-sage-800 hover:bg-sage-500 hover:shadow-xl;
-  @apply active:bg-sage-600 active:border-sage-900;
+  @apply bg-sage-300 border-2 border-sage-700 text-sage-900 rounded-xl p-3 shadow-lg transition-all duration-200 cursor-pointer;
+  @apply hover:border-sage-800 hover:bg-sage-400 hover:shadow-xl;
+  @apply active:bg-sage-500 active:border-sage-900;
 }
 
 .card-component-finishing {
@@ -888,7 +888,7 @@ select {
 }
 
 .header-status-frogged {
-  @apply bg-wool-300 border-2 border-wool-500 text-wool-800 rounded-xl p-3;
+  @apply bg-wool-200 border-2 border-wool-500 text-wool-900 rounded-xl p-3;
 }
 
 /* ===== UTILITY CLASSES ===== */
