@@ -8,7 +8,6 @@ import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
-import SequentialPhases from './shaping-wizard/SequentialPhases';
 
 const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack,
   setConstruction, setCurrentStitches, component, componentIndex, onExitToComponentSteps, onGoToLanding, editingStepIndex = null }) => {
@@ -122,7 +121,13 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
     }
   };
 
-
+  const handleCancel = () => {
+    if (hasUnsavedData()) {
+      setShowExitModal(true);
+    } else {
+      onExitToComponentSteps();
+    }
+  };
 
 
   const renderConfigStep = () => {
@@ -140,12 +145,16 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
             wizardData={wizardData}
+            onGoToLanding={onGoToLanding}      // ADD THIS
+            wizard={shapingWizard}            // ADD THIS
+            onCancel={handleCancel}
+
           />
         );
 
       case 'phases':
         return (
-          <SequentialPhases
+          <PhaseConfig
             shapingData={shapingData}
             setShapingData={setShapingData}
             currentStitches={currentStitches}
@@ -155,6 +164,9 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
             wizardData={wizardData}
+            onGoToLanding={onGoToLanding}      // ADD THIS
+            wizard={shapingWizard}            // ADD THIS
+            onCancel={handleCancel}
           />
         );
 
@@ -197,19 +209,6 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
 
   return (
     <WizardLayout>
-      <PageHeader
-        useBranding={true}
-        onHome={onGoToLanding}
-        onBack={() => {
-          console.log('PageHeader back clicked - calling onBack prop');
-          onBack();
-        }}
-        showCancelButton={true}
-        onCancel={handleShapingWizardExit}
-        compact={true}
-        sticky={true}
-      />
-      <WizardContextBar wizard={shapingWizard} />
       <div className=" bg-yarn-50 min-h-screen">
         <div className="stack-lg">
           {step === 1 ? (
@@ -217,6 +216,10 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
               onTypeSelect={handleShapingTypeSelect}
               currentStitches={currentStitches}
               construction={construction}
+              onBack={onBack}                    // ← Did you add this?
+              onGoToLanding={onGoToLanding}      // ← And this?
+              wizard={shapingWizard}
+              onCancel={handleCancel}
             />
           ) : (
             renderConfigStep()

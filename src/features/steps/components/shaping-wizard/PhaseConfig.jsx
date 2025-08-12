@@ -20,7 +20,9 @@ const PhaseConfig = ({
   onExitToComponentSteps,
   onComplete,
   onBack,
-  wizardData
+  wizardData,
+  onGoToLanding,     // Should be here
+  wizard             // Should be here too
 }) => {
   // All state management and logic handled by custom hook
   const phaseManager = usePhaseManager(currentStitches, construction, shapingData);
@@ -102,6 +104,8 @@ const PhaseConfig = ({
         onComplete={handleComplete}
         getPhaseDescription={getPhaseDescription}
         wizardData={wizardData} // ← Add this line
+        wizard={wizard}  // Make sure this line exists
+        onGoToLanding={onGoToLanding}  // And this line
       />
     );
   }
@@ -115,6 +119,9 @@ const PhaseConfig = ({
         onBackToSummary={handleTypeSelectBack}
         phases={phases}
         phaseNumber={getCurrentPhaseNumber()}
+        wizard={wizard}
+        onGoToLanding={onGoToLanding}  // And this line
+        wizardData={wizardData} // ← Add this line
       />
     );
   }
@@ -136,6 +143,9 @@ const PhaseConfig = ({
         getStitchContext={getStitchContext}
         calculatePhaseEndingStitches={calculatePhaseEndingStitches}
         phaseNumber={getCurrentPhaseNumber()}
+        onGoToLanding={onGoToLanding}  // And this line
+        wizard={wizard}  // Make sure this line exists
+        wizardData={wizardData} // ← Add this line
       />
     );
   }

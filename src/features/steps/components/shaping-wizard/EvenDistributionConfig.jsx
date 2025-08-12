@@ -4,6 +4,9 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import { formatKnittingInstruction } from '../../../../shared/utils/knittingNotation';
+import ShapingHeader from './ShapingHeader';
+
+console.log('ShapingHeader import:', ShapingHeader);
 
 
 const EvenDistributionConfig = ({
@@ -16,7 +19,10 @@ const EvenDistributionConfig = ({
   onComplete,
   onBack,
   editingStepIndex = null,
-  wizardData // ← Add this line
+  wizardData, // ← Add this line
+  onGoToLanding,
+  onCancel,
+  wizard
 }) => {
   // 🔧 FIX: Initialize config from existing shapingData if available
   const getInitialConfig = () => {
@@ -231,175 +237,186 @@ const EvenDistributionConfig = ({
   };
 
 
+
   return (
-    <div className="p-6 stack-lg">
-      {/* Page Header */}
-      <div>
-        <h2 className="content-header-primary">⚖️ Even Distribution</h2>
-        <p className="content-subheader">Spread increases or decreases evenly across the {construction === 'round' ? 'round' : 'row'}</p>
-      </div>
+    <div>
+      <ShapingHeader
+        onBack={onBack}
+        onGoToLanding={onGoToLanding}
+        wizard={wizard}
+        onCancel={onCancel}
+      />
 
-      {/* Action Selection - Radio button style with integrated input */}
-      <div>
-        <div className="space-y-3">
-          <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${config.action === 'decrease'
-            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-            : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-            }`}>
-            <div className="flex items-start gap-4">
-              <input
-                type="radio"
-                name="action_type"
-                value="decrease"
-                checked={config.action === 'decrease'}
-                onChange={() => setConfig(prev => ({ ...prev, action: 'decrease' }))}
-                className="w-4 h-4 text-sage-600 mt-1"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="text-2xl">📉</div>
-                  <div className="text-left">
-                    <div className="font-semibold text-base">Decrease</div>
-                    <div className="text-sm opacity-75">Remove stitches evenly across {construction === 'round' ? 'round' : 'row'}</div>
-                  </div>
-                </div>
-
-                {config.action === 'decrease' && (
-                  <div className="mt-3 space-y-2">
-
-
-                    <IncrementInput
-                      value={config.amount}
-                      onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
-                      label="amount to change"
-                      unit="stitches"
-                      min={1}
-                      contextualMax={Math.floor(currentStitches / 2)}
-                    />
-
-                    {config.amount > 0 && (
-                      <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
-                        <strong>Result:</strong> {currentStitches} → {currentStitches - config.amount} stitches
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </label>
-
-          <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${config.action === 'increase'
-            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-            : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-            }`}>
-            <div className="flex items-start gap-4">
-              <input
-                type="radio"
-                name="action_type"
-                value="increase"
-                checked={config.action === 'increase'}
-                onChange={() => setConfig(prev => ({ ...prev, action: 'increase' }))}
-                className="w-4 h-4 text-sage-600 mt-1"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="text-2xl">📈</div>
-                  <div className="text-left">
-                    <div className="font-semibold text-base">Increase</div>
-                    <div className="text-sm opacity-75">Add stitches evenly across {construction === 'round' ? 'round' : 'row'}</div>
-                  </div>
-                </div>
-
-                {config.action === 'increase' && (
-                  <div className="mt-3 space-y-2">
-
-                    <IncrementInput
-                      value={config.amount}
-                      onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
-                      label="increase amount"
-                      unit="stitches"
-                      min={1}
-                      contextualMax={construction === 'round' ? currentStitches : currentStitches - 1}
-                      placeholder="6"
-                      size="sm"
-                    />
-
-
-
-                    {config.amount > 0 && (
-                      <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
-                        <strong>Result:</strong> {currentStitches} → {currentStitches + config.amount} stitches
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          </label>
+      <div className="p-6 stack-lg">
+        {/* Page Header */}
+        <div>
+          <h2 className="content-header-primary">⚖️ Even Distribution</h2>
+          <p className="content-subheader">Spread increases or decreases evenly across the {construction === 'round' ? 'round' : 'row'}</p>
         </div>
-      </div>
 
-      {/* Optional Description */}
-      <div>
-        <input
-          type="text"
-          value={config.description}
-          onChange={(e) => setConfig(prev => ({ ...prev, description: e.target.value }))}
-          className="input-field"
-          placeholder="Notes (optional) - e.g., 'for crown decreases'"
+        {/* Action Selection - Radio button style with integrated input */}
+        <div>
+          <div className="space-y-3">
+            <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${config.action === 'decrease'
+              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+              }`}>
+              <div className="flex items-start gap-4">
+                <input
+                  type="radio"
+                  name="action_type"
+                  value="decrease"
+                  checked={config.action === 'decrease'}
+                  onChange={() => setConfig(prev => ({ ...prev, action: 'decrease' }))}
+                  className="w-4 h-4 text-sage-600 mt-1"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-2xl">📉</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-base">Decrease</div>
+                      <div className="text-sm opacity-75">Remove stitches evenly across {construction === 'round' ? 'round' : 'row'}</div>
+                    </div>
+                  </div>
+
+                  {config.action === 'decrease' && (
+                    <div className="mt-3 space-y-2">
+
+
+                      <IncrementInput
+                        value={config.amount}
+                        onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
+                        label="amount to change"
+                        unit="stitches"
+                        min={1}
+                        contextualMax={Math.floor(currentStitches / 2)}
+                      />
+
+                      {config.amount > 0 && (
+                        <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
+                          <strong>Result:</strong> {currentStitches} → {currentStitches - config.amount} stitches
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </label>
+
+            <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${config.action === 'increase'
+              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+              }`}>
+              <div className="flex items-start gap-4">
+                <input
+                  type="radio"
+                  name="action_type"
+                  value="increase"
+                  checked={config.action === 'increase'}
+                  onChange={() => setConfig(prev => ({ ...prev, action: 'increase' }))}
+                  className="w-4 h-4 text-sage-600 mt-1"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-2xl">📈</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-base">Increase</div>
+                      <div className="text-sm opacity-75">Add stitches evenly across {construction === 'round' ? 'round' : 'row'}</div>
+                    </div>
+                  </div>
+
+                  {config.action === 'increase' && (
+                    <div className="mt-3 space-y-2">
+
+                      <IncrementInput
+                        value={config.amount}
+                        onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
+                        label="increase amount"
+                        unit="stitches"
+                        min={1}
+                        contextualMax={construction === 'round' ? currentStitches : currentStitches - 1}
+                        placeholder="6"
+                        size="sm"
+                      />
+
+
+
+                      {config.amount > 0 && (
+                        <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
+                          <strong>Result:</strong> {currentStitches} → {currentStitches + config.amount} stitches
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        {/* Optional Description */}
+        <div>
+          <input
+            type="text"
+            value={config.description}
+            onChange={(e) => setConfig(prev => ({ ...prev, description: e.target.value }))}
+            className="input-field"
+            placeholder="Notes (optional) - e.g., 'for crown decreases'"
+          />
+        </div>
+
+        {/* Enhanced Preview with Knitting Notation Testing */}
+        {result.error ? (
+          <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
+            <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
+            <div className="text-sm text-red-600">
+              {result.error}
+            </div>
+          </div>
+        ) : result.instruction && (
+          <div className="space-y-3">
+            {/* Original Preview Box */}
+            <div className="card-info">
+              <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
+              <div className="space-y-2 text-sm">
+                <div className="text-lavender-700">
+                  <span className="font-medium">Instruction:</span> {formatKnittingInstruction(result.instruction)}
+                </div>
+                <div className="text-lavender-600">
+                  {result.startingStitches} stitches → {result.endingStitches} stitches
+                  ({result.construction})
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Navigation */}
+        <div className="flex gap-3 pt-4">
+          <button
+            onClick={onBack}
+            className="btn-tertiary flex-1"
+          >
+            ← Back
+          </button>
+          <button
+            onClick={handleComplete}
+            disabled={!result.instruction || result.changeCount === 0 || result.error || isLoading}
+            className="btn-primary flex-1"
+          >
+            {isLoading ? 'Saving...' : 'Complete Step'}
+          </button>
+        </div>
+        <StepSaveErrorModal
+          isOpen={!!error}
+          error={error}
+          onClose={clearError}
+          onRetry={handleComplete}
         />
       </div>
-
-      {/* Enhanced Preview with Knitting Notation Testing */}
-      {result.error ? (
-        <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-          <h4 className="text-sm font-semibold text-red-700 mb-2">⚠️ Error</h4>
-          <div className="text-sm text-red-600">
-            {result.error}
-          </div>
-        </div>
-      ) : result.instruction && (
-        <div className="space-y-3">
-          {/* Original Preview Box */}
-          <div className="card-info">
-            <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
-            <div className="space-y-2 text-sm">
-              <div className="text-lavender-700">
-                <span className="font-medium">Instruction:</span> {formatKnittingInstruction(result.instruction)}
-              </div>
-              <div className="text-lavender-600">
-                {result.startingStitches} stitches → {result.endingStitches} stitches
-                ({result.construction})
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Navigation */}
-      <div className="flex gap-3 pt-4">
-        <button
-          onClick={onBack}
-          className="btn-tertiary flex-1"
-        >
-          ← Back
-        </button>
-        <button
-          onClick={handleComplete}
-          disabled={!result.instruction || result.changeCount === 0 || result.error || isLoading}
-          className="btn-primary flex-1"
-        >
-          {isLoading ? 'Saving...' : 'Complete Step'}
-        </button>
-      </div>
-      <StepSaveErrorModal
-        isOpen={!!error}
-        error={error}
-        onClose={clearError}
-        onRetry={handleComplete}
-      />
     </div>
   );
+
 };
 
 export default EvenDistributionConfig;
