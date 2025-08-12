@@ -14,6 +14,8 @@ import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import DurationWizard from './DurationWizard';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+import WizardContextBar from './wizard-layout/WizardContextBar';
+import PageHeader from '../../../shared/components/PageHeader';
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex, editMode);
@@ -276,12 +278,16 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
 
   return (
     <WizardLayout>
-      <WizardHeader
-        wizard={wizard}
-        onBack={navigation.previousStep} // 🎯 SIMPLIFIED: Use smart navigation
+      <PageHeader
+        useBranding={true}
+        onHome={onGoToLanding}  // ← I had this right originally, just confirming
+        onBack={navigation.previousStep}
+        showCancelButton={true}
         onCancel={handleXButtonClick}
-        onGoToLanding={onGoToLanding}
+        compact={true}
+        sticky={true}
       />
+      <WizardContextBar wizard={wizard} />
       <div className="p-6 bg-yarn-50 min-h-screen">
         {renderCurrentStep()}
       </div>

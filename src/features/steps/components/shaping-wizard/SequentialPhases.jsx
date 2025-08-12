@@ -236,22 +236,7 @@ const SequentialPhases = ({
                         >
                             Add Your First Phase
                         </button>
-                        {/* Navigation */}
-                        <div className="flex gap-3 pt-4">
-                            <button
-                                onClick={onBack}
-                                className="btn-tertiary flex-1"
-                            >
-                                ← Back
-                            </button>
-                            <button
-                                onClick={handleCompleteStep}
-                                disabled={!result.instruction || result.error || phases.length === 0 || isLoading}
-                                className="btn-primary flex-1"
-                            >
-                                {isLoading ? 'Saving...' : 'Complete Step'}
-                            </button>
-                        </div>
+
                     </div>
                 ) : (
                     <>

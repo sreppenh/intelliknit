@@ -31,7 +31,7 @@ const PageHeader = ({
           <button
             onClick={onHome}
             className={`px-4 py-1 transition-colors duration-200 ${onHome
-              ? 'hover:bg-white hover:bg-opacity-5 rounded-md cursor-pointer'
+              ? ' rounded-md cursor-pointer'
               : ''
               }`}
             disabled={!onHome}

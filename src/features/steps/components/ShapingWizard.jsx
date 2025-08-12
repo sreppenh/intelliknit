@@ -6,9 +6,12 @@ import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import WizardContextBar from './wizard-layout/WizardContextBar';
+import PageHeader from '../../../shared/components/PageHeader';
+import SequentialPhases from './shaping-wizard/SequentialPhases';
 
 const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack,
-  setConstruction, setCurrentStitches, component, componentIndex, onExitToComponentSteps, editingStepIndex = null }) => {
+  setConstruction, setCurrentStitches, component, componentIndex, onExitToComponentSteps, onGoToLanding, editingStepIndex = null }) => {
 
   // 🔧 FIX: Initialize step based on whether we have existing data
   const getInitialStep = () => {
@@ -142,7 +145,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
 
       case 'phases':
         return (
-          <PhaseConfig
+          <SequentialPhases
             shapingData={shapingData}
             setShapingData={setShapingData}
             currentStitches={currentStitches}
@@ -152,7 +155,6 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
             wizardData={wizardData}
-
           />
         );
 
@@ -195,11 +197,19 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
 
   return (
     <WizardLayout>
-      <WizardHeader
-        wizard={shapingWizard}
-        onBack={onBack}
+      <PageHeader
+        useBranding={true}
+        onHome={onGoToLanding}
+        onBack={() => {
+          console.log('PageHeader back clicked - calling onBack prop');
+          onBack();
+        }}
+        showCancelButton={true}
         onCancel={handleShapingWizardExit}
+        compact={true}
+        sticky={true}
       />
+      <WizardContextBar wizard={shapingWizard} />
       <div className=" bg-yarn-50 min-h-screen">
         <div className="stack-lg">
           {step === 1 ? (

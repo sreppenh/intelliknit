@@ -446,6 +446,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
         onBack={handleBackFromEnding}
         onComplete={handleEndingComplete}
         onNavigateToProject={handleNavigateToProject} // 🎯 NEW: Add this line
+        onGoToLanding={onGoToLanding}
       />
     );
   }
