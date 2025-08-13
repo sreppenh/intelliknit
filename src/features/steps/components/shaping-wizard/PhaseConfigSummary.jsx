@@ -174,18 +174,18 @@ const PhaseConfigSummary = ({
                 • Dec 1 at each end every row 3 times
               </div>
             </div>
-            <div className="stack-sm">
-              <button
-                onClick={onAddPhase}
-                className="btn-primary"
-              >
-                Add Your First Phase
-              </button>
+            <div className="flex gap-3">
               <button
                 onClick={handleBackWithWarning}
-                className="btn-tertiary"
+                className="btn-tertiary flex-1"
               >
                 ← Back
+              </button>
+              <button
+                onClick={onAddPhase}
+                className="btn-primary flex-1"
+              >
+                Add Your First Phase
               </button>
             </div>
           </div>

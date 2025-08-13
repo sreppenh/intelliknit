@@ -331,22 +331,81 @@ const PhaseConfigForm = ({
                 </div>
               </div>
 
+              {/* Times vs Target Selection */}
               <div>
                 <label className="form-label">
-                  Times
+                  Amount
                 </label>
-                <IncrementInput
-                  value={tempPhaseConfig.times}
-                  onChange={(value) => {
-                    const maxTimes = getMaxTimes();
-                    const correctedValue = Math.min(Math.max(value, 1), maxTimes);
-                    setTempPhaseConfig(prev => ({ ...prev, times: correctedValue }));
-                  }}
-                  label="number of times"
-                  unit="times"
-                  min={1}
-                  max={getMaxTimes()}
-                />
+
+                {/* Mode Toggle */}
+                <div className="flex gap-2 mb-3">
+                  <button
+                    onClick={() => setTempPhaseConfig(prev => ({ ...prev, amountMode: 'times' }))}
+                    className={`flex-1 p-2 text-sm border-2 rounded-lg transition-colors ${(tempPhaseConfig.amountMode || 'times') === 'times'
+                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                        : 'border-wool-200 hover:border-sage-300'
+                      }`}
+                  >
+                    Repeat X Times
+                  </button>
+                  <button
+                    onClick={() => setTempPhaseConfig(prev => ({ ...prev, amountMode: 'target' }))}
+                    className={`flex-1 p-2 text-sm border-2 rounded-lg transition-colors ${tempPhaseConfig.amountMode === 'target'
+                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                        : 'border-wool-200 hover:border-sage-300'
+                      }`}
+                  >
+                    Target Stitches
+                  </button>
+                </div>
+
+                {/* Input based on mode */}
+                {(tempPhaseConfig.amountMode || 'times') === 'times' ? (
+                  <IncrementInput
+                    value={tempPhaseConfig.times}
+                    onChange={(value) => {
+                      const maxTimes = getMaxTimes();
+                      const correctedValue = Math.min(Math.max(value, 1), maxTimes);
+                      setTempPhaseConfig(prev => ({ ...prev, times: correctedValue }));
+                    }}
+                    label="number of times"
+                    unit="times"
+                    min={1}
+                    max={getMaxTimes()}
+                  />
+                ) : (
+                  <>
+                    <IncrementInput
+                      value={tempPhaseConfig.targetStitches || calculatePhaseEndingStitches()}
+                      onChange={(value) => {
+                        const availableStitches = getStitchContext().availableStitches;
+                        const minTarget = tempPhaseConfig.type === 'decrease' ? 0 : availableStitches;
+                        const maxTarget = tempPhaseConfig.type === 'decrease' ? availableStitches - 1 : 999;
+                        const correctedValue = Math.min(Math.max(value, minTarget), maxTarget);
+
+                        // Auto-calculate times needed to reach target
+                        const stitchesPerRow = tempPhaseConfig.position === 'both_ends' ? 2 : 1;
+                        const totalChange = Math.abs(correctedValue - availableStitches);
+                        const calculatedTimes = Math.ceil(totalChange / stitchesPerRow);
+
+                        setTempPhaseConfig(prev => ({
+                          ...prev,
+                          targetStitches: correctedValue,
+                          times: Math.max(1, calculatedTimes)
+                        }));
+                      }}
+                      label="target stitches"
+                      unit="stitches"
+                      min={tempPhaseConfig.type === 'decrease' ? 0 : getStitchContext().availableStitches}
+                      max={tempPhaseConfig.type === 'decrease' ? getStitchContext().availableStitches - 1 : 999}
+                    />
+                    {tempPhaseConfig.targetStitches && (
+                      <div className="text-xs text-wool-500 mt-1">
+                        Will {tempPhaseConfig.type} {tempPhaseConfig.times} times to reach {tempPhaseConfig.targetStitches} stitches
+                      </div>
+                    )}
+                  </>
+                )}
               </div>
             </>
           )}
