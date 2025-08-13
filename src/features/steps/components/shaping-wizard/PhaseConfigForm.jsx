@@ -242,34 +242,48 @@ const PhaseConfigForm = ({
             <>
               <div>
                 <label className="form-label">
-                  Position
+                  Where are you {tempPhaseConfig.type === 'increasing' ? 'increasing' : 'decreasing'}?
                 </label>
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid grid-cols-2 gap-2">
                   {[
-                    { value: 'beginning', label: 'Beginning' },
-                    { value: 'end', label: 'End' },
-                    { value: 'both_ends', label: construction === 'round' ? 'Both' : 'Both Ends' }
+                    { value: 'beginning', label: `Beginning of ${construction === 'round' ? 'Round' : 'Row'}` },
+                    { value: 'end', label: `End of ${construction === 'round' ? 'Round' : 'Row'}` }
                   ].map(option => (
                     <button
                       key={option.value}
                       onClick={() => {
                         setTempPhaseConfig(prev => {
-                          const newConfig = { ...prev, position: option.value };
+                          const currentPositions = prev.positions || [];
+                          const isSelected = currentPositions.includes(option.value);
+
+                          let newPositions;
+                          if (isSelected) {
+                            // Remove if already selected
+                            newPositions = currentPositions.filter(p => p !== option.value);
+                          } else {
+                            // Add if not selected
+                            newPositions = [...currentPositions, option.value];
+                          }
+
+                          // Convert to legacy position format for compatibility
+                          const legacyPosition = newPositions.length === 2 ? 'both_ends' :
+                            newPositions.length === 1 ? newPositions[0] : null;
+
+                          const newConfig = { ...prev, positions: newPositions, position: legacyPosition };
 
                           // Force correction of times value with new position
-                          if (newConfig.type === 'decrease' && newConfig.times) {
+                          if (newConfig.type === 'decrease' && newConfig.times && legacyPosition) {
                             const availableStitches = getStitchContext().availableStitches;
-                            const stitchesPerRow = option.value === 'both_ends' ? 2 : 1;
+                            const stitchesPerRow = legacyPosition === 'both_ends' ? 2 : 1;
                             const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
                             const correctedTimes = Math.min(newConfig.times, maxTimes);
-
                             newConfig.times = correctedTimes;
                           }
 
                           return newConfig;
                         });
                       }}
-                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${tempPhaseConfig.position === option.value
+                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${(tempPhaseConfig.positions || []).includes(option.value)
                         ? 'border-sage-500 bg-sage-100 text-sage-700'
                         : 'border-wool-200 hover:border-sage-300'
                         }`}
@@ -283,18 +297,17 @@ const PhaseConfigForm = ({
               {/* Unified Frequency Selection */}
               <div>
                 <label className="form-label">
-                  Frequency
+                  How often?
                 </label>
 
                 {/* Unified Frequency Card */}
                 <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
 
-                  {/* Preset Buttons */}
-                  <div className="grid grid-cols-3 gap-2 mb-4">
+                  {/* Preset Buttons - Simplified */}
+                  <div className="grid grid-cols-2 gap-2 mb-4">
                     {[
                       { value: 1, label: `Every ${construction === 'round' ? 'Round' : 'Row'}` },
-                      { value: 2, label: 'Every Other' },
-                      { value: 4, label: 'Every 4th' }
+                      { value: 2, label: `Every Other ${construction === 'round' ? 'Round' : 'Row'}` }
                     ].map(option => (
                       <button
                         key={option.value}
@@ -443,6 +456,13 @@ const PhaseConfigForm = ({
           </button>
           <button
             onClick={onSave}
+            disabled={
+              // Existing validations PLUS position requirement
+              !tempPhaseConfig.type ||
+              !tempPhaseConfig.positions ||
+              tempPhaseConfig.positions.length === 0 ||
+              !(tempPhaseConfig.times || tempPhaseConfig.targetStitches)
+            }
             className="btn-primary flex-1"
           >
             {editingPhaseId ? 'Update Phase' : 'Add Phase'}
