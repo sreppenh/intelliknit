@@ -156,6 +156,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
       case 'phases':
         return (
           <SequentialPhasesWizard
+            // <PhaseConfig
             shapingData={shapingData}
             setShapingData={setShapingData}
             currentStitches={currentStitches}

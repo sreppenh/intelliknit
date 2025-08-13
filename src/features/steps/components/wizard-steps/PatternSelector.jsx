@@ -24,12 +24,6 @@ export const PatternSelector = ({
   });
 
 
-
-
-
-
-
-
   const [selectedQuickCategory, setSelectedQuickCategory] = useState(null);
 
   // Prep note management
