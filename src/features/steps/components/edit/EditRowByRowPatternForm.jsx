@@ -1,9 +1,9 @@
 // src/features/steps/components/EditRowByRowPatternForm.jsx
 import React, { useState, useEffect } from 'react';
-import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
-import PageHeader from '../../../shared/components/PageHeader';
-import RowByRowPatternConfig from './pattern-configs/RowByRowPatternConfig';
-import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import PageHeader from '../../../../shared/components/PageHeader';
+import RowByRowPatternConfig from '../pattern-configs/RowByRowPatternConfig';
+import { getHumanReadableDescription } from '../../../../shared/utils/stepDescriptionUtils';
 
 /**
  * EditRowByRowPatternForm - Thin wrapper around RowByRowPatternConfig

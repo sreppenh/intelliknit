@@ -1,0 +1,241 @@
+// src/features/steps/components/edit/EditStepRouter.jsx
+import React from 'react';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import EditRowByRowPatternForm from './EditRowByRowPatternForm';
+import EditDurationForm from './EditDurationForm';
+import EditPatternOverlay from './EditPatternOverlay';
+import EditConfigScreen from './EditConfigScreen';
+import EditEvenDistributionForm from './EditEvenDistributionForm';
+import EditSequentialPhasesForm from './EditSequentialPhasesForm';
+import {
+    getStepPatternName,
+    isAdvancedRowByRowPattern,
+    isInitializationStep,
+    isFinishingStep
+} from '../../../../shared/utils/stepDisplayUtils';
+
+/**
+ * EditStepRouter - Smart routing for step editing
+ * 
+ * Routes to the appropriate edit screen based on:
+ * - editType prop (specific edit requested)
+ * - Step characteristics (pattern type, shaping, etc.)
+ * 
+ * This replaces the conditional logic in ManageSteps and provides
+ * a clean separation between CREATE (StepWizard) and EDIT flows
+ */
+const EditStepRouter = ({
+    componentIndex,
+    editingStepIndex,
+    editType,
+    onBack,
+    onGoToLanding
+}) => {
+    const { currentProject } = useProjectsContext();
+
+    // Validation
+    if (!currentProject ||
+        componentIndex === null ||
+        !currentProject.components[componentIndex] ||
+        editingStepIndex === null) {
+        return (
+            <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
+                <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
+                    <div className="text-4xl mb-4">❌</div>
+                    <h3 className="text-lg font-medium text-wool-600 mb-2">
+                        {!currentProject ? 'Project not found' : 'Step not found'}
+                    </h3>
+                    <button onClick={onBack} className="btn-primary btn-sm">
+                        ← Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    const component = currentProject.components[componentIndex];
+    const step = component.steps[editingStepIndex];
+
+    if (!step) {
+        return (
+            <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
+                <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
+                    <div className="text-4xl mb-4">❌</div>
+                    <h3 className="text-lg font-medium text-wool-600 mb-2">Step not found</h3>
+                    <button onClick={onBack} className="btn-primary btn-sm">
+                        ← Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    // Common props for all edit screens
+    const commonProps = {
+        componentIndex,
+        editingStepIndex,
+        onBack,
+        onGoToLanding
+    };
+
+    // ===== SPECIFIC EDIT TYPE ROUTING =====
+    // When ManageSteps specifies exactly what to edit
+
+    if (editType === 'pattern') {
+        const patternName = getStepPatternName(step);
+
+        // Advanced patterns need row-by-row editor
+        if (isAdvancedRowByRowPattern(patternName)) {
+            return <EditRowByRowPatternForm {...commonProps} />;
+        }
+
+        // Simple patterns can use overlay or dedicated screen
+        // For now, we'll return null and let ManageSteps handle the overlay
+        // In future, could create EditPatternSimple.jsx
+        return null; // Let ManageSteps show EditPatternOverlay
+    }
+
+    if (editType === 'duration') {
+        return <EditDurationForm {...commonProps} />;
+    }
+
+    if (editType === 'shaping') {
+        // Route to appropriate shaping editor based on shaping type
+        const shapingType = step.wizardConfig?.shapingConfig?.type ||
+            step.advancedWizardConfig?.shapingConfig?.type;
+
+        if (shapingType === 'even_distribution') {
+            return <EditEvenDistributionForm {...commonProps} />;
+        }
+
+        if (shapingType === 'phases') {
+            return <EditSequentialPhasesForm {...commonProps} />;
+        }
+
+        // No shaping or unknown type
+        return (
+            <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
+                <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
+                    <div className="text-4xl mb-4">🚧</div>
+                    <h3 className="text-lg font-medium text-wool-600 mb-2">
+                        Shaping Editor Not Available
+                    </h3>
+                    <p className="text-sm text-wool-500 mb-4">
+                        This shaping type doesn't have an editor yet
+                    </p>
+                    <button onClick={onBack} className="btn-primary btn-sm">
+                        ← Back
+                    </button>
+                </div>
+            </div>
+        );
+    }
+
+    if (editType === 'config' || editType === 'configuration') {
+        // EditConfigScreen is actually a router itself for different configs
+        return <EditConfigScreen {...commonProps} />;
+    }
+
+    if (editType === 'rowByRow') {
+        // Direct route to row-by-row editor
+        return <EditRowByRowPatternForm {...commonProps} />;
+    }
+
+    // ===== FULL STEP EDIT ROUTING =====
+    // When no specific editType, determine based on step characteristics
+
+    if (!editType || editType === 'full') {
+        // Special handling for different step types
+
+        // Initialization steps (Cast On, Pick Up & Knit, etc.)
+        if (isInitializationStep(step)) {
+            // For now, show message - could create EditInitializationScreen later
+            return (
+                <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
+                    <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
+                        <div className="text-4xl mb-4">🚧</div>
+                        <h3 className="text-lg font-medium text-wool-600 mb-2">
+                            Initialization Step Editor
+                        </h3>
+                        <p className="text-sm text-wool-500 mb-4">
+                            Editing initialization steps is not yet supported.
+                            Delete and recreate the component to change the setup.
+                        </p>
+                        <button onClick={onBack} className="btn-primary btn-sm">
+                            ← Back
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Finishing steps (Bind Off, Put on Holder)
+        if (isFinishingStep(step)) {
+            // Could create EditFinishingScreen or reuse ComponentEndingWizard
+            return (
+                <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
+                    <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
+                        <div className="text-4xl mb-4">🏁</div>
+                        <h3 className="text-lg font-medium text-wool-600 mb-2">
+                            Finishing Step Editor
+                        </h3>
+                        <p className="text-sm text-wool-500 mb-4">
+                            Use the pattern or configuration editors to modify this step
+                        </p>
+                        <button onClick={onBack} className="btn-primary btn-sm">
+                            ← Back
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        // Regular working steps - determine what needs editing
+        const hasShaping = step.wizardConfig?.hasShaping ||
+            step.advancedWizardConfig?.hasShaping;
+        const patternName = getStepPatternName(step);
+
+        // If it's an advanced pattern, go to row-by-row editor
+        if (isAdvancedRowByRowPattern(patternName)) {
+            return <EditRowByRowPatternForm {...commonProps} />;
+        }
+
+        // If it has shaping, go to shaping editor
+        if (hasShaping) {
+            const shapingType = step.wizardConfig?.shapingConfig?.type ||
+                step.advancedWizardConfig?.shapingConfig?.type;
+
+            if (shapingType === 'even_distribution') {
+                return <EditEvenDistributionForm {...commonProps} />;
+            }
+
+            if (shapingType === 'phases') {
+                return <EditSequentialPhasesForm {...commonProps} />;
+            }
+        }
+
+        // Default to configuration screen (which is itself a router)
+        return <EditConfigScreen {...commonProps} />;
+    }
+
+    // ===== FALLBACK =====
+    // If we don't know how to handle this edit type
+    return (
+        <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
+            <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
+                <div className="text-4xl mb-4">❓</div>
+                <h3 className="text-lg font-medium text-wool-600 mb-2">
+                    Unknown Edit Type
+                </h3>
+                <p className="text-sm text-wool-500 mb-4">
+                    Edit type "{editType}" is not recognized
+                </p>
+                <button onClick={onBack} className="btn-primary btn-sm">
+                    ← Back
+                </button>
+            </div>
+        </div>
+    );
+};
+
+export default EditStepRouter;

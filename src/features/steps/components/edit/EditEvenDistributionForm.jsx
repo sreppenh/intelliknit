@@ -1,9 +1,9 @@
 // src/features/steps/components/EditEvenDistributionForm.jsx
 import React, { useState } from 'react';
-import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
-import IncrementInput from '../../../shared/components/IncrementInput';
-import PageHeader from '../../../shared/components/PageHeader';
-import { formatKnittingInstruction } from '../../../shared/utils/knittingNotation';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import IncrementInput from '../../../../shared/components/IncrementInput';
+import PageHeader from '../../../../shared/components/PageHeader';
+import { formatKnittingInstruction } from '../../../../shared/utils/knittingNotation';
 
 const EditEvenDistributionForm = ({
     componentIndex,

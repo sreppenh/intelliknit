@@ -1,12 +1,12 @@
 // src/features/steps/components/EditConfigScreen.jsx
 import React from 'react';
 import EditDurationForm from './EditDurationForm';
-import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
-import PhaseConfig from './shaping-wizard/PhaseConfig';
-import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+import EvenDistributionConfig from '../shaping-wizard/EvenDistributionConfig';
+import PhaseConfig from '../shaping-wizard/PhaseConfig';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';
 import EditEvenDistributionForm from './EditEvenDistributionForm';
-import { getShapingDisplay } from '../../../shared/utils/stepDisplayUtils';
+import { getShapingDisplay } from '../../../../shared/utils/stepDisplayUtils';
 
 const EditConfigScreen = ({
     componentIndex,

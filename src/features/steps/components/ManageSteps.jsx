@@ -1,35 +1,51 @@
+// src/features/steps/components/ManageSteps.jsx
 import React, { useState } from 'react';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import StepWizard from './StepWizard';
 import ComponentEndingWizard from './ComponentEndingWizard';
-import PageHeader from '../../../shared/components/PageHeader';
+import EditScreenHeader from '../../../shared/components/EditScreenHeader';
 import StepsList from '../../projects/components/ManageSteps/StepsList';
-import EditPatternOverlay from './EditPatternOverlay';
-import EditConfigScreen from './EditConfigScreen'; // ✅ ADD THIS IMPORT
-import { PrepNoteDisplay, usePrepNoteManager, PrepStepOverlay, getPrepNoteConfig, useAfterNoteManager, AssemblyNoteOverlay } from '../../../shared/components/PrepStepSystem';
+import EditPatternOverlay from './edit/EditPatternOverlay';
+import EditStepRouter from './edit/EditStepRouter';
 import {
-  getStepPatternName, getStepPatternDisplay, getStepMethodDisplay, isConstructionStep,
-  isInitializationStep, isFinishingStep, isMiddleStep
-} from '../../../shared/utils/stepDisplayUtils'; import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
+  PrepStepOverlay,
+  getPrepNoteConfig,
+  usePrepNoteManager,
+  useAfterNoteManager,
+  AssemblyNoteOverlay
+} from '../../../shared/components/PrepStepSystem';
+import {
+  getStepPatternName,
+  isInitializationStep,
+  isFinishingStep,
+  isAdvancedRowByRowPattern,
+  getComponentStatusWithDisplay
+} from '../../../shared/utils/stepDisplayUtils';
 import DeleteStepModal from '../../../shared/components/DeleteStepModal';
 import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
-import EditRowByRowPatternForm from './EditRowByRowPatternForm';
-import { getComponentStatusWithDisplay } from '../../../shared/utils/stepDisplayUtils';
 
+/**
+ * ManageSteps - Component step management interface
+ * 
+ * Handles step creation, editing, deletion, and navigation
+ * for component construction workflows
+ */
 const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding }) => {
-  const [showDeleteStepModal, setShowDeleteStepModal] = useState(false);
-  const [stepToDelete, setStepToDelete] = useState(null);
+  // ===== STATE MANAGEMENT =====
   const { currentProject, dispatch } = useProjectsContext();
   const [isEditing, setIsEditing] = useState(false);
   const [editingStepIndex, setEditingStepIndex] = useState(null);
+  const [editMode, setEditMode] = useState(null); // 'pattern' | 'configuration' | 'rowByRow' | null
   const [showEndingWizard, setShowEndingWizard] = useState(false);
+  const [showEditPatternOverlay, setShowEditPatternOverlay] = useState(false);
+  const [showEditConfigScreen, setShowEditConfigScreen] = useState(false);
+  const [showDeleteStepModal, setShowDeleteStepModal] = useState(false);
+  const [stepToDelete, setStepToDelete] = useState(null);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingPrepNoteStepIndex, setEditingPrepNoteStepIndex] = useState(null);
-  const [editMode, setEditMode] = useState(null); // 'pattern' | 'configuration' | null
-  const [showEditPatternOverlay, setShowEditPatternOverlay] = useState(false);
-  const [showEditConfigScreen, setShowEditConfigScreen] = useState(false); // ✅ ADD THIS STATE
   const [editingAfterNoteStepIndex, setEditingAfterNoteStepIndex] = useState(null);
 
+  // ===== PREP NOTE MANAGEMENT =====
   const {
     isOverlayOpen: isPrepNoteOverlayOpen,
     currentNote: currentPrepNote,
@@ -50,6 +66,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
     }
   });
 
+  // ===== AFTER NOTE MANAGEMENT =====
   const {
     isOverlayOpen: isAfterNoteOverlayOpen,
     currentNote: currentAfterNote,
@@ -70,20 +87,14 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
     }
   });
 
-
-  // Component validation
+  // ===== VALIDATION =====
   if (!currentProject || componentIndex === null || !currentProject.components[componentIndex]) {
     return (
       <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
         <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
           <div className="text-4xl mb-4">❌</div>
           <h3 className="text-lg font-medium text-wool-600 mb-2">Component not found</h3>
-          <button
-            onClick={onBack}
-            className="btn-primary btn-sm"
-          >
-            ← Back
-          </button>
+          <button onClick={onBack} className="btn-primary btn-sm">← Back</button>
         </div>
       </div>
     );
@@ -91,14 +102,44 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
 
   const component = currentProject.components[componentIndex];
 
-  // Add prep note click handler
+  // ===== COMPONENT STATE HELPERS =====
+  const isComponentFinished = () => {
+    return component.steps.some(step => isFinishingStep(step));
+  };
+
+  const isComponentFullyEntered = () => {
+    if (isComponentFinished()) return true;
+    if (component.steps.length > 0) {
+      const lastStep = component.steps[component.steps.length - 1];
+      return lastStep.endingStitches === 0;
+    }
+    return false;
+  };
+
+  const getEditableStepIndex = () => {
+    if (isComponentFinished()) return -1;
+    for (let i = component.steps.length - 1; i >= 0; i--) {
+      if (!component.steps[i].completed) {
+        return i;
+      }
+    }
+    return -1;
+  };
+
+  const getDeletableStepIndex = (targetStepIndex) => {
+    if (targetStepIndex === 0) return -1;
+    return targetStepIndex;
+  };
+
+  const editableStepIndex = getEditableStepIndex();
+
+  // ===== NOTE HANDLERS =====
   const handlePrepNoteClick = (stepIndex) => {
     const step = component.steps[stepIndex];
     const currentNote = step.prepNote ||
       step.wizardConfig?.prepNote ||
       step.advancedWizardConfig?.prepNote ||
       '';
-
 
     setEditingPrepNoteStepIndex(stepIndex);
     handleSavePrepNote(currentNote);
@@ -117,116 +158,31 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
     handleOpenAfterNoteOverlay();
   };
 
-  // Clean utility wrappers
-  const determineActualPattern = (step) => {
-    return getStepPatternName(step);
-  };
-
-  const getPatternDisplay = (step) => {
-    return getStepPatternName(step);
-  };
-
-  const getMethodDisplay = (step) => {
-    const method = getStepMethodDisplay(step);
-    return method ? ` - ${method}` : '';
-  };
-
-  const isSpecialStep = (step) => {
-    return isConstructionStep(step);
-  };
-
-
-  const isComponentFinished = () => {
-    return component.steps.some(step => isFinishingStep(step));
-  };
-
-  const isComponentFullyEntered = () => {
-    // Formal finishing step
-    if (isComponentFinished()) return true;
-
-    // OR ending with 0 stitches  
-    if (component.steps.length > 0) {
-      const lastStep = component.steps[component.steps.length - 1];
-      return lastStep.endingStitches === 0;
-    }
-
-    return false;
-  };
-
-  const getComponentStatus = () => {
-    return getComponentStatusWithDisplay(component);
-  };
-
+  // ===== NAVIGATION HANDLERS =====
   const handleKnittingView = () => {
     if (onStartKnitting) {
       onStartKnitting(componentIndex);
-    } else {
-      console.log('onStartKnitting prop not provided');
     }
   };
 
   const handleViewAllComponents = () => {
-    onBack(); // Navigate back to Components tab
+    onBack();
   };
 
-  // Determine which step can be edited (last non-completed step, working backwards)
-  // BUT only if component is not finished
-  const getEditableStepIndex = () => {
-    if (isComponentFinished()) return -1; // No editing if component is finished
-
-    for (let i = component.steps.length - 1; i >= 0; i--) {
-      if (!component.steps[i].completed) {
-        return i;
-      }
-    }
-    return -1; // No editable steps
+  const handleNavigateToProject = () => {
+    onBack();
   };
 
-  const getDeletableStepIndex = (targetStepIndex) => {
-    // You can delete any step except the first one (initialization)
-    if (targetStepIndex === 0) return -1;
-
-    // You can delete any step after the first, even if completed
-    // This allows "rewinding" to fix earlier mistakes
-    return targetStepIndex;
-  };
-
-  const editableStepIndex = getEditableStepIndex();
-
-  const handleDeleteStep = () => {
-    const stepToDelete = component.steps[editableStepIndex];
-    const confirmed = window.confirm(`Delete "${stepToDelete.description}"? This cannot be undone.`);
-
-    if (confirmed) {
-      dispatch({
-        type: 'DELETE_STEP',
-        payload: { componentIndex, stepIndex: editableStepIndex }
-      });
-    }
-
-  };
-
-  const handleEditStep = () => {
-    setEditingStepIndex(editableStepIndex);
-    setIsEditing(true);
-  };
-
-  // NEW: Handle step menu actions
+  // ===== MENU HANDLERS =====
   const handleMenuToggle = (stepId, event) => {
     event.stopPropagation();
     setOpenMenuId(openMenuId === stepId ? null : stepId);
   };
 
   const handleEditStepFromMenu = (stepIndex, event) => {
-    console.log("handleEditStepFromMenu called with stepIndex:", stepIndex);
-
-    // SPECIAL HANDLING FOR INITIALIZATION STEPS
     if (stepIndex === 0) {
       const step = component.steps[0];
-
       if (isInitializationStep(step)) {
-        // For initialization steps, show helpful message for now
-        // TODO: In the future, this could redirect to SmartComponentCreation editing
         alert('Initialization step editing is not yet supported. You can delete and recreate the component to change the cast on method.');
         setOpenMenuId(null);
         return;
@@ -239,20 +195,122 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
     setOpenMenuId(null);
   };
 
-  // ✅ UPDATED: Handle Edit Pattern
   const handleEditPatternFromMenu = (stepIndex, event) => {
     event.stopPropagation();
-    setEditingStepIndex(stepIndex);
-    setShowEditPatternOverlay(true); // ✅ CHANGE: Show overlay instead of wizard
+    const step = component.steps[stepIndex];
+    const patternName = getStepPatternName(step);
+
+    // Check if this is an advanced pattern that needs row-by-row editing
+    if (isAdvancedRowByRowPattern(patternName)) {
+      setEditingStepIndex(stepIndex);
+      setEditMode('rowByRow');
+      setIsEditing(true);
+    } else {
+      setEditingStepIndex(stepIndex);
+      setShowEditPatternOverlay(true);
+    }
     setOpenMenuId(null);
   };
 
-  // ✅ COMPLETED: Handle saving pattern changes with recalculation
+  const handleEditConfigFromMenu = (stepIndex, event) => {
+    event.stopPropagation();
+    setEditingStepIndex(stepIndex);
+    setShowEditConfigScreen(true);
+    setOpenMenuId(null);
+  };
+
+  const handleDeleteStepFromMenu = (stepIndex, event) => {
+    event.stopPropagation();
+
+    if (getDeletableStepIndex(stepIndex) === -1) {
+      alert('The first step cannot be deleted as it defines how the component begins.');
+      setOpenMenuId(null);
+      return;
+    }
+
+    const stepToDelete = component.steps[stepIndex];
+    const stepDescription = getHumanReadableDescription(stepToDelete);
+
+    setStepToDelete({
+      step: {
+        ...stepToDelete,
+        description: stepDescription
+      },
+      index: stepIndex
+    });
+    setShowDeleteStepModal(true);
+    setOpenMenuId(null);
+  };
+
+  const handleCopyStepPattern = (stepIndex, event) => {
+    event.stopPropagation();
+    const step = component.steps[stepIndex];
+
+    let patternDescription = '';
+    if (step.wizardConfig?.stitchPattern) {
+      const pattern = step.wizardConfig.stitchPattern.pattern ||
+        step.wizardConfig.stitchPattern.category;
+      patternDescription = pattern;
+
+      if (step.wizardConfig.duration?.type === 'rows' &&
+        step.wizardConfig.duration?.value) {
+        patternDescription += ` for ${step.wizardConfig.duration.value} rows`;
+      }
+
+      if (step.advancedWizardConfig?.hasShaping) {
+        const shaping = step.advancedWizardConfig.shapingConfig;
+        patternDescription += ` with ${shaping.shapingType}s`;
+      }
+    } else {
+      patternDescription = step.description;
+    }
+
+    const copied = window.prompt(
+      'Copy this pattern for reuse:\n\n(You can modify this before using it in a new step)',
+      patternDescription
+    );
+
+    if (copied && copied.trim() !== '') {
+      alert(`Pattern copied: "${copied.trim()}"\n\nYou can use this when creating your next step!`);
+    }
+
+    setOpenMenuId(null);
+  };
+
+  // ===== STEP MANAGEMENT HANDLERS =====
+  const handleAddNewStep = () => {
+    setEditingStepIndex(null);
+    setIsEditing(true);
+  };
+
+  const handleBackFromWizard = () => {
+    setIsEditing(false);
+    setEditingStepIndex(null);
+    setEditMode(null);
+  };
+
+  const handleFinishComponent = () => {
+    setShowEndingWizard(true);
+  };
+
+  const handleEndingComplete = (endingStep) => {
+    dispatch({
+      type: 'ADD_STEP',
+      payload: { componentIndex, step: endingStep }
+    });
+    setShowEndingWizard(false);
+  };
+
+  const handleBackFromEnding = () => {
+    setShowEndingWizard(false);
+  };
+
+  // ===== PATTERN EDITING HANDLERS =====
   const handleSavePatternChanges = (newPatternData) => {
     const step = component.steps[editingStepIndex];
-    const hasRowsInPatternChanged = step.wizardConfig.stitchPattern.rowsInPattern !== newPatternData.rowsInPattern;
+    const hasRowsInPatternChanged =
+      step.wizardConfig.stitchPattern.rowsInPattern !== newPatternData.rowsInPattern;
 
-    // Update the step's wizard config with new pattern data
     const updatedWizardConfig = {
       ...step.wizardConfig,
       stitchPattern: {
@@ -261,20 +319,17 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
       }
     };
 
-    // ✅ FIXED: Generate new description using the correct function
     const mockStep = {
       ...step,
       wizardConfig: updatedWizardConfig
     };
     const regeneratedDescription = getHumanReadableDescription(mockStep);
 
-    // If rowsInPattern changed and we have a duration with repeats, recalculate
     if (hasRowsInPatternChanged && step.wizardConfig.duration?.type === 'repeats') {
       const repeats = parseInt(step.wizardConfig.duration.value) || 1;
       const newRowsInPattern = parseInt(newPatternData.rowsInPattern) || 1;
       const newTotalRows = repeats * newRowsInPattern;
 
-      // Update the step with recalculated values
       dispatch({
         type: 'UPDATE_STEP',
         payload: {
@@ -289,7 +344,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
         }
       });
     } else {
-      // Normal update without recalculation
       dispatch({
         type: 'UPDATE_STEP',
         payload: {
@@ -304,189 +358,102 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
       });
     }
 
-    // Reset state
     setShowEditPatternOverlay(false);
     setEditingStepIndex(null);
   };
 
-  // ✅ NEW: Handle closing pattern overlay
   const handleClosePatternOverlay = () => {
     setShowEditPatternOverlay(false);
     setEditingStepIndex(null);
   };
 
-  // ✅ NEW: Handle routing to advanced edit for Cable/Lace patterns  
-  const handleRouteToAdvancedEdit = () => {
-    setShowEditPatternOverlay(false);
-    setEditMode('pattern');
-    setIsEditing(true);
-  };
+  // ===== CONDITIONAL RENDERS =====
 
-
-  // ✅ NEW: Handle Edit Config  
-  const handleEditConfigFromMenu = (stepIndex, event) => {
-    event.stopPropagation();
-    setEditingStepIndex(stepIndex);
-    setShowEditConfigScreen(true); // NEW - shows screen
-    setOpenMenuId(null);
-  };
-
-  const handleDeleteStepFromMenu = (stepIndex, event) => {
-    event.stopPropagation();
-
-    if (getDeletableStepIndex(stepIndex) === -1) {
-      alert('The first step cannot be deleted as it defines how the component begins.');
-      setOpenMenuId(null);
-      return;
-    }
-
-    // ✅ FIX: Use the actual stepIndex for the step being deleted
-    const stepToDelete = component.steps[stepIndex];
-
-    // ✅ FIX: Generate proper description for the modal using our new function
-    const stepDescription = getHumanReadableDescription(stepToDelete);
-
-    setStepToDelete({
-      step: {
-        ...stepToDelete,
-        description: stepDescription  // Ensure modal gets proper description
-      },
-      index: stepIndex
-    });
-    setShowDeleteStepModal(true);
-    setOpenMenuId(null);
-  };
-
-  const handleCopyStepPattern = (stepIndex, event) => {
-    event.stopPropagation();
-    const step = component.steps[stepIndex];
-
-    // Create a simplified pattern description for copying
-    let patternDescription = '';
-    if (step.wizardConfig?.stitchPattern) {
-      const pattern = step.wizardConfig.stitchPattern.pattern || step.wizardConfig.stitchPattern.category;
-      patternDescription = pattern;
-
-      if (step.wizardConfig.duration?.type === 'rows' && step.wizardConfig.duration?.value) {
-        patternDescription += ` for ${step.wizardConfig.duration.value} rows`;
-      }
-
-      if (step.advancedWizardConfig?.hasShaping) {
-        const shaping = step.advancedWizardConfig.shapingConfig;
-        patternDescription += ` with ${shaping.shapingType}s`;
-      }
-    } else {
-      // Fallback to step description
-      patternDescription = step.description;
-    }
-
-    const copied = window.prompt(
-      'Copy this pattern for reuse:\n\n(You can modify this before using it in a new step)',
-      patternDescription
-    );
-
-    if (copied && copied.trim() !== '') {
-      // For now, just show success - in the future this could auto-populate the step wizard
-      alert(`Pattern copied: "${copied.trim()}"\n\nYou can use this when creating your next step!`);
-    }
-
-    setOpenMenuId(null);
-  };
-
-  const handleAddNewStep = () => {
-    setEditingStepIndex(null);
-    setIsEditing(true);
-  };
-
-  const handleBackFromWizard = () => {
-    setIsEditing(false);
-    setEditingStepIndex(null);
-    setEditMode(null); // ✅ ADD THIS LINE
-  };
-
-  const handleFinishComponent = () => {
-    setShowEndingWizard(true);
-  };
-
-  const handleEndingComplete = (endingStep) => {
-    // ComponentEndingWizard already created the complete step, just use it directly
-    dispatch({
-      type: 'ADD_STEP',  // ← Change to ADD_STEP
-      payload: { componentIndex, step: endingStep }  // ← Use endingStep directly
-    });
-
-    setShowEndingWizard(false);
-  };
-
-  const handleBackFromEnding = () => {
-    setShowEndingWizard(false);
-  };
-
-  // If editing, show the wizard
+  // Step editing - Smart routing
   if (isEditing) {
+    // CREATE flow - use wizard
+    if (!editingStepIndex) {
+      return (
+        <StepWizard
+          componentIndex={componentIndex}
+          editingStepIndex={null}
+          editMode={null}
+          onBack={handleBackFromWizard}
+          onGoToLanding={onGoToLanding}
+        />
+      );
+    }
+
+    // EDIT flow - use router for specific edits
+    // Handle special cases that need the router
+    if (editMode === 'rowByRow' || editMode === 'duration' || editMode === 'shaping') {
+      return (
+        <EditStepRouter
+          componentIndex={componentIndex}
+          editingStepIndex={editingStepIndex}
+          editType={editMode}
+          onBack={handleBackFromWizard}
+          onGoToLanding={onGoToLanding}
+        />
+      );
+    }
+
+    // Full step edit - use StepWizard for now (will migrate later)
     return (
       <StepWizard
         componentIndex={componentIndex}
         editingStepIndex={editingStepIndex}
-        editMode={editMode} // ✅ ADD THIS LINE
+        editMode={editMode}
         onBack={handleBackFromWizard}
-      />
-    );
-  }
-
-  // Handle navigation to ProjectDetail from ComponentCompletionModal
-  const handleNavigateToProject = () => {
-    onBack(); // Navigate back to ProjectDetail (Overview tab will be default)
-  };
-
-  // In the ComponentEndingWizard render, REMOVE the extra prop:
-  if (showEndingWizard) {
-    return (
-      <ComponentEndingWizard
-        component={component}
-        projectName={currentProject?.name} // ✅ ADD THIS LINE
-        onBack={handleBackFromEnding}
-        onComplete={handleEndingComplete}
-        onNavigateToProject={handleNavigateToProject} // 🎯 NEW: Add this line
         onGoToLanding={onGoToLanding}
       />
     );
   }
 
-
-
-  if (showEditConfigScreen) {
+  // Component ending wizard
+  if (showEndingWizard) {
     return (
-      <EditConfigScreen
-        componentIndex={componentIndex}
-        editingStepIndex={editingStepIndex}
-        onBack={() => {
-          setShowEditConfigScreen(false);
-          setEditingStepIndex(null);
-        }}
+      <ComponentEndingWizard
+        component={component}
+        projectName={currentProject?.name}
+        onBack={handleBackFromEnding}
+        onComplete={handleEndingComplete}
+        onNavigateToProject={handleNavigateToProject}
+        onGoToLanding={onGoToLanding}
       />
     );
   }
 
+  // Configuration editing screen
+  if (showEditConfigScreen) {
+    return (
+      <EditStepRouter
+        componentIndex={componentIndex}
+        editingStepIndex={editingStepIndex}
+        editType="config"
+        onBack={() => {
+          setShowEditConfigScreen(false);
+          setEditingStepIndex(null);
+        }}
+        onGoToLanding={onGoToLanding}
+      />
+    );
+  }
 
-
-
+  // ===== MAIN RENDER =====
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="app-container bg-white min-h-screen shadow-lg">
-        {/* Header */}
-        <PageHeader
-          useBranding={true}      // ✨ ADD
-          onHome={onGoToLanding}  // ✨ ADD  
-          compact={true}          // ✨ ADD
+        <EditScreenHeader
           onBack={onBack}
-          showCancelButton={true}
-          onCancel={onBack}
+          onGoToLanding={onGoToLanding}
+          title="Edit Mode"
+          subtitle={`Managing steps for ${component.name}`}
+          variant="edit"
         />
 
         <div className="p-6 bg-yarn-50 stack-lg">
-
-          {/* Smart Status Bar */}
+          {/* Component Status Bar */}
           <div className="warning-block">
             <div className="flex items-center relative">
               <div className="flex items-center gap-2">
@@ -502,13 +469,9 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
             </div>
           </div>
 
-
-
-
-
           <StepsList
             component={component}
-            componentName={component.name}  // ← ADD THIS LINE
+            componentName={component.name}
             editableStepIndex={editableStepIndex}
             isComponentFinished={isComponentFinished}
             openMenuId={openMenuId}
@@ -525,7 +488,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
             onBack={handleViewAllComponents}
           />
 
-          {/* Editing Rules - Above buttons, only show if not finished */}
+          {/* Editing Rules Info */}
           {editableStepIndex !== -1 && !isComponentFinished() && (
             <div className="bg-yarn-100 border border-yarn-200 rounded-lg p-3">
               <p className="text-xs text-yarn-700 text-center">
@@ -534,7 +497,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
             </div>
           )}
 
-          {/* Action Buttons - Only show if component not finished */}
           {/* Action Buttons */}
           {!isComponentFullyEntered() ? (
             <div className="flex gap-3">
@@ -576,6 +538,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
           )}
         </div>
 
+        {/* ===== MODALS & OVERLAYS ===== */}
+
         {/* Delete Step Modal */}
         {showDeleteStepModal && stepToDelete && (
           <DeleteStepModal
@@ -589,7 +553,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
                 type: 'DELETE_STEP',
                 payload: { componentIndex, stepIndex: stepToDelete.index }
               });
-              // ✅ FIX: Close modal after successful deletion
               setShowDeleteStepModal(false);
               setStepToDelete(null);
             }}
@@ -617,14 +580,13 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
           {...getPrepNoteConfig('stepWizard')}
         />
 
-        {/* ✅ NEW: Edit Pattern Overlay */}
+        {/* Edit Pattern Overlay - Only for simple patterns */}
         <EditPatternOverlay
           isOpen={showEditPatternOverlay}
           onClose={handleClosePatternOverlay}
           onSave={handleSavePatternChanges}
           currentStep={editingStepIndex !== null ? component.steps[editingStepIndex] : null}
           title="Edit Pattern"
-          onRouteToAdvancedEdit={handleRouteToAdvancedEdit} // ✅ ADD THIS LINE
         />
       </div>
     </div>

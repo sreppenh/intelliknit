@@ -1,11 +1,11 @@
 // src/features/steps/components/EditSequentialPhasesForm.jsx
 import React from 'react';
-import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
-import { usePhaseManager } from '../hooks/usePhaseManager';
-import PageHeader from '../../../shared/components/PageHeader';
-import PhaseConfigTypeSelector from './shaping-wizard/PhaseConfigTypeSelector';
-import PhaseConfigForm from './shaping-wizard/PhaseConfigForm';
-import { PhaseCalculationService } from '../../../shared/utils/PhaseCalculationService';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import { usePhaseManager } from '../../hooks/usePhaseManager';
+import PageHeader from '../../../../shared/components/PageHeader';
+import PhaseConfigTypeSelector from '../shaping-wizard/PhaseConfigTypeSelector';
+import PhaseConfigForm from '../shaping-wizard/PhaseConfigForm';
+import { PhaseCalculationService } from '../../../../shared/utils/PhaseCalculationService';
 
 const EditSequentialPhasesForm = ({
     componentIndex,

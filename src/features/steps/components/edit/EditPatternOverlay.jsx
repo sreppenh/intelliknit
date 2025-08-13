@@ -1,8 +1,8 @@
 // src/features/steps/components/EditPatternOverlay.jsx
 import React, { useState, useEffect } from 'react';
-import { PATTERN_CATEGORIES } from '../../../shared/utils/PatternCategories';
-import { requiresAdvancedPatternEdit } from '../../../shared/utils/stepDisplayUtils';
-import { getStepPatternName } from '../../../shared/utils/stepDisplayUtils';
+import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
+import { requiresAdvancedPatternEdit } from '../../../../shared/utils/stepDisplayUtils';
+import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
 
 
 const EditPatternOverlay = ({

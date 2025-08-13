@@ -1,8 +1,8 @@
 // src/features/steps/components/EditDurationForm.jsx
 import React, { useState } from 'react';
-import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
-import IncrementInput from '../../../shared/components/IncrementInput';
-import PageHeader from '../../../shared/components/PageHeader';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import IncrementInput from '../../../../shared/components/IncrementInput';
+import PageHeader from '../../../../shared/components/PageHeader';
 
 const EditDurationForm = ({
     componentIndex,
