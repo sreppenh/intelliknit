@@ -258,26 +258,44 @@ const PhaseConfigForm = ({
 
                           let newPositions;
                           if (isSelected) {
-                            // Remove if already selected
                             newPositions = currentPositions.filter(p => p !== option.value);
                           } else {
-                            // Add if not selected
                             newPositions = [...currentPositions, option.value];
                           }
 
-                          // Convert to legacy position format for compatibility
                           const legacyPosition = newPositions.length === 2 ? 'both_ends' :
                             newPositions.length === 1 ? newPositions[0] : null;
 
                           const newConfig = { ...prev, positions: newPositions, position: legacyPosition };
 
-                          // Force correction of times value with new position
-                          if (newConfig.type === 'decrease' && newConfig.times && legacyPosition) {
-                            const availableStitches = getStitchContext().availableStitches;
-                            const stitchesPerRow = legacyPosition === 'both_ends' ? 2 : 1;
-                            const maxTimes = Math.max(1, Math.floor((availableStitches - 2) / stitchesPerRow));
-                            const correctedTimes = Math.min(newConfig.times, maxTimes);
-                            newConfig.times = correctedTimes;
+                          // 🔧 FIX: Recalculate values when position changes
+                          const oldStitchesPerRow = prev.position === 'both_ends' ? 2 : 1;
+                          const newStitchesPerRow = legacyPosition === 'both_ends' ? 2 : 1;
+
+                          if (oldStitchesPerRow !== newStitchesPerRow) {
+                            // Position changed - recalculate dependent values
+                            if (prev.amountMode === 'target' && prev.targetStitches) {
+                              const availableStitches = getStitchContext().availableStitches;
+
+                              // Check if target is still mathematically possible
+                              const totalChange = Math.abs(prev.targetStitches - availableStitches);
+                              const isValidTarget = totalChange % newStitchesPerRow === 0;
+
+                              if (!isValidTarget) {
+                                // Adjust target to nearest valid value
+                                const validChange = Math.floor(totalChange / newStitchesPerRow) * newStitchesPerRow;
+                                const newTarget = prev.type === 'decrease' ?
+                                  availableStitches - validChange :
+                                  availableStitches + validChange;
+                                newConfig.targetStitches = newTarget;
+                              }
+
+                              // Recalculate times
+                              const finalChange = Math.abs((newConfig.targetStitches || prev.targetStitches) - availableStitches);
+                              newConfig.times = Math.max(1, Math.ceil(finalChange / newStitchesPerRow));
+                            } else if (prev.times) {
+                              // In times mode - keep times the same, let preview show new result
+                            }
                           }
 
                           return newConfig;
