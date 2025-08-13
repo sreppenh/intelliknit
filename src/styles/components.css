@@ -1055,6 +1055,100 @@ body.modal-open {
   overscroll-behavior: none;
 }
 
+/* ===== MOBILE HOVER STATE FIXES ===== */
+/* Add this section right after the existing "MOBILE UX IMPROVEMENTS" section */
+
+/* Disable hover effects on touch devices to prevent phantom highlights */
+@media (hover: none) and (pointer: coarse) {
+
+  /* Pattern selection buttons */
+  .card-pattern-option:hover,
+  .card-selectable:hover,
+  .card-selectable-compact:hover,
+  .selection-button:hover {
+    border-color: inherit !important;
+    background-color: inherit !important;
+    box-shadow: none !important;
+    transform: none !important;
+  }
+
+  /* Interactive cards */
+  .card-interactive:hover,
+  .card-clickable:hover,
+  .card-clickable-compact:hover {
+    border-color: inherit !important;
+    background-color: inherit !important;
+    box-shadow: inherit !important;
+    transform: none !important;
+  }
+
+  /* Segmented control options */
+  .segmented-option:hover {
+    color: inherit !important;
+  }
+
+  /* All buttons with hover states */
+  .btn-primary:hover,
+  .btn-secondary:hover,
+  .btn-tertiary:hover,
+  .btn-info:hover,
+  .btn-danger:hover,
+  .btn-increment-plus:hover,
+  .btn-increment-minus:hover {
+    background-color: inherit !important;
+    border-color: inherit !important;
+    color: inherit !important;
+  }
+
+  /* Form elements */
+  .input-field:hover,
+  .input-field-lg:hover {
+    border-color: inherit !important;
+    background-color: inherit !important;
+  }
+
+  /* Any other hover states that might cause issues */
+  *:hover {
+    /* Reset any transform/scale effects */
+    transform: none !important;
+  }
+
+  /* Specifically target the pattern grid buttons */
+  button[class*="hover:"]:hover,
+  [class*="hover:border-sage"]:hover,
+  [class*="hover:bg-sage"]:hover,
+  [class*="hover:border-yarn"]:hover,
+  [class*="hover:bg-yarn"]:hover {
+    border-color: inherit !important;
+    background-color: inherit !important;
+    box-shadow: inherit !important;
+    transform: none !important;
+  }
+}
+
+/* Additional fix for iOS Safari - clear any stuck pseudo-states */
+@media (max-width: 768px) {
+
+  button,
+  [role="button"],
+  .clickable {
+    -webkit-tap-highlight-color: transparent;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* Force remove hover states on mobile */
+  button:hover,
+  [role="button"]:hover,
+  .clickable:hover {
+    background-color: inherit !important;
+    border-color: inherit !important;
+    box-shadow: inherit !important;
+    transform: none !important;
+  }
+}
+
 /* ===== ENHANCED MOBILE SCROLL BEHAVIOR ===== */
 html {
   scroll-behavior: smooth;
