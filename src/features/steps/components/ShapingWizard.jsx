@@ -8,6 +8,7 @@ import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
+import SequentialPhasesWizard from './shaping-wizard/SequentialPhasesWizard';
 
 const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack,
   setConstruction, setCurrentStitches, component, componentIndex, onExitToComponentSteps, onGoToLanding, editingStepIndex = null }) => {
@@ -154,7 +155,7 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
 
       case 'phases':
         return (
-          <PhaseConfig
+          <SequentialPhasesWizard
             shapingData={shapingData}
             setShapingData={setShapingData}
             currentStitches={currentStitches}
