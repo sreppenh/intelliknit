@@ -344,10 +344,11 @@ const PhaseConfigForm = ({
                 </div>
               </div>
 
+
               {/* Times vs Target Selection */}
               <div>
                 <label className="form-label">
-                  Amount
+                  Number of Times vs Target Stitch Count
                 </label>
 
                 {/* Mode Toggle */}
@@ -359,7 +360,7 @@ const PhaseConfigForm = ({
                       : 'border-wool-200 hover:border-sage-300'
                       }`}
                   >
-                    Repeat X Times
+                    Number of Times
                   </button>
                   <button
                     onClick={() => setTempPhaseConfig(prev => ({ ...prev, amountMode: 'target' }))}
@@ -368,10 +369,9 @@ const PhaseConfigForm = ({
                       : 'border-wool-200 hover:border-sage-300'
                       }`}
                   >
-                    Target Stitches
+                    Target Stitch Count
                   </button>
                 </div>
-
                 {/* Input based on mode */}
                 {(tempPhaseConfig.amountMode || 'times') === 'times' ? (
                   <IncrementInput
@@ -391,26 +391,39 @@ const PhaseConfigForm = ({
                     <IncrementInput
                       value={tempPhaseConfig.targetStitches || calculatePhaseEndingStitches()}
                       onChange={(value) => {
-                        const availableStitches = getStitchContext().availableStitches;
-                        const minTarget = tempPhaseConfig.type === 'decrease' ? 0 : availableStitches;
-                        const maxTarget = tempPhaseConfig.type === 'decrease' ? availableStitches - 1 : 999;
-                        const correctedValue = Math.min(Math.max(value, minTarget), maxTarget);
-
-                        // Auto-calculate times needed to reach target
-                        const stitchesPerRow = tempPhaseConfig.position === 'both_ends' ? 2 : 1;
-                        const totalChange = Math.abs(correctedValue - availableStitches);
-                        const calculatedTimes = Math.ceil(totalChange / stitchesPerRow);
-
+                        // Simple onChange - just set the value, let min/max handle validation
                         setTempPhaseConfig(prev => ({
                           ...prev,
-                          targetStitches: correctedValue,
-                          times: Math.max(1, calculatedTimes)
+                          targetStitches: value,
+                          times: Math.max(1, Math.ceil(Math.abs(value - getStitchContext().availableStitches) / (tempPhaseConfig.position === 'both_ends' ? 2 : 1)))
                         }));
                       }}
-                      label="target stitches"
+                      label="target stitch count"
                       unit="stitches"
-                      min={tempPhaseConfig.type === 'decrease' ? 0 : getStitchContext().availableStitches}
-                      max={tempPhaseConfig.type === 'decrease' ? getStitchContext().availableStitches - 1 : 999}
+                      // Fix the min/max to only allow mathematically possible values
+                      min={(() => {
+                        const available = getStitchContext().availableStitches;
+                        const stitchesPerRow = tempPhaseConfig.position === 'both_ends' ? 2 : 1;
+
+                        if (tempPhaseConfig.type === 'decrease') {
+                          // For decreases: can go down to 0, but in valid increments
+                          return tempPhaseConfig.position === 'both_ends' ?
+                            (available % 2 === 0 ? 0 : 1) :  // Even start → even targets, odd start → odd targets
+                            0;
+                        } else {
+                          // For increases: start from current + minimum increment
+                          return available + stitchesPerRow;
+                        }
+                      })()}
+                      max={(() => {
+                        const available = getStitchContext().availableStitches;
+                        if (tempPhaseConfig.type === 'decrease') {
+                          return available - (tempPhaseConfig.position === 'both_ends' ? 2 : 1);
+                        } else {
+                          return 999; // No practical limit for increases
+                        }
+                      })()}
+                      step={tempPhaseConfig.position === 'both_ends' ? 2 : 1}  // ← KEY: This forces valid increments
                     />
                     {tempPhaseConfig.targetStitches && (
                       <div className="text-xs text-wool-500 mt-1">
