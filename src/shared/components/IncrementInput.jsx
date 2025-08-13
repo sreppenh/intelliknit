@@ -26,9 +26,9 @@ const IncrementInput = ({
   placeholder = '',
   step = 1,
   contextualMax = undefined, // For context-aware max limits
+  useDecimals, // ← EXTRACT this from props so it doesn't get passed to DOM
   ...props
 }) => {
-
 
   // NEW: Add this function to make units construction-aware
   const getConstructionAwareUnit = (baseUnit) => {
@@ -50,15 +50,13 @@ const IncrementInput = ({
     return 999; // Fallback for edge cases
   };
 
-
-
   const effectiveMax = getContextualMax();
 
   // Enhanced value handling - always ensure valid number
   const getCurrentValue = () => {
-    // Only use parseFloat when step has decimals
-    const useDecimals = step % 1 !== 0;
-    const parsed = useDecimals ? parseFloat(value) : parseInt(value);
+    // Only use parseFloat when step has decimals OR useDecimals is explicitly set
+    const shouldUseDecimals = useDecimals || (step % 1 !== 0);
+    const parsed = shouldUseDecimals ? parseFloat(value) : parseInt(value);
     if (isNaN(parsed) || parsed < min) return min;
     if (parsed > effectiveMax) return effectiveMax;
     return parsed;
@@ -77,8 +75,8 @@ const IncrementInput = ({
   };
 
   const handleInputChange = (e) => {
-    const useDecimals = step % 1 !== 0;
-    const inputValue = e.target.value.replace(useDecimals ? /[^0-9.]/g : /[^0-9]/g, '');
+    const shouldUseDecimals = useDecimals || (step % 1 !== 0);
+    const inputValue = e.target.value.replace(shouldUseDecimals ? /[^0-9.]/g : /[^0-9]/g, '');
 
     // FIXED: Temporarily allow the empty state
     if (inputValue === '') {
@@ -86,7 +84,7 @@ const IncrementInput = ({
       return;
     }
 
-    const numValue = useDecimals ? parseFloat(inputValue) : parseInt(inputValue);
+    const numValue = shouldUseDecimals ? parseFloat(inputValue) : parseInt(inputValue);
 
     // Validate against min/max bounds
     if (numValue < min) {
@@ -120,7 +118,6 @@ const IncrementInput = ({
     default: { button: 'btn-increment', input: 'input-numeric' },
     lg: { button: 'btn-increment-lg', input: 'input-numeric-lg' }
   };
-
 
   const { button: buttonClass, input: inputClass } = sizeClasses[size];
 
@@ -161,7 +158,7 @@ const IncrementInput = ({
         placeholder={placeholder || min.toString()}
         min={min}
         max={effectiveMax}
-        {...props}
+        {...props} // ← Now safe because useDecimals is extracted above
       />
 
       <button
@@ -177,8 +174,6 @@ const IncrementInput = ({
       {unit && (
         <span className="text-sm text-wool-600 ml-2 whitespace-nowrap min-w-0 flex-shrink-0">{displayUnit}</span>
       )}
-
-
     </div>
   );
 };

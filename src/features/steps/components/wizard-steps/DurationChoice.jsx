@@ -1,8 +1,16 @@
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-// import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
-const DurationChoice = ({ wizardData, updateWizardData, construction, project }) => {
+const DurationChoice = ({
+  wizardData,
+  updateWizardData,
+  construction,
+  project,
+  mode = 'creation',
+  onSave,
+  onCancel,
+  showSaveActions = false
+}) => {
   const { pattern } = wizardData.stitchPattern;
 
   // SAFETY CHECK: Ensure duration exists
@@ -11,19 +19,21 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
     return <div>Loading...</div>;
   }
 
-
   // Skip duration for Cast On (already configured)
   if (pattern === 'Cast On') {
     return (
       <div className="stack-lg">
         <div className="success-block-center">
-          <div className="text-2xl mb-2">🏗️</div>
+          <div className="text-2xl mb-2">🗝️</div>
           <h3 className="content-header-secondary mb-2">Cast On Ready!</h3>
           <p className="text-sm text-sage-600">Your cast on step is ready to add</p>
         </div>
       </div>
     );
   }
+
+  const isEditMode = mode === 'edit';
+  const isCreationMode = mode === 'creation';
 
   const patternHasRepeats = wizardData.stitchPattern.rowsInPattern &&
     parseInt(wizardData.stitchPattern.rowsInPattern) > 0;
@@ -34,7 +44,6 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
 
   // Smart gauge calculation using real project data
   const calculateRowsFromLength = (inches) => {
-    // Use real project gauge instead of mock data
     const projectGauge = project?.gauge;
 
     if (!inches || !projectGauge?.rowGauge?.rows || !projectGauge?.rowGauge?.measurement) {
@@ -60,8 +69,40 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
     ? calculateRowsFromLength(wizardData.duration.value)
     : null;
 
+  // Validation
+  const canSave = () => {
+    return wizardData.duration?.type && wizardData.duration?.value && (
+      wizardData.duration.type === 'until_length' ? true : parseFloat(wizardData.duration.value) > 0
+    );
+  };
+
+  // Save handlers for edit mode
+  const handleSave = () => {
+    if (onSave && canSave()) {
+      onSave(wizardData.duration);
+    }
+  };
+
+  const handleCancel = () => {
+    if (onCancel) {
+      onCancel();
+    }
+  };
+
   return (
     <div className="stack-lg">
+      {/* Mode indicator for edit mode */}
+      {isEditMode && (
+        <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-3 mb-4">
+          <p className="text-sm text-yarn-600 font-medium">
+            🔧 Edit Mode - Duration Configuration
+          </p>
+          <p className="text-xs text-yarn-500 mt-1">
+            Update how you want to measure your {pattern?.toLowerCase()}
+          </p>
+        </div>
+      )}
+
       <div>
         <h2 className="content-header-primary">Configure Length</h2>
         <p className="content-subheader">Choose how you want to measure your {pattern?.toLowerCase()}</p>
@@ -132,9 +173,6 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
                       min={1}
                       size="sm"
                     />
-
-
-
 
                     <div className="text-xs text-sage-600">
                       💡 This is the total number of {construction === 'round' ? 'rounds' : 'rows'} to work for this section
@@ -332,12 +370,10 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
                         />
                       </div>
 
-
                       {wizardData.duration.value && (
                         <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
                           <strong>Preview:</strong> Repeat the {wizardData.stitchPattern.rowsInPattern}-{construction === 'round' ? 'round' : 'row'} pattern {wizardData.duration.value} times
                           ({(parseInt(wizardData.stitchPattern.rowsInPattern) || 0) * (parseInt(wizardData.duration.value) || 0)} total {construction === 'round' ? 'rounds' : 'rows'})
-                          ({(parseInt(wizardData.stitchPattern.rowsInPattern) || 0) * (parseInt(wizardData.duration.value) || 0)} total rows)
                         </div>
                       )}
                     </div>
@@ -346,6 +382,27 @@ const DurationChoice = ({ wizardData, updateWizardData, construction, project })
               </div>
             </label>
           )}
+        </div>
+      )}
+
+      {/* Save Actions for Edit Mode */}
+      {showSaveActions && (
+        <div className="pt-4 border-t border-wool-200">
+          <div className="flex gap-3">
+            <button
+              onClick={handleCancel}
+              className="flex-1 btn-tertiary"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={handleSave}
+              disabled={!canSave()}
+              className="flex-1 btn-primary"
+            >
+              Save Changes
+            </button>
+          </div>
         </div>
       )}
     </div>
