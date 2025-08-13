@@ -342,8 +342,8 @@ const PhaseConfigForm = ({
                   <button
                     onClick={() => setTempPhaseConfig(prev => ({ ...prev, amountMode: 'times' }))}
                     className={`flex-1 p-2 text-sm border-2 rounded-lg transition-colors ${(tempPhaseConfig.amountMode || 'times') === 'times'
-                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                        : 'border-wool-200 hover:border-sage-300'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700'
+                      : 'border-wool-200 hover:border-sage-300'
                       }`}
                   >
                     Repeat X Times
@@ -351,8 +351,8 @@ const PhaseConfigForm = ({
                   <button
                     onClick={() => setTempPhaseConfig(prev => ({ ...prev, amountMode: 'target' }))}
                     className={`flex-1 p-2 text-sm border-2 rounded-lg transition-colors ${tempPhaseConfig.amountMode === 'target'
-                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                        : 'border-wool-200 hover:border-sage-300'
+                      ? 'border-sage-500 bg-sage-100 text-sage-700'
+                      : 'border-wool-200 hover:border-sage-300'
                       }`}
                   >
                     Target Stitches
@@ -410,6 +410,28 @@ const PhaseConfigForm = ({
             </>
           )}
         </div>
+
+        {/* Live Preview - Similar to EvenDistribution */}
+        {tempPhaseConfig.type && (tempPhaseConfig.times || tempPhaseConfig.targetStitches) && (
+          <div className="card-info">
+            <h4 className="text-sm font-semibold text-lavender-700 mb-3">Preview</h4>
+            <div className="space-y-2 text-sm">
+              <div className="text-lavender-700">
+                <span className="font-medium">Instruction:</span> {getPhasePreview(tempPhaseConfig)}
+              </div>
+              <div className="text-lavender-600">
+                {getStitchContext().availableStitches} stitches → {calculatePhaseEndingStitches()} stitches
+                ({construction})
+              </div>
+              {tempPhaseConfig.amountMode === 'target' && tempPhaseConfig.targetStitches && (
+                <div className="text-lavender-600 text-xs">
+                  Will {tempPhaseConfig.type} {tempPhaseConfig.times} times to reach target
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
 
         {/* Navigation */}
         <div className="flex gap-3 pt-6">
