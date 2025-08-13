@@ -1418,31 +1418,3 @@ body {
   }
 
 }
-
-/* ===== SURGICAL MOBILE HOVER FIX ===== */
-/* Add this to the very end of your components.css file */
-
-/* Target only the specific pattern selection buttons in PatternSelector */
-@media (hover: none) and (pointer: coarse) {
-  .card-pattern-option:hover {
-    /* Reset to default non-hover state */
-    border-color: #e5e7eb !important;
-    /* border-wool-200 */
-    background-color: #f9fafb !important;
-    /* bg-wool-50 */
-  }
-
-  /* Also fix the category selection buttons */
-  .grid.grid-cols-3.gap-2 button:hover {
-    border-color: inherit !important;
-    background-color: inherit !important;
-    box-shadow: inherit !important;
-  }
-}
-
-/* Additional iOS Safari specific fix */
-@media (max-width: 768px) {
-  .card-pattern-option {
-    -webkit-tap-highlight-color: transparent;
-  }
-}
