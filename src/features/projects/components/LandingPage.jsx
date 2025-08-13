@@ -35,6 +35,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
         <PageHeader
           useBranding={true}
           compact={true}
+          showBackButton={false}
         />
         {/* Greeting Section */}
         <div className="px-6 py-6 bg-gradient-to-b from-sage-100 to-yarn-50">

@@ -11,7 +11,25 @@ export const PatternSelector = ({
   onSavePrepNote
 }) => {
   // State for toggle between Quick and Advanced
-  const [activeTab, setActiveTab] = useState('quick');
+  // const [activeTab, setActiveTab] = useState('quick');
+
+  const [activeTab, setActiveTab] = useState(() => {
+    // Initialize based on existing data if available
+    const selectedCategory = wizardData?.stitchPattern?.category;
+    if (selectedCategory && PATTERN_CATEGORIES[selectedCategory]) {
+      const categoryType = PATTERN_CATEGORIES[selectedCategory].type;
+      return categoryType === 'quick' ? 'quick' : 'advanced';
+    }
+    return 'quick'; // Default fallback
+  });
+
+
+
+
+
+
+
+
   const [selectedQuickCategory, setSelectedQuickCategory] = useState(null);
 
   // Prep note management
@@ -240,7 +258,7 @@ export const PatternSelector = ({
                 onClick={() => handleTabChange('quick')}
                 className={`segmented-option ${activeTab === 'quick' ? 'segmented-option-active' : ''}`}
               >
-                Quick Patterns
+                Basic Patterns
               </button>
               <button
                 onClick={() => handleTabChange('advanced')}

@@ -67,18 +67,20 @@ const PageHeader = ({
 
   return (
     <>
-      {/* Main Header with dynamic height */}
+      {/* Main Header with dynamic height and minimum height */}
       <div className={`
         bg-sage-500 text-white px-6 ${getHeaderHeight()}
         ${sticky ? `sticky top-0 z-${zIndex} shadow-sm` : ''}
         transition-shadow duration-200
+        ${compact ? 'min-h-[56px]' : 'min-h-[72px]'}
       `}>
-        <div className="flex items-center justify-between relative">
-          <div>
+        <div className="flex items-center justify-between relative min-h-[40px]">
+          {/* Left section */}
+          <div className="flex items-center flex-shrink-0">
             {showBackButton && (
               <button
                 onClick={onBack}
-                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors flex-shrink-0"
+                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
               >
                 ←
               </button>
@@ -87,11 +89,12 @@ const PageHeader = ({
 
           {getCenterContent()}
 
-          <div>
+          {/* Right section */}
+          <div className="flex items-center flex-shrink-0">
             {showCancelButton && onCancel && (
               <button
                 onClick={onCancel}
-                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors flex-shrink-0"
+                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
                 title="Cancel"
               >
                 ✕

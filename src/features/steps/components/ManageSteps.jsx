@@ -483,25 +483,26 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
         />
 
         <div className="p-6 bg-yarn-50 stack-lg">
-          {/* Component Summary */}
+
+          {/* Smart Status Bar */}
           <div className="warning-block">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center relative">
               <div className="flex items-center gap-2">
-                <span className="text-sm">📋</span>
-                <h3 className="text-xs font-medium text-wool-600">Overview</h3>
+                <span className="text-sm">✏️</span>
+                <span className="text-xs font-medium text-wool-600">Edit Mode</span>
               </div>
-              <div className="flex items-center gap-4 text-xs text-wool-500">
-                <span>{component.steps.length} steps</span>
-                <span>{component.steps.filter(s => s.completed).length} completed</span>
-                <span>
-                  {component.steps.length > 0 ?
-                    `${component.steps[0]?.startingStitches || 0} → ${component.steps[component.steps.length - 1]?.endingStitches || 0} sts` :
-                    '0 → 0 sts'
-                  }
-                </span>
+              <div className="absolute left-1/2 transform -translate-x-1/2">
+                <span className="text-sm font-medium text-wool-700">{component.name}</span>
+              </div>
+              <div className="ml-auto">
+                <span className="text-xs text-wool-500">{component.steps.length} steps</span>
               </div>
             </div>
           </div>
+
+
+
+
 
           <StepsList
             component={component}
@@ -509,6 +510,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
             editableStepIndex={editableStepIndex}
             isComponentFinished={isComponentFinished}
             openMenuId={openMenuId}
+            onAddStep={handleAddNewStep}
+            onFinishComponent={handleFinishComponent}
             onMenuToggle={handleMenuToggle}
             onEditStep={handleEditStepFromMenu}
             onEditPattern={handleEditPatternFromMenu}
@@ -516,6 +519,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
             onDeleteStep={handleDeleteStepFromMenu}
             onPrepNoteClick={handlePrepNoteClick}
             onAfterNoteClick={handleAfterNoteClick}
+            onStartKnitting={handleKnittingView}
+            onBack={handleViewAllComponents}
           />
 
           {/* Editing Rules - Above buttons, only show if not finished */}

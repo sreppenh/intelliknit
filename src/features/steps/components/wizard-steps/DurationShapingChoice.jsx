@@ -78,7 +78,7 @@ const DurationShapingChoice = (props) => {
         <button
           onClick={handleShapingChoice}
           className={`card-selectable p-6 text-left relative ${isShapingSelected()
-            ? 'border-yarn-500 bg-yarn-100 text-yarn-700 shadow-lg transform scale-[1.02]'
+            ? '!border-yarn-500 !bg-yarn-100 text-yarn-700 shadow-lg transform scale-[1.02]'
             : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-md hover:transform hover:scale-[1.01]'
             }`}
         >

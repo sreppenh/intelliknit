@@ -1,9 +1,10 @@
 import React from 'react';
 import StepCard from './StepCard';
-import { isConstructionStep, getComponentStatusWithDisplay } from '../../../../shared/utils/stepDisplayUtils';
+import { isConstructionStep, getComponentStatusWithDisplay, isFinishingStep } from '../../../../shared/utils/stepDisplayUtils';
 
 const StepsList = ({
     component,
+    componentName, // This prop is already being passed from ManageSteps
     editableStepIndex,
     isComponentFinished,
     openMenuId,
@@ -11,10 +12,29 @@ const StepsList = ({
     onEditStep,
     onEditPattern,
     onEditConfig,
+    onStartKnitting,
+    onBack,
     onDeleteStep,
     onPrepNoteClick,
     onAfterNoteClick,
+    // New props for buttons
+    onAddStep,
+    onFinishComponent,
 }) => {
+    // Determine if component is fully entered (same logic as ManageSteps)
+    const isComponentFullyEntered = () => {
+        // Formal finishing step
+        if (component.steps.some(step => isFinishingStep(step))) return true;
+
+        // OR ending with 0 stitches  
+        if (component.steps.length > 0) {
+            const lastStep = component.steps[component.steps.length - 1];
+            return lastStep.endingStitches === 0;
+        }
+
+        return false;
+    };
+
     if (component.steps.length === 0) {
         return (
             <div className="text-center py-8 bg-white rounded-xl border-2 border-wool-200 shadow-sm">
@@ -27,12 +47,27 @@ const StepsList = ({
 
     return (
         <div className="stack-sm">
+            {/* Just the essentials */}
             <div className="flex justify-between items-center">
-                <h3 className="content-header-secondary">{component.name} Steps ({component.steps.length})</h3>
-                <span className="text-xs text-wool-600 bg-white px-3 py-1 rounded-full border border-wool-200 font-medium">
-                    {getComponentStatusWithDisplay(component).display}
-                </span>
+                {/*   <h3 className="content-header-secondary text-left">{component.name}</h3> */}
+                <h3 className="content-header-secondary text-left">Instructions</h3>
+                <div className="flex gap-2">
+                    {!isComponentFullyEntered() ? (
+                        <>
+                            <button onClick={onAddStep} className="bg-yarn-600 hover:bg-yarn-700 text-white py-2 px-4 rounded-xl font-semibold text-sm transition-colors">+ Add Step</button>
+                            {component.steps.length > 0 && (
+                                <button onClick={onFinishComponent} className="bg-sage-500 hover:bg-sage-600 text-white py-2 px-4 rounded-xl font-semibold text-sm transition-colors">🏁 Finish</button>
+                            )}
+                        </>
+                    ) : (
+                        <>
+                            <button onClick={onStartKnitting} className="btn-primary btn-sm">🧶 Start Knitting</button>
+                            <button onClick={onBack} className="btn-secondary btn-sm">📋 Project Overview</button>
+                        </>
+                    )}
+                </div>
             </div>
+
 
             {component.steps.map((step, stepIndex) => {
                 const isEditable = stepIndex === editableStepIndex;
@@ -50,12 +85,12 @@ const StepsList = ({
                         isComponentFinished={isComponentFinished}
                         openMenuId={openMenuId}
                         onMenuToggle={onMenuToggle}
-                        editableStepIndex={editableStepIndex} // ← ADD THIS
+                        editableStepIndex={editableStepIndex}
                         onEditStep={onEditStep}
                         onEditPattern={onEditPattern}
                         onEditConfig={onEditConfig}
                         onDeleteStep={onDeleteStep}
-                        onPrepNoteClick={onPrepNoteClick} // ADD THIS LINE
+                        onPrepNoteClick={onPrepNoteClick}
                         onAfterNoteClick={onAfterNoteClick}
                     />
                 );
