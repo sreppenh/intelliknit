@@ -218,6 +218,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
   };
 
   const handleEditStepFromMenu = (stepIndex, event) => {
+    console.log("handleEditStepFromMenu called with stepIndex:", stepIndex);
+
     // SPECIAL HANDLING FOR INITIALIZATION STEPS
     if (stepIndex === 0) {
       const step = component.steps[0];

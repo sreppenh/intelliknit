@@ -62,7 +62,7 @@ const StepsList = ({
                     ) : (
                         <>
                             <button onClick={onStartKnitting} className="btn-primary btn-sm">🧶 Start Knitting</button>
-                            <button onClick={onBack} className="btn-secondary btn-sm">📋 Project Overview</button>
+                            {/*     <button onClick={onBack} className="btn-secondary btn-sm">📋 Project Overview</button> */}
                         </>
                     )}
                 </div>

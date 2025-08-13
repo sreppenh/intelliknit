@@ -68,6 +68,7 @@ const StepMenu = ({
                         <>
                             {hasEditablePattern && (
                                 <button
+
                                     onClick={(e) => onEditPattern(stepIndex, e)}
                                     className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors"
                                 >
