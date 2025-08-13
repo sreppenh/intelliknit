@@ -1,5 +1,5 @@
 // src/features/steps/hooks/usePhaseManager.js
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { PhaseCalculationService } from '../../../shared/utils/PhaseCalculationService';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminology';
@@ -57,13 +57,6 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
     }
     return '';
   });
-
-  // Fix empty state: Start with type selection when no phases exist
-  useEffect(() => {
-    if (phases.length === 0 && currentScreen === 'summary') {
-      setCurrentScreen('type-select');
-    }
-  }, [phases.length, currentScreen]);
 
   const phaseTypes = [
     {

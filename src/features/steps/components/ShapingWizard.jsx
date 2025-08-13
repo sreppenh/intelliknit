@@ -4,6 +4,7 @@ import WizardHeader from './wizard-layout/WizardHeader';
 import ShapingTypeSelector from './shaping-wizard/ShapingTypeSelector';
 import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
+import PhaseConfigSummary from './shaping-wizard/PhaseConfigSummary';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import WizardContextBar from './wizard-layout/WizardContextBar';
