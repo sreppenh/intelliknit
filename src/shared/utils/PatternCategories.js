@@ -19,7 +19,7 @@ export const PATTERN_CATEGORIES = {
         ]
     },
     rib: {
-        name: 'Ribbing',
+        name: 'Ribbling',
         icon: '〰️',
         type: 'quick',
         patterns: [
