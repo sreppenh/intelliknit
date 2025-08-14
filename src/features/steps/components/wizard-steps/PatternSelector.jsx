@@ -77,17 +77,17 @@ export const PatternSelector = ({
         });
       }
     } else {
-      // Auto - select Basic Stitches on FIRST LOAD only
-      if (!selectedCategory && !selectedPattern && activeTab === 'quick') {
-        setSelectedQuickCategory('basic');
-        updateWizardData('stitchPattern', {
-          category: 'basic',
-          pattern: null,
-          customText: '',
-          rowsInPattern: '',
-          method: ''
-        });
-      }
+      /*      // Auto - select Basic Stitches on FIRST LOAD only
+            if (!selectedCategory && !selectedPattern && activeTab === 'quick') {
+              setSelectedQuickCategory('basic');
+              updateWizardData('stitchPattern', {
+                category: 'basic',
+                pattern: null,
+                customText: '',
+                rowsInPattern: '',
+                method: ''
+              });
+            } */
     }
   }, [
     wizardData?.stitchPattern?.category,
