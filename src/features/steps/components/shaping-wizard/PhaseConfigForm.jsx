@@ -101,16 +101,44 @@ const PhaseConfigForm = ({
             // Setup Rows Configuration
             <div>
               <label className="form-label">
-                Number of {construction === 'round' ? 'Rounds' : 'Rows'}
+                How many plain {construction === 'round' ? 'rounds' : 'rows'}?
               </label>
-              <IncrementInput
-                value={tempPhaseConfig.rows}
-                onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
-                label="rows"
-                unit="rows"
-                construction={construction}
-                min={1}
-              />
+
+              {/* Quick Presets */}
+              <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 mb-3">
+                <div className="grid grid-cols-3 gap-2 mb-4">
+                  {[1, 3, 5].map(value => (
+                    <button
+                      key={value}
+                      onClick={() => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
+                      className={`p-3 text-sm border-2 rounded-lg transition-colors ${tempPhaseConfig.rows === value
+                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                        : 'border-wool-200 hover:border-sage-300'
+                        }`}
+                    >
+                      {value} {construction === 'round' ? 'rounds' : 'rows'}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="border-t border-wool-100 pt-3">
+                  <div className="form-label-sm mb-2">Custom Count</div>
+                  <IncrementInput
+                    value={tempPhaseConfig.rows}
+                    onChange={(value) => setTempPhaseConfig(prev => ({ ...prev, rows: value }))}
+                    label="rows"
+                    unit="rows"
+                    construction={construction}
+                    min={1}
+                  />
+                </div>
+              </div>
+
+              <div className="help-block">
+                <div className="text-xs text-sage-600">
+                  💡 Work even without any shaping between other phases
+                </div>
+              </div>
             </div>
           ) : tempPhaseConfig.type === 'bind_off' ? (
             // Bind Off Configuration
@@ -119,7 +147,7 @@ const PhaseConfigForm = ({
               {/* Unified Amount Per Row Selection */}
               <div>
                 <label className="form-label">
-                  Amount Per Row
+                  How many stitches?
                 </label>
 
                 {/* Unified Amount Container */}
@@ -166,7 +194,9 @@ const PhaseConfigForm = ({
 
               <div>
                 <label className="form-label">
-                  Number of {construction === 'round' ? 'Rounds' : 'Rows'}
+                  <label className="form-label">
+                    Over how many {construction === 'round' ? 'rounds' : 'rows'}?
+                  </label>
                 </label>
 
                 {/* Unified Number of Rows Selection */}

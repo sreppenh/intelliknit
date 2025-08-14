@@ -7,23 +7,23 @@
 
 export const getConstructionTerms = (construction) => {
   const isRound = construction === 'round';
-  
+
   return {
     // Row/Round terminology
     row: isRound ? 'round' : 'row',
     rows: isRound ? 'rounds' : 'rows',
-    Row: isRound ? 'Round' : 'Row', 
+    Row: isRound ? 'Round' : 'Row',
     Rows: isRound ? 'Rounds' : 'Rows',
-    
+
     // Position terminology  
     bothEnds: isRound ? 'Both' : 'Both Ends',
-    atBothEnds: isRound ? 'both' : 'at each end',
-    
+    atBothEnds: isRound ? 'both' : 'at both ends',
+
     // Common phrases
     everyRow: isRound ? 'every round' : 'every row',
     everyOtherRow: isRound ? 'every other round' : 'every other row',
     everyNthRow: (n) => isRound ? `every ${n} rounds` : `every ${n} rows`,
-    
+
     // Pattern instructions
     plainRow: (count) => {
       const term = isRound ? (count === 1 ? 'round' : 'rounds') : (count === 1 ? 'row' : 'rows');

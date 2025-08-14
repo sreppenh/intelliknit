@@ -119,7 +119,7 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
             terms.everyNthRow(config.frequency);
         const decPos = config.position === 'both_ends' ? terms.atBothEnds : `at ${config.position}`;
         const decRows = config.times * config.frequency;
-        return `Dec ${amount} stitch ${decPos} ${decFreq} ${config.times} times (${decRows} ${terms.rows})`;
+        return `Decrease ${amount} stitch ${decPos} ${decFreq} ${config.times} times (${decRows} ${terms.rows})`;
 
       case 'increase':
         if (!config.frequency || !config.times || !config.position) {
@@ -131,7 +131,7 @@ export const usePhaseManager = (currentStitches, construction, existingShapingDa
             terms.everyNthRow(config.frequency);
         const incPos = config.position === 'both_ends' ? terms.atBothEnds : `at ${config.position}`;
         const incRows = config.times * config.frequency;
-        return `Inc ${incAmount} stitch ${incPos} ${incFreq} ${config.times} times (${incRows} ${terms.rows})`;
+        return `Increase ${incAmount} stitch ${incPos} ${incFreq} ${config.times} times (${incRows} ${terms.rows})`;
 
       case 'setup':
         if (!config.rows) return 'Configure row count above';
