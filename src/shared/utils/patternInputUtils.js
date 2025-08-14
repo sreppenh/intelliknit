@@ -1,17 +1,13 @@
-// src/shared/utils/laceInputUtils.js
-
+// src/shared/utils/patternInputUtils.js
 /**
- * Lace Input Utilities
+ * Pattern Input Utilities
  * 
  * Handles auto-increment, delete logic, undo management, and special actions
- * for the enhanced lace pattern entry system.
+ * for enhanced pattern entry (Lace, Cable, Custom, etc.)
  */
 
 // ===== ADDITIVE ACTIONS CONFIGURATION =====
 
-/**
- * Actions that support auto-increment/multiplication when repeated
- */
 export const ADDITIVE_ACTIONS = [
     // Basic stitches
     'K', 'P',
@@ -20,74 +16,87 @@ export const ADDITIVE_ACTIONS = [
     // Advanced lace
     'K3tog', 'P2tog', 'S2KP', 'SK2P', 'SSP',
     'K2tog tbl', 'SSK tbl', 'Sl1', 'M1L', 'M1R',
-    // Future cable actions
-    'C4F', 'C4B', 'C6F', 'C6B', 'T2F', 'T2B'
+    // Cable actions
+    'C4F', 'C4B', 'C6F', 'C6B', 'T2F', 'T2B',
+    'C8F', 'C8B', 'C10F', 'C10B', 'T4F', 'T4B'
 ];
 
+// ===== COMMA LOGIC HELPERS =====
+
 /**
- * Actions that reset completely (no decremental behavior) 
+ * Check if we should add comma before this action
  */
-export const COMPLETE_RESET_ACTIONS = [
-    'K all', 'P all', 'YO', 'K2tog', 'SSK', 'CDD',
-    'K3tog', 'P2tog', 'S2KP', 'SK2P', 'SSP',
-    'K2tog tbl', 'SSK tbl', 'Sl1', 'M1L', 'M1R'
-];
+const shouldAddCommaBefore = (action, currentText) => {
+    if (!currentText) return false; // No comma at start
+    if (['[', '('].includes(action)) return false; // No comma before opening brackets
+    if (currentText.endsWith('[') || currentText.endsWith('(')) return false; // No comma after opening brackets
+    return true;
+};
+
+/**
+ * Check if we should add comma after this action  
+ */
+const shouldAddCommaAfter = (action, nextAction = null) => {
+    if ([']', ')'].includes(action)) return false; // No comma after closing brackets
+    if (nextAction && [']', ')'].includes(nextAction)) return false; // No comma before closing brackets
+    return true;
+};
+
+/**
+ * Smart text appending with proper comma logic
+ */
+const appendWithCommaLogic = (currentText, newAction) => {
+    if (!currentText) return newAction;
+
+    if (shouldAddCommaBefore(newAction, currentText)) {
+        return `${currentText}, ${newAction}`;
+    } else {
+        return `${currentText}${newAction}`;
+    }
+};
 
 // ===== AUTO-INCREMENT LOGIC =====
 
-/**
- * Handle auto-increment for additive actions
- */
 export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, tempRowText, setTempRowText, setConsecutiveCount) => {
     if (ADDITIVE_ACTIONS.includes(action) && action === lastQuickAction) {
         const newCount = consecutiveCount + 1;
         setConsecutiveCount(newCount);
 
-        // Replace the last occurrence with numbered version
+        // Split by comma but preserve bracket structure
         const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
         if (actions.length > 0) {
             const lastIndex = actions.length - 1;
             const lastAction = actions[lastIndex];
 
-            // Check if it's the same action or already numbered
             if (lastAction === action || lastAction.startsWith(action)) {
                 actions[lastIndex] = `${action}${newCount}`;
                 setTempRowText(actions.join(', '));
-                return true; // Handled
+                return true;
             }
         }
     }
-    return false; // Not handled, continue with normal flow
+    return false;
 };
 
 // ===== SMART DELETE LOGIC =====
 
-/**
- * Handle smart delete with tap/hold behavior
- */
 export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncrement, isLongPress = false) => {
     const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
     if (actions.length === 0) return false;
 
     const lastAction = actions[actions.length - 1];
-
-    // Check if it's a numbered action like K3, P2, YO4, etc.
     const numberedMatch = lastAction.match(/^([A-Za-z\d\s]+?)(\d+)$/);
 
     if (numberedMatch && !isLongPress) {
-        // Tap delete: decrement the number
         const [, actionPart, number] = numberedMatch;
         const currentNum = parseInt(number);
 
         if (currentNum > 2) {
-            // K3 → K2, YO4 → YO3
             actions[actions.length - 1] = `${actionPart}${currentNum - 1}`;
         } else {
-            // K2 → K, YO2 → YO (remove number)
             actions[actions.length - 1] = actionPart;
         }
     } else {
-        // Hold delete OR non-numbered action: remove completely
         actions.pop();
     }
 
@@ -98,22 +107,15 @@ export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncremen
 
 // ===== UNDO MANAGEMENT =====
 
-/**
- * Save current state to undo history
- */
 export const saveToUndoHistory = (currentText, undoHistory, setUndoHistory, maxHistory = 50) => {
     if (currentText.trim()) {
         setUndoHistory(prev => {
             const newHistory = [...prev, currentText];
-            // Keep only last N entries to prevent memory issues
             return newHistory.slice(-maxHistory);
         });
     }
 };
 
-/**
- * Handle undo operation
- */
 export const handleUndo = (undoHistory, setUndoHistory, setTempRowText, resetAutoIncrement) => {
     if (undoHistory.length > 0) {
         const previousState = undoHistory[undoHistory.length - 1];
@@ -125,47 +127,64 @@ export const handleUndo = (undoHistory, setUndoHistory, setTempRowText, resetAut
     return false;
 };
 
-// ===== REPEAT BRACKET LOGIC =====
+// ===== BRACKET VALIDATION =====
 
-/**
- * Handle repeat bracket insertion
- */
-export const handleRepeatBracket = (action, tempRowText, setTempRowText, isCreatingRepeat, setIsCreatingRepeat) => {
-    if (action === '[') {
-        setIsCreatingRepeat(true);
-        // No comma before opening bracket
-        setTempRowText(prev => prev ? `${prev}[` : '[');
-        return true;
+export const validateBracketClosure = (text) => {
+    const stack = [];
+    const pairs = { '[': ']', '(': ')' };
+
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+
+        if (['[', '('].includes(char)) {
+            stack.push({ char, index: i });
+        } else if ([']', ')'].includes(char)) {
+            const lastOpen = stack.pop();
+
+            if (!lastOpen || pairs[lastOpen.char] !== char) {
+                return {
+                    isValid: false,
+                    error: `Mismatched ${char} at position ${i + 1}`,
+                    position: i
+                };
+            }
+        }
     }
 
-    if (action === ']') {
-        setIsCreatingRepeat(false);
-        // TODO: Transform keyboard to numbers for repeat count
-        setTempRowText(prev => prev ? `${prev}]` : ']');
-        return true;
+    if (stack.length > 0) {
+        const unclosed = stack[stack.length - 1];
+        return {
+            isValid: false,
+            error: `Unclosed ${unclosed.char} at position ${unclosed.index + 1}`,
+            position: unclosed.index
+        };
     }
 
+    return { isValid: true };
+};
+
+// ===== BRACKET & PARENTHESIS HANDLERS =====
+
+export const handleBracketAndParens = (action, tempRowText, setTempRowText) => {
+    if (['[', '(', ']', ')'].includes(action)) {
+        // Use smart comma logic for brackets
+        setTempRowText(prev => appendWithCommaLogic(prev, action));
+        return true;
+    }
     return false;
 };
 
 // ===== SPECIAL ACTION HANDLERS =====
 
-/**
- * Handle special symbol (★) for custom input
- */
 export const handleSpecialSymbol = (setTempRowText) => {
-    // Simple prompt for now - could be enhanced to modal later
     const customAction = prompt('Enter custom stitch or instruction:');
     if (customAction && customAction.trim()) {
-        setTempRowText(prev => prev ? `${prev}, ${customAction.trim()}` : customAction.trim());
+        setTempRowText(prev => appendWithCommaLogic(prev, customAction.trim()));
         return true;
     }
     return false;
 };
 
-/**
- * Handle copy row action
- */
 export const handleCopyRow = (action, rowInstructions, setTempRowText, resetAutoIncrement) => {
     if (action.startsWith('copy_')) {
         const rowIndex = parseInt(action.split('_')[1]);
@@ -177,9 +196,6 @@ export const handleCopyRow = (action, rowInstructions, setTempRowText, resetAuto
     return false;
 };
 
-/**
- * Handle complete row actions (K all, P all)
- */
 export const handleCompleteRowAction = (action, setTempRowText, resetAutoIncrement) => {
     if (action === 'K all') {
         setTempRowText('K all');
@@ -198,9 +214,6 @@ export const handleCompleteRowAction = (action, setTempRowText, resetAutoIncreme
 
 // ===== MAIN ACTION HANDLER =====
 
-/**
- * Main handler for all quick actions - coordinates all the specialized handlers
- */
 export const handleQuickActionEnhanced = (
     action,
     tempRowText,
@@ -211,17 +224,14 @@ export const handleQuickActionEnhanced = (
     setConsecutiveCount,
     undoHistory,
     setUndoHistory,
-    isCreatingRepeat,
-    setIsCreatingRepeat,
     rowInstructions
 ) => {
-    // Helper to reset auto-increment state
     const resetAutoIncrement = () => {
         setLastQuickAction(null);
         setConsecutiveCount(1);
     };
 
-    // Save to undo history before making changes (except for undo itself)
+    // Save to undo history (except for undo itself)
     if (action !== 'Undo') {
         saveToUndoHistory(tempRowText, undoHistory, setUndoHistory);
     }
@@ -235,7 +245,7 @@ export const handleQuickActionEnhanced = (
         return handleUndo(undoHistory, setUndoHistory, setTempRowText, resetAutoIncrement);
     }
 
-    if (handleRepeatBracket(action, tempRowText, setTempRowText, isCreatingRepeat, setIsCreatingRepeat)) {
+    if (handleBracketAndParens(action, tempRowText, setTempRowText)) {
         return true;
     }
 
@@ -251,50 +261,29 @@ export const handleQuickActionEnhanced = (
         return true;
     }
 
-    // Handle auto-increment for additive actions
+    // Handle auto-increment
     if (handleAutoIncrement(action, lastQuickAction, consecutiveCount, tempRowText, setTempRowText, setConsecutiveCount)) {
         return true;
     }
 
-    // Regular action - add to sequence
+    // Regular action - add with smart comma logic
     setLastQuickAction(ADDITIVE_ACTIONS.includes(action) ? action : null);
     setConsecutiveCount(1);
-    setTempRowText(prev => prev ? `${prev}, ${action}` : action);
+    setTempRowText(prev => appendWithCommaLogic(prev, action));
 
     return true;
 };
 
-// ===== VALIDATION HELPERS =====
-
-/**
- * Check if action should show numbered state
- */
-export const shouldShowNumberedState = (action, count) => {
-    return ADDITIVE_ACTIONS.includes(action) && count > 1;
-};
-
-/**
- * Get formatted action display (with numbers if applicable)
- */
-export const getFormattedActionDisplay = (action, count) => {
-    if (shouldShowNumberedState(action, count)) {
-        return `${action}${count}`;
-    }
-    return action;
-};
-
 export default {
     ADDITIVE_ACTIONS,
-    COMPLETE_RESET_ACTIONS,
     handleAutoIncrement,
     handleSmartDelete,
     saveToUndoHistory,
     handleUndo,
-    handleRepeatBracket,
+    validateBracketClosure,
+    handleBracketAndParens,
     handleSpecialSymbol,
     handleCopyRow,
     handleCompleteRowAction,
-    handleQuickActionEnhanced,
-    shouldShowNumberedState,
-    getFormattedActionDisplay
+    handleQuickActionEnhanced
 };

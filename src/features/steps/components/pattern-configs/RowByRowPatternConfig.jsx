@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getPatternQuickActions, getPatternPlaceholderText } from '../../../../shared/utils/stepDisplayUtils';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import {
     KEYBOARD_LAYERS,
     getKeyboardLayout,
@@ -9,10 +10,10 @@ import {
     getLayerDisplayName,
     getButtonStyles,
     supportsMultipleLayers
-} from '../../../../shared/utils/laceKeyboardUtils'
+} from '../../../../shared/utils/patternKeyboardUtils';
 import {
     handleQuickActionEnhanced
-} from '../../../../shared/utils/laceInputUtils'
+} from '../../../../shared/utils/patternInputUtils';
 
 
 const RowByRowPatternConfig = ({
@@ -42,7 +43,13 @@ const RowByRowPatternConfig = ({
     const [undoHistory, setUndoHistory] = useState([]);
 
 
+    const [keyboardMode, setKeyboardMode] = useState('pattern'); // 'pattern' | 'numbers'
+    const [pendingRepeatText, setPendingRepeatText] = useState('');
 
+    const [bracketState, setBracketState] = useState({
+        hasOpenBracket: false,
+        hasOpenParen: false
+    });
 
     // Initialize entryMode if not set (backwards compatibility)
     const currentEntryMode = wizardData.stitchPattern.entryMode || 'description';
@@ -61,6 +68,16 @@ const RowByRowPatternConfig = ({
 
     // ===== NEW: MOBILE DETECTION =====
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    const { currentProject, dispatch } = useProjectsContext();
+
+    // Helper function to update project data
+    const updateProject = (updates) => {
+        dispatch({
+            type: 'UPDATE_PROJECT',
+            payload: { ...currentProject, ...updates }
+        });
+    };
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -86,39 +103,8 @@ const RowByRowPatternConfig = ({
     const patternType = wizardData.stitchPattern.pattern;
     const placeholderText = getPatternPlaceholderText(patternType);
 
-    // ===== NEW: ENHANCED PATTERN KEYBOARD =====
-    const getEnhancedPatternKeyboard = (patternType, context = {}) => {
-        const { rowNumber, construction } = context;
-
-        switch (patternType) {
-            case 'Lace Pattern':
-                const laceActions = ['K all', 'P all', 'K', 'P', 'YO', 'K2tog', 'SSK', 'CDD'];
-
-                // Smart context awareness for lace
-                if (construction === 'flat' && rowNumber % 2 === 0) {
-                    // Move P all to front for WS rows
-                    return ['P all', ...laceActions.filter(a => a !== 'P all')];
-                }
-                return laceActions;
-
-            case 'Cable Pattern':
-                return ['K all', 'P all', 'K', 'P', 'C4F', 'C4B', 'C6F', 'C6B'];
-
-            case 'Custom pattern':
-                return ['K all', 'P all', 'K', 'P'];
-
-            default:
-                // Fallback to existing centralized version
-                return getPatternQuickActions(patternType);
-        }
-    };
-
     // Get current enhanced keyboard
     const currentRowNumber = editingRowIndex === null ? rowInstructions.length + 1 : editingRowIndex + 1;
-    const enhancedKeyboard = getEnhancedPatternKeyboard(patternType, {
-        rowNumber: currentRowNumber,
-        construction
-    });
 
     // ===== MODE TOGGLE HANDLING =====
     const handleModeToggle = (newMode) => {
@@ -139,8 +125,11 @@ const RowByRowPatternConfig = ({
         setTempRowText('');
         setLastQuickAction(null);
         setConsecutiveCount(1);
-        setCurrentKeyboardLayer(KEYBOARD_LAYERS.PRIMARY); // Reset to primary layer
-        setIsCreatingRepeat(false); // Reset repeat state
+        setCurrentKeyboardLayer(KEYBOARD_LAYERS.PRIMARY);
+        setIsCreatingRepeat(false);
+        setKeyboardMode('pattern');
+        setPendingRepeatText('');
+        setBracketState({ hasOpenBracket: false, hasOpenParen: false }); // ← ADD THIS
         setShowRowEntryOverlay(true);
     };
 
@@ -151,8 +140,11 @@ const RowByRowPatternConfig = ({
         setTempRowText(rowInstructions[index] || '');
         setLastQuickAction(null);
         setConsecutiveCount(1);
-        setCurrentKeyboardLayer(KEYBOARD_LAYERS.PRIMARY); // Reset to primary layer
-        setIsCreatingRepeat(false); // Reset repeat state
+        setCurrentKeyboardLayer(KEYBOARD_LAYERS.PRIMARY);
+        setIsCreatingRepeat(false);
+        setKeyboardMode('pattern');
+        setPendingRepeatText('');
+        setBracketState({ hasOpenBracket: false, hasOpenParen: false }); // ← ADD THIS
         setShowRowEntryOverlay(true);
     };
 
@@ -198,9 +190,14 @@ const RowByRowPatternConfig = ({
     };
 
     // ===== NEW: ENHANCED QUICK ACTION WITH AUTO-INCREMENT =====
-    // REPLACE your existing handleQuickAction function with this enhanced version:
     const handleQuickAction = (action) => {
-        // Handle keyboard layer shifting
+        // Handle keyboard mode switching
+        if (keyboardMode === 'numbers') {
+            handleNumberInput(action);
+            return;
+        }
+
+        // Handle keyboard layer shifting (only in pattern mode)
         if (action === '⇧') {
             if (supportsMultipleLayers(patternType)) {
                 setCurrentKeyboardLayer(prev => getNextKeyboardLayer(prev, patternType));
@@ -208,7 +205,23 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        // Use the enhanced handler from utilities
+        // Track bracket state
+        if (action === '[') {
+            setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
+        } else if (action === ']') {
+            setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
+            // Trigger number mode
+            setPendingRepeatText(tempRowText + ']');
+            setKeyboardMode('numbers');
+            setIsCreatingRepeat(false);
+            return;
+        } else if (action === '(') {
+            setBracketState(prev => ({ ...prev, hasOpenParen: true }));
+        } else if (action === ')') {
+            setBracketState(prev => ({ ...prev, hasOpenParen: false }));
+        }
+
+        // Use the enhanced handler from utilities for everything else
         handleQuickActionEnhanced(
             action,
             tempRowText,
@@ -219,58 +232,39 @@ const RowByRowPatternConfig = ({
             setConsecutiveCount,
             undoHistory,
             setUndoHistory,
-            isCreatingRepeat,
-            setIsCreatingRepeat,
             rowInstructions
         );
     };
-    // ADD this new function after your existing handleQuickAction function:
-    const handleSmartDelete = (isLongPress = false) => {
-        // Save to undo history first
-        if (tempRowText.trim()) {
-            setUndoHistory(prev => [...prev, tempRowText]);
+
+    // ADD this new function for number input handling:
+    const handleNumberInput = (action) => {
+        if (action === 'Enter' || action === '✓') {
+            // Complete the repeat with multiplier
+            setTempRowText(pendingRepeatText);
+            setKeyboardMode('pattern');
+            setPendingRepeatText('');
+            return;
         }
 
-        const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
-        if (actions.length === 0) return;
-
-        const lastAction = actions[actions.length - 1];
-
-        // Check if it's a numbered action like K3, P2, etc.
-        const numberedMatch = lastAction.match(/^([KP])(\d+)$/);
-
-        if (numberedMatch && !isLongPress) {
-            // Tap delete: decrement the number
-            const [, letter, number] = numberedMatch;
-            const currentNum = parseInt(number);
-
-            if (currentNum > 2) {
-                // K3 → K2
-                actions[actions.length - 1] = `${letter}${currentNum - 1}`;
-            } else {
-                // K2 → K (remove number)
-                actions[actions.length - 1] = letter;
-            }
-        } else {
-            // Hold delete OR non-numbered action: remove completely
-            actions.pop();
+        if (action === 'Cancel' || action === '✗') {
+            // Cancel repeat creation
+            setTempRowText(prev => prev.replace(/\]$/, '')); // Remove the ]
+            setKeyboardMode('pattern');
+            setPendingRepeatText('');
+            setIsCreatingRepeat(true); // Go back to creating repeat
+            return;
         }
 
-        setTempRowText(actions.join(', '));
-
-        // Reset auto-increment when deleting
-        setLastQuickAction(null);
-        setConsecutiveCount(1);
-    };
-
-    // ADD this undo function:
-    const handleUndo = () => {
-        if (undoHistory.length > 0) {
-            const previousState = undoHistory[undoHistory.length - 1];
-            setTempRowText(previousState);
-            setUndoHistory(prev => prev.slice(0, -1));
+        if (/^\d+$/.test(action)) {
+            // Number button pressed - add to repeat multiplier
+            const currentText = pendingRepeatText.replace(/\]\s*×?\s*\d*$/, ''); // Remove existing multiplier
+            const newText = `${currentText}] × ${action}`;
+            setPendingRepeatText(newText);
+            setTempRowText(newText);
+            return;
         }
     };
+
 
     const handleOverlayBackdrop = (e) => {
         if (e.target === e.currentTarget) {
@@ -330,35 +324,61 @@ const RowByRowPatternConfig = ({
                             rows={3}
                             className="w-full border-2 border-wool-200 rounded-lg px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors resize-none"
                             autoFocus
+                            readOnly={isMobile}  // Prevent mobile keyboard on mobile
+                            inputMode={isMobile ? "none" : "text"}  // No input method on mobile
+                            onTouchStart={(e) => {
+                                if (isMobile) {
+                                    e.preventDefault(); // Prevent focus on mobile
+                                }
+                            }}
+
                         />
                     </div>
 
-
-                    {/* Smart Color-Coded Keyboard */}
+                    {/* Enhanced Multi-Layer Keyboard */}
                     <div className="mb-4">
                         <div className="flex justify-between items-center mb-2">
                             <div className="text-sm font-medium text-wool-600">
-                                Pattern Keyboard
+                                {keyboardMode === 'numbers' ? 'Repeat Count' : 'Pattern Keyboard'}
                             </div>
-                            {supportsMultipleLayers(patternType) && (
+                            {keyboardMode === 'pattern' && supportsMultipleLayers(patternType) && (
                                 <div className="text-xs text-wool-500">
                                     {getLayerDisplayName(currentKeyboardLayer)} Layer
                                 </div>
                             )}
                         </div>
 
-                        <EnhancedKeyboard
-                            patternType={patternType}
-                            layer={currentKeyboardLayer}
-                            context={{
-                                rowNumber: currentRowNumber,
-                                construction
-                            }}
-                            isMobile={isMobile}
-                            isCreatingRepeat={isCreatingRepeat}
-                            rowInstructions={rowInstructions}
-                            onAction={handleQuickAction}
-                        />
+                        {keyboardMode === 'numbers' ? (
+                            <NumberKeyboard
+                                onAction={handleQuickAction}
+                                pendingText={pendingRepeatText}
+                            />
+                        ) : (
+                            <>
+                                {/* Show Custom Action Manager on Tertiary Layer */}
+                                {currentKeyboardLayer === KEYBOARD_LAYERS.TERTIARY && (
+                                    <CustomActionManager
+                                        patternType={patternType}
+                                        onActionSelect={handleQuickAction}
+                                    />
+                                )}
+
+                                <EnhancedKeyboard
+                                    patternType={patternType}
+                                    layer={currentKeyboardLayer}
+                                    context={{
+                                        rowNumber: currentRowNumber,
+                                        construction,
+                                        project: currentProject
+                                    }}
+                                    isMobile={isMobile}
+                                    isCreatingRepeat={isCreatingRepeat}
+                                    rowInstructions={rowInstructions}
+                                    onAction={handleQuickAction}
+                                    bracketState={bracketState}
+                                />
+                            </>
+                        )}
                     </div>
 
                     {/* Save/Cancel Buttons */}
@@ -417,29 +437,49 @@ const RowByRowPatternConfig = ({
                         />
                     </div>
 
-                    {/* Enhanced Quick Actions */}
+                    {/* Enhanced Multi-Layer Keyboard - SAME AS MOBILE */}
                     <div className="mb-4">
-                        <div className="text-sm font-medium text-wool-600 mb-2">Quick Actions:</div>
-                        <div className="flex flex-wrap gap-2">
-                            {enhancedKeyboard.map((action, index) => (
-                                <button
-                                    key={`${action}-${index}`}
-                                    onClick={() => handleQuickAction(action)}
-                                    className="px-3 py-1 bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors"
-                                >
-                                    {action}
-                                </button>
-                            ))}
-                            {rowInstructions.map((instruction, index) => (
-                                <button
-                                    key={`copy_${index}`}
-                                    onClick={() => handleQuickAction(`copy_${index}`)}
-                                    className="px-3 py-1 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 transition-colors"
-                                >
-                                    Copy Row {index + 1}
-                                </button>
-                            ))}
+                        <div className="flex justify-between items-center mb-2">
+                            <div className="text-sm font-medium text-wool-600">
+                                {keyboardMode === 'numbers' ? 'Repeat Count' : 'Pattern Keyboard'}
+                            </div>
+                            {keyboardMode === 'pattern' && supportsMultipleLayers(patternType) && (
+                                <div className="text-xs text-wool-500">
+                                    {getLayerDisplayName(currentKeyboardLayer)} Layer
+                                </div>
+                            )}
                         </div>
+
+                        {keyboardMode === 'numbers' ? (
+                            <NumberKeyboard
+                                onAction={handleQuickAction}
+                                pendingText={pendingRepeatText}
+                            />
+                        ) : (
+                            <>
+                                {/* Show Custom Action Manager on Tertiary Layer */}
+                                {currentKeyboardLayer === KEYBOARD_LAYERS.TERTIARY && (
+                                    <CustomActionManager
+                                        patternType={patternType}
+                                        onActionSelect={handleQuickAction}
+                                    />
+                                )}
+
+                                <EnhancedKeyboard
+                                    patternType={patternType}
+                                    layer={currentKeyboardLayer}
+                                    context={{
+                                        rowNumber: currentRowNumber,
+                                        construction,
+                                        project: currentProject
+                                    }}
+                                    isMobile={isMobile}
+                                    isCreatingRepeat={isCreatingRepeat}
+                                    rowInstructions={rowInstructions}
+                                    onAction={handleQuickAction}
+                                />
+                            </>
+                        )}
                     </div>
 
                     {/* Save/Cancel Buttons */}
@@ -462,6 +502,165 @@ const RowByRowPatternConfig = ({
             </div>
         </div>
     );
+
+    // ===== CUSTOM ACTION MANAGER COMPONENT =====
+    const CustomActionManager = ({ patternType, onActionSelect }) => {
+        const [newActionName, setNewActionName] = useState('');
+        const [showAddForm, setShowAddForm] = useState(false);
+
+        // Get custom actions from current project
+        const customActions = currentProject?.customActions?.[
+            patternType === 'Lace Pattern' ? 'lace' :
+                patternType === 'Cable Pattern' ? 'cable' : 'general'
+        ] || [];
+
+        const handleAddAction = () => {
+            if (newActionName.trim()) {
+                const key = patternType === 'Lace Pattern' ? 'lace' :
+                    patternType === 'Cable Pattern' ? 'cable' : 'general';
+
+                const currentCustomActions = currentProject?.customActions || {};
+                const updatedCustomActions = {
+                    ...currentCustomActions,
+                    [key]: [...(currentCustomActions[key] || []), newActionName.trim()]
+                };
+
+                updateProject({ customActions: updatedCustomActions });
+                setNewActionName('');
+                setShowAddForm(false);
+            }
+        };
+
+        const handleRemoveAction = (actionToRemove) => {
+            const key = patternType === 'Lace Pattern' ? 'lace' :
+                patternType === 'Cable Pattern' ? 'cable' : 'general';
+
+            const currentCustomActions = currentProject?.customActions || {};
+            const updatedCustomActions = {
+                ...currentCustomActions,
+                [key]: (currentCustomActions[key] || []).filter(action => action !== actionToRemove)
+            };
+
+            updateProject({ customActions: updatedCustomActions });
+        };
+
+        if (showAddForm) {
+            return (
+                <div className="bg-lavender-50 border-2 border-lavender-200 rounded-lg p-3 mb-3">
+                    <div className="text-sm font-medium text-lavender-700 mb-2">Add Custom Action</div>
+                    <div className="flex gap-2">
+                        <input
+                            type="text"
+                            value={newActionName}
+                            onChange={(e) => setNewActionName(e.target.value)}
+                            placeholder="e.g., Bobble, Nupps, Tree Branch"
+                            className="flex-1 px-3 py-2 border border-lavender-300 rounded-lg text-sm"
+                            onKeyPress={(e) => e.key === 'Enter' && handleAddAction()}
+                            autoFocus
+                        />
+                        <button
+                            onClick={handleAddAction}
+                            className="px-3 py-2 bg-lavender-500 text-white rounded-lg text-sm hover:bg-lavender-600"
+                        >
+                            Add
+                        </button>
+                        <button
+                            onClick={() => setShowAddForm(false)}
+                            className="px-3 py-2 bg-lavender-200 text-lavender-700 rounded-lg text-sm hover:bg-lavender-300"
+                        >
+                            Cancel
+                        </button>
+                    </div>
+                </div>
+            );
+        }
+
+        return (
+            <div className="mb-3">
+                <div className="text-sm font-medium text-wool-600 mb-2">
+                    Custom {patternType.replace(' Pattern', '')} Actions
+                </div>
+                <div className="flex flex-wrap gap-2">
+                    {customActions.map((action, index) => (
+                        <div key={index} className="flex items-center gap-1">
+                            <button
+                                onClick={() => onActionSelect(action)}
+                                className="px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-sm hover:bg-yellow-200 border border-yellow-200"
+                            >
+                                {action}
+                            </button>
+                            <button
+                                onClick={() => handleRemoveAction(action)}
+                                className="w-6 h-6 bg-red-100 text-red-600 rounded-full text-xs hover:bg-red-200 flex items-center justify-center"
+                                title="Remove custom action"
+                            >
+                                ×
+                            </button>
+                        </div>
+                    ))}
+                    <button
+                        onClick={() => setShowAddForm(true)}
+                        className="px-3 py-2 bg-lavender-100 text-lavender-700 rounded-lg text-sm hover:bg-lavender-200 border border-lavender-200 border-dashed"
+                    >
+                        + Add Custom
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+    // ===== ADD NUMBER KEYBOARD COMPONENT =====
+    // Add this component after your CustomActionManager component:
+
+    const NumberKeyboard = ({ onAction, pendingText }) => {
+        const numbers = ['2', '3', '4', '5', '6', '8', '10', '12'];
+
+        return (
+            <div className="space-y-3">
+                {/* Show current repeat being built */}
+                <div className="bg-lavender-50 border-2 border-lavender-200 rounded-lg p-3">
+                    <div className="text-sm font-medium text-lavender-700 mb-1">
+                        How many times?
+                    </div>
+                    <div className="text-base font-mono text-wool-700">
+                        {pendingText}
+                    </div>
+                </div>
+
+                {/* Number grid */}
+                <div className="grid grid-cols-4 gap-3">
+                    {numbers.map(num => (
+                        <button
+                            key={num}
+                            onClick={() => onAction(num)}
+                            className="h-12 bg-sage-100 text-sage-700 rounded-lg text-lg font-medium hover:bg-sage-200 transition-colors"
+                        >
+                            {num}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Action buttons */}
+                <div className="grid grid-cols-2 gap-3">
+                    <button
+                        onClick={() => onAction('Cancel')}
+                        className="h-10 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 border border-red-200 transition-colors"
+                    >
+                        ✗ Cancel
+                    </button>
+                    <button
+                        onClick={() => onAction('Enter')}
+                        className="h-10 bg-sage-500 text-white rounded-lg text-sm font-medium hover:bg-sage-600 transition-colors"
+                    >
+                        ✓ Confirm
+                    </button>
+                </div>
+            </div>
+        );
+    };
+
+
+
 
     return (
         <div className="stack-lg">
@@ -684,7 +883,20 @@ const RowByRowPatternConfig = ({
             {/* ===== RESPONSIVE ROW ENTRY ===== */}
             {showRowEntryOverlay && (isMobile ? <EnhancedMobileOverlay /> : <DesktopOverlay />)}
         </div>
+
     );
+
+
+
+
+
+
+
+
+
+
+
+
 };
 
 const EnhancedKeyboard = ({
@@ -694,6 +906,7 @@ const EnhancedKeyboard = ({
     isMobile,
     isCreatingRepeat,
     rowInstructions,
+    bracketState,
     onAction
 }) => {
     const keyboardLayout = getKeyboardLayout(patternType, layer, context);
@@ -716,7 +929,6 @@ const EnhancedKeyboard = ({
             {/* Input Actions (Light Sage - main keyboard) */}
             <div className={`grid gap-2 ${isMobile ? 'grid-cols-3' : 'flex flex-wrap'}`}>
                 {keyboardLayout.input.map((action, index) => {
-                    // Special styling for custom actions and special symbol
                     const buttonType = action === '★' ? 'special' :
                         action.startsWith('Custom ') ? 'special' :
                             'input';
@@ -734,10 +946,15 @@ const EnhancedKeyboard = ({
             </div>
 
             {/* Action Buttons (Lavender - bottom row) */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-4 gap-3">
                 {keyboardLayout.actions.map((action, index) => {
-                    // Show current bracket state for repeat button
-                    const displayAction = action === '[' && isCreatingRepeat ? ']' : action;
+                    // Dynamic button display based on current state
+                    let displayAction = action;
+                    if (action === '[' && bracketState.hasOpenBracket) {
+                        displayAction = ']';
+                    } else if (action === '(' && bracketState.hasOpenParen) {
+                        displayAction = ')';
+                    }
 
                     return (
                         <button
