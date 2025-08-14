@@ -49,8 +49,8 @@ const StepsList = ({
         <div className="stack-sm">
             {/* Just the essentials */}
             <div className="flex justify-between items-center">
-                <h3 className="content-header-secondary text-left">{component.name}</h3>
-                {/*}     <h3 className="content-header-secondary text-left">Instructions</h3> */}
+                {/*    <h3 className="content-header-secondary text-left">{component.name}</h3> */}
+                <h3 className="content-header-secondary text-left">Instructions</h3>
                 <div className="flex gap-2">
                     {!isComponentFullyEntered() ? (
                         <>

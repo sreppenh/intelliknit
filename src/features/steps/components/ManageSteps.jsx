@@ -447,12 +447,12 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
         <EditScreenHeader
           onBack={onBack}
           onGoToLanding={onGoToLanding}
-          title={`Edit Mode`}
+          title={`${component.name} - Edit Mode`}
           subtitle={`Managing ${component.steps.length} steps`}
           variant="edit"
         />
 
-        <div className="p-6 bg-yarn-50 stack-lg">
+        <div className="px-6 pb-6 pt-3 bg-yarn-50 stack-lg">
 
 
           <StepsList
@@ -518,7 +518,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
                 className="flex-1 btn-secondary flex items-center justify-center gap-2"
               >
                 <span className="text-lg">📋</span>
-                Project Overview
+                View Project
               </button>
             </div>
           )}

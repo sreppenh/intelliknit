@@ -59,7 +59,7 @@ const EditScreenHeader = ({
 
             {title && (
                 <div className={`${styles.bg} border-2 ${styles.border} rounded-xl p-3 mx-6 mt-6 mb-4`}>
-                    <p className={`text-sm ${styles.text} font-medium`}>
+                    <p className={`text-lg ${styles.text} font-medium`}>
                         {emoji} {title}
                     </p>
                     {subtitle && (
