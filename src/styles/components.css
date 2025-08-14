@@ -199,10 +199,9 @@ select {
 }
 
 .card-pattern-option {
-  @apply border border-wool-200 rounded-lg p-3 transition-all duration-200 text-center cursor-pointer;
-  @apply bg-wool-50 text-wool-700;
-  @apply hover:border-sage-300 hover:bg-sage-50;
-  @apply active:bg-sage-100;
+  @apply p-3 rounded-xl border-2 transition-all duration-200 text-center cursor-pointer;
+  @apply border-wool-200 bg-white text-wool-700;
+  @apply hover:border-sage-300 hover:bg-sage-50 hover:shadow-sm;
 }
 
 /* ===== CLICKABLE CARDS (No bounce, subtle feedback) ===== */
