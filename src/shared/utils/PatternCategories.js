@@ -18,7 +18,7 @@ export const PATTERN_CATEGORIES = {
             { name: 'Reverse Stockinette', icon: '⬛', desc: 'Purl side showing' }
         ]
     },
-    rib: {
+    /* rib: {
         name: 'Ribbing',
         icon: '〰️',
         type: 'quick',
@@ -30,7 +30,7 @@ export const PATTERN_CATEGORIES = {
             { name: '1x1 Twisted Rib', icon: '🌀', desc: 'Twisted knit stitches' },
             { name: '2x2 Twisted Rib', icon: '🌀🌀', desc: 'Twisted knit stitches' }
         ]
-    },
+    }, */
     textured: {
         name: 'Textured',
         icon: '🔹',
