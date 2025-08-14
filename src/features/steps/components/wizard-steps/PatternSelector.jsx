@@ -298,10 +298,19 @@ export const PatternSelector = ({
                       <button
                         key={pattern.name}
                         onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
-                        className={`card-pattern-option ${selectedPattern === pattern.name
+                        //   className={`card-pattern-option ${selectedPattern === pattern.name
+                        //</div>    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
+                        //   : ''
+                        // }`}
+
+                        className={`card-pattern-option ${selectedPattern === pattern.name && selectedPattern !== null && selectedPattern !== undefined
                           ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                          : ''
+                          : 'bg-white border-wool-200'  // Force clean state
                           }`}
+
+
+
+
                       >
                         <div className="text-lg mb-1">{pattern.icon}</div>
                         <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
