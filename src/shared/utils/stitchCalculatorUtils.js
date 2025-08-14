@@ -205,23 +205,45 @@ const parseStitchOperations = (instruction) => {
     let totalProduced = 0;
     const breakdown = [];
 
-    // Clean up instruction
+    // Clean up instruction and split by commas
     const cleanInstruction = instruction.replace(/[,\s]+/g, ' ').trim();
     if (!cleanInstruction) return { consumed: 0, produced: 0, breakdown: [] };
 
-    // Match stitch operations
-    const operations = cleanInstruction.match(/\b[A-Za-z0-9]+\b/g) || [];
+    // Split by spaces to get individual operations
+    const operations = cleanInstruction.split(/\s+/).filter(op => op.length > 0);
 
     for (const operation of operations) {
-        const stitchValue = STITCH_VALUES[operation];
-        if (stitchValue) {
-            totalConsumed += stitchValue.consumes;
-            totalProduced += stitchValue.produces;
-            breakdown.push({
-                operation,
-                count: 1,
-                netChange: stitchValue.produces - stitchValue.consumes
-            });
+        // Handle numbered operations like "K2", "K3", "P5", etc.
+        const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
+
+        if (numberedMatch) {
+            const [, stitchOp, count] = numberedMatch;
+            const repeatCount = parseInt(count);
+            const stitchValue = STITCH_VALUES[stitchOp];
+
+            if (stitchValue) {
+                const consumed = stitchValue.consumes * repeatCount;
+                const produced = stitchValue.produces * repeatCount;
+                totalConsumed += consumed;
+                totalProduced += produced;
+                breakdown.push({
+                    operation: `${stitchOp}${repeatCount}`,
+                    count: repeatCount,
+                    netChange: produced - consumed
+                });
+            }
+        } else {
+            // Single operation without number
+            const stitchValue = STITCH_VALUES[operation];
+            if (stitchValue) {
+                totalConsumed += stitchValue.consumes;
+                totalProduced += stitchValue.produces;
+                breakdown.push({
+                    operation,
+                    count: 1,
+                    netChange: stitchValue.produces - stitchValue.consumes
+                });
+            }
         }
     }
 
@@ -250,7 +272,7 @@ export const formatRunningTotal = (startStitches, endStitches, change) => {
             color: 'text-red-500'
         };
     }
-};;
+};
 
 /**
  * Get previous row stitch count for smart calculations
