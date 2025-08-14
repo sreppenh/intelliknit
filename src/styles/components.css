@@ -1112,7 +1112,8 @@ body {
 
 @media (min-width: 768px) {
   .app-container {
-    max-width: min(100vw, 600px);
+    max-width: min(100vw - 32px, 720px);
+    /* Changed from 600px to 720px */
     /* Tablet: comfortable width */
     border-radius: 0.75rem;
     margin-top: 1rem;
@@ -1350,6 +1351,25 @@ body {
 
 }
 
+/* === THREE-DOT MENU WRAPPING FIX === */
+@media (min-width: 768px) {
+
+  /* Prevent menu items from wrapping */
+  .menu-item {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 160px;
+    /* Ensure minimum width */
+  }
+
+  /* If your menu container has a specific class */
+  [class*="absolute"][class*="right"] {
+    min-width: 200px;
+    /* Prevent narrow menus */
+  }
+}
+
 /* === TABLET GRID LAYOUTS === */
 @media (min-width: 768px) {
 
@@ -1417,4 +1437,19 @@ body {
     overflow: hidden;
   }
 
+}
+
+/* === IPAD SPECIFIC OVERRIDE === */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .app-container {
+    max-width: min(100vw - 32px, 720px);
+    /* More room on iPad */
+  }
+}
+
+@media (min-width: 1024px) {
+  .app-container {
+    max-width: min(100vw - 40px, 900px);
+    /* Even more on iPad Pro */
+  }
 }
