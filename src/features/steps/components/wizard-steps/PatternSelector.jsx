@@ -300,7 +300,7 @@ export const PatternSelector = ({
                         onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
                         className={`card-pattern-option ${selectedPattern === pattern.name
                           ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
-                          : '!bg-white'  // Force white background for unselected items
+                          : ''
                           }`}
                       >
                         <div className="text-lg mb-1">{pattern.icon}</div>
