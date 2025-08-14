@@ -54,9 +54,31 @@ const STITCH_VALUES = {
  * @param {number} startingStitches - Stitches available at start of row
  * @returns {Object} - { totalStitches, stitchChange, breakdown, isValid }
  */
-export const calculateRowStitches = (instruction, startingStitches = 0) => {
+const STITCH_PRODUCES = {
+    'K': 1, 'P': 1, 'K1': 1, 'P1': 1,
+    'K2tog': 1, 'SSK': 1, 'K3tog': 1, 'CDD': 1, 'S2KP': 1, 'SK2P': 1,
+    'P2tog': 1, 'SSP': 1, 'K2tog tbl': 1, 'SSK tbl': 1,
+    'YO': 1, 'M1': 1, 'M1L': 1, 'M1R': 1, 'KFB': 2,
+    'Sl1': 1, 'BO': 0,
+    'C4F': 4, 'C4B': 4, 'C6F': 6, 'C6B': 6,
+    'T2F': 2, 'T2B': 2, 'T4F': 4, 'T4B': 4, 'RT': 2, 'LT': 2
+};
+
+export const calculateRowStitches = (instruction, startingStitches = 0, customActionsData = {}) => {
     if (!instruction || !instruction.trim()) {
         return {
+            totalStitches: 0,
+            stitchChange: -startingStitches,
+            breakdown: [],
+            isValid: true
+        };
+    }
+
+    let totalProduced = 0;
+
+    // Handle special cases
+    if (instruction.toLowerCase().includes('k all') || instruction.toLowerCase().includes('knit all')) {
+        return {
             totalStitches: startingStitches,
             stitchChange: 0,
             breakdown: [],
@@ -64,87 +86,76 @@ export const calculateRowStitches = (instruction, startingStitches = 0) => {
         };
     }
 
-    try {
-        // Handle special cases first
-        if (instruction.toLowerCase().includes('k all') || instruction.toLowerCase().includes('knit all')) {
-            return {
-                totalStitches: startingStitches,
-                stitchChange: 0,
-                breakdown: [{ operation: 'K all', count: startingStitches, netChange: 0 }],
-                isValid: true
-            };
-        }
-
-        if (instruction.toLowerCase().includes('p all') || instruction.toLowerCase().includes('purl all')) {
-            return {
-                totalStitches: startingStitches,
-                stitchChange: 0,
-                breakdown: [{ operation: 'P all', count: startingStitches, netChange: 0 }],
-                isValid: true
-            };
-        }
-
-        const breakdown = [];
-        let totalConsumed = 0;
-        let totalProduced = 0;
-
-        // Parse bracketed repeats: [(K2tog)2, P]3
-        const repeatPattern = /\[([^\]]+)\](\d+)/g;
-        let remainingInstruction = instruction;
-        let match;
-
-        while ((match = repeatPattern.exec(instruction)) !== null) {
-            const [fullMatch, repeatContent, repeatCount] = match;
-            const count = parseInt(repeatCount);
-
-            // Parse the content inside brackets
-            const repeatResult = parseRepeatContent(repeatContent);
-
-            // Multiply by repeat count
-            const totalRepeats = {
-                consumed: repeatResult.consumed * count,
-                produced: repeatResult.produced * count,
-                breakdown: repeatResult.breakdown.map(item => ({
-                    ...item,
-                    count: item.count * count,
-                    netChange: item.netChange * count
-                }))
-            };
-
-            totalConsumed += totalRepeats.consumed;
-            totalProduced += totalRepeats.produced;
-            breakdown.push(...totalRepeats.breakdown);
-
-            // Remove this repeat from remaining instruction
-            remainingInstruction = remainingInstruction.replace(fullMatch, '');
-        }
-
-        // Parse remaining non-bracketed operations
-        const remainingResult = parseStitchOperations(remainingInstruction);
-        totalConsumed += remainingResult.consumed;
-        totalProduced += remainingResult.produced;
-        breakdown.push(...remainingResult.breakdown);
-
-        const stitchChange = totalProduced - totalConsumed;
-        const totalStitches = startingStitches + stitchChange;
-
-        return {
-            totalStitches,
-            stitchChange,
-            breakdown,
-            isValid: true
-        };
-
-    } catch (error) {
-        console.warn('Error calculating row stitches:', error);
+    if (instruction.toLowerCase().includes('p all') || instruction.toLowerCase().includes('purl all')) {
         return {
             totalStitches: startingStitches,
             stitchChange: 0,
             breakdown: [],
-            isValid: false,
-            error: error.message
+            isValid: true
         };
     }
+
+    // Helper function to get stitch value (checks custom actions first)
+    const getStitchValue = (operation) => {
+        // Check custom actions first
+        if (customActionsData[operation]) {
+            return customActionsData[operation];
+        }
+        // Fall back to standard lookup
+        return STITCH_PRODUCES[operation] || 1; // Default to 1 if unknown
+    };
+
+    // Parse bracketed repeats
+    const repeatPattern = /\[([^\]]+)\](\d+)/g;
+    let remainingInstruction = instruction;
+    let match;
+
+    while ((match = repeatPattern.exec(instruction)) !== null) {
+        const [fullMatch, repeatContent, repeatCount] = match;
+        const count = parseInt(repeatCount);
+
+        const operations = repeatContent.split(',').map(op => op.trim()).filter(op => op.length > 0);
+        let producedInRepeat = 0;
+
+        for (const operation of operations) {
+            const numberedMatch = operation.match(/^([A-Za-z0-9\s]+?)(\d+)$/);
+            if (numberedMatch) {
+                const [, stitchOp, repeatNum] = numberedMatch;
+                const stitchValue = getStitchValue(stitchOp.trim());
+                producedInRepeat += stitchValue * parseInt(repeatNum);
+            } else {
+                const stitchValue = getStitchValue(operation);
+                producedInRepeat += stitchValue;
+            }
+        }
+
+        totalProduced += producedInRepeat * count;
+        remainingInstruction = remainingInstruction.replace(fullMatch, '');
+    }
+
+    // Parse remaining operations
+    const remainingOps = remainingInstruction.split(',').map(op => op.trim()).filter(op => op.length > 0);
+
+    for (const operation of remainingOps) {
+        const numberedMatch = operation.match(/^([A-Za-z0-9\s]+?)(\d+)$/);
+        if (numberedMatch) {
+            const [, stitchOp, repeatNum] = numberedMatch;
+            const stitchValue = getStitchValue(stitchOp.trim());
+            totalProduced += stitchValue * parseInt(repeatNum);
+        } else {
+            const stitchValue = getStitchValue(operation);
+            totalProduced += stitchValue;
+        }
+    }
+
+    const stitchChange = totalProduced - startingStitches;
+
+    return {
+        totalStitches: totalProduced,
+        stitchChange: stitchChange,
+        breakdown: [],
+        isValid: true
+    };
 };
 
 /**

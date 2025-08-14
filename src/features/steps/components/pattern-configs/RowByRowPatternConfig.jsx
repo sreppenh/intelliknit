@@ -200,10 +200,22 @@ const RowByRowPatternConfig = ({
         const previousStitches = getPreviousRowStitches(
             rowInstructions,
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-            currentProject.startingStitches || 80 // fallback
+            currentProject.startingStitches || 80
         );
 
-        return calculateRowStitches(tempRowText, previousStitches);
+        // Build custom actions lookup from project data
+        const customActionsLookup = {};
+        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
+            patternType === 'Cable Pattern' ? 'cable' : 'general';
+        const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
+
+        customActions.forEach(action => {
+            if (typeof action === 'object' && action.name) {
+                customActionsLookup[action.name] = action.stitches;
+            }
+        });
+
+        return calculateRowStitches(tempRowText, previousStitches, customActionsLookup);
     };
 
 
@@ -997,49 +1009,79 @@ const EnhancedKeyboard = ({
     // Handle custom action click
     const handleCustomAction = (action, index) => {
         if (action === 'Custom') {
-            // Open customization modal/prompt
-            const newAction = prompt('Enter custom action (max 8 characters):');
+            // Enhanced prompt for custom actions
+            const newAction = prompt('Enter custom action name (max 8 characters):');
             if (newAction && newAction.trim()) {
+                const stitchCount = prompt('How many stitches does this produce?', '1');
+                const stitches = parseInt(stitchCount);
+
+                // Validate stitch count
+                if (isNaN(stitches) || stitches < 0) {
+                    alert('Please enter a valid number of stitches (0 or higher)');
+                    return;
+                }
+
                 const trimmedAction = newAction.trim().substring(0, 8);
 
-                // Update project's custom keyboard actions
+                // Store as object with stitch count
+                const customActionData = {
+                    name: trimmedAction,
+                    stitches: stitches
+                };
+
+                // Update storage format
                 const key = patternType === 'Lace Pattern' ? 'lace' :
                     patternType === 'Cable Pattern' ? 'cable' : 'general';
 
                 const currentCustomActions = context?.project?.customKeyboardActions || {};
                 const patternActions = [...(currentCustomActions[key] || [])];
 
-                // Ensure array is exactly 4 elements
                 while (patternActions.length < 4) {
                     patternActions.push('Custom');
                 }
 
-                patternActions[index] = trimmedAction;
+                patternActions[index] = customActionData;
 
                 const updatedCustomActions = {
                     ...currentCustomActions,
                     [key]: patternActions
                 };
 
-                // Update project (assuming updateProject function is available in context)
-                // You may need to pass this function down through context
                 if (context?.updateProject) {
                     context.updateProject({ customKeyboardActions: updatedCustomActions });
                 }
             }
         } else {
             // Use the custom action
-            onAction(action);
+            const actionName = typeof action === 'object' ? action.name : action;
+            onAction(actionName);
         }
     };
 
     // Handle long press for editing existing custom actions
     const handleCustomLongPress = (action, index) => {
         if (action !== 'Custom') {
-            const newAction = prompt('Edit custom action (max 8 characters):', action);
-            if (newAction !== null) { // User didn't cancel
+            const currentName = typeof action === 'object' ? action.name : action;
+            const currentStitches = typeof action === 'object' ? action.stitches : 1;
+
+            const newAction = prompt('Edit custom action name (max 8 characters):', currentName);
+            if (newAction !== null) {
+                const newStitchCount = prompt('How many stitches does this produce?', currentStitches.toString());
+                const stitches = parseInt(newStitchCount);
+
+                if (isNaN(stitches) || stitches < 0) {
+                    alert('Please enter a valid number of stitches (0 or higher)');
+                    return;
+                }
+
                 const trimmedAction = newAction.trim().substring(0, 8) || 'Custom';
 
+                const customActionData = trimmedAction === 'Custom' ? 'Custom' : {
+                    name: trimmedAction,
+                    stitches: stitches
+                };
+
+                // Update project storage...
                 const key = patternType === 'Lace Pattern' ? 'lace' :
                     patternType === 'Cable Pattern' ? 'cable' : 'general';
 
@@ -1050,7 +1092,7 @@ const EnhancedKeyboard = ({
                     patternActions.push('Custom');
                 }
 
-                patternActions[index] = trimmedAction === '' ? 'Custom' : trimmedAction;
+                patternActions[index] = customActionData;
 
                 const updatedCustomActions = {
                     ...currentCustomActions,
@@ -1121,7 +1163,6 @@ const EnhancedKeyboard = ({
                 })}
             </div>
 
-            {/* Custom Actions Row (TERTIARY layer only) */}
             {/* Custom Actions Row (Secondary for Lace, Tertiary for Cable) */}
             {((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
                 (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) && (
@@ -1154,7 +1195,7 @@ const EnhancedKeyboard = ({
                                     {action === 'Custom' ? (
                                         <span className="italic">Custom</span>
                                     ) : (
-                                        action
+                                        typeof action === 'object' ? action.name : action
                                     )}
                                 </button>
                             );
