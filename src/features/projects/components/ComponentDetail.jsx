@@ -181,8 +181,8 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                 )}
 
                 {!canDelete && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <p className="text-xs text-yellow-700">
+                  <div className="bg-yarn-50 border border-yarn-200 rounded-lg p-3">
+                    <p className="text-xs text-yarn-700">
                       <strong>💡 Note:</strong> Cannot delete components with completed steps
                     </p>
                   </div>

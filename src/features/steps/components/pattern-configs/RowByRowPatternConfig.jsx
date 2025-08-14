@@ -12,8 +12,13 @@ import {
     supportsMultipleLayers
 } from '../../../../shared/utils/patternKeyboardUtils';
 import {
-    handleQuickActionEnhanced
+    handleQuickActionEnhanced,
+    shouldMultiplyAction,
+    isBracketAction,
+    isNumberAction
 } from '../../../../shared/utils/patternInputUtils';
+import { calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
+import { getCustomActions } from '../../../../shared/utils/patternKeyboardUtils';
 
 
 const RowByRowPatternConfig = ({
@@ -189,6 +194,19 @@ const RowByRowPatternConfig = ({
         return rowNumber % 2 === 1 ? 'RS' : 'WS';
     };
 
+    const getStitchCalculation = () => {
+        if (!tempRowText || !currentProject) return null;
+
+        const previousStitches = getPreviousRowStitches(
+            rowInstructions,
+            editingRowIndex === null ? rowInstructions.length : editingRowIndex,
+            currentProject.startingStitches || 80 // fallback
+        );
+
+        return calculateRowStitches(tempRowText, previousStitches);
+    };
+
+
     // ===== NEW: ENHANCED QUICK ACTION WITH AUTO-INCREMENT =====
     const handleQuickAction = (action) => {
         // Handle keyboard mode switching
@@ -206,19 +224,21 @@ const RowByRowPatternConfig = ({
         }
 
         // Track bracket state
-        if (action === '[') {
-            setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
-        } else if (action === ']') {
-            setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
-            // Trigger number mode
-            setPendingRepeatText(tempRowText + ']');
-            setKeyboardMode('numbers');
-            setIsCreatingRepeat(false);
-            return;
-        } else if (action === '(') {
-            setBracketState(prev => ({ ...prev, hasOpenParen: true }));
-        } else if (action === ')') {
-            setBracketState(prev => ({ ...prev, hasOpenParen: false }));
+        if (isBracketAction(action)) {
+            if (action === '[') {
+                setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
+            } else if (action === ']') {
+                setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
+                // Trigger number mode
+                setPendingRepeatText(tempRowText + ']');
+                setKeyboardMode('numbers');
+                setIsCreatingRepeat(false);
+                return;
+            } else if (action === '(') {
+                setBracketState(prev => ({ ...prev, hasOpenParen: true }));
+            } else if (action === ')') {
+                setBracketState(prev => ({ ...prev, hasOpenParen: false }));
+            }
         }
 
         // Use the enhanced handler from utilities for everything else
@@ -255,7 +275,7 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        if (/^\d+$/.test(action)) {
+        if (isNumberAction(action)) {
             // Number button pressed - add to repeat multiplier
             const currentText = pendingRepeatText.replace(/\]\s*×?\s*\d*$/, ''); // Remove existing multiplier
             const newText = `${currentText}] × ${action}`;
@@ -300,12 +320,36 @@ const RowByRowPatternConfig = ({
             <div className="modal-content-light max-w-lg w-full max-h-[95vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-wool-700">
-                            {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
-                            <span className="text-sm font-normal text-wool-500 ml-2">
-                                ({getRowSide(currentRowNumber)})
-                            </span>
-                        </h3>
+                        <div>
+                            <h3 className="text-lg font-semibold text-wool-700">
+                                {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
+                                <span className="text-sm font-normal text-wool-500 ml-2">
+                                    ({getRowSide(currentRowNumber)})
+                                </span>
+                            </h3>
+                            {/* Running Total Display */}
+                            {tempRowText && (() => {
+                                const calculation = getStitchCalculation();
+                                if (calculation && calculation.isValid) {
+                                    const previousStitches = getPreviousRowStitches(
+                                        rowInstructions,
+                                        editingRowIndex === null ? rowInstructions.length : editingRowIndex,
+                                        currentProject?.startingStitches || 80
+                                    );
+                                    const totalFormat = formatRunningTotal(  // ← FIXED FUNCTION NAME
+                                        previousStitches,
+                                        calculation.totalStitches,
+                                        calculation.stitchChange
+                                    );
+                                    return (
+                                        <div className={`text-sm mt-1 ${totalFormat.color}`}>
+                                            {totalFormat.text}
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </div>
                         <button
                             onClick={() => setShowRowEntryOverlay(false)}
                             className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
@@ -314,6 +358,7 @@ const RowByRowPatternConfig = ({
                             ×
                         </button>
                     </div>
+
 
                     {/* Row Input */}
                     <div className="mb-4">
@@ -369,7 +414,8 @@ const RowByRowPatternConfig = ({
                                     context={{
                                         rowNumber: currentRowNumber,
                                         construction,
-                                        project: currentProject
+                                        project: currentProject,
+                                        updateProject: updateProject
                                     }}
                                     isMobile={isMobile}
                                     isCreatingRepeat={isCreatingRepeat}
@@ -408,14 +454,37 @@ const RowByRowPatternConfig = ({
             <div className="modal-content-light max-w-md w-full max-h-[90vh] overflow-y-auto">
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
-                        <h3 className="text-lg font-semibold text-wool-700">
-                            {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
-                            {editingRowIndex === null && (
+                        <div>
+                            <h3 className="text-lg font-semibold text-wool-700">
+                                {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
                                 <span className="text-sm font-normal text-wool-500 ml-2">
                                     ({getRowSide(currentRowNumber)})
                                 </span>
-                            )}
-                        </h3>
+                            </h3>
+                            {/* Running Total Display */}
+                            {/* Running Total Display */}
+                            {tempRowText && (() => {
+                                const calculation = getStitchCalculation();
+                                if (calculation && calculation.isValid) {
+                                    const previousStitches = getPreviousRowStitches(
+                                        rowInstructions,
+                                        editingRowIndex === null ? rowInstructions.length : editingRowIndex,
+                                        currentProject?.startingStitches || 80
+                                    );
+                                    const totalFormat = formatRunningTotal(
+                                        previousStitches,
+                                        calculation.totalStitches,
+                                        calculation.stitchChange
+                                    );
+                                    return (
+                                        <div className={`text-sm mt-1 ${totalFormat.color}`}>
+                                            {totalFormat.text}
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+                        </div>
                         <button
                             onClick={() => setShowRowEntryOverlay(false)}
                             className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
@@ -424,6 +493,7 @@ const RowByRowPatternConfig = ({
                             ×
                         </button>
                     </div>
+
 
                     {/* Row Input */}
                     <div className="mb-4">
@@ -471,12 +541,14 @@ const RowByRowPatternConfig = ({
                                     context={{
                                         rowNumber: currentRowNumber,
                                         construction,
-                                        project: currentProject
+                                        project: currentProject,
+                                        updateProject: updateProject  // ← ADD THIS LINE!
                                     }}
                                     isMobile={isMobile}
                                     isCreatingRepeat={isCreatingRepeat}
                                     rowInstructions={rowInstructions}
                                     onAction={handleQuickAction}
+                                    bracketState={bracketState}
                                 />
                             </>
                         )}
@@ -585,7 +657,7 @@ const RowByRowPatternConfig = ({
                         <div key={index} className="flex items-center gap-1">
                             <button
                                 onClick={() => onActionSelect(action)}
-                                className="px-3 py-2 bg-yellow-100 text-yellow-700 rounded-lg text-sm hover:bg-yellow-200 border border-yellow-200"
+                                className="px-3 py-2 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 border border-yarn-200"
                             >
                                 {action}
                             </button>
@@ -612,8 +684,21 @@ const RowByRowPatternConfig = ({
     // ===== ADD NUMBER KEYBOARD COMPONENT =====
     // Add this component after your CustomActionManager component:
 
+    // Updated NumberKeyboard component with 0 validation
+
     const NumberKeyboard = ({ onAction, pendingText }) => {
-        const numbers = ['2', '3', '4', '5', '6', '8', '10', '12'];
+
+        const handleNumberClick = (num) => {
+            // Prevent starting with 0 (but allow 0 after other digits)
+            if (num === '0') {
+                const currentMultiplier = pendingText.match(/×\s*(\d*)$/)?.[1] || '';
+                if (currentMultiplier === '') {
+                    // Don't allow plain "×0" - do nothing
+                    return;
+                }
+            }
+            onAction(num);
+        };
 
         return (
             <div className="space-y-3">
@@ -627,12 +712,12 @@ const RowByRowPatternConfig = ({
                     </div>
                 </div>
 
-                {/* Number grid */}
-                <div className="grid grid-cols-4 gap-3">
-                    {numbers.map(num => (
+                {/* Number grid: 1-9 */}
+                <div className="grid grid-cols-3 gap-3">
+                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
                         <button
                             key={num}
-                            onClick={() => onAction(num)}
+                            onClick={() => handleNumberClick(num)}
                             className="h-12 bg-sage-100 text-sage-700 rounded-lg text-lg font-medium hover:bg-sage-200 transition-colors"
                         >
                             {num}
@@ -640,27 +725,30 @@ const RowByRowPatternConfig = ({
                     ))}
                 </div>
 
-                {/* Action buttons */}
-                <div className="grid grid-cols-2 gap-3">
+                {/* Bottom row: Backspace, 0, Enter */}
+                <div className="grid grid-cols-3 gap-3">
                     <button
-                        onClick={() => onAction('Cancel')}
-                        className="h-10 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 border border-red-200 transition-colors"
+                        onClick={() => onAction('⌫')}
+                        className="h-12 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 border border-red-200 transition-colors"
                     >
-                        ✗ Cancel
+                        ⌫
+                    </button>
+                    <button
+                        onClick={() => handleNumberClick('0')}
+                        className="h-12 bg-sage-100 text-sage-700 rounded-lg text-lg font-medium hover:bg-sage-200 transition-colors"
+                    >
+                        0
                     </button>
                     <button
                         onClick={() => onAction('Enter')}
-                        className="h-10 bg-sage-500 text-white rounded-lg text-sm font-medium hover:bg-sage-600 transition-colors"
+                        className="h-12 bg-sage-500 text-white rounded-lg text-sm font-medium hover:bg-sage-600 transition-colors"
                     >
-                        ✓ Confirm
+                        ✓
                     </button>
                 </div>
             </div>
         );
     };
-
-
-
 
     return (
         <div className="stack-lg">
@@ -738,6 +826,8 @@ const RowByRowPatternConfig = ({
                     </label>
                 </div>
             </div>
+
+
 
             {/* Description Mode */}
             {currentEntryMode === 'description' && (
@@ -885,18 +975,6 @@ const RowByRowPatternConfig = ({
         </div>
 
     );
-
-
-
-
-
-
-
-
-
-
-
-
 };
 
 const EnhancedKeyboard = ({
@@ -907,9 +985,84 @@ const EnhancedKeyboard = ({
     isCreatingRepeat,
     rowInstructions,
     bracketState,
-    onAction
+    onAction,
 }) => {
     const keyboardLayout = getKeyboardLayout(patternType, layer, context);
+
+    // Get custom actions for current pattern type
+    const customActions = ((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
+        (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) ?
+        getCustomActions(patternType, context?.project) : [];
+
+    // Handle custom action click
+    const handleCustomAction = (action, index) => {
+        if (action === 'Custom') {
+            // Open customization modal/prompt
+            const newAction = prompt('Enter custom action (max 8 characters):');
+            if (newAction && newAction.trim()) {
+                const trimmedAction = newAction.trim().substring(0, 8);
+
+                // Update project's custom keyboard actions
+                const key = patternType === 'Lace Pattern' ? 'lace' :
+                    patternType === 'Cable Pattern' ? 'cable' : 'general';
+
+                const currentCustomActions = context?.project?.customKeyboardActions || {};
+                const patternActions = [...(currentCustomActions[key] || [])];
+
+                // Ensure array is exactly 4 elements
+                while (patternActions.length < 4) {
+                    patternActions.push('Custom');
+                }
+
+                patternActions[index] = trimmedAction;
+
+                const updatedCustomActions = {
+                    ...currentCustomActions,
+                    [key]: patternActions
+                };
+
+                // Update project (assuming updateProject function is available in context)
+                // You may need to pass this function down through context
+                if (context?.updateProject) {
+                    context.updateProject({ customKeyboardActions: updatedCustomActions });
+                }
+            }
+        } else {
+            // Use the custom action
+            onAction(action);
+        }
+    };
+
+    // Handle long press for editing existing custom actions
+    const handleCustomLongPress = (action, index) => {
+        if (action !== 'Custom') {
+            const newAction = prompt('Edit custom action (max 8 characters):', action);
+            if (newAction !== null) { // User didn't cancel
+                const trimmedAction = newAction.trim().substring(0, 8) || 'Custom';
+
+                const key = patternType === 'Lace Pattern' ? 'lace' :
+                    patternType === 'Cable Pattern' ? 'cable' : 'general';
+
+                const currentCustomActions = context?.project?.customKeyboardActions || {};
+                const patternActions = [...(currentCustomActions[key] || [])];
+
+                while (patternActions.length < 4) {
+                    patternActions.push('Custom');
+                }
+
+                patternActions[index] = trimmedAction === '' ? 'Custom' : trimmedAction;
+
+                const updatedCustomActions = {
+                    ...currentCustomActions,
+                    [key]: patternActions
+                };
+
+                if (context?.updateProject) {
+                    context.updateProject({ customKeyboardActions: updatedCustomActions });
+                }
+            }
+        }
+    };
 
     return (
         <div className="space-y-3">
@@ -968,20 +1121,62 @@ const EnhancedKeyboard = ({
                 })}
             </div>
 
+            {/* Custom Actions Row (TERTIARY layer only) */}
+            {/* Custom Actions Row (Secondary for Lace, Tertiary for Cable) */}
+            {((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
+                (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) && (
+                    <div className="grid grid-cols-4 gap-3">
+                        {customActions.map((action, index) => {
+                            let pressTimer;
+
+                            return (
+                                <button
+                                    key={`custom-${index}`}
+                                    onClick={() => handleCustomAction(action, index)}
+                                    onMouseDown={() => {
+                                        pressTimer = setTimeout(() => {
+                                            handleCustomLongPress(action, index);
+                                        }, 500);
+                                    }}
+                                    onMouseUp={() => clearTimeout(pressTimer)}
+                                    onMouseLeave={() => clearTimeout(pressTimer)}
+                                    onTouchStart={() => {
+                                        pressTimer = setTimeout(() => {
+                                            handleCustomLongPress(action, index);
+                                        }, 500);
+                                    }}
+                                    onTouchEnd={() => clearTimeout(pressTimer)}
+                                    className={`h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
+                                        ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
+                                        : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
+                                        }`}
+                                >
+                                    {action === 'Custom' ? (
+                                        <span className="italic">Custom</span>
+                                    ) : (
+                                        action
+                                    )}
+                                </button>
+                            );
+                        })}
+                    </div>
+                )}
             {/* Copy Row Actions (if any) */}
-            {rowInstructions.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                    {rowInstructions.map((_, index) => (
-                        <button
-                            key={`copy_${index}`}
-                            onClick={() => onAction(`copy_${index}`)}
-                            className={getButtonStyles('copy')}
-                        >
-                            Copy Row {index + 1}
-                        </button>
-                    ))}
-                </div>
-            )}
+            {rowInstructions.length > 0 &&
+                !((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
+                    (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) && (
+                    <div className="flex flex-wrap gap-2">
+                        {rowInstructions.map((_, index) => (
+                            <button
+                                key={`copy_${index}`}
+                                onClick={() => onAction(`copy_${index}`)}
+                                className={getButtonStyles('copy')}
+                            >
+                                Copy Row {index + 1}
+                            </button>
+                        ))}
+                    </div>
+                )}
         </div>
     );
 };

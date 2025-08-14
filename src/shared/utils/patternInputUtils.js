@@ -6,20 +6,66 @@
  * for enhanced pattern entry (Lace, Cable, Custom, etc.)
  */
 
-// ===== ADDITIVE ACTIONS CONFIGURATION =====
+// ===== NON MULTIPLICABLE ACTIONS CONFIGURATION =====
 
-export const ADDITIVE_ACTIONS = [
-    // Basic stitches
-    'K', 'P',
-    // Lace actions  
-    'YO', 'K2tog', 'SSK', 'CDD',
-    // Advanced lace
-    'K3tog', 'P2tog', 'S2KP', 'SK2P', 'SSP',
-    'K2tog tbl', 'SSK tbl', 'Sl1', 'M1L', 'M1R',
-    // Cable actions
-    'C4F', 'C4B', 'C6F', 'C6B', 'T2F', 'T2B',
-    'C8F', 'C8B', 'C10F', 'C10B', 'T4F', 'T4B'
+export const NON_MULTIPLICABLE_ACTIONS = [
+    // Structural elements
+    '[', ']', '(', ')',
+
+    // Numbers (they build, don't multiply)
+    '0', '1', '2', '3', '4', '5', '6', '7', '8', '9',
+
+    // Control actions
+    '⌫',        // Backspace
+    '⇧',        // Shift layers  
+    '★',        // Special symbol prompt
+    'Undo',     // Undo action
+
+    // Complete row actions (these replace, don't multiply)
+    'K all', 'P all',
+
+    // Copy actions (these replace, don't multiply)  
+    // Note: copy actions start with 'copy_' so we check with startsWith
 ];
+
+/**
+ * Check if an action should multiply on repeat hits
+ * @param {string} action - The action to check
+ * @returns {boolean} - True if action should multiply, false otherwise
+ */
+export const shouldMultiplyAction = (action) => {
+    // Check static non-multiplicable list
+    if (NON_MULTIPLICABLE_ACTIONS.includes(action)) {
+        return false;
+    }
+
+    // Check copy actions (dynamic)
+    if (action.startsWith('copy_')) {
+        return false;
+    }
+
+    // Everything else CAN multiply (including custom actions like [bobble]5)
+    return true;
+};
+
+/**
+ * Check if an action is a number
+ * @param {string} action - The action to check  
+ * @returns {boolean} - True if action is a number
+ */
+export const isNumberAction = (action) => {
+    return /^[0-9]$/.test(action);
+};
+
+/**
+ * Check if an action is a bracket/paren
+ * @param {string} action - The action to check
+ * @returns {boolean} - True if action is bracket or paren
+ */
+export const isBracketAction = (action) => {
+    return ['[', ']', '(', ')'].includes(action);
+};
+
 
 // ===== COMMA LOGIC HELPERS =====
 
@@ -58,7 +104,11 @@ const appendWithCommaLogic = (currentText, newAction) => {
 // ===== AUTO-INCREMENT LOGIC =====
 
 export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, tempRowText, setTempRowText, setConsecutiveCount) => {
-    if (ADDITIVE_ACTIONS.includes(action) && action === lastQuickAction) {
+    // Only multiply if:
+    // 1. Action can be multiplied (using our new helper)
+    // 2. Same action as last time  
+    // 3. Have a consecutive count building
+    if (shouldMultiplyAction(action) && action === lastQuickAction) {
         const newCount = consecutiveCount + 1;
         setConsecutiveCount(newCount);
 
@@ -166,7 +216,7 @@ export const validateBracketClosure = (text) => {
 // ===== BRACKET & PARENTHESIS HANDLERS =====
 
 export const handleBracketAndParens = (action, tempRowText, setTempRowText) => {
-    if (['[', '(', ']', ')'].includes(action)) {
+    if (isBracketAction(action)) {
         // Use smart comma logic for brackets
         setTempRowText(prev => appendWithCommaLogic(prev, action));
         return true;
@@ -267,7 +317,7 @@ export const handleQuickActionEnhanced = (
     }
 
     // Regular action - add with smart comma logic
-    setLastQuickAction(ADDITIVE_ACTIONS.includes(action) ? action : null);
+    setLastQuickAction(shouldMultiplyAction(action) ? action : null);
     setConsecutiveCount(1);
     setTempRowText(prev => appendWithCommaLogic(prev, action));
 
@@ -275,7 +325,7 @@ export const handleQuickActionEnhanced = (
 };
 
 export default {
-    ADDITIVE_ACTIONS,
+    NON_MULTIPLICABLE_ACTIONS,
     handleAutoIncrement,
     handleSmartDelete,
     saveToUndoHistory,

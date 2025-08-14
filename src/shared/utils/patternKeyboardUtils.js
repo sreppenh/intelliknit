@@ -53,17 +53,13 @@ const getLaceKeyboardLayout = (layer, context = {}) => {
             return {
                 fullRow: ['K3tog', 'P2tog', 'S2KP', 'SK2P'],
                 input: ['K2tog tbl', 'SSK tbl', 'SSP', 'Sl1', 'M1L', 'M1R'],
-                actions: ['⌫', '[', '(', '⇧']
+                actions: ['⌫', '[', '(', '⇧'],
+                custom: ['Custom', 'Custom', 'Custom', 'Custom'] // Custom row at bottom
             };
 
         case KEYBOARD_LAYERS.TERTIARY:
-            return {
-                fullRow: ['Custom 1', 'Custom 2', 'Custom 3', 'Custom 4'],
-                input: ['Custom 5', 'Custom 6', 'Custom 7', 'Custom 8', 'Custom 9', '★'],
-                actions: ['⌫', '[', '(', '⇧']
-            };
-
         default:
+            // Fall back to PRIMARY if somehow TERTIARY is requested
             return getLaceKeyboardLayout(KEYBOARD_LAYERS.PRIMARY, context);
     }
 };
@@ -86,9 +82,10 @@ const getCableKeyboardLayout = (layer, context = {}) => {
 
         case KEYBOARD_LAYERS.TERTIARY:
             return {
-                fullRow: ['Cable 1', 'Cable 2', 'Cable 3', 'Cable 4'],
-                input: ['Cable 5', 'Cable 6', 'Cable 7', 'Cable 8', 'Cable 9', '★'],
-                actions: ['⌫', '[', '(', '⇧']
+                fullRow: ['T4F', 'T4B', 'C8F', 'C8B'],
+                input: ['C10F', 'C10B', 'T2F', 'T2B', 'CN', 'RT'],
+                actions: ['⌫', '[', '⇧'],
+                custom: ['Custom', 'Custom', 'Custom', 'Custom'] // 4 customizable slots
             };
 
         default:
@@ -124,8 +121,9 @@ export const getNextKeyboardLayer = (currentLayer, patternType) => {
 const getAvailableLayers = (patternType) => {
     switch (patternType) {
         case 'Lace Pattern':
+            return [KEYBOARD_LAYERS.PRIMARY, KEYBOARD_LAYERS.SECONDARY]; // Only 2 layers!
         case 'Cable Pattern':
-            return [KEYBOARD_LAYERS.PRIMARY, KEYBOARD_LAYERS.SECONDARY, KEYBOARD_LAYERS.TERTIARY];
+            return [KEYBOARD_LAYERS.PRIMARY, KEYBOARD_LAYERS.SECONDARY, KEYBOARD_LAYERS.TERTIARY]; // Keep 3 for cables
         case 'Custom pattern':
         default:
             return [KEYBOARD_LAYERS.PRIMARY];
@@ -160,10 +158,31 @@ export const getButtonStyles = (buttonType, isMobile = false) => {
         case 'copy':
             return 'px-3 py-1 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 transition-colors';
         case 'special':
-            return `${baseClasses} bg-yellow-100 text-yellow-700 rounded-lg text-sm font-medium hover:bg-yellow-200 border border-yellow-200 transition-colors`;
+            return `${baseClasses} bg-yarn-100 text-yarn-700 rounded-lg text-sm font-medium hover:bg-yarn-200 border border-yarn-200 transition-colors`;
         default:
             return `${baseClasses} bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors`;
     }
+};
+
+/**
+ * Get custom actions for a pattern type from project data
+ * @param {string} patternType - Pattern type (Lace Pattern, Cable Pattern, etc.)
+ * @param {Object} project - Current project object
+ * @returns {Array} - Array of 4 custom actions (with 'Custom' as fallback)
+ */
+export const getCustomActions = (patternType, project = {}) => {
+    const key = patternType === 'Lace Pattern' ? 'lace' :
+        patternType === 'Cable Pattern' ? 'cable' : 'general';
+
+    const projectCustomActions = project?.customKeyboardActions?.[key] || [];
+
+    // Ensure we always have exactly 4 slots
+    const customActions = [...projectCustomActions];
+    while (customActions.length < 4) {
+        customActions.push('Custom');
+    }
+
+    return customActions.slice(0, 4); // Only take first 4
 };
 
 // ===== VALIDATION & HELPERS =====
