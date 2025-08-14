@@ -286,7 +286,7 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, han
                                 />
 
                                 {/* Menu with simple absolute positioning */}
-                                <div className={`absolute right-4 ${menuPosition === 'top' ? 'bottom-4' : 'top-2'} bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in`}><button
+                                <div className={`absolute right-4 ${menuPosition === 'top' ? 'bottom-4' : 'top-2'} bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 whitespace-nowrap overflow-hidden transform transition-all duration-200 ease-out animate-in`}><button
                                     onClick={(e) => {
                                         e.stopPropagation();
                                         onAction(component, 'rename');

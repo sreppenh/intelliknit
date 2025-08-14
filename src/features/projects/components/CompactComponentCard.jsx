@@ -153,7 +153,7 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
                 />
 
                 {/* Menu with smooth animation */}
-                <div className="absolute right-0 top-10 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 overflow-hidden transform transition-all duration-200 ease-out animate-in">
+                <div className="absolute right-0 top-10 bg-white border-2 border-wool-200 rounded-xl shadow-xl z-[100] min-w-32 whitespace-nowrap overflow-hidden transform transition-all duration-200 ease-out animate-in">
                   <button
                     onClick={(e) => handleMenuAction('rename', e)}
                     className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
