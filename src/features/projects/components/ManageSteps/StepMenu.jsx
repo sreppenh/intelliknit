@@ -63,14 +63,13 @@ const StepMenu = ({
 
             {/* Dropdown menu */}
             {openMenuId === step.id && (
-                <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-36">
+                <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-[160px] whitespace-nowrap">
                     {isMiddleStep(step) && !isComponentFinished() && (
                         <>
                             {hasEditablePattern && (
                                 <button
-
                                     onClick={(e) => onEditPattern(stepIndex, e)}
-                                    className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
                                 >
                                     🧶 Edit Pattern
                                 </button>
@@ -79,7 +78,7 @@ const StepMenu = ({
                             {hasEditableConfig && (
                                 <button
                                     onClick={(e) => onEditConfig(stepIndex, e)}
-                                    className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors"
+                                    className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
                                 >
                                     ⚙️ Edit Config
                                 </button>
@@ -87,7 +86,7 @@ const StepMenu = ({
 
                             <button
                                 onClick={(e) => onDeleteStep(stepIndex, e)}
-                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors"
+                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
                             >
                                 🗑️ Delete Step
                             </button>
@@ -97,7 +96,7 @@ const StepMenu = ({
                     {isFinishingStep(step) && (
                         <button
                             onClick={(e) => onDeleteStep(stepIndex, e)}
-                            className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-lg text-sm flex items-center gap-2 transition-colors"
+                            className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-lg text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
                         >
                             🗑️ Delete Step
                         </button>
