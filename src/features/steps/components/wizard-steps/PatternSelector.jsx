@@ -294,44 +294,21 @@ export const PatternSelector = ({
                     {PATTERN_CATEGORIES[selectedQuickCategory].name} Patterns
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
-                    {PATTERN_CATEGORIES[selectedQuickCategory].patterns.map(pattern => {
-                      if (pattern.name === 'Ribbing') {
-                        return (
-                          <div
-                            key={pattern.name}
-                            onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
-                            style={{
-                              border: '1px solid #666',
-                              borderRadius: '8px',
-                              padding: '12px',
-                              backgroundColor: '#FFFFFF',
-                              color: '#000000',
-                              textAlign: 'center',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <div>{pattern.icon}</div>
-                            <div>{pattern.name}</div>
-                            <div>{pattern.desc}</div>
-                          </div>
-                        );
-                      }
+                    {PATTERN_CATEGORIES[selectedQuickCategory].patterns.map(pattern => (
+                      <button
+                        key={pattern.name}
+                        onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
+                        className={`card-pattern-option ${selectedPattern === pattern.name
+                          ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
+                          : ''
+                          }`}
 
-                      return (
-                        <button
-                          key={pattern.name}
-                          onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
-                          className={`card-pattern-option ${selectedPattern === pattern.name
-                            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
-                            : ''
-                            }`}
-                        >
-                          <div className="text-lg mb-1">{pattern.icon}</div>
-                          <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
-                          <div className="text-xs opacity-70">{pattern.desc}</div>
-                        </button>
-                      );
-                    })}
+                      >
+                        <div className="text-lg mb-1">{pattern.icon}</div>
+                        <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
+                        <div className="text-xs opacity-70">{pattern.desc}</div>
+                      </button>
+                    ))}
                   </div>
                 </div>
               )}
