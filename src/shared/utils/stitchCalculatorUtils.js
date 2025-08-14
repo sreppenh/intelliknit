@@ -267,23 +267,26 @@ const parseStitchOperations = (instruction) => {
  * @returns {Object} - { text, color }
  */
 export const formatRunningTotal = (startStitches, endStitches, change) => {
+    const baseText = `${startStitches} sts → ${endStitches} sts`;
+
     if (change === 0) {
         return {
-            text: `${startStitches} sts → ${endStitches} sts`,
-            color: 'text-wool-600'
-        };
-    } else if (change > 0) {
-        return {
-            text: `${startStitches} sts → ${endStitches} sts (+${change} sts)`,
-            color: 'text-green-600'
-        };
-    } else {
-        return {
-            text: `${startStitches} sts → ${endStitches} sts (${change} sts)`,
-            color: 'text-red-500'
+            baseText,
+            changeText: null,
+            changeColor: null
         };
     }
+
+    const changeText = change > 0 ? `(+${change} sts)` : `(${change} sts)`;
+    const changeColor = change > 0 ? 'text-green-600' : 'text-red-500';
+
+    return {
+        baseText,
+        changeText,
+        changeColor
+    };
 };
+
 
 /**
  * Get previous row stitch count for smart calculations

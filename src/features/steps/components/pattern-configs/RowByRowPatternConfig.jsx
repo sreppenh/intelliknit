@@ -348,14 +348,19 @@ const RowByRowPatternConfig = ({
                                         editingRowIndex === null ? rowInstructions.length : editingRowIndex,
                                         currentProject?.startingStitches || 80
                                     );
-                                    const totalFormat = formatRunningTotal(  // ← FIXED FUNCTION NAME
+                                    const totalFormat = formatRunningTotal(
                                         previousStitches,
                                         calculation.totalStitches,
                                         calculation.stitchChange
                                     );
                                     return (
-                                        <div className={`text-sm mt-1 ${totalFormat.color}`}>
-                                            {totalFormat.text}
+                                        <div className="text-sm mt-1 text-wool-600">
+                                            {totalFormat.baseText}
+                                            {totalFormat.changeText && (
+                                                <span className={`ml-1 ${totalFormat.changeColor}`}>
+                                                    {totalFormat.changeText}
+                                                </span>
+                                            )}
                                         </div>
                                     );
                                 }
@@ -488,11 +493,14 @@ const RowByRowPatternConfig = ({
                                         calculation.totalStitches,
                                         calculation.stitchChange
                                     );
-                                    return (
-                                        <div className={`text-sm mt-1 ${totalFormat.color}`}>
-                                            {totalFormat.text}
-                                        </div>
-                                    );
+                                    <div className="text-sm mt-1 text-wool-600">
+                                        {totalFormat.baseText}
+                                        {totalFormat.changeText && (
+                                            <span className={`ml-1 ${totalFormat.changeColor}`}>
+                                                {totalFormat.changeText}
+                                            </span>
+                                        )}
+                                    </div>
                                 }
                                 return null;
                             })()}
