@@ -517,13 +517,24 @@ const PhaseConfigForm = ({
           </button>
           <button
             onClick={onSave}
-            disabled={
-              // Existing validations PLUS position requirement
-              !tempPhaseConfig.type ||
-              !tempPhaseConfig.positions ||
-              tempPhaseConfig.positions.length === 0 ||
-              !(tempPhaseConfig.times || tempPhaseConfig.targetStitches)
-            }
+            disabled={(() => {
+              if (!tempPhaseConfig.type) return true;
+
+              // Setup phases just need rows
+              if (tempPhaseConfig.type === 'setup') {
+                return !tempPhaseConfig.rows;
+              }
+
+              // Bind off phases need amount and frequency
+              if (tempPhaseConfig.type === 'bind_off') {
+                return !tempPhaseConfig.amount || !tempPhaseConfig.frequency;
+              }
+
+              // Increase/decrease phases need positions and times/target
+              return !tempPhaseConfig.positions ||
+                tempPhaseConfig.positions.length === 0 ||
+                !(tempPhaseConfig.times || tempPhaseConfig.targetStitches);
+            })()}
             className="btn-primary flex-1"
           >
             {editingPhaseId ? 'Update Phase' : 'Add Phase'}
