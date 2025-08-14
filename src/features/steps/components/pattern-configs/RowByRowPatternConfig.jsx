@@ -2,6 +2,18 @@
 import React, { useState, useEffect } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getPatternQuickActions, getPatternPlaceholderText } from '../../../../shared/utils/stepDisplayUtils';
+import {
+    KEYBOARD_LAYERS,
+    getKeyboardLayout,
+    getNextKeyboardLayer,
+    getLayerDisplayName,
+    getButtonStyles,
+    supportsMultipleLayers
+} from '../../../../shared/utils/laceKeyboardUtils'
+import {
+    handleQuickActionEnhanced
+} from '../../../../shared/utils/laceInputUtils'
+
 
 const RowByRowPatternConfig = ({
     wizardData,
@@ -20,6 +32,18 @@ const RowByRowPatternConfig = ({
     const [editingRowIndex, setEditingRowIndex] = useState(null);
     const [tempRowText, setTempRowText] = useState('');
 
+    // ===== NEW: AUTO-INCREMENT STATE =====
+    const [lastQuickAction, setLastQuickAction] = useState(null);
+    const [consecutiveCount, setConsecutiveCount] = useState(1);
+
+    // ADD these new state variables (add to your existing useState declarations):
+    const [currentKeyboardLayer, setCurrentKeyboardLayer] = useState(KEYBOARD_LAYERS.PRIMARY);
+    const [isCreatingRepeat, setIsCreatingRepeat] = useState(false);
+    const [undoHistory, setUndoHistory] = useState([]);
+
+
+
+
     // Initialize entryMode if not set (backwards compatibility)
     const currentEntryMode = wizardData.stitchPattern.entryMode || 'description';
     const rowInstructions = wizardData.stitchPattern.rowInstructions || [];
@@ -34,6 +58,15 @@ const RowByRowPatternConfig = ({
 
     // Determine if we should show save/cancel actions
     const shouldShowActions = showSaveActions || isEditMode;
+
+    // ===== NEW: MOBILE DETECTION =====
+    const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+    useEffect(() => {
+        const handleResize = () => setIsMobile(window.innerWidth <= 768);
+        window.addEventListener('resize', handleResize);
+        return () => window.removeEventListener('resize', handleResize);
+    }, []);
 
     // ESC key handling
     useEffect(() => {
@@ -51,8 +84,41 @@ const RowByRowPatternConfig = ({
 
     // Get pattern-specific data
     const patternType = wizardData.stitchPattern.pattern;
-    const quickActions = getPatternQuickActions(patternType);
     const placeholderText = getPatternPlaceholderText(patternType);
+
+    // ===== NEW: ENHANCED PATTERN KEYBOARD =====
+    const getEnhancedPatternKeyboard = (patternType, context = {}) => {
+        const { rowNumber, construction } = context;
+
+        switch (patternType) {
+            case 'Lace Pattern':
+                const laceActions = ['K all', 'P all', 'K', 'P', 'YO', 'K2tog', 'SSK', 'CDD'];
+
+                // Smart context awareness for lace
+                if (construction === 'flat' && rowNumber % 2 === 0) {
+                    // Move P all to front for WS rows
+                    return ['P all', ...laceActions.filter(a => a !== 'P all')];
+                }
+                return laceActions;
+
+            case 'Cable Pattern':
+                return ['K all', 'P all', 'K', 'P', 'C4F', 'C4B', 'C6F', 'C6B'];
+
+            case 'Custom pattern':
+                return ['K all', 'P all', 'K', 'P'];
+
+            default:
+                // Fallback to existing centralized version
+                return getPatternQuickActions(patternType);
+        }
+    };
+
+    // Get current enhanced keyboard
+    const currentRowNumber = editingRowIndex === null ? rowInstructions.length + 1 : editingRowIndex + 1;
+    const enhancedKeyboard = getEnhancedPatternKeyboard(patternType, {
+        rowNumber: currentRowNumber,
+        construction
+    });
 
     // ===== MODE TOGGLE HANDLING =====
     const handleModeToggle = (newMode) => {
@@ -65,19 +131,28 @@ const RowByRowPatternConfig = ({
     };
 
     // ===== ROW MANAGEMENT =====
+    // ALSO UPDATE your handleAddRow and handleEditRow functions to reset keyboard layer:
     const handleAddRow = () => {
-        if (isReadOnly('rowInstructions')) return; // Prevent if read-only
+        if (isReadOnly('rowInstructions')) return;
 
-        setEditingRowIndex(null); // null means new row
+        setEditingRowIndex(null);
         setTempRowText('');
+        setLastQuickAction(null);
+        setConsecutiveCount(1);
+        setCurrentKeyboardLayer(KEYBOARD_LAYERS.PRIMARY); // Reset to primary layer
+        setIsCreatingRepeat(false); // Reset repeat state
         setShowRowEntryOverlay(true);
     };
 
     const handleEditRow = (index) => {
-        if (isReadOnly('rowInstructions')) return; // Prevent if read-only
+        if (isReadOnly('rowInstructions')) return;
 
         setEditingRowIndex(index);
         setTempRowText(rowInstructions[index] || '');
+        setLastQuickAction(null);
+        setConsecutiveCount(1);
+        setCurrentKeyboardLayer(KEYBOARD_LAYERS.PRIMARY); // Reset to primary layer
+        setIsCreatingRepeat(false); // Reset repeat state
         setShowRowEntryOverlay(true);
     };
 
@@ -102,6 +177,8 @@ const RowByRowPatternConfig = ({
         setShowRowEntryOverlay(false);
         setTempRowText('');
         setEditingRowIndex(null);
+        setLastQuickAction(null); // Reset auto-increment
+        setConsecutiveCount(1);
     };
 
     const handleDeleteRow = (index) => {
@@ -120,16 +197,78 @@ const RowByRowPatternConfig = ({
         return rowNumber % 2 === 1 ? 'RS' : 'WS';
     };
 
+    // ===== NEW: ENHANCED QUICK ACTION WITH AUTO-INCREMENT =====
+    // REPLACE your existing handleQuickAction function with this enhanced version:
     const handleQuickAction = (action) => {
-        if (action === 'K all') {
-            setTempRowText('K all');
-        } else if (action === 'P all') {
-            setTempRowText('P all');
-        } else if (action.startsWith('copy_')) {
-            const rowIndex = parseInt(action.split('_')[1]);
-            setTempRowText(rowInstructions[rowIndex] || '');
+        // Handle keyboard layer shifting
+        if (action === '⇧') {
+            if (supportsMultipleLayers(patternType)) {
+                setCurrentKeyboardLayer(prev => getNextKeyboardLayer(prev, patternType));
+            }
+            return;
+        }
+
+        // Use the enhanced handler from utilities
+        handleQuickActionEnhanced(
+            action,
+            tempRowText,
+            setTempRowText,
+            lastQuickAction,
+            setLastQuickAction,
+            consecutiveCount,
+            setConsecutiveCount,
+            undoHistory,
+            setUndoHistory,
+            isCreatingRepeat,
+            setIsCreatingRepeat,
+            rowInstructions
+        );
+    };
+    // ADD this new function after your existing handleQuickAction function:
+    const handleSmartDelete = (isLongPress = false) => {
+        // Save to undo history first
+        if (tempRowText.trim()) {
+            setUndoHistory(prev => [...prev, tempRowText]);
+        }
+
+        const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
+        if (actions.length === 0) return;
+
+        const lastAction = actions[actions.length - 1];
+
+        // Check if it's a numbered action like K3, P2, etc.
+        const numberedMatch = lastAction.match(/^([KP])(\d+)$/);
+
+        if (numberedMatch && !isLongPress) {
+            // Tap delete: decrement the number
+            const [, letter, number] = numberedMatch;
+            const currentNum = parseInt(number);
+
+            if (currentNum > 2) {
+                // K3 → K2
+                actions[actions.length - 1] = `${letter}${currentNum - 1}`;
+            } else {
+                // K2 → K (remove number)
+                actions[actions.length - 1] = letter;
+            }
         } else {
-            setTempRowText(prev => prev ? `${prev}, ${action}` : action);
+            // Hold delete OR non-numbered action: remove completely
+            actions.pop();
+        }
+
+        setTempRowText(actions.join(', '));
+
+        // Reset auto-increment when deleting
+        setLastQuickAction(null);
+        setConsecutiveCount(1);
+    };
+
+    // ADD this undo function:
+    const handleUndo = () => {
+        if (undoHistory.length > 0) {
+            const previousState = undoHistory[undoHistory.length - 1];
+            setTempRowText(previousState);
+            setUndoHistory(prev => prev.slice(0, -1));
         }
     };
 
@@ -160,6 +299,169 @@ const RowByRowPatternConfig = ({
             onCancel();
         }
     };
+
+    // ===== NEW: ENHANCED MOBILE OVERLAY (Standard IntelliKnit Style) =====
+    const EnhancedMobileOverlay = () => (
+        <div className="modal-overlay" onClick={handleOverlayBackdrop}>
+            <div className="modal-content-light max-w-lg w-full max-h-[95vh] overflow-y-auto">
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-wool-700">
+                            {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
+                            <span className="text-sm font-normal text-wool-500 ml-2">
+                                ({getRowSide(currentRowNumber)})
+                            </span>
+                        </h3>
+                        <button
+                            onClick={() => setShowRowEntryOverlay(false)}
+                            className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                            aria-label="Close modal"
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    {/* Row Input */}
+                    <div className="mb-4">
+                        <textarea
+                            value={tempRowText}
+                            onChange={(e) => setTempRowText(e.target.value)}
+                            placeholder={placeholderText}
+                            rows={3}
+                            className="w-full border-2 border-wool-200 rounded-lg px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors resize-none"
+                            autoFocus
+                        />
+                    </div>
+
+
+                    {/* Smart Color-Coded Keyboard */}
+                    <div className="mb-4">
+                        <div className="flex justify-between items-center mb-2">
+                            <div className="text-sm font-medium text-wool-600">
+                                Pattern Keyboard
+                            </div>
+                            {supportsMultipleLayers(patternType) && (
+                                <div className="text-xs text-wool-500">
+                                    {getLayerDisplayName(currentKeyboardLayer)} Layer
+                                </div>
+                            )}
+                        </div>
+
+                        <EnhancedKeyboard
+                            patternType={patternType}
+                            layer={currentKeyboardLayer}
+                            context={{
+                                rowNumber: currentRowNumber,
+                                construction
+                            }}
+                            isMobile={isMobile}
+                            isCreatingRepeat={isCreatingRepeat}
+                            rowInstructions={rowInstructions}
+                            onAction={handleQuickAction}
+                        />
+                    </div>
+
+                    {/* Save/Cancel Buttons */}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowRowEntryOverlay(false)}
+                            className="flex-1 py-3 px-4 border-2 border-wool-200 rounded-lg text-wool-600 hover:bg-wool-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveRow}
+                            disabled={!tempRowText.trim()}
+                            className="flex-1 py-3 px-4 bg-sage-500 text-white rounded-lg hover:bg-sage-600 disabled:bg-wool-300 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {editingRowIndex === null ? 'Add Row' : 'Save Row'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
+
+    // ===== DESKTOP OVERLAY (Enhanced but keeping familiar structure) =====
+    const DesktopOverlay = () => (
+        <div className="modal-overlay" onClick={handleOverlayBackdrop}>
+            <div className="modal-content-light max-w-md w-full max-h-[90vh] overflow-y-auto">
+                <div className="p-6">
+                    <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-lg font-semibold text-wool-700">
+                            {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
+                            {editingRowIndex === null && (
+                                <span className="text-sm font-normal text-wool-500 ml-2">
+                                    ({getRowSide(currentRowNumber)})
+                                </span>
+                            )}
+                        </h3>
+                        <button
+                            onClick={() => setShowRowEntryOverlay(false)}
+                            className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                            aria-label="Close modal"
+                        >
+                            ×
+                        </button>
+                    </div>
+
+                    {/* Row Input */}
+                    <div className="mb-4">
+                        <textarea
+                            value={tempRowText}
+                            onChange={(e) => setTempRowText(e.target.value)}
+                            placeholder={placeholderText}
+                            rows={3}
+                            className="w-full border-2 border-wool-200 rounded-lg px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors resize-none"
+                            autoFocus
+                        />
+                    </div>
+
+                    {/* Enhanced Quick Actions */}
+                    <div className="mb-4">
+                        <div className="text-sm font-medium text-wool-600 mb-2">Quick Actions:</div>
+                        <div className="flex flex-wrap gap-2">
+                            {enhancedKeyboard.map((action, index) => (
+                                <button
+                                    key={`${action}-${index}`}
+                                    onClick={() => handleQuickAction(action)}
+                                    className="px-3 py-1 bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors"
+                                >
+                                    {action}
+                                </button>
+                            ))}
+                            {rowInstructions.map((instruction, index) => (
+                                <button
+                                    key={`copy_${index}`}
+                                    onClick={() => handleQuickAction(`copy_${index}`)}
+                                    className="px-3 py-1 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 transition-colors"
+                                >
+                                    Copy Row {index + 1}
+                                </button>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* Save/Cancel Buttons */}
+                    <div className="flex gap-3">
+                        <button
+                            onClick={() => setShowRowEntryOverlay(false)}
+                            className="flex-1 py-3 px-4 border-2 border-wool-200 rounded-lg text-wool-600 hover:bg-wool-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveRow}
+                            disabled={!tempRowText.trim()}
+                            className="flex-1 py-3 px-4 bg-sage-500 text-white rounded-lg hover:bg-sage-600 disabled:bg-wool-300 disabled:cursor-not-allowed transition-colors"
+                        >
+                            {editingRowIndex === null ? 'Add Row' : 'Save Row'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    );
 
     return (
         <div className="stack-lg">
@@ -197,8 +499,8 @@ const RowByRowPatternConfig = ({
                 )}
                 <div className="flex gap-3">
                     <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${currentEntryMode === 'description'
-                            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                            : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
                         } ${isReadOnly('entryMode') ? 'opacity-60 cursor-not-allowed' : ''}`}>
                         <input
                             type="radio"
@@ -217,8 +519,8 @@ const RowByRowPatternConfig = ({
                     </label>
 
                     <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${currentEntryMode === 'row_by_row'
-                            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                            : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
                         } ${isReadOnly('entryMode') ? 'opacity-60 cursor-not-allowed' : ''}`}>
                         <input
                             type="radio"
@@ -379,84 +681,88 @@ const RowByRowPatternConfig = ({
                 </div>
             )}
 
-            {/* ===== ROW ENTRY OVERLAY (unchanged) ===== */}
-            {showRowEntryOverlay && (
-                <div className="modal-overlay" onClick={handleOverlayBackdrop}>
-                    <div className="modal-content-light max-w-md w-full max-h-[90vh] overflow-y-auto">
-                        <div className="p-6">
-                            <div className="flex justify-between items-center mb-4">
-                                <h3 className="text-lg font-semibold text-wool-700">
-                                    {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
-                                    {editingRowIndex === null && (
-                                        <span className="text-sm font-normal text-wool-500 ml-2">
-                                            ({getRowSide(rowInstructions.length + 1)})
-                                        </span>
-                                    )}
-                                </h3>
-                                <button
-                                    onClick={() => setShowRowEntryOverlay(false)}
-                                    className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                                    aria-label="Close modal"
-                                >
-                                    ×
-                                </button>
-                            </div>
+            {/* ===== RESPONSIVE ROW ENTRY ===== */}
+            {showRowEntryOverlay && (isMobile ? <EnhancedMobileOverlay /> : <DesktopOverlay />)}
+        </div>
+    );
+};
 
-                            {/* Row Input */}
-                            <div className="mb-4">
-                                <textarea
-                                    value={tempRowText}
-                                    onChange={(e) => setTempRowText(e.target.value)}
-                                    placeholder={placeholderText}
-                                    rows={3}
-                                    className="w-full border-2 border-wool-200 rounded-lg px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors resize-none"
-                                    autoFocus
-                                />
-                            </div>
+const EnhancedKeyboard = ({
+    patternType,
+    layer,
+    context,
+    isMobile,
+    isCreatingRepeat,
+    rowInstructions,
+    onAction
+}) => {
+    const keyboardLayout = getKeyboardLayout(patternType, layer, context);
 
-                            {/* Quick Actions */}
-                            <div className="mb-4">
-                                <div className="text-sm font-medium text-wool-600 mb-2">Quick Actions:</div>
-                                <div className="flex flex-wrap gap-2">
-                                    {quickActions.map(action => (
-                                        <button
-                                            key={action}
-                                            onClick={() => handleQuickAction(action)}
-                                            className="px-3 py-1 bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors"
-                                        >
-                                            {action}
-                                        </button>
-                                    ))}
-                                    {rowInstructions.map((instruction, index) => (
-                                        <button
-                                            key={`copy_${index}`}
-                                            onClick={() => handleQuickAction(`copy_${index}`)}
-                                            className="px-3 py-1 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 transition-colors"
-                                        >
-                                            Copy Row {index + 1}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
+    return (
+        <div className="space-y-3">
+            {/* Full-Row Actions (Dark Sage - top row) */}
+            <div className={`grid gap-3 ${keyboardLayout.fullRow.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
+                {keyboardLayout.fullRow.map((action, index) => (
+                    <button
+                        key={`fullrow-${action}-${index}`}
+                        onClick={() => onAction(action)}
+                        className={getButtonStyles('fullRow', isMobile)}
+                    >
+                        {action}
+                    </button>
+                ))}
+            </div>
 
-                            {/* Save/Cancel Buttons */}
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowRowEntryOverlay(false)}
-                                    className="flex-1 py-3 px-4 border-2 border-wool-200 rounded-lg text-wool-600 hover:bg-wool-50 transition-colors"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleSaveRow}
-                                    disabled={!tempRowText.trim()}
-                                    className="flex-1 py-3 px-4 bg-sage-500 text-white rounded-lg hover:bg-sage-600 disabled:bg-wool-300 disabled:cursor-not-allowed transition-colors"
-                                >
-                                    {editingRowIndex === null ? 'Add Row' : 'Save Row'}
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            {/* Input Actions (Light Sage - main keyboard) */}
+            <div className={`grid gap-2 ${isMobile ? 'grid-cols-3' : 'flex flex-wrap'}`}>
+                {keyboardLayout.input.map((action, index) => {
+                    // Special styling for custom actions and special symbol
+                    const buttonType = action === '★' ? 'special' :
+                        action.startsWith('Custom ') ? 'special' :
+                            'input';
+
+                    return (
+                        <button
+                            key={`input-${action}-${index}`}
+                            onClick={() => onAction(action)}
+                            className={getButtonStyles(buttonType, isMobile)}
+                        >
+                            {action}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Action Buttons (Lavender - bottom row) */}
+            <div className="grid grid-cols-3 gap-3">
+                {keyboardLayout.actions.map((action, index) => {
+                    // Show current bracket state for repeat button
+                    const displayAction = action === '[' && isCreatingRepeat ? ']' : action;
+
+                    return (
+                        <button
+                            key={`action-${action}-${index}`}
+                            onClick={() => onAction(displayAction)}
+                            className={getButtonStyles('action', isMobile)}
+                        >
+                            {displayAction}
+                        </button>
+                    );
+                })}
+            </div>
+
+            {/* Copy Row Actions (if any) */}
+            {rowInstructions.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                    {rowInstructions.map((_, index) => (
+                        <button
+                            key={`copy_${index}`}
+                            onClick={() => onAction(`copy_${index}`)}
+                            className={getButtonStyles('copy')}
+                        >
+                            Copy Row {index + 1}
+                        </button>
+                    ))}
                 </div>
             )}
         </div>
