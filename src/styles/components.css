@@ -1454,25 +1454,3 @@ body {
     /* Even more on iPad Pro */
   }
 }
-
-/* Add to your components.css for dealing with persistant CSS issue on mobile */
-@media (hover: none) and (pointer: coarse) {
-
-  /* Mobile devices only */
-  * {
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  button:active,
-  [role="button"]:active {
-    background-color: inherit !important;
-    border-color: inherit !important;
-    transform: none !important;
-  }
-
-  /* Force immediate state reset on touch end */
-  button,
-  [role="button"] {
-    touch-action: manipulation;
-  }
-}

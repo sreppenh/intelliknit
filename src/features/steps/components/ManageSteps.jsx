@@ -447,27 +447,13 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
         <EditScreenHeader
           onBack={onBack}
           onGoToLanding={onGoToLanding}
-          title="Edit Mode"
-          subtitle={`Managing steps for ${component.name}`}
+          title={`Edit Mode`}
+          subtitle={`Managing ${component.steps.length} steps`}
           variant="edit"
         />
 
         <div className="p-6 bg-yarn-50 stack-lg">
-          {/* Component Status Bar */}
-          <div className="warning-block">
-            <div className="flex items-center relative">
-              <div className="flex items-center gap-2">
-                <span className="text-sm">✏️</span>
-                <span className="text-xs font-medium text-wool-600">Edit Mode</span>
-              </div>
-              <div className="absolute left-1/2 transform -translate-x-1/2">
-                <span className="text-sm font-medium text-wool-700">{component.name}</span>
-              </div>
-              <div className="ml-auto">
-                <span className="text-xs text-wool-500">{component.steps.length} steps</span>
-              </div>
-            </div>
-          </div>
+
 
           <StepsList
             component={component}
