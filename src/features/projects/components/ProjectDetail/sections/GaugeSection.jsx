@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
+import { StandardModal } from '../../../../../shared/components/StandardModal';
 
 /**
  * ⚖️ GaugeSection - Technical Precision Showcase with Perfect Wizard Integration
@@ -12,6 +13,7 @@ import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
  * - Smart defaults based on units (4" vs 10cm)
  * - Perfect wizard compatibility (maintains exact data structure)
  * - Technical precision with user-friendly UX
+ * - Fixed tablet/desktop modal behavior
  */
 const GaugeSection = ({
     project,
@@ -93,37 +95,6 @@ const GaugeSection = ({
         return null;
     };
 
-    // 🔧 Self-sufficient gauge update handlers (same logic as useDetailsForm)
-    const updateGaugeField = (field, value) => {
-        const currentGauge = formData?.gauge || project?.gauge || {};
-
-        const updatedGauge = {
-            ...currentGauge,
-            [field]: value,
-            // Special handling for gaugeNotes -> blockingNotes (same as useDetailsForm)
-            ...(field === 'gaugeNotes' && {
-                blockingNotes: value,
-                customPattern: ''
-            })
-        };
-
-        handleInputChange('gauge', updatedGauge);
-    };
-
-    const updateGaugeMeasurement = (gaugeType, field, value) => {
-        const currentGauge = formData?.gauge || project?.gauge || {};
-
-        const updatedGauge = {
-            ...currentGauge,
-            [gaugeType]: {
-                ...currentGauge?.[gaugeType],
-                [field]: value
-            }
-        };
-
-        handleInputChange('gauge', updatedGauge);
-    };
-
     // 🔧 Modal Management Functions
     const handleEditClick = () => {
         setShowEditModal(true);
@@ -160,29 +131,6 @@ const GaugeSection = ({
 
     const handleCancelEdit = () => {
         setShowEditModal(false);
-    };
-
-    // Handle ESC key and backdrop click
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showEditModal) {
-                handleCancelEdit();
-            }
-        };
-
-        if (showEditModal) {
-            document.addEventListener('keydown', handleEscKey);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-        };
-    }, [showEditModal]);
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            handleCancelEdit();
-        }
     };
 
     // 🔧 Temp gauge form handlers - SIMPLIFIED AND FIXED
@@ -277,146 +225,134 @@ const GaugeSection = ({
                 )}
             </div>
 
-            {/* 🎭 Modal */}
-            <div className="modal" onClick={handleBackdropClick}>
-                <div className="modal-content-light" style={{ maxWidth: '500px' }}>
-                    {/* 📋 Modal Header */}
-                    <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
-                        <div className="text-center">
-                            <h2 className="text-lg font-semibold">⚖️ Gauge</h2>
-                            <p className="text-sage-600 text-sm">Set your knitting gauge</p>
-                        </div>
+            {/* StandardModal - keeping ALL existing content */}
+            <StandardModal
+                isOpen={showEditModal}
+                onClose={handleCancelEdit}
+                onConfirm={handleSaveEdit}
+                category="complex"
+                colorScheme="sage"
+                title="⚖️ Gauge"
+                subtitle="Set your knitting gauge"
+                showButtons={false}
+            >
+                <div className="space-y-5">
 
-                        <button
-                            onClick={handleCancelEdit}  // Replace with your close handler
-                            className="absolute right-5 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                            aria-label="Close modal"
+                    {/* Pattern */}
+                    <div>
+                        <label className="form-label">Pattern</label>
+                        <select
+                            value={tempGaugeData.pattern || 'stockinette'}
+                            onChange={(e) => updateTempGaugeSimple('pattern', e.target.value)}
+                            className="w-full details-input-field"
                         >
-                            ×
-                        </button>
+                            <option value="stockinette">Stockinette</option>
+                            <option value="ribbing">Ribbing</option>
+                            <option value="seed">Seed Stitch</option>
+                            <option value="garter">Garter</option>
+                            <option value="custom">Custom</option>
+                        </select>
                     </div>
 
-                    {/* 📝 Modal Content */}
-                    <div className="p-6">
-                        <div className="space-y-5">
-
-                            {/* Pattern */}
-                            <div>
-                                <label className="form-label">Pattern</label>
-                                <select
-                                    value={tempGaugeData.pattern || 'stockinette'}
-                                    onChange={(e) => updateTempGaugeSimple('pattern', e.target.value)}
-                                    className="w-full details-input-field"
-                                >
-                                    <option value="stockinette">Stockinette</option>
-                                    <option value="ribbing">Ribbing</option>
-                                    <option value="seed">Seed Stitch</option>
-                                    <option value="garter">Garter</option>
-                                    <option value="custom">Custom</option>
-                                </select>
-                            </div>
-
-                            {/* Stitch Gauge - FIXED FORMAT */}
-                            <div>
-                                <label className="form-label">Stitch Gauge</label>
-                                <div className="flex gap-2 items-center">
-                                    <IncrementInput
-                                        value={tempGaugeData.stitchGauge?.stitches ? parseFloat(tempGaugeData.stitchGauge.stitches) : 18}
-                                        onChange={(value) => {
-                                            updateTempGaugeField('stitchGauge', 'stitches', value);
-                                        }}
-                                        min={1}
-                                        max={50}
-                                        step={0.5}
-                                        label="stitches"
-                                        size="sm"
-                                    />
-                                    <span className="text-sm text-wool-600">
-                                        stitches in {defaultUnits === 'cm' ? '10 cm' : '4 inches'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Row Gauge - FIXED FORMAT */}
-                            <div>
-                                <label className="form-label">Row Gauge</label>
-                                <div className="flex gap-2 items-center">
-                                    <IncrementInput
-                                        value={tempGaugeData.rowGauge?.rows ? parseFloat(tempGaugeData.rowGauge.rows) : 24}
-                                        onChange={(value) => updateTempGaugeField('rowGauge', 'rows', value)}
-                                        min={1}
-                                        max={100}
-                                        step={0.5}
-                                        label="rows"
-                                        size="sm"
-                                    />
-                                    <span className="text-sm text-wool-600">
-                                        rows in {defaultUnits === 'cm' ? '10 cm' : '4 inches'}
-                                    </span>
-                                </div>
-                            </div>
-
-                            {/* Needle Used - MOBILE DROPDOWN FIX */}
-                            <div>
-                                <label className="form-label">Needle Used</label>
-                                <div
-                                    className="w-full details-input-field cursor-pointer"
-                                    onClick={(e) => e.stopPropagation()}
-                                    onTouchStart={(e) => e.stopPropagation()}
-                                >
-                                    <select
-                                        value={tempGaugeData.needleIndex || 0}
-                                        onChange={(e) => updateTempGaugeSimple('needleIndex', parseInt(e.target.value))}
-                                        className="w-full bg-transparent border-none outline-none cursor-pointer"
-                                        style={{ fontSize: '16px' }}
-                                    >
-                                        {needleOptions.map((option) => (
-                                            <option key={option.value} value={option.value}>
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                                {needles.length === 0 && (
-                                    <p className="text-sm text-wool-500 mt-1">
-                                        No needles added yet. Add needles in the Needles section first.
-                                    </p>
-                                )}
-                            </div>
-
-                            {/* Gauge Notes */}
-                            <div>
-                                <label className="form-label">Gauge Notes</label>
-                                <input
-                                    type="text"
-                                    value={tempGaugeData.blockingNotes || ''}
-                                    onChange={(e) => updateTempGaugeSimple('blockingNotes', e.target.value)}
-                                    placeholder="e.g., after wet blocking, custom stitch pattern details..."
-                                    className="w-full details-input-field"
-                                />
-                            </div>
+                    {/* Stitch Gauge - FIXED FORMAT */}
+                    <div>
+                        <label className="form-label">Stitch Gauge</label>
+                        <div className="flex gap-2 items-center">
+                            <IncrementInput
+                                value={tempGaugeData.stitchGauge?.stitches ? parseFloat(tempGaugeData.stitchGauge.stitches) : 18}
+                                onChange={(value) => {
+                                    updateTempGaugeField('stitchGauge', 'stitches', value);
+                                }}
+                                min={1}
+                                max={50}
+                                step={0.5}
+                                label="stitches"
+                                size="sm"
+                            />
+                            <span className="text-sm text-wool-600">
+                                stitches in {defaultUnits === 'cm' ? '10 cm' : '4 inches'}
+                            </span>
                         </div>
+                    </div>
 
-                        {/* 🎯 Modal Actions */}
-                        <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={handleCancelEdit}
-                                data-modal-cancel
-                                className="flex-1 btn-tertiary"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSaveEdit}
-                                data-modal-primary
-                                className="flex-1 btn-primary"
-                            >
-                                Save Changes
-                            </button>
+                    {/* Row Gauge - FIXED FORMAT */}
+                    <div>
+                        <label className="form-label">Row Gauge</label>
+                        <div className="flex gap-2 items-center">
+                            <IncrementInput
+                                value={tempGaugeData.rowGauge?.rows ? parseFloat(tempGaugeData.rowGauge.rows) : 24}
+                                onChange={(value) => updateTempGaugeField('rowGauge', 'rows', value)}
+                                min={1}
+                                max={100}
+                                step={0.5}
+                                label="rows"
+                                size="sm"
+                            />
+                            <span className="text-sm text-wool-600">
+                                rows in {defaultUnits === 'cm' ? '10 cm' : '4 inches'}
+                            </span>
                         </div>
+                    </div>
+
+                    {/* Needle Used - MOBILE DROPDOWN FIX */}
+                    <div>
+                        <label className="form-label">Needle Used</label>
+                        <div
+                            className="w-full details-input-field cursor-pointer"
+                            onClick={(e) => e.stopPropagation()}
+                            onTouchStart={(e) => e.stopPropagation()}
+                        >
+                            <select
+                                value={tempGaugeData.needleIndex || 0}
+                                onChange={(e) => updateTempGaugeSimple('needleIndex', parseInt(e.target.value))}
+                                className="w-full bg-transparent border-none outline-none cursor-pointer"
+                                style={{ fontSize: '16px' }}
+                            >
+                                {needleOptions.map((option) => (
+                                    <option key={option.value} value={option.value}>
+                                        {option.label}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        {needles.length === 0 && (
+                            <p className="text-sm text-wool-500 mt-1">
+                                No needles added yet. Add needles in the Needles section first.
+                            </p>
+                        )}
+                    </div>
+
+                    {/* Gauge Notes */}
+                    <div>
+                        <label className="form-label">Gauge Notes</label>
+                        <input
+                            type="text"
+                            value={tempGaugeData.blockingNotes || ''}
+                            onChange={(e) => updateTempGaugeSimple('blockingNotes', e.target.value)}
+                            placeholder="e.g., after wet blocking, custom stitch pattern details..."
+                            className="w-full details-input-field"
+                        />
                     </div>
                 </div>
-            </div>
+
+                {/* Action buttons inside content */}
+                <div className="flex gap-3 mt-6">
+                    <button
+                        onClick={handleCancelEdit}
+                        data-modal-cancel
+                        className="flex-1 btn-tertiary"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSaveEdit}
+                        data-modal-primary
+                        className="flex-1 btn-primary"
+                    >
+                        Save Changes
+                    </button>
+                </div>
+            </StandardModal>
         </>
     );
 };
