@@ -284,14 +284,16 @@ const RowByRowPatternConfig = ({
             setTempRowText(prev => prev.replace(/\]$/, '')); // Remove the ]
             setKeyboardMode('pattern');
             setPendingRepeatText('');
-            setIsCreatingRepeat(true); // Go back to creating repeat
+            setIsCreatingRepeat(true);
             return;
         }
 
         if (isNumberAction(action)) {
-            // Number button pressed - add to repeat multiplier
+            // FIXED: Append numbers instead of replacing
             const currentText = pendingRepeatText.replace(/\]\s*×?\s*\d*$/, ''); // Remove existing multiplier
-            const newText = `${currentText}] × ${action}`;
+            const existingMultiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1] || '';
+            const newMultiplier = existingMultiplier + action; // ← APPEND, don't replace
+            const newText = `${currentText}] × ${newMultiplier}`;
             setPendingRepeatText(newText);
             setTempRowText(newText);
             return;
