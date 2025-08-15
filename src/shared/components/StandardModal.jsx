@@ -96,7 +96,7 @@ export const StandardModal = ({
                     {children}
 
                     {/* Standard action buttons for simple/input modals */}
-                    {showButtons && (category === 'simple' || category === 'input') && (
+                    {showButtons && category !== 'complex' && (
                         <div className="flex gap-3 mt-6">
                             <button onClick={onClose} className="flex-1 btn-tertiary">
                                 {secondaryButtonText}
