@@ -1122,8 +1122,10 @@ body {
     white-space: nowrap;
   }
 
-  /* Prevent menu clipping on small screens */
-  [class*="absolute"][class*="right"] {
+  /* Prevent menu clipping on small screens - FIXED to be more specific */
+  .menu-item[class*="absolute"][class*="right"],
+  [role="menu"][class*="absolute"][class*="right"],
+  .dropdown-menu[class*="absolute"][class*="right"] {
     right: 0.5rem;
     min-width: 180px;
     max-width: calc(100vw - 2rem);
@@ -1443,10 +1445,13 @@ body {
     /* Thicker progress bars */
   }
 
+  /* FIX: Keep badges compact even on tablet */
   .app-container .badge {
-    font-size: 0.875rem;
-    line-height: 1.25rem;
-    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    /* Slightly larger than text-xs but still small */
+    line-height: 1rem;
+    padding: 0.25rem 0.5rem;
+    /* Keep it compact: py-1 px-2 equivalent */
   }
 
   .app-container .status-indicator {
