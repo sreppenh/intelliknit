@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { StandardModal } from '../../../../../shared/components/StandardModal';
 
 /**
  * 🪡 NeedlesSection - Live Preview Multi-Add Pattern
@@ -67,36 +68,6 @@ const NeedlesSection = ({
 
     const handleCancelEdit = () => {
         setShowEditModal(false);
-    };
-
-    // Handle ESC key and backdrop click + focus management
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showEditModal) {
-                handleCancelEdit();
-            }
-        };
-
-        if (showEditModal) {
-            document.addEventListener('keydown', handleEscKey);
-
-            // Focus management - focus save button
-            setTimeout(() => {
-                const saveButton = document.querySelector('[data-modal-primary]');
-                if (saveButton) {
-                    saveButton.focus();
-                }
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-        };
-    }, [showEditModal]);
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            handleCancelEdit();
-        }
     };
 
     // 🗑️ Remove needle from temp state (live preview)
@@ -194,139 +165,123 @@ const NeedlesSection = ({
                 )}
             </div>
 
-            {/* 🎭 Modal */}
-            <div className="modal" onClick={handleBackdropClick}>
-                <div className="modal-content-light max-h-[90vh] overflow-y-auto">
+            {/* StandardModal - keeping ALL existing content */}
+            <StandardModal
+                isOpen={showEditModal}
+                onClose={handleCancelEdit}
+                onConfirm={handleSaveEdit}
+                category="complex"
+                colorScheme="sage"
+                title="🪡 Needles"
+                subtitle="Manage your knitting needles"
+                showButtons={false}
+            >
+                {/* Current Needles - Live Preview with Delete */}
+                {tempNeedles.length > 0 && (
+                    <div className="mb-6">
+                        <h4 className="text-sm font-medium text-wool-700 mb-3">Current Needles</h4>
+                        <div className="space-y-2">
+                            {tempNeedles.map((needle, index) => (
+                                <div key={index} className="flex items-center justify-between py-2 px-3 bg-wool-50 rounded-lg border border-wool-200">
+                                    <span className="text-sm text-wool-700">
+                                        {formatNeedleDisplay(needle)}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        onClick={() => removeTempNeedle(index)}
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors"
+                                        title="Remove this needle"
+                                    >
+                                        ❌
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
-                    {/* 📋 Modal Header */}
-                    <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
-                        <div className="text-center">
-                            <h2 className="text-lg font-semibold">🪡 Needles</h2>
-                            <p className="text-sage-600 text-sm">Manage your knitting needles</p>
+                {/* Add New Needle Section */}
+                <div className={`${tempNeedles.length > 0 ? 'border-t border-wool-200 pt-6' : ''}`}>
+                    <h4 className="text-sm font-medium text-wool-700 mb-3">Add New Needle</h4>
+
+                    <div className="space-y-4">
+                        {/* Size Dropdown */}
+                        <div>
+                            <label className="form-label">Needle Size</label>
+                            <select
+                                value={newNeedle.size}
+                                onChange={(e) => updateNewNeedle('size', e.target.value)}
+                                className="w-full details-input-field"
+                                style={{ fontSize: '16px', minHeight: '44px' }}
+                            >
+                                <option value="">Select size...</option>
+                                <option value="US 0 (2mm)">US 0 (2mm)</option>
+                                <option value="US 1 (2.25mm)">US 1 (2.25mm)</option>
+                                <option value="US 2 (2.75mm)">US 2 (2.75mm)</option>
+                                <option value="US 3 (3.25mm)">US 3 (3.25mm)</option>
+                                <option value="US 4 (3.5mm)">US 4 (3.5mm)</option>
+                                <option value="US 5 (3.75mm)">US 5 (3.75mm)</option>
+                                <option value="US 6 (4mm)">US 6 (4mm)</option>
+                                <option value="US 7 (4.5mm)">US 7 (4.5mm)</option>
+                                <option value="US 8 (5mm)">US 8 (5mm)</option>
+                                <option value="US 9 (5.5mm)">US 9 (5.5mm)</option>
+                                <option value="US 10 (6mm)">US 10 (6mm)</option>
+                                <option value="US 10.5 (6.5mm)">US 10.5 (6.5mm)</option>
+                                <option value="US 11 (8mm)">US 11 (8mm)</option>
+                                <option value="US 13 (9mm)">US 13 (9mm)</option>
+                                <option value="US 15 (10mm)">US 15 (10mm)</option>
+                                <option value="US 17 (12mm)">US 17 (12mm)</option>
+                                <option value="US 19 (15mm)">US 19 (15mm)</option>
+                                <option value="US 35 (19mm)">US 35 (19mm)</option>
+                                <option value="US 50 (25mm)">US 50 (25mm)</option>
+                            </select>
                         </div>
 
+                        {/* Type Dropdown */}
+                        <div>
+                            <label className="form-label">Needle Type (optional)</label>
+                            <select
+                                value={newNeedle.type}
+                                onChange={(e) => updateNewNeedle('type', e.target.value)}
+                                className="w-full details-input-field"
+                            >
+                                <option value="">Select type...</option>
+                                <option value="circular">Circular</option>
+                                <option value="straight">Straight</option>
+                                <option value="double pointed">Double Pointed</option>
+                                <option value="interchangeable">Interchangeable</option>
+                            </select>
+                        </div>
+
+                        {/* Add Another Needle Button */}
                         <button
-                            onClick={handleCancelEdit}  // Replace with your close handler
-                            className="absolute right-4 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                            aria-label="Close modal"
+                            onClick={addTempNeedle}
+                            disabled={!canAddNeedle}
+                            className="w-full btn-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            ×
+                            + Add Another Needle
                         </button>
                     </div>
-
-
-
-                    {/* 📝 Modal Content */}
-                    <div className="p-6">
-
-                        {/* Current Needles - Live Preview with Delete */}
-                        {tempNeedles.length > 0 && (
-                            <div className="mb-6">
-                                <h4 className="text-sm font-medium text-wool-700 mb-3">Current Needles</h4>
-                                <div className="space-y-2">
-                                    {tempNeedles.map((needle, index) => (
-                                        <div key={index} className="flex items-center justify-between py-2 px-3 bg-wool-50 rounded-lg border border-wool-200">
-                                            <span className="text-sm text-wool-700">
-                                                {formatNeedleDisplay(needle)}
-                                            </span>
-                                            <button
-                                                type="button"
-                                                onClick={() => removeTempNeedle(index)}
-                                                className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors"
-                                                title="Remove this needle"
-                                            >
-                                                ✕
-                                            </button>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Add New Needle Section */}
-                        <div className={`${tempNeedles.length > 0 ? 'border-t border-wool-200 pt-6' : ''}`}>
-                            <h4 className="text-sm font-medium text-wool-700 mb-3">Add New Needle</h4>
-
-                            <div className="space-y-4">
-                                {/* Size Dropdown - with Mobile Debug */}
-                                <div>
-                                    <label className="form-label">Needle Size</label>
-                                    <select
-                                        value={newNeedle.size}
-                                        onChange={(e) => updateNewNeedle('size', e.target.value)}
-                                        className="w-full details-input-field"
-                                        style={{ fontSize: '16px', minHeight: '44px' }}
-                                    >
-                                        <option value="">Select size...</option>
-                                        <option value="US 0 (2mm)">US 0 (2mm)</option>
-                                        <option value="US 1 (2.25mm)">US 1 (2.25mm)</option>
-                                        <option value="US 2 (2.75mm)">US 2 (2.75mm)</option>
-                                        <option value="US 3 (3.25mm)">US 3 (3.25mm)</option>
-                                        <option value="US 4 (3.5mm)">US 4 (3.5mm)</option>
-                                        <option value="US 5 (3.75mm)">US 5 (3.75mm)</option>
-                                        <option value="US 6 (4mm)">US 6 (4mm)</option>
-                                        <option value="US 7 (4.5mm)">US 7 (4.5mm)</option>
-                                        <option value="US 8 (5mm)">US 8 (5mm)</option>
-                                        <option value="US 9 (5.5mm)">US 9 (5.5mm)</option>
-                                        <option value="US 10 (6mm)">US 10 (6mm)</option>
-                                        <option value="US 10.5 (6.5mm)">US 10.5 (6.5mm)</option>
-                                        <option value="US 11 (8mm)">US 11 (8mm)</option>
-                                        <option value="US 13 (9mm)">US 13 (9mm)</option>
-                                        <option value="US 15 (10mm)">US 15 (10mm)</option>
-                                        <option value="US 17 (12mm)">US 17 (12mm)</option>
-                                        <option value="US 19 (15mm)">US 19 (15mm)</option>
-                                        <option value="US 35 (19mm)">US 35 (19mm)</option>
-                                        <option value="US 50 (25mm)">US 50 (25mm)</option>
-                                    </select>
-                                </div>
-
-                                {/* Type Dropdown - Full Width */}
-                                <div>
-                                    <label className="form-label">Needle Type (optional)</label>
-                                    <select
-                                        value={newNeedle.type}
-                                        onChange={(e) => updateNewNeedle('type', e.target.value)}
-                                        className="w-full details-input-field"
-                                    >
-                                        <option value="">Select type...</option>
-                                        <option value="circular">Circular</option>
-                                        <option value="straight">Straight</option>
-                                        <option value="double pointed">Double Pointed</option>
-                                        <option value="interchangeable">Interchangeable</option>
-                                    </select>
-                                </div>
-
-                                {/* Add Another Needle Button */}
-                                <button
-                                    onClick={addTempNeedle}
-                                    disabled={!canAddNeedle}
-                                    className="w-full btn-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    + Add Another Needle
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* 🎯 Modal Actions */}
-                        <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={handleCancelEdit}
-                                data-modal-cancel
-                                className="flex-1 btn-tertiary"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSaveEdit}
-                                data-modal-primary
-                                className="flex-1 btn-primary"
-                            >
-                                Save Changes
-                            </button>
-                        </div>
-                    </div>
                 </div>
-            </div>
+
+                {/* Action buttons inside content */}
+                <div className="flex gap-3 mt-6">
+                    <button
+                        onClick={handleCancelEdit}
+                        data-modal-cancel
+                        className="flex-1 btn-tertiary"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSaveEdit}
+                        data-modal-primary
+                        className="flex-1 btn-primary"
+                    >
+                        Save Changes
+                    </button>
+                </div>
+            </StandardModal>
         </>
     );
 };
