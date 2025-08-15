@@ -68,8 +68,7 @@ const DeleteComponentModal = ({ component, onClose, onDelete }) => {
                         <button
                             onClick={onDelete}
                             data-modal-primary
-                            className="w-full bg-red-500 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-                        >
+                            className="w-full btn-danger flex items-center justify-center gap-2">
                             <span>🗑️</span>
                             Delete Component
                         </button>

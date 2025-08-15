@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useSimpleModal } from '../../../shared/hooks/useStandardModal';
 
 const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother }) => {
   // Standardized Simple Action Modal Behavior
@@ -25,11 +26,8 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
   }, [onClose]);
 
   // Handle backdrop click
-  const handleBackdropClick = (event) => {
-    if (event.target === event.currentTarget) {
-      onClose();
-    }
-  };
+  const { handleBackdropClick } = useSimpleModal(true, onClose);
+
 
   return (
     <div className="modal-overlay" onClick={handleBackdropClick}>
@@ -85,7 +83,7 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
               data-modal-cancel
               className="w-full btn-tertiary"
             >
-              Close
+              Cancel
             </button>
           </div>
         </div>
