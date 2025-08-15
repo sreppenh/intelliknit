@@ -154,7 +154,8 @@ export const getButtonStyles = (buttonType, isMobile = false) => {
         case 'input':
             return `${baseClasses} bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors`;
         case 'action':
-            return `${baseClasses} bg-lavender-100 text-lavender-700 rounded-lg text-sm font-medium hover:bg-lavender-200 border border-lavender-200 transition-colors`;
+            const textSize = isMobile ? 'text-lg' : 'text-sm'; // ← Bigger text on mobile
+            return `${baseClasses} bg-lavender-100 text-lavender-700 rounded-lg ${textSize} font-medium hover:bg-lavender-200 border border-lavender-200 transition-colors`;
         case 'copy':
             return 'px-3 py-1 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 transition-colors';
         case 'special':
