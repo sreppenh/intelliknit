@@ -30,6 +30,8 @@ export const renderStep = (
           wizardData={wizard.wizardData}
           updateWizardData={wizard.updateWizardData}
           navigation={customNavigation}
+          construction={wizard.construction}  // Make sure this is passed
+          currentStitches={wizard.currentStitches}  // ADD THIS LINE
         />
       );
 

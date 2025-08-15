@@ -28,6 +28,8 @@ const RowEntryModal = ({
     };
 
     const renderRunningTotal = () => {
+        console.log('wizardData:', wizardData);
+        console.log('currentProject:', currentProject);
         const calculation = getStitchCalculation();
         const previousStitches = getPreviousRowStitches(
             rowInstructions,

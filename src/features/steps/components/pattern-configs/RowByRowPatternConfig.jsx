@@ -25,6 +25,7 @@ const RowByRowPatternConfig = ({
     wizardData,
     updateWizardData,
     construction,
+    currentStitches,
 
     // NEW: Mode-aware props
     mode = 'wizard',           // 'wizard' | 'edit' | 'notepad'
@@ -33,6 +34,7 @@ const RowByRowPatternConfig = ({
     readOnlyFields = [],       // Array of field names that should be read-only
     showSaveActions = false    // Whether to show save/cancel buttons
 }) => {
+
     // ===== ROW-BY-ROW STATE MANAGEMENT =====
     const [showRowEntryOverlay, setShowRowEntryOverlay] = useState(false);
     const [editingRowIndex, setEditingRowIndex] = useState(null);
@@ -75,6 +77,17 @@ const RowByRowPatternConfig = ({
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
     const { currentProject, dispatch } = useProjectsContext();
+
+
+    // DIAGNOSTIC - Add this temporarily
+    console.log('🔍 Lace Calculator Debug:', {
+        wizardDataCurrentStitches: wizardData.currentStitches,
+        wizardDataStartingStitches: wizardData.startingStitches,
+        wizardData: wizardData,
+        currentProject: currentProject
+    });
+
+
 
     const [newActionStitches, setNewActionStitches] = useState('1'); // Default to 1
 
@@ -199,10 +212,15 @@ const RowByRowPatternConfig = ({
     const getStitchCalculation = () => {
         if (!tempRowText || !currentProject) return null;
 
+        // Get the actual current stitches from the component/step context
+        const componentCurrentStitches = wizardData.currentStitches ||
+            wizardData.startingStitches ||
+            80; // Only use 80 as absolute last resort
+
         const previousStitches = getPreviousRowStitches(
             rowInstructions,
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-            currentProject.startingStitches || 80
+            currentStitches || wizardData.currentStitches || 80  // USE PASSED currentStitches
         );
 
         // Build custom actions lookup from project data

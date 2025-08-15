@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig, RowByRowPatternConfig } from '../pattern-configs';
 import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
 
-const PatternConfiguration = ({ wizardData, updateWizardData, navigation, construction }) => {
+const PatternConfiguration = ({ wizardData, updateWizardData, navigation, construction, currentStitches }) => {
   const { pattern } = wizardData.stitchPattern;
 
   if (!pattern) {
@@ -51,6 +51,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation, constr
               wizardData={wizardData}
               updateWizardData={updateWizardData}
               construction={construction}
+              currentStitches={currentStitches}  // ADD THIS LINE
             />
           );
         }
