@@ -1110,25 +1110,23 @@ body {
   }
 }
 
-@media (max-width: 767px) {
+@media (min-width: 768px) {
 
-  /* Enhanced three-dot menu for mobile */
+  /* Prevent menu items from wrapping */
   .menu-item {
-    min-height: 48px;
-    padding: 0.75rem 1rem;
-    display: flex;
-    align-items: center;
-    font-size: 1rem;
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    min-width: 160px;
+    /* Ensure minimum width */
   }
 
-  /* Prevent menu clipping on small screens - FIXED to be more specific */
+  /* FIXED: Use specific selectors like you did for mobile */
   .menu-item[class*="absolute"][class*="right"],
   [role="menu"][class*="absolute"][class*="right"],
   .dropdown-menu[class*="absolute"][class*="right"] {
-    right: 0.5rem;
-    min-width: 180px;
-    max-width: calc(100vw - 2rem);
+    min-width: 200px;
+    /* Prevent narrow menus */
   }
 }
 
