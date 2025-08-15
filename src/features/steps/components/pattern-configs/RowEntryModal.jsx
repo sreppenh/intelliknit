@@ -30,7 +30,7 @@ const RowEntryModal = ({
                 calculation.stitchChange
             );
             return (
-                <div className="text-sm mt-1 text-sage-600">
+                <div className="text-sm text-sage-600">
                     {totalFormat.baseText}
                     {totalFormat.changeText && (
                         <span className={`ml-1 ${totalFormat.changeColor}`}>
@@ -40,9 +40,15 @@ const RowEntryModal = ({
                 </div>
             );
         } else {
-            const baseline = calculation?.previousStitches || 10;
+            // Better baseline calculation - get actual previous stitches
+            const baseline = calculation?.previousStitches ||
+                (rowInstructions.length > 0 ?
+                    rowInstructions[rowInstructions.length - 1]?.endingStitches :
+                    wizardData?.stitchCount ||
+                    currentProject?.components?.[0]?.steps?.[0]?.startingStitches ||
+                    10);
             return (
-                <div className="text-sm mt-1 text-sage-500">
+                <div className="text-sm text-sage-500">
                     {baseline} sts → {baseline} sts
                 </div>
             );
@@ -50,7 +56,7 @@ const RowEntryModal = ({
     };
 
     const title = editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`;
-    const subtitle = `(${getRowSide(currentRowNumber)})`;
+    const subtitle = `${getRowSide(currentRowNumber)}`;
 
     return (
         <StandardModal
@@ -58,8 +64,8 @@ const RowEntryModal = ({
             onClose={onClose}
             category="complex"
             colorScheme="sage"
-            title={title}
-            subtitle={subtitle}
+            title={`${title} (${subtitle})`}
+            subtitle={null} // No subtitle, everything in title
             showButtons={false} // Custom layout
         >
             {/* Running total display */}

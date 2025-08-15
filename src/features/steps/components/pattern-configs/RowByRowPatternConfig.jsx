@@ -95,10 +95,6 @@ const RowByRowPatternConfig = ({
         'prop is undefined?': currentStitches === undefined
     });
 
-
-
-
-
     const [newActionStitches, setNewActionStitches] = useState('1'); // Default to 1
 
     // Helper function to update project data

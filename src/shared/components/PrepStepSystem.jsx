@@ -1,8 +1,8 @@
 // src/shared/components/PrepStepSystem.jsx
 import React, { useState, useEffect } from 'react';
+import { StandardModal } from './StandardModal';
 
-// Updated PrepStepModal from PrepStepSystem.jsx
-
+// Updated PrepStepModal using StandardModal
 export const PrepStepModal = ({
   isOpen,
   onClose,
@@ -26,107 +26,60 @@ export const PrepStepModal = ({
     setNote(existingNote);
   }, [existingNote]);
 
-  // Standardized Complex Modal Behavior  
-  useEffect(() => {
-    const handleEscKey = (event) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscKey);
-      // Focus the textarea for immediate editing
-      setTimeout(() => {
-        const textarea = document.querySelector('[data-modal-focus]');
-        if (textarea) {
-          textarea.focus();
-        }
-      }, 100);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscKey);
-    };
-  }, [isOpen, onClose]);
-
   const handleSave = () => {
     onSave(note.trim());
     onClose();
   };
 
-  const handleClear = () => {
-    setNote('');
-    onSave('');
-    onClose();
-  };
-
   const canSave = note.trim().length > 0;
-  const hasExistingNote = existingNote.trim().length > 0;
-
-  if (!isOpen) return null;
 
   return (
-    <div className="modal">
-      <div className="modal-content-light max-h-[80vh] overflow-y-auto">
-
-        {/* Header with lighter treatment */}
-        <div className="modal-header-light">
-          <div className="flex items-center gap-3">
-            <div className="text-2xl">{icon}</div>
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold">{title}</h2>
-              <p className="text-sage-600 text-sm">{subtitle}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        <div className="p-6 stack-lg">
-
-          {/* Note Input */}
-          <div>
-            <label className="form-label">
-              What should the knitter do?
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={placeholder}
-              rows={2}
-              data-modal-focus
-              className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white resize-none"
-            />
-          </div>
-
-
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 btn-tertiary"
-            >
-              Cancel
-            </button>
-
-            <button
-              onClick={handleSave}
-              className="flex-1 btn-primary"
-            >
-              Save Note
-            </button>
-          </div>
-        </div>
+    <StandardModal
+      isOpen={isOpen}
+      onClose={onClose}
+      category="complex"
+      colorScheme="sage"
+      title={title}
+      subtitle={subtitle}
+      icon={icon}
+      showButtons={false} // Custom buttons for this modal
+      focusSelector="[data-modal-focus]" // Focus the textarea
+    >
+      {/* Note Input */}
+      <div className="mb-6">
+        <label className="form-label">
+          What should the knitter do?
+        </label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={placeholder}
+          rows={2}
+          data-modal-focus
+          className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white resize-none"
+        />
       </div>
-    </div>
+
+      {/* Custom Action Buttons */}
+      <div className="flex gap-3">
+        <button
+          onClick={onClose}
+          className="flex-1 btn-tertiary"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          className="flex-1 btn-primary"
+        >
+          Save Note
+        </button>
+      </div>
+    </StandardModal>
   );
 };
 
-// Enhanced Prep Step Button with visual state
+// Enhanced Prep Step Button with visual state (NO CHANGES - this is perfect)
 export const PrepStepButton = ({
   onClick,
   hasNote = false,
@@ -203,7 +156,7 @@ export const PrepStepButton = ({
   );
 };
 
-// Hook for managing prep notes with persistence
+// Hook for managing prep notes with persistence (NO CHANGES - this is perfect)
 export const usePrepNoteManager = (initialNote = '', onSaveNote) => {
   const [isModalOpen, setisModalOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState(initialNote);
@@ -242,9 +195,7 @@ export const usePrepNoteManager = (initialNote = '', onSaveNote) => {
   };
 };
 
-// Component to display prep notes in instruction lists
-// Component to display prep notes in instruction lists - NOW CLICKABLE
-// Component to display prep notes in instruction lists - NOW CLICKABLE with SAGE styling
+// Component to display prep notes in instruction lists (NO CHANGES - this is perfect)
 export const PrepNoteDisplay = ({ note, className = "", onClick }) => {
   if (!note || note.trim().length === 0) return null;
 
@@ -273,7 +224,7 @@ export const PrepNoteDisplay = ({ note, className = "", onClick }) => {
   );
 };
 
-// Context-specific configurations for different wizards
+// Context-specific configurations for different wizards (NO CHANGES - this is perfect)
 export const PREP_NOTE_CONFIGS = {
   stepWizard: {
     title: "Preparation Note",
@@ -315,11 +266,12 @@ export const PREP_NOTE_CONFIGS = {
   }
 };
 
-// Utility function to get config for a specific wizard
+// Utility function to get config for a specific wizard (NO CHANGES)
 export const getPrepNoteConfig = (wizardType) => {
   return PREP_NOTE_CONFIGS[wizardType] || PREP_NOTE_CONFIGS.stepWizard;
 };
 
+// Component to display after notes (NO CHANGES - this is perfect)
 export const AfterNoteDisplay = ({ note, className = "", onClick }) => {
   if (!note || note.trim().length === 0) return null;
 
@@ -348,7 +300,7 @@ export const AfterNoteDisplay = ({ note, className = "", onClick }) => {
   );
 };
 
-// Hook for managing assembly notes - mirrors usePrepNoteManager
+// Hook for managing assembly notes (NO CHANGES - this is perfect)
 export const useAfterNoteManager = (initialNote = '', onSaveNote) => {
   const [isModalOpen, setisModalOpen] = React.useState(false);
   const [currentNote, setCurrentNote] = React.useState(initialNote);
@@ -387,7 +339,7 @@ export const useAfterNoteManager = (initialNote = '', onSaveNote) => {
   };
 };
 
-// Assembly Note Modal - customized version of PrepStepModal
+// Assembly Note Modal using StandardModal
 export const AssemblyNoteModal = ({
   isOpen,
   onClose,
@@ -405,94 +357,53 @@ export const AssemblyNoteModal = ({
     setNote(existingNote);
   }, [existingNote]);
 
-  // Standardized Complex Modal Behavior  
-  React.useEffect(() => {
-    const handleEscKey = (event) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-
-    if (isOpen) {
-      document.addEventListener('keydown', handleEscKey);
-      // Focus the textarea for immediate editing
-      setTimeout(() => {
-        const textarea = document.querySelector('[data-modal-focus]');
-        if (textarea) {
-          textarea.focus();
-        }
-      }, 100);
-    }
-
-    return () => {
-      document.removeEventListener('keydown', handleEscKey);
-    };
-  }, [isOpen, onClose]);
-
   const handleSave = () => {
     onSave(note.trim());
     onClose();
   };
 
-  const canSave = note.trim().length > 0;
-
-  if (!isOpen) return null;
-
   return (
-    <div className="modal">
-      <div className="modal-content-light max-h-[80vh] overflow-y-auto">
-
-        {/* Header with sage theme */}
-        <div className="modal-header-light">
-          <div className="flex items-center gap-3">
-            <div className="text-2xl">{icon}</div>
-            <div className="flex-1">
-              <h2 className="text-lg font-semibold">{title}</h2>
-              <p className="text-sage-600 text-sm">{subtitle}</p>
-            </div>
-            <button
-              onClick={onClose}
-              className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-            >
-              ×
-            </button>
-          </div>
-        </div>
-
-        <div className="p-6 stack-lg">
-
-          {/* Note Input */}
-          <div>
-            <label className="form-label">
-              What should happen after completing this step?
-            </label>
-            <textarea
-              value={note}
-              onChange={(e) => setNote(e.target.value)}
-              placeholder={placeholder}
-              rows={2}
-              data-modal-focus
-              className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white resize-none"
-            />
-          </div>
-
-          <div className="flex gap-3">
-            <button
-              onClick={onClose}
-              className="flex-1 btn-tertiary"
-            >
-              Cancel
-            </button>
-
-            <button
-              onClick={handleSave}
-              className="flex-1 btn-primary"
-            >
-              Save Notes
-            </button>
-          </div>
-        </div>
+    <StandardModal
+      isOpen={isOpen}
+      onClose={onClose}
+      category="complex"
+      colorScheme="sage"
+      title={title}
+      subtitle={subtitle}
+      icon={icon}
+      showButtons={false} // Custom buttons
+      focusSelector="[data-modal-focus]" // Focus the textarea
+    >
+      {/* Note Input */}
+      <div className="mb-6">
+        <label className="form-label">
+          What should happen after completing this step?
+        </label>
+        <textarea
+          value={note}
+          onChange={(e) => setNote(e.target.value)}
+          placeholder={placeholder}
+          rows={2}
+          data-modal-focus
+          className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white resize-none"
+        />
       </div>
-    </div>
+
+      {/* Custom Action Buttons */}
+      <div className="flex gap-3">
+        <button
+          onClick={onClose}
+          className="flex-1 btn-tertiary"
+        >
+          Cancel
+        </button>
+        <button
+          onClick={handleSave}
+          className="flex-1 btn-primary"
+        >
+          Save Notes
+        </button>
+      </div>
+    </StandardModal>
   );
 };
