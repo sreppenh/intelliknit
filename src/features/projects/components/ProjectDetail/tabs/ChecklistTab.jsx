@@ -6,7 +6,7 @@ import useProjectUpdate from '../../../../../shared/hooks/useProjectUpdate';
  * 📋 ChecklistTab - The Ultimate Finishing Task Management System
  * 
  * Features:
- * - Beautiful lavender-themed design
+ * - Beautiful sage-themed design
  * - Smart contextual suggestions based on project type/construction
  * - Lightning-fast task adding with modal workflow
  * - Mobile-optimized interactions with 44px touch targets
@@ -339,13 +339,13 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
         const isLast = index === totalTasks - 1;
 
         return (
-            <div className="bg-white flex items-center gap-3 p-4 min-h-[60px] hover:bg-lavender-50 transition-colors relative">
+            <div className="bg-white flex items-center gap-3 p-4 min-h-[60px] hover:bg-sage-50 transition-colors relative">
                 {/* Checkbox - Large Touch Target */}
                 <button
                     onClick={() => handleToggleTask(categoryId, task.id)}
                     className={`w-8 h-8 rounded border-2 flex items-center justify-center transition-all ${task.completed
-                        ? 'bg-lavender-500 border-lavender-500 text-white shadow-sm'
-                        : 'border-lavender-400 hover:border-lavender-500 hover:bg-lavender-50'
+                        ? 'bg-sage-500 border-sage-500 text-white shadow-sm'
+                        : 'border-sage-400 hover:border-sage-500 hover:bg-sage-50'
                         }`}
                 >
                     {task.completed && '✓'}
@@ -353,7 +353,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
 
                 {/* Task Text - Larger, More Readable */}
                 <span className={`flex-1 transition-all text-base text-left ${task.completed
-                    ? 'text-lavender-400 line-through'
+                    ? 'text-sage-400 line-through'
                     : 'text-wool-700'
                     }`}>
                     {task.text}
@@ -419,22 +419,22 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
     const CategorySection = ({ category }) => (
         <div className="mb-4">
             {/* Category Header - Narrower and More Compact */}
-            <div className="bg-lavender-100 border-2 border-lavender-300 rounded-t-xl p-3 flex justify-between items-center">
-                <h3 className="text-base font-semibold text-lavender-800 flex items-center gap-2">
+            <div className="bg-sage-100 border-2 border-sage-300 rounded-t-xl p-3 flex justify-between items-center">
+                <h3 className="text-base font-semibold text-sage-800 flex items-center gap-2">
                     {category.icon} {category.name}
                 </h3>
                 <button
                     onClick={() => handleAddTask(category.id)}
-                    className="bg-lavender-500 hover:bg-lavender-600 text-white w-7 h-7 rounded-lg flex items-center justify-center font-bold transition-colors text-sm"
+                    className="bg-sage-500 hover:bg-sage-600 text-white w-7 h-7 rounded-lg flex items-center justify-center font-bold transition-colors text-sm"
                 >
                     +
                 </button>
             </div>
 
             {/* Task List */}
-            <div className="bg-white border-2 border-lavender-200 border-t-0 rounded-b-xl">
+            <div className="bg-white border-2 border-sage-200 border-t-0 rounded-b-xl">
                 {category.tasks.length > 0 ? (
-                    <div className="divide-y divide-lavender-100">
+                    <div className="divide-y divide-sage-100">
                         {category.tasks
                             .sort((a, b) => (a.order || 0) - (b.order || 0))
                             .map((task, index) => (
@@ -449,7 +449,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                     </div>
                 ) : (
                     <div
-                        className="p-4 text-center text-lavender-400 cursor-pointer hover:text-lavender-600 hover:bg-lavender-50 transition-colors"
+                        className="p-4 text-center text-sage-400 cursor-pointer hover:text-sage-600 hover:bg-sage-50 transition-colors"
                         onClick={() => handleAddTask(category.id)}
                     >
                         + Add {category.name.toLowerCase()} tasks
@@ -476,9 +476,9 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
             {/* Progress Bar */}
             {stats.total > 0 && (
                 <div className="mb-6">
-                    <div className="bg-lavender-100 rounded-full h-2 border border-lavender-200">
+                    <div className="bg-sage-100 rounded-full h-2 border border-sage-200">
                         <div
-                            className="bg-lavender-500 h-2 rounded-full transition-all duration-300"
+                            className="bg-sage-500 h-2 rounded-full transition-all duration-300"
                             style={{ width: `${stats.percentage}%` }}
                         />
                     </div>
@@ -518,11 +518,11 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                         <div className="p-6 space-y-6">
                             {/* 1. PREVIEW FIRST - Tasks to Add */}
                             {(selectedSuggestions.length > 0 || customTasks.length > 0) && (
-                                <div className="bg-lavender-50 border-2 border-lavender-200 rounded-xl p-4">
-                                    <h5 className="font-medium text-lavender-800 mb-3 text-center">Tasks to Add</h5>
+                                <div className="bg-sage-50 border-2 border-sage-200 rounded-xl p-4">
+                                    <h5 className="font-medium text-sage-800 mb-3 text-center">Tasks to Add</h5>
                                     <div className="space-y-2">
                                         {selectedSuggestions.map(task => (
-                                            <div key={`suggestion-${task}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-lavender-200">
+                                            <div key={`suggestion-${task}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-sage-200">
                                                 <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
                                                 <button
                                                     onClick={() => toggleSuggestion(task)}
@@ -534,7 +534,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                             </div>
                                         ))}
                                         {customTasks.map((task, index) => (
-                                            <div key={`custom-${index}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-lavender-200">
+                                            <div key={`custom-${index}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-sage-200">
                                                 <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
                                                 <button
                                                     onClick={() => removeCustomTask(index)}
