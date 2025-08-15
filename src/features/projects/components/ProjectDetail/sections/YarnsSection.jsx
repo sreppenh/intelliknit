@@ -226,7 +226,7 @@ const YarnsSection = ({
         );
     }
 
-    // ✏️ Edit Modal Overlay - Live Preview Multi-Add with Nested Colors
+    // ✏️ Edit Modal - Live Preview Multi-Add with Nested Colors
     return (
         <>
             {/* Background section for read view */}
@@ -257,8 +257,8 @@ const YarnsSection = ({
                 )}
             </div>
 
-            {/* 🎭 Modal Overlay */}
-            <div className="modal-overlay" onClick={handleBackdropClick}>
+            {/* 🎭 Modal */}
+            <div className="modal" onClick={handleBackdropClick}>
                 <div
                     className="modal-content-light max-h-[90vh] overflow-y-auto"
                     style={{ maxWidth: '500px' }}

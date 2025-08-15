@@ -256,7 +256,7 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
 
             {/* Pattern Identity Edit Modal */}
             {showPatternIdentityModal && (
-                <div className="modal-overlay" onClick={handleBackdropClick}>
+                <div className="modal" onClick={handleBackdropClick}>
                     <div className="modal-content-light">
                         <div className="modal-header-light">
                             <div className="flex items-center gap-3">

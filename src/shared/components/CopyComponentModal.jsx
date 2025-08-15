@@ -38,7 +38,7 @@ const CopyComponentModal = ({ component, onClose, onCopy }) => {
     };
 
     return (
-        <div className="modal-overlay" onClick={handleBackdropClick}>
+        <div className="modal" onClick={handleBackdropClick}>
             <div className="modal-content-light">
                 {/* Header with lighter treatment */}
                 <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">

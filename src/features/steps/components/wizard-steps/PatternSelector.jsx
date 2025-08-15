@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react'; // ✅ Add useCallback import
-import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
+import { PrepStepModal, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
 import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
 
 export const PatternSelector = ({
@@ -28,12 +28,12 @@ export const PatternSelector = ({
 
   // Prep note management
   const {
-    isOverlayOpen,
+    isModalOpen,
     currentNote,
     hasNote,
     notePreview,
-    handleOpenOverlay,
-    handleCloseOverlay,
+    handleOpenModal,
+    handleCloseModal,
     handleSaveNote
   } = usePrepNoteManager(existingPrepNote, onSavePrepNote);
 
@@ -179,7 +179,7 @@ export const PatternSelector = ({
       <>
         <div className="space-y-4 relative">
           <PrepStepButton
-            onClick={handleOpenOverlay}
+            onClick={handleOpenModal}
             hasNote={hasNote}
             notePreview={notePreview}
             position="top-right"
@@ -214,9 +214,9 @@ export const PatternSelector = ({
           </button>
         </div>
 
-        <PrepStepOverlay
-          isOpen={isOverlayOpen}
-          onClose={handleCloseOverlay}
+        <PrepStepModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
           onSave={handleSaveNote}
           existingNote={currentNote}
           {...prepConfig}
@@ -235,7 +235,7 @@ export const PatternSelector = ({
             <h2 className="content-title">Create Step</h2>
             <div className="button-group">
               <button
-                onClick={handleOpenOverlay}
+                onClick={handleOpenModal}
                 className="btn-secondary btn-sm"
               >
                 {hasNote ? 'Edit Preparation Note' : '+ Add Preparation Note'}
@@ -355,10 +355,10 @@ export const PatternSelector = ({
         )}
       </div>
 
-      {/* Prep Note Overlay */}
-      <PrepStepOverlay
-        isOpen={isOverlayOpen}
-        onClose={handleCloseOverlay}
+      {/* Prep Note Modal */}
+      <PrepStepModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
         onSave={handleSaveNote}
         existingNote={currentNote}
         {...prepConfig}

@@ -88,7 +88,7 @@ const ComponentCompletionModal = ({
     const content = getContent();
 
     return (
-        <div className="modal-overlay" onClick={handleBackdropClick}>
+        <div className="modal" onClick={handleBackdropClick}>
             <div className="modal-content-light">
 
                 {/* Header with celebration treatment */}

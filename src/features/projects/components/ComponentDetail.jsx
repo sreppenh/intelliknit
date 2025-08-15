@@ -194,7 +194,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
 
         {/* Delete Confirmation Modal */}
         {showDeleteModal && (
-          <div className="modal-overlay" onClick={(e) => e.target === e.currentTarget && setShowDeleteModal(false)}>
+          <div className="modal" onClick={(e) => e.target === e.currentTarget && setShowDeleteModal(false)}>
             <div className="modal-content-light">
 
               <div className="modal-header-light-danger relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-red-100">

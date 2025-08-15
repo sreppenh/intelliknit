@@ -1,11 +1,11 @@
-// src/features/steps/components/EditPatternOverlay.jsx
+// src/features/steps/components/EditPatternModal.jsx
 import React, { useState, useEffect } from 'react';
 import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
 import { requiresAdvancedPatternEdit } from '../../../../shared/utils/stepDisplayUtils';
 import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
 
 
-const EditPatternOverlay = ({
+const EditPatternModal = ({
     isOpen,
     onClose,
     onSave,
@@ -49,7 +49,7 @@ const EditPatternOverlay = ({
     // ===== NEW: Route to advanced edit if needed =====
     useEffect(() => {
         if (isOpen && shouldRouteToAdvancedEdit && onRouteToAdvancedEdit) {
-            // Close this overlay and route to advanced edit
+            // Close this modal and route to advanced edit
             onClose();
             onRouteToAdvancedEdit();
         }
@@ -159,7 +159,7 @@ const EditPatternOverlay = ({
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" onClick={handleBackdropClick}>
+        <div className="modal" onClick={handleBackdropClick}>
             <div className="modal-content-light max-h-[90vh] overflow-y-auto">
                 {/* Modal Header */}
                 <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
@@ -413,4 +413,4 @@ const EditPatternOverlay = ({
     );
 };
 
-export default EditPatternOverlay;
+export default EditPatternModal;

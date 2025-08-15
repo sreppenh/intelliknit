@@ -34,7 +34,7 @@ const ComponentChoiceModal = ({ componentName, onClose, onAddSteps, onAddAnother
 
 
   return (
-    <div className="modal-overlay" onClick={handleBackdropClick}>
+    <div className="modal" onClick={handleBackdropClick}>
       <div className="modal-content-light">
 
         {/* Header with lighter celebration treatment */}

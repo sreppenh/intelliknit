@@ -163,7 +163,7 @@ const NeedlesSection = ({
         );
     }
 
-    // ✏️ Edit Modal Overlay - Live Preview Multi-Add
+    // ✏️ Edit Modal - Live Preview Multi-Add
     return (
         <>
             {/* Background section for read view */}
@@ -194,8 +194,8 @@ const NeedlesSection = ({
                 )}
             </div>
 
-            {/* 🎭 Modal Overlay */}
-            <div className="modal-overlay" onClick={handleBackdropClick}>
+            {/* 🎭 Modal */}
+            <div className="modal" onClick={handleBackdropClick}>
                 <div className="modal-content-light max-h-[90vh] overflow-y-auto">
 
                     {/* 📋 Modal Header */}

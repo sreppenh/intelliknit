@@ -1,9 +1,9 @@
 // src/shared/components/PrepStepSystem.jsx
 import React, { useState, useEffect } from 'react';
 
-// Updated PrepStepOverlay from PrepStepSystem.jsx
+// Updated PrepStepModal from PrepStepSystem.jsx
 
-export const PrepStepOverlay = ({
+export const PrepStepModal = ({
   isOpen,
   onClose,
   onSave,
@@ -67,7 +67,7 @@ export const PrepStepOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className="modal">
       <div className="modal-content-light max-h-[80vh] overflow-y-auto">
 
         {/* Header with lighter treatment */}
@@ -205,7 +205,7 @@ export const PrepStepButton = ({
 
 // Hook for managing prep notes with persistence
 export const usePrepNoteManager = (initialNote = '', onSaveNote) => {
-  const [isOverlayOpen, setIsOverlayOpen] = useState(false);
+  const [isModalOpen, setisModalOpen] = useState(false);
   const [currentNote, setCurrentNote] = useState(initialNote);
 
   // Update current note when initial note changes (e.g., from props)
@@ -213,12 +213,12 @@ export const usePrepNoteManager = (initialNote = '', onSaveNote) => {
     setCurrentNote(initialNote);
   }, [initialNote]);
 
-  const handleOpenOverlay = () => {
-    setIsOverlayOpen(true);
+  const handleOpenModal = () => {
+    setisModalOpen(true);
   };
 
-  const handleCloseOverlay = () => {
-    setIsOverlayOpen(false);
+  const handleCloseModal = () => {
+    setisModalOpen(false);
   };
 
   const handleSaveNote = (note) => {
@@ -232,12 +232,12 @@ export const usePrepNoteManager = (initialNote = '', onSaveNote) => {
   const notePreview = currentNote.slice(0, 50);
 
   return {
-    isOverlayOpen,
+    isModalOpen,
     currentNote,
     hasNote,
     notePreview,
-    handleOpenOverlay,
-    handleCloseOverlay,
+    handleOpenModal,
+    handleCloseModal,
     handleSaveNote
   };
 };
@@ -350,7 +350,7 @@ export const AfterNoteDisplay = ({ note, className = "", onClick }) => {
 
 // Hook for managing assembly notes - mirrors usePrepNoteManager
 export const useAfterNoteManager = (initialNote = '', onSaveNote) => {
-  const [isOverlayOpen, setIsOverlayOpen] = React.useState(false);
+  const [isModalOpen, setisModalOpen] = React.useState(false);
   const [currentNote, setCurrentNote] = React.useState(initialNote);
 
   // Update current note when initial note changes
@@ -358,12 +358,12 @@ export const useAfterNoteManager = (initialNote = '', onSaveNote) => {
     setCurrentNote(initialNote);
   }, [initialNote]);
 
-  const handleOpenOverlay = () => {
-    setIsOverlayOpen(true);
+  const handleOpenModal = () => {
+    setisModalOpen(true);
   };
 
-  const handleCloseOverlay = () => {
-    setIsOverlayOpen(false);
+  const handleCloseModal = () => {
+    setisModalOpen(false);
   };
 
   const handleSaveNote = (note) => {
@@ -377,18 +377,18 @@ export const useAfterNoteManager = (initialNote = '', onSaveNote) => {
   const notePreview = currentNote.slice(0, 50);
 
   return {
-    isOverlayOpen,
+    isModalOpen,
     currentNote,
     hasNote,
     notePreview,
-    handleOpenOverlay,
-    handleCloseOverlay,
+    handleOpenModal,
+    handleCloseModal,
     handleSaveNote
   };
 };
 
-// Assembly Note Overlay - customized version of PrepStepOverlay
-export const AssemblyNoteOverlay = ({
+// Assembly Note Modal - customized version of PrepStepModal
+export const AssemblyNoteModal = ({
   isOpen,
   onClose,
   onSave,
@@ -439,7 +439,7 @@ export const AssemblyNoteOverlay = ({
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className="modal">
       <div className="modal-content-light max-h-[80vh] overflow-y-auto">
 
         {/* Header with sage theme */}

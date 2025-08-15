@@ -6,7 +6,7 @@ import SegmentedControl from '../../../../../shared/components/SegmentedControl'
  * 
  * Handles both read and edit modes:
  * - Read: Shows current values in conversational format
- * - Edit: Modal overlay with toggle buttons (exact same styling as original)
+ * - Edit: Modal with toggle buttons (exact same styling as original)
  * 
  * Zero functionality changes - pure architectural extraction
  */
@@ -121,7 +121,7 @@ const UnitsConstructionSection = ({
         );
     }
 
-    // Edit Modal Overlay
+    // Edit Modal
     return (
         <>
             {/* Background section for read view */}
@@ -153,8 +153,8 @@ const UnitsConstructionSection = ({
                 )}
             </div>
 
-            {/* Modal Overlay */}
-            <div className="modal-overlay" onClick={handleBackdropClick}>
+            {/* Modal */}
+            <div className="modal" onClick={handleBackdropClick}>
                 <div className="modal-content-light">
                     {/* Modal Header */}
                     <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">

@@ -163,7 +163,7 @@ const NotesSection = ({
 
             {/* Notes Edit Modal */}
             {showNotesModal && (
-                <div className="modal-overlay" onClick={handleBackdropClick}>
+                <div className="modal" onClick={handleBackdropClick}>
                     <div className="modal-content-light max-w-lg">
                         <div className="modal-header-light">
                             <div className="flex items-center gap-3">

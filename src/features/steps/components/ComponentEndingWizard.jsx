@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import PageHeader from '../../../shared/components/PageHeader';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
 import ComponentCompletionModal from '../../../shared/components/ComponentCompletionModal';
-import { PrepStepOverlay, usePrepNoteManager, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
+import { PrepStepModal, usePrepNoteManager, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
 import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
@@ -32,10 +32,10 @@ const ComponentEndingWizard = ({
 
   // Prep note management
   const {
-    isOverlayOpen: isPrepNoteOverlayOpen,
+    isModalOpen: isPrepNoteModalOpen,
     currentNote: currentPrepNote,
-    handleOpenOverlay: handleOpenPrepNoteOverlay,
-    handleCloseOverlay: handleClosePrepNoteOverlay,
+    handleOpenModal: handleOpenPrepNoteModal,
+    handleCloseModal: handleClosePrepNoteModal,
     handleSaveNote: handleSavePrepNote
   } = usePrepNoteManager(endingData.prepNote, (note) => {
     setEndingData(prev => ({ ...prev, prepNote: note }));
@@ -170,7 +170,7 @@ const ComponentEndingWizard = ({
         </div>
         <div className="button-group">
           <button
-            onClick={handleOpenPrepNoteOverlay}
+            onClick={handleOpenPrepNoteModal}
             className="btn-secondary btn-sm"
           >
             {currentPrepNote.trim().length > 0 ? 'Edit Preparation Note' : '+ Add Preparation Note'}
@@ -535,9 +535,9 @@ const ComponentEndingWizard = ({
           onCancel={handleCancelExit}
         />
 
-        <PrepStepOverlay
-          isOpen={isPrepNoteOverlayOpen}
-          onClose={handleClosePrepNoteOverlay}
+        <PrepStepModal
+          isOpen={isPrepNoteModalOpen}
+          onClose={handleClosePrepNoteModal}
           onSave={handleSavePrepNote}
           existingNote={currentPrepNote}
           {...prepConfig}
@@ -597,9 +597,9 @@ const ComponentEndingWizard = ({
         onCancel={handleCancelExit}
       />
 
-      <PrepStepOverlay
-        isOpen={isPrepNoteOverlayOpen}
-        onClose={handleClosePrepNoteOverlay}
+      <PrepStepModal
+        isOpen={isPrepNoteModalOpen}
+        onClose={handleClosePrepNoteModal}
         onSave={handleSavePrepNote}
         existingNote={currentPrepNote}
         {...prepConfig}

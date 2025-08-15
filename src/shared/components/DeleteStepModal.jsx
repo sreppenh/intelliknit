@@ -38,7 +38,7 @@ const DeleteStepModal = ({ step, onClose, onDelete }) => {
     };
 
     return (
-        <div className="modal-overlay" onClick={handleBackdropClick}>
+        <div className="modal" onClick={handleBackdropClick}>
             <div className="modal-content">
                 {/* Header with danger styling */}
                 <div className="bg-red-500 text-white px-6 py-4 rounded-t-2xl relative flex items-center justify-center">

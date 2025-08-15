@@ -152,7 +152,7 @@ const ProjectContextSection = ({
         );
     }
 
-    // Edit Modal Overlay
+    // Edit Modal
     return (
         <>
             {/* Background section for read view */}
@@ -196,8 +196,8 @@ const ProjectContextSection = ({
                 </div>
             </div>
 
-            {/* Modal Overlay */}
-            <div className="modal-overlay" onClick={handleBackdropClick}>
+            {/* Modal */}
+            <div className="modal" onClick={handleBackdropClick}>
                 <div className="modal-content-light" style={{ maxWidth: '500px' }}>
                     {/* Modal Header */}
                     <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">

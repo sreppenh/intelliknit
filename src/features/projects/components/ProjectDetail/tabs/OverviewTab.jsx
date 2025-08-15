@@ -457,7 +457,7 @@ const OverviewTab = (props) => {
 
             {/* === STANDARDIZED MODALS === */}
             {showFrogModal && (
-                <div className="modal-overlay" onClick={handleBackdropClick}>
+                <div className="modal" onClick={handleBackdropClick}>
                     <div className="modal-content-light">
                         <div className="modal-header-light">
                             <div className="flex items-center gap-3">
@@ -501,7 +501,7 @@ const OverviewTab = (props) => {
             )}
 
             {showDeleteModal && (
-                <div className="modal-overlay" onClick={handleBackdropClick}>
+                <div className="modal" onClick={handleBackdropClick}>
                     <div className="modal-content-light">
                         <div className="modal-header-light-danger relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-red-100">
                             <div className="text-center">

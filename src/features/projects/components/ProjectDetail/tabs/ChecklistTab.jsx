@@ -497,7 +497,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
 
             {/* Add Tasks Modal - Updated with Mobile Scrolling + Full Width Button */}
             {showAddTaskModal && currentCategory && (
-                <div className="modal-overlay" onClick={handleBackdropClick}>
+                <div className="modal" onClick={handleBackdropClick}>
                     <div className="modal-content-light max-w-lg max-h-[90vh] overflow-y-auto">
                         <div className="modal-header-light">
                             <div className="flex items-center gap-3">

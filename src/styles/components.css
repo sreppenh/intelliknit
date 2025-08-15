@@ -267,7 +267,7 @@ body.modal-open {
 
 /* ===== 4. MODAL SYSTEM ===== */
 
-.modal-overlay {
+.modal {
   @apply fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50;
   position: fixed !important;
   top: 0 !important;
@@ -1183,7 +1183,7 @@ body.modal-open {
     border-radius: 1rem;
   }
 
-  .modal-overlay {
+  .modal {
     padding: 2rem;
     align-items: flex-start !important;
     padding-top: 5vh !important;

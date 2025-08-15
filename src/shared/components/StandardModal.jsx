@@ -66,7 +66,7 @@ export const StandardModal = ({
     const colors = colorSchemes[colorScheme] || colorSchemes.sage;
 
     return (
-        <div className="modal-overlay" onClick={handleBackdropClick}>
+        <div className="modal" onClick={handleBackdropClick}>
             <div className={`bg-white rounded-2xl shadow-xl w-full border-2 ${colors.modalBorder} max-h-[80vh] overflow-y-auto`} {...getModalProps()} style={{ maxWidth: '90vw' }}>
 
                 {/* Connected header - no floating content! */}

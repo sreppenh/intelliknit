@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
-import { PrepStepOverlay, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
+import { PrepStepModal, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IncrementInput from '../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
@@ -66,12 +66,12 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
   // Prep note management
   const {
-    isOverlayOpen,
+    isModalOpen,
     currentNote,
     hasNote,
     notePreview,
-    handleOpenOverlay,
-    handleCloseOverlay,
+    handleOpenModal,
+    handleCloseModal,
     handleSaveNote
   } = usePrepNoteManager(componentData.prepNote, (note) => {
     setComponentData(prev => ({ ...prev, prepNote: note }));
@@ -499,10 +499,10 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
           </div>
         )}
 
-        {/* Prep Note Overlay */}
-        <PrepStepOverlay
-          isOpen={isOverlayOpen}
-          onClose={handleCloseOverlay}
+        {/* Prep Note Modal */}
+        <PrepStepModal
+          isOpen={isModalOpen}
+          onClose={handleCloseModal}
           onSave={handleSaveNote}
           existingNote={currentNote}
           {...prepConfig}

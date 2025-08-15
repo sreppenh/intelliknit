@@ -311,7 +311,7 @@ const PhaseConfigSummary = ({
 
       {/* Add this modal at the end of your return statement */}
       {showBackWarning && (
-        <div className="modal-overlay" onClick={(event) => {
+        <div className="modal" onClick={(event) => {
           if (event.target === event.currentTarget) {
             setShowBackWarning(false);
           }

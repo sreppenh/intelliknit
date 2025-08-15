@@ -5,14 +5,14 @@ import StepWizard from './StepWizard';
 import ComponentEndingWizard from './ComponentEndingWizard';
 import EditScreenHeader from '../../../shared/components/EditScreenHeader';
 import StepsList from '../../projects/components/ManageSteps/StepsList';
-import EditPatternOverlay from './edit/EditPatternOverlay';
+import EditPatternModal from './edit/EditPatternModal';
 import EditStepRouter from './edit/EditStepRouter';
 import {
-  PrepStepOverlay,
+  PrepStepModal,
   getPrepNoteConfig,
   usePrepNoteManager,
   useAfterNoteManager,
-  AssemblyNoteOverlay
+  AssemblyNoteModal
 } from '../../../shared/components/PrepStepSystem';
 import {
   getStepPatternName,
@@ -37,7 +37,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
   const [editingStepIndex, setEditingStepIndex] = useState(null);
   const [editMode, setEditMode] = useState(null); // 'pattern' | 'configuration' | 'rowByRow' | null
   const [showEndingWizard, setShowEndingWizard] = useState(false);
-  const [showEditPatternOverlay, setShowEditPatternOverlay] = useState(false);
+  const [showEditPatternModal, setShowEditPatternModal] = useState(false);
   const [showEditConfigScreen, setShowEditConfigScreen] = useState(false);
   const [showDeleteStepModal, setShowDeleteStepModal] = useState(false);
   const [stepToDelete, setStepToDelete] = useState(null);
@@ -47,10 +47,10 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
 
   // ===== PREP NOTE MANAGEMENT =====
   const {
-    isOverlayOpen: isPrepNoteOverlayOpen,
+    isModalOpen: isPrepNoteModalOpen,
     currentNote: currentPrepNote,
-    handleOpenOverlay: handleOpenPrepNoteOverlay,
-    handleCloseOverlay: handleClosePrepNoteOverlay,
+    handleOpenModal: handleOpenPrepNoteModal,
+    handleCloseModal: handleClosePrepNoteModal,
     handleSaveNote: handleSavePrepNote
   } = usePrepNoteManager('', (note) => {
     if (editingPrepNoteStepIndex !== null) {
@@ -68,10 +68,10 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
 
   // ===== AFTER NOTE MANAGEMENT =====
   const {
-    isOverlayOpen: isAfterNoteOverlayOpen,
+    isModalOpen: isAfterNoteModalOpen,
     currentNote: currentAfterNote,
-    handleOpenOverlay: handleOpenAfterNoteOverlay,
-    handleCloseOverlay: handleCloseAfterNoteOverlay,
+    handleOpenModal: handleOpenAfterNoteModal,
+    handleCloseModal: handleCloseAfterNoteModal,
     handleSaveNote: handleSaveAfterNote
   } = useAfterNoteManager('', (note) => {
     if (editingAfterNoteStepIndex !== null) {
@@ -153,7 +153,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
 
     setEditingPrepNoteStepIndex(stepIndex);
     handleSavePrepNote(currentNote);
-    handleOpenPrepNoteOverlay();
+    handleOpenPrepNoteModal();
   };
 
   const handleAfterNoteClick = (stepIndex) => {
@@ -165,7 +165,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
 
     setEditingAfterNoteStepIndex(stepIndex);
     handleSaveAfterNote(currentNote);
-    handleOpenAfterNoteOverlay();
+    handleOpenAfterNoteModal();
   };
 
   // ===== NAVIGATION HANDLERS =====
@@ -217,7 +217,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
       setIsEditing(true);
     } else {
       setEditingStepIndex(stepIndex);
-      setShowEditPatternOverlay(true);
+      setShowEditPatternModal(true);
     }
     setOpenMenuId(null);
   };
@@ -368,12 +368,12 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
       });
     }
 
-    setShowEditPatternOverlay(false);
+    setShowEditPatternModal(false);
     setEditingStepIndex(null);
   };
 
-  const handleClosePatternOverlay = () => {
-    setShowEditPatternOverlay(false);
+  const handleClosePatternModal = () => {
+    setShowEditPatternModal(false);
     setEditingStepIndex(null);
   };
 
@@ -557,20 +557,20 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
           />
         )}
 
-        {/* Assembly Note Overlay */}
-        <AssemblyNoteOverlay
-          isOpen={isAfterNoteOverlayOpen}
-          onClose={handleCloseAfterNoteOverlay}
+        {/* Assembly Note Modal */}
+        <AssemblyNoteModal
+          isOpen={isAfterNoteModalOpen}
+          onClose={handleCloseAfterNoteModal}
           onSave={handleSaveAfterNote}
           existingNote={currentAfterNote}
           title="Assembly Notes"
           subtitle="Add notes for what to do after completing this step"
         />
 
-        {/* Prep Note Editing Overlay */}
-        <PrepStepOverlay
-          isOpen={isPrepNoteOverlayOpen}
-          onClose={handleClosePrepNoteOverlay}
+        {/* Prep Note Editing Modal */}
+        <PrepStepModal
+          isOpen={isPrepNoteModalOpen}
+          onClose={handleClosePrepNoteModal}
           onSave={handleSavePrepNote}
           existingNote={currentPrepNote}
           title="Edit Preparation Note"
@@ -578,10 +578,10 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
           {...getPrepNoteConfig('stepWizard')}
         />
 
-        {/* Edit Pattern Overlay - Only for simple patterns */}
-        <EditPatternOverlay
-          isOpen={showEditPatternOverlay}
-          onClose={handleClosePatternOverlay}
+        {/* Edit Pattern Modal - Only for simple patterns */}
+        <EditPatternModal
+          isOpen={showEditPatternModal}
+          onClose={handleClosePatternModal}
           onSave={handleSavePatternChanges}
           currentStep={editingStepIndex !== null ? component.steps[editingStepIndex] : null}
           title="Edit Pattern"

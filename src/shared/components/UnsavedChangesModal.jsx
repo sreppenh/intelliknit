@@ -42,7 +42,7 @@ const UnsavedChangesModal = ({
     if (!isOpen) return null;
 
     return (
-        <div className="modal-overlay" onClick={handleBackdropClick}>
+        <div className="modal" onClick={handleBackdropClick}>
             <div className="modal-content">
                 {/* Header */}
                 <div className="bg-yarn-600 text-white px-6 py-4 rounded-t-2xl relative flex items-center justify-center">

@@ -36,7 +36,7 @@ const RowByRowPatternConfig = ({
 }) => {
 
     // ===== ROW-BY-ROW STATE MANAGEMENT =====
-    const [showRowEntryOverlay, setShowRowEntryOverlay] = useState(false);
+    const [showRowEntryModal, setshowRowEntryModal] = useState(false);
     const [editingRowIndex, setEditingRowIndex] = useState(null);
     const [tempRowText, setTempRowText] = useState('');
 
@@ -118,8 +118,8 @@ const RowByRowPatternConfig = ({
     // ESC key handling
     useEffect(() => {
         const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showRowEntryOverlay) {
-                setShowRowEntryOverlay(false);
+            if (event.key === 'Escape' && showRowEntryModal) {
+                setshowRowEntryModal(false);
             }
         };
 
@@ -127,7 +127,7 @@ const RowByRowPatternConfig = ({
         return () => {
             document.removeEventListener('keydown', handleEscKey);
         };
-    }, [showRowEntryOverlay]);
+    }, [showRowEntryModal]);
 
     // Get pattern-specific data
     const patternType = wizardData.stitchPattern.pattern;
@@ -160,7 +160,7 @@ const RowByRowPatternConfig = ({
         setKeyboardMode('pattern');
         setPendingRepeatText('');
         setBracketState({ hasOpenBracket: false, hasOpenParen: false }); // ← ADD THIS
-        setShowRowEntryOverlay(true);
+        setshowRowEntryModal(true);
     };
 
     const handleEditRow = (index) => {
@@ -175,7 +175,7 @@ const RowByRowPatternConfig = ({
         setKeyboardMode('pattern');
         setPendingRepeatText('');
         setBracketState({ hasOpenBracket: false, hasOpenParen: false }); // ← ADD THIS
-        setShowRowEntryOverlay(true);
+        setshowRowEntryModal(true);
     };
 
     const handleSaveRow = () => {
@@ -196,7 +196,7 @@ const RowByRowPatternConfig = ({
             rowsInPattern: updatedInstructions.length.toString() // Auto-update count
         });
 
-        setShowRowEntryOverlay(false);
+        setshowRowEntryModal(false);
         setTempRowText('');
         setEditingRowIndex(null);
         setLastQuickAction(null); // Reset auto-increment
@@ -335,9 +335,9 @@ const RowByRowPatternConfig = ({
     };
 
 
-    const handleOverlayBackdrop = (e) => {
+    const handleModalBackdrop = (e) => {
         if (e.target === e.currentTarget) {
-            setShowRowEntryOverlay(false);
+            setshowRowEntryModal(false);
         }
     };
 
@@ -786,8 +786,8 @@ const RowByRowPatternConfig = ({
 
             {/* ===== ROW ENTRY MODAL ===== */}
             <RowEntryModal
-                isOpen={showRowEntryOverlay}
-                onClose={() => setShowRowEntryOverlay(false)}
+                isOpen={showRowEntryModal}
+                onClose={() => setshowRowEntryModal(false)}
                 editingRowIndex={editingRowIndex}
                 rowInstructions={rowInstructions}
                 tempRowText={tempRowText}

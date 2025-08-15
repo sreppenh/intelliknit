@@ -57,7 +57,7 @@ const RowEntryModal = ({
     };
 
     return (
-        <div className="modal-overlay" onClick={handleBackdrop}>
+        <div className="modal" onClick={handleBackdrop}>
             {/* FIXED: Using new responsive modal sizing + no padding/gaps */}
             <div className="modal-content-light max-h-[95vh] overflow-y-auto">
 

@@ -3,7 +3,7 @@ import React from 'react';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import EditRowByRowPatternForm from './EditRowByRowPatternForm';
 import EditDurationForm from './EditDurationForm';
-import EditPatternOverlay from './EditPatternOverlay';
+import EditPatternModal from './EditPatternModal';
 import EditConfigScreen from './EditConfigScreen';
 import EditEvenDistributionForm from './EditEvenDistributionForm';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';
@@ -89,10 +89,10 @@ const EditStepRouter = ({
             return <EditRowByRowPatternForm {...commonProps} />;
         }
 
-        // Simple patterns can use overlay or dedicated screen
-        // For now, we'll return null and let ManageSteps handle the overlay
+        // Simple patterns can use modal or dedicated screen
+        // For now, we'll return null and let ManageSteps handle the modal
         // In future, could create EditPatternSimple.jsx
-        return null; // Let ManageSteps show EditPatternOverlay
+        return null; // Let ManageSteps show EditPatternModal
     }
 
     if (editType === 'duration') {
