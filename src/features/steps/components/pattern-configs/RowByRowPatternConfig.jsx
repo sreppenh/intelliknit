@@ -349,14 +349,16 @@ const RowByRowPatternConfig = ({
                                 </span>
                             </h3>
                             {/* Running Total Display */}
-                            {tempRowText && (() => {
+                            {(() => {
                                 const calculation = getStitchCalculation();
-                                if (calculation && calculation.isValid) {
-                                    const previousStitches = getPreviousRowStitches(
-                                        rowInstructions,
-                                        editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-                                        wizardData.currentStitches || currentProject?.startingStitches || 80
-                                    );
+                                const previousStitches = getPreviousRowStitches(
+                                    rowInstructions,
+                                    editingRowIndex === null ? rowInstructions.length : editingRowIndex,
+                                    wizardData.currentStitches || currentProject?.startingStitches || 80
+                                );
+
+                                if (tempRowText && calculation && calculation.isValid) {
+                                    // Show calculated result
                                     const totalFormat = formatRunningTotal(
                                         previousStitches,
                                         calculation.totalStitches,
@@ -372,8 +374,14 @@ const RowByRowPatternConfig = ({
                                             )}
                                         </div>
                                     );
+                                } else {
+                                    // Show default (no change expected)
+                                    return (
+                                        <div className="text-sm mt-1 text-wool-500">
+                                            {previousStitches} sts → {previousStitches} sts
+                                        </div>
+                                    );
                                 }
-                                return null;
                             })()}
                         </div>
                         <button
@@ -490,29 +498,40 @@ const RowByRowPatternConfig = ({
                             </h3>
                             {/* Running Total Display */}
                             {/* Running Total Display */}
-                            {tempRowText && (() => {
+
+                            {(() => {
                                 const calculation = getStitchCalculation();
-                                if (calculation && calculation.isValid) {
-                                    const previousStitches = getPreviousRowStitches(
-                                        rowInstructions,
-                                        editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-                                        wizardData.currentStitches || currentProject?.startingStitches || 80
-                                    );
+                                const previousStitches = getPreviousRowStitches(
+                                    rowInstructions,
+                                    editingRowIndex === null ? rowInstructions.length : editingRowIndex,
+                                    wizardData.currentStitches || currentProject?.startingStitches || 80
+                                );
+
+                                if (tempRowText && calculation && calculation.isValid) {
+                                    // Show calculated result
                                     const totalFormat = formatRunningTotal(
                                         previousStitches,
                                         calculation.totalStitches,
                                         calculation.stitchChange
                                     );
-                                    <div className="text-sm mt-1 text-wool-600">
-                                        {totalFormat.baseText}
-                                        {totalFormat.changeText && (
-                                            <span className={`ml-1 ${totalFormat.changeColor}`}>
-                                                {totalFormat.changeText}
-                                            </span>
-                                        )}
-                                    </div>
+                                    return (
+                                        <div className="text-sm mt-1 text-wool-600">
+                                            {totalFormat.baseText}
+                                            {totalFormat.changeText && (
+                                                <span className={`ml-1 ${totalFormat.changeColor}`}>
+                                                    {totalFormat.changeText}
+                                                </span>
+                                            )}
+                                        </div>
+                                    );
+                                } else {
+                                    // Show default (no change expected)
+                                    return (
+                                        <div className="text-sm mt-1 text-wool-500">
+                                            {previousStitches} sts → {previousStitches} sts
+                                        </div>
+                                    );
                                 }
-                                return null;
                             })()}
                         </div>
                         <button
