@@ -349,7 +349,7 @@ const RowByRowPatternConfig = ({
                                     const previousStitches = getPreviousRowStitches(
                                         rowInstructions,
                                         editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-                                        currentProject?.startingStitches || 80
+                                        wizardData.currentStitches || currentProject?.startingStitches || 80
                                     );
                                     const totalFormat = formatRunningTotal(
                                         previousStitches,
@@ -489,7 +489,7 @@ const RowByRowPatternConfig = ({
                                     const previousStitches = getPreviousRowStitches(
                                         rowInstructions,
                                         editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-                                        currentProject?.startingStitches || 80
+                                        wizardData.currentStitches || currentProject?.startingStitches || 80
                                     );
                                     const totalFormat = formatRunningTotal(
                                         previousStitches,
