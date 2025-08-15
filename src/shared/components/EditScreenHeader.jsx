@@ -1,4 +1,3 @@
-// src/shared/components/EditScreenHeader.jsx
 import React from 'react';
 import PageHeader from './PageHeader';
 
@@ -14,9 +13,61 @@ const EditScreenHeader = ({
     title,
     subtitle,
     emoji = '🔧',
-    variant = 'edit' // 'edit' | 'config' | 'pattern' | 'custom'
+    variant = 'edit',
+    statusClass = null,
+    statusType = null // NEW: Pass the raw status type
 }) => {
-    // Variant styles
+    // Get status-specific icon based on component status
+    const getStatusIcon = (statusType) => {
+        const statusIcons = {
+            'ready_to_knit': '⚡',     // Lightning bolt for ready
+            'in_progress': '🧶',       // Yarn for in progress  
+            'complete': '✅',          // Checkmark for complete
+            'edit_mode': '🔧',         // Wrench for edit mode
+            'planning': '📝',          // Pencil for planning
+            'dormant': '😴',           // Sleeping for dormant
+            'frogged': '🐸'            // Frog for frogged
+        };
+        return statusIcons[statusType] || emoji; // Fallback to provided emoji
+    };
+
+    // If statusClass provided, use your existing status color system
+    if (statusClass && statusType) {
+        const statusIcon = getStatusIcon(statusType);
+
+        return (
+            <>
+                <PageHeader
+                    useBranding={true}
+                    onHome={onGoToLanding}
+                    compact={true}
+                    onBack={onBack}
+                    showCancelButton={true}
+                    onCancel={onBack}
+                />
+
+                {title && (
+                    <div className={`${statusClass} rounded-xl p-3 mx-6 mt-6 mb-4`}>
+                        <div className="flex items-center gap-3">
+                            <span className="text-2xl flex-shrink-0">{statusIcon}</span>
+                            <div className="flex-1">
+                                <p className="text-lg font-medium">
+                                    {title}
+                                </p>
+                                {subtitle && (
+                                    <p className="text-xs mt-1">
+                                        {subtitle}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </>
+        );
+    }
+
+    // Fallback to existing variant system for backward compatibility
     const variantStyles = {
         edit: {
             bg: 'bg-yarn-100',
@@ -59,14 +110,19 @@ const EditScreenHeader = ({
 
             {title && (
                 <div className={`${styles.bg} border-2 ${styles.border} rounded-xl p-3 mx-6 mt-6 mb-4`}>
-                    <p className={`text-lg ${styles.text} font-medium`}>
-                        {emoji} {title}
-                    </p>
-                    {subtitle && (
-                        <p className={`text-xs ${styles.subtext} mt-1`}>
-                            {subtitle}
-                        </p>
-                    )}
+                    <div className="flex items-center gap-3">
+                        <span className="text-2xl flex-shrink-0">{emoji}</span>
+                        <div className="flex-1">
+                            <p className={`text-lg ${styles.text} font-medium`}>
+                                {title}
+                            </p>
+                            {subtitle && (
+                                <p className={`text-xs ${styles.subtext} mt-1`}>
+                                    {subtitle}
+                                </p>
+                            )}
+                        </div>
+                    </div>
                 </div>
             )}
         </>

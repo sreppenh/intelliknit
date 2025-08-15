@@ -102,6 +102,14 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
 
   const component = currentProject.components[componentIndex];
 
+  const getComponentStatus = () => {
+    return getComponentStatusWithDisplay(component);
+  };
+
+  const componentStatus = getComponentStatus();
+  console.log('🐛 Component Status:', componentStatus);
+
+
   // ===== COMPONENT STATE HELPERS =====
   const isComponentFinished = () => {
     return component.steps.some(step => isFinishingStep(step));
@@ -132,6 +140,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
   };
 
   const editableStepIndex = getEditableStepIndex();
+
+
 
   // ===== NOTE HANDLERS =====
   const handlePrepNoteClick = (stepIndex) => {
@@ -447,9 +457,10 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
         <EditScreenHeader
           onBack={onBack}
           onGoToLanding={onGoToLanding}
-          title={`${component.name} - Edit Mode`}
+          title={`${component.name} - ${componentStatus.display.replace(/^[^\w\s]+\s*/, '')}`} // Strip leading emoji
           subtitle={`Managing ${component.steps.length} steps`}
-          variant="edit"
+          statusClass={componentStatus.headerStyle}
+          statusType={componentStatus.status}
         />
 
         <div className="px-6 pb-6 pt-3 bg-yarn-50 stack-lg">
@@ -506,19 +517,20 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
             </div>
           ) : (
             <div className="flex gap-3">
-              <button
-                onClick={handleKnittingView}
-                className="flex-1 btn-primary flex items-center justify-center gap-2"
-              >
-                <span className="text-lg">🧶</span>
-                Start Knitting
-              </button>
+
               <button
                 onClick={handleViewAllComponents}
                 className="flex-1 btn-secondary flex items-center justify-center gap-2"
               >
                 <span className="text-lg">📋</span>
                 View Project
+              </button>
+              <button
+                onClick={handleKnittingView}
+                className="flex-1 btn-primary flex items-center justify-center gap-2"
+              >
+                <span className="text-lg">🧶</span>
+                Start Knitting
               </button>
             </div>
           )}
