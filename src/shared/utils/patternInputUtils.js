@@ -282,7 +282,8 @@ export const handleQuickActionEnhanced = (
     setConsecutiveCount,
     undoHistory,
     setUndoHistory,
-    rowInstructions
+    rowInstructions,
+    onCompleteAction = null
 ) => {
     const resetAutoIncrement = () => {
         setLastQuickAction(null);
@@ -315,7 +316,7 @@ export const handleQuickActionEnhanced = (
         return true;
     }
 
-    if (handleCompleteRowAction(action, setTempRowText, resetAutoIncrement)) {
+    if (handleCompleteRowAction(action, setTempRowText, resetAutoIncrement, onCompleteAction)) {
         return true;
     }
 
