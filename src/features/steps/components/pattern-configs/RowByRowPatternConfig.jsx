@@ -448,6 +448,7 @@ const RowByRowPatternConfig = ({
                                     rowInstructions={rowInstructions}
                                     onAction={handleQuickAction}
                                     bracketState={bracketState}
+                                    isLocked={tempRowText === 'K all' || tempRowText === 'P all'}  // ← ADD THIS
                                 />
                             </>
                         )}
@@ -578,6 +579,7 @@ const RowByRowPatternConfig = ({
                                     rowInstructions={rowInstructions}
                                     onAction={handleQuickAction}
                                     bracketState={bracketState}
+                                    isLocked={tempRowText === 'K all' || tempRowText === 'P all'}  // ← ADD THIS
                                 />
                             </>
                         )}
@@ -1015,6 +1017,7 @@ const EnhancedKeyboard = ({
     rowInstructions,
     bracketState,
     onAction,
+    isLocked = false,
 }) => {
     const keyboardLayout = getKeyboardLayout(patternType, layer, context);
 
@@ -1145,11 +1148,17 @@ const EnhancedKeyboard = ({
                         action.startsWith('Custom ') ? 'special' :
                             'input';
 
+                    const isDisabled = isLocked && !['⌫'].includes(action); // ← ADD THIS
+                    const buttonClass = isDisabled ?
+                        `${getButtonStyles(buttonType, isMobile)} opacity-50 cursor-not-allowed` :
+                        getButtonStyles(buttonType, isMobile);
+
                     return (
                         <button
                             key={`input-${action}-${index}`}
-                            onClick={() => onAction(action)}
-                            className={getButtonStyles(buttonType, isMobile)}
+                            onClick={() => !isDisabled && onAction(action)}  // ← ADD DISABLED CHECK
+                            disabled={isDisabled}  // ← ADD THIS
+                            className={buttonClass}
                         >
                             {action}
                         </button>
