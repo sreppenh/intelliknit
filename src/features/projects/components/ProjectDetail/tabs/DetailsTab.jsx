@@ -9,7 +9,7 @@ import YarnsSection from '../sections/YarnsSection';
 import GaugeSection from '../sections/GaugeSection';
 import NotesSection from '../sections/NotesSection';
 import TimelineSection from '../sections/TimeLineSection';
-
+import { StandardModal } from '../../../../../shared/components/StandardModal';
 
 const DetailsTab = ({ project, onProjectUpdate }) => {
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
@@ -102,44 +102,8 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
         setShowPatternIdentityModal(false);
     };
 
-    // Modal behavior handlers
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showPatternIdentityModal) {
-                setShowPatternIdentityModal(false);
-            }
-        };
-
-        const handleEnterKey = (event) => {
-            if (event.key === 'Enter' && showPatternIdentityModal && patternIdentityForm.name.trim()) {
-                event.preventDefault();
-                handlePatternIdentitySave();
-            }
-        };
-
-        if (showPatternIdentityModal) {
-            document.addEventListener('keydown', handleEscKey);
-            document.addEventListener('keydown', handleEnterKey);
-
-            // Auto-focus project name input
-            setTimeout(() => {
-                const focusElement = document.querySelector('[data-modal-focus]');
-                if (focusElement) {
-                    focusElement.focus();
-                }
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-            document.removeEventListener('keydown', handleEnterKey);
-        };
-    }, [showPatternIdentityModal, patternIdentityForm.name]);
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            setShowPatternIdentityModal(false);
-        }
+    const handlePatternIdentityClose = () => {
+        setShowPatternIdentityModal(false);
     };
 
     return (
@@ -254,82 +218,58 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
                 />
             </div>
 
-            {/* Pattern Identity Edit Modal */}
-            {showPatternIdentityModal && (
-                <div className="modal" onClick={handleBackdropClick}>
-                    <div className="modal-content-light">
-                        <div className="modal-header-light">
-                            <div className="flex items-center gap-3">
-                                <div className="text-2xl">📝</div>
-                                <div className="flex-1">
-                                    <h2 className="text-lg font-semibold">Pattern Identity</h2>
-                                    <p className="text-sage-600 text-sm">Update project and pattern information</p>
-                                </div>
-                                <button
-                                    onClick={() => setShowPatternIdentityModal(false)}
-                                    className="text-sage-600 text-xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        </div>
+            {/* Pattern Identity Edit Modal - NOW USING STANDARDMODAL */}
+            <StandardModal
+                isOpen={showPatternIdentityModal}
+                onClose={handlePatternIdentityClose}
+                onConfirm={handlePatternIdentitySave}
+                category="input"
+                colorScheme="sage"
+                title="📝 Pattern Identity"
+                subtitle="Update project and pattern information"
+                primaryButtonText="Save Changes"
+                secondaryButtonText="Cancel"
+                // Disable save button if name is empty
+                primaryButtonProps={{
+                    disabled: !patternIdentityForm.name.trim()
+                }}
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="form-label">Project Name (Required)</label>
+                        <input
+                            data-modal-focus
+                            type="text"
+                            value={patternIdentityForm.name}
+                            onChange={(e) => setPatternIdentityForm(prev => ({ ...prev, name: e.target.value }))}
+                            className="details-input-field"
+                            placeholder="Enter project name"
+                        />
+                    </div>
 
-                        <div className="p-6 space-y-4">
-                            <div>
-                                <label className="form-label">Project Name (Required)</label>
-                                <input
-                                    data-modal-focus
-                                    type="text"
-                                    value={patternIdentityForm.name}
-                                    onChange={(e) => setPatternIdentityForm(prev => ({ ...prev, name: e.target.value }))}
-                                    className="details-input-field"
-                                    placeholder="Enter project name"
-                                />
-                            </div>
+                    <div>
+                        <label className="form-label">Designer</label>
+                        <input
+                            type="text"
+                            value={patternIdentityForm.designer}
+                            onChange={(e) => setPatternIdentityForm(prev => ({ ...prev, designer: e.target.value }))}
+                            className="details-input-field"
+                            placeholder="e.g., Jane Smith"
+                        />
+                    </div>
 
-                            <div>
-                                <label className="form-label">Designer</label>
-                                <input
-                                    type="text"
-                                    value={patternIdentityForm.designer}
-                                    onChange={(e) => setPatternIdentityForm(prev => ({ ...prev, designer: e.target.value }))}
-                                    className="details-input-field"
-                                    placeholder="e.g., Jane Smith"
-                                />
-                            </div>
-
-                            <div>
-                                <label className="form-label">Pattern Source</label>
-                                <input
-                                    type="text"
-                                    value={patternIdentityForm.source}
-                                    onChange={(e) => setPatternIdentityForm(prev => ({ ...prev, source: e.target.value }))}
-                                    className="details-input-field"
-                                    placeholder="e.g., Ravelry, The Big Book of Cables"
-                                />
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    data-modal-cancel
-                                    onClick={() => setShowPatternIdentityModal(false)}
-                                    className="btn-tertiary flex-1"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    data-modal-primary
-                                    onClick={handlePatternIdentitySave}
-                                    disabled={!patternIdentityForm.name.trim()}
-                                    className="btn-primary flex-1"
-                                >
-                                    Save Changes
-                                </button>
-                            </div>
-                        </div>
+                    <div>
+                        <label className="form-label">Pattern Source</label>
+                        <input
+                            type="text"
+                            value={patternIdentityForm.source}
+                            onChange={(e) => setPatternIdentityForm(prev => ({ ...prev, source: e.target.value }))}
+                            className="details-input-field"
+                            placeholder="e.g., Ravelry, The Big Book of Cables"
+                        />
                     </div>
                 </div>
-            )}
+            </StandardModal>
         </div>
     );
 };
