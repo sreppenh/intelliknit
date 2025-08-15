@@ -488,7 +488,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
             <div className="flex gap-3">
               <button
                 onClick={handleAddNewStep}
-                className="flex-1 bg-yarn-600 text-white py-4 rounded-xl font-semibold text-base hover:bg-yarn-700 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                className="flex-1 btn-secondary flex items-center justify-center gap-2"
               >
                 <span className="text-lg">➕</span>
                 Add Step
@@ -497,7 +497,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
               {component.steps.length > 0 && (
                 <button
                   onClick={handleFinishComponent}
-                  className="flex-1 bg-sage-500 text-white py-4 rounded-xl font-semibold text-base hover:bg-sage-600 transition-colors flex items-center justify-center gap-2 shadow-sm"
+                  className="flex-1 btn-primary flex items-center justify-center gap-2"
                 >
                   <span className="text-lg">🏁</span>
                   Finish

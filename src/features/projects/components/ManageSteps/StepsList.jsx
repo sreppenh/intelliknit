@@ -54,15 +54,15 @@ const StepsList = ({
                 <div className="flex gap-2">
                     {!isComponentFullyEntered() ? (
                         <>
-                            <button onClick={onAddStep} className="bg-yarn-600 hover:bg-yarn-700 text-white py-2 px-4 rounded-xl font-semibold text-sm transition-colors">+ Add Step</button>
+                            <button onClick={onAddStep} className="btn-secondary btn-sm">+ Add Step</button>
                             {component.steps.length > 0 && (
-                                <button onClick={onFinishComponent} className="bg-sage-500 hover:bg-sage-600 text-white py-2 px-4 rounded-xl font-semibold text-sm transition-colors">🏁 Finish</button>
+                                <button onClick={onFinishComponent} className="btn-primary btn-sm">🏁 Finish</button>
                             )}
                         </>
                     ) : (
                         <>
                             <button onClick={onStartKnitting} className="btn-primary btn-sm">🧶 Start Knitting</button>
-                            {/*     <button onClick={onBack} className="btn-secondary btn-sm">📋 Project Overview</button> */}
+                            <button onClick={onBack} className="btn-secondary btn-sm">📋 Project Overview</button>
                         </>
                     )}
                 </div>
