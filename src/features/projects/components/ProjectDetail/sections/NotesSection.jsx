@@ -1,13 +1,14 @@
 import React, { useState, useEffect } from 'react';
+import { InputModal } from '../../../../../shared/components/StandardModal';
 
 /**
- * 💭 NotesSection - Text Management Showcase
+ * 💭 NotesSection - Text Management Showcase with StandardModal
  * 
  * Features:
  * - Elegant expand/collapse for long text
- * - Inline editing with comfortable textarea
+ * - StandardModal for consistent behavior across devices
  * - Character counting and limits
- * - Perfect modal standards compliance
+ * - Perfect tablet/desktop experience
  * - Mobile-optimized text editing experience
  */
 const NotesSection = ({
@@ -65,16 +66,10 @@ const NotesSection = ({
         }
     };
 
-    // Modal behavior compliance
+    // Enhanced Enter key handling for StandardModal
     useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showNotesModal) {
-                handleCloseModal();
-            }
-        };
-
         const handleEnterKey = (event) => {
-            // Regular Enter for newlines, Ctrl+Enter to save
+            // Ctrl+Enter to save (regular Enter for newlines in textarea)
             if (event.key === 'Enter' && event.ctrlKey && showNotesModal) {
                 event.preventDefault();
                 handleSaveNotes();
@@ -82,31 +77,13 @@ const NotesSection = ({
         };
 
         if (showNotesModal) {
-            document.addEventListener('keydown', handleEscKey);
             document.addEventListener('keydown', handleEnterKey);
-
-            // Auto-focus textarea
-            setTimeout(() => {
-                const focusElement = document.querySelector('[data-modal-focus]');
-                if (focusElement) {
-                    focusElement.focus();
-                    // Position cursor at end
-                    focusElement.setSelectionRange(focusElement.value.length, focusElement.value.length);
-                }
-            }, 100);
         }
 
         return () => {
-            document.removeEventListener('keydown', handleEscKey);
             document.removeEventListener('keydown', handleEnterKey);
         };
-    }, [showNotesModal]);
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            handleCloseModal();
-        }
-    };
+    }, [showNotesModal, handleSaveNotes]);
 
     // 📖 Read View - Conversational Display with Expand/Collapse
     return (
@@ -161,63 +138,38 @@ const NotesSection = ({
                 )}
             </div>
 
-            {/* Notes Edit Modal */}
-            {showNotesModal && (
-                <div className="modal" onClick={handleBackdropClick}>
-                    <div className="modal-content-light max-w-lg">
-                        <div className="modal-header-light">
-                            <div className="flex items-center gap-3">
-                                <div className="text-2xl">💭</div>
-                                <div className="flex-1">
-                                    <h2 className="text-lg font-semibold">Project Notes</h2>
-                                    <p className="text-sage-600 text-sm">Add notes, modifications, or reminders</p>
-                                </div>
-                                <button
-                                    onClick={handleCloseModal}
-                                    className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        </div>
+            {/* Notes Edit Modal - Now using StandardModal */}
+            <InputModal
+                isOpen={showNotesModal}
+                onClose={handleCloseModal}
+                onConfirm={handleSaveNotes}
+                title="Project Notes"
+                subtitle="Add notes, modifications, or reminders"
+                icon="💭"
+                primaryButtonText="Save Notes"
+                secondaryButtonText="Cancel"
+            >
+                <div>
+                    <label className="form-label">Notes</label>
+                    <textarea
+                        data-modal-focus
+                        value={notesForm}
+                        onChange={handleNotesChange}
+                        className="details-textarea"
+                        placeholder="Special notes, modifications, deadlines, or anything else you want to remember..."
+                        rows={6}
+                        maxLength={1000}
+                    />
+                    <div className="character-count">
+                        {1000 - notesForm.length} characters remaining
+                    </div>
 
-                        <div className="p-6">
-                            <div>
-                                <label className="form-label">Notes</label>
-                                <textarea
-                                    data-modal-focus
-                                    value={notesForm}
-                                    onChange={handleNotesChange}
-                                    className="details-textarea"
-                                    placeholder="Special notes, modifications, deadlines, or anything else you want to remember..."
-                                    rows={6}
-                                    maxLength={1000}
-                                />
-                                <div className="character-count">
-                                    {1000 - notesForm.length} characters remaining
-                                </div>
-                            </div>
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    data-modal-cancel
-                                    onClick={handleCloseModal}
-                                    className="btn-tertiary flex-1"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    data-modal-primary
-                                    onClick={handleSaveNotes}
-                                    className="btn-primary flex-1"
-                                >
-                                    Save Notes
-                                </button>
-                            </div>
-                        </div>
+                    {/* Helpful hint */}
+                    <div className="text-xs text-wool-500 mt-2">
+                        💡 Tip: Press Ctrl+Enter to save quickly
                     </div>
                 </div>
-            )}
+            </InputModal>
         </>
     );
 };
