@@ -246,16 +246,24 @@ export const handleCopyRow = (action, rowInstructions, setTempRowText, resetAuto
     return false;
 };
 
-export const handleCompleteRowAction = (action, setTempRowText, resetAutoIncrement) => {
+export const handleCompleteRowAction = (action, setTempRowText, resetAutoIncrement, onComplete = null) => {
     if (action === 'K all') {
         setTempRowText('K all');
         resetAutoIncrement();
+        // If completion callback provided, call it (for auto-saving)
+        if (onComplete) {
+            setTimeout(() => onComplete(), 100); // Small delay to ensure state updates
+        }
         return true;
     }
 
     if (action === 'P all') {
         setTempRowText('P all');
         resetAutoIncrement();
+        // If completion callback provided, call it (for auto-saving)
+        if (onComplete) {
+            setTimeout(() => onComplete(), 100);
+        }
         return true;
     }
 

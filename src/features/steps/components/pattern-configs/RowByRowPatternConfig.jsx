@@ -264,7 +264,8 @@ const RowByRowPatternConfig = ({
             setConsecutiveCount,
             undoHistory,
             setUndoHistory,
-            rowInstructions
+            rowInstructions,
+            handleSaveRow
         );
     };
 
