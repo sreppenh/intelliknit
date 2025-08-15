@@ -58,30 +58,37 @@ const RowEntryModal = ({
 
     return (
         <div className="modal-overlay" onClick={handleBackdrop}>
-            <div className={`modal-content-light w-full max-h-[95vh] overflow-y-auto max-w-lg md:max-w-3xl`}>
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <div>
-                            <div>
-                                <h3 className="text-lg font-semibold text-wool-700">
-                                    {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
-                                    <span className="text-sm font-normal text-wool-500 ml-2">
-                                        ({getRowSide(currentRowNumber)})
-                                    </span>
-                                </h3>
+            {/* FIXED: Using new responsive modal sizing + no padding/gaps */}
+            <div className="modal-content-light max-h-[95vh] overflow-y-auto">
+
+                {/* FIXED: Connected header - no gaps, proper visual flow */}
+                <div className="bg-sage-200 text-sage-800 px-6 py-4 rounded-t-2xl border-b-2 border-sage-300">
+                    <div className="flex justify-between items-start">
+                        <div className="flex-1">
+                            <h3 className="text-lg font-semibold text-sage-800 mb-1">
+                                {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
+                                <span className="text-sm font-normal text-sage-600 ml-2">
+                                    ({getRowSide(currentRowNumber)})
+                                </span>
+                            </h3>
+                            <div className="text-sage-700">
                                 {renderRunningTotal()}
                             </div>
                         </div>
+
+                        {/* FIXED: Clean, standardized close button */}
                         <button
                             onClick={onClose}
-                            className="text-sage-600 hover:text-sage-800 hover:bg-sage-200 rounded-full w-12 h-12 flex items-center justify-center transition-colors font-bold"
-                            style={{ fontSize: '2rem' }}
+                            className="modal-close-md modal-close-light ml-4 flex-shrink-0"
                             aria-label="Close modal"
                         >
                             ×
                         </button>
                     </div>
+                </div>
 
+                {/* FIXED: Connected content - flows directly from header */}
+                <div className="bg-white px-6 py-6">
                     <div className="mb-4">
                         <textarea
                             value={tempRowText}
