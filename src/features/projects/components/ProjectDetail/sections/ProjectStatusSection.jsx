@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getSmartProjectStatus } from '../../../../../shared/utils/projectStatus';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
-
+import { StandardModal } from '../../../../../shared/components/StandardModal';
 
 /**
  * ProjectStatusSection - The Ultimate Project Lifecycle Control Center
@@ -33,7 +33,6 @@ const ProjectStatusSection = ({
         };
     }, []);
 
-
     // Initialize modal form data when opening
     useEffect(() => {
         if (showEditModal) {
@@ -46,31 +45,6 @@ const ProjectStatusSection = ({
             });
         }
     }, [showEditModal, displayData]);
-
-    // Handle ESC key for modal + focus management
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showEditModal) {
-                handleCancelEdit();
-            }
-        };
-
-        if (showEditModal) {
-            document.addEventListener('keydown', handleEscKey);
-
-            // Focus management - focus save button
-            setTimeout(() => {
-                const saveButton = document.querySelector('[data-modal-primary]');
-                if (saveButton) {
-                    saveButton.focus();
-                }
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-        };
-    }, [showEditModal]);
 
     // === IMMEDIATE ACTION HANDLERS ===
 
@@ -229,12 +203,6 @@ const ProjectStatusSection = ({
         setShowEditModal(false);
     };
 
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            handleCancelEdit();
-        }
-    };
-
     const handleTempInputChange = (field, value) => {
         setTempFormData(prev => ({
             ...prev,
@@ -326,7 +294,7 @@ const ProjectStatusSection = ({
         );
     }
 
-    // === EDIT DETAILS MODAL ===
+    // === EDIT DETAILS MODAL - NOW USING STANDARDMODAL ===
     return (
         <>
             {/* Background section for read view */}
@@ -362,110 +330,100 @@ const ProjectStatusSection = ({
                 })()}
             </div>
 
-            {/* Modal */}
-            <div className="modal" onClick={handleBackdropClick}>
-                <div className="modal-content-light" style={{ maxWidth: '450px' }}>
-                    {/* Modal Header */}
-                    <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
-                        <div className="text-center">
-                            <h2 className="text-lg font-semibold">🎯 Edit Project Status</h2>
-                            <p className="text-sage-600 text-sm">Adjust dates and progress</p>
+            {/* StandardModal */}
+            <StandardModal
+                isOpen={showEditModal}
+                onClose={handleCancelEdit}
+                onConfirm={handleSaveEdit}
+                category="complex"
+                colorScheme="sage"
+                title="🎯 Edit Project Status"
+                subtitle="Adjust dates and progress"
+                showButtons={false}
+            >
+                <div className="space-y-4">
+                    {/* Progress with IncrementInput - Step by 5% */}
+                    <div>
+                        <label className="form-label">Progress</label>
+                        <div className="flex items-center gap-3">
+                            <IncrementInput
+                                value={tempFormData.progress || 0}
+                                onChange={(value) => {
+                                    // Round to nearest 5% increment
+                                    const roundedValue = Math.round(value / 5) * 5;
+                                    handleTempInputChange('progress', Math.min(100, Math.max(0, roundedValue)));
+                                }}
+                                min={0}
+                                max={100}
+                                step={5}
+                                unit="%"
+                                label="progress"
+                                size="sm"
+                            />
+                            <span className="text-sm text-wool-600">complete</span>
                         </div>
-                        <button
-                            onClick={handleCancelEdit}
-                            className="absolute right-6 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                    </div>
+
+                    {/* Status Override - Use dropdown like original */}
+                    <div>
+                        <label className="form-label">Update Status</label>
+                        <select
+                            value={getCurrentStatus()}
+                            onChange={(e) => handleStatusSelect(e.target.value)}
+                            className="w-full bg-white border-2 border-wool-200 rounded-lg px-4 py-3 text-base font-medium focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50 transition-colors"
                         >
-                            ×
-                        </button>
+                            <option value="auto">{status.emoji} {status.text}</option>
+                            <option value="completed">🎉 Completed</option>
+                            <option value="frogged">🐸 Frogged</option>
+                        </select>
                     </div>
 
-                    {/* Modal Content */}
-                    <div className="p-6">
-                        <div className="space-y-4">
-                            {/* Progress with IncrementInput - Step by 5% */}
-                            <div>
-                                <label className="form-label">Progress</label>
-                                <div className="flex items-center gap-3">
-                                    <IncrementInput
-                                        value={tempFormData.progress || 0}
-                                        onChange={(value) => {
-                                            // Round to nearest 5% increment
-                                            const roundedValue = Math.round(value / 5) * 5;
-                                            handleTempInputChange('progress', Math.min(100, Math.max(0, roundedValue)));
-                                        }}
-                                        min={0}
-                                        max={100}
-                                        step={5}
-                                        unit="%"
-                                        label="progress"
-                                        size="sm"
-                                    />
-                                    <span className="text-sm text-wool-600">complete</span>
-                                </div>
-                            </div>
-
-                            {/* Status Override - Use dropdown like original */}
-                            <div>
-                                <label className="form-label">Update Status</label>
-                                <select
-                                    value={getCurrentStatus()}
-                                    onChange={(e) => handleStatusSelect(e.target.value)}
-                                    className="w-full bg-white border-2 border-wool-200 rounded-lg px-4 py-3 text-base font-medium focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50 transition-colors"
-                                >
-                                    <option value="auto">{status.emoji} {status.text}</option>
-                                    <option value="completed">🎉 Completed</option>
-                                    <option value="frogged">🐸 Frogged</option>
-                                </select>
-                            </div>
-
-                            {/* Completion Date */}
-                            {tempFormData.completed && (
-                                <div>
-                                    <label className="form-label">Completed Date</label>
-                                    <input
-                                        type="date"
-                                        value={tempFormData.completedAt || ''}
-                                        onChange={(e) => handleTempInputChange('completedAt', e.target.value)}
-                                        className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
-                                        style={{ textAlign: 'left' }}
-                                    />
-                                </div>
-                            )}
-
-                            {/* Frogged Date */}
-                            {tempFormData.frogged && (
-                                <div>
-                                    <label className="form-label">Frogged Date</label>
-                                    <input
-                                        type="date"
-                                        value={tempFormData.froggedAt || ''}
-                                        onChange={(e) => handleTempInputChange('froggedAt', e.target.value)}
-                                        className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
-                                        style={{ textAlign: 'left' }}
-                                    />
-                                </div>
-                            )}
+                    {/* Completion Date */}
+                    {tempFormData.completed && (
+                        <div>
+                            <label className="form-label">Completed Date</label>
+                            <input
+                                type="date"
+                                value={tempFormData.completedAt || ''}
+                                onChange={(e) => handleTempInputChange('completedAt', e.target.value)}
+                                className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
+                                style={{ textAlign: 'left' }}
+                            />
                         </div>
+                    )}
 
-                        {/* Modal Actions */}
-                        <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={handleCancelEdit}
-                                className="flex-1 btn-tertiary"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSaveEdit}
-                                data-modal-primary
-                                className="flex-1 btn-primary"
-                            >
-                                Save Changes
-                            </button>
+                    {/* Frogged Date */}
+                    {tempFormData.frogged && (
+                        <div>
+                            <label className="form-label">Frogged Date</label>
+                            <input
+                                type="date"
+                                value={tempFormData.froggedAt || ''}
+                                onChange={(e) => handleTempInputChange('froggedAt', e.target.value)}
+                                className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
+                                style={{ textAlign: 'left' }}
+                            />
                         </div>
-                    </div>
+                    )}
                 </div>
-            </div>
+
+                {/* Custom action buttons inside content */}
+                <div className="flex gap-3 mt-6">
+                    <button
+                        onClick={handleCancelEdit}
+                        className="flex-1 btn-tertiary"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleSaveEdit}
+                        data-modal-primary
+                        className="flex-1 btn-primary"
+                    >
+                        Save Changes
+                    </button>
+                </div>
+            </StandardModal>
         </>
     );
 };
