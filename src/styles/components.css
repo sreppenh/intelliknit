@@ -1504,3 +1504,44 @@ body {
     /* Even more on iPad Pro */
   }
 }
+
+/* ===== NUCLEAR BADGE FIX - iPad Issue ===== */
+/* Force override any other CSS rules affecting badges */
+
+.badge.badge-coming-soon {
+  display: inline-block !important;
+  width: auto !important;
+  min-width: auto !important;
+  max-width: fit-content !important;
+  font-size: 0.75rem !important;
+  line-height: 1rem !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 9999px !important;
+  font-weight: 600 !important;
+  white-space: nowrap !important;
+  text-align: center !important;
+  background-color: #8b5cf6 !important;
+  color: white !important;
+}
+
+/* Extra specific override for the exact badge in LandingPage */
+.card-interactive .badge.badge-coming-soon {
+  position: absolute !important;
+  top: 0.5rem !important;
+  right: 0.5rem !important;
+  width: auto !important;
+  min-width: auto !important;
+  max-width: fit-content !important;
+  z-index: 10 !important;
+}
+
+/* Force override ALL possible width-setting rules on tablets */
+@media (min-width: 768px) {
+  .badge.badge-coming-soon {
+    width: auto !important;
+    min-width: auto !important;
+    max-width: fit-content !important;
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
+  }
+}
