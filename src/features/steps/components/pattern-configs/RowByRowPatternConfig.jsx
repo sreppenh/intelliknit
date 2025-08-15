@@ -335,296 +335,6 @@ const RowByRowPatternConfig = ({
         }
     };
 
-    // ===== NEW: ENHANCED MOBILE OVERLAY (Standard IntelliKnit Style) =====
-    const EnhancedMobileOverlay = () => (
-        <div className="modal-overlay" onClick={handleOverlayBackdrop}>
-            <div className="modal-content-light max-w-lg w-full max-h-[95vh] overflow-y-auto">
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <div>
-                            <h3 className="text-lg font-semibold text-wool-700">
-                                {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
-                                <span className="text-sm font-normal text-wool-500 ml-2">
-                                    ({getRowSide(currentRowNumber)})
-                                </span>
-                            </h3>
-                            {/* Running Total Display */}
-                            {(() => {
-                                const calculation = getStitchCalculation();
-                                const previousStitches = getPreviousRowStitches(
-                                    rowInstructions,
-                                    editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-                                    wizardData.currentStitches || currentProject?.startingStitches || 80
-                                );
-
-                                if (tempRowText && calculation && calculation.isValid) {
-                                    // Show calculated result
-                                    const totalFormat = formatRunningTotal(
-                                        previousStitches,
-                                        calculation.totalStitches,
-                                        calculation.stitchChange
-                                    );
-                                    return (
-                                        <div className="text-sm mt-1 text-wool-600">
-                                            {totalFormat.baseText}
-                                            {totalFormat.changeText && (
-                                                <span className={`ml-1 ${totalFormat.changeColor}`}>
-                                                    {totalFormat.changeText}
-                                                </span>
-                                            )}
-                                        </div>
-                                    );
-                                } else {
-                                    // Show default (no change expected)
-                                    return (
-                                        <div className="text-sm mt-1 text-wool-500">
-                                            {previousStitches} sts → {previousStitches} sts
-                                        </div>
-                                    );
-                                }
-                            })()}
-                        </div>
-                        <button
-                            onClick={() => setShowRowEntryOverlay(false)}
-                            className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                            aria-label="Close modal"
-                        >
-                            ×
-                        </button>
-                    </div>
-
-
-                    {/* Row Input */}
-                    <div className="mb-4">
-                        <textarea
-                            value={tempRowText}
-                            onChange={(e) => setTempRowText(e.target.value)}
-                            placeholder={placeholderText}
-                            rows={3}
-                            className="w-full border-2 border-wool-200 rounded-lg px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors resize-none"
-                            autoFocus
-                            readOnly={isMobile}  // Prevent mobile keyboard on mobile
-                            inputMode={isMobile ? "none" : "text"}  // No input method on mobile
-                            onTouchStart={(e) => {
-                                if (isMobile) {
-                                    e.preventDefault(); // Prevent focus on mobile
-                                }
-                            }}
-
-                        />
-                    </div>
-
-                    {/* Enhanced Multi-Layer Keyboard */}
-                    <div className="mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="text-sm font-medium text-wool-600">
-                                {keyboardMode === 'numbers' ? 'Repeat Count' : 'Pattern Keyboard'}
-                            </div>
-                            {keyboardMode === 'pattern' && supportsMultipleLayers(patternType) && (
-                                <div className="text-xs text-wool-500">
-                                    {getLayerDisplayName(currentKeyboardLayer)} Layer
-                                </div>
-                            )}
-                        </div>
-
-                        {keyboardMode === 'numbers' ? (
-                            <NumberKeyboard
-                                onAction={handleQuickAction}
-                                pendingText={pendingRepeatText}
-                            />
-                        ) : (
-                            <>
-                                {/* Show Custom Action Manager on Tertiary Layer */}
-                                {currentKeyboardLayer === KEYBOARD_LAYERS.TERTIARY && (
-                                    <CustomActionManager
-                                        patternType={patternType}
-                                        onActionSelect={handleQuickAction}
-                                    />
-                                )}
-
-                                <EnhancedKeyboard
-                                    patternType={patternType}
-                                    layer={currentKeyboardLayer}
-                                    context={{
-                                        rowNumber: currentRowNumber,
-                                        construction,
-                                        project: currentProject,
-                                        updateProject: updateProject
-                                    }}
-                                    isMobile={isMobile}
-                                    isCreatingRepeat={isCreatingRepeat}
-                                    rowInstructions={rowInstructions}
-                                    onAction={handleQuickAction}
-                                    bracketState={bracketState}
-                                    isLocked={tempRowText === 'K all' || tempRowText === 'P all'}  // ← ADD THIS
-                                />
-                            </>
-                        )}
-                    </div>
-
-                    {/* Save/Cancel Buttons */}
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowRowEntryOverlay(false)}
-                            className="flex-1 py-3 px-4 border-2 border-wool-200 rounded-lg text-wool-600 hover:bg-wool-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSaveRow}
-                            disabled={!tempRowText.trim()}
-                            className="flex-1 py-3 px-4 bg-sage-500 text-white rounded-lg hover:bg-sage-600 disabled:bg-wool-300 disabled:cursor-not-allowed transition-colors"
-                        >
-                            {editingRowIndex === null ? 'Add Row' : 'Save Row'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
-    // ===== DESKTOP OVERLAY (Enhanced but keeping familiar structure) =====
-    const DesktopOverlay = () => (
-        <div className="modal-overlay" onClick={handleOverlayBackdrop}>
-            <div className="modal-content-light max-w-md w-full max-h-[90vh] overflow-y-auto">
-                <div className="p-6">
-                    <div className="flex justify-between items-center mb-4">
-                        <div>
-                            <h3 className="text-lg font-semibold text-wool-700">
-                                {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
-                                <span className="text-sm font-normal text-wool-500 ml-2">
-                                    ({getRowSide(currentRowNumber)})
-                                </span>
-                            </h3>
-                            {/* Running Total Display */}
-                            {/* Running Total Display */}
-
-                            {(() => {
-                                const calculation = getStitchCalculation();
-                                const previousStitches = getPreviousRowStitches(
-                                    rowInstructions,
-                                    editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-                                    wizardData.currentStitches || currentProject?.startingStitches || 80
-                                );
-
-                                if (tempRowText && calculation && calculation.isValid) {
-                                    // Show calculated result
-                                    const totalFormat = formatRunningTotal(
-                                        previousStitches,
-                                        calculation.totalStitches,
-                                        calculation.stitchChange
-                                    );
-                                    return (
-                                        <div className="text-sm mt-1 text-wool-600">
-                                            {totalFormat.baseText}
-                                            {totalFormat.changeText && (
-                                                <span className={`ml-1 ${totalFormat.changeColor}`}>
-                                                    {totalFormat.changeText}
-                                                </span>
-                                            )}
-                                        </div>
-                                    );
-                                } else {
-                                    // Show default (no change expected)
-                                    return (
-                                        <div className="text-sm mt-1 text-wool-500">
-                                            {previousStitches} sts → {previousStitches} sts
-                                        </div>
-                                    );
-                                }
-                            })()}
-                        </div>
-                        <button
-                            onClick={() => setShowRowEntryOverlay(false)}
-                            className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                            aria-label="Close modal"
-                        >
-                            ×
-                        </button>
-                    </div>
-
-
-                    {/* Row Input */}
-                    <div className="mb-4">
-                        <textarea
-                            value={tempRowText}
-                            onChange={(e) => setTempRowText(e.target.value)}
-                            placeholder={placeholderText}
-                            rows={3}
-                            className="w-full border-2 border-wool-200 rounded-lg px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors resize-none"
-                            autoFocus
-                        />
-                    </div>
-
-                    {/* Enhanced Multi-Layer Keyboard - SAME AS MOBILE */}
-                    <div className="mb-4">
-                        <div className="flex justify-between items-center mb-2">
-                            <div className="text-sm font-medium text-wool-600">
-                                {keyboardMode === 'numbers' ? 'Repeat Count' : 'Pattern Keyboard'}
-                            </div>
-                            {keyboardMode === 'pattern' && supportsMultipleLayers(patternType) && (
-                                <div className="text-xs text-wool-500">
-                                    {getLayerDisplayName(currentKeyboardLayer)} Layer
-                                </div>
-                            )}
-                        </div>
-
-                        {keyboardMode === 'numbers' ? (
-                            <NumberKeyboard
-                                onAction={handleQuickAction}
-                                pendingText={pendingRepeatText}
-                            />
-                        ) : (
-                            <>
-                                {/* Show Custom Action Manager on Tertiary Layer */}
-                                {currentKeyboardLayer === KEYBOARD_LAYERS.TERTIARY && (
-                                    <CustomActionManager
-                                        patternType={patternType}
-                                        onActionSelect={handleQuickAction}
-                                    />
-                                )}
-
-                                <EnhancedKeyboard
-                                    patternType={patternType}
-                                    layer={currentKeyboardLayer}
-                                    context={{
-                                        rowNumber: currentRowNumber,
-                                        construction,
-                                        project: currentProject,
-                                        updateProject: updateProject  // ← ADD THIS LINE!
-                                    }}
-                                    isMobile={isMobile}
-                                    isCreatingRepeat={isCreatingRepeat}
-                                    rowInstructions={rowInstructions}
-                                    onAction={handleQuickAction}
-                                    bracketState={bracketState}
-                                    isLocked={tempRowText === 'K all' || tempRowText === 'P all'}  // ← ADD THIS
-                                />
-                            </>
-                        )}
-                    </div>
-
-                    {/* Save/Cancel Buttons */}
-                    <div className="flex gap-3">
-                        <button
-                            onClick={() => setShowRowEntryOverlay(false)}
-                            className="flex-1 py-3 px-4 border-2 border-wool-200 rounded-lg text-wool-600 hover:bg-wool-50 transition-colors"
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            onClick={handleSaveRow}
-                            disabled={!tempRowText.trim()}
-                            className="flex-1 py-3 px-4 bg-sage-500 text-white rounded-lg hover:bg-sage-600 disabled:bg-wool-300 disabled:cursor-not-allowed transition-colors"
-                        >
-                            {editingRowIndex === null ? 'Add Row' : 'Save Row'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
     // ===== CUSTOM ACTION MANAGER COMPONENT =====
     const CustomActionManager = ({ patternType, onActionSelect }) => {
         const [newActionName, setNewActionName] = useState('');
@@ -1020,8 +730,57 @@ const RowByRowPatternConfig = ({
                 </div>
             )}
 
-            {/* ===== RESPONSIVE ROW ENTRY ===== */}
-            {showRowEntryOverlay && (isMobile ? <EnhancedMobileOverlay /> : <DesktopOverlay />)}
+          // WITH THIS:
+            {/* ===== ROW ENTRY MODAL ===== */}
+            <RowEntryModal
+                isOpen={showRowEntryOverlay}
+                onClose={() => setShowRowEntryOverlay(false)}
+                editingRowIndex={editingRowIndex}
+                rowInstructions={rowInstructions}
+                tempRowText={tempRowText}
+                setTempRowText={setTempRowText}
+                placeholderText={placeholderText}
+                isMobile={isMobile}
+                currentRowNumber={currentRowNumber}
+                getRowSide={getRowSide}
+                getStitchCalculation={getStitchCalculation}
+                wizardData={wizardData}
+                currentProject={currentProject}
+                onSave={handleSaveRow}
+                keyboardComponent={
+                    keyboardMode === 'numbers' ? (
+                        <NumberKeyboard
+                            onAction={handleQuickAction}
+                            pendingText={pendingRepeatText}
+                        />
+                    ) : (
+                        <>
+                            {currentKeyboardLayer === KEYBOARD_LAYERS.TERTIARY && (
+                                <CustomActionManager
+                                    patternType={patternType}
+                                    onActionSelect={handleQuickAction}
+                                />
+                            )}
+                            <EnhancedKeyboard
+                                patternType={patternType}
+                                layer={currentKeyboardLayer}
+                                context={{
+                                    rowNumber: currentRowNumber,
+                                    construction,
+                                    project: currentProject,
+                                    updateProject: updateProject
+                                }}
+                                isMobile={isMobile}
+                                isCreatingRepeat={isCreatingRepeat}
+                                rowInstructions={rowInstructions}
+                                onAction={handleQuickAction}
+                                bracketState={bracketState}
+                                isLocked={tempRowText === 'K all' || tempRowText === 'P all'}
+                            />
+                        </>
+                    )
+                }
+            />
         </div>
 
     );
