@@ -1,6 +1,10 @@
+// src/features/projects/components/ComponentDetail.jsx
+// TARGETED UPDATE: Replace embedded delete modal with existing DeleteComponentModal
+
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
+import DeleteComponentModal from '../../../shared/components/DeleteComponentModal'; // ADD THIS IMPORT
 
 const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnitting, onGoToLanding }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -10,7 +14,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
     return (
       <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
         <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
-          <div className="text-4xl mb-4">❌</div>
+          <div className="text-4xl mb-4">⚠️</div>
           <h3 className="text-lg font-medium text-wool-600 mb-2">Component not found</h3>
           <button
             onClick={onBack}
@@ -30,19 +34,20 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
       type: 'DELETE_COMPONENT',
       payload: { componentIndex }
     });
-    onBack();
+    setShowDeleteModal(false); // Close modal first
+    onBack(); // Then navigate back
   };
 
   const handleCopyComponent = () => {
     const copiedComponent = {
       ...component,
       name: `${component.name} Copy`,
-      id: crypto.randomUUID(), // Simple ID generation
+      id: crypto.randomUUID(),
       currentStep: 0,
       steps: component.steps.map(step => ({
         ...step,
-        id: crypto.randomUUID() + Math.random(), // New IDs for copied steps
-        completed: false // Reset completion status
+        id: crypto.randomUUID() + Math.random(),
+        completed: false
       }))
     };
 
@@ -51,7 +56,6 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
       payload: copiedComponent
     });
 
-    // Show success feedback (you could add a toast here)
     alert(`${component.name} has been copied!`);
   };
 
@@ -68,7 +72,6 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
           onBack={onBack}
           showCancelButton={true}
           onCancel={onBack}
-        // Remove title/subtitle
         />
 
         <div className="p-6 bg-yarn-50">
@@ -134,7 +137,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
             <div className="stack-sm">
               <h3 className="content-header-secondary">Actions</h3>
 
-              {/* Manage Steps - yarn orange for exciting action */}
+              {/* Manage Steps */}
               <button
                 onClick={() => onManageSteps(componentIndex)}
                 className="w-full btn-secondary flex items-center justify-center gap-2"
@@ -143,7 +146,7 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                 {component.steps.length === 0 ? 'Add Steps' : 'Manage Steps'}
               </button>
 
-              {/* Start Knitting - sage for primary action */}
+              {/* Start Knitting */}
               {component.steps.length > 0 && (
                 <button
                   onClick={() => onStartKnitting(componentIndex)}
@@ -192,58 +195,12 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
           </div>
         </div>
 
-        {/* Delete Confirmation Modal */}
-        {showDeleteModal && (
-          <div className="modal" onClick={(e) => e.target === e.currentTarget && setShowDeleteModal(false)}>
-            <div className="modal-content-light">
-
-              <div className="modal-header-light-danger relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-red-100">
-                <div className="text-center">
-                  <div className="text-2xl mb-2">⚠️</div>
-                  <h2 className="text-lg font-semibold">Delete Component?</h2>
-                  <p className="text-red-600 text-sm">{component.name}</p>
-                </div>
-                <button
-                  onClick={() => setShowDeleteModal(false)}
-                  className="absolute right-3 text-red-600 text-2xl hover:bg-red-200 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                  aria-label="Close delete confirmation modal"
-                >
-                  ×
-                </button>
-              </div>
-
-              <div className="p-6">
-                <div className="text-center mb-6">
-                  <p className="text-wool-600 mb-2">
-                    This will permanently delete <strong>{component.name}</strong> and all its steps.
-                  </p>
-                  <p className="text-wool-500 text-sm">
-                    This action cannot be undone.
-                  </p>
-                </div>
-
-                <div className="stack-sm">
-                  <button
-                    onClick={handleDeleteComponent}
-                    data-modal-primary
-                    className="w-full bg-red-500 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-red-600 transition-colors flex items-center justify-center gap-2"
-                  >
-                    <span>🗑️</span>
-                    Yes, Delete Component
-                  </button>
-
-                  <button
-                    onClick={() => setShowDeleteModal(false)}
-                    data-modal-cancel
-                    className="w-full btn-tertiary"
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* FIXED: Use existing DeleteComponentModal instead of embedded modal */}
+        <DeleteComponentModal
+          component={showDeleteModal ? component : null}
+          onClose={() => setShowDeleteModal(false)}
+          onDelete={handleDeleteComponent}
+        />
       </div>
     </div>
   );
