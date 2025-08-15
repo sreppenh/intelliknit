@@ -973,7 +973,8 @@ const EnhancedKeyboard = ({
             </div>
 
             {/* Input Actions (Light Sage - main keyboard) */}
-            <div className={`grid gap-2 ${isMobile ? 'grid-cols-3' : 'flex flex-wrap'}`}>
+            {/* Input Actions (Light Sage - main keyboard) */}
+            <div className="grid gap-2 grid-cols-3 md:grid-cols-6 lg:grid-cols-8">
                 {keyboardLayout.input.map((action, index) => {
                     const buttonType = action === '★' ? 'special' :
                         action.startsWith('Custom ') ? 'special' :

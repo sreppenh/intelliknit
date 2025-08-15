@@ -1,4 +1,4 @@
-// NEW FILE: src/features/steps/components/pattern-configs/RowEntryModal.jsx
+// src/features/steps/components/pattern-configs/RowEntryModal.jsx
 import React from 'react';
 import { formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 
@@ -32,7 +32,7 @@ const RowEntryModal = ({
 
         if (tempRowText && calculation && calculation.isValid) {
             const totalFormat = formatRunningTotal(
-                calculation.previousStitches,  // ← Use calculation result
+                calculation.previousStitches,
                 calculation.totalStitches,
                 calculation.stitchChange
             );
@@ -47,8 +47,7 @@ const RowEntryModal = ({
                 </div>
             );
         } else {
-            // For empty row, use the calculation's baseline or fall back properly
-            const baseline = calculation?.previousStitches || 10; // Use correct baseline
+            const baseline = calculation?.previousStitches || 10;
             return (
                 <div className="text-sm mt-1 text-wool-500">
                     {baseline} sts → {baseline} sts
@@ -59,29 +58,30 @@ const RowEntryModal = ({
 
     return (
         <div className="modal-overlay" onClick={handleBackdrop}>
-            <div className={`modal-content-light w-full max-h-[95vh] overflow-y-auto ${isMobile ? 'max-w-lg' : 'max-w-md max-h-[90vh]'
-                }`}>
+            <div className={`modal-content-light w-full max-h-[95vh] overflow-y-auto max-w-lg md:max-w-3xl`}>
                 <div className="p-6">
                     <div className="flex justify-between items-center mb-4">
                         <div>
-                            <h3 className="text-lg font-semibold text-wool-700">
-                                {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
-                                <span className="text-sm font-normal text-wool-500 ml-2">
-                                    ({getRowSide(currentRowNumber)})
-                                </span>
-                            </h3>
-                            {renderRunningTotal()}
+                            <div>
+                                <h3 className="text-lg font-semibold text-wool-700">
+                                    {editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`}
+                                    <span className="text-sm font-normal text-wool-500 ml-2">
+                                        ({getRowSide(currentRowNumber)})
+                                    </span>
+                                </h3>
+                                {renderRunningTotal()}
+                            </div>
                         </div>
                         <button
                             onClick={onClose}
-                            className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
+                            className="text-sage-600 hover:text-sage-800 hover:bg-sage-200 rounded-full w-12 h-12 flex items-center justify-center transition-colors font-bold"
+                            style={{ fontSize: '2rem' }}
                             aria-label="Close modal"
                         >
                             ×
                         </button>
                     </div>
 
-                    {/* Row Input */}
                     <div className="mb-4">
                         <textarea
                             value={tempRowText}
@@ -100,12 +100,10 @@ const RowEntryModal = ({
                         />
                     </div>
 
-                    {/* Keyboard */}
                     <div className="mb-4">
                         {keyboardComponent}
                     </div>
 
-                    {/* Save/Cancel Buttons */}
                     <div className="flex gap-3">
                         <button
                             onClick={onClose}

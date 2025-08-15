@@ -1505,312 +1505,70 @@ body {
   }
 }
 
-/* ===== ENHANCED IPAD LAYOUT FIXES ===== */
-/* Add these fixes to your components.css file */
 
-/* ===== IMPROVED GLOBAL CONTAINER SYSTEM FOR IPAD ===== */
-.app-container {
-  margin-left: auto;
-  margin-right: auto;
-  background-color: #fefcf9;
-  /* yarn-50 */
-  min-height: 100vh;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -2px rgba(0, 0, 0, 0.1);
-  max-width: min(100vw, 448px);
-  /* Mobile: same as max-w-md */
-}
-
-/* ===== IPAD-SPECIFIC IMPROVEMENTS ===== */
-@media (min-width: 768px) and (max-width: 1024px) {
-  .app-container {
-    max-width: min(100vw - 32px, 800px);
-    /* 🎯 INCREASED from 720px to 800px */
-    min-height: calc(100vh - 2rem);
-    /* Allow for top/bottom margins */
-    border-radius: 1rem;
-    /* More rounded corners */
-    margin-top: 1rem;
-    margin-bottom: 1rem;
-    box-shadow: 0 20px 40px -10px rgba(0, 0, 0, 0.15),
-      0 10px 20px -10px rgba(0, 0, 0, 0.1);
-  }
-
-  /* ===== FORCE PREVENT NATIVE KEYBOARD ON CALCULATOR ===== */
-  .app-container input[type="text"],
-  .app-container input[type="number"],
-  .app-container .input-numeric {
-    /* 🎯 DISABLE NATIVE KEYBOARD ON IPAD */
-    pointer-events: none;
-    /* Prevent tap-to-focus */
-    user-select: none;
-    /* Prevent text selection */
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-  }
-
-  /* Allow interaction only for non-calculator inputs */
-  .app-container .details-input-field,
-  .app-container .form-input,
-  .app-container input[data-allow-keyboard="true"] {
-    pointer-events: auto;
-    user-select: auto;
-    -webkit-user-select: auto;
-  }
-
-  /* ===== ENHANCED BUTTON GRID LAYOUTS FOR IPAD ===== */
-  .app-container .increment-input-group {
-    /* 🎯 HORIZONTAL LAYOUT FOR INCREMENT BUTTONS */
-    flex-direction: row;
-    gap: 1rem;
-    /* Increased gap */
-    align-items: center;
-    justify-content: center;
-    min-height: 60px;
-    /* Ensure good touch targets */
-  }
-
-  /* ===== CALCULATOR-SPECIFIC IPAD IMPROVEMENTS ===== */
-  .app-container .btn-increment,
-  .app-container .btn-increment-plus,
-  .app-container .btn-increment-minus {
-    /* 🎯 LARGER TOUCH TARGETS FOR IPAD */
-    width: 60px !important;
-    height: 60px !important;
-    font-size: 1.5rem !important;
-    font-weight: bold;
-    border-radius: 1rem;
-    /* Enhanced visual feedback */
-    transition: all 0.15s ease;
-    transform: scale(1);
-  }
-
-  .app-container .btn-increment:active,
-  .app-container .btn-increment-plus:active,
-  .app-container .btn-increment-minus:active {
-    transform: scale(0.95);
-  }
-
-  /* ===== NUMERIC INPUT FIELD IMPROVEMENTS ===== */
-  .app-container .input-numeric {
-    /* 🎯 LARGER, MORE READABLE INPUT FIELDS */
-    width: 120px !important;
-    /* Increased from 64px */
-    height: 60px !important;
-    /* Match button height */
-    font-size: 1.5rem !important;
-    font-weight: 600;
-    border-radius: 1rem;
-    border-width: 3px;
-    text-align: center;
-    /* Make it clear this is display-only on iPad */
-    background-color: #f8fafc;
-    cursor: default;
-  }
-
-  .app-container .input-numeric:focus {
-    /* Remove focus styles since it's display-only */
-    outline: none;
-    border-color: inherit;
-    box-shadow: none;
-  }
-
-  /* ===== PATTERN CONFIGURATION GRID IMPROVEMENTS ===== */
-  .app-container .grid-2-equal {
-    gap: 2rem;
-    /* Increased spacing */
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .app-container .grid-3-equal {
-    gap: 1.5rem;
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  .app-container .grid-auto-fit {
-    gap: 1.5rem;
-    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-    /* Wider minimum */
-  }
-
-  /* ===== CARD IMPROVEMENTS FOR BETTER TOUCH ===== */
-  .app-container .card,
-  .app-container .card-interactive,
-  .app-container .card-selectable {
-    padding: 2rem;
-    /* More generous padding */
-    border-radius: 1.25rem;
-    /* More rounded */
-    min-height: 80px;
-    /* Ensure good touch targets */
-  }
-
-  /* ===== FORM LAYOUT IMPROVEMENTS ===== */
-  .app-container .form-field {
-    margin-bottom: 2rem;
-    /* More space between fields */
-  }
-
-  .app-container .form-label {
-    font-size: 1.125rem;
-    /* Larger labels */
-    margin-bottom: 1rem;
-  }
-
-  /* ===== STEP WIZARD IMPROVEMENTS ===== */
-  .app-container .wizard-content {
-    padding: 2rem;
-  }
-
-  .app-container .wizard-header {
-    padding: 1.5rem 2rem;
-  }
-
-  .app-container .wizard-footer {
-    padding: 1.5rem 2rem;
-    gap: 1.5rem;
-  }
-
-  /* ===== MODAL IMPROVEMENTS FOR IPAD ===== */
-  .modal-content,
-  .modal-content-light {
-    max-width: 600px;
-    /* Wider modals */
-    padding: 2.5rem;
-    border-radius: 1.5rem;
-    margin: 2rem auto;
-  }
-
-  /* ===== NAVIGATION IMPROVEMENTS ===== */
-  .app-container .tab-button {
-    padding: 1.25rem 2rem;
-    font-size: 1.125rem;
-    min-height: 60px;
-    border-radius: 1rem;
-  }
-
-  /* ===== BETTER VISUAL HIERARCHY ===== */
-  .app-container .content-header-primary {
-    font-size: 2.25rem;
-    /* Larger headings */
-    margin-bottom: 2.5rem;
-  }
-
-  .app-container .content-header-secondary {
-    font-size: 1.75rem;
-    margin-bottom: 2rem;
-  }
-
-  /* ===== PREVENT BUTTON STACKING ISSUES ===== */
-  .app-container .btn-primary,
-  .app-container .btn-secondary,
-  .app-container .btn-tertiary {
-    /* 🎯 ENSURE BUTTONS STAY SIDE-BY-SIDE */
-    min-width: 120px;
-    flex-shrink: 0;
-    white-space: nowrap;
-  }
-
-  /* ===== BUTTON GROUP LAYOUTS ===== */
-  .app-container .button-group,
-  .app-container .flex.gap-3,
-  .app-container .flex.gap-4 {
-    flex-wrap: nowrap;
-    /* Prevent wrapping */
-    gap: 1.5rem;
-    justify-content: center;
-  }
-
-  /* ===== RESPONSIVE FLEX IMPROVEMENTS ===== */
-  .app-container .flex-col {
-    /* Keep things organized vertically */
-    gap: 1.5rem;
-  }
-
-  .app-container .space-y-6>*+* {
-    margin-top: 2rem;
-    /* More generous vertical spacing */
-  }
-
-  .app-container .space-y-4>*+* {
-    margin-top: 1.5rem;
-  }
-}
-
-/* ===== IPAD PRO SPECIFIC (LARGER IPADS) ===== */
-@media (min-width: 1024px) and (max-width: 1366px) {
-  .app-container {
-    max-width: min(100vw - 40px, 900px);
-    /* Even wider for iPad Pro */
-  }
-
-  .app-container .btn-increment,
-  .app-container .btn-increment-plus,
-  .app-container .btn-increment-minus {
-    width: 70px !important;
-    height: 70px !important;
-    font-size: 1.75rem !important;
-  }
-
-  .app-container .input-numeric {
-    width: 140px !important;
-    height: 70px !important;
-    font-size: 1.75rem !important;
-  }
-}
-
-/* ===== ACCESSIBILITY & VISUAL FEEDBACK ===== */
+/* ===== ROW ENTRY MODAL IPAD FIXES ===== */
 @media (min-width: 768px) {
 
-  /* Enhanced hover states for devices with hover capability */
-  .app-container .btn-increment:hover {
-    transform: scale(1.05);
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+  /* Make modal wider on iPad */
+  .modal-content,
+  .modal-content-light {
+    max-width: 600px !important;
   }
 
-  /* Better focus indicators */
-  .app-container .btn-increment:focus-visible {
-    outline: 3px solid #8b5cf6;
-    outline-offset: 2px;
+  /* Fix the keyboard button grids */
+  .modal-content .grid-cols-3,
+  .modal-content-light .grid-cols-3 {
+    grid-template-columns: repeat(6, 1fr) !important;
+    gap: 0.75rem !important;
   }
 
-  /* Visual feedback for active states */
-  .app-container .card-interactive:hover {
-    transform: scale(1.02);
-    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.12);
-  }
-}
-
-/* ===== LANDSCAPE ORIENTATION SPECIFIC ===== */
-@media (min-width: 768px) and (orientation: landscape) {
-  .app-container {
-    /* Use more horizontal space in landscape */
-    max-width: min(100vw - 40px, 1000px);
+  .modal-content .grid-cols-4,
+  .modal-content-light .grid-cols-4 {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 0.75rem !important;
   }
 
-  /* Optimize button layouts for landscape */
-  .app-container .increment-input-group {
-    gap: 2rem;
+  /* Make buttons smaller and more reasonable */
+  .modal-content button[class*="bg-sage"],
+  .modal-content-light button[class*="bg-sage"],
+  .modal-content button[class*="bg-lavender"],
+  .modal-content-light button[class*="bg-lavender"],
+  .modal-content button[class*="bg-yarn"],
+  .modal-content-light button[class*="bg-yarn"] {
+    padding: 0.5rem 0.75rem !important;
+    min-height: 44px !important;
+    max-width: none !important;
+    font-size: 0.875rem !important;
+    white-space: nowrap !important;
   }
 
-  /* Better use of horizontal space */
-  .app-container .grid-auto-fit {
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  }
-}
-
-/* ===== PRINT STYLES (BONUS) ===== */
-@media print {
-  .app-container {
-    max-width: 100%;
-    box-shadow: none;
-    border-radius: 0;
-    margin: 0;
+  /* Special handling for the text area */
+  .modal-content textarea,
+  .modal-content-light textarea {
+    min-height: 100px !important;
+    font-size: 1rem !important;
   }
 }
 
+/* ===== MODAL IMPROVEMENTS FOR IPAD ===== */
+@media (min-width: 768px) {
+  .modal-overlay {
+    padding: 1rem !important;
+    align-items: flex-start !important;
+    padding-top: 5vh !important;
+  }
 
+  .modal-content-light {
+    margin: 0 auto !important;
+    border-radius: 1rem !important;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25) !important;
+  }
 
+  /* Ensure keyboard buttons don't get too wide */
+  .modal-content-light button {
+    max-width: 120px !important;
+  }
+}
 
 
 
