@@ -103,7 +103,6 @@ const appendWithCommaLogic = (currentText, newAction) => {
 
 // ===== AUTO-INCREMENT LOGIC =====
 
-// REPLACE THE ENTIRE handleAutoIncrement FUNCTION:
 export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, tempRowText, setTempRowText, setConsecutiveCount) => {
     // Only multiply if:
     // 1. Action can be multiplied 
@@ -113,24 +112,30 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
         const newCount = consecutiveCount + 1;
         setConsecutiveCount(newCount);
 
-        // FIXED: Better parsing that understands the actual last element
-        if (tempRowText.endsWith(`, ${action}`) || tempRowText === action) {
-            // Replace the last occurrence of the action
-            const lastCommaIndex = tempRowText.lastIndexOf(`, ${action}`);
-            if (lastCommaIndex !== -1) {
-                // Case: "K, P, K" → "K, P, K2"
-                const beforeLast = tempRowText.substring(0, lastCommaIndex);
-                setTempRowText(`${beforeLast}, ${action}${newCount}`);
-            } else if (tempRowText === action) {
-                // Case: "K" → "K2"
-                setTempRowText(`${action}${newCount}`);
+        // Split the text by commas to work with individual actions
+        const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
+
+        if (actions.length > 0) {
+            const lastIndex = actions.length - 1;
+            const lastAction = actions[lastIndex];
+
+            // Check if the last action matches what we're trying to increment
+            if (lastAction === action) {
+                // Simple case: "K" becomes "K2"
+                actions[lastIndex] = `${action}${newCount}`;
+                setTempRowText(actions.join(', '));
+                return true;
+            } else if (lastAction.match(/^([A-Za-z]+)(\d+)$/) && lastAction.startsWith(action)) {
+                // Already numbered case: "K2" becomes "K3"
+                actions[lastIndex] = `${action}${newCount}`;
+                setTempRowText(actions.join(', '));
+                return true;
+            } else if (tempRowText.endsWith(action) && !tempRowText.includes(',')) {
+                // Special case for bracket contexts like "[K" → "[K2"
+                const beforeAction = tempRowText.substring(0, tempRowText.length - action.length);
+                setTempRowText(`${beforeAction}${action}${newCount}`);
+                return true;
             }
-            return true;
-        } else if (tempRowText.endsWith(action)) {
-            // Case: "[K" → "[K2" (no comma)
-            const beforeAction = tempRowText.substring(0, tempRowText.length - action.length);
-            setTempRowText(`${beforeAction}${action}${newCount}`);
-            return true;
         }
     }
     return false;
