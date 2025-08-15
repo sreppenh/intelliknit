@@ -76,6 +76,8 @@ const RowByRowPatternConfig = ({
 
     const { currentProject, dispatch } = useProjectsContext();
 
+    const [newActionStitches, setNewActionStitches] = useState('1'); // Default to 1
+
     // Helper function to update project data
     const updateProject = (updates) => {
         dispatch({
@@ -347,18 +349,31 @@ const RowByRowPatternConfig = ({
         ] || [];
 
         const handleAddAction = () => {
-            if (newActionName.trim()) {
+            if (newActionName.trim() && newActionStitches.trim()) {
+                const stitchCount = parseInt(newActionStitches);
+                if (isNaN(stitchCount) || stitchCount < 0) {
+                    alert('Please enter a valid number of stitches (0 or higher)');
+                    return;
+                }
+
                 const key = patternType === 'Lace Pattern' ? 'lace' :
                     patternType === 'Cable Pattern' ? 'cable' : 'general';
 
-                const currentCustomActions = currentProject?.customActions || {};
-                const updatedCustomActions = {
-                    ...currentCustomActions,
-                    [key]: [...(currentCustomActions[key] || []), newActionName.trim()]
+                // Store as object with stitch count
+                const customActionData = {
+                    name: newActionName.trim(),
+                    stitches: stitchCount
                 };
 
-                updateProject({ customActions: updatedCustomActions });
+                const currentCustomActions = currentProject?.customKeyboardActions || {};
+                const updatedCustomActions = {
+                    ...currentCustomActions,
+                    [key]: [...(currentCustomActions[key] || []), customActionData]
+                };
+
+                updateProject({ customKeyboardActions: updatedCustomActions });
                 setNewActionName('');
+                setNewActionStitches('');
                 setShowAddForm(false);
             }
         };
@@ -380,16 +395,29 @@ const RowByRowPatternConfig = ({
             return (
                 <div className="bg-lavender-50 border-2 border-lavender-200 rounded-lg p-3 mb-3">
                     <div className="text-sm font-medium text-lavender-700 mb-2">Add Custom Action</div>
-                    <div className="flex gap-2">
+                    <div className="space-y-2">
                         <input
                             type="text"
                             value={newActionName}
                             onChange={(e) => setNewActionName(e.target.value)}
                             placeholder="e.g., Bobble, Nupps, Tree Branch"
-                            className="flex-1 px-3 py-2 border border-lavender-300 rounded-lg text-sm"
+                            className="w-full px-3 py-2 border border-lavender-300 rounded-lg text-sm"
                             onKeyPress={(e) => e.key === 'Enter' && handleAddAction()}
                             autoFocus
                         />
+                        <div className="flex gap-2">
+                            <input
+                                type="number"
+                                value={newActionStitches}
+                                onChange={(e) => setNewActionStitches(e.target.value)}
+                                placeholder="Stitches"
+                                min="0"
+                                className="w-20 px-3 py-2 border border-lavender-300 rounded-lg text-sm"
+                            />
+                            <span className="text-xs text-lavender-600 flex items-center">stitches produced</span>
+                        </div>
+                    </div>
+                    <div className="flex gap-2 mt-2">
                         <button
                             onClick={handleAddAction}
                             className="px-3 py-2 bg-lavender-500 text-white rounded-lg text-sm hover:bg-lavender-600"
@@ -419,7 +447,7 @@ const RowByRowPatternConfig = ({
                                 onClick={() => onActionSelect(action)}
                                 className="px-3 py-2 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 border border-yarn-200"
                             >
-                                {action}
+                                {typeof action === 'object' ? `${action.name} (${action.stitches})` : action}
                             </button>
                             <button
                                 onClick={() => handleRemoveAction(action)}
