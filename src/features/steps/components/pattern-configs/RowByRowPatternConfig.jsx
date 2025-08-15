@@ -758,7 +758,6 @@ const RowByRowPatternConfig = ({
                 </div>
             )}
 
-          // WITH THIS:
             {/* ===== ROW ENTRY MODAL ===== */}
             <RowEntryModal
                 isOpen={showRowEntryOverlay}
