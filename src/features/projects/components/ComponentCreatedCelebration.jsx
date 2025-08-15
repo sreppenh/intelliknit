@@ -78,12 +78,12 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
 
             <div className="text-center mb-4">
               <h3 className="content-header-secondary">{component.name}</h3>
-              <p className="text-sage-600 text-sm">{component.startType?.replace('_', ' ')}</p>
+              {/* REMOVED: The tiny cast-on text that was weird */}
             </div>
 
             <div className="bg-white bg-opacity-50 rounded-lg p-4 stack-sm">
 
-              {/* Construction - ADD THIS */}
+              {/* Construction */}
               {component.construction && (
                 <div className="flex items-center justify-between">
                   <span className="text-sm text-wool-600">Construction:</span>
@@ -113,26 +113,29 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
             </div>
           </div>
 
-          {/* Actions */}
+          {/* Actions - FIXED BUTTON HIERARCHY */}
           <div className="stack-sm">
 
+            {/* PRIMARY: Add Steps */}
             <button
               onClick={onAddSteps}
-              className="w-full btn-secondary btn-lg flex items-center justify-center gap-3"
+              className="w-full btn-primary btn-lg flex items-center justify-center gap-3"
             >
               <span className="text-xl">📝</span>
               <span>Add Steps to {component.name}</span>
-              <div className="text-xs bg-yarn-500 px-2 py-1 rounded-full">Next step</div>
+              {/* REMOVED: Next step bubble */}
             </button>
 
+            {/* SECONDARY: Add Another Component */}
             <button
               onClick={onAddAnother}
-              className="w-full bg-sage-500 text-white py-3 px-4 rounded-xl font-semibold text-base hover:bg-sage-600 transition-colors flex items-center justify-center gap-2"
+              className="w-full btn-secondary btn-lg flex items-center justify-center gap-2"
             >
               <span className="text-lg">🧶</span>
               <span>Add Another Component</span>
             </button>
 
+            {/* TERTIARY: Done for Now */}
             <button
               onClick={onClose}
               className="w-full btn-tertiary"
