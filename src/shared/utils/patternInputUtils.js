@@ -138,7 +138,7 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
 
 // ===== SMART DELETE LOGIC =====
 
-export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncrement, isLongPress = false) => {
+export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncrement, isLongPress = false, onBracketChange = null) => {
     const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
     if (actions.length === 0) return false;
 
@@ -160,6 +160,13 @@ export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncremen
 
     setTempRowText(actions.join(', '));
     resetAutoIncrement();
+
+    // ADD this at the end before return:
+    if (onBracketChange) {
+        const newText = actions.join(', ');
+        onBracketChange(newText); // Let parent component reset bracket state
+    }
+
     return true;
 };
 
