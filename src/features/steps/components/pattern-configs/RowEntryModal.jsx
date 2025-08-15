@@ -28,18 +28,11 @@ const RowEntryModal = ({
     };
 
     const renderRunningTotal = () => {
-        console.log('wizardData:', wizardData);
-        console.log('currentProject:', currentProject);
         const calculation = getStitchCalculation();
-        const previousStitches = getPreviousRowStitches(
-            rowInstructions,
-            editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-            wizardData.currentStitches || currentProject?.startingStitches || 80
-        );
 
         if (tempRowText && calculation && calculation.isValid) {
             const totalFormat = formatRunningTotal(
-                previousStitches,
+                calculation.previousStitches,  // ← Use calculation result
                 calculation.totalStitches,
                 calculation.stitchChange
             );
@@ -54,9 +47,11 @@ const RowEntryModal = ({
                 </div>
             );
         } else {
+            // For empty row, use the calculation's baseline or fall back properly
+            const baseline = calculation?.previousStitches || 10; // Use correct baseline
             return (
                 <div className="text-sm mt-1 text-wool-500">
-                    {previousStitches} sts → {previousStitches} sts
+                    {baseline} sts → {baseline} sts
                 </div>
             );
         }

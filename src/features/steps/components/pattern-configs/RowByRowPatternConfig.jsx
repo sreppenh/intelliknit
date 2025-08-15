@@ -87,6 +87,16 @@ const RowByRowPatternConfig = ({
         currentProject: currentProject
     });
 
+    console.log('🎯 RowByRow Stitch Debug:', {
+        'currentStitches (prop)': currentStitches,
+        'wizardData.currentStitches': wizardData.currentStitches,
+        'What we should use': currentStitches,
+        'prop type': typeof currentStitches,
+        'prop is undefined?': currentStitches === undefined
+    });
+
+
+
 
 
     const [newActionStitches, setNewActionStitches] = useState('1'); // Default to 1
@@ -212,15 +222,13 @@ const RowByRowPatternConfig = ({
     const getStitchCalculation = () => {
         if (!tempRowText || !currentProject) return null;
 
-        // Get the actual current stitches from the component/step context
-        const componentCurrentStitches = wizardData.currentStitches ||
-            wizardData.startingStitches ||
-            80; // Only use 80 as absolute last resort
+        // Use the passed currentStitches prop as the baseline for the repeat
+        const baselineStitches = currentStitches || 80;
 
         const previousStitches = getPreviousRowStitches(
             rowInstructions,
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-            currentStitches || wizardData.currentStitches || 80  // USE PASSED currentStitches
+            baselineStitches
         );
 
         // Build custom actions lookup from project data
