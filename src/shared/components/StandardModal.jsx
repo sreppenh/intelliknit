@@ -34,28 +34,32 @@ export const StandardModal = ({
             headerText: 'text-sage-800',
             closeBtn: 'modal-close-light',
             contentBg: 'bg-white',
-            borderColor: 'border-sage-300'
+            borderColor: 'border-sage-300',
+            modalBorder: 'border-sage-200'
         },
         lavender: {
             headerBg: 'bg-lavender-200',
             headerText: 'text-lavender-800',
             closeBtn: 'modal-close-light',
             contentBg: 'bg-white',
-            borderColor: 'border-lavender-300'
+            borderColor: 'border-lavender-300',
+            modalBorder: 'border-lavender-200'
         },
         yarn: {
             headerBg: 'bg-yarn-200',
             headerText: 'text-yarn-800',
             closeBtn: 'modal-close-light',
             contentBg: 'bg-white',
-            borderColor: 'border-yarn-300'
+            borderColor: 'border-yarn-300',
+            modalBorder: 'border-yarn-200'
         },
         red: {
             headerBg: 'bg-red-100',
             headerText: 'text-red-800',
             closeBtn: 'modal-close-danger',
             contentBg: 'bg-white',
-            borderColor: 'border-red-300'
+            borderColor: 'border-red-300',
+            modalBorder: 'border-red-200'
         }
     };
 
@@ -63,7 +67,7 @@ export const StandardModal = ({
 
     return (
         <div className="modal-overlay" onClick={handleBackdropClick}>
-            <div className="modal-content-light max-h-[80vh] overflow-y-auto" {...getModalProps()}>
+            <div className={`bg-white rounded-2xl shadow-xl w-full border-2 ${colors.modalBorder} max-h-[80vh] overflow-y-auto`} {...getModalProps()} style={{ maxWidth: '90vw' }}>
 
                 {/* Connected header - no floating content! */}
                 <div className={`${colors.headerBg} ${colors.headerText} px-6 py-4 rounded-t-2xl border-b-2 ${colors.borderColor}`}>
