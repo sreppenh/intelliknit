@@ -196,6 +196,8 @@ select {
   @apply border-sage-500 bg-sage-100 text-sage-700 shadow-sm;
 }
 
+
+
 .card-selectable-compact {
   @apply border-2 rounded-lg p-3 transition-all duration-200 text-center cursor-pointer;
   @apply border-wool-200 bg-white text-wool-700;
@@ -203,12 +205,19 @@ select {
   @apply active:bg-sage-100;
 }
 
+/*
 .card-pattern-option {
-  @apply border border-wool-200 rounded-lg p-3 transition-all duration-200 text-center cursor-pointer;
+  @apply border-2 border-wool-200 rounded-lg p-3 transition-all duration-200 text-center cursor-pointer;
   @apply bg-white text-wool-700;
   @apply hover:border-sage-300 hover:bg-sage-50;
   @apply active:bg-sage-100;
 
+}
+  */
+
+/* Add this new class */
+.card-pattern-option-selected {
+  @apply border-sage-500 bg-sage-100 text-sage-700 shadow-sm;
 }
 
 /* ===== CLICKABLE CARDS (No bounce, subtle feedback) ===== */

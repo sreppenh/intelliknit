@@ -214,8 +214,8 @@ const EditPatternOverlay = ({
                                                     <button
                                                         key={pattern.name}
                                                         onClick={() => handleBasicPatternSelect(selectedQuickCategory, pattern)}
-                                                        className={`card-pattern-option ${patternData.pattern === pattern.name
-                                                            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm !bg-sage-100'
+                                                        className={`card-selectable  ${patternData.pattern === pattern.name
+                                                            ? 'card-selectable-selected'
                                                             : ''
                                                             }`}
                                                     >
