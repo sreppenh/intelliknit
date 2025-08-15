@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { StandardModal } from '../../../../../shared/components/StandardModal';
 
 /**
  * 📅 TimelineSection - Smart Date Management Showcase
@@ -156,46 +157,6 @@ const TimelineSection = ({
         setShowTimelineModal(false);
     };
 
-    // Modal behavior compliance
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showTimelineModal) {
-                handleCloseModal();
-            }
-        };
-
-        const handleEnterKey = (event) => {
-            if (event.key === 'Enter' && showTimelineModal) {
-                event.preventDefault();
-                handleSaveTimeline();
-            }
-        };
-
-        if (showTimelineModal) {
-            document.addEventListener('keydown', handleEscKey);
-            document.addEventListener('keydown', handleEnterKey);
-
-            // Auto-focus first editable date input
-            setTimeout(() => {
-                const focusElement = document.querySelector('[data-modal-focus]');
-                if (focusElement) {
-                    focusElement.focus();
-                }
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-            document.removeEventListener('keydown', handleEnterKey);
-        };
-    }, [showTimelineModal]);
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            handleCloseModal();
-        }
-    };
-
     // 📖 Read View - Conversational Timeline Display
     return (
         <>
@@ -227,94 +188,67 @@ const TimelineSection = ({
                 </div>
             </div>
 
-            {/* Timeline Edit Modal */}
-            {showTimelineModal && (
-                <div className="modal" onClick={handleBackdropClick}>
-                    <div className="modal-content-light">
-                        <div className="modal-header-light">
-                            <div className="flex items-center gap-3">
-                                <div className="text-2xl">📅</div>
-                                <div className="flex-1">
-                                    <h2 className="text-lg font-semibold">Project Timeline</h2>
-                                    <p className="text-sage-600 text-sm">Update project dates</p>
-                                </div>
-                                <button
-                                    onClick={handleCloseModal}
-                                    className="text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-12 h-8 flex items-center justify-center transition-colors"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="p-6 space-y-4">
-                            {/* Read-only system dates */}
-                            <div className="bg-wool-50 border border-wool-200 rounded-lg p-3">
-                                <h4 className="text-sm font-medium text-wool-700 mb-2">System Dates</h4>
-                                <div className="text-sm text-wool-600 space-y-1">
-                                    <div>Created: {formatDate(project.createdAt)}</div>
-                                    {project.lastActivityAt && project.lastActivityAt !== project.createdAt && (
-                                        <div>Last Modified: {formatDate(project.lastActivityAt)}</div>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Editable user dates */}
-                            <div>
-                                <label className="form-label">Started Knitting</label>
-                                <input
-                                    data-modal-focus
-                                    type="date"
-                                    value={timelineForm.startedAt || ''}
-                                    onChange={(e) => setTimelineForm(prev => ({ ...prev, startedAt: e.target.value }))}
-                                    className="details-input-field"
-                                />
-                            </div>
-
-                            {project.completed && (
-                                <div>
-                                    <label className="form-label">Completed</label>
-                                    <input
-                                        type="date"
-                                        value={timelineForm.completedAt || ''}
-                                        onChange={(e) => setTimelineForm(prev => ({ ...prev, completedAt: e.target.value }))}
-                                        className="details-input-field"
-                                    />
-                                </div>
-                            )}
-
-                            {project.frogged && (
-                                <div>
-                                    <label className="form-label">Frogged</label>
-                                    <input
-                                        type="date"
-                                        value={timelineForm.froggedAt || ''}
-                                        onChange={(e) => setTimelineForm(prev => ({ ...prev, froggedAt: e.target.value }))}
-                                        className="details-input-field"
-                                    />
-                                </div>
-                            )}
-
-                            <div className="flex gap-3 pt-4">
-                                <button
-                                    data-modal-cancel
-                                    onClick={handleCloseModal}
-                                    className="btn-tertiary flex-1"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    data-modal-primary
-                                    onClick={handleSaveTimeline}
-                                    className="btn-primary flex-1"
-                                >
-                                    Save Timeline
-                                </button>
-                            </div>
-                        </div>
+            {/* Timeline Edit Modal - NOW USING STANDARDMODAL */}
+            <StandardModal
+                isOpen={showTimelineModal}
+                onClose={handleCloseModal}
+                onConfirm={handleSaveTimeline}
+                category="input"
+                colorScheme="sage"
+                title="📅 Project Timeline"
+                subtitle="Update project dates"
+                primaryButtonText="Save Timeline"
+                secondaryButtonText="Cancel"
+            >
+                {/* Read-only system dates */}
+                <div className="bg-wool-50 border border-wool-200 rounded-lg p-3 mb-4">
+                    <h4 className="text-sm font-medium text-wool-700 mb-2">System Dates</h4>
+                    <div className="text-sm text-wool-600 space-y-1">
+                        <div>Created: {formatDate(project.createdAt)}</div>
+                        {project.lastActivityAt && project.lastActivityAt !== project.createdAt && (
+                            <div>Last Modified: {formatDate(project.lastActivityAt)}</div>
+                        )}
                     </div>
                 </div>
-            )}
+
+                {/* Editable user dates */}
+                <div className="space-y-4">
+                    <div>
+                        <label className="form-label">Started Knitting</label>
+                        <input
+                            data-modal-focus
+                            type="date"
+                            value={timelineForm.startedAt || ''}
+                            onChange={(e) => setTimelineForm(prev => ({ ...prev, startedAt: e.target.value }))}
+                            className="details-input-field"
+                        />
+                    </div>
+
+                    {project.completed && (
+                        <div>
+                            <label className="form-label">Completed</label>
+                            <input
+                                type="date"
+                                value={timelineForm.completedAt || ''}
+                                onChange={(e) => setTimelineForm(prev => ({ ...prev, completedAt: e.target.value }))}
+                                className="details-input-field"
+                            />
+                        </div>
+                    )}
+
+                    {project.frogged && (
+                        <div>
+                            <label className="form-label">Frogged</label>
+                            <input
+                                type="date"
+                                value={timelineForm.froggedAt || ''}
+                                onChange={(e) => setTimelineForm(prev => ({ ...prev, froggedAt: e.target.value }))}
+                                className="details-input-field"
+                            />
+                        </div>
+                    )}
+                </div>
+            </StandardModal>
         </>
     );
 };
