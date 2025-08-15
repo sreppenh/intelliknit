@@ -67,8 +67,7 @@ export const StandardModal = ({
 
     return (
         <div className="modal" onClick={handleBackdropClick}>
-            <div className={`bg-white rounded-2xl shadow-xl w-full border-2 ${colors.modalBorder} max-h-[80vh] overflow-y-auto`} {...getModalProps()} style={{ maxWidth: '90vw' }}>
-
+            <div className={`bg-white rounded-2xl shadow-xl w-full border-2 ${colors.modalBorder} max-h-[80vh] overflow-y-auto max-w-[90vw] sm:max-w-md lg:max-w-lg`} {...getModalProps()}>
                 {/* Connected header - no floating content! */}
                 <div className={`${colors.headerBg} ${colors.headerText} px-6 py-4 rounded-t-2xl border-b-2 ${colors.borderColor}`}>
                     <div className="flex justify-between items-start">
