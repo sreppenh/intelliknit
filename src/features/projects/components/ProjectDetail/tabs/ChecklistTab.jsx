@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
 import useProjectUpdate from '../../../../../shared/hooks/useProjectUpdate';
+import { StandardModal } from '../../../../../shared/components/StandardModal';
 
 /**
  * 📋 ChecklistTab - The Ultimate Finishing Task Management System
@@ -12,6 +13,7 @@ import useProjectUpdate from '../../../../../shared/hooks/useProjectUpdate';
  * - Mobile-optimized interactions with 44px touch targets
  * - Smooth animations and transitions
  * - Perfect data persistence
+ * - Fixed tablet/desktop modal behavior
  */
 const ChecklistTab = ({ project, onProjectUpdate }) => {
     // State management
@@ -288,38 +290,6 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
         setCustomTasks([]);
     };
 
-    // Modal behavior compliance
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showAddTaskModal) {
-                handleCloseModal();
-            }
-        };
-
-        const handleEnterKey = (event) => {
-            if (event.key === 'Enter' && showAddTaskModal && customTaskText.trim()) {
-                event.preventDefault();
-                handleAddCustomTask();
-            }
-        };
-
-        if (showAddTaskModal) {
-            document.addEventListener('keydown', handleEscKey);
-            document.addEventListener('keydown', handleEnterKey);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-            document.removeEventListener('keydown', handleEnterKey);
-        };
-    }, [showAddTaskModal, customTaskText]);
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            handleCloseModal();
-        }
-    };
-
     // Calculate completion stats
     const getCompletionStats = () => {
         const allTasks = checklist.categories.flatMap(c => c.tasks);
@@ -495,127 +465,113 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                 + Add Category (Coming Soon)
             </button>
 
-            {/* Add Tasks Modal - Updated with Mobile Scrolling + Full Width Button */}
-            {showAddTaskModal && currentCategory && (
-                <div className="modal" onClick={handleBackdropClick}>
-                    <div className="modal-content-light max-w-lg max-h-[90vh] overflow-y-auto">
-                        <div className="modal-header-light">
-                            <div className="flex items-center gap-3">
-                                <div className="text-2xl">{currentCategory.icon}</div>
-                                <div className="flex-1">
-                                    <h2 className="text-lg font-semibold">Add {currentCategory.name} Tasks</h2>
-                                    <p className="text-sage-600 text-sm">Select suggestions or add custom tasks</p>
+            {/* Add Tasks Modal - Now using StandardModal */}
+            <StandardModal
+                isOpen={showAddTaskModal && currentCategory}
+                onClose={handleCloseModal}
+                onConfirm={handleAddSelectedTasks}
+                category="complex"
+                colorScheme="sage"
+                title={`Add ${currentCategory?.name} Tasks`}
+                subtitle="Select suggestions or add custom tasks"
+                icon={currentCategory?.icon}
+                showButtons={false}
+            >
+                {/* 1. PREVIEW FIRST - Tasks to Add */}
+                {(selectedSuggestions.length > 0 || customTasks.length > 0) && (
+                    <div className="bg-sage-50 border-2 border-sage-200 rounded-xl p-4 mb-6">
+                        <h5 className="font-medium text-sage-800 mb-3 text-center">Tasks to Add</h5>
+                        <div className="space-y-2">
+                            {selectedSuggestions.map(task => (
+                                <div key={`suggestion-${task}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-sage-200">
+                                    <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
+                                    <button
+                                        onClick={() => toggleSuggestion(task)}
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
+                                        title="Remove this task"
+                                    >
+                                        ✕
+                                    </button>
                                 </div>
-                                <button
-                                    onClick={handleCloseModal}
-                                    className="text-sage-600 text-xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        </div>
-
-                        <div className="p-6 space-y-6">
-                            {/* 1. PREVIEW FIRST - Tasks to Add */}
-                            {(selectedSuggestions.length > 0 || customTasks.length > 0) && (
-                                <div className="bg-sage-50 border-2 border-sage-200 rounded-xl p-4">
-                                    <h5 className="font-medium text-sage-800 mb-3 text-center">Tasks to Add</h5>
-                                    <div className="space-y-2">
-                                        {selectedSuggestions.map(task => (
-                                            <div key={`suggestion-${task}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-sage-200">
-                                                <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
-                                                <button
-                                                    onClick={() => toggleSuggestion(task)}
-                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
-                                                    title="Remove this task"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        ))}
-                                        {customTasks.map((task, index) => (
-                                            <div key={`custom-${index}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-sage-200">
-                                                <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
-                                                <button
-                                                    onClick={() => removeCustomTask(index)}
-                                                    className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
-                                                    title="Remove this task"
-                                                >
-                                                    ✕
-                                                </button>
-                                            </div>
-                                        ))}
-                                    </div>
+                            ))}
+                            {customTasks.map((task, index) => (
+                                <div key={`custom-${index}`} className="flex items-center justify-between bg-white rounded-lg p-3 border border-sage-200">
+                                    <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
+                                    <button
+                                        onClick={() => removeCustomTask(index)}
+                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
+                                        title="Remove this task"
+                                    >
+                                        ✕
+                                    </button>
                                 </div>
-                            )}
-
-                            {/* 2. SMART SUGGESTIONS SECOND - Bubble UI */}
-                            <div>
-                                <h4 className="font-medium text-wool-700 mb-4 text-center">Smart Suggestions</h4>
-                                <div className="flex flex-wrap gap-2 justify-center mb-4">
-                                    {getSuggestionsForCategory(currentCategory.id)
-                                        .filter(suggestion => !selectedSuggestions.includes(suggestion))
-                                        .map(suggestion => (
-                                            <button
-                                                key={suggestion}
-                                                onClick={() => toggleSuggestion(suggestion)}
-                                                className="suggestion-bubble"
-                                            >
-                                                {suggestion}
-                                            </button>
-                                        ))}
-                                </div>
-                            </div>
-
-                            {/* 3. CUSTOM ENTRY THIRD - Full Width Button Like Needle Pattern */}
-                            <div className={`${(selectedSuggestions.length > 0 || customTasks.length > 0) ? 'border-t border-wool-200 pt-6' : ''} space-y-3`}>
-                                <h4 className="font-medium text-wool-700">Add Custom Task</h4>
-                                <input
-                                    type="text"
-                                    value={customTaskText}
-                                    onChange={(e) => setCustomTaskText(e.target.value)}
-                                    placeholder="Enter custom task..."
-                                    className="details-input-field w-full"
-                                    onKeyDown={(e) => {
-                                        if (e.key === 'Enter' && customTaskText.trim()) {
-                                            e.preventDefault();
-                                            handleAddCustomTask();
-                                        }
-                                    }}
-                                />
-                                <button
-                                    onClick={handleAddCustomTask}
-                                    disabled={!customTaskText.trim()}
-                                    className="w-full btn-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    + Add Custom Task
-                                </button>
-                            </div>
-
-                            {/* 4. ACTION BUTTONS LAST - Standard Modal Pattern */}
-                            <div className="flex gap-3 pt-2">
-                                <button
-                                    onClick={handleCloseModal}
-                                    data-modal-cancel
-                                    className="btn-tertiary flex-1"
-                                >
-                                    Cancel
-                                </button>
-                                <button
-                                    onClick={handleAddSelectedTasks}
-                                    disabled={selectedSuggestions.length === 0 && customTasks.length === 0}
-                                    data-modal-primary
-                                    className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
-                                >
-                                    Add {selectedSuggestions.length + customTasks.length} Tasks
-                                </button>
-                            </div>
+                            ))}
                         </div>
                     </div>
+                )}
+
+                {/* 2. SMART SUGGESTIONS SECOND - Bubble UI */}
+                <div className="mb-6">
+                    <h4 className="font-medium text-wool-700 mb-4 text-center">Smart Suggestions</h4>
+                    <div className="flex flex-wrap gap-2 justify-center mb-4">
+                        {getSuggestionsForCategory(currentCategory?.id)
+                            .filter(suggestion => !selectedSuggestions.includes(suggestion))
+                            .map(suggestion => (
+                                <button
+                                    key={suggestion}
+                                    onClick={() => toggleSuggestion(suggestion)}
+                                    className="suggestion-bubble"
+                                >
+                                    {suggestion}
+                                </button>
+                            ))}
+                    </div>
                 </div>
-            )}
 
+                {/* 3. CUSTOM ENTRY THIRD - Full Width Button Like Needle Pattern */}
+                <div className={`${(selectedSuggestions.length > 0 || customTasks.length > 0) ? 'border-t border-wool-200 pt-6' : ''} space-y-3 mb-6`}>
+                    <h4 className="font-medium text-wool-700">Add Custom Task</h4>
+                    <input
+                        type="text"
+                        value={customTaskText}
+                        onChange={(e) => setCustomTaskText(e.target.value)}
+                        placeholder="Enter custom task..."
+                        className="details-input-field w-full"
+                        onKeyDown={(e) => {
+                            if (e.key === 'Enter' && customTaskText.trim()) {
+                                e.preventDefault();
+                                handleAddCustomTask();
+                            }
+                        }}
+                    />
+                    <button
+                        onClick={handleAddCustomTask}
+                        disabled={!customTaskText.trim()}
+                        className="w-full btn-tertiary disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        + Add Custom Task
+                    </button>
+                </div>
 
+                {/* 4. ACTION BUTTONS LAST - Standard Modal Pattern */}
+                <div className="flex gap-3">
+                    <button
+                        onClick={handleCloseModal}
+                        data-modal-cancel
+                        className="btn-tertiary flex-1"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={handleAddSelectedTasks}
+                        disabled={selectedSuggestions.length === 0 && customTasks.length === 0}
+                        data-modal-primary
+                        className="btn-primary flex-1 disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        Add {selectedSuggestions.length + customTasks.length} Tasks
+                    </button>
+                </div>
+            </StandardModal>
         </div>
     );
 };
