@@ -9,7 +9,8 @@ import {
     getNextKeyboardLayer,
     getLayerDisplayName,
     getButtonStyles,
-    supportsMultipleLayers
+    supportsMultipleLayers,
+    getCustomActions
 } from '../../../../shared/utils/patternKeyboardUtils';
 import {
     handleQuickActionEnhanced,
@@ -18,8 +19,7 @@ import {
     isNumberAction
 } from '../../../../shared/utils/patternInputUtils';
 import { calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
-import { getCustomActions } from '../../../../shared/utils/patternKeyboardUtils';
-
+import RowEntryModal from './RowEntryModal';
 
 const RowByRowPatternConfig = ({
     wizardData,
