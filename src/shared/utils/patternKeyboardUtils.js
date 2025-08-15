@@ -152,7 +152,8 @@ export const getButtonStyles = (buttonType, isMobile = false) => {
         case 'fullRow':
             return `${baseClasses} bg-sage-200 text-sage-800 rounded-lg text-sm font-medium hover:bg-sage-300 border border-sage-300 transition-colors`;
         case 'input':
-            return `${baseClasses} bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors`;
+            const inputTextSize = isMobile ? 'text-base' : 'text-sm'; // ← Bigger text on mobile
+            return `${baseClasses} bg-sage-100 text-sage-700 rounded-lg ${inputTextSize} hover:bg-sage-200 transition-colors`;
         case 'action':
             const textSize = isMobile ? 'text-lg' : 'text-sm'; // ← Bigger text on mobile
             return `${baseClasses} bg-lavender-100 text-lavender-700 rounded-lg ${textSize} font-medium hover:bg-lavender-200 border border-lavender-200 transition-colors`;
