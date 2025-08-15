@@ -103,26 +103,34 @@ const appendWithCommaLogic = (currentText, newAction) => {
 
 // ===== AUTO-INCREMENT LOGIC =====
 
+// REPLACE THE ENTIRE handleAutoIncrement FUNCTION:
 export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, tempRowText, setTempRowText, setConsecutiveCount) => {
     // Only multiply if:
-    // 1. Action can be multiplied (using our new helper)
+    // 1. Action can be multiplied 
     // 2. Same action as last time  
     // 3. Have a consecutive count building
     if (shouldMultiplyAction(action) && action === lastQuickAction) {
         const newCount = consecutiveCount + 1;
         setConsecutiveCount(newCount);
 
-        // Split by comma but preserve bracket structure
-        const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
-        if (actions.length > 0) {
-            const lastIndex = actions.length - 1;
-            const lastAction = actions[lastIndex];
-
-            if (lastAction === action || lastAction.startsWith(action)) {
-                actions[lastIndex] = `${action}${newCount}`;
-                setTempRowText(actions.join(', '));
-                return true;
+        // FIXED: Better parsing that understands the actual last element
+        if (tempRowText.endsWith(`, ${action}`) || tempRowText === action) {
+            // Replace the last occurrence of the action
+            const lastCommaIndex = tempRowText.lastIndexOf(`, ${action}`);
+            if (lastCommaIndex !== -1) {
+                // Case: "K, P, K" → "K, P, K2"
+                const beforeLast = tempRowText.substring(0, lastCommaIndex);
+                setTempRowText(`${beforeLast}, ${action}${newCount}`);
+            } else if (tempRowText === action) {
+                // Case: "K" → "K2"
+                setTempRowText(`${action}${newCount}`);
             }
+            return true;
+        } else if (tempRowText.endsWith(action)) {
+            // Case: "[K" → "[K2" (no comma)
+            const beforeAction = tempRowText.substring(0, tempRowText.length - action.length);
+            setTempRowText(`${beforeAction}${action}${newCount}`);
+            return true;
         }
     }
     return false;
