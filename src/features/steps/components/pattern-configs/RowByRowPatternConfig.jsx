@@ -78,23 +78,6 @@ const RowByRowPatternConfig = ({
 
     const { currentProject, dispatch } = useProjectsContext();
 
-
-    // DIAGNOSTIC - Add this temporarily
-    console.log('🔍 Lace Calculator Debug:', {
-        wizardDataCurrentStitches: wizardData.currentStitches,
-        wizardDataStartingStitches: wizardData.startingStitches,
-        wizardData: wizardData,
-        currentProject: currentProject
-    });
-
-    console.log('🎯 RowByRow Stitch Debug:', {
-        'currentStitches (prop)': currentStitches,
-        'wizardData.currentStitches': wizardData.currentStitches,
-        'What we should use': currentStitches,
-        'prop type': typeof currentStitches,
-        'prop is undefined?': currentStitches === undefined
-    });
-
     const [newActionStitches, setNewActionStitches] = useState('1'); // Default to 1
 
     // Helper function to update project data
@@ -216,11 +199,22 @@ const RowByRowPatternConfig = ({
     };
 
     const getStitchCalculation = () => {
-        if (!tempRowText || !currentProject) return null;
+        console.log('🔧 Calculation called:', { tempRowText, currentStitches, hasProject: !!currentProject });
 
-        // Use the passed currentStitches prop as the baseline for the repeat
+        if (!currentProject) return null;  // ← Only return null if no project
+
         const baselineStitches = currentStitches || 80;
+        console.log('🔧 Baseline:', baselineStitches);
 
+        // If no text yet, return baseline calculation
+        if (!tempRowText || !tempRowText.trim()) {
+            return {
+                isValid: true,
+                previousStitches: baselineStitches,
+                totalStitches: baselineStitches,
+                stitchChange: 0
+            };
+        }
         const previousStitches = getPreviousRowStitches(
             rowInstructions,
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
