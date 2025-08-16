@@ -288,11 +288,14 @@ const RowByRowPatternConfig = ({
     // This needs to be updated in the main component to handle accumulated actions like "K36"
 
     const handleQuickAction = (action) => {
+        console.log('🔧 handleQuickAction called:', action); // ADD THIS
 
-        // Check if this is an accumulated action (like "K36", "P15", etc.)
-        // Check if this is an accumulated action (like "K36", "P15", etc.)
         const accumulatedMatch = action.match(/^([A-Za-z]+)(\d+)$/);
+        console.log('🔧 accumulatedMatch:', accumulatedMatch); // ADD THIS
+
         if (accumulatedMatch) {
+            console.log('🔧 TAKING ACCUMULATED PATH');
+
             const [, baseAction, count] = accumulatedMatch;
 
             // Add the accumulated action with smart comma logic AND merging
@@ -476,6 +479,7 @@ const RowByRowPatternConfig = ({
             handleSaveRow
         );
     };
+
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
         if (action === 'Enter' || action === '✓') {
@@ -1132,7 +1136,12 @@ const HoldableButton = ({ action, buttonType, className, children, disabled, onC
         if (holdState.isHolding) {
             if (holdState.count > 1) {
                 // Send accumulated action like "K36" - this was a real hold
-                const accumulatedAction = `${action}${holdState.count}`;
+
+                // NEW (uses smart multipliers):
+                const isSimpleAction = ['K', 'P', 'YO'].includes(action);
+                const accumulatedAction = isSimpleAction
+                    ? `${action}${holdState.count}`           // K2, P3, YO4
+                    : `${action} × ${holdState.count}`;       // K2tog × 2, SSK × 3
                 onClick(accumulatedAction);
             } else {
                 // Send single action - this was a quick tap
