@@ -270,155 +270,43 @@ const RowByRowPatternConfig = ({
         return -1; // No matching bracket found
     };
 
-    // ===== CLEAN HANDLE QUICK ACTION FUNCTION =====
-    // Enhanced Hold-Down System Fix
-    // Replace the HoldableButton component and related logic in RowByRowPatternConfig.jsx
-
-    const HoldableButton = ({ action, buttonType, className, children, disabled, onClick }) => {
-        const [holdState, setHoldState] = useState({
-            isHolding: false,
-            count: 0,
-            timer: null,
-            intervalTimer: null
-        });
-
-        // Only allow hold-down for multiplicable actions (K, P, YO, etc.)
-        const canHold = shouldMultiplyAction(action) && !disabled;
-
-        const startHoldAction = (e) => {
-            e.preventDefault();
-
-            if (!canHold) {
-                return; // Don't do anything yet for non-multiplicable actions
-            }
-
-            setHoldState(prev => ({
-                ...prev,
-                isHolding: true,
-                count: 1
-            }));
-
-            // Initial delay before starting accumulation
-            const initialTimer = setTimeout(() => {
-                let currentCount = 1;
-
-                // Start accumulating every 150ms
-                const intervalTimer = setInterval(() => {
-                    currentCount++;
-
-                    setHoldState(prev => ({
-                        ...prev,
-                        count: currentCount
-                    }));
-
-                }, 150); // 150ms intervals for smooth counting
-
-                setHoldState(prev => ({
-                    ...prev,
-                    intervalTimer
-                }));
-
-            }, 500); // 500ms initial delay
-
-            setHoldState(prev => ({
-                ...prev,
-                timer: initialTimer
-            }));
-        };
-
-        const stopHoldAction = (e) => {
-            e.preventDefault();
-
-            // Clean up timers
-            if (holdState.timer) {
-                clearTimeout(holdState.timer);
-            }
-            if (holdState.intervalTimer) {
-                clearInterval(holdState.intervalTimer);
-            }
-
-            // Send the final accumulated action ONLY when releasing
-            if (holdState.isHolding) {
-                if (holdState.count > 1) {
-                    // Send accumulated action like "K36"
-                    const accumulatedAction = `${action}${holdState.count}`;
-                    onClick(accumulatedAction);
-                } else {
-                    // Send single action if count is 1 or holding just started
-                    onClick(action);
-                }
-            }
-
-            setHoldState({
-                isHolding: false,
-                count: 0,
-                timer: null,
-                intervalTimer: null
-            });
-        };
-
-        const handleClick = (e) => {
-            e.preventDefault();
-
-            if (disabled) return;
-
-            // If not holding, send single action immediately
-            if (!holdState.isHolding) {
-                onClick(action);
-            }
-        };
-
-        // Prevent context menu on long press
-        const handleContextMenu = (e) => {
-            e.preventDefault();
-        };
-
-        // Clean up timers on unmount
-        useEffect(() => {
-            return () => {
-                if (holdState.timer) clearTimeout(holdState.timer);
-                if (holdState.intervalTimer) clearInterval(holdState.intervalTimer);
-            };
-        }, [holdState.timer, holdState.intervalTimer]);
-
-        return (
-            <button
-                className={`${className} ${holdState.isHolding ? 'ring-2 ring-sage-400 bg-sage-200' : ''}`}
-                onClick={handleClick}
-                onMouseDown={startHoldAction}
-                onMouseUp={stopHoldAction}
-                onMouseLeave={stopHoldAction} // Stop if mouse leaves button
-                onTouchStart={startHoldAction}
-                onTouchEnd={stopHoldAction}
-                onContextMenu={handleContextMenu}
-                disabled={disabled}
-                style={{ userSelect: 'none', touchAction: 'manipulation' }}
-            >
-                <span className="flex items-center justify-center">
-                    {children}
-                    {holdState.isHolding && holdState.count > 1 && (
-                        <span className="ml-1 text-xs bg-sage-600 text-white px-1.5 py-0.5 rounded-full font-bold">
-                            {holdState.count}
-                        </span>
-                    )}
-                </span>
-            </button>
-        );
-    };
 
     // ===== UPDATED handleQuickAction FUNCTION =====
     // This needs to be updated in the main component to handle accumulated actions like "K36"
 
     const handleQuickAction = (action) => {
         console.log('🔧 Action received:', action);
+        console.log('🔧 Regex test:', action.match(/^([A-Za-z]+)(\d+)$/));
 
+
+        // Check if this is an accumulated action (like "K36", "P15", etc.)
         // Check if this is an accumulated action (like "K36", "P15", etc.)
         const accumulatedMatch = action.match(/^([A-Za-z]+)(\d+)$/);
         if (accumulatedMatch) {
             const [, baseAction, count] = accumulatedMatch;
 
-            // Add the accumulated action with smart comma logic
+            // Add the accumulated action with smart comma logic AND merging
             setTempRowText(prev => {
+                const actions = prev.split(', ').filter(a => a.trim() !== '');
+
+                // Check if the last action is the same base action
+                if (actions.length > 0) {
+                    const lastAction = actions[actions.length - 1];
+                    const lastMatch = lastAction.match(/^([A-Za-z]+)(\d*)$/);
+
+                    if (lastMatch && lastMatch[1] === baseAction) {
+                        // Same base action! Merge them
+                        const existingCount = parseInt(lastMatch[2] || '1');
+                        const newCount = existingCount + parseInt(count);
+                        const mergedAction = `${baseAction}${newCount}`;
+
+                        // Replace the last action with merged version
+                        actions[actions.length - 1] = mergedAction;
+                        return actions.join(', ');
+                    }
+                }
+
+                // Not mergeable, use original logic
                 const shouldAddComma = prev &&
                     !prev.endsWith('[') &&
                     !prev.endsWith('(') &&
@@ -1118,6 +1006,7 @@ const RowByRowPatternConfig = ({
                                 rowInstructions={rowInstructions}
                                 onAction={handleQuickAction}
                                 bracketState={bracketState}
+                                tempRowText={tempRowText}  // ← ADD THIS LINE
                                 isLocked={tempRowText === 'K to end' || tempRowText === 'P to end' ||
                                     tempRowText === 'K all' || tempRowText === 'P all'} />
                         </>
@@ -1129,6 +1018,191 @@ const RowByRowPatternConfig = ({
     );
 };
 
+// ===== CLEAN HANDLE QUICK ACTION FUNCTION =====
+// Enhanced Hold-Down System Fix
+// Replace the HoldableButton component and related logic in RowByRowPatternConfig.jsx
+
+const HoldableButton = ({ action, buttonType, className, children, disabled, onClick, tempRowText }) => {
+    const [holdState, setHoldState] = useState({
+        isHolding: false,
+        count: 0,
+        timer: null,
+        intervalTimer: null,
+        mousePressed: false  // This prevents hover issues!
+    });
+
+    // Only allow hold-down for multiplicable actions (K, P, YO, etc.)
+    const canHold = shouldMultiplyAction(action) && !disabled;
+
+
+    const getDisplayCount = () => {
+        // Get current text from parent scope (tempRowText should be accessible)
+        const currentText = tempRowText || '';
+        const actions = currentText.split(', ').filter(a => a.trim() !== '');
+
+        if (actions.length > 0) {
+            const lastAction = actions[actions.length - 1];
+            const lastMatch = lastAction.match(/^([A-Za-z]+)(\d*)$/);
+
+            if (lastMatch && lastMatch[1] === action) {
+                // Same base action! Show final total
+                const existingCount = parseInt(lastMatch[2] || '1');
+                return existingCount + holdState.count;
+            }
+        }
+
+        // No merge, show just the hold count
+        return holdState.count;
+    };
+
+
+    const startHoldAction = (e) => {
+        e.preventDefault();
+
+        console.log('🔧 startHoldAction:', action, 'canHold:', canHold);
+
+        if (!canHold) {
+            // For non-multiplicable actions, send immediately
+            onClick(action);
+            return;
+        }
+
+        setHoldState(prev => ({
+            ...prev,
+            isHolding: true,
+            mousePressed: true,  // Track that mouse is actually pressed
+            count: 1
+        }));
+
+        // Initial delay before starting accumulation
+        const initialTimer = setTimeout(() => {
+            let currentCount = 1;
+
+            // Start accumulating every 150ms
+            const intervalTimer = setInterval(() => {
+                currentCount++;
+                console.log('🔧 Interval tick:', currentCount);
+
+                setHoldState(prev => ({
+                    ...prev,
+                    count: currentCount
+                }));
+
+            }, 150); // 150ms intervals for smooth counting
+
+            setHoldState(prev => ({
+                ...prev,
+                intervalTimer
+            }));
+
+        }, 500); // 500ms initial delay
+
+        setHoldState(prev => ({
+            ...prev,
+            timer: initialTimer
+        }));
+    };
+
+    const stopHoldAction = (e) => {
+        e.preventDefault();
+
+        console.log('🔧 stopHoldAction:', {
+            isHolding: holdState.isHolding,
+            mousePressed: holdState.mousePressed,
+            count: holdState.count,
+            hasIntervalTimer: !!holdState.intervalTimer
+        });
+
+        // Only process if we were actually pressing the mouse
+        if (!holdState.mousePressed) {
+            return;
+        }
+
+        // Clean up timers
+        if (holdState.timer) {
+            clearTimeout(holdState.timer);
+        }
+        if (holdState.intervalTimer) {
+            clearInterval(holdState.intervalTimer);
+        }
+
+        // Send the final accumulated action ONLY when releasing
+        if (holdState.isHolding) {
+            if (holdState.count > 1) {
+                // Send accumulated action like "K36" - this was a real hold
+                const accumulatedAction = `${action}${holdState.count}`;
+                console.log('🔧 Sending accumulated:', accumulatedAction);
+                onClick(accumulatedAction);
+            } else {
+                // Send single action - this was a quick tap
+                console.log('🔧 Sending single:', action);
+                onClick(action);
+            }
+        }
+
+        setHoldState({
+            isHolding: false,
+            count: 0,
+            timer: null,
+            intervalTimer: null,
+            mousePressed: false
+        });
+    };
+
+
+
+
+    const handleMouseLeave = (e) => {
+        // Only stop if we were actually pressing
+        if (holdState.mousePressed) {
+            stopHoldAction(e);
+        }
+    };
+
+    const handleClick = (e) => {
+        e.preventDefault();
+        // Don't do anything here - let the mouse/touch events handle everything
+    };
+
+    // Prevent context menu on long press
+    const handleContextMenu = (e) => {
+        e.preventDefault();
+    };
+
+    // Clean up timers on unmount
+    useEffect(() => {
+        return () => {
+            if (holdState.timer) clearTimeout(holdState.timer);
+            if (holdState.intervalTimer) clearInterval(holdState.intervalTimer);
+        };
+    }, [holdState.timer, holdState.intervalTimer]);
+
+    return (
+        <button
+            className={`${className} ${holdState.isHolding ? 'ring-2 ring-sage-400 bg-sage-200' : ''}`}
+            onClick={handleClick}
+            onMouseDown={startHoldAction}
+            onMouseUp={stopHoldAction}
+            onMouseLeave={handleMouseLeave} // NEW: More careful mouse leave
+            onTouchStart={startHoldAction}
+            onTouchEnd={stopHoldAction}
+            onContextMenu={handleContextMenu}
+            disabled={disabled}
+            style={{ userSelect: 'none', touchAction: 'manipulation' }}
+        >
+            <span className="flex items-center justify-center">
+                {children}
+                {holdState.isHolding && holdState.count > 1 && (
+                    <span className="ml-1 text-xs bg-sage-600 text-white px-1.5 py-0.5 rounded-full font-bold">
+                        {getDisplayCount()}
+                    </span>
+                )}
+            </span>
+        </button>
+    );
+};
+
+
 const EnhancedKeyboard = ({
     patternType,
     layer,
@@ -1138,12 +1212,20 @@ const EnhancedKeyboard = ({
     rowInstructions,
     bracketState,
     onAction,
+    tempRowText,
     isLocked = false,
 }) => {
     const keyboardLayout = getKeyboardLayout(patternType, layer, context);
 
     // Enhanced Keyboard with Hold-Down Functionality
     // Replace the input section in EnhancedKeyboard component
+
+    const [editingCustomIndex, setEditingCustomIndex] = useState(null);
+    const [customForm, setCustomForm] = useState({
+        name: '',
+        consumed: 1,
+        stitches: 1
+    });
 
     // ===== HOLD-DOWN STATE MANAGEMENT =====
     const [holdTimers, setHoldTimers] = useState(new Map());
@@ -1209,135 +1291,6 @@ const EnhancedKeyboard = ({
         };
     }, []);
 
-    // ===== ENHANCED BUTTON COMPONENT =====
-    const HoldableButton = ({ action, buttonType, className, children, disabled, onClick }) => {
-        const [holdState, setHoldState] = useState({
-            isHolding: false,
-            count: 0,
-            timer: null,
-            intervalTimer: null
-        });
-
-        // Only allow hold-down for multiplicable actions (K, P, YO, etc.)
-        const canHold = shouldMultiplyAction(action) && !disabled;
-
-        const startHoldAction = (e) => {
-            e.preventDefault();
-
-            if (!canHold) {
-                return; // Don't do anything yet for non-multiplicable actions
-            }
-
-            setHoldState(prev => ({
-                ...prev,
-                isHolding: true,
-                count: 1
-            }));
-
-            // Initial delay before starting accumulation
-            const initialTimer = setTimeout(() => {
-                let currentCount = 1;
-
-                // Start accumulating every 150ms
-                const intervalTimer = setInterval(() => {
-                    currentCount++;
-
-                    setHoldState(prev => ({
-                        ...prev,
-                        count: currentCount
-                    }));
-
-                }, 150); // 150ms intervals for smooth counting
-
-                setHoldState(prev => ({
-                    ...prev,
-                    intervalTimer
-                }));
-
-            }, 500); // 500ms initial delay
-
-            setHoldState(prev => ({
-                ...prev,
-                timer: initialTimer
-            }));
-        };
-
-        const stopHoldAction = (e) => {
-            e.preventDefault();
-
-            // Clean up timers
-            if (holdState.timer) {
-                clearTimeout(holdState.timer);
-            }
-            if (holdState.intervalTimer) {
-                clearInterval(holdState.intervalTimer);
-            }
-
-            // Send the final accumulated action ONLY when releasing
-            if (holdState.isHolding) {
-                if (holdState.count > 1) {
-                    // Send accumulated action like "K36"
-                    const accumulatedAction = `${action}${holdState.count}`;
-                    onClick(accumulatedAction);
-                } else {
-                    // Send single action if count is 1 or holding just started
-                    onClick(action);
-                }
-            }
-
-            setHoldState({
-                isHolding: false,
-                count: 0,
-                timer: null,
-                intervalTimer: null
-            });
-        };
-
-        const handleClick = (e) => {
-            e.preventDefault();
-            // Don't do anything here - let the mouse/touch events handle everything
-            // This prevents double-firing of actions
-        };
-
-        // Prevent context menu on long press
-        const handleContextMenu = (e) => {
-            e.preventDefault();
-        };
-
-        // Clean up timers on unmount
-        useEffect(() => {
-            return () => {
-                if (holdState.timer) clearTimeout(holdState.timer);
-                if (holdState.intervalTimer) clearInterval(holdState.intervalTimer);
-            };
-        }, [holdState.timer, holdState.intervalTimer]);
-
-        return (
-            <button
-                className={`${className} ${holdState.isHolding ? 'ring-2 ring-sage-400 bg-sage-200' : ''}`}
-                onClick={handleClick}
-                onMouseDown={startHoldAction}
-                onMouseUp={stopHoldAction}
-                onMouseLeave={stopHoldAction} // Stop if mouse leaves button
-                onTouchStart={startHoldAction}
-                onTouchEnd={stopHoldAction}
-                onContextMenu={handleContextMenu}
-                disabled={disabled}
-                style={{ userSelect: 'none', touchAction: 'manipulation' }}
-            >
-                <span className="flex items-center justify-center">
-                    {children}
-                    {holdState.isHolding && holdState.count > 1 && (
-                        <span className="ml-1 text-xs bg-sage-600 text-white px-1.5 py-0.5 rounded-full font-bold">
-                            {holdState.count}
-                        </span>
-                    )}
-                </span>
-            </button>
-        );
-    };
-
-
 
     // Get custom actions for current pattern type
     const customActions = ((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
@@ -1347,53 +1300,53 @@ const EnhancedKeyboard = ({
     // Handle custom action click
     const handleCustomAction = (action, index) => {
         if (action === 'Custom') {
-            // Enhanced prompt for custom actions
-            const newAction = prompt('Enter custom action name (max 8 characters):');
-            if (newAction && newAction.trim()) {
-                const stitchCount = prompt('How many stitches does this produce?', '1');
-                const stitches = parseInt(stitchCount);
-
-                // Validate stitch count
-                if (isNaN(stitches) || stitches < 0) {
-                    alert('Please enter a valid number of stitches (0 or higher)');
-                    return;
-                }
-
-                const trimmedAction = newAction.trim().substring(0, 8);
-
-                // Store as object with stitch count
-                const customActionData = {
-                    name: trimmedAction,
-                    stitches: stitches
-                };
-
-                // Update storage format
-                const key = patternType === 'Lace Pattern' ? 'lace' :
-                    patternType === 'Cable Pattern' ? 'cable' : 'general';
-
-                const currentCustomActions = context?.project?.customKeyboardActions || {};
-                const patternActions = [...(currentCustomActions[key] || [])];
-
-                while (patternActions.length < 4) {
-                    patternActions.push('Custom');
-                }
-
-                patternActions[index] = customActionData;
-
-                const updatedCustomActions = {
-                    ...currentCustomActions,
-                    [key]: patternActions
-                };
-
-                if (context?.updateProject) {
-                    context.updateProject({ customKeyboardActions: updatedCustomActions });
-                }
-            }
+            setEditingCustomIndex(index);
+            setCustomForm({ name: '', consumed: 1, stitches: 1 });
         } else {
-            // Use the custom action
             const actionName = typeof action === 'object' ? action.name : action;
             onAction(actionName);
         }
+    };
+
+    const handleSaveCustomAction = () => {
+        if (!customForm.name.trim()) {
+            alert('Please enter a name for the custom action');
+            return;
+        }
+
+        const trimmedAction = customForm.name.trim().substring(0, 8);
+        const customActionData = {
+            name: trimmedAction,
+            consumed: customForm.consumed,
+            stitches: customForm.stitches
+        };
+
+        const key = patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general';
+        const currentCustomActions = context?.project?.customKeyboardActions || {};
+        const patternActions = [...(currentCustomActions[key] || [])];
+
+        while (patternActions.length < 4) {
+            patternActions.push('Custom');
+        }
+
+        patternActions[editingCustomIndex] = customActionData;
+
+        const updatedCustomActions = {
+            ...currentCustomActions,
+            [key]: patternActions
+        };
+
+        if (context?.updateProject) {
+            context.updateProject({ customKeyboardActions: updatedCustomActions });
+        }
+
+        setEditingCustomIndex(null);
+        setCustomForm({ name: '', consumed: 1, stitches: 1 });
+    };
+
+    const handleCancelCustomAction = () => {
+        setEditingCustomIndex(null);
+        setCustomForm({ name: '', consumed: 1, stitches: 1 });
     };
 
     // Handle long press for editing existing custom actions
@@ -1456,8 +1409,8 @@ const EnhancedKeyboard = ({
                             action={action}
                             className={`${getButtonStyles('fullRow', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={isDisabled}
-                            onClick={() => onAction(action)}
-                        >
+                            tempRowText={tempRowText}
+                            onClick={onAction} >
                             {action}
                         </HoldableButton>
                     );
@@ -1483,8 +1436,8 @@ const EnhancedKeyboard = ({
                             buttonType={buttonType}
                             className={buttonClass}
                             disabled={isDisabled}
-                            onClick={() => onAction(action)}
-                        >
+                            tempRowText={tempRowText}
+                            onClick={onAction} >
                             {action}
                         </HoldableButton>
                     );
@@ -1519,8 +1472,8 @@ const EnhancedKeyboard = ({
                             action={displayAction}
                             className={`${getButtonStyles('action', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={isDisabled}
-                            onClick={() => onAction(displayAction)}
-                        >
+                            tempRowText={tempRowText}
+                            onClick={onAction}  >
                             {displayAction}
                         </HoldableButton>
                     );
@@ -1530,42 +1483,152 @@ const EnhancedKeyboard = ({
             {/* Custom Actions Row (Secondary for Lace, Tertiary for Cable) */}
             {((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
                 (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) && (
-                    <div className="grid grid-cols-4 gap-3">
-                        {customActions.map((action, index) => {
-                            let pressTimer;
+                    <>
+                        {/* Original 4-button grid - completely normal */}
+                        <div className="grid grid-cols-4 gap-3">
+                            {customActions.map((action, index) => {
+                                let pressTimer;
 
-                            return (
-                                <button
-                                    key={`custom-${index}`}
-                                    onClick={() => handleCustomAction(action, index)}
-                                    onMouseDown={() => {
-                                        pressTimer = setTimeout(() => {
-                                            handleCustomLongPress(action, index);
-                                        }, 500);
-                                    }}
-                                    onMouseUp={() => clearTimeout(pressTimer)}
-                                    onMouseLeave={() => clearTimeout(pressTimer)}
-                                    onTouchStart={() => {
-                                        pressTimer = setTimeout(() => {
-                                            handleCustomLongPress(action, index);
-                                        }, 500);
-                                    }}
-                                    onTouchEnd={() => clearTimeout(pressTimer)}
-                                    className={`h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
-                                        ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
-                                        : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
-                                        }`}
-                                >
-                                    {action === 'Custom' ? (
-                                        <span className="italic">Custom</span>
-                                    ) : (
-                                        typeof action === 'object' ? action.name : action
-                                    )}
-                                </button>
-                            );
-                        })}
-                    </div>
+                                return (
+                                    <button
+                                        key={`custom-${index}`}
+                                        onClick={() => handleCustomAction(action, index)}
+                                        onMouseDown={() => {
+                                            if (action !== 'Custom') {
+                                                pressTimer = setTimeout(() => {
+                                                    setEditingCustomIndex(index);
+                                                    setCustomForm({
+                                                        name: action.name || '',
+                                                        consumed: action.consumed || 1,
+                                                        stitches: action.stitches || 1
+                                                    });
+                                                }, 500);
+                                            }
+                                        }}
+                                        onMouseUp={() => clearTimeout(pressTimer)}
+                                        onMouseLeave={() => clearTimeout(pressTimer)}
+                                        onTouchStart={() => {
+                                            if (action !== 'Custom') {
+                                                pressTimer = setTimeout(() => {
+                                                    setEditingCustomIndex(index);
+                                                    setCustomForm({
+                                                        name: action.name || '',
+                                                        consumed: action.consumed || 1,
+                                                        stitches: action.stitches || 1
+                                                    });
+                                                }, 500);
+                                            }
+                                        }}
+                                        onTouchEnd={() => clearTimeout(pressTimer)}
+                                        className={`h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
+                                            ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
+                                            : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
+                                            }`}
+                                    >
+                                        {action === 'Custom' ? (
+                                            <span className="italic">+ Custom</span>
+                                        ) : (
+                                            typeof action === 'object' ? action.name : action
+                                        )}
+                                    </button>
+                                );
+                            })}
+                        </div>
+
+                        {/* YARN-THEMED OVERLAY - minimal and clean */}
+                        {editingCustomIndex !== null && (
+                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+                                {/* No backdrop - direct overlay */}
+                                <div className="bg-white rounded-2xl shadow-xl border-2 border-yarn-200 w-full max-w-sm max-h-[80vh] overflow-y-auto">
+                                    {/* Minimal header */}
+                                    <div className="bg-yarn-200 text-yarn-800 px-6 py-4 rounded-t-2xl border-b-2 border-yarn-300">
+                                        <h2 className="text-lg font-semibold text-center">
+                                            Create Custom Stitch
+                                        </h2>
+                                    </div>
+
+                                    {/* Clean form content */}
+                                    <div className="bg-white px-6 py-6">
+                                        <div className="space-y-5">
+                                            {/* Name */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-wool-700 mb-2">
+                                                    Name
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    value={customForm.name}
+                                                    onChange={(e) => setCustomForm(prev => ({
+                                                        ...prev,
+                                                        name: e.target.value.substring(0, 8)
+                                                    }))}
+                                                    maxLength={8}
+                                                    placeholder="8 char limit"
+                                                    className="w-full px-4 py-3 border-2 border-wool-300 rounded-lg text-base font-mono focus:border-yarn-500 focus:outline-none transition-colors"
+                                                    autoFocus
+                                                />
+                                            </div>
+
+                                            {/* Consumed Stitches */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-wool-700 mb-2">
+                                                    Consumed Stitches
+                                                </label>
+                                                <IncrementInput
+                                                    value={customForm.consumed}
+                                                    onChange={(value) => setCustomForm(prev => ({
+                                                        ...prev,
+                                                        consumed: value
+                                                    }))}
+                                                    min={0}
+                                                    max={10}
+                                                    unit="stitches"
+                                                    size="default"
+                                                />
+                                            </div>
+
+                                            {/* Resulting Stitches */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-wool-700 mb-2">
+                                                    Resulting Stitches
+                                                </label>
+                                                <IncrementInput
+                                                    value={customForm.stitches}
+                                                    onChange={(value) => setCustomForm(prev => ({
+                                                        ...prev,
+                                                        stitches: value
+                                                    }))}
+                                                    min={0}
+                                                    max={10}
+                                                    unit="stitches"
+                                                    size="default"
+                                                />
+                                            </div>
+                                        </div>
+
+                                        {/* Action Buttons */}
+                                        <div className="flex gap-3 mt-6">
+                                            <button
+                                                onClick={handleCancelCustomAction}
+                                                className="flex-1 btn-tertiary"
+                                            >
+                                                Cancel
+                                            </button>
+                                            <button
+                                                onClick={handleSaveCustomAction}
+                                                disabled={!customForm.name.trim()}
+                                                className="flex-1 btn-secondary"
+                                            >
+                                                Save
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </>
                 )}
+
             {/* Copy Row Actions (if any) */}
             {rowInstructions.length > 0 &&
                 !((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
