@@ -434,7 +434,6 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        // ===== REST OF THE EXISTING LOGIC UNCHANGED =====
 
         // Helper functions
         const resetAutoIncrement = () => {
@@ -579,7 +578,6 @@ const RowByRowPatternConfig = ({
             handleSaveRow
         );
     };
-
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
         if (action === 'Enter' || action === '✓') {
@@ -1297,13 +1295,8 @@ const EnhancedKeyboard = ({
 
         const handleClick = (e) => {
             e.preventDefault();
-
-            if (disabled) return;
-
-            // If not holding, send single action immediately
-            if (!holdState.isHolding) {
-                onClick(action);
-            }
+            // Don't do anything here - let the mouse/touch events handle everything
+            // This prevents double-firing of actions
         };
 
         // Prevent context menu on long press
