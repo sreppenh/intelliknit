@@ -352,6 +352,7 @@ const RowByRowPatternConfig = ({
                     return;
                 }
                 // If no matching paren, just continue with regular bracket handling
+                return;  // ← ADD THIS LINE!
             }
         }
 
