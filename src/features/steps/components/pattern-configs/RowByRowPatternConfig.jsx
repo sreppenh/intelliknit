@@ -1132,7 +1132,7 @@ const EnhancedKeyboard = ({
                 })}
             </div>
 
-            {/* Action Buttons (Lavender - bottom row) */}
+            // Action Buttons (Lavender - bottom row)
             <div className="grid grid-cols-4 gap-3">
                 {keyboardLayout.actions.map((action, index) => {
                     // Dynamic button display based on current state
@@ -1143,7 +1143,17 @@ const EnhancedKeyboard = ({
                         displayAction = ')';
                     }
 
-                    const isDisabled = isLocked && !['⌫'].includes(action);
+                    // BRACKET MATCHING ENFORCEMENT
+                    let isDisabledByBracketRules = false;
+                    if (displayAction === ']' && bracketState.hasOpenParen) {
+                        // Can't close bracket while paren is open
+                        isDisabledByBracketRules = true;
+                    } else if (displayAction === ')' && bracketState.hasOpenBracket && !bracketState.hasOpenParen) {
+                        // Can't close paren when only bracket is open (no open paren)
+                        isDisabledByBracketRules = true;
+                    }
+
+                    const isDisabled = isLocked || isDisabledByBracketRules;
 
                     return (
                         <button
