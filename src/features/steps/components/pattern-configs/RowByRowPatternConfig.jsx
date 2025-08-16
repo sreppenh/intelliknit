@@ -982,6 +982,131 @@ const EnhancedKeyboard = ({
 }) => {
     const keyboardLayout = getKeyboardLayout(patternType, layer, context);
 
+    // Enhanced Keyboard with Hold-Down Functionality
+    // Replace the input section in EnhancedKeyboard component
+
+    // ===== HOLD-DOWN STATE MANAGEMENT =====
+    const [holdTimers, setHoldTimers] = useState(new Map());
+    const [isHolding, setIsHolding] = useState(false);
+
+    // ===== HOLD-DOWN FUNCTIONALITY =====
+    const startHoldAction = (action) => {
+        if (holdTimers.has(action)) return; // Already holding this action
+
+        setIsHolding(true);
+
+        // Initial delay before starting rapid-fire
+        const initialTimer = setTimeout(() => {
+            // Start rapid-fire with accelerating speed
+            let interval = 300; // Start at 300ms
+            const minInterval = 100; // Speed up to 100ms
+            const acceleration = 0.9; // Each repeat gets 10% faster
+
+            const rapidFire = () => {
+                onAction(action); // Execute the action
+
+                // Speed up for next iteration
+                interval = Math.max(minInterval, interval * acceleration);
+
+                // Schedule next action
+                const nextTimer = setTimeout(rapidFire, interval);
+
+                // Store the timer so we can cancel it
+                setHoldTimers(prev => new Map(prev).set(action, nextTimer));
+            };
+
+            // Start the rapid-fire sequence
+            rapidFire();
+
+        }, 500); // 500ms initial delay
+
+        // Store the initial timer
+        setHoldTimers(prev => new Map(prev).set(action, initialTimer));
+    };
+
+    const stopHoldAction = (action) => {
+        const timer = holdTimers.get(action);
+        if (timer) {
+            clearTimeout(timer);
+            setHoldTimers(prev => {
+                const newMap = new Map(prev);
+                newMap.delete(action);
+                return newMap;
+            });
+        }
+
+        // Check if we're still holding any actions
+        const stillHolding = Array.from(holdTimers.keys()).some(key => key !== action);
+        if (!stillHolding) {
+            setIsHolding(false);
+        }
+    };
+
+    // Clean up all timers on unmount
+    useEffect(() => {
+        return () => {
+            holdTimers.forEach(timer => clearTimeout(timer));
+        };
+    }, []);
+
+    // ===== ENHANCED BUTTON COMPONENT =====
+    const HoldableButton = ({ action, buttonType, className, children, disabled, onClick }) => {
+        const handleMouseDown = (e) => {
+            e.preventDefault();
+            if (!disabled) {
+                startHoldAction(action);
+            }
+        };
+
+        const handleMouseUp = (e) => {
+            e.preventDefault();
+            stopHoldAction(action);
+        };
+
+        const handleTouchStart = (e) => {
+            e.preventDefault();
+            if (!disabled) {
+                startHoldAction(action);
+            }
+        };
+
+        const handleTouchEnd = (e) => {
+            e.preventDefault();
+            stopHoldAction(action);
+        };
+
+        const handleClick = (e) => {
+            e.preventDefault();
+            if (!disabled && !isHolding) {
+                onClick();
+            }
+        };
+
+        // Prevent context menu on long press
+        const handleContextMenu = (e) => {
+            e.preventDefault();
+        };
+
+        return (
+            <button
+                className={className}
+                onClick={handleClick}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+                onMouseLeave={handleMouseUp} // Stop if mouse leaves button
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onContextMenu={handleContextMenu}
+                disabled={disabled}
+                style={{ userSelect: 'none', touchAction: 'manipulation' }}
+            >
+                {children}
+            </button>
+        );
+    };
+
+
+
     // Get custom actions for current pattern type
     const customActions = ((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
         (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) ?
@@ -1094,19 +1219,19 @@ const EnhancedKeyboard = ({
                 {keyboardLayout.fullRow.map((action, index) => {
                     const isDisabled = isLocked && !['⌫'].includes(action);
                     return (
-                        <button
+                        <HoldableButton
                             key={`fullrow-${action}-${index}`}
-                            onClick={() => !isDisabled && onAction(action)}
-                            disabled={isDisabled}
+                            action={action}
                             className={`${getButtonStyles('fullRow', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={isDisabled}
+                            onClick={() => onAction(action)}
                         >
                             {action}
-                        </button>
+                        </HoldableButton>
                     );
                 })}
             </div>
 
-            {/* Input Actions (Light Sage - main keyboard) */}
             {/* Input Actions (Light Sage - main keyboard) */}
             <div className="grid gap-2 grid-cols-3 md:grid-cols-6 lg:grid-cols-8">
                 {keyboardLayout.input.map((action, index) => {
@@ -1114,25 +1239,28 @@ const EnhancedKeyboard = ({
                         action.startsWith('Custom ') ? 'special' :
                             'input';
 
-                    const isDisabled = isLocked && !['⌫'].includes(action); // ← ADD THIS
+                    const isDisabled = isLocked && !['⌫'].includes(action);
                     const buttonClass = isDisabled ?
                         `${getButtonStyles(buttonType, isMobile)} opacity-50 cursor-not-allowed` :
                         getButtonStyles(buttonType, isMobile);
 
                     return (
-                        <button
+                        <HoldableButton
                             key={`input-${action}-${index}`}
-                            onClick={() => !isDisabled && onAction(action)}  // ← ADD DISABLED CHECK
-                            disabled={isDisabled}  // ← ADD THIS
+                            action={action}
+                            buttonType={buttonType}
                             className={buttonClass}
+                            disabled={isDisabled}
+                            onClick={() => onAction(action)}
                         >
                             {action}
-                        </button>
+                        </HoldableButton>
                     );
                 })}
             </div>
 
-            {/* Lavender Action Buttons */}
+
+            {/* Action Buttons (Lavender - bottom row) */}
             <div className="grid grid-cols-4 gap-3">
                 {keyboardLayout.actions.map((action, index) => {
                     // Dynamic button display based on current state
@@ -1146,24 +1274,23 @@ const EnhancedKeyboard = ({
                     // BRACKET MATCHING ENFORCEMENT
                     let isDisabledByBracketRules = false;
                     if (displayAction === ']' && bracketState.hasOpenParen) {
-                        // Can't close bracket while paren is open
                         isDisabledByBracketRules = true;
                     } else if (displayAction === ')' && bracketState.hasOpenBracket && !bracketState.hasOpenParen) {
-                        // Can't close paren when only bracket is open (no open paren)
                         isDisabledByBracketRules = true;
                     }
 
                     const isDisabled = isLocked || isDisabledByBracketRules;
 
                     return (
-                        <button
+                        <HoldableButton
                             key={`action-${action}-${index}`}
-                            onClick={() => !isDisabled && onAction(displayAction)}
-                            disabled={isDisabled}
+                            action={displayAction}
                             className={`${getButtonStyles('action', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={isDisabled}
+                            onClick={() => onAction(displayAction)}
                         >
                             {displayAction}
-                        </button>
+                        </HoldableButton>
                     );
                 })}
             </div>
