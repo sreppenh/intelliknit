@@ -54,9 +54,13 @@ const RowByRowPatternConfig = ({
     const [keyboardMode, setKeyboardMode] = useState('pattern'); // 'pattern' | 'numbers'
     const [pendingRepeatText, setPendingRepeatText] = useState('');
 
+    const [currentNumber, setCurrentNumber] = useState('');
+
     const [bracketState, setBracketState] = useState({
         hasOpenBracket: false,
         hasOpenParen: false
+
+
     });
 
     // Initialize entryMode if not set (backwards compatibility)
@@ -266,10 +270,12 @@ const RowByRowPatternConfig = ({
                 setCurrentKeyboardLayer(nextLayer);
 
                 // Add numbers as third layer for lace patterns
+                // Add numbers as third layer for lace patterns
                 if (nextLayer === KEYBOARD_LAYERS.PRIMARY && currentKeyboardLayer === KEYBOARD_LAYERS.SECONDARY) {
                     // Going from secondary back to primary - trigger number mode instead
                     setKeyboardMode('numbers');
-                    setPendingRepeatText(tempRowText + ' × ');
+                    // MANUAL mode: No auto-brackets, just set up for number entry
+                    setPendingRepeatText('');
                     return;
                 }
             }
@@ -336,30 +342,44 @@ const RowByRowPatternConfig = ({
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
         if (action === 'Enter' || action === '✓') {
-            // Complete the repeat with multiplier
-            setTempRowText(pendingRepeatText);
+            // Check if we're in manual mode (no pending text) vs bracket mode
+            if (!pendingRepeatText || pendingRepeatText === '') {
+                // Manual mode: Just add the accumulated number to text
+                const numberDisplay = currentNumber || '';
+                if (numberDisplay) {
+                    setTempRowText(prev => prev ? `${prev}, ${currentNumber}` : currentNumber);
+                }
+            } else {
+                // Bracket mode: Complete the repeat with multiplier
+                setTempRowText(pendingRepeatText);
+            }
             setKeyboardMode('pattern');
             setPendingRepeatText('');
+            setCurrentNumber('');
             return;
         }
 
         if (action === 'Cancel' || action === '✗') {
-            // Cancel repeat creation
-            setTempRowText(prev => prev.replace(/\]$/, '')); // Remove the ]
+            // Cancel and return to pattern mode
             setKeyboardMode('pattern');
             setPendingRepeatText('');
-            setIsCreatingRepeat(true);
+            setCurrentNumber('');
             return;
         }
 
         if (isNumberAction(action)) {
-            // FIXED: Append numbers instead of replacing
-            const currentText = pendingRepeatText.replace(/\]\s*×?\s*\d*$/, ''); // Remove existing multiplier
-            const existingMultiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1] || '';
-            const newMultiplier = existingMultiplier + action; // ← APPEND, don't replace
-            const newText = `${currentText}] × ${newMultiplier}`;
-            setPendingRepeatText(newText);
-            setTempRowText(newText);
+            if (!pendingRepeatText || pendingRepeatText === '') {
+                // MANUAL MODE: Build up a number like "20"
+                setCurrentNumber(prev => (prev || '') + action);
+            } else {
+                // BRACKET MODE: Add multiplier to existing bracket
+                const currentText = pendingRepeatText.replace(/\]\s*×?\s*\d*$/, '');
+                const existingMultiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1] || '';
+                const newMultiplier = existingMultiplier + action;
+                const newText = `${currentText}] × ${newMultiplier}`;
+                setPendingRepeatText(newText);
+                setTempRowText(newText);
+            }
             return;
         }
     };
@@ -549,10 +569,10 @@ const RowByRowPatternConfig = ({
                 {/* Show current repeat being built */}
                 <div className="bg-lavender-50 border-2 border-lavender-200 rounded-lg p-3">
                     <div className="text-sm font-medium text-lavender-700 mb-1">
-                        How many times?
+                        {pendingText && pendingText !== '' ? 'How many times?' : 'Enter number:'}
                     </div>
                     <div className="text-base font-mono text-wool-700">
-                        {pendingText}
+                        {pendingText && pendingText !== '' ? pendingText : (currentNumber || '0')}
                     </div>
                 </div>
 
