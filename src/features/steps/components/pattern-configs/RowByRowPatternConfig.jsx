@@ -407,7 +407,6 @@ const RowByRowPatternConfig = ({
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
         if (action === 'Enter' || action === '✓') {
-            // Check if we're in manual mode (no pending text) vs bracket mode
             if (!pendingRepeatText || pendingRepeatText === '') {
                 // Manual mode: Just add the accumulated number to text
                 const numberDisplay = currentNumber || '';
@@ -415,15 +414,17 @@ const RowByRowPatternConfig = ({
                     setTempRowText(prev => prev ? `${prev}, ${currentNumber}` : currentNumber);
                 }
             } else {
-                // Bracket mode: Complete the repeat with multiplier
-                setTempRowText(pendingRepeatText);
+                // BRACKET MODE: Just append the multiplier to existing text
+                const multiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1];
+                if (multiplier) {
+                    setTempRowText(prev => `${prev} × ${multiplier}`);
+                }
             }
             setKeyboardMode('pattern');
             setPendingRepeatText('');
             setCurrentNumber('');
             return;
         }
-
         if (action === 'Cancel' || action === '✗') {
             // Cancel and return to pattern mode
             setKeyboardMode('pattern');
