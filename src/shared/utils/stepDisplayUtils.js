@@ -547,15 +547,16 @@ export const getComponentStatusWithDisplay = (component) => {
 export const getPatternQuickActions = (patternType) => {
     switch (patternType) {
         case 'Cable Pattern':
-            return ['K all', 'P all', 'C6F', 'C6B', 'T2F', 'T2B'];
+            return ['K to end', 'P to end', 'C6F', 'C6B', 'T2F', 'T2B'];
         case 'Lace Pattern':
-            return ['K all', 'P all', 'YO', 'K2tog', 'SSK', 'CDD'];
+            return ['K to end', 'P to end', 'YO', 'K2tog', 'SSK', 'CDD'];
         case 'Custom pattern':
-            return ['K all', 'P all'];
+            return ['K to end', 'P to end'];
         default:
-            return ['K all', 'P all'];
+            return ['K to end', 'P to end'];
     }
 };
+
 
 /**
  * Get placeholder text for pattern row input

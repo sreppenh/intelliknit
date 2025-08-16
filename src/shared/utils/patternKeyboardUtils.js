@@ -34,17 +34,14 @@ export const getKeyboardLayout = (patternType, layer = KEYBOARD_LAYERS.PRIMARY, 
 // ===== PATTERN-SPECIFIC KEYBOARD LAYOUTS =====
 
 const getLaceKeyboardLayout = (layer, context = {}) => {
-    const { rowNumber, construction } = context;
-
     switch (layer) {
         case KEYBOARD_LAYERS.PRIMARY:
-            const isWSRow = construction === 'flat' && rowNumber % 2 === 0;
-            const mainActions = isWSRow
-                ? ['P', 'K', 'YO', 'K2tog', 'SSK', 'CDD']
+            const mainActions = context?.customSort === 'purl_first' ?
+                ['P', 'K', 'YO', 'K2tog', 'SSK', 'CDD']
                 : ['K', 'P', 'YO', 'K2tog', 'SSK', 'CDD'];
 
             return {
-                fullRow: ['K all', 'P all'],
+                fullRow: ['K to end', 'P to end'],
                 input: mainActions,
                 actions: ['⌫', '[', '(', '⇧']
             };
@@ -54,12 +51,11 @@ const getLaceKeyboardLayout = (layer, context = {}) => {
                 fullRow: ['K3tog', 'P2tog', 'S2KP', 'SK2P'],
                 input: ['K2tog tbl', 'SSK tbl', 'SSP', 'Sl1', 'M1L', 'M1R'],
                 actions: ['⌫', '[', '(', '⇧'],
-                custom: ['Custom', 'Custom', 'Custom', 'Custom'] // Custom row at bottom
+                custom: ['Custom', 'Custom', 'Custom', 'Custom']
             };
 
         case KEYBOARD_LAYERS.TERTIARY:
         default:
-            // Fall back to PRIMARY if somehow TERTIARY is requested
             return getLaceKeyboardLayout(KEYBOARD_LAYERS.PRIMARY, context);
     }
 };
@@ -68,7 +64,7 @@ const getCableKeyboardLayout = (layer, context = {}) => {
     switch (layer) {
         case KEYBOARD_LAYERS.PRIMARY:
             return {
-                fullRow: ['K all', 'P all'],
+                fullRow: ['K to end', 'P to end'],
                 input: ['K', 'P', 'C4F', 'C4B', 'C6F', 'C6B'],
                 actions: ['⌫', '[', '⇧']
             };
@@ -85,7 +81,7 @@ const getCableKeyboardLayout = (layer, context = {}) => {
                 fullRow: ['T4F', 'T4B', 'C8F', 'C8B'],
                 input: ['C10F', 'C10B', 'T2F', 'T2B', 'CN', 'RT'],
                 actions: ['⌫', '[', '⇧'],
-                custom: ['Custom', 'Custom', 'Custom', 'Custom'] // 4 customizable slots
+                custom: ['Custom', 'Custom', 'Custom', 'Custom']
             };
 
         default:
@@ -95,7 +91,7 @@ const getCableKeyboardLayout = (layer, context = {}) => {
 
 const getCustomKeyboardLayout = (layer) => {
     return {
-        fullRow: ['K all', 'P all'],
+        fullRow: ['K to end', 'P to end'],
         input: ['K', 'P'],
         actions: ['⌫', '[', '(', '⇧']
     };
@@ -103,7 +99,7 @@ const getCustomKeyboardLayout = (layer) => {
 
 const getBasicKeyboardLayout = (layer) => {
     return {
-        fullRow: ['K all', 'P all'],
+        fullRow: ['K to end', 'P to end'],
         input: ['K', 'P'],
         actions: ['⌫', '[', '(', '⇧']
     };

@@ -240,7 +240,8 @@ const RowByRowPatternConfig = ({
     // ===== NEW: ENHANCED QUICK ACTION WITH AUTO-INCREMENT =====
     const handleQuickAction = (action) => {
         // NEW: Block input if row is completed (except delete and enter)
-        if ((tempRowText === 'K all' || tempRowText === 'P all') &&
+        if ((tempRowText === 'K to end' || tempRowText === 'P to end' ||
+            tempRowText === 'K all' || tempRowText === 'P all') &&
             !['⌫', 'Enter', '✓'].includes(action)) {
             return; // Do nothing - input blocked
         }

@@ -22,7 +22,8 @@ export const NON_MULTIPLICABLE_ACTIONS = [
     'Undo',     // Undo action
 
     // Complete row actions (these replace, don't multiply)
-    'K all', 'P all',
+    'K to end', 'P to end',  // NEW
+    'K all', 'P all',        // Legacy support
 
     // Copy actions (these replace, don't multiply)  
     // Note: copy actions start with 'copy_' so we check with startsWith
@@ -66,7 +67,6 @@ export const isBracketAction = (action) => {
     return ['[', ']', '(', ')'].includes(action);
 };
 
-
 // ===== COMMA LOGIC HELPERS =====
 
 /**
@@ -101,6 +101,23 @@ const appendWithCommaLogic = (currentText, newAction) => {
     }
 };
 
+/**
+ * Check if we're currently inside brackets/parentheses
+ */
+const isInsideBrackets = (text) => {
+    let openBrackets = 0;
+    let openParens = 0;
+
+    for (const char of text) {
+        if (char === '[') openBrackets++;
+        if (char === ']') openBrackets--;
+        if (char === '(') openParens++;
+        if (char === ')') openParens--;
+    }
+
+    return openBrackets > 0 || openParens > 0;
+};
+
 // ===== AUTO-INCREMENT LOGIC =====
 
 export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, tempRowText, setTempRowText, setConsecutiveCount) => {
@@ -112,29 +129,47 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
         const newCount = consecutiveCount + 1;
         setConsecutiveCount(newCount);
 
-        // Split the text by commas to work with individual actions
-        const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
+        // SPECIAL CASE: Inside brackets, no comma logic, just direct replacement
+        if (isInsideBrackets(tempRowText)) {
+            // Find the last occurrence of the action and replace it with numbered version
+            const lastActionIndex = tempRowText.lastIndexOf(action);
+            if (lastActionIndex !== -1) {
+                const beforeAction = tempRowText.substring(0, lastActionIndex);
+                const afterAction = tempRowText.substring(lastActionIndex + action.length);
 
-        if (actions.length > 0) {
-            const lastIndex = actions.length - 1;
-            const lastAction = actions[lastIndex];
+                // Check if it's already numbered
+                const numberedMatch = tempRowText.substring(lastActionIndex).match(/^([A-Za-z]+)(\d+)/);
+                if (numberedMatch) {
+                    // Replace existing number: "[K2" → "[K3"
+                    const actionPart = numberedMatch[1];
+                    const afterNumber = tempRowText.substring(lastActionIndex + numberedMatch[0].length);
+                    setTempRowText(`${beforeAction}${actionPart}${newCount}${afterNumber}`);
+                } else {
+                    // Add number to simple action: "[K" → "[K2"
+                    setTempRowText(`${beforeAction}${action}${newCount}${afterAction}`);
+                }
+                return true;
+            }
+        } else {
+            // NORMAL CASE: Outside brackets, use comma logic
+            const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
 
-            // Check if the last action matches what we're trying to increment
-            if (lastAction === action) {
-                // Simple case: "K" becomes "K2"
-                actions[lastIndex] = `${action}${newCount}`;
-                setTempRowText(actions.join(', '));
-                return true;
-            } else if (lastAction.match(/^([A-Za-z]+)(\d+)$/) && lastAction.startsWith(action)) {
-                // Already numbered case: "K2" becomes "K3"
-                actions[lastIndex] = `${action}${newCount}`;
-                setTempRowText(actions.join(', '));
-                return true;
-            } else if (tempRowText.endsWith(action) && !tempRowText.includes(',')) {
-                // Special case for bracket contexts like "[K" → "[K2"
-                const beforeAction = tempRowText.substring(0, tempRowText.length - action.length);
-                setTempRowText(`${beforeAction}${action}${newCount}`);
-                return true;
+            if (actions.length > 0) {
+                const lastIndex = actions.length - 1;
+                const lastAction = actions[lastIndex];
+
+                // Check if the last action matches what we're trying to increment
+                if (lastAction === action) {
+                    // Simple case: "K" becomes "K2"
+                    actions[lastIndex] = `${action}${newCount}`;
+                    setTempRowText(actions.join(', '));
+                    return true;
+                } else if (lastAction.match(/^([A-Za-z]+)(\d+)$/) && lastAction.startsWith(action)) {
+                    // Already numbered case: "K2" becomes "K3"
+                    actions[lastIndex] = `${action}${newCount}`;
+                    setTempRowText(actions.join(', '));
+                    return true;
+                }
             }
         }
     }
@@ -249,7 +284,20 @@ export const handleBracketAndParens = (action, tempRowText, setTempRowText) => {
 export const handleSpecialSymbol = (setTempRowText) => {
     const customAction = prompt('Enter custom stitch or instruction:');
     if (customAction && customAction.trim()) {
+        // Get stitch consumption and production values
+        const consumesInput = prompt('How many stitches does this consume?', '1');
+        const producesInput = prompt('How many stitches does this produce?', '1');
+
+        const consumes = parseInt(consumesInput) || 1;
+        const produces = parseInt(producesInput) || 1;
+
+        // For now, just add the action to the text
+        // TODO: Store custom action with consumes/produces values in project data
         setTempRowText(prev => appendWithCommaLogic(prev, customAction.trim()));
+
+        // Log the values for debugging (remove in production)
+        console.log(`Custom action "${customAction}": consumes ${consumes}, produces ${produces}`);
+
         return true;
     }
     return false;
@@ -266,13 +314,22 @@ export const handleCopyRow = (action, rowInstructions, setTempRowText, resetAuto
     return false;
 };
 
+// FIXED: Remove auto-close behavior from "to end" actions
 export const handleCompleteRowAction = (action, setTempRowText, resetAutoIncrement, onComplete = null) => {
+    // "K to end" and "P to end" should NOT auto-close - they're blocking actions, not completion actions
+    if (action === 'K to end' || action === 'P to end') {
+        setTempRowText(action);
+        resetAutoIncrement();
+        // DO NOT call onComplete() - this was causing auto-close
+        return true;
+    }
+
+    // Keep legacy "K all" and "P all" with original auto-close behavior for backward compatibility
     if (action === 'K all') {
         setTempRowText('K all');
         resetAutoIncrement();
-        // If completion callback provided, call it (for auto-saving)
         if (onComplete) {
-            setTimeout(() => onComplete(), 100); // Small delay to ensure state updates
+            setTimeout(() => onComplete(), 100);
         }
         return true;
     }
@@ -280,7 +337,6 @@ export const handleCompleteRowAction = (action, setTempRowText, resetAutoIncreme
     if (action === 'P all') {
         setTempRowText('P all');
         resetAutoIncrement();
-        // If completion callback provided, call it (for auto-saving)
         if (onComplete) {
             setTimeout(() => onComplete(), 100);
         }
