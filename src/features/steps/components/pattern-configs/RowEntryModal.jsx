@@ -21,17 +21,8 @@ const RowEntryModal = ({
     onSave
 }) => {
     // 🔧 CORRECTED renderRunningTotal function:
-
     const renderRunningTotal = () => {
         const calculation = getStitchCalculation();
-
-        // Debug what's happening when buttons are clicked
-        console.log('🔧 renderRunningTotal called:', {
-            tempRowText,
-            calculation,
-            hasCalculation: !!calculation,
-            isValid: calculation?.isValid
-        });
 
         // Default state - no pattern entered yet
         if (!tempRowText || !tempRowText.trim()) {
@@ -53,31 +44,19 @@ const RowEntryModal = ({
         }
 
         // Pattern entered - check if calculation is valid
-        if (!calculation) {
-            console.log('🚨 No calculation returned');
+        if (!calculation || !calculation.isValid) {
             return (
                 <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
-                    Error: No calculation available
-                </div>
-            );
-        }
-
-        if (!calculation.isValid) {
-            console.log('🚨 Invalid calculation:', calculation);
-            return (
-                <div className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-lg p-3">
-                    Error: {calculation.error || 'Invalid pattern'}
+                    Error: {calculation?.error || 'Invalid pattern'}
                 </div>
             );
         }
 
         // Valid calculation
         const started = calculation.previousStitches;
-        const consumed = started; // Work with ALL the starting stitches
+        const consumed = calculation.stitchesConsumed;  // ← USE ACTUAL CONSUMED COUNT
         const produced = calculation.totalStitches;
         const netChange = produced - consumed;
-
-        console.log('🔧 Valid calculation display:', { started, consumed, produced, netChange });
 
         return (
             <div className="text-sm bg-sage-50 border border-sage-200 rounded-lg p-3">
@@ -92,7 +71,6 @@ const RowEntryModal = ({
             </div>
         );
     };
-
     // 🧪 CORRECTED TEST EXPECTATIONS:
 
     const CORRECTED_TEST_CASES = [

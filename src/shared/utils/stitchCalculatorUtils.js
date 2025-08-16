@@ -67,7 +67,9 @@ const STITCH_PRODUCES = {
 export const calculateRowStitches = (instruction, startingStitches = 0, customActionsData = {}) => {
     if (!instruction || !instruction.trim()) {
         return {
+            previousStitches: startingStitches,
             totalStitches: 0,
+            stitchesConsumed: 0,  // ← ADD THIS FIELD
             stitchChange: -startingStitches,
             breakdown: [],
             isValid: true
@@ -75,11 +77,14 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
     }
 
     let totalProduced = 0;
+    let totalConsumed = 0;  // ← TRACK CONSUMED SEPARATELY
 
     // Handle special cases
     if (instruction.toLowerCase().includes('k all') || instruction.toLowerCase().includes('knit all')) {
         return {
+            previousStitches: startingStitches,
             totalStitches: startingStitches,
+            stitchesConsumed: startingStitches,  // ← K all consumes all stitches
             stitchChange: 0,
             breakdown: [],
             isValid: true
@@ -88,7 +93,9 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
 
     if (instruction.toLowerCase().includes('p all') || instruction.toLowerCase().includes('purl all')) {
         return {
+            previousStitches: startingStitches,
             totalStitches: startingStitches,
+            stitchesConsumed: startingStitches,  // ← P all consumes all stitches
             stitchChange: 0,
             breakdown: [],
             isValid: true
@@ -99,14 +106,15 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
     const getStitchValue = (operation) => {
         // Check custom actions first
         if (customActionsData[operation]) {
-            return customActionsData[operation];
+            // Custom actions return produced count, need to add consumed logic
+            return { consumes: 1, produces: customActionsData[operation] }; // Default assumption
         }
         // Fall back to standard lookup
-        return STITCH_PRODUCES[operation] || 1; // Default to 1 if unknown
+        return STITCH_VALUES[operation] || { consumes: 1, produces: 1 }; // Default to 1:1
     };
 
-    // Parse bracketed repeats
-    const repeatPattern = /\[([^\]]+)\](\d+)/g;
+    // Parse bracketed repeats like [K, yo, ssk] × 3
+    const repeatPattern = /\[([^\]]+)\]\s*×?\s*(\d+)/g;
     let remainingInstruction = instruction;
     let match;
 
@@ -115,43 +123,46 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         const count = parseInt(repeatCount);
 
         const operations = repeatContent.split(',').map(op => op.trim()).filter(op => op.length > 0);
+        let consumedInRepeat = 0;
         let producedInRepeat = 0;
 
         for (const operation of operations) {
-            const numberedMatch = operation.match(/^([A-Za-z0-9\s]+?)(\d+)$/);
-            if (numberedMatch) {
-                const [, stitchOp, repeatNum] = numberedMatch;
-                const stitchValue = getStitchValue(stitchOp.trim());
-                producedInRepeat += stitchValue * parseInt(repeatNum);
-            } else {
-                const stitchValue = getStitchValue(operation);
-                producedInRepeat += stitchValue;
-            }
+            const stitchValue = getStitchValue(operation.toUpperCase());
+            consumedInRepeat += stitchValue.consumes;
+            producedInRepeat += stitchValue.produces;
         }
 
+        totalConsumed += consumedInRepeat * count;
         totalProduced += producedInRepeat * count;
         remainingInstruction = remainingInstruction.replace(fullMatch, '');
     }
 
-    // Parse remaining operations
+    // Parse remaining operations (split by commas)
     const remainingOps = remainingInstruction.split(',').map(op => op.trim()).filter(op => op.length > 0);
 
     for (const operation of remainingOps) {
-        const numberedMatch = operation.match(/^([A-Za-z0-9\s]+?)(\d+)$/);
+        // Handle numbered operations like "K37"
+        const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
         if (numberedMatch) {
             const [, stitchOp, repeatNum] = numberedMatch;
-            const stitchValue = getStitchValue(stitchOp.trim());
-            totalProduced += stitchValue * parseInt(repeatNum);
+            const count = parseInt(repeatNum);
+            const stitchValue = getStitchValue(stitchOp.toUpperCase());
+            totalConsumed += stitchValue.consumes * count;
+            totalProduced += stitchValue.produces * count;
         } else {
-            const stitchValue = getStitchValue(operation);
-            totalProduced += stitchValue;
+            // Single operation like "K", "yo", "ssk"
+            const stitchValue = getStitchValue(operation.toUpperCase());
+            totalConsumed += stitchValue.consumes;
+            totalProduced += stitchValue.produces;
         }
     }
 
-    const stitchChange = totalProduced - startingStitches;
+    const stitchChange = totalProduced - totalConsumed;
 
     return {
+        previousStitches: startingStitches,
         totalStitches: totalProduced,
+        stitchesConsumed: totalConsumed,  // ← RETURN ACTUAL CONSUMED COUNT
         stitchChange: stitchChange,
         breakdown: [],
         isValid: true
