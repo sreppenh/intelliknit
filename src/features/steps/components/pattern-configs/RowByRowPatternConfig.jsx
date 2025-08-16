@@ -271,16 +271,178 @@ const RowByRowPatternConfig = ({
     };
 
     // ===== CLEAN HANDLE QUICK ACTION FUNCTION =====
+    // Enhanced Hold-Down System Fix
+    // Replace the HoldableButton component and related logic in RowByRowPatternConfig.jsx
+
+    const HoldableButton = ({ action, buttonType, className, children, disabled, onClick }) => {
+        const [holdState, setHoldState] = useState({
+            isHolding: false,
+            count: 0,
+            timer: null,
+            intervalTimer: null
+        });
+
+        // Only allow hold-down for multiplicable actions (K, P, YO, etc.)
+        const canHold = shouldMultiplyAction(action) && !disabled;
+
+        const startHoldAction = (e) => {
+            e.preventDefault();
+
+            if (!canHold) {
+                return; // Don't do anything yet for non-multiplicable actions
+            }
+
+            setHoldState(prev => ({
+                ...prev,
+                isHolding: true,
+                count: 1
+            }));
+
+            // Initial delay before starting accumulation
+            const initialTimer = setTimeout(() => {
+                let currentCount = 1;
+
+                // Start accumulating every 150ms
+                const intervalTimer = setInterval(() => {
+                    currentCount++;
+
+                    setHoldState(prev => ({
+                        ...prev,
+                        count: currentCount
+                    }));
+
+                }, 150); // 150ms intervals for smooth counting
+
+                setHoldState(prev => ({
+                    ...prev,
+                    intervalTimer
+                }));
+
+            }, 500); // 500ms initial delay
+
+            setHoldState(prev => ({
+                ...prev,
+                timer: initialTimer
+            }));
+        };
+
+        const stopHoldAction = (e) => {
+            e.preventDefault();
+
+            // Clean up timers
+            if (holdState.timer) {
+                clearTimeout(holdState.timer);
+            }
+            if (holdState.intervalTimer) {
+                clearInterval(holdState.intervalTimer);
+            }
+
+            // Send the final accumulated action ONLY when releasing
+            if (holdState.isHolding) {
+                if (holdState.count > 1) {
+                    // Send accumulated action like "K36"
+                    const accumulatedAction = `${action}${holdState.count}`;
+                    onClick(accumulatedAction);
+                } else {
+                    // Send single action if count is 1 or holding just started
+                    onClick(action);
+                }
+            }
+
+            setHoldState({
+                isHolding: false,
+                count: 0,
+                timer: null,
+                intervalTimer: null
+            });
+        };
+
+        const handleClick = (e) => {
+            e.preventDefault();
+
+            if (disabled) return;
+
+            // If not holding, send single action immediately
+            if (!holdState.isHolding) {
+                onClick(action);
+            }
+        };
+
+        // Prevent context menu on long press
+        const handleContextMenu = (e) => {
+            e.preventDefault();
+        };
+
+        // Clean up timers on unmount
+        useEffect(() => {
+            return () => {
+                if (holdState.timer) clearTimeout(holdState.timer);
+                if (holdState.intervalTimer) clearInterval(holdState.intervalTimer);
+            };
+        }, [holdState.timer, holdState.intervalTimer]);
+
+        return (
+            <button
+                className={`${className} ${holdState.isHolding ? 'ring-2 ring-sage-400 bg-sage-200' : ''}`}
+                onClick={handleClick}
+                onMouseDown={startHoldAction}
+                onMouseUp={stopHoldAction}
+                onMouseLeave={stopHoldAction} // Stop if mouse leaves button
+                onTouchStart={startHoldAction}
+                onTouchEnd={stopHoldAction}
+                onContextMenu={handleContextMenu}
+                disabled={disabled}
+                style={{ userSelect: 'none', touchAction: 'manipulation' }}
+            >
+                <span className="flex items-center justify-center">
+                    {children}
+                    {holdState.isHolding && holdState.count > 1 && (
+                        <span className="ml-1 text-xs bg-sage-600 text-white px-1.5 py-0.5 rounded-full font-bold">
+                            {holdState.count}
+                        </span>
+                    )}
+                </span>
+            </button>
+        );
+    };
+
+    // ===== UPDATED handleQuickAction FUNCTION =====
+    // This needs to be updated in the main component to handle accumulated actions like "K36"
+
     const handleQuickAction = (action) => {
         console.log('🔧 Action received:', action);
 
-        // ===== HELPER FUNCTIONS =====
+        // Check if this is an accumulated action (like "K36", "P15", etc.)
+        const accumulatedMatch = action.match(/^([A-Za-z]+)(\d+)$/);
+        if (accumulatedMatch) {
+            const [, baseAction, count] = accumulatedMatch;
+
+            // Add the accumulated action with smart comma logic
+            setTempRowText(prev => {
+                const shouldAddComma = prev &&
+                    !prev.endsWith('[') &&
+                    !prev.endsWith('(') &&
+                    !prev.endsWith(', ');
+
+                const newText = shouldAddComma ? `${prev}, ${action}` : `${prev}${action}`;
+                return newText;
+            });
+
+            // Reset auto-increment state since this is a complete action
+            setLastQuickAction(null);
+            setConsecutiveCount(1);
+            return;
+        }
+
+        // ===== REST OF THE EXISTING LOGIC UNCHANGED =====
+
+        // Helper functions
         const resetAutoIncrement = () => {
             setLastQuickAction(null);
             setConsecutiveCount(1);
         };
 
-        // ===== 1. ROW LOCKING CHECK =====
+        // Row locking check
         const isRowLocked = tempRowText === 'K to end' || tempRowText === 'P to end' ||
             tempRowText === 'K all' || tempRowText === 'P all';
 
@@ -288,13 +450,13 @@ const RowByRowPatternConfig = ({
             return; // Block all input except delete and enter
         }
 
-        // ===== 2. NUMBER MODE HANDLING =====
+        // Number mode handling
         if (keyboardMode === 'numbers') {
             handleNumberInput(action);
             return;
         }
 
-        // ===== 3. KEYBOARD LAYER SWITCHING =====
+        // Keyboard layer switching
         if (action === '⇧') {
             if (supportsMultipleLayers(patternType)) {
                 const nextLayer = getNextKeyboardLayer(currentKeyboardLayer, patternType);
@@ -310,7 +472,7 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        // ===== 4. CLOSING BRACKETS (Trigger Number Mode) =====
+        // Closing brackets (Trigger Number Mode)
         if (action === ']') {
             setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
 
@@ -350,7 +512,7 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        // ===== 5. OPENING BRACKETS (With Smart Commas) =====
+        // Opening brackets (With Smart Commas)
         if (action === '[') {
             setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
 
@@ -379,7 +541,7 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        // ===== 6. DELETE WITH BRACKET RESET =====
+        // Delete with bracket reset
         if (action === '⌫') {
             const handleBracketReset = (newText, info) => {
                 if (info?.deletedBracket) {
@@ -401,7 +563,7 @@ const RowByRowPatternConfig = ({
             return handleSmartDelete(tempRowText, setTempRowText, resetAutoIncrement, false, handleBracketReset);
         }
 
-        // ===== 7. ALL OTHER ACTIONS =====
+        // All other actions
         // Everything else gets processed by the enhanced handler with comma logic
         handleQuickActionEnhanced(
             action,
@@ -1051,34 +1213,96 @@ const EnhancedKeyboard = ({
 
     // ===== ENHANCED BUTTON COMPONENT =====
     const HoldableButton = ({ action, buttonType, className, children, disabled, onClick }) => {
-        const handleMouseDown = (e) => {
+        const [holdState, setHoldState] = useState({
+            isHolding: false,
+            count: 0,
+            timer: null,
+            intervalTimer: null
+        });
+
+        // Only allow hold-down for multiplicable actions (K, P, YO, etc.)
+        const canHold = shouldMultiplyAction(action) && !disabled;
+
+        const startHoldAction = (e) => {
             e.preventDefault();
-            if (!disabled) {
-                startHoldAction(action);
+
+            if (!canHold) {
+                return; // Don't do anything yet for non-multiplicable actions
             }
+
+            setHoldState(prev => ({
+                ...prev,
+                isHolding: true,
+                count: 1
+            }));
+
+            // Initial delay before starting accumulation
+            const initialTimer = setTimeout(() => {
+                let currentCount = 1;
+
+                // Start accumulating every 150ms
+                const intervalTimer = setInterval(() => {
+                    currentCount++;
+
+                    setHoldState(prev => ({
+                        ...prev,
+                        count: currentCount
+                    }));
+
+                }, 150); // 150ms intervals for smooth counting
+
+                setHoldState(prev => ({
+                    ...prev,
+                    intervalTimer
+                }));
+
+            }, 500); // 500ms initial delay
+
+            setHoldState(prev => ({
+                ...prev,
+                timer: initialTimer
+            }));
         };
 
-        const handleMouseUp = (e) => {
+        const stopHoldAction = (e) => {
             e.preventDefault();
-            stopHoldAction(action);
-        };
 
-        const handleTouchStart = (e) => {
-            e.preventDefault();
-            if (!disabled) {
-                startHoldAction(action);
+            // Clean up timers
+            if (holdState.timer) {
+                clearTimeout(holdState.timer);
             }
-        };
+            if (holdState.intervalTimer) {
+                clearInterval(holdState.intervalTimer);
+            }
 
-        const handleTouchEnd = (e) => {
-            e.preventDefault();
-            stopHoldAction(action);
+            // Send the final accumulated action ONLY when releasing
+            if (holdState.isHolding) {
+                if (holdState.count > 1) {
+                    // Send accumulated action like "K36"
+                    const accumulatedAction = `${action}${holdState.count}`;
+                    onClick(accumulatedAction);
+                } else {
+                    // Send single action if count is 1 or holding just started
+                    onClick(action);
+                }
+            }
+
+            setHoldState({
+                isHolding: false,
+                count: 0,
+                timer: null,
+                intervalTimer: null
+            });
         };
 
         const handleClick = (e) => {
             e.preventDefault();
-            if (!disabled && !isHolding) {
-                onClick();
+
+            if (disabled) return;
+
+            // If not holding, send single action immediately
+            if (!holdState.isHolding) {
+                onClick(action);
             }
         };
 
@@ -1087,20 +1311,35 @@ const EnhancedKeyboard = ({
             e.preventDefault();
         };
 
+        // Clean up timers on unmount
+        useEffect(() => {
+            return () => {
+                if (holdState.timer) clearTimeout(holdState.timer);
+                if (holdState.intervalTimer) clearInterval(holdState.intervalTimer);
+            };
+        }, [holdState.timer, holdState.intervalTimer]);
+
         return (
             <button
-                className={className}
+                className={`${className} ${holdState.isHolding ? 'ring-2 ring-sage-400 bg-sage-200' : ''}`}
                 onClick={handleClick}
-                onMouseDown={handleMouseDown}
-                onMouseUp={handleMouseUp}
-                onMouseLeave={handleMouseUp} // Stop if mouse leaves button
-                onTouchStart={handleTouchStart}
-                onTouchEnd={handleTouchEnd}
+                onMouseDown={startHoldAction}
+                onMouseUp={stopHoldAction}
+                onMouseLeave={stopHoldAction} // Stop if mouse leaves button
+                onTouchStart={startHoldAction}
+                onTouchEnd={stopHoldAction}
                 onContextMenu={handleContextMenu}
                 disabled={disabled}
                 style={{ userSelect: 'none', touchAction: 'manipulation' }}
             >
-                {children}
+                <span className="flex items-center justify-center">
+                    {children}
+                    {holdState.isHolding && holdState.count > 1 && (
+                        <span className="ml-1 text-xs bg-sage-600 text-white px-1.5 py-0.5 rounded-full font-bold">
+                            {holdState.count}
+                        </span>
+                    )}
+                </span>
             </button>
         );
     };
