@@ -242,6 +242,35 @@ const RowByRowPatternConfig = ({
     };
 
 
+    /**
+     * Find the matching opening bracket for a closing bracket at the end of text
+     * @param {string} text - The full text
+     * @param {string} closingBracket - Either ']' or ')'
+     * @returns {number} - Index of matching opening bracket, or -1 if not found
+     */
+    const findMatchingOpeningBracket = (text, closingBracket) => {
+        const openBracket = closingBracket === ']' ? '[' : '(';
+        let depth = 0;
+
+        // Walk backwards from the end
+        for (let i = text.length - 1; i >= 0; i--) {
+            const char = text[i];
+
+            if (char === closingBracket) {
+                depth++;
+            } else if (char === openBracket) {
+                depth--;
+                if (depth === 0) {
+                    // Found the matching opening bracket
+                    return i;
+                }
+            }
+        }
+
+        return -1; // No matching bracket found
+    };
+
+
     // ===== NEW: ENHANCED QUICK ACTION WITH AUTO-INCREMENT =====
     const handleQuickAction = (action) => {
         // NEW: Block input if row is completed (except delete and enter)
@@ -282,21 +311,49 @@ const RowByRowPatternConfig = ({
             return;
         }
 
+
         // Track bracket state
         if (isBracketAction(action)) {
             if (action === '[') {
                 setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
             } else if (action === ']') {
                 setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
-                // Trigger number mode
-                setPendingRepeatText(tempRowText + ']');
+
+                // Find the matching opening bracket for this closing ]
+                const matchingIndex = findMatchingOpeningBracket(tempRowText, ']');
+
+                if (matchingIndex !== -1) {
+                    // Extract just the bracket content being closed
+                    const bracketContent = tempRowText.substring(matchingIndex) + ']';
+                    setPendingRepeatText(bracketContent);
+                } else {
+                    // Fallback: use the whole text + ]
+                    setPendingRepeatText(tempRowText + ']');
+                }
+
                 setKeyboardMode('numbers');
                 setIsCreatingRepeat(false);
                 return;
+
             } else if (action === '(') {
                 setBracketState(prev => ({ ...prev, hasOpenParen: true }));
             } else if (action === ')') {
                 setBracketState(prev => ({ ...prev, hasOpenParen: false }));
+
+                // Find the matching opening bracket for this closing )
+                const matchingIndex = findMatchingOpeningBracket(tempRowText, ')');
+
+                if (matchingIndex !== -1) {
+                    // Extract just the parentheses content being closed
+                    const parenContent = tempRowText.substring(matchingIndex) + ')';
+                    setPendingRepeatText(parenContent);
+                    setKeyboardMode('numbers');
+                    setIsCreatingRepeat(false);
+                    return;
+                } else {
+                    // No matching paren found, treat as regular action
+                    setBracketState(prev => ({ ...prev, hasOpenParen: false }));
+                }
             }
         }
 
