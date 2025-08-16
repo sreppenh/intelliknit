@@ -17,7 +17,7 @@ import {
     shouldMultiplyAction,
     isBracketAction,
     isNumberAction,
-    handleSmartDelete, resetAutoIncrement
+    handleSmartDelete, resetAutoIncrement, patternInputUtils
 } from '../../../../shared/utils/patternInputUtils';
 import { calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
@@ -350,10 +350,8 @@ const RowByRowPatternConfig = ({
                     setKeyboardMode('numbers');
                     setIsCreatingRepeat(false);
                     return;
-                } else {
-                    // No matching paren found, treat as regular action
-                    setBracketState(prev => ({ ...prev, hasOpenParen: false }));
                 }
+                // If no matching paren, just continue with regular bracket handling
             }
         }
 
