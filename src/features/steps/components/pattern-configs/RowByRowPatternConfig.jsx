@@ -321,43 +321,46 @@ const RowByRowPatternConfig = ({
             } else if (action === ']') {
                 setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
 
-                // Find the matching opening bracket for this closing ]
-                const matchingIndex = findMatchingOpeningBracket(tempRowText, ']');
+                // FIRST: Add the ] to the main text display  
+                const textWithClosingBracket = tempRowText + ']';
+                setTempRowText(textWithClosingBracket);
+
+                // THEN: Find matching bracket for the preview
+                const matchingIndex = findMatchingOpeningBracket(textWithClosingBracket, ']');
 
                 if (matchingIndex !== -1) {
-                    // Extract just the bracket content being closed
-                    const bracketContent = tempRowText.substring(matchingIndex) + ']';
+                    // Extract just the bracket content for the mini display
+                    const bracketContent = textWithClosingBracket.substring(matchingIndex);
                     setPendingRepeatText(bracketContent);
                 } else {
-                    // Fallback: use the whole text + ]
-                    setPendingRepeatText(tempRowText + ']');
+                    // Fallback: use the whole text
+                    setPendingRepeatText(textWithClosingBracket);
                 }
 
                 setKeyboardMode('numbers');
                 setIsCreatingRepeat(false);
                 return;
 
+
             } else if (action === '(') {
                 setBracketState(prev => ({ ...prev, hasOpenParen: true }));
             } else if (action === ')') {
-                // FIRST: Add the ) to the text so we can find the match
-                const textWithClosingParen = tempRowText + ')';
                 setBracketState(prev => ({ ...prev, hasOpenParen: false }));
 
-                // Find the matching opening bracket for this closing )
+                // FIRST: Add the ) to the main text display
+                const textWithClosingParen = tempRowText + ')';
+                setTempRowText(textWithClosingParen);
+
+                // THEN: Find matching bracket for the preview
                 const matchingIndex = findMatchingOpeningBracket(textWithClosingParen, ')');
 
                 if (matchingIndex !== -1) {
-                    // Extract just the parentheses content being closed
+                    // Extract just the parentheses content for the mini display
                     const parenContent = textWithClosingParen.substring(matchingIndex);
                     setPendingRepeatText(parenContent);
-                    setTempRowText(textWithClosingParen); // Update the text
                     setKeyboardMode('numbers');
                     setIsCreatingRepeat(false);
-                    return;
                 }
-                // If no matching paren, add it normally and continue
-                setTempRowText(textWithClosingParen);
                 return;
             }
         }
