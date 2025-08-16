@@ -17,7 +17,7 @@ import {
     shouldMultiplyAction,
     isBracketAction,
     isNumberAction,
-    handleSmartDelete, resetAutoIncrement, patternInputUtils
+    handleSmartDelete
 } from '../../../../shared/utils/patternInputUtils';
 import { calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
@@ -270,87 +270,78 @@ const RowByRowPatternConfig = ({
         return -1; // No matching bracket found
     };
 
-
-    // ===== NEW: ENHANCED QUICK ACTION WITH AUTO-INCREMENT =====
+    // ===== CLEAN HANDLE QUICK ACTION FUNCTION =====
     const handleQuickAction = (action) => {
-
         console.log('🔧 Action received:', action);
-        // NEW: Block input if row is completed (except delete and enter)
-        const isRowLocked = tempRowText === 'K to end' || tempRowText === 'P to end' ||
-            tempRowText === 'K all' || tempRowText === 'P all';
 
-        if (isRowLocked && !['⌫', 'Enter', '✓'].includes(action)) {
-            return; // Do nothing - input blocked
-        }
-
+        // ===== HELPER FUNCTIONS =====
         const resetAutoIncrement = () => {
             setLastQuickAction(null);
             setConsecutiveCount(1);
         };
 
-        // Handle keyboard mode switching
+        // ===== 1. ROW LOCKING CHECK =====
+        const isRowLocked = tempRowText === 'K to end' || tempRowText === 'P to end' ||
+            tempRowText === 'K all' || tempRowText === 'P all';
+
+        if (isRowLocked && !['⌫', 'Enter', '✓'].includes(action)) {
+            return; // Block all input except delete and enter
+        }
+
+        // ===== 2. NUMBER MODE HANDLING =====
         if (keyboardMode === 'numbers') {
             handleNumberInput(action);
             return;
         }
 
-        // Handle keyboard layer shifting (only in pattern mode)
+        // ===== 3. KEYBOARD LAYER SWITCHING =====
         if (action === '⇧') {
             if (supportsMultipleLayers(patternType)) {
                 const nextLayer = getNextKeyboardLayer(currentKeyboardLayer, patternType);
                 setCurrentKeyboardLayer(nextLayer);
 
-                // Add numbers as third layer for lace patterns
-                // Add numbers as third layer for lace patterns
+                // Manual number mode: ⇧⇧ (secondary back to primary)
                 if (nextLayer === KEYBOARD_LAYERS.PRIMARY && currentKeyboardLayer === KEYBOARD_LAYERS.SECONDARY) {
-                    // Going from secondary back to primary - trigger number mode instead
                     setKeyboardMode('numbers');
-                    // MANUAL mode: No auto-brackets, just set up for number entry
-                    setPendingRepeatText('');
+                    setPendingRepeatText(''); // Manual mode - no brackets
                     return;
                 }
             }
             return;
         }
 
-
-        // Track bracket state
-        // Handle CLOSING brackets specially (they trigger number mode)
+        // ===== 4. CLOSING BRACKETS (Trigger Number Mode) =====
         if (action === ']') {
             setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
 
-            // FIRST: Add the ] to the main text display  
+            // Add ] to main display
             const textWithClosingBracket = tempRowText + ']';
             setTempRowText(textWithClosingBracket);
 
-            // THEN: Find matching bracket for the preview
+            // Set up mini display for multiplier
             const matchingIndex = findMatchingOpeningBracket(textWithClosingBracket, ']');
-
             if (matchingIndex !== -1) {
-                // Extract just the bracket content for the mini display
                 const bracketContent = textWithClosingBracket.substring(matchingIndex);
                 setPendingRepeatText(bracketContent);
             } else {
-                // Fallback: use the whole text
                 setPendingRepeatText(textWithClosingBracket);
             }
 
             setKeyboardMode('numbers');
             setIsCreatingRepeat(false);
             return;
+        }
 
-        } else if (action === ')') {
+        if (action === ')') {
             setBracketState(prev => ({ ...prev, hasOpenParen: false }));
 
-            // FIRST: Add the ) to the main text display
+            // Add ) to main display
             const textWithClosingParen = tempRowText + ')';
             setTempRowText(textWithClosingParen);
 
-            // THEN: Find matching bracket for the preview
+            // Set up mini display for multiplier
             const matchingIndex = findMatchingOpeningBracket(textWithClosingParen, ')');
-
             if (matchingIndex !== -1) {
-                // Extract just the parentheses content for the mini display
                 const parenContent = textWithClosingParen.substring(matchingIndex);
                 setPendingRepeatText(parenContent);
                 setKeyboardMode('numbers');
@@ -359,14 +350,36 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        // OPENING brackets get comma logic and then fall through to normal processing
+        // ===== 5. OPENING BRACKETS (With Smart Commas) =====
         if (action === '[') {
             setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
-        } else if (action === '(') {
-            setBracketState(prev => ({ ...prev, hasOpenParen: true }));
+
+            // Smart comma logic
+            const shouldAddComma = tempRowText &&
+                !tempRowText.endsWith('[') &&
+                !tempRowText.endsWith('(') &&
+                !tempRowText.endsWith(', ');
+
+            const newText = shouldAddComma ? `${tempRowText}, [` : `${tempRowText}[`;
+            setTempRowText(newText);
+            return;
         }
 
-        // Handle delete with bracket reset callback
+        if (action === '(') {
+            setBracketState(prev => ({ ...prev, hasOpenParen: true }));
+
+            // Smart comma logic
+            const shouldAddComma = tempRowText &&
+                !tempRowText.endsWith('[') &&
+                !tempRowText.endsWith('(') &&
+                !tempRowText.endsWith(', ');
+
+            const newText = shouldAddComma ? `${tempRowText}, (` : `${tempRowText}(`;
+            setTempRowText(newText);
+            return;
+        }
+
+        // ===== 6. DELETE WITH BRACKET RESET =====
         if (action === '⌫') {
             const handleBracketReset = (newText, info) => {
                 if (info?.deletedBracket) {
@@ -375,7 +388,6 @@ const RowByRowPatternConfig = ({
                         setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
                     } else if (info.deletedBracket === ']') {
                         setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
-                        // If we deleted a ], we might have been in number mode
                         setKeyboardMode('pattern');
                         setPendingRepeatText('');
                     } else if (info.deletedBracket === '(') {
@@ -389,7 +401,8 @@ const RowByRowPatternConfig = ({
             return handleSmartDelete(tempRowText, setTempRowText, resetAutoIncrement, false, handleBracketReset);
         }
 
-        // Use the enhanced handler from utilities for everything else
+        // ===== 7. ALL OTHER ACTIONS =====
+        // Everything else gets processed by the enhanced handler with comma logic
         handleQuickActionEnhanced(
             action,
             tempRowText,
