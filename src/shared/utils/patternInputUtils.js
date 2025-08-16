@@ -226,15 +226,39 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
 // ===== SMART DELETE LOGIC =====
 
 export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncrement, isLongPress = false, onBracketChange = null) => {
+    if (!tempRowText) return false;
+
+    // Check if we're about to delete a bracket/paren character
+    const lastChar = tempRowText[tempRowText.length - 1];
+    const isDeletingBracket = ['[', ']', '(', ')'].includes(lastChar);
+
+    // FIRST: Check if the ENTIRE string ends with a numbered action (like "[K2" or "YO5")
+    const directNumberMatch = tempRowText.match(/^(.+?)([A-Za-z]+)(\d+)$/);
+
+    if (directNumberMatch && !isLongPress) {
+        const [, prefix, actionPart, number] = directNumberMatch;
+        const currentNum = parseInt(number);
+
+        if (currentNum > 2) {
+            // Decrement: "[K3" → "[K2"
+            const newText = `${prefix}${actionPart}${currentNum - 1}`;
+            setTempRowText(newText);
+        } else {
+            // Remove number: "[K2" → "[K"
+            const newText = `${prefix}${actionPart}`;
+            setTempRowText(newText);
+        }
+
+        resetAutoIncrement();
+        return true;
+    }
+
+    // SECOND: Fall back to comma-separated action logic
     const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
     if (actions.length === 0) return false;
 
     const lastAction = actions[actions.length - 1];
     const numberedMatch = lastAction.match(/^([A-Za-z\d\s]+?)(\d+)$/);
-
-    // Check if we're about to delete a bracket/paren character
-    const lastChar = tempRowText[tempRowText.length - 1];
-    const isDeletingBracket = ['[', ']', '(', ')'].includes(lastChar);
 
     if (numberedMatch && !isLongPress) {
         const [, actionPart, number] = numberedMatch;
