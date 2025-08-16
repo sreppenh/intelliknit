@@ -437,13 +437,13 @@ const RowByRowPatternConfig = ({
                 // MANUAL MODE: Build up a number like "20"
                 setCurrentNumber(prev => (prev || '') + action);
             } else {
-                // BRACKET MODE: Add multiplier to existing bracket
-                const currentText = pendingRepeatText.replace(/\]\s*×?\s*\d*$/, '');
+                // BRACKET MODE: Add multiplier to existing bracket - ONLY update mini display
+                const currentText = pendingRepeatText.replace(/\s*×\s*\d*$/, ''); // Remove just the multiplier part
                 const existingMultiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1] || '';
                 const newMultiplier = existingMultiplier + action;
-                const newText = `${currentText}] × ${newMultiplier}`;
+                const newText = `${currentText} × ${newMultiplier}`;
                 setPendingRepeatText(newText);
-                setTempRowText(newText);
+                // DON'T update setTempRowText here - only update mini display!
             }
             return;
         }
