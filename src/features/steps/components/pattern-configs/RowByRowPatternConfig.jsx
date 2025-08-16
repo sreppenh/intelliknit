@@ -1132,7 +1132,7 @@ const EnhancedKeyboard = ({
                 })}
             </div>
 
-            // Action Buttons (Lavender - bottom row)
+            {/* Lavender Action Buttons */}
             <div className="grid grid-cols-4 gap-3">
                 {keyboardLayout.actions.map((action, index) => {
                     // Dynamic button display based on current state
