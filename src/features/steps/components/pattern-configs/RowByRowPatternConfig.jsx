@@ -256,7 +256,16 @@ const RowByRowPatternConfig = ({
         // Handle keyboard layer shifting (only in pattern mode)
         if (action === '⇧') {
             if (supportsMultipleLayers(patternType)) {
-                setCurrentKeyboardLayer(prev => getNextKeyboardLayer(prev, patternType));
+                const nextLayer = getNextKeyboardLayer(currentKeyboardLayer, patternType);
+                setCurrentKeyboardLayer(nextLayer);
+
+                // Add numbers as third layer for lace patterns
+                if (nextLayer === KEYBOARD_LAYERS.PRIMARY && currentKeyboardLayer === KEYBOARD_LAYERS.SECONDARY) {
+                    // Going from secondary back to primary - trigger number mode instead
+                    setKeyboardMode('numbers');
+                    setPendingRepeatText(tempRowText + ' × ');
+                    return;
+                }
             }
             return;
         }
