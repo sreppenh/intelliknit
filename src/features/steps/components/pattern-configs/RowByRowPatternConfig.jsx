@@ -240,9 +240,10 @@ const RowByRowPatternConfig = ({
     // ===== NEW: ENHANCED QUICK ACTION WITH AUTO-INCREMENT =====
     const handleQuickAction = (action) => {
         // NEW: Block input if row is completed (except delete and enter)
-        if ((tempRowText === 'K to end' || tempRowText === 'P to end' ||
-            tempRowText === 'K all' || tempRowText === 'P all') &&
-            !['⌫', 'Enter', '✓'].includes(action)) {
+        const isRowLocked = tempRowText === 'K to end' || tempRowText === 'P to end' ||
+            tempRowText === 'K all' || tempRowText === 'P all';
+
+        if (isRowLocked && !['⌫', 'Enter', '✓'].includes(action)) {
             return; // Do nothing - input blocked
         }
 
@@ -819,8 +820,8 @@ const RowByRowPatternConfig = ({
                                 rowInstructions={rowInstructions}
                                 onAction={handleQuickAction}
                                 bracketState={bracketState}
-                                isLocked={tempRowText === 'K all' || tempRowText === 'P all'}
-                            />
+                                isLocked={tempRowText === 'K to end' || tempRowText === 'P to end' ||
+                                    tempRowText === 'K all' || tempRowText === 'P all'} />
                         </>
                     )
                 }
@@ -952,15 +953,19 @@ const EnhancedKeyboard = ({
         <div className="space-y-3">
             {/* Full-Row Actions (Dark Sage - top row) */}
             <div className={`grid gap-3 ${keyboardLayout.fullRow.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
-                {keyboardLayout.fullRow.map((action, index) => (
-                    <button
-                        key={`fullrow-${action}-${index}`}
-                        onClick={() => onAction(action)}
-                        className={getButtonStyles('fullRow', isMobile)}
-                    >
-                        {action}
-                    </button>
-                ))}
+                {keyboardLayout.fullRow.map((action, index) => {
+                    const isDisabled = isLocked && !['⌫'].includes(action);
+                    return (
+                        <button
+                            key={`fullrow-${action}-${index}`}
+                            onClick={() => !isDisabled && onAction(action)}
+                            disabled={isDisabled}
+                            className={`${getButtonStyles('fullRow', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        >
+                            {action}
+                        </button>
+                    );
+                })}
             </div>
 
             {/* Input Actions (Light Sage - main keyboard) */}
@@ -1000,11 +1005,14 @@ const EnhancedKeyboard = ({
                         displayAction = ')';
                     }
 
+                    const isDisabled = isLocked && !['⌫'].includes(action);
+
                     return (
                         <button
                             key={`action-${action}-${index}`}
-                            onClick={() => onAction(displayAction)}
-                            className={getButtonStyles('action', isMobile)}
+                            onClick={() => !isDisabled && onAction(displayAction)}
+                            disabled={isDisabled}
+                            className={`${getButtonStyles('action', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                         >
                             {displayAction}
                         </button>
