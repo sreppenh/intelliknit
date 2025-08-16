@@ -118,6 +118,48 @@ const isInsideBrackets = (text) => {
     return openBrackets > 0 || openParens > 0;
 };
 
+/**
+ * Get the current bracket context - what's inside the most recent unclosed bracket
+ */
+const getCurrentBracketContext = (text) => {
+    let lastBracketStart = -1;
+    let lastParenStart = -1;
+    let bracketDepth = 0;
+    let parenDepth = 0;
+
+    // Find the most recent unclosed bracket or paren
+    for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+
+        if (char === '[') {
+            if (bracketDepth === 0) lastBracketStart = i;
+            bracketDepth++;
+        } else if (char === ']') {
+            bracketDepth--;
+            if (bracketDepth === 0) lastBracketStart = -1;
+        } else if (char === '(') {
+            if (parenDepth === 0) lastParenStart = i;
+            parenDepth++;
+        } else if (char === ')') {
+            parenDepth--;
+            if (parenDepth === 0) lastParenStart = -1;
+        }
+    }
+
+    // Return the context of the most recently opened bracket/paren
+    const contextStart = Math.max(lastBracketStart, lastParenStart);
+
+    if (contextStart === -1) {
+        return { isInside: false, context: text, startIndex: 0 };
+    }
+
+    return {
+        isInside: true,
+        context: text.substring(contextStart + 1), // Everything after the opening bracket
+        startIndex: contextStart + 1
+    };
+};
+
 // ===== AUTO-INCREMENT LOGIC =====
 
 export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, tempRowText, setTempRowText, setConsecutiveCount) => {
@@ -129,29 +171,34 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
         const newCount = consecutiveCount + 1;
         setConsecutiveCount(newCount);
 
-        // SPECIAL CASE: Inside brackets, no comma logic, just direct replacement
-        if (isInsideBrackets(tempRowText)) {
-            // Find the last occurrence of the action and replace it with numbered version
-            const lastActionIndex = tempRowText.lastIndexOf(action);
-            if (lastActionIndex !== -1) {
-                const beforeAction = tempRowText.substring(0, lastActionIndex);
-                const afterAction = tempRowText.substring(lastActionIndex + action.length);
+        // Get current bracket context
+        const bracketContext = getCurrentBracketContext(tempRowText);
 
-                // Check if it's already numbered
-                const numberedMatch = tempRowText.substring(lastActionIndex).match(/^([A-Za-z]+)(\d+)/);
+        if (bracketContext.isInside) {
+            // INSIDE BRACKETS: Work within current bracket context only
+            const contextText = bracketContext.context;
+            const lastActionIndex = contextText.lastIndexOf(action);
+
+            if (lastActionIndex !== -1) {
+                const beforeAction = tempRowText.substring(0, bracketContext.startIndex + lastActionIndex);
+                const afterActionInContext = contextText.substring(lastActionIndex + action.length);
+                const afterContext = tempRowText.substring(bracketContext.startIndex + contextText.length);
+
+                // Check if it's already numbered within this context
+                const numberedMatch = contextText.substring(lastActionIndex).match(/^([A-Za-z]+)(\d+)/);
                 if (numberedMatch) {
-                    // Replace existing number: "[K2" → "[K3"
+                    // Replace existing number: "[P2" → "[P3" (within bracket context)
                     const actionPart = numberedMatch[1];
-                    const afterNumber = tempRowText.substring(lastActionIndex + numberedMatch[0].length);
-                    setTempRowText(`${beforeAction}${actionPart}${newCount}${afterNumber}`);
+                    const restOfContext = contextText.substring(lastActionIndex + numberedMatch[0].length);
+                    setTempRowText(`${beforeAction}${actionPart}${newCount}${restOfContext}${afterContext}`);
                 } else {
-                    // Add number to simple action: "[K" → "[K2"
-                    setTempRowText(`${beforeAction}${action}${newCount}${afterAction}`);
+                    // Add number to simple action: "[P" → "[P2" (within bracket context)
+                    setTempRowText(`${beforeAction}${action}${newCount}${afterActionInContext}${afterContext}`);
                 }
                 return true;
             }
         } else {
-            // NORMAL CASE: Outside brackets, use comma logic
+            // OUTSIDE BRACKETS: Use comma-separated logic
             const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
 
             if (actions.length > 0) {
