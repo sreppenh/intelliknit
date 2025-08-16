@@ -273,6 +273,8 @@ const RowByRowPatternConfig = ({
 
     // ===== NEW: ENHANCED QUICK ACTION WITH AUTO-INCREMENT =====
     const handleQuickAction = (action) => {
+
+        console.log('🔧 Action received:', action);
         // NEW: Block input if row is completed (except delete and enter)
         const isRowLocked = tempRowText === 'K to end' || tempRowText === 'P to end' ||
             tempRowText === 'K all' || tempRowText === 'P all';
@@ -338,21 +340,25 @@ const RowByRowPatternConfig = ({
             } else if (action === '(') {
                 setBracketState(prev => ({ ...prev, hasOpenParen: true }));
             } else if (action === ')') {
+                // FIRST: Add the ) to the text so we can find the match
+                const textWithClosingParen = tempRowText + ')';
                 setBracketState(prev => ({ ...prev, hasOpenParen: false }));
 
                 // Find the matching opening bracket for this closing )
-                const matchingIndex = findMatchingOpeningBracket(tempRowText, ')');
+                const matchingIndex = findMatchingOpeningBracket(textWithClosingParen, ')');
 
                 if (matchingIndex !== -1) {
                     // Extract just the parentheses content being closed
-                    const parenContent = tempRowText.substring(matchingIndex) + ')';
+                    const parenContent = textWithClosingParen.substring(matchingIndex);
                     setPendingRepeatText(parenContent);
+                    setTempRowText(textWithClosingParen); // Update the text
                     setKeyboardMode('numbers');
                     setIsCreatingRepeat(false);
                     return;
                 }
-                // If no matching paren, just continue with regular bracket handling
-                return;  // ← ADD THIS LINE!
+                // If no matching paren, add it normally and continue
+                setTempRowText(textWithClosingParen);
+                return;
             }
         }
 
