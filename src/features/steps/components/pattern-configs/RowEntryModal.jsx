@@ -59,7 +59,7 @@ const RowEntryModal = ({
         const netChange = produced - consumed;
 
         return (
-            <div className="text-sm bg-sage-50 border border-sage-200 rounded-lg p-3">
+            <div className="text-xs bg-sage-50 border border-sage-200 rounded-lg p-3">
                 <span className="text-sage-600">
                     Started with <span className="font-bold text-sage-800">{started}</span>,
                     Consumed <span className="font-bold text-sage-800">{consumed}</span>,

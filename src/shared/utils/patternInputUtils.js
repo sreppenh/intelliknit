@@ -318,7 +318,7 @@ export const handleCopyRow = (action, rowInstructions, setTempRowText, resetAuto
 export const handleCompleteRowAction = (action, setTempRowText, resetAutoIncrement, onComplete = null) => {
     // "K to end" and "P to end" should NOT auto-close - they're blocking actions, not completion actions
     if (action === 'K to end' || action === 'P to end') {
-        setTempRowText(action);
+        setTempRowText(prev => appendWithCommaLogic(prev, action));
         resetAutoIncrement();
         // DO NOT call onComplete() - this was causing auto-close
         return true;

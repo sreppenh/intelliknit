@@ -204,51 +204,6 @@ const EvenDistributionForm = ({
 
             {/* Action Selection - Radio button style */}
             <div className="space-y-4">
-                {/* Decrease Option */}
-                <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${config.action === 'decrease'
-                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                    }`}>
-                    <div className="flex items-start gap-4">
-                        <input
-                            type="radio"
-                            name="action_type"
-                            value="decrease"
-                            checked={config.action === 'decrease'}
-                            onChange={() => setConfig(prev => ({ ...prev, action: 'decrease' }))}
-                            className="w-4 h-4 text-sage-600 mt-1"
-                        />
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-2">
-                                <div className="text-2xl">📉</div>
-                                <div className="text-left">
-                                    <div className="font-semibold text-base">Decrease</div>
-                                    <div className="text-sm opacity-75">Remove stitches evenly across {construction === 'round' ? 'round' : 'row'}</div>
-                                </div>
-                            </div>
-
-                            {config.action === 'decrease' && (
-                                <div className="mt-3 space-y-2">
-                                    <IncrementInput
-                                        value={config.amount}
-                                        onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
-                                        label="amount to decrease"
-                                        unit="stitches"
-                                        min={1}
-                                        contextualMax={Math.floor(currentStitches / 2)}
-                                        size="sm"
-                                    />
-
-                                    {config.amount > 0 && (
-                                        <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
-                                            <strong>Result:</strong> {currentStitches} → {currentStitches - config.amount} stitches
-                                        </div>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    </div>
-                </label>
 
                 {/* Increase Option */}
                 <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${config.action === 'increase'
@@ -295,6 +250,55 @@ const EvenDistributionForm = ({
                         </div>
                     </div>
                 </label>
+
+
+                {/* Decrease Option */}
+                <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${config.action === 'decrease'
+                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                    : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                    }`}>
+                    <div className="flex items-start gap-4">
+                        <input
+                            type="radio"
+                            name="action_type"
+                            value="decrease"
+                            checked={config.action === 'decrease'}
+                            onChange={() => setConfig(prev => ({ ...prev, action: 'decrease' }))}
+                            className="w-4 h-4 text-sage-600 mt-1"
+                        />
+                        <div className="flex-1">
+                            <div className="flex items-center gap-3 mb-2">
+                                <div className="text-2xl">📉</div>
+                                <div className="text-left">
+                                    <div className="font-semibold text-base">Decrease</div>
+                                    <div className="text-sm opacity-75">Remove stitches evenly across {construction === 'round' ? 'round' : 'row'}</div>
+                                </div>
+                            </div>
+
+                            {config.action === 'decrease' && (
+                                <div className="mt-3 space-y-2">
+                                    <IncrementInput
+                                        value={config.amount}
+                                        onChange={(value) => setConfig(prev => ({ ...prev, amount: value }))}
+                                        label="amount to decrease"
+                                        unit="stitches"
+                                        min={1}
+                                        contextualMax={Math.floor(currentStitches / 2)}
+                                        size="sm"
+                                    />
+
+                                    {config.amount > 0 && (
+                                        <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
+                                            <strong>Result:</strong> {currentStitches} → {currentStitches - config.amount} stitches
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                </label>
+
+
             </div>
 
             {/* Optional Description */}
