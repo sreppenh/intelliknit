@@ -162,6 +162,11 @@ const getCurrentBracketContext = (text) => {
 
 // ===== AUTO-INCREMENT LOGIC =====
 
+/**
+ * Smart auto-increment with × multipliers for complex actions
+ * K, P, YO use number suffix (K2, P3, YO4)  
+ * Everything else uses × multiplier (K2tog × 2, SSK × 3)
+ */
 export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, tempRowText, setTempRowText, setConsecutiveCount) => {
     // Only multiply if:
     // 1. Action can be multiplied 
@@ -177,43 +182,23 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
         if (bracketContext.isInside) {
             // INSIDE BRACKETS: Work within current bracket context only
             const contextText = bracketContext.context;
-            const lastActionIndex = contextText.lastIndexOf(action);
-
-            if (lastActionIndex !== -1) {
-                const beforeAction = tempRowText.substring(0, bracketContext.startIndex + lastActionIndex);
-                const afterActionInContext = contextText.substring(lastActionIndex + action.length);
-                const afterContext = tempRowText.substring(bracketContext.startIndex + contextText.length);
-
-                // Check if it's already numbered within this context
-                const numberedMatch = contextText.substring(lastActionIndex).match(/^([A-Za-z]+)(\d+)/);
-                if (numberedMatch) {
-                    // Replace existing number: "[P2" → "[P3" (within bracket context)
-                    const actionPart = numberedMatch[1];
-                    const restOfContext = contextText.substring(lastActionIndex + numberedMatch[0].length);
-                    setTempRowText(`${beforeAction}${actionPart}${newCount}${restOfContext}${afterContext}`);
-                } else {
-                    // Add number to simple action: "[P" → "[P2" (within bracket context)
-                    setTempRowText(`${beforeAction}${action}${newCount}${afterActionInContext}${afterContext}`);
-                }
+            const result = handleBracketContextIncrement(action, newCount, contextText, tempRowText, bracketContext);
+            if (result.handled) {
+                setTempRowText(result.newText);
                 return true;
             }
         } else {
-            // OUTSIDE BRACKETS: Use comma-separated logic
+            // OUTSIDE BRACKETS: Use comma-separated logic with smart multipliers
             const actions = tempRowText.split(', ').filter(a => a.trim() !== '');
 
             if (actions.length > 0) {
                 const lastIndex = actions.length - 1;
                 const lastAction = actions[lastIndex];
 
-                // Check if the last action matches what we're trying to increment
-                if (lastAction === action) {
-                    // Simple case: "K" becomes "K2"
-                    actions[lastIndex] = `${action}${newCount}`;
-                    setTempRowText(actions.join(', '));
-                    return true;
-                } else if (lastAction.match(/^([A-Za-z]+)(\d+)$/) && lastAction.startsWith(action)) {
-                    // Already numbered case: "K2" becomes "K3"
-                    actions[lastIndex] = `${action}${newCount}`;
+                // NEW: Smart multiplier logic
+                const result = createSmartMultiplier(action, lastAction, newCount);
+                if (result.handled) {
+                    actions[lastIndex] = result.newAction;
                     setTempRowText(actions.join(', '));
                     return true;
                 }
@@ -221,6 +206,90 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
         }
     }
     return false;
+};
+
+/**
+ * NEW: Create smart multiplier based on action type
+ * K, P, YO → number suffix (K2, P3, YO4)
+ * Everything else → × multiplier (K2tog × 2, SSK × 3)
+ */
+const createSmartMultiplier = (action, lastAction, count) => {
+    console.log('🔧 createSmartMultiplier:', { action, lastAction, count }); // ADD THIS
+
+    const isSimpleAction = ['K', 'P', 'YO'].includes(action);
+    console.log('🔧 isSimpleAction:', isSimpleAction); // ADD THIS
+
+    if (isSimpleAction) {
+        // Handle simple actions with number suffix
+        if (lastAction === action) {
+            // Simple case: "K" becomes "K2"
+            return { handled: true, newAction: `${action}${count}` };
+        } else if (lastAction.match(/^(K|P|YO)(\d+)$/) && lastAction.startsWith(action)) {
+            // Already numbered case: "K2" becomes "K3"
+            return { handled: true, newAction: `${action}${count}` };
+        }
+    } else {
+        // Handle complex actions with × multiplier
+        if (lastAction === action) {
+            // Simple case: "K2tog" becomes "K2tog × 2"
+            return { handled: true, newAction: `${action} × ${count}` };
+        } else {
+            // Check for existing × multiplier: "K2tog × 2" becomes "K2tog × 3"
+            const multiplierMatch = lastAction.match(/^(.+?)\s*×\s*(\d+)$/);
+            if (multiplierMatch && multiplierMatch[1] === action) {
+                return { handled: true, newAction: `${action} × ${count}` };
+            }
+        }
+    }
+
+    return { handled: false };
+};
+
+/**
+ * NEW: Handle auto-increment inside bracket context
+ */
+const handleBracketContextIncrement = (action, newCount, contextText, tempRowText, bracketContext) => {
+    const lastActionIndex = contextText.lastIndexOf(action);
+
+    if (lastActionIndex !== -1) {
+        const beforeAction = tempRowText.substring(0, bracketContext.startIndex + lastActionIndex);
+        const afterActionInContext = contextText.substring(lastActionIndex + action.length);
+        const afterContext = tempRowText.substring(bracketContext.startIndex + contextText.length);
+
+        const isSimpleAction = ['K', 'P', 'YO'].includes(action);
+
+        if (isSimpleAction) {
+            // Handle simple actions in brackets
+            const numberedMatch = contextText.substring(lastActionIndex).match(/^(K|P|YO)(\d+)/);
+            if (numberedMatch) {
+                // Replace existing number: "[P2" → "[P3" (within bracket context)
+                const actionPart = numberedMatch[1];
+                const restOfContext = contextText.substring(lastActionIndex + numberedMatch[0].length);
+                const newText = `${beforeAction}${actionPart}${newCount}${restOfContext}${afterContext}`;
+                return { handled: true, newText };
+            } else {
+                // Add number to simple action: "[P" → "[P2" (within bracket context)
+                const newText = `${beforeAction}${action}${newCount}${afterActionInContext}${afterContext}`;
+                return { handled: true, newText };
+            }
+        } else {
+            // Handle complex actions in brackets with × multiplier
+            const multiplierMatch = contextText.substring(lastActionIndex).match(/^(.+?)\s*×\s*(\d+)/);
+            if (multiplierMatch) {
+                // Replace existing multiplier: "[K2tog × 2" → "[K2tog × 3"
+                const actionPart = multiplierMatch[1];
+                const restOfContext = contextText.substring(lastActionIndex + multiplierMatch[0].length);
+                const newText = `${beforeAction}${actionPart} × ${newCount}${restOfContext}${afterContext}`;
+                return { handled: true, newText };
+            } else {
+                // Add multiplier to complex action: "[K2tog" → "[K2tog × 2"
+                const newText = `${beforeAction}${action} × ${newCount}${afterActionInContext}${afterContext}`;
+                return { handled: true, newText };
+            }
+        }
+    }
+
+    return { handled: false };
 };
 
 // ===== SMART DELETE LOGIC =====

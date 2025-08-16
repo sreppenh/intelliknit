@@ -54,16 +54,6 @@ const STITCH_VALUES = {
  * @param {number} startingStitches - Stitches available at start of row
  * @returns {Object} - { totalStitches, stitchChange, breakdown, isValid }
  */
-const STITCH_PRODUCES = {
-    'K': 1, 'P': 1, 'K1': 1, 'P1': 1,
-    'K2tog': 1, 'SSK': 1, 'K3tog': 1, 'CDD': 1, 'S2KP': 1, 'SK2P': 1,
-    'P2tog': 1, 'SSP': 1, 'K2tog tbl': 1, 'SSK tbl': 1,
-    'YO': 1, 'M1': 1, 'M1L': 1, 'M1R': 1, 'KFB': 2,
-    'Sl1': 1, 'BO': 0,
-    'C4F': 4, 'C4B': 4, 'C6F': 6, 'C6B': 6,
-    'T2F': 2, 'T2B': 2, 'T4F': 4, 'T4B': 4, 'RT': 2, 'LT': 2
-};
-
 export const calculateRowStitches = (instruction, startingStitches = 0, customActionsData = {}) => {
     if (!instruction || !instruction.trim()) {
         return {
@@ -77,40 +67,8 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
     }
 
     // SMART "TO END" PREPROCESSING
-    // Replace "K to end" and "P to end" with calculated values before main parsing
-    let processedInstruction = instruction;
-
-    // Check for "K to end" or "P to end" patterns
-    const kToEndPattern = /k\s+to\s+end/gi;
-    const pToEndPattern = /p\s+to\s+end/gi;
-
-    if (kToEndPattern.test(instruction) || pToEndPattern.test(instruction)) {
-        // Parse everything BEFORE the "to end" commands to calculate consumed stitches
-        let tempConsumed = 0;
-
-        // Split by commas and process each part
-        const parts = instruction.split(',').map(part => part.trim());
-        const processedParts = [];
-
-        for (const part of parts) {
-            if (/k\s+to\s+end/gi.test(part)) {
-                // Calculate remaining stitches for K to end
-                const remainingStitches = startingStitches - tempConsumed;
-                processedParts.push(remainingStitches > 0 ? `K${remainingStitches}` : 'K0');
-            } else if (/p\s+to\s+end/gi.test(part)) {
-                // Calculate remaining stitches for P to end
-                const remainingStitches = startingStitches - tempConsumed;
-                processedParts.push(remainingStitches > 0 ? `P${remainingStitches}` : 'P0');
-            } else {
-                // Regular part - calculate its consumption and add to processed parts
-                const partResult = calculatePartialStitches(part, customActionsData);
-                tempConsumed += partResult.consumed;
-                processedParts.push(part);
-            }
-        }
-
-        processedInstruction = processedParts.join(', ');
-    }
+    // Calculate what "to end" means, but keep the original instruction for display
+    let processedInstruction = preprocessToEndInstructions(instruction, startingStitches, customActionsData);
 
     let totalProduced = 0;
     let totalConsumed = 0;
@@ -161,32 +119,58 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         return STITCH_VALUES[operation] || { consumes: 1, produces: 1 }; // Default to 1:1
     };
 
-    // Parse bracketed repeats like [K, yo, ssk] × 3
-    const repeatPattern = /\[([^\]]+)\]\s*×?\s*(\d+)/g;
+    // FIXED: Parse bracketed repeats - handles both [...]3 and [...] × 3 and incomplete [...]
+    const bracketPattern = /\[([^\]]*)\](?:\s*(?:×\s*)?(\d+))?/g;
     let remainingInstruction = processedInstruction;
     let match;
 
-    while ((match = repeatPattern.exec(processedInstruction)) !== null) {
-        const [fullMatch, repeatContent, repeatCount] = match;
-        const count = parseInt(repeatCount);
+    while ((match = bracketPattern.exec(processedInstruction)) !== null) {
+        const [fullMatch, bracketContent, repeatCount] = match;
+        const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete brackets
 
-        const operations = repeatContent.split(',').map(op => op.trim()).filter(op => op.length > 0);
-        let consumedInRepeat = 0;
-        let producedInRepeat = 0;
+        console.log(`🔧 Found bracket: "${bracketContent}" × ${count}`);
 
-        for (const operation of operations) {
-            const stitchValue = getStitchValue(operation.toUpperCase());
-            consumedInRepeat += stitchValue.consumes;
-            producedInRepeat += stitchValue.produces;
+        // Parse content inside brackets (can contain parentheses)
+        const bracketResult = parseBracketContent(bracketContent, getStitchValue);
+
+        const consumedInRepeat = bracketResult.consumed * count;
+        const producedInRepeat = bracketResult.produced * count;
+
+        console.log(`🔧 Bracket math: ${bracketResult.consumed} × ${count} = ${consumedInRepeat} consumed, ${bracketResult.produced} × ${count} = ${producedInRepeat} produced`);
+
+        totalConsumed += consumedInRepeat;
+        totalProduced += producedInRepeat;
+
+        // Remove this bracket from remaining instruction
+        remainingInstruction = remainingInstruction.replace(fullMatch, '');
+    }
+
+    // FIXED: Parse parentheses repeats that are NOT inside brackets - (K2tog)3 and incomplete (K2tog
+    const parenPattern = /\(([^)]*)\)(?:\s*(?:×\s*)?(\d+))?/g;
+    while ((match = parenPattern.exec(remainingInstruction)) !== null) {
+        const [fullMatch, parenContent, repeatCount] = match;
+        const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete parens
+
+        console.log(`🔧 Found standalone paren: "${parenContent}" × ${count}`);
+
+        // Parse single operation inside parentheses
+        if (parenContent.trim()) {
+            const stitchValue = getStitchValue(parenContent.trim().toUpperCase());
+            const consumedInRepeat = stitchValue.consumes * count;
+            const producedInRepeat = stitchValue.produces * count;
+
+            totalConsumed += consumedInRepeat;
+            totalProduced += producedInRepeat;
         }
 
-        totalConsumed += consumedInRepeat * count;
-        totalProduced += producedInRepeat * count;
+        // Remove this paren from remaining instruction
         remainingInstruction = remainingInstruction.replace(fullMatch, '');
     }
 
     // Parse remaining operations (split by commas)
-    const remainingOps = remainingInstruction.split(',').map(op => op.trim()).filter(op => op.length > 0);
+    const remainingOps = remainingInstruction.split(',')
+        .map(op => op.trim())
+        .filter(op => op.length > 0);
 
     for (const operation of remainingOps) {
         // Handle numbered operations like "K37", "K3", etc.
@@ -197,8 +181,8 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
             const stitchValue = getStitchValue(stitchOp.toUpperCase());
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
-        } else {
-            // Single operation like "K", "yo", "ssk"
+        } else if (operation.trim()) {
+            // Single operation like "K", "YO", "SSK"
             const stitchValue = getStitchValue(operation.toUpperCase());
             totalConsumed += stitchValue.consumes;
             totalProduced += stitchValue.produces;
@@ -215,6 +199,103 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         breakdown: [],
         isValid: true
     };
+};
+
+/**
+ * FIXED: Process "K to end" and "P to end" instructions for calculation only
+ * Returns processed instruction for math, but doesn't change the display
+ */
+const preprocessToEndInstructions = (instruction, startingStitches, customActionsData = {}) => {
+    // Check for "K to end" or "P to end" patterns
+    const kToEndPattern = /k\s+to\s+end/gi;
+    const pToEndPattern = /p\s+to\s+end/gi;
+
+    if (!kToEndPattern.test(instruction) && !pToEndPattern.test(instruction)) {
+        return instruction; // No "to end" patterns, return as-is
+    }
+
+    // Parse everything BEFORE the "to end" commands to calculate consumed stitches
+    let tempConsumed = 0;
+    const parts = instruction.split(',').map(part => part.trim());
+    const processedParts = [];
+
+    for (const part of parts) {
+        if (/k\s+to\s+end/gi.test(part)) {
+            // Calculate remaining stitches for K to end
+            const remainingStitches = startingStitches - tempConsumed;
+            processedParts.push(remainingStitches > 0 ? `K${remainingStitches}` : 'K0');
+        } else if (/p\s+to\s+end/gi.test(part)) {
+            // Calculate remaining stitches for P to end
+            const remainingStitches = startingStitches - tempConsumed;
+            processedParts.push(remainingStitches > 0 ? `P${remainingStitches}` : 'P0');
+        } else {
+            // Regular part - calculate its consumption and add to processed parts
+            const partResult = calculatePartialStitches(part, customActionsData);
+            tempConsumed += partResult.consumed;
+            processedParts.push(part);
+        }
+    }
+
+    return processedParts.join(', ');
+};
+
+/**
+ * FIXED: Parse content inside brackets (can contain parentheses)
+ * Handles: "K2, (P2tog)3, YO" inside [...] and incomplete content
+ */
+const parseBracketContent = (content, getStitchValue) => {
+    let totalConsumed = 0;
+    let totalProduced = 0;
+
+    if (!content || !content.trim()) {
+        return { consumed: 0, produced: 0 }; // Empty brackets
+    }
+
+    // First, handle any parentheses inside the bracket content
+    const parenPattern = /\(([^)]*)\)(?:\s*(?:×\s*)?(\d+))?/g;
+    let workingContent = content;
+    let match;
+
+    while ((match = parenPattern.exec(content)) !== null) {
+        const [fullMatch, parenContent, repeatCount] = match;
+        const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete
+
+        console.log(`🔧 Found paren inside bracket: "${parenContent}" × ${count}`);
+
+        // Parse the operation inside parentheses
+        if (parenContent.trim()) {
+            const stitchValue = getStitchValue(parenContent.trim().toUpperCase());
+            totalConsumed += stitchValue.consumes * count;
+            totalProduced += stitchValue.produces * count;
+        }
+
+        // Remove this paren from working content
+        workingContent = workingContent.replace(fullMatch, '');
+    }
+
+    // Then handle remaining comma-separated operations
+    const operations = workingContent.split(',')
+        .map(op => op.trim())
+        .filter(op => op.length > 0);
+
+    for (const operation of operations) {
+        // Handle numbered operations like "K5", "P3"
+        const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
+        if (numberedMatch) {
+            const [, stitchOp, repeatNum] = numberedMatch;
+            const count = parseInt(repeatNum);
+            const stitchValue = getStitchValue(stitchOp.toUpperCase());
+            totalConsumed += stitchValue.consumes * count;
+            totalProduced += stitchValue.produces * count;
+        } else if (operation.trim()) {
+            // Single operation like "K", "YO", "SSK"
+            const stitchValue = getStitchValue(operation.toUpperCase());
+            totalConsumed += stitchValue.consumes;
+            totalProduced += stitchValue.produces;
+        }
+    }
+
+    return { consumed: totalConsumed, produced: totalProduced };
 };
 
 /**
@@ -262,109 +343,6 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
     }
 
     return { consumed, produced };
-};
-
-/**
- * Parse content inside brackets for repeats
- */
-const parseRepeatContent = (content) => {
-    let totalConsumed = 0;
-    let totalProduced = 0;
-    const breakdown = [];
-
-    // Split by commas to get individual operations
-    const operations = content.split(',').map(op => op.trim());
-
-    for (const operation of operations) {
-        // Handle parenthetical repeats within brackets: (K2tog)2
-        const parenPattern = /\(([^)]+)\)(\d+)/;
-        const parenMatch = operation.match(parenPattern);
-
-        if (parenMatch) {
-            const [, stitchOp, count] = parenMatch;
-            const repeatCount = parseInt(count);
-            const stitchValue = STITCH_VALUES[stitchOp];
-
-            if (stitchValue) {
-                const consumed = stitchValue.consumes * repeatCount;
-                const produced = stitchValue.produces * repeatCount;
-                totalConsumed += consumed;
-                totalProduced += produced;
-                breakdown.push({
-                    operation: `(${stitchOp})${repeatCount}`,
-                    count: repeatCount,
-                    netChange: produced - consumed
-                });
-            }
-        } else {
-            // Single operation
-            const stitchValue = STITCH_VALUES[operation];
-            if (stitchValue) {
-                totalConsumed += stitchValue.consumes;
-                totalProduced += stitchValue.produces;
-                breakdown.push({
-                    operation,
-                    count: 1,
-                    netChange: stitchValue.produces - stitchValue.consumes
-                });
-            }
-        }
-    }
-
-    return { consumed: totalConsumed, produced: totalProduced, breakdown };
-};
-
-/**
- * Parse individual stitch operations
- */
-const parseStitchOperations = (instruction) => {
-    let totalConsumed = 0;
-    let totalProduced = 0;
-    const breakdown = [];
-
-    // Clean up instruction and split by commas
-    const cleanInstruction = instruction.replace(/[,\s]+/g, ' ').trim();
-    if (!cleanInstruction) return { consumed: 0, produced: 0, breakdown: [] };
-
-    // Split by spaces to get individual operations
-    const operations = cleanInstruction.split(/\s+/).filter(op => op.length > 0);
-
-    for (const operation of operations) {
-        // Handle numbered operations like "K2", "K3", "P5", etc.
-        const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
-
-        if (numberedMatch) {
-            const [, stitchOp, count] = numberedMatch;
-            const repeatCount = parseInt(count);
-            const stitchValue = STITCH_VALUES[stitchOp];
-
-            if (stitchValue) {
-                const consumed = stitchValue.consumes * repeatCount;
-                const produced = stitchValue.produces * repeatCount;
-                totalConsumed += consumed;
-                totalProduced += produced;
-                breakdown.push({
-                    operation: `${stitchOp}${repeatCount}`,
-                    count: repeatCount,
-                    netChange: produced - consumed
-                });
-            }
-        } else {
-            // Single operation without number
-            const stitchValue = STITCH_VALUES[operation];
-            if (stitchValue) {
-                totalConsumed += stitchValue.consumes;
-                totalProduced += stitchValue.produces;
-                breakdown.push({
-                    operation,
-                    count: 1,
-                    netChange: stitchValue.produces - stitchValue.consumes
-                });
-            }
-        }
-    }
-
-    return { consumed: totalConsumed, produced: totalProduced, breakdown };
 };
 
 /**

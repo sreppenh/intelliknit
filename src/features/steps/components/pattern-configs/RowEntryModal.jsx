@@ -71,64 +71,33 @@ const RowEntryModal = ({
             </div>
         );
     };
-    // 🧪 CORRECTED TEST EXPECTATIONS:
 
-    const CORRECTED_TEST_CASES = [
-        // === INITIAL STATE ===
-        {
-            input: "",
-            expected: "Started with 30, Consumed 0, Produced 0 (-30)",
-            description: "Empty modal - no pattern entered yet"
-        },
-
-        // === BASIC PATTERNS ===
-        {
-            input: "K all",
-            expected: "Started with 30, Consumed 30, Produced 30 (0)",
-            description: "Basic knit - work with all 30, produce 30"
-        },
-        {
-            input: "P all",
-            expected: "Started with 30, Consumed 30, Produced 30 (0)",
-            description: "Basic purl - work with all 30, produce 30"
-        },
-
-        // === INCREASES ===
-        {
-            input: "K1, yo, K to end",
-            expected: "Started with 30, Consumed 30, Produced 31 (+1)",
-            description: "Yarn over increase - work with 30, produce 31"
-        },
-        {
-            input: "K1, M1, K to end",
-            expected: "Started with 30, Consumed 30, Produced 31 (+1)",
-            description: "Make-one increase - work with 30, produce 31"
-        },
-
-        // === DECREASES ===
-        {
-            input: "K1, ssk, K to end",
-            expected: "Started with 30, Consumed 30, Produced 29 (-1)",
-            description: "Single decrease - work with 30, produce 29"
-        },
-        {
-            input: "K1, k2tog, K to end",
-            expected: "Started with 30, Consumed 30, Produced 29 (-1)",
-            description: "Single decrease - work with 30, produce 29"
-        },
-
-        // === BALANCED LACE ===
-        {
-            input: "K1, yo, ssk, K to end",
-            expected: "Started with 30, Consumed 30, Produced 30 (0)",
-            description: "Balanced lace - work with 30, produce 30"
-        },
-        {
-            input: "K1, k2tog, yo, K to end",
-            expected: "Started with 30, Consumed 30, Produced 30 (0)",
-            description: "Balanced lace - work with 30, produce 30"
+    const getRowCompletionStatus = () => {
+        if (!tempRowText.trim()) {
+            return { isComplete: false, reason: 'empty' };
         }
-    ];
+
+        const calculation = getStitchCalculation();
+        if (!calculation || !calculation.isValid) {
+            return { isComplete: false, reason: 'invalid' };
+        }
+
+        const startingStitches = calculation.previousStitches;
+        const consumedStitches = calculation.stitchesConsumed;
+
+        if (consumedStitches !== startingStitches) {
+            const remaining = startingStitches - consumedStitches;
+            return {
+                isComplete: false,
+                reason: 'incomplete',
+                remaining: remaining,
+                consumed: consumedStitches,
+                total: startingStitches
+            };
+        }
+
+        return { isComplete: true };
+    };
 
     const title = editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`;
     const subtitle = `${getRowSide(currentRowNumber)}`;
@@ -182,8 +151,16 @@ const RowEntryModal = ({
                 </button>
                 <button
                     onClick={onSave}
-                    disabled={!tempRowText.trim()}
-                    className="flex-1 py-3 px-4 bg-sage-500 text-white rounded-lg hover:bg-sage-600 disabled:bg-wool-300 disabled:cursor-not-allowed transition-colors"
+                    disabled={!getRowCompletionStatus().isComplete}
+                    className={`flex-1 py-3 px-4 rounded-lg transition-colors ${getRowCompletionStatus().isComplete
+                            ? 'bg-sage-500 text-white hover:bg-sage-600'
+                            : 'bg-wool-300 text-wool-500 cursor-not-allowed'
+                        }`}
+                    title={
+                        !getRowCompletionStatus().isComplete && getRowCompletionStatus().reason === 'incomplete'
+                            ? `Row incomplete - ${getRowCompletionStatus().remaining || 0} stitches remaining`
+                            : undefined
+                    }
                 >
                     {editingRowIndex === null ? 'Add Row' : 'Save Row'}
                 </button>

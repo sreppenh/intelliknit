@@ -162,8 +162,23 @@ const RowByRowPatternConfig = ({
         setshowRowEntryModal(true);
     };
 
+    // In RowByRowPatternConfig.jsx - find the handleSaveRow function and replace it with this:
+
     const handleSaveRow = () => {
         if (!tempRowText.trim()) return;
+
+        // NEW: Validate that row consumes all available stitches
+        const calculation = getStitchCalculation();
+        if (calculation && calculation.isValid) {
+            const startingStitches = calculation.previousStitches;
+            const consumedStitches = calculation.stitchesConsumed;
+
+            // Only allow save if all stitches are consumed
+            if (consumedStitches !== startingStitches) {
+                console.log(`🚫 Save blocked: ${consumedStitches} consumed ≠ ${startingStitches} available`);
+                return; // Block save - row is incomplete
+            }
+        }
 
         let updatedInstructions = [...rowInstructions];
 
@@ -204,12 +219,10 @@ const RowByRowPatternConfig = ({
     };
 
     const getStitchCalculation = () => {
-        console.log('🔧 Calculation called:', { tempRowText, currentStitches, hasProject: !!currentProject });
 
         if (!currentProject) return null;  // ← Only return null if no project
 
         const baselineStitches = currentStitches || 80;
-        console.log('🔧 Baseline:', baselineStitches);
 
         // If no text yet, return baseline calculation
         if (!tempRowText || !tempRowText.trim()) {
@@ -275,9 +288,6 @@ const RowByRowPatternConfig = ({
     // This needs to be updated in the main component to handle accumulated actions like "K36"
 
     const handleQuickAction = (action) => {
-        console.log('🔧 Action received:', action);
-        console.log('🔧 Regex test:', action.match(/^([A-Za-z]+)(\d+)$/));
-
 
         // Check if this is an accumulated action (like "K36", "P15", etc.)
         // Check if this is an accumulated action (like "K36", "P15", etc.)
@@ -1081,7 +1091,6 @@ const HoldableButton = ({ action, buttonType, className, children, disabled, onC
             // Start accumulating every 150ms
             const intervalTimer = setInterval(() => {
                 currentCount++;
-                console.log('🔧 Interval tick:', currentCount);
 
                 setHoldState(prev => ({
                     ...prev,
@@ -1106,13 +1115,6 @@ const HoldableButton = ({ action, buttonType, className, children, disabled, onC
     const stopHoldAction = (e) => {
         e.preventDefault();
 
-        console.log('🔧 stopHoldAction:', {
-            isHolding: holdState.isHolding,
-            mousePressed: holdState.mousePressed,
-            count: holdState.count,
-            hasIntervalTimer: !!holdState.intervalTimer
-        });
-
         // Only process if we were actually pressing the mouse
         if (!holdState.mousePressed) {
             return;
@@ -1131,11 +1133,9 @@ const HoldableButton = ({ action, buttonType, className, children, disabled, onC
             if (holdState.count > 1) {
                 // Send accumulated action like "K36" - this was a real hold
                 const accumulatedAction = `${action}${holdState.count}`;
-                console.log('🔧 Sending accumulated:', accumulatedAction);
                 onClick(accumulatedAction);
             } else {
                 // Send single action - this was a quick tap
-                console.log('🔧 Sending single:', action);
                 onClick(action);
             }
         }
