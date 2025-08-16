@@ -315,54 +315,55 @@ const RowByRowPatternConfig = ({
 
 
         // Track bracket state
-        if (isBracketAction(action)) {
-            if (action === '[') {
-                setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
-            } else if (action === ']') {
-                setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
+        // Handle CLOSING brackets specially (they trigger number mode)
+        if (action === ']') {
+            setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
 
-                // FIRST: Add the ] to the main text display  
-                const textWithClosingBracket = tempRowText + ']';
-                setTempRowText(textWithClosingBracket);
+            // FIRST: Add the ] to the main text display  
+            const textWithClosingBracket = tempRowText + ']';
+            setTempRowText(textWithClosingBracket);
 
-                // THEN: Find matching bracket for the preview
-                const matchingIndex = findMatchingOpeningBracket(textWithClosingBracket, ']');
+            // THEN: Find matching bracket for the preview
+            const matchingIndex = findMatchingOpeningBracket(textWithClosingBracket, ']');
 
-                if (matchingIndex !== -1) {
-                    // Extract just the bracket content for the mini display
-                    const bracketContent = textWithClosingBracket.substring(matchingIndex);
-                    setPendingRepeatText(bracketContent);
-                } else {
-                    // Fallback: use the whole text
-                    setPendingRepeatText(textWithClosingBracket);
-                }
+            if (matchingIndex !== -1) {
+                // Extract just the bracket content for the mini display
+                const bracketContent = textWithClosingBracket.substring(matchingIndex);
+                setPendingRepeatText(bracketContent);
+            } else {
+                // Fallback: use the whole text
+                setPendingRepeatText(textWithClosingBracket);
+            }
 
+            setKeyboardMode('numbers');
+            setIsCreatingRepeat(false);
+            return;
+
+        } else if (action === ')') {
+            setBracketState(prev => ({ ...prev, hasOpenParen: false }));
+
+            // FIRST: Add the ) to the main text display
+            const textWithClosingParen = tempRowText + ')';
+            setTempRowText(textWithClosingParen);
+
+            // THEN: Find matching bracket for the preview
+            const matchingIndex = findMatchingOpeningBracket(textWithClosingParen, ')');
+
+            if (matchingIndex !== -1) {
+                // Extract just the parentheses content for the mini display
+                const parenContent = textWithClosingParen.substring(matchingIndex);
+                setPendingRepeatText(parenContent);
                 setKeyboardMode('numbers');
                 setIsCreatingRepeat(false);
-                return;
-
-
-            } else if (action === '(') {
-                setBracketState(prev => ({ ...prev, hasOpenParen: true }));
-            } else if (action === ')') {
-                setBracketState(prev => ({ ...prev, hasOpenParen: false }));
-
-                // FIRST: Add the ) to the main text display
-                const textWithClosingParen = tempRowText + ')';
-                setTempRowText(textWithClosingParen);
-
-                // THEN: Find matching bracket for the preview
-                const matchingIndex = findMatchingOpeningBracket(textWithClosingParen, ')');
-
-                if (matchingIndex !== -1) {
-                    // Extract just the parentheses content for the mini display
-                    const parenContent = textWithClosingParen.substring(matchingIndex);
-                    setPendingRepeatText(parenContent);
-                    setKeyboardMode('numbers');
-                    setIsCreatingRepeat(false);
-                }
-                return;
             }
+            return;
+        }
+
+        // OPENING brackets get comma logic and then fall through to normal processing
+        if (action === '[') {
+            setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
+        } else if (action === '(') {
+            setBracketState(prev => ({ ...prev, hasOpenParen: true }));
         }
 
         // Handle delete with bracket reset callback
