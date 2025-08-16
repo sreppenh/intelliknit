@@ -232,6 +232,10 @@ export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncremen
     const lastAction = actions[actions.length - 1];
     const numberedMatch = lastAction.match(/^([A-Za-z\d\s]+?)(\d+)$/);
 
+    // Check if we're about to delete a bracket/paren character
+    const lastChar = tempRowText[tempRowText.length - 1];
+    const isDeletingBracket = ['[', ']', '(', ')'].includes(lastChar);
+
     if (numberedMatch && !isLongPress) {
         const [, actionPart, number] = numberedMatch;
         const currentNum = parseInt(number);
@@ -245,13 +249,13 @@ export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncremen
         actions.pop();
     }
 
-    setTempRowText(actions.join(', '));
+    const newText = actions.join(', ');
+    setTempRowText(newText);
     resetAutoIncrement();
 
-    // ADD this at the end before return:
-    if (onBracketChange) {
-        const newText = actions.join(', ');
-        onBracketChange(newText); // Let parent component reset bracket state
+    // IMPORTANT: Reset bracket state if we deleted a bracket character
+    if (onBracketChange && isDeletingBracket) {
+        onBracketChange(newText, { deletedBracket: lastChar });
     }
 
     return true;

@@ -16,7 +16,8 @@ import {
     handleQuickActionEnhanced,
     shouldMultiplyAction,
     isBracketAction,
-    isNumberAction
+    isNumberAction,
+    handleSmartDelete, resetAutoIncrement
 } from '../../../../shared/utils/patternInputUtils';
 import { calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
@@ -247,6 +248,11 @@ const RowByRowPatternConfig = ({
             return; // Do nothing - input blocked
         }
 
+        const resetAutoIncrement = () => {
+            setLastQuickAction(null);
+            setConsecutiveCount(1);
+        };
+
         // Handle keyboard mode switching
         if (keyboardMode === 'numbers') {
             handleNumberInput(action);
@@ -286,6 +292,29 @@ const RowByRowPatternConfig = ({
             } else if (action === ')') {
                 setBracketState(prev => ({ ...prev, hasOpenParen: false }));
             }
+        }
+
+        // Handle delete with bracket reset callback
+        if (action === '⌫') {
+            const handleBracketReset = (newText, info) => {
+                if (info?.deletedBracket) {
+                    // Reset bracket state based on what was deleted
+                    if (info.deletedBracket === '[') {
+                        setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
+                    } else if (info.deletedBracket === ']') {
+                        setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
+                        // If we deleted a ], we might have been in number mode
+                        setKeyboardMode('pattern');
+                        setPendingRepeatText('');
+                    } else if (info.deletedBracket === '(') {
+                        setBracketState(prev => ({ ...prev, hasOpenParen: false }));
+                    } else if (info.deletedBracket === ')') {
+                        setBracketState(prev => ({ ...prev, hasOpenParen: true }));
+                    }
+                }
+            };
+
+            return handleSmartDelete(tempRowText, setTempRowText, resetAutoIncrement, false, handleBracketReset);
         }
 
         // Use the enhanced handler from utilities for everything else
