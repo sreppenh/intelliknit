@@ -1105,6 +1105,7 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
     };
 
     const startHoldAction = (e) => {
+        console.log('KAI-START: action=', action, 'device=', e.pointerType || 'mouse');
         e.preventDefault();
         if (!canHold) {
             onClick(action);
@@ -1126,7 +1127,9 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
         setHoldState(prev => ({ ...prev, timer: initialTimer }));
     };
 
+
     const stopHoldAction = (e) => {
+        console.log('KAI-STOP: action=', action, 'count=', holdState.count, 'device=', e.pointerType || 'mouse');
         e.preventDefault();
         if (!holdState.pointerDown) return;
 
@@ -1136,11 +1139,14 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
         if (holdState.isHolding) {
             if (holdState.count > 1) {
                 const isSimpleAction = ['K', 'P', 'YO'].includes(action);
+                console.log('KAI-FORMAT: action=', action, 'isSimple=', isSimpleAction, 'count=', holdState.count);
                 const accumulatedAction = isSimpleAction
                     ? `${action}${holdState.count}`
                     : `${action} × ${holdState.count}`;
+                console.log('KAI-ACCUMULATED:', accumulatedAction);
                 onClick(accumulatedAction);
             } else {
+                console.log('KAI-SINGLE:', action);
                 onClick(action);
             }
         }
@@ -1195,71 +1201,6 @@ const EnhancedKeyboard = ({
         consumed: 1,
         stitches: 1
     });
-
-    // ===== HOLD-DOWN STATE MANAGEMENT =====
-    const [holdTimers, setHoldTimers] = useState(new Map());
-    const [isHolding, setIsHolding] = useState(false);
-
-    // ===== HOLD-DOWN FUNCTIONALITY =====
-    const startHoldAction = (action) => {
-        if (holdTimers.has(action)) return; // Already holding this action
-
-        setIsHolding(true);
-
-        // Initial delay before starting rapid-fire
-        const initialTimer = setTimeout(() => {
-            // Start rapid-fire with accelerating speed
-            let interval = 300; // Start at 300ms
-            const minInterval = 100; // Speed up to 100ms
-            const acceleration = 0.9; // Each repeat gets 10% faster
-
-            const rapidFire = () => {
-                onAction(action); // Execute the action
-
-                // Speed up for next iteration
-                interval = Math.max(minInterval, interval * acceleration);
-
-                // Schedule next action
-                const nextTimer = setTimeout(rapidFire, interval);
-
-                // Store the timer so we can cancel it
-                setHoldTimers(prev => new Map(prev).set(action, nextTimer));
-            };
-
-            // Start the rapid-fire sequence
-            rapidFire();
-
-        }, 500); // 500ms initial delay
-
-        // Store the initial timer
-        setHoldTimers(prev => new Map(prev).set(action, initialTimer));
-    };
-
-    const stopHoldAction = (action) => {
-        const timer = holdTimers.get(action);
-        if (timer) {
-            clearTimeout(timer);
-            setHoldTimers(prev => {
-                const newMap = new Map(prev);
-                newMap.delete(action);
-                return newMap;
-            });
-        }
-
-        // Check if we're still holding any actions
-        const stillHolding = Array.from(holdTimers.keys()).some(key => key !== action);
-        if (!stillHolding) {
-            setIsHolding(false);
-        }
-    };
-
-    // Clean up all timers on unmount
-    useEffect(() => {
-        return () => {
-            holdTimers.forEach(timer => clearTimeout(timer));
-        };
-    }, []);
-
 
     // Get custom actions for current pattern type
     const customActions = ((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
