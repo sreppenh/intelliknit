@@ -214,10 +214,8 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
  * Everything else → × multiplier (K2tog × 2, SSK × 3)
  */
 const createSmartMultiplier = (action, lastAction, count) => {
-    console.log('🔧 createSmartMultiplier:', { action, lastAction, count }); // ADD THIS
 
     const isSimpleAction = ['K', 'P', 'YO'].includes(action);
-    console.log('🔧 isSimpleAction:', isSimpleAction); // ADD THIS
 
     if (isSimpleAction) {
         // Handle simple actions with number suffix

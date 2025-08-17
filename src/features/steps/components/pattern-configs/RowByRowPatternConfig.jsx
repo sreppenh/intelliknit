@@ -288,10 +288,8 @@ const RowByRowPatternConfig = ({
     // This needs to be updated in the main component to handle accumulated actions like "K36"
 
     const handleQuickAction = (action) => {
-        console.log('🔧 handleQuickAction called:', action); // ADD THIS
 
         const accumulatedMatch = action.match(/^([A-Za-z]+)(\d+)$/);
-        console.log('🔧 accumulatedMatch:', accumulatedMatch); // ADD THIS
 
         if (accumulatedMatch) {
             console.log('🔧 TAKING ACCUMULATED PATH');
@@ -1073,8 +1071,6 @@ const HoldableButton = ({ action, buttonType, className, children, disabled, onC
     const startHoldAction = (e) => {
         e.preventDefault();
 
-        console.log('🔧 startHoldAction:', action, 'canHold:', canHold);
-
         if (!canHold) {
             // For non-multiplicable actions, send immediately
             onClick(action);
@@ -1139,9 +1135,13 @@ const HoldableButton = ({ action, buttonType, className, children, disabled, onC
 
                 // NEW (uses smart multipliers):
                 const isSimpleAction = ['K', 'P', 'YO'].includes(action);
+                console.log('🔍 isSimpleAction check:', action, '→', isSimpleAction);
                 const accumulatedAction = isSimpleAction
                     ? `${action}${holdState.count}`           // K2, P3, YO4
                     : `${action} × ${holdState.count}`;       // K2tog × 2, SSK × 3
+
+                console.log('🔍 Hold-down producing:', accumulatedAction);  // ← ADD THIS LINE
+
                 onClick(accumulatedAction);
             } else {
                 // Send single action - this was a quick tap
