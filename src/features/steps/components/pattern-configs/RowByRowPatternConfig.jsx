@@ -288,28 +288,59 @@ const RowByRowPatternConfig = ({
     // This needs to be updated in the main component to handle accumulated actions like "K36"
 
     const handleQuickAction = (action) => {
+        // Check for BOTH formats of accumulated actions
+        const simpleAccumulatedMatch = action.match(/^([A-Za-z]+)(\d+)$/);  // K36
+        const complexAccumulatedMatch = action.match(/^(.+?)\s*×\s*(\d+)$/); // K2tog × 6
 
-        const accumulatedMatch = action.match(/^([A-Za-z]+)(\d+)$/);
-
-        if (accumulatedMatch) {
+        if (simpleAccumulatedMatch || complexAccumulatedMatch) {
             console.log('🔧 TAKING ACCUMULATED PATH');
 
-            const [, baseAction, count] = accumulatedMatch;
+            let baseAction, count;
 
-            // Add the accumulated action with smart comma logic AND merging
+            if (complexAccumulatedMatch) {
+                // Handle "K2tog × 6" format
+                [, baseAction, count] = complexAccumulatedMatch;
+                baseAction = baseAction.trim();
+            } else {
+                // Handle "K36" format - but we need to convert it!
+                [, baseAction, count] = simpleAccumulatedMatch;
+            }
+
+            // Now determine the FINAL format based on action type
+            const isSimpleAction = ['K', 'P', 'YO'].includes(baseAction);
+            const formattedAction = isSimpleAction
+                ? `${baseAction}${count}`
+                : `${baseAction} × ${count}`;
+
+            // Add the properly formatted action with smart comma logic AND merging
             setTempRowText(prev => {
                 const actions = prev.split(', ').filter(a => a.trim() !== '');
 
                 // Check if the last action is the same base action
                 if (actions.length > 0) {
                     const lastAction = actions[actions.length - 1];
-                    const lastMatch = lastAction.match(/^([A-Za-z]+)(\d*)$/);
 
-                    if (lastMatch && lastMatch[1] === baseAction) {
+                    // Extract base from last action (handle both formats)
+                    let lastBase = lastAction;
+                    let lastCount = 1;
+
+                    const lastSimpleMatch = lastAction.match(/^([A-Za-z]+)(\d*)$/);
+                    const lastComplexMatch = lastAction.match(/^(.+?)\s*×\s*(\d+)$/);
+
+                    if (lastComplexMatch) {
+                        lastBase = lastComplexMatch[1].trim();
+                        lastCount = parseInt(lastComplexMatch[2]);
+                    } else if (lastSimpleMatch) {
+                        lastBase = lastSimpleMatch[1];
+                        lastCount = parseInt(lastSimpleMatch[2] || '1');
+                    }
+
+                    if (lastBase === baseAction) {
                         // Same base action! Merge them
-                        const existingCount = parseInt(lastMatch[2] || '1');
-                        const newCount = existingCount + parseInt(count);
-                        const mergedAction = `${baseAction}${newCount}`;
+                        const newCount = lastCount + parseInt(count);
+                        const mergedAction = isSimpleAction
+                            ? `${baseAction}${newCount}`
+                            : `${baseAction} × ${newCount}`;
 
                         // Replace the last action with merged version
                         actions[actions.length - 1] = mergedAction;
@@ -317,13 +348,13 @@ const RowByRowPatternConfig = ({
                     }
                 }
 
-                // Not mergeable, use original logic
+                // Not mergeable, use comma logic
                 const shouldAddComma = prev &&
                     !prev.endsWith('[') &&
                     !prev.endsWith('(') &&
                     !prev.endsWith(', ');
 
-                const newText = shouldAddComma ? `${prev}, ${action}` : `${prev}${action}`;
+                const newText = shouldAddComma ? `${prev}, ${formattedAction}` : `${prev}${formattedAction}`;
                 return newText;
             });
 
