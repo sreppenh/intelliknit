@@ -287,30 +287,37 @@ const RowByRowPatternConfig = ({
     // ===== UPDATED handleQuickAction FUNCTION =====
     // This needs to be updated in the main component to handle accumulated actions like "K36"
 
+    // CORRECTED SOLUTION: Update handleQuickAction in RowByRowPatternConfig.jsx
+    // This properly handles both K2tog and simple actions
+
     const handleQuickAction = (action) => {
-        // Check for BOTH formats of accumulated actions
-        const simpleAccumulatedMatch = action.match(/^([A-Za-z]+)(\d+)$/);  // K36
-        const complexAccumulatedMatch = action.match(/^(.+?)\s*×\s*(\d+)$/); // K2tog × 6
+        // FIXED REGEX: Only match truly simple actions (K, P, YO followed by numbers)
+        const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // ONLY K36, P12, YO4
+        const complexAccumulatedMatch = action.match(/^(.+?)\s*×\s*(\d+)$/); // K2tog × 6, SSK × 3
 
         if (simpleAccumulatedMatch || complexAccumulatedMatch) {
-            console.log('🔧 TAKING ACCUMULATED PATH');
+            console.log('🔧 TAKING ACCUMULATED PATH for:', action);
 
             let baseAction, count;
 
             if (complexAccumulatedMatch) {
-                // Handle "K2tog × 6" format
+                // Handle "K2tog × 6" format from hold-down
                 [, baseAction, count] = complexAccumulatedMatch;
                 baseAction = baseAction.trim();
-            } else {
-                // Handle "K36" format - but we need to convert it!
+                console.log('Complex match:', baseAction, '×', count);
+            } else if (simpleAccumulatedMatch) {
+                // Handle "K36" format from hold-down of simple actions
                 [, baseAction, count] = simpleAccumulatedMatch;
+                console.log('Simple match:', baseAction, count);
             }
 
-            // Now determine the FINAL format based on action type
+            // Determine if this is ACTUALLY a simple action
             const isSimpleAction = ['K', 'P', 'YO'].includes(baseAction);
             const formattedAction = isSimpleAction
                 ? `${baseAction}${count}`
                 : `${baseAction} × ${count}`;
+
+            console.log('Formatted as:', formattedAction);
 
             // Add the properly formatted action with smart comma logic AND merging
             setTempRowText(prev => {
@@ -324,7 +331,8 @@ const RowByRowPatternConfig = ({
                     let lastBase = lastAction;
                     let lastCount = 1;
 
-                    const lastSimpleMatch = lastAction.match(/^([A-Za-z]+)(\d*)$/);
+                    // Check for simple format first (more specific)
+                    const lastSimpleMatch = lastAction.match(/^(K|P|YO)(\d*)$/);
                     const lastComplexMatch = lastAction.match(/^(.+?)\s*×\s*(\d+)$/);
 
                     if (lastComplexMatch) {
@@ -333,6 +341,10 @@ const RowByRowPatternConfig = ({
                     } else if (lastSimpleMatch) {
                         lastBase = lastSimpleMatch[1];
                         lastCount = parseInt(lastSimpleMatch[2] || '1');
+                    } else if (lastAction === baseAction) {
+                        // Plain action with no count
+                        lastBase = lastAction;
+                        lastCount = 1;
                     }
 
                     if (lastBase === baseAction) {
@@ -341,6 +353,8 @@ const RowByRowPatternConfig = ({
                         const mergedAction = isSimpleAction
                             ? `${baseAction}${newCount}`
                             : `${baseAction} × ${newCount}`;
+
+                        console.log('Merging:', lastAction, '+', formattedAction, '=', mergedAction);
 
                         // Replace the last action with merged version
                         actions[actions.length - 1] = mergedAction;
@@ -364,8 +378,9 @@ const RowByRowPatternConfig = ({
             return;
         }
 
+        // ... rest of handleQuickAction continues with all the other logic ...
+        // (Helper functions, row locking, number mode, brackets, etc.)
 
-        // Helper functions
         const resetAutoIncrement = () => {
             setLastQuickAction(null);
             setConsecutiveCount(1);
@@ -492,8 +507,7 @@ const RowByRowPatternConfig = ({
             return handleSmartDelete(tempRowText, setTempRowText, resetAutoIncrement, false, handleBracketReset);
         }
 
-        // All other actions
-        // Everything else gets processed by the enhanced handler with comma logic
+        // All other actions get processed by the enhanced handler
         handleQuickActionEnhanced(
             action,
             tempRowText,
