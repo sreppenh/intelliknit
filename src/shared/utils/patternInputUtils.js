@@ -172,6 +172,8 @@ export const handleAutoIncrement = (action, lastQuickAction, consecutiveCount, t
     // 1. Action can be multiplied 
     // 2. Same action as last time  
     // 3. Have a consecutive count building
+
+
     if (shouldMultiplyAction(action) && action === lastQuickAction) {
         const newCount = consecutiveCount + 1;
         setConsecutiveCount(newCount);
@@ -503,6 +505,8 @@ export const handleQuickActionEnhanced = (
     rowInstructions,
     onCompleteAction = null
 ) => {
+    console.log('🔍 ENHANCED:', action, 'lastAction:', lastQuickAction, 'count:', consecutiveCount, 'text:', tempRowText);
+
     const resetAutoIncrement = () => {
         setLastQuickAction(null);
         setConsecutiveCount(1);

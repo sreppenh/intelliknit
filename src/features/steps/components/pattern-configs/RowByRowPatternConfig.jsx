@@ -291,12 +291,13 @@ const RowByRowPatternConfig = ({
     // This properly handles both K2tog and simple actions
 
     const handleQuickAction = (action) => {
+        console.log('🎯 handleQuickAction received:', action);
         // FIXED REGEX: Only match truly simple actions (K, P, YO followed by numbers)
         const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // ONLY K36, P12, YO4
         const complexAccumulatedMatch = action.match(/^(.+?)\s*×\s*(\d+)$/); // K2tog × 6, SSK × 3
 
         if (simpleAccumulatedMatch || complexAccumulatedMatch) {
-            console.log('🔧 TAKING ACCUMULATED PATH for:', action);
+            console.log('🔧 ACCUMULATED ACTION:', action, 'current text:', tempRowText);
 
             let baseAction, count;
 
@@ -348,6 +349,8 @@ const RowByRowPatternConfig = ({
                     }
 
                     if (lastBase === baseAction) {
+
+
                         // Same base action! Merge them
                         const newCount = lastCount + parseInt(count);
                         const mergedAction = isSimpleAction
@@ -373,6 +376,7 @@ const RowByRowPatternConfig = ({
             });
 
             // Reset auto-increment state since this is a complete action
+
             setLastQuickAction(null);
             setConsecutiveCount(1);
             return;
