@@ -173,6 +173,18 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         .filter(op => op.length > 0);
 
     for (const operation of remainingOps) {
+        // FIXED: Handle × multiplier operations like "K2tog × 10", "SSK × 5"
+        const multiplierMatch = operation.match(/^(.+?)\s*×\s*(\d+)$/);
+        if (multiplierMatch) {
+            const [, stitchOp, repeatNum] = multiplierMatch;
+            const count = parseInt(repeatNum);
+            const stitchValue = getStitchValue(stitchOp.trim().toUpperCase());
+
+            totalConsumed += stitchValue.consumes * count;
+            totalProduced += stitchValue.produces * count;
+            continue;
+        }
+
         // Handle numbered operations like "K37", "K3", etc.
         const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
         if (numberedMatch) {
