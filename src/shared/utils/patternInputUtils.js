@@ -327,18 +327,37 @@ export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncremen
     if (actions.length === 0) return false;
 
     const lastAction = actions[actions.length - 1];
-    const numberedMatch = lastAction.match(/^([A-Za-z\d\s]+?)(\d+)$/);
 
-    if (numberedMatch && !isLongPress) {
-        const [, actionPart, number] = numberedMatch;
+    // FIXED: Check for BOTH simple (K2) and complex (SSK × 10) patterns
+    const simpleNumberedMatch = lastAction.match(/^([A-Za-z\d\s]+?)(\d+)$/);
+    const complexMultiplierMatch = lastAction.match(/^(.+?)\s*×\s*(\d+)$/);
+
+    if (complexMultiplierMatch && !isLongPress) {
+        // Handle complex multiplier format: "SSK × 10" → "SSK × 9" or "SSK"
+        const [, actionPart, multiplier] = complexMultiplierMatch;
+        const currentMultiplier = parseInt(multiplier);
+
+        if (currentMultiplier > 2) {
+            // Decrement multiplier: "SSK × 10" → "SSK × 9"
+            actions[actions.length - 1] = `${actionPart.trim()} × ${currentMultiplier - 1}`;
+        } else {
+            // Remove multiplier: "SSK × 2" → "SSK"
+            actions[actions.length - 1] = actionPart.trim();
+        }
+    } else if (simpleNumberedMatch && !isLongPress) {
+        // Handle simple numbered format: "K2" → "K" 
+        const [, actionPart, number] = simpleNumberedMatch;
         const currentNum = parseInt(number);
 
         if (currentNum > 2) {
+            // Decrement: "K3" → "K2"
             actions[actions.length - 1] = `${actionPart}${currentNum - 1}`;
         } else {
+            // Remove number: "K2" → "K"
             actions[actions.length - 1] = actionPart;
         }
     } else {
+        // No numbers to decrement - delete entire action
         actions.pop();
     }
 
