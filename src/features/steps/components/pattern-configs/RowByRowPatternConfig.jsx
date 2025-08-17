@@ -1079,168 +1079,82 @@ const RowByRowPatternConfig = ({
 // Enhanced Hold-Down System Fix
 // Replace the HoldableButton component and related logic in RowByRowPatternConfig.jsx
 
-const HoldableButton = ({ action, buttonType, className, children, disabled, onClick, tempRowText }) => {
+const HoldableButton = ({ action, className, children, disabled, onClick, tempRowText }) => {
     const [holdState, setHoldState] = useState({
         isHolding: false,
         count: 0,
         timer: null,
         intervalTimer: null,
-        mousePressed: false  // This prevents hover issues!
+        pointerDown: false
     });
 
-    // Only allow hold-down for multiplicable actions (K, P, YO, etc.)
     const canHold = shouldMultiplyAction(action) && !disabled;
 
-
     const getDisplayCount = () => {
-        // Get current text from parent scope (tempRowText should be accessible)
         const currentText = tempRowText || '';
         const actions = currentText.split(', ').filter(a => a.trim() !== '');
-
         if (actions.length > 0) {
             const lastAction = actions[actions.length - 1];
             const lastMatch = lastAction.match(/^([A-Za-z]+)(\d*)$/);
-
             if (lastMatch && lastMatch[1] === action) {
-                // Same base action! Show final total
                 const existingCount = parseInt(lastMatch[2] || '1');
                 return existingCount + holdState.count;
             }
         }
-
-        // No merge, show just the hold count
         return holdState.count;
     };
 
-
     const startHoldAction = (e) => {
         e.preventDefault();
-
         if (!canHold) {
-            // For non-multiplicable actions, send immediately
             onClick(action);
             return;
         }
 
-        setHoldState(prev => ({
-            ...prev,
-            isHolding: true,
-            mousePressed: true,  // Track that mouse is actually pressed
-            count: 1
-        }));
+        setHoldState(prev => ({ ...prev, isHolding: true, pointerDown: true, count: 1 }));
 
-        // Initial delay before starting accumulation
         const initialTimer = setTimeout(() => {
             let currentCount = 1;
-
-            // Start accumulating every 150ms
             const intervalTimer = setInterval(() => {
                 currentCount++;
+                setHoldState(prev => ({ ...prev, count: currentCount }));
+            }, 150);
 
-                setHoldState(prev => ({
-                    ...prev,
-                    count: currentCount
-                }));
+            setHoldState(prev => ({ ...prev, intervalTimer }));
+        }, 500);
 
-            }, 150); // 150ms intervals for smooth counting
-
-            setHoldState(prev => ({
-                ...prev,
-                intervalTimer
-            }));
-
-        }, 500); // 500ms initial delay
-
-        setHoldState(prev => ({
-            ...prev,
-            timer: initialTimer
-        }));
+        setHoldState(prev => ({ ...prev, timer: initialTimer }));
     };
 
     const stopHoldAction = (e) => {
         e.preventDefault();
+        if (!holdState.pointerDown) return;
 
-        // Only process if we were actually pressing the mouse
-        if (!holdState.mousePressed) {
-            return;
-        }
+        if (holdState.timer) clearTimeout(holdState.timer);
+        if (holdState.intervalTimer) clearInterval(holdState.intervalTimer);
 
-        // Clean up timers
-        if (holdState.timer) {
-            clearTimeout(holdState.timer);
-        }
-        if (holdState.intervalTimer) {
-            clearInterval(holdState.intervalTimer);
-        }
-
-        // Send the final accumulated action ONLY when releasing
         if (holdState.isHolding) {
             if (holdState.count > 1) {
-                // Send accumulated action like "K36" - this was a real hold
-
-                // NEW (uses smart multipliers):
                 const isSimpleAction = ['K', 'P', 'YO'].includes(action);
-                console.log('🔍 isSimpleAction check:', action, '→', isSimpleAction);
                 const accumulatedAction = isSimpleAction
-                    ? `${action}${holdState.count}`           // K2, P3, YO4
-                    : `${action} × ${holdState.count}`;       // K2tog × 2, SSK × 3
-
-                console.log('🔍 Hold-down producing:', accumulatedAction);  // ← ADD THIS LINE
-
+                    ? `${action}${holdState.count}`
+                    : `${action} × ${holdState.count}`;
                 onClick(accumulatedAction);
             } else {
-                // Send single action - this was a quick tap
                 onClick(action);
             }
         }
 
-        setHoldState({
-            isHolding: false,
-            count: 0,
-            timer: null,
-            intervalTimer: null,
-            mousePressed: false
-        });
+        setHoldState({ isHolding: false, count: 0, timer: null, intervalTimer: null, pointerDown: false });
     };
-
-
-
-
-    const handleMouseLeave = (e) => {
-        // Only stop if we were actually pressing
-        if (holdState.mousePressed) {
-            stopHoldAction(e);
-        }
-    };
-
-    const handleClick = (e) => {
-        e.preventDefault();
-        // Don't do anything here - let the mouse/touch events handle everything
-    };
-
-    // Prevent context menu on long press
-    const handleContextMenu = (e) => {
-        e.preventDefault();
-    };
-
-    // Clean up timers on unmount
-    useEffect(() => {
-        return () => {
-            if (holdState.timer) clearTimeout(holdState.timer);
-            if (holdState.intervalTimer) clearInterval(holdState.intervalTimer);
-        };
-    }, [holdState.timer, holdState.intervalTimer]);
 
     return (
         <button
             className={`${className} ${holdState.isHolding ? 'ring-2 ring-sage-400 bg-sage-200' : ''}`}
-            onClick={handleClick}
-            onMouseDown={startHoldAction}
-            onMouseUp={stopHoldAction}
-            onMouseLeave={handleMouseLeave} // NEW: More careful mouse leave
-            onTouchStart={startHoldAction}
-            onTouchEnd={stopHoldAction}
-            onContextMenu={handleContextMenu}
+            onPointerDown={startHoldAction}
+            onPointerUp={stopHoldAction}
+            onPointerLeave={stopHoldAction}
+            onContextMenu={(e) => e.preventDefault()}
             disabled={disabled}
             style={{ userSelect: 'none', touchAction: 'manipulation' }}
         >
@@ -1255,6 +1169,7 @@ const HoldableButton = ({ action, buttonType, className, children, disabled, onC
         </button>
     );
 };
+
 
 
 const EnhancedKeyboard = ({
@@ -1547,33 +1462,7 @@ const EnhancedKeyboard = ({
                                     <button
                                         key={`custom-${index}`}
                                         onClick={() => handleCustomAction(action, index)}
-                                        onMouseDown={() => {
-                                            if (action !== 'Custom') {
-                                                pressTimer = setTimeout(() => {
-                                                    setEditingCustomIndex(index);
-                                                    setCustomForm({
-                                                        name: action.name || '',
-                                                        consumed: action.consumed || 1,
-                                                        stitches: action.stitches || 1
-                                                    });
-                                                }, 500);
-                                            }
-                                        }}
-                                        onMouseUp={() => clearTimeout(pressTimer)}
                                         onMouseLeave={() => clearTimeout(pressTimer)}
-                                        onTouchStart={() => {
-                                            if (action !== 'Custom') {
-                                                pressTimer = setTimeout(() => {
-                                                    setEditingCustomIndex(index);
-                                                    setCustomForm({
-                                                        name: action.name || '',
-                                                        consumed: action.consumed || 1,
-                                                        stitches: action.stitches || 1
-                                                    });
-                                                }, 500);
-                                            }
-                                        }}
-                                        onTouchEnd={() => clearTimeout(pressTimer)}
                                         className={`h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
                                             ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
                                             : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
