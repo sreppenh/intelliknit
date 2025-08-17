@@ -292,8 +292,9 @@ const RowByRowPatternConfig = ({
 
     const handleQuickAction = (action) => {
         console.log('🎯 handleQuickAction received:', action);
-        // FIXED REGEX: Only match truly simple actions (K, P, YO followed by numbers)
-        const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // ONLY K36, P12, YO4
+
+        // Handle accumulated actions from hold operations
+        const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // K36, P12, YO4
         const complexAccumulatedMatch = action.match(/^(.+?)\s*×\s*(\d+)$/); // K2tog × 6, SSK × 3
 
         if (simpleAccumulatedMatch || complexAccumulatedMatch) {
@@ -349,8 +350,6 @@ const RowByRowPatternConfig = ({
                     }
 
                     if (lastBase === baseAction) {
-
-
                         // Same base action! Merge them
                         const newCount = lastCount + parseInt(count);
                         const mergedAction = isSimpleAction
@@ -375,16 +374,24 @@ const RowByRowPatternConfig = ({
                 return newText;
             });
 
-            // Reset auto-increment state since this is a complete action
+            // CRITICAL FIX: Keep auto-increment state ALIVE for continued clicking!
+            // Extract the base action and set it as the last action
+            const finalBaseAction = complexAccumulatedMatch ?
+                complexAccumulatedMatch[1].trim() :
+                simpleAccumulatedMatch[1];
 
-            setLastQuickAction(null);
-            setConsecutiveCount(1);
+            setLastQuickAction(finalBaseAction);  // Keep the chain alive!
+
+            // Calculate what the consecutive count should be based on the accumulated action
+            const finalCount = parseInt(complexAccumulatedMatch ?
+                complexAccumulatedMatch[2] :
+                simpleAccumulatedMatch[2]);
+            setConsecutiveCount(finalCount);  // Set to accumulated count
+
             return;
         }
 
-        // ... rest of handleQuickAction continues with all the other logic ...
-        // (Helper functions, row locking, number mode, brackets, etc.)
-
+        // Helper function to reset auto-increment 
         const resetAutoIncrement = () => {
             setLastQuickAction(null);
             setConsecutiveCount(1);
@@ -1081,7 +1088,6 @@ const RowByRowPatternConfig = ({
 
 // ===== CLEAN HANDLE QUICK ACTION FUNCTION =====
 // Enhanced Hold-Down System Fix
-// Replace the HoldableButton component and related logic in RowByRowPatternConfig.jsx
 
 const HoldableButton = ({ action, className, children, disabled, onClick, tempRowText }) => {
     const [holdState, setHoldState] = useState({
@@ -1099,10 +1105,22 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
         const actions = currentText.split(', ').filter(a => a.trim() !== '');
         if (actions.length > 0) {
             const lastAction = actions[actions.length - 1];
-            const lastMatch = lastAction.match(/^([A-Za-z]+)(\d*)$/);
-            if (lastMatch && lastMatch[1] === action) {
-                const existingCount = parseInt(lastMatch[2] || '1');
+
+            // FIXED: Handle both simple (K2) and complex (K2tog × 3) formats
+            const simpleMatch = lastAction.match(/^([A-Za-z]+)(\d*)$/);
+            const complexMatch = lastAction.match(/^(.+?)\s*×\s*(\d+)$/);
+
+            if (complexMatch && complexMatch[1].trim() === action) {
+                // Handle "K2tog × 3" format
+                const existingCount = parseInt(complexMatch[2]);
                 return existingCount + holdState.count;
+            } else if (simpleMatch && simpleMatch[1] === action) {
+                // Handle "K2" format  
+                const existingCount = parseInt(simpleMatch[2] || '1');
+                return existingCount + holdState.count;
+            } else if (lastAction === action) {
+                // Handle plain action "K2tog" → should show count + 1
+                return 1 + holdState.count;
             }
         }
         return holdState.count;
@@ -1130,7 +1148,6 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
 
         setHoldState(prev => ({ ...prev, timer: initialTimer }));
     };
-
 
     const stopHoldAction = (e) => {
         console.log('KAI-STOP: action=', action, 'count=', holdState.count, 'device=', e.pointerType || 'mouse');
