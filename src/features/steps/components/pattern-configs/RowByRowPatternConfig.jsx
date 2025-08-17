@@ -350,16 +350,18 @@ const RowByRowPatternConfig = ({
                     }
 
                     if (lastBase === baseAction) {
-                        // Same base action! Merge them
                         const newCount = lastCount + parseInt(count);
                         const mergedAction = isSimpleAction
                             ? `${baseAction}${newCount}`
                             : `${baseAction} × ${newCount}`;
 
-                        console.log('Merging:', lastAction, '+', formattedAction, '=', mergedAction);
-
-                        // Replace the last action with merged version
                         actions[actions.length - 1] = mergedAction;
+
+                        // CRITICAL: Update state SYNCHRONOUSLY here with the FINAL merged count
+                        setLastQuickAction(baseAction);
+                        setConsecutiveCount(newCount);  // Use the MERGED count, not the original
+                        console.log('🔄 MERGED - Set state to:', baseAction, newCount);
+
                         return actions.join(', ');
                     }
                 }
@@ -371,6 +373,12 @@ const RowByRowPatternConfig = ({
                     !prev.endsWith(', ');
 
                 const newText = shouldAddComma ? `${prev}, ${formattedAction}` : `${prev}${formattedAction}`;
+
+                // CRITICAL: Update state SYNCHRONOUSLY here with the original count
+                setLastQuickAction(baseAction);
+                setConsecutiveCount(parseInt(count));
+                console.log('🆕 NEW ACTION - Set state to:', baseAction, parseInt(count));
+
                 return newText;
             });
 
@@ -380,13 +388,10 @@ const RowByRowPatternConfig = ({
                 complexAccumulatedMatch[1].trim() :
                 simpleAccumulatedMatch[1];
 
-            setLastQuickAction(finalBaseAction);  // Keep the chain alive!
-
             // Calculate what the consecutive count should be based on the accumulated action
             const finalCount = parseInt(complexAccumulatedMatch ?
                 complexAccumulatedMatch[2] :
                 simpleAccumulatedMatch[2]);
-            setConsecutiveCount(finalCount);  // Set to accumulated count
 
             return;
         }
