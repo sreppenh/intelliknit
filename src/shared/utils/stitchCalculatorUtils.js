@@ -292,7 +292,7 @@ const parseBracketContent = (content, getStitchValue) => {
 
         // Parse the operation inside parentheses
         if (parenContent.trim()) {
-            const stitchValue = getStitchValue(parenContent.trim();
+            const stitchValue = getStitchValue(parenContent.trim());
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
         }
