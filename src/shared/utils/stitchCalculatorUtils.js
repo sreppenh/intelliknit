@@ -158,7 +158,7 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
 
         // Parse single operation inside parentheses
         if (parenContent.trim()) {
-            const stitchValue = getStitchValue(parenContent.trim().toUpperCase());
+            const stitchValue = getStitchValue(parenContent.trim());
             const consumedInRepeat = stitchValue.consumes * count;
             const producedInRepeat = stitchValue.produces * count;
 
@@ -186,7 +186,7 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
             console.log('🧮 matched multiplier pattern');
             const [, stitchOp, repeatNum] = multiplierMatch;
             const count = parseInt(repeatNum);
-            const stitchValue = getStitchValue(stitchOp.trim().toUpperCase());
+            const stitchValue = getStitchValue(stitchOp.trim());
 
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
@@ -199,7 +199,7 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
             console.log('🧮 matched numbered pattern:', numberedMatch);
             const [, stitchOp, repeatNum] = numberedMatch;
             const count = parseInt(repeatNum);
-            const stitchValue = getStitchValue(stitchOp.toUpperCase());
+            const stitchValue = getStitchValue(stitchOp);
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
         } else if (operation.trim()) {
@@ -292,7 +292,7 @@ const parseBracketContent = (content, getStitchValue) => {
 
         // Parse the operation inside parentheses
         if (parenContent.trim()) {
-            const stitchValue = getStitchValue(parenContent.trim().toUpperCase());
+            const stitchValue = getStitchValue(parenContent.trim();
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
         }
@@ -360,12 +360,12 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
     if (numberedMatch) {
         const [, stitchOp, repeatNum] = numberedMatch;
         const count = parseInt(repeatNum);
-        const stitchValue = getStitchValue(stitchOp.toUpperCase());
+        const stitchValue = getStitchValue(stitchOp);
         consumed += stitchValue.consumes * count;
         produced += stitchValue.produces * count;
     } else {
         // Single operation like "K", "YO", "SSK"
-        const stitchValue = getStitchValue(partialInstruction.toUpperCase());
+        const stitchValue = getStitchValue(partialInstruction);
         consumed += stitchValue.consumes;
         produced += stitchValue.produces;
     }
