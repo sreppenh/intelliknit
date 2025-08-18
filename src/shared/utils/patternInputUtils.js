@@ -297,6 +297,24 @@ const handleBracketContextIncrement = (action, newCount, contextText, tempRowTex
 export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncrement, isLongPress = false, onBracketChange = null) => {
     if (!tempRowText) return false;
 
+
+
+    // Check if we're inside an open bracket/paren and delete more carefully
+    const hasOpenBracket = tempRowText.includes('[') && !tempRowText.includes(']');
+    const hasOpenParen = tempRowText.includes('(') && !tempRowText.includes(')');
+
+    if ((hasOpenBracket || hasOpenParen) && !tempRowText.includes(', ')) {
+        // We're inside brackets with no commas - delete just the last operation, not the bracket
+        const lastBracketIndex = Math.max(tempRowText.lastIndexOf('['), tempRowText.lastIndexOf('('));
+        if (lastBracketIndex !== -1 && lastBracketIndex < tempRowText.length - 1) {
+            // Delete everything after the last bracket/paren
+            const newText = tempRowText.substring(0, lastBracketIndex + 1);
+            setTempRowText(newText);
+            resetAutoIncrement();
+            return true;
+        }
+    }
+
     // Check if we're about to delete a bracket/paren character
     const lastChar = tempRowText[tempRowText.length - 1];
     const isDeletingBracket = ['[', ']', '(', ')'].includes(lastChar);

@@ -8,6 +8,7 @@ import {
     getKeyboardLayout,
     getNextKeyboardLayer,
     getLayerDisplayName,
+    supportsManualNumbers,
     getButtonStyles,
     supportsMultipleLayers,
     getCustomActions
@@ -19,7 +20,7 @@ import {
     isNumberAction,
     handleSmartDelete
 } from '../../../../shared/utils/patternInputUtils';
-import { calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
+import { calculateRowStitchesLive, calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
 
 const RowByRowPatternConfig = ({
@@ -251,7 +252,7 @@ const RowByRowPatternConfig = ({
             }
         });
 
-        return calculateRowStitches(tempRowText, previousStitches, customActionsLookup);
+        return calculateRowStitchesLive(tempRowText, previousStitches, customActionsLookup);
     };
 
 
@@ -422,8 +423,8 @@ const RowByRowPatternConfig = ({
                 const nextLayer = getNextKeyboardLayer(currentKeyboardLayer, patternType);
                 setCurrentKeyboardLayer(nextLayer);
 
-                // Manual number mode: ⇧⇧ (secondary back to primary)
-                if (nextLayer === KEYBOARD_LAYERS.PRIMARY && currentKeyboardLayer === KEYBOARD_LAYERS.SECONDARY) {
+                // Manual number mode: ⇧⇧ (secondary back to primary) - only for supported patterns
+                if (supportsManualNumbers(patternType) && nextLayer === KEYBOARD_LAYERS.PRIMARY && currentKeyboardLayer === KEYBOARD_LAYERS.SECONDARY) {
                     setKeyboardMode('numbers');
                     setPendingRepeatText(''); // Manual mode - no brackets
                     return;

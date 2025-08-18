@@ -400,6 +400,55 @@ export const formatRunningTotal = (startStitches, endStitches, change) => {
 };
 
 /**
+ * Live calculation wrapper - auto-completes incomplete brackets/parens for real-time validation
+ * @param {string} instruction - Raw instruction (may have unclosed brackets/parens)
+ * @param {number} startingStitches - Starting stitch count
+ * @param {Object} customActionsData - Custom actions lookup
+ * @returns {Object} - Same as calculateRowStitches but for incomplete instructions
+ */
+export const calculateRowStitchesLive = (instruction, startingStitches = 0, customActionsData = {}) => {
+    if (!instruction || !instruction.trim()) {
+        return calculateRowStitches(instruction, startingStitches, customActionsData);
+    }
+
+    let calculationText = instruction;
+
+    // Auto-close incomplete brackets/parens
+    let openBrackets = 0;
+    let openParens = 0;
+
+    for (const char of calculationText) {
+        if (char === '[') openBrackets++;
+        if (char === ']') openBrackets--;
+        if (char === '(') openParens++;
+        if (char === ')') openParens--;
+    }
+
+    calculationText += ']'.repeat(Math.max(0, openBrackets));
+    calculationText += ')'.repeat(Math.max(0, openParens));
+
+    // NEW: Expand multipliers inside brackets for calculation
+    calculationText = calculationText.replace(/\[([^[\]]*×[^[\]]*)\]/g, (match, content) => {
+        const expanded = content.replace(/(.+?)\s*×\s*(\d+)/g, (_, stitch, count) => {
+            return Array(parseInt(count)).fill(stitch.trim()).join(', ');
+        });
+        return `[${expanded}]`;
+    });
+
+    return calculateRowStitches(calculationText, startingStitches, customActionsData);
+};
+
+
+
+
+
+
+
+
+
+
+
+/**
  * Get previous row stitch count for smart calculations
  * @param {Array} rowInstructions - All row instructions
  * @param {number} currentRowIndex - Index of current row being calculated

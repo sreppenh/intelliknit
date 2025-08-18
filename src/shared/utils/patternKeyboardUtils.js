@@ -126,6 +126,8 @@ const getAvailableLayers = (patternType) => {
     }
 };
 
+
+
 export const getLayerDisplayName = (layer) => {
     switch (layer) {
         case KEYBOARD_LAYERS.PRIMARY:
@@ -189,9 +191,27 @@ export const supportsMultipleLayers = (patternType) => {
     return ['Lace Pattern', 'Cable Pattern'].includes(patternType);
 };
 
+export const supportsManualNumbers = (patternType) => {
+    switch (patternType) {
+        case 'Lace Pattern':
+            return false; // Only contextual numbers (brackets/parens)
+        case 'Cable Pattern':
+        case 'Custom pattern':
+        default:
+            return true; // Allow manual number access
+    }
+};
+
+
 export const isCustomAction = (action) => {
     return action.startsWith('Custom ') || action === '★';
 };
+
+
+
+
+
+
 
 export default {
     KEYBOARD_LAYERS,
