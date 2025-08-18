@@ -22,6 +22,8 @@ import {
 } from '../../../../shared/utils/patternInputUtils';
 import { calculateRowStitchesLive, calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
+import NumberKeyboard from './NumberKeyboard';
+import CustomActionManager from './CustomActionManager';
 
 const RowByRowPatternConfig = ({
     wizardData,
@@ -607,207 +609,6 @@ const RowByRowPatternConfig = ({
         }
     };
 
-    // ===== CUSTOM ACTION MANAGER COMPONENT =====
-    const CustomActionManager = ({ patternType, onActionSelect }) => {
-        const [newActionName, setNewActionName] = useState('');
-        const [showAddForm, setShowAddForm] = useState(false);
-
-        // Get custom actions from current project
-        const customActions = currentProject?.customActions?.[
-            patternType === 'Lace Pattern' ? 'lace' :
-                patternType === 'Cable Pattern' ? 'cable' : 'general'
-        ] || [];
-
-        const handleAddAction = () => {
-            if (newActionName.trim() && newActionStitches.trim()) {
-                const stitchCount = parseInt(newActionStitches);
-                if (isNaN(stitchCount) || stitchCount < 0) {
-                    alert('Please enter a valid number of stitches (0 or higher)');
-                    return;
-                }
-
-                const key = patternType === 'Lace Pattern' ? 'lace' :
-                    patternType === 'Cable Pattern' ? 'cable' : 'general';
-
-                // Store as object with stitch count
-                const customActionData = {
-                    name: newActionName.trim(),
-                    stitches: stitchCount
-                };
-
-                const currentCustomActions = currentProject?.customKeyboardActions || {};
-                const updatedCustomActions = {
-                    ...currentCustomActions,
-                    [key]: [...(currentCustomActions[key] || []), customActionData]
-                };
-
-                updateProject({ customKeyboardActions: updatedCustomActions });
-                setNewActionName('');
-                setNewActionStitches('');
-                setShowAddForm(false);
-            }
-        };
-
-        const handleRemoveAction = (actionToRemove) => {
-            const key = patternType === 'Lace Pattern' ? 'lace' :
-                patternType === 'Cable Pattern' ? 'cable' : 'general';
-
-            const currentCustomActions = currentProject?.customActions || {};
-            const updatedCustomActions = {
-                ...currentCustomActions,
-                [key]: (currentCustomActions[key] || []).filter(action => action !== actionToRemove)
-            };
-
-            updateProject({ customActions: updatedCustomActions });
-        };
-
-        if (showAddForm) {
-            return (
-                <div className="bg-lavender-50 border-2 border-lavender-200 rounded-lg p-3 mb-3">
-                    <div className="text-sm font-medium text-lavender-700 mb-2">Add Custom Action</div>
-                    <div className="space-y-2">
-                        <input
-                            type="text"
-                            value={newActionName}
-                            onChange={(e) => setNewActionName(e.target.value)}
-                            placeholder="e.g., Bobble, Nupps, Tree Branch"
-                            className="w-full px-3 py-2 border border-lavender-300 rounded-lg text-sm"
-                            onKeyPress={(e) => e.key === 'Enter' && handleAddAction()}
-                            autoFocus
-                        />
-                        <div className="flex gap-2">
-                            <input
-                                type="number"
-                                value={newActionStitches}
-                                onChange={(e) => setNewActionStitches(e.target.value)}
-                                placeholder="Stitches"
-                                min="0"
-                                className="w-20 px-3 py-2 border border-lavender-300 rounded-lg text-sm"
-                            />
-                            <span className="text-xs text-lavender-600 flex items-center">stitches produced</span>
-                        </div>
-                    </div>
-                    <div className="flex gap-2 mt-2">
-                        <button
-                            onClick={handleAddAction}
-                            className="px-3 py-2 bg-lavender-500 text-white rounded-lg text-sm hover:bg-lavender-600"
-                        >
-                            Add
-                        </button>
-                        <button
-                            onClick={() => setShowAddForm(false)}
-                            className="px-3 py-2 bg-lavender-200 text-lavender-700 rounded-lg text-sm hover:bg-lavender-300"
-                        >
-                            Cancel
-                        </button>
-                    </div>
-                </div>
-            );
-        }
-
-        return (
-            <div className="mb-3">
-                <div className="text-sm font-medium text-wool-600 mb-2">
-                    Custom {patternType.replace(' Pattern', '')} Actions
-                </div>
-                <div className="flex flex-wrap gap-2">
-                    {customActions.map((action, index) => (
-                        <div key={index} className="flex items-center gap-1">
-                            <button
-                                onClick={() => onActionSelect(action)}
-                                className="px-3 py-2 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 border border-yarn-200"
-                            >
-                                {typeof action === 'object' ? `${action.name} (${action.stitches})` : action}
-                            </button>
-                            <button
-                                onClick={() => handleRemoveAction(action)}
-                                className="w-6 h-6 bg-red-100 text-red-600 rounded-full text-xs hover:bg-red-200 flex items-center justify-center"
-                                title="Remove custom action"
-                            >
-                                ×
-                            </button>
-                        </div>
-                    ))}
-                    <button
-                        onClick={() => setShowAddForm(true)}
-                        className="px-3 py-2 bg-lavender-100 text-lavender-700 rounded-lg text-sm hover:bg-lavender-200 border border-lavender-200 border-dashed"
-                    >
-                        + Add Custom
-                    </button>
-                </div>
-            </div>
-        );
-    };
-
-    // ===== ADD NUMBER KEYBOARD COMPONENT =====
-    // Add this component after your CustomActionManager component:
-
-    // Updated NumberKeyboard component with 0 validation
-
-    const NumberKeyboard = ({ onAction, pendingText }) => {
-
-        const handleNumberClick = (num) => {
-            // Prevent starting with 0 (but allow 0 after other digits)
-            if (num === '0') {
-                const currentMultiplier = pendingText.match(/×\s*(\d*)$/)?.[1] || '';
-                if (currentMultiplier === '') {
-                    // Don't allow plain "×0" - do nothing
-                    return;
-                }
-            }
-            onAction(num);
-        };
-
-        return (
-            <div className="space-y-3">
-                {/* Show current repeat being built */}
-                <div className="bg-lavender-50 border-2 border-lavender-200 rounded-lg p-3">
-                    <div className="text-sm font-medium text-lavender-700 mb-1">
-                        {pendingText && pendingText !== '' ? 'How many times?' : 'Enter number:'}
-                    </div>
-                    <div className="text-base font-mono text-wool-700">
-                        {pendingText && pendingText !== '' ? pendingText : (currentNumber || '0')}
-                    </div>
-                </div>
-
-                {/* Number grid: 1-9 */}
-                <div className="grid grid-cols-3 gap-3">
-                    {['1', '2', '3', '4', '5', '6', '7', '8', '9'].map(num => (
-                        <button
-                            key={num}
-                            onClick={() => handleNumberClick(num)}
-                            className="h-12 bg-sage-100 text-sage-700 rounded-lg text-lg font-medium hover:bg-sage-200 transition-colors"
-                        >
-                            {num}
-                        </button>
-                    ))}
-                </div>
-
-                {/* Bottom row: Backspace, 0, Enter */}
-                <div className="grid grid-cols-3 gap-3">
-                    <button
-                        onClick={() => onAction('⌫')}
-                        className="h-12 bg-red-100 text-red-700 rounded-lg text-sm font-medium hover:bg-red-200 border border-red-200 transition-colors"
-                    >
-                        ⌫
-                    </button>
-                    <button
-                        onClick={() => handleNumberClick('0')}
-                        className="h-12 bg-sage-100 text-sage-700 rounded-lg text-lg font-medium hover:bg-sage-200 transition-colors"
-                    >
-                        0
-                    </button>
-                    <button
-                        onClick={() => onAction('Enter')}
-                        className="h-12 bg-sage-500 text-white rounded-lg text-sm font-medium hover:bg-sage-600 transition-colors"
-                    >
-                        ✓
-                    </button>
-                </div>
-            </div>
-        );
-    };
-
     return (
         <div className="stack-lg">
             {/* Mode indicator for edit mode */}
@@ -1049,6 +850,7 @@ const RowByRowPatternConfig = ({
                         <NumberKeyboard
                             onAction={handleQuickAction}
                             pendingText={pendingRepeatText}
+                            currentNumber={currentNumber}
                         />
                     ) : (
                         <>
@@ -1056,6 +858,10 @@ const RowByRowPatternConfig = ({
                                 <CustomActionManager
                                     patternType={patternType}
                                     onActionSelect={handleQuickAction}
+                                    currentProject={currentProject}
+                                    updateProject={updateProject}
+                                    newActionStitches={newActionStitches}
+                                    setNewActionStitches={setNewActionStitches}
                                 />
                             )}
                             <EnhancedKeyboard
