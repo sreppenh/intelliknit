@@ -55,7 +55,6 @@ const STITCH_VALUES = {
  * @returns {Object} - { totalStitches, stitchChange, breakdown, isValid }
  */
 export const calculateRowStitches = (instruction, startingStitches = 0, customActionsData = {}) => {
-    console.log('🧮 calculateRowStitches input:', instruction, 'starting:', startingStitches);
 
     if (!instruction || !instruction.trim()) {
         // ... rest of function
@@ -131,15 +130,11 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         const [fullMatch, bracketContent, repeatCount] = match;
         const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete brackets
 
-        console.log(`🔧 Found bracket: "${bracketContent}" × ${count}`);
-
         // Parse content inside brackets (can contain parentheses)
         const bracketResult = parseBracketContent(bracketContent, getStitchValue);
 
         const consumedInRepeat = bracketResult.consumed * count;
         const producedInRepeat = bracketResult.produced * count;
-
-        console.log(`🔧 Bracket math: ${bracketResult.consumed} × ${count} = ${consumedInRepeat} consumed, ${bracketResult.produced} × ${count} = ${producedInRepeat} produced`);
 
         totalConsumed += consumedInRepeat;
         totalProduced += producedInRepeat;
@@ -153,8 +148,6 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
     while ((match = parenPattern.exec(remainingInstruction)) !== null) {
         const [fullMatch, parenContent, repeatCount] = match;
         const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete parens
-
-        console.log(`🔧 Found standalone paren: "${parenContent}" × ${count}`);
 
         // Parse content inside parentheses (can be complex like brackets)
         if (parenContent.trim()) {
@@ -175,15 +168,11 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         .map(op => op.trim())
         .filter(op => op.length > 0);
 
-    console.log('🧮 remainingOps:', remainingOps); // ADD THIS LINE
-
     for (const operation of remainingOps) {
-        console.log('🧮 processing operation:', operation); // ADD THIS LINE TOO
 
         // FIXED: Handle × multiplier operations like "K2tog × 10", "SSK × 5"
         const multiplierMatch = operation.match(/^(.+?)\s*×\s*(\d+)$/);
         if (multiplierMatch) {
-            console.log('🧮 matched multiplier pattern');
             const [, stitchOp, repeatNum] = multiplierMatch;
             const count = parseInt(repeatNum);
             const stitchValue = getStitchValue(stitchOp.trim());
@@ -196,7 +185,6 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         // Handle numbered operations like "K37", "K3", etc.
         const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
         if (numberedMatch) {
-            console.log('🧮 matched numbered pattern:', numberedMatch);
             const [, stitchOp, repeatNum] = numberedMatch;
             const count = parseInt(repeatNum);
             const stitchValue = getStitchValue(stitchOp);
@@ -204,13 +192,9 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
             totalProduced += stitchValue.produces * count;
         } else if (operation.trim()) {
             // Single operation like "K", "YO", "SSK"
-            console.log('🧮 matched single operation fallback');
-            console.log('🧮 operation:', operation);
-            console.log('🧮 STITCH_VALUES lookup (original case):', STITCH_VALUES[operation]);
-            console.log('🧮 customActionsData lookup (original case):', customActionsData[operation]);
 
             const stitchValue = getStitchValue(operation); // REMOVED .toUpperCase()
-            console.log('🧮 getStitchValue result:', stitchValue);
+
             totalConsumed += stitchValue.consumes;
             totalProduced += stitchValue.produces;
         }
@@ -271,7 +255,7 @@ const preprocessToEndInstructions = (instruction, startingStitches, customAction
  * Handles: "K2, (P2tog)3, YO" inside [...] and incomplete content
  */
 const parseBracketContent = (content, getStitchValue) => {
-    console.log('🔧 parseBracketContent input:', content);
+
     let totalConsumed = 0;
     let totalProduced = 0;
 
@@ -287,8 +271,6 @@ const parseBracketContent = (content, getStitchValue) => {
     while ((match = parenPattern.exec(content)) !== null) {
         const [fullMatch, parenContent, repeatCount] = match;
         const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete
-
-        console.log(`🔧 Found paren inside bracket: "${parenContent}" × ${count}`);
 
         // Parse the operation inside parentheses
         if (parenContent.trim()) {
@@ -322,7 +304,7 @@ const parseBracketContent = (content, getStitchValue) => {
             totalProduced += stitchValue.produces;
         }
     }
-    console.log('🔧 parseBracketContent result:', { consumed: totalConsumed, produced: totalProduced });
+
     return { consumed: totalConsumed, produced: totalProduced };
 };
 

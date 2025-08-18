@@ -176,7 +176,6 @@ const RowByRowPatternConfig = ({
 
             // Only allow save if all stitches are consumed
             if (consumedStitches !== startingStitches) {
-                console.log(`🚫 Save blocked: ${consumedStitches} consumed ≠ ${startingStitches} available`);
                 return; // Block save - row is incomplete
             }
         }
@@ -292,14 +291,12 @@ const RowByRowPatternConfig = ({
     // This properly handles both K2tog and simple actions
 
     const handleQuickAction = (action) => {
-        console.log('🐛 DEBUG: handleQuickAction received:', action, 'type:', typeof action);
 
         // Handle accumulated actions from hold operations
         const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // K36, P12, YO4
         const complexAccumulatedMatch = action.match(/^(.+?)\s*×\s*(\d+)$/); // K2tog × 6, SSK × 3
 
         if (simpleAccumulatedMatch || complexAccumulatedMatch) {
-            console.log('🔧 ACCUMULATED ACTION:', action, 'current text:', tempRowText);
 
             let baseAction, count;
 
@@ -307,11 +304,10 @@ const RowByRowPatternConfig = ({
                 // Handle "K2tog × 6" format from hold-down
                 [, baseAction, count] = complexAccumulatedMatch;
                 baseAction = baseAction.trim();
-                console.log('Complex match:', baseAction, '×', count);
+
             } else if (simpleAccumulatedMatch) {
                 // Handle "K36" format from hold-down of simple actions
                 [, baseAction, count] = simpleAccumulatedMatch;
-                console.log('Simple match:', baseAction, count);
             }
 
             // Determine if this is ACTUALLY a simple action
@@ -319,8 +315,6 @@ const RowByRowPatternConfig = ({
             const formattedAction = isSimpleAction
                 ? `${baseAction}${count}`
                 : `${baseAction} × ${count}`;
-
-            console.log('Formatted as:', formattedAction);
 
             // Add the properly formatted action with smart comma logic AND merging
             setTempRowText(prev => {
@@ -361,7 +355,6 @@ const RowByRowPatternConfig = ({
                         // CRITICAL: Update state SYNCHRONOUSLY here with the FINAL merged count
                         setLastQuickAction(baseAction);
                         setConsecutiveCount(newCount);  // Use the MERGED count, not the original
-                        console.log('🔄 MERGED - Set state to:', baseAction, newCount);
 
                         return actions.join(', ');
                     }
@@ -378,7 +371,6 @@ const RowByRowPatternConfig = ({
                 // CRITICAL: Update state SYNCHRONOUSLY here with the original count
                 setLastQuickAction(baseAction);
                 setConsecutiveCount(parseInt(count));
-                console.log('🆕 NEW ACTION - Set state to:', baseAction, parseInt(count));
 
                 return newText;
             });
@@ -1133,7 +1125,6 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
     };
 
     const startHoldAction = (e) => {
-        console.log('KAI-START: action=', action, 'device=', e.pointerType || 'mouse');
         e.preventDefault();
         if (!canHold) {
             onClick(action);
@@ -1156,7 +1147,6 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
     };
 
     const stopHoldAction = (e) => {
-        // console.log('KAI-STOP: action=', action, 'count=', holdState.count, 'device=', e.pointerType || 'mouse');
         e.preventDefault();
         if (!holdState.pointerDown) return;
 
@@ -1166,14 +1156,11 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
         if (holdState.isHolding) {
             if (holdState.count > 1) {
                 const isSimpleAction = ['K', 'P', 'YO'].includes(action);
-                //    console.log('KAI-FORMAT: action=', action, 'isSimple=', isSimpleAction, 'count=', holdState.count);
                 const accumulatedAction = isSimpleAction
                     ? `${action}${holdState.count}`
                     : `${action} × ${holdState.count}`;
-                //   console.log('KAI-ACCUMULATED:', accumulatedAction);
                 onClick(accumulatedAction);
             } else {
-                //  console.log('KAI-SINGLE:', action);
                 onClick(action);
             }
         }
