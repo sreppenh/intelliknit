@@ -271,6 +271,7 @@ const preprocessToEndInstructions = (instruction, startingStitches, customAction
  * Handles: "K2, (P2tog)3, YO" inside [...] and incomplete content
  */
 const parseBracketContent = (content, getStitchValue) => {
+    console.log('🔧 parseBracketContent input:', content);
     let totalConsumed = 0;
     let totalProduced = 0;
 
@@ -311,17 +312,17 @@ const parseBracketContent = (content, getStitchValue) => {
         if (numberedMatch) {
             const [, stitchOp, repeatNum] = numberedMatch;
             const count = parseInt(repeatNum);
-            const stitchValue = getStitchValue(stitchOp.toUpperCase());
+            const stitchValue = getStitchValue(stitchOp);
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
         } else if (operation.trim()) {
             // Single operation like "K", "YO", "SSK"
-            const stitchValue = getStitchValue(operation.toUpperCase());
+            const stitchValue = getStitchValue(operation);
             totalConsumed += stitchValue.consumes;
             totalProduced += stitchValue.produces;
         }
     }
-
+    console.log('🔧 parseBracketContent result:', { consumed: totalConsumed, produced: totalProduced });
     return { consumed: totalConsumed, produced: totalProduced };
 };
 
