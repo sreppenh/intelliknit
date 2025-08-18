@@ -156,11 +156,11 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
 
         console.log(`🔧 Found standalone paren: "${parenContent}" × ${count}`);
 
-        // Parse single operation inside parentheses
+        // Parse content inside parentheses (can be complex like brackets)
         if (parenContent.trim()) {
-            const stitchValue = getStitchValue(parenContent.trim());
-            const consumedInRepeat = stitchValue.consumes * count;
-            const producedInRepeat = stitchValue.produces * count;
+            const parenResult = parseBracketContent(parenContent, getStitchValue);
+            const consumedInRepeat = parenResult.consumed * count;
+            const producedInRepeat = parenResult.produced * count;
 
             totalConsumed += consumedInRepeat;
             totalProduced += producedInRepeat;
@@ -292,9 +292,9 @@ const parseBracketContent = (content, getStitchValue) => {
 
         // Parse the operation inside parentheses
         if (parenContent.trim()) {
-            const stitchValue = getStitchValue(parenContent.trim());
-            totalConsumed += stitchValue.consumes * count;
-            totalProduced += stitchValue.produces * count;
+            const parenResult = parseBracketContent(parenContent, getStitchValue);
+            totalConsumed += parenResult.consumed * count;
+            totalProduced += parenResult.produced * count;
         }
 
         // Remove this paren from working content
