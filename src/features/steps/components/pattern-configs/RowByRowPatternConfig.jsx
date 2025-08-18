@@ -291,7 +291,7 @@ const RowByRowPatternConfig = ({
     // This properly handles both K2tog and simple actions
 
     const handleQuickAction = (action) => {
-        console.log('🎯 handleQuickAction received:', action);
+        console.log('🐛 DEBUG: handleQuickAction received:', action, 'type:', typeof action);
 
         // Handle accumulated actions from hold operations
         const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // K36, P12, YO4
@@ -1155,7 +1155,7 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
     };
 
     const stopHoldAction = (e) => {
-        console.log('KAI-STOP: action=', action, 'count=', holdState.count, 'device=', e.pointerType || 'mouse');
+        // console.log('KAI-STOP: action=', action, 'count=', holdState.count, 'device=', e.pointerType || 'mouse');
         e.preventDefault();
         if (!holdState.pointerDown) return;
 
@@ -1165,14 +1165,14 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
         if (holdState.isHolding) {
             if (holdState.count > 1) {
                 const isSimpleAction = ['K', 'P', 'YO'].includes(action);
-                console.log('KAI-FORMAT: action=', action, 'isSimple=', isSimpleAction, 'count=', holdState.count);
+                //    console.log('KAI-FORMAT: action=', action, 'isSimple=', isSimpleAction, 'count=', holdState.count);
                 const accumulatedAction = isSimpleAction
                     ? `${action}${holdState.count}`
                     : `${action} × ${holdState.count}`;
-                console.log('KAI-ACCUMULATED:', accumulatedAction);
+                //   console.log('KAI-ACCUMULATED:', accumulatedAction);
                 onClick(accumulatedAction);
             } else {
-                console.log('KAI-SINGLE:', action);
+                //  console.log('KAI-SINGLE:', action);
                 onClick(action);
             }
         }

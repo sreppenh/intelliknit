@@ -55,7 +55,10 @@ const STITCH_VALUES = {
  * @returns {Object} - { totalStitches, stitchChange, breakdown, isValid }
  */
 export const calculateRowStitches = (instruction, startingStitches = 0, customActionsData = {}) => {
+    console.log('🧮 calculateRowStitches input:', instruction, 'starting:', startingStitches);
+
     if (!instruction || !instruction.trim()) {
+        // ... rest of function
         return {
             previousStitches: startingStitches,
             totalStitches: 0,
@@ -172,10 +175,15 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         .map(op => op.trim())
         .filter(op => op.length > 0);
 
+    console.log('🧮 remainingOps:', remainingOps); // ADD THIS LINE
+
     for (const operation of remainingOps) {
+        console.log('🧮 processing operation:', operation); // ADD THIS LINE TOO
+
         // FIXED: Handle × multiplier operations like "K2tog × 10", "SSK × 5"
         const multiplierMatch = operation.match(/^(.+?)\s*×\s*(\d+)$/);
         if (multiplierMatch) {
+            console.log('🧮 matched multiplier pattern');
             const [, stitchOp, repeatNum] = multiplierMatch;
             const count = parseInt(repeatNum);
             const stitchValue = getStitchValue(stitchOp.trim().toUpperCase());
@@ -188,6 +196,7 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         // Handle numbered operations like "K37", "K3", etc.
         const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
         if (numberedMatch) {
+            console.log('🧮 matched numbered pattern:', numberedMatch);
             const [, stitchOp, repeatNum] = numberedMatch;
             const count = parseInt(repeatNum);
             const stitchValue = getStitchValue(stitchOp.toUpperCase());
@@ -195,7 +204,13 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
             totalProduced += stitchValue.produces * count;
         } else if (operation.trim()) {
             // Single operation like "K", "YO", "SSK"
-            const stitchValue = getStitchValue(operation.toUpperCase());
+            console.log('🧮 matched single operation fallback');
+            console.log('🧮 operation:', operation);
+            console.log('🧮 STITCH_VALUES lookup (original case):', STITCH_VALUES[operation]);
+            console.log('🧮 customActionsData lookup (original case):', customActionsData[operation]);
+
+            const stitchValue = getStitchValue(operation); // REMOVED .toUpperCase()
+            console.log('🧮 getStitchValue result:', stitchValue);
             totalConsumed += stitchValue.consumes;
             totalProduced += stitchValue.produces;
         }
