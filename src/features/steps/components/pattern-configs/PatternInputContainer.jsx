@@ -1,29 +1,24 @@
 // src/features/steps/components/pattern-configs/PatternInputContainer.jsx
 import React from 'react';
 import NumberKeyboard from './NumberKeyboard';
+import IncrementInputNumberMode from './IncrementInputNumberMode';
 import EnhancedKeyboard from './EnhancedKeyboard';
 import CustomActionManager from './CustomActionManager';
 import { KEYBOARD_LAYERS } from '../../../../shared/utils/patternKeyboardUtils';
 
 /**
- * PatternInputContainer - Smart input orchestrator for pattern entry
+ * PatternInputContainer - Pattern-aware input orchestrator
  * 
- * This container intelligently renders the appropriate input method based on:
- * - Current keyboard mode (pattern vs numbers)
- * - Pattern type (Cable, Lace, etc.)
- * - Current keyboard layer
- * 
- * Future: Will also handle increment controls, custom button creator, Fair Isle tools
+ * Intelligently renders appropriate tools based on pattern type and mode.
+ * Only passes relevant props to each tool, not everything.
  */
 const PatternInputContainer = ({
-    // Keyboard mode state
+    // Core state
     keyboardMode,
-
-    // Pattern context
     patternType,
     currentKeyboardLayer,
 
-    // UI state
+    // UI state  
     isMobile,
     isCreatingRepeat,
     bracketState,
@@ -45,19 +40,51 @@ const PatternInputContainer = ({
     currentRowNumber,
     construction,
 
+    // Advanced features (only for patterns that need them)
+    getStitchCalculation,
+
     // Handlers
-    onAction
+    onAction,
+
+    // ADVANCED: Direct state access for complex patterns
+    directStateAccess
 }) => {
 
-    // Render NumberKeyboard for number input mode
+    // Determine if this pattern type supports advanced features
+    const isAdvancedPattern = () => {
+        return ['Cable Pattern', 'Lace Pattern'].includes(patternType);
+    };
+
+    // Render number input mode
     if (keyboardMode === 'numbers') {
-        return (
-            <NumberKeyboard
-                onAction={onAction}
-                pendingText={pendingRepeatText}
-                currentNumber={currentNumber}
-            />
-        );
+        // Advanced patterns with stitch validation get IncrementInput  
+        if (isAdvancedPattern() && pendingRepeatText && pendingRepeatText !== '') {
+            return (
+                <IncrementInputNumberMode
+                    // Core props
+                    pendingText={pendingRepeatText}
+                    currentNumber={currentNumber}
+                    tempRowText={tempRowText}
+
+                    // Advanced pattern features
+                    getStitchCalculation={getStitchCalculation}
+                    currentProject={currentProject}
+                    patternType={patternType}
+
+                    // Direct state access for advanced patterns
+                    directStateAccess={directStateAccess}
+                />
+            );
+        } else {
+            // Basic patterns get NumberKeyboard
+            return (
+                <NumberKeyboard
+                    onAction={onAction}
+                    pendingText={pendingRepeatText}
+                    currentNumber={currentNumber}
+                />
+            );
+        }
     }
 
     // Render pattern keyboards for normal mode

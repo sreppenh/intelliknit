@@ -26,6 +26,7 @@ import NumberKeyboard from './NumberKeyboard';
 import CustomActionManager from './CustomActionManager';
 import HoldableButton from './HoldableButton';
 import EnhancedKeyboard from './EnhancedKeyboard';
+import PatternInputContainer from './PatternInputContainer';
 
 const RowByRowPatternConfig = ({
     wizardData,
@@ -295,6 +296,8 @@ const RowByRowPatternConfig = ({
     // This properly handles both K2tog and simple actions
 
     const handleQuickAction = (action) => {
+        console.log('🎯 handleQuickAction received:', action, 'keyboardMode:', keyboardMode);
+
 
         // Handle accumulated actions from hold operations
         const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // K36, P12, YO4
@@ -538,6 +541,9 @@ const RowByRowPatternConfig = ({
 
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
+        console.log('📱 NUMBER INPUT RECEIVED:', action);
+        console.log('📱 handleNumberInput received:', action);
+
         if (action === 'Enter' || action === '✓') {
             if (!pendingRepeatText || pendingRepeatText === '') {
                 // Manual mode: Just add the accumulated number to text
@@ -848,43 +854,49 @@ const RowByRowPatternConfig = ({
                 currentProject={currentProject}
                 onSave={handleSaveRow}
                 keyboardComponent={
-                    keyboardMode === 'numbers' ? (
-                        <NumberKeyboard
-                            onAction={handleQuickAction}
-                            pendingText={pendingRepeatText}
-                            currentNumber={currentNumber}
-                        />
-                    ) : (
-                        <>
-                            {currentKeyboardLayer === KEYBOARD_LAYERS.TERTIARY && (
-                                <CustomActionManager
-                                    patternType={patternType}
-                                    onActionSelect={handleQuickAction}
-                                    currentProject={currentProject}
-                                    updateProject={updateProject}
-                                    newActionStitches={newActionStitches}
-                                    setNewActionStitches={setNewActionStitches}
-                                />
-                            )}
-                            <EnhancedKeyboard
-                                patternType={patternType}
-                                layer={currentKeyboardLayer}
-                                context={{
-                                    rowNumber: currentRowNumber,
-                                    construction,
-                                    project: currentProject,
-                                    updateProject: updateProject
-                                }}
-                                isMobile={isMobile}
-                                isCreatingRepeat={isCreatingRepeat}
-                                rowInstructions={rowInstructions}
-                                onAction={handleQuickAction}
-                                bracketState={bracketState}
-                                tempRowText={tempRowText}  // ← ADD THIS LINE
-                                isLocked={tempRowText === 'K to end' || tempRowText === 'P to end' ||
-                                    tempRowText === 'K all' || tempRowText === 'P all'} />
-                        </>
-                    )
+                    <PatternInputContainer
+                        // Core state
+                        keyboardMode={keyboardMode}
+                        patternType={patternType}
+                        currentKeyboardLayer={currentKeyboardLayer}
+
+                        // UI state
+                        isMobile={isMobile}
+                        isCreatingRepeat={isCreatingRepeat}
+                        bracketState={bracketState}
+                        tempRowText={tempRowText}
+                        isLocked={tempRowText === 'K to end' || tempRowText === 'P to end' ||
+                            tempRowText === 'K all' || tempRowText === 'P all'}
+
+                        // Data
+                        rowInstructions={rowInstructions}
+                        pendingRepeatText={pendingRepeatText}
+                        currentNumber={currentNumber}
+
+                        // Project context
+                        currentProject={currentProject}
+                        updateProject={updateProject}
+                        newActionStitches={newActionStitches}
+                        setNewActionStitches={setNewActionStitches}
+
+                        // Row context
+                        currentRowNumber={currentRowNumber}
+                        construction={construction}
+
+                        // Advanced features (only for Cable/Lace patterns)
+                        getStitchCalculation={getStitchCalculation}
+
+                        // Handlers
+                        onAction={handleQuickAction}
+
+                        // Direct state access for advanced patterns
+                        directStateAccess={{
+                            setPendingRepeatText,
+                            setTempRowText,
+                            setKeyboardMode,
+                            setCurrentNumber
+                        }}
+                    />
                 }
             />
         </div>
