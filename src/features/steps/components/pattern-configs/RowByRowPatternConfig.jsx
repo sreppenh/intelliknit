@@ -237,13 +237,40 @@ const RowByRowPatternConfig = ({
             );
             return {
                 isValid: true,
-                previousStitches: previousStitches,  // ← FIXED: uses calculated 10
+                previousStitches: previousStitches,
                 totalStitches: previousStitches,
                 stitchChange: 0,
                 stitchesConsumed: 0
             };
         }
 
+        // NEW: Check for open brackets/parens - stop calculating if found
+        let openBrackets = 0;
+        let openParens = 0;
+        for (const char of tempRowText) {
+            if (char === '[') openBrackets++;
+            if (char === ']') openBrackets--;
+            if (char === '(') openParens++;
+            if (char === ')') openParens--;
+        }
+
+        if (openBrackets > 0 || openParens > 0) {
+            const previousStitches = getPreviousRowStitches(
+                rowInstructions,
+                editingRowIndex === null ? rowInstructions.length : editingRowIndex,
+                baselineStitches
+            );
+            return {
+                isValid: false,
+                isCalculating: true,  // NEW: Flag for "Calculating..." display
+                previousStitches: previousStitches,
+                totalStitches: previousStitches,
+                stitchChange: 0,
+                stitchesConsumed: 0
+            };
+        }
+
+        // Continue with existing calculation logic...
         const previousStitches = getPreviousRowStitches(
             rowInstructions,
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
@@ -265,6 +292,7 @@ const RowByRowPatternConfig = ({
 
         return calculateRowStitchesLive(tempRowText, previousStitches, customActionsLookup);
     };
+
 
 
     /**

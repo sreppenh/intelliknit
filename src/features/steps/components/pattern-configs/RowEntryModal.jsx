@@ -37,8 +37,20 @@ const RowEntryModal = ({
                         Consumed <span className="font-bold text-sage-800">0</span>,
                         Produced <span className="font-bold text-sage-800">0</span>
                     </span>
-                    <span className={`font-bold ml-2 ${netChange < 0 ? 'text-red-600' : netChange > 0 ? 'text-green-600' : 'text-sage-600'}`}>
-                        ({netChange > 0 ? '+' : ''}{netChange})
+                    <span className={`font-bold ml-2 text-sage-600`}>
+                        (0)
+                    </span>
+                </div>
+            );
+        }
+
+        // NEW: Check if we're in "calculating" mode (open brackets/parens)
+        if (calculation?.isCalculating) {
+            return (
+                <div className="text-xs bg-yarn-50 border border-yarn-200 rounded-lg p-3">
+                    <span className="text-yarn-600">
+                        <span className="font-bold text-yarn-800">Calculating...</span>
+                        <span className="ml-2 text-xs">(close all brackets and parentheses)</span>
                     </span>
                 </div>
             );
@@ -53,9 +65,9 @@ const RowEntryModal = ({
             );
         }
 
-        // Valid calculation
+        // Valid calculation - existing logic stays the same
         const started = calculation.previousStitches;
-        const consumed = calculation.stitchesConsumed;  // ← USE ACTUAL CONSUMED COUNT
+        const consumed = calculation.stitchesConsumed;
         const produced = calculation.totalStitches;
         const netChange = produced - consumed;
 
@@ -72,7 +84,6 @@ const RowEntryModal = ({
             </div>
         );
     };
-
     // Replace getRowCompletionStatus function:
     const getRowCompletionStatus = () => {
         const calculation = getStitchCalculation();
