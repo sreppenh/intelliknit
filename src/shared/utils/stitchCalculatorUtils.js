@@ -254,8 +254,10 @@ const preprocessToEndInstructions = (instruction, startingStitches, customAction
  * FIXED: Parse content inside brackets (can contain parentheses)
  * Handles: "K2, (P2tog)3, YO" inside [...] and incomplete content
  */
-const parseBracketContent = (content, getStitchValue) => {
+// In src/shared/utils/stitchCalculatorUtils.js
+// Replace the parseBracketContent function with this fixed version:
 
+const parseBracketContent = (content, getStitchValue) => {
     let totalConsumed = 0;
     let totalProduced = 0;
 
@@ -272,7 +274,7 @@ const parseBracketContent = (content, getStitchValue) => {
         const [fullMatch, parenContent, repeatCount] = match;
         const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete
 
-        // Parse the operation inside parentheses
+        // Parse the operation inside parentheses (recursive call)
         if (parenContent.trim()) {
             const parenResult = parseBracketContent(parenContent, getStitchValue);
             totalConsumed += parenResult.consumed * count;
@@ -289,6 +291,17 @@ const parseBracketContent = (content, getStitchValue) => {
         .filter(op => op.length > 0);
 
     for (const operation of operations) {
+        // FIXED: Handle standalone multiplier operations like "K2tog × 10", "SSK × 5"
+        const multiplierMatch = operation.match(/^(.+?)\s*×\s*(\d+)$/);
+        if (multiplierMatch) {
+            const [, stitchOp, repeatNum] = multiplierMatch;
+            const count = parseInt(repeatNum);
+            const stitchValue = getStitchValue(stitchOp.trim());
+            totalConsumed += stitchValue.consumes * count;
+            totalProduced += stitchValue.produces * count;
+            continue;
+        }
+
         // Handle numbered operations like "K5", "P3"
         const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
         if (numberedMatch) {
