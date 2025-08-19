@@ -58,7 +58,7 @@ const PatternInputContainer = ({
     // Render number input mode
     if (keyboardMode === 'numbers') {
         // Advanced patterns with stitch validation get IncrementInput  
-        if (isAdvancedPattern() && pendingRepeatText && pendingRepeatText !== '') {
+        {/*}    if (isAdvancedPattern() && pendingRepeatText && pendingRepeatText !== '') {
             return (
                 <IncrementInputNumberMode
                     // Core props
@@ -75,16 +75,16 @@ const PatternInputContainer = ({
                     directStateAccess={directStateAccess}
                 />
             );
-        } else {
-            // Basic patterns get NumberKeyboard
-            return (
-                <NumberKeyboard
-                    onAction={onAction}
-                    pendingText={pendingRepeatText}
-                    currentNumber={currentNumber}
-                />
-            );
-        }
+        } else { */}
+        // Basic patterns get NumberKeyboard
+        return (
+            <NumberKeyboard
+                onAction={onAction}
+                pendingText={pendingRepeatText}
+                currentNumber={currentNumber}
+            />
+        );
+        //  }
     }
 
     // Render pattern keyboards for normal mode
