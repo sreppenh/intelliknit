@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { shouldMultiplyAction } from '../../../../shared/utils/patternInputUtils';
 
-const HoldableButton = ({ action, className, children, disabled, onClick, tempRowText }) => {
+const HoldableButton = ({ action, className, children, disabled, onClick, tempRowText, maxMultiplier = 31 }) => {
     const [holdState, setHoldState] = useState({
         isHolding: false,
         count: 0,
@@ -58,6 +58,13 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
             let currentCount = 1;
             const intervalTimer = setInterval(() => {
                 currentCount++;
+
+
+                // ← ONLY ADDITION: Stop incrementing at maxMultiplier
+                if (currentCount > maxMultiplier) {
+                    clearInterval(intervalTimer);
+                    return;
+                }
                 setHoldState(prev => ({ ...prev, count: currentCount }));
             }, 150);
 

@@ -239,7 +239,8 @@ const RowByRowPatternConfig = ({
                 isValid: true,
                 previousStitches: previousStitches,  // ← FIXED: uses calculated 10
                 totalStitches: previousStitches,
-                stitchChange: 0
+                stitchChange: 0,
+                stitchesConsumed: 0
             };
         }
 

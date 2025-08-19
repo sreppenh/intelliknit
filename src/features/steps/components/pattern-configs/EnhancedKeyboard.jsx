@@ -8,7 +8,8 @@ import {
     getButtonStyles,
     getCustomActions
 } from '../../../../shared/utils/patternKeyboardUtils';
-import { getStitchConsumption, isRowComplete } from '../../../../shared/utils/stitchCalculatorUtils';
+import { getStitchConsumption, isRowComplete, getMaxSafeMultiplier } from '../../../../shared/utils/stitchCalculatorUtils';
+
 
 const EnhancedKeyboard = ({
     patternType,
@@ -79,6 +80,31 @@ const EnhancedKeyboard = ({
         const actionConsumption = getStitchConsumption(action, customActionsLookup);
         return actionConsumption > remainingStitches;
     };
+
+    // validation function
+    const getActionMaxMultiplier = (action) => {
+        if (!getStitchCalculation) return 999;
+
+        const currentCalc = getStitchCalculation();
+        if (!currentCalc || !currentCalc.isValid) return 999;
+
+        const remainingStitches = currentCalc.previousStitches - currentCalc.stitchesConsumed;
+
+        // Get custom actions for current pattern
+        const customActionsLookup = {};
+        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
+            patternType === 'Cable Pattern' ? 'cable' : 'general';
+        const customActions = context?.project?.customKeyboardActions?.[patternKey] || [];
+
+        customActions.forEach(customAction => {
+            if (typeof customAction === 'object' && customAction.name) {
+                customActionsLookup[customAction.name] = customAction;
+            }
+        });
+
+        return getMaxSafeMultiplier(action, remainingStitches, customActionsLookup);
+    };
+
 
 
     // Validation Functions
@@ -252,6 +278,7 @@ const EnhancedKeyboard = ({
                             disabled={isDisabled}
                             tempRowText={tempRowText}
                             onClick={onAction}
+                            maxMultiplier={getActionMaxMultiplier(action)}
                         >
                             {action}
                         </HoldableButton>
@@ -280,6 +307,7 @@ const EnhancedKeyboard = ({
                             disabled={isDisabled}
                             tempRowText={tempRowText}
                             onClick={onAction}
+                            maxMultiplier={getActionMaxMultiplier(action)}
                         >
                             {action}
                         </HoldableButton>
