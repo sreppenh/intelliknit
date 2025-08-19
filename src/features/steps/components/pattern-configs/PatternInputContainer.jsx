@@ -119,6 +119,8 @@ const PatternInputContainer = ({
                 bracketState={bracketState}
                 tempRowText={tempRowText}
                 isLocked={isLocked}
+
+
             />
         </>
     );

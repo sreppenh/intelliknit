@@ -421,12 +421,53 @@ export const calculateRowStitchesLive = (instruction, startingStitches = 0, cust
 };
 
 
+// Add this function to the end of stitchCalculatorUtils.js, before the getPreviousRowStitches function:
 
+/**
+ * Get stitch consumption for a single action
+ * @param {string} action - The stitch action (e.g., 'K', 'K2tog', 'YO')
+ * @param {Object} customActionsData - Custom actions lookup from project data
+ * @returns {number} - Number of stitches this action consumes
+ */
+export const getStitchConsumption = (action, customActionsData = {}) => {
+    // Check custom actions first
+    if (customActionsData[action]) {
+        const customAction = customActionsData[action];
 
+        // Handle new format: { consumes: 5, produces: 1 }
+        if (typeof customAction === 'object' && customAction.consumes !== undefined) {
+            return customAction.consumes;
+        }
 
+        // Handle legacy format: just a number (assumes 1:1 consumption)
+        if (typeof customAction === 'number') {
+            return 1; // Legacy custom actions assumed 1 consumed
+        }
 
+        // Fallback for malformed custom actions
+        return 1;
+    }
 
+    // Use existing STITCH_VALUES lookup
+    const stitchValue = STITCH_VALUES[action];
+    return stitchValue ? stitchValue.consumes : 1; // Default to 1 if unknown
+};
 
+export const getMaxSafeMultiplier = (action, remainingStitches, customActionsData = {}) => {
+    if (remainingStitches <= 0) return 1; // Can't do anything with no stitches
+
+    const singleActionConsumption = getStitchConsumption(action, customActionsData);
+
+    if (singleActionConsumption === 0) {
+        return 999; // Non-consuming actions like YO can be done many times
+    }
+
+    // Calculate max without overconsumption
+    const maxMultiplier = Math.floor(remainingStitches / singleActionConsumption);
+
+    // Clamp between 1 and 999
+    return Math.max(1, Math.min(999, maxMultiplier));
+};
 
 
 

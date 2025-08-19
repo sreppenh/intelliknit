@@ -33,6 +33,7 @@ const EnhancedKeyboard = ({
         stitches: 1
     });
 
+
     // Get custom actions for current pattern type
     const customActions = ((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
         (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) ?
@@ -166,6 +167,7 @@ const EnhancedKeyboard = ({
                             'input';
 
                     const isDisabled = isLocked && !['⌫'].includes(action);
+
                     const buttonClass = isDisabled ?
                         `${getButtonStyles(buttonType, isMobile)} opacity-50 cursor-not-allowed` :
                         getButtonStyles(buttonType, isMobile);

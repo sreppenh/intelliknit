@@ -27,10 +27,10 @@ const RowEntryModal = ({
         // Default state - no pattern entered yet
         if (!tempRowText || !tempRowText.trim()) {
             const baseline = calculation?.previousStitches || 30;
-            const netChange = 0 - baseline;
+            const netChange = 0;
 
             return (
-                <div className="text-sm bg-sage-50 border border-sage-200 rounded-lg p-3">
+                <div className="text-xs bg-sage-50 border border-sage-200 rounded-lg p-3">
                     <span className="text-sage-600">
                         Started with <span className="font-bold text-sage-800">{baseline}</span>,
                         Consumed <span className="font-bold text-sage-800">0</span>,
@@ -153,8 +153,8 @@ const RowEntryModal = ({
                     onClick={onSave}
                     disabled={!getRowCompletionStatus().isComplete}
                     className={`flex-1 py-3 px-4 rounded-lg transition-colors ${getRowCompletionStatus().isComplete
-                            ? 'bg-sage-500 text-white hover:bg-sage-600'
-                            : 'bg-wool-300 text-wool-500 cursor-not-allowed'
+                        ? 'bg-sage-500 text-white hover:bg-sage-600'
+                        : 'bg-wool-300 text-wool-500 cursor-not-allowed'
                         }`}
                     title={
                         !getRowCompletionStatus().isComplete && getRowCompletionStatus().reason === 'incomplete'
