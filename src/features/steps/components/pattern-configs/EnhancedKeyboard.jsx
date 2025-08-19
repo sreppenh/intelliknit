@@ -60,7 +60,7 @@ const EnhancedKeyboard = ({
     };
 
     // Validation Functions
-    const shouldDisableAction = (action) => {
+    {/*   const shouldDisableAction = (action) => {
         const rowStatus = getRowStatus();
 
         // If row is complete, only allow specific actions
@@ -79,7 +79,7 @@ const EnhancedKeyboard = ({
 
         const actionConsumption = getStitchConsumption(action, customActionsLookup);
         return actionConsumption > remainingStitches;
-    };
+    }; */}
 
     // validation function
     const getActionMaxMultiplier = (action) => {
@@ -269,13 +269,13 @@ const EnhancedKeyboard = ({
             {/* Full-Row Actions (Dark Sage - top row) */}
             <div className={`grid gap-3 ${keyboardLayout.fullRow.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
                 {keyboardLayout.fullRow.map((action, index) => {
-                    const isDisabled = shouldDisableAction(action); // updated
+
                     return (
                         <HoldableButton
                             key={`fullrow-${action}-${index}`}
                             action={action}
-                            className={`${getButtonStyles('fullRow', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            disabled={isDisabled}
+                            className={getButtonStyles('fullRow', isMobile)}
+
                             tempRowText={tempRowText}
                             onClick={onAction}
                             maxMultiplier={getActionMaxMultiplier(action)}
@@ -293,10 +293,7 @@ const EnhancedKeyboard = ({
                     const buttonType = action === '★' ? 'special' :
                         action.startsWith('Custom ') ? 'special' : 'input';
 
-                    const isDisabled = shouldDisableAction(action); // updated
-                    const buttonClass = isDisabled ?
-                        `${getButtonStyles(buttonType, isMobile)} opacity-50 cursor-not-allowed` :
-                        getButtonStyles(buttonType, isMobile);
+                    const buttonClass = getButtonStyles(buttonType, isMobile);
 
                     return (
                         <HoldableButton
@@ -304,7 +301,6 @@ const EnhancedKeyboard = ({
                             action={action}
                             buttonType={buttonType}
                             className={buttonClass}
-                            disabled={isDisabled}
                             tempRowText={tempRowText}
                             onClick={onAction}
                             maxMultiplier={getActionMaxMultiplier(action)}
