@@ -39,8 +39,14 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
         return holdState.count;
     };
 
+
+    // This has been completely replaced
     const startHoldAction = (e) => {
         e.preventDefault();
+
+        // CRITICAL FIX: Block everything if disabled
+        if (disabled) return;
+
         if (!canHold) {
             onClick(action);
             return;
@@ -60,6 +66,7 @@ const HoldableButton = ({ action, className, children, disabled, onClick, tempRo
 
         setHoldState(prev => ({ ...prev, timer: initialTimer }));
     };
+
 
     const stopHoldAction = (e) => {
         e.preventDefault();

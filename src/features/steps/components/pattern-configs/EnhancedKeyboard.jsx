@@ -8,6 +8,7 @@ import {
     getButtonStyles,
     getCustomActions
 } from '../../../../shared/utils/patternKeyboardUtils';
+import { getStitchConsumption } from '../../../../shared/utils/stitchCalculatorUtils';
 
 const EnhancedKeyboard = ({
     patternType,
@@ -19,6 +20,7 @@ const EnhancedKeyboard = ({
     bracketState,
     onAction,
     tempRowText,
+    getStitchCalculation, // Added back
     isLocked = false,
 }) => {
     const keyboardLayout = getKeyboardLayout(patternType, layer, context);
@@ -32,6 +34,57 @@ const EnhancedKeyboard = ({
         consumed: 1,
         stitches: 1
     });
+
+    // Validation Functions
+    // Add validation functions (simplified, focused version):
+    const isRowAtStitchLimit = () => {
+        if (!getStitchCalculation) return false;
+
+        const currentCalc = getStitchCalculation();
+        if (!currentCalc || !currentCalc.isValid) return false;
+
+        const remainingStitches = currentCalc.previousStitches - currentCalc.stitchesConsumed;
+        return remainingStitches === 0;
+    };
+
+    // Validation Functions
+    const wouldOverconsume = (action) => {
+        if (!getStitchCalculation) return false;
+
+        const currentCalc = getStitchCalculation();
+        if (!currentCalc || !currentCalc.isValid) return false;
+
+        const remainingStitches = currentCalc.previousStitches - currentCalc.stitchesConsumed;
+
+        // At stitch limit - only allow row management actions
+        if (remainingStitches === 0) {
+            return !['⌫', 'Enter', '✓', ']', ')'].includes(action);
+        }
+
+        // Get custom actions for current pattern
+        const customActionsLookup = {};
+        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
+            patternType === 'Cable Pattern' ? 'cable' : 'general';
+        const customActions = context?.project?.customKeyboardActions?.[patternKey] || [];
+
+        customActions.forEach(customAction => {
+            if (typeof customAction === 'object' && customAction.name) {
+                customActionsLookup[customAction.name] = customAction;
+            }
+        });
+
+        // Check if action would overconsume
+        const actionConsumption = getStitchConsumption(action, customActionsLookup);
+        return actionConsumption > remainingStitches;
+    };
+
+    // Validation Function
+    // Improved row locking logic:
+    const isRowLocked = () => {
+        return tempRowText?.includes('K to end') || tempRowText?.includes('P to end') ||
+            tempRowText?.includes('K all') || tempRowText?.includes('P all');
+    };
+
 
 
     // Get custom actions for current pattern type
