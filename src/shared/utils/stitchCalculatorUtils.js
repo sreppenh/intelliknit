@@ -395,7 +395,7 @@ export const calculateRowStitchesLive = (instruction, startingStitches = 0, cust
 
     let calculationText = instruction;
 
-    // Auto-close incomplete brackets/parens
+    // ONLY auto-close incomplete brackets/parens - NO expansion
     let openBrackets = 0;
     let openParens = 0;
 
@@ -409,14 +409,7 @@ export const calculateRowStitchesLive = (instruction, startingStitches = 0, cust
     calculationText += ']'.repeat(Math.max(0, openBrackets));
     calculationText += ')'.repeat(Math.max(0, openParens));
 
-    // NEW: Expand multipliers inside brackets for calculation
-    calculationText = calculationText.replace(/\[([^[\]]*×[^[\]]*)\]/g, (match, content) => {
-        const expanded = content.replace(/(.+?)\s*×\s*(\d+)/g, (_, stitch, count) => {
-            return Array(parseInt(count)).fill(stitch.trim()).join(', ');
-        });
-        return `[${expanded}]`;
-    });
-
+    // Let the main parser handle all the nested multiplier expansion correctly
     return calculateRowStitches(calculationText, startingStitches, customActionsData);
 };
 

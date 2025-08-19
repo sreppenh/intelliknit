@@ -1,7 +1,7 @@
 // src/features/steps/components/pattern-configs/RowEntryModal.jsx
 import React from 'react';
 import { StandardModal } from '../../../../shared/components/StandardModal';
-import { formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
+import { formatRunningTotal, getPreviousRowStitches, calculateRowStitchesLive, calculateRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import { isRowComplete } from '../../../../shared/utils/stitchCalculatorUtils';
 
 const RowEntryModal = ({
@@ -84,6 +84,10 @@ const RowEntryModal = ({
             </div>
         );
     };
+
+
+
+
     // Replace getRowCompletionStatus function:
     const getRowCompletionStatus = () => {
         const calculation = getStitchCalculation();
