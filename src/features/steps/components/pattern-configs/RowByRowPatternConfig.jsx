@@ -224,25 +224,31 @@ const RowByRowPatternConfig = ({
     };
 
     const getStitchCalculation = () => {
-
-        if (!currentProject) return null;  // ← Only return null if no project
+        if (!currentProject) return null;
 
         const baselineStitches = currentStitches || 80;
+        console.log('🔍 Baseline stitches:', baselineStitches);
 
-        // If no text yet, return baseline calculation
         if (!tempRowText || !tempRowText.trim()) {
+            const previousStitches = getPreviousRowStitches(
+                rowInstructions,
+                editingRowIndex === null ? rowInstructions.length : editingRowIndex,
+                baselineStitches
+            );
             return {
                 isValid: true,
-                previousStitches: baselineStitches,
-                totalStitches: baselineStitches,
+                previousStitches: previousStitches,  // ← FIXED: uses calculated 10
+                totalStitches: previousStitches,
                 stitchChange: 0
             };
         }
+
         const previousStitches = getPreviousRowStitches(
             rowInstructions,
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
             baselineStitches
         );
+        console.log('🔍 Previous row stitches:', previousStitches, 'for row index:', editingRowIndex === null ? rowInstructions.length : editingRowIndex);
 
         // Build custom actions lookup from project data
         const customActionsLookup = {};

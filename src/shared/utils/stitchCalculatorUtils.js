@@ -470,7 +470,6 @@ export const getMaxSafeMultiplier = (action, remainingStitches, customActionsDat
 };
 
 
-
 /**
  * Get previous row stitch count for smart calculations
  * @param {Array} rowInstructions - All row instructions
@@ -492,4 +491,43 @@ export const getPreviousRowStitches = (rowInstructions, currentRowIndex, compone
     }
 
     return currentStitches;
+};
+
+/**
+ * Determine if a row instruction is complete and ready to save
+ * @param {string} instruction - Row instruction text
+ * @param {number} startingStitches - Stitches available at start of row
+ * @param {Object} customActionsData - Custom actions lookup
+ * @returns {Object} - { isComplete, reason, remaining? }
+ */
+export const isRowComplete = (instruction, startingStitches, customActionsData = {}) => {
+    if (!instruction || !instruction.trim()) {
+        return { isComplete: false, reason: 'empty' };
+    }
+
+    // Check for "to end" commands first - these are always complete
+    if (instruction.includes('K to end') || instruction.includes('P to end') ||
+        instruction.includes('K all') || instruction.includes('P all')) {
+        return { isComplete: true, reason: 'to_end_command' };
+    }
+
+    // Check stitch consumption
+    const calculation = calculateRowStitchesLive(instruction, startingStitches, customActionsData);
+    if (!calculation || !calculation.isValid) {
+        return { isComplete: false, reason: 'invalid' };
+    }
+
+    // Row complete when all stitches consumed
+    if (calculation.stitchesConsumed === startingStitches) {
+        return { isComplete: true, reason: 'all_stitches_consumed' };
+    }
+
+    // Row incomplete - provide remaining count
+    return {
+        isComplete: false,
+        reason: 'incomplete',
+        remaining: startingStitches - calculation.stitchesConsumed,
+        consumed: calculation.stitchesConsumed,
+        total: startingStitches
+    };
 };

@@ -8,7 +8,7 @@ import {
     getButtonStyles,
     getCustomActions
 } from '../../../../shared/utils/patternKeyboardUtils';
-import { getStitchConsumption } from '../../../../shared/utils/stitchCalculatorUtils';
+import { getStitchConsumption, isRowComplete } from '../../../../shared/utils/stitchCalculatorUtils';
 
 const EnhancedKeyboard = ({
     patternType,
@@ -34,6 +34,52 @@ const EnhancedKeyboard = ({
         consumed: 1,
         stitches: 1
     });
+
+    // Validation Function
+    // Simplified validation using shared function:
+    const getRowStatus = () => {
+        if (!getStitchCalculation) return { isComplete: false, reason: 'no_calculation' };
+
+        const currentCalc = getStitchCalculation();
+        if (!currentCalc || !currentCalc.isValid) return { isComplete: false, reason: 'invalid' };
+
+        // Get custom actions
+        const customActionsLookup = {};
+        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
+            patternType === 'Cable Pattern' ? 'cable' : 'general';
+        const customActions = context?.project?.customKeyboardActions?.[patternKey] || [];
+
+        customActions.forEach(customAction => {
+            if (typeof customAction === 'object' && customAction.name) {
+                customActionsLookup[customAction.name] = customAction;
+            }
+        });
+
+        return isRowComplete(tempRowText, currentCalc.previousStitches, customActionsLookup);
+    };
+
+    // Validation Functions
+    const shouldDisableAction = (action) => {
+        const rowStatus = getRowStatus();
+
+        // If row is complete, only allow specific actions
+        if (rowStatus.isComplete) {
+            return !['⌫', 'Enter', '✓', ']', ')'].includes(action);
+        }
+
+        // Check if action would overconsume (same logic as before)
+        if (!getStitchCalculation) return false;
+
+        const currentCalc = getStitchCalculation();
+        if (!currentCalc || !currentCalc.isValid) return false;
+
+        const remainingStitches = currentCalc.previousStitches - currentCalc.stitchesConsumed;
+        const customActionsLookup = {}; // (same as above)
+
+        const actionConsumption = getStitchConsumption(action, customActionsLookup);
+        return actionConsumption > remainingStitches;
+    };
+
 
     // Validation Functions
     // Add validation functions (simplified, focused version):
@@ -197,7 +243,7 @@ const EnhancedKeyboard = ({
             {/* Full-Row Actions (Dark Sage - top row) */}
             <div className={`grid gap-3 ${keyboardLayout.fullRow.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
                 {keyboardLayout.fullRow.map((action, index) => {
-                    const isDisabled = isLocked && !['⌫'].includes(action);
+                    const isDisabled = shouldDisableAction(action); // updated
                     return (
                         <HoldableButton
                             key={`fullrow-${action}-${index}`}
@@ -205,22 +251,22 @@ const EnhancedKeyboard = ({
                             className={`${getButtonStyles('fullRow', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={isDisabled}
                             tempRowText={tempRowText}
-                            onClick={onAction} >
+                            onClick={onAction}
+                        >
                             {action}
                         </HoldableButton>
                     );
                 })}
+
             </div>
 
             {/* Input Actions (Light Sage - main keyboard) */}
             <div className="grid gap-2 grid-cols-3 md:grid-cols-6 lg:grid-cols-8">
                 {keyboardLayout.input.map((action, index) => {
                     const buttonType = action === '★' ? 'special' :
-                        action.startsWith('Custom ') ? 'special' :
-                            'input';
+                        action.startsWith('Custom ') ? 'special' : 'input';
 
-                    const isDisabled = isLocked && !['⌫'].includes(action);
-
+                    const isDisabled = shouldDisableAction(action); // updated
                     const buttonClass = isDisabled ?
                         `${getButtonStyles(buttonType, isMobile)} opacity-50 cursor-not-allowed` :
                         getButtonStyles(buttonType, isMobile);
@@ -233,7 +279,8 @@ const EnhancedKeyboard = ({
                             className={buttonClass}
                             disabled={isDisabled}
                             tempRowText={tempRowText}
-                            onClick={onAction} >
+                            onClick={onAction}
+                        >
                             {action}
                         </HoldableButton>
                     );

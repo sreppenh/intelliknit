@@ -2,6 +2,7 @@
 import React from 'react';
 import { StandardModal } from '../../../../shared/components/StandardModal';
 import { formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
+import { isRowComplete } from '../../../../shared/utils/stitchCalculatorUtils';
 
 const RowEntryModal = ({
     isOpen,
@@ -72,31 +73,27 @@ const RowEntryModal = ({
         );
     };
 
+    // Replace getRowCompletionStatus function:
     const getRowCompletionStatus = () => {
-        if (!tempRowText.trim()) {
-            return { isComplete: false, reason: 'empty' };
-        }
-
         const calculation = getStitchCalculation();
         if (!calculation || !calculation.isValid) {
             return { isComplete: false, reason: 'invalid' };
         }
 
-        const startingStitches = calculation.previousStitches;
-        const consumedStitches = calculation.stitchesConsumed;
+        // Get custom actions (same pattern as EnhancedKeyboard)
+        const customActionsLookup = {};
+        const patternType = wizardData?.stitchPattern?.pattern;
+        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
+            patternType === 'Cable Pattern' ? 'cable' : 'general';
+        const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
 
-        if (consumedStitches !== startingStitches) {
-            const remaining = startingStitches - consumedStitches;
-            return {
-                isComplete: false,
-                reason: 'incomplete',
-                remaining: remaining,
-                consumed: consumedStitches,
-                total: startingStitches
-            };
-        }
+        customActions.forEach(customAction => {
+            if (typeof customAction === 'object' && customAction.name) {
+                customActionsLookup[customAction.name] = customAction;
+            }
+        });
 
-        return { isComplete: true };
+        return isRowComplete(tempRowText, calculation.previousStitches, customActionsLookup);
     };
 
     const title = editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`;
