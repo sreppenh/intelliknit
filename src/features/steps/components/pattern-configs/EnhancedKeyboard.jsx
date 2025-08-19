@@ -8,7 +8,7 @@ import {
     getButtonStyles,
     getCustomActions
 } from '../../../../shared/utils/patternKeyboardUtils';
-import { getStitchConsumption, isRowComplete, getMaxSafeMultiplier } from '../../../../shared/utils/stitchCalculatorUtils';
+import { isRowComplete, getMaxSafeMultiplier } from '../../../../shared/utils/stitchCalculatorUtils';
 
 
 const EnhancedKeyboard = ({
@@ -59,27 +59,6 @@ const EnhancedKeyboard = ({
         return isRowComplete(tempRowText, currentCalc.previousStitches, customActionsLookup);
     };
 
-    // Validation Functions
-    {/*   const shouldDisableAction = (action) => {
-        const rowStatus = getRowStatus();
-
-        // If row is complete, only allow specific actions
-        if (rowStatus.isComplete) {
-            return !['⌫', 'Enter', '✓', ']', ')'].includes(action);
-        }
-
-        // Check if action would overconsume (same logic as before)
-        if (!getStitchCalculation) return false;
-
-        const currentCalc = getStitchCalculation();
-        if (!currentCalc || !currentCalc.isValid) return false;
-
-        const remainingStitches = currentCalc.previousStitches - currentCalc.stitchesConsumed;
-        const customActionsLookup = {}; // (same as above)
-
-        const actionConsumption = getStitchConsumption(action, customActionsLookup);
-        return actionConsumption > remainingStitches;
-    }; */}
 
     // validation function
     const getActionMaxMultiplier = (action) => {
@@ -106,57 +85,22 @@ const EnhancedKeyboard = ({
     };
 
 
+    // NEW: Check if we have open brackets/parens that would make "to end" invalid
+    const hasOpenStructure = () => {
+        if (!tempRowText) return false;
 
-    // Validation Functions
-    // Add validation functions (simplified, focused version):
-    const isRowAtStitchLimit = () => {
-        if (!getStitchCalculation) return false;
+        let openBrackets = 0;
+        let openParens = 0;
 
-        const currentCalc = getStitchCalculation();
-        if (!currentCalc || !currentCalc.isValid) return false;
-
-        const remainingStitches = currentCalc.previousStitches - currentCalc.stitchesConsumed;
-        return remainingStitches === 0;
-    };
-
-    // Validation Functions
-    const wouldOverconsume = (action) => {
-        if (!getStitchCalculation) return false;
-
-        const currentCalc = getStitchCalculation();
-        if (!currentCalc || !currentCalc.isValid) return false;
-
-        const remainingStitches = currentCalc.previousStitches - currentCalc.stitchesConsumed;
-
-        // At stitch limit - only allow row management actions
-        if (remainingStitches === 0) {
-            return !['⌫', 'Enter', '✓', ']', ')'].includes(action);
+        for (const char of tempRowText) {
+            if (char === '[') openBrackets++;
+            if (char === ']') openBrackets--;
+            if (char === '(') openParens++;
+            if (char === ')') openParens--;
         }
 
-        // Get custom actions for current pattern
-        const customActionsLookup = {};
-        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
-            patternType === 'Cable Pattern' ? 'cable' : 'general';
-        const customActions = context?.project?.customKeyboardActions?.[patternKey] || [];
-
-        customActions.forEach(customAction => {
-            if (typeof customAction === 'object' && customAction.name) {
-                customActionsLookup[customAction.name] = customAction;
-            }
-        });
-
-        // Check if action would overconsume
-        const actionConsumption = getStitchConsumption(action, customActionsLookup);
-        return actionConsumption > remainingStitches;
+        return openBrackets > 0 || openParens > 0;
     };
-
-    // Validation Function
-    // Improved row locking logic:
-    const isRowLocked = () => {
-        return tempRowText?.includes('K to end') || tempRowText?.includes('P to end') ||
-            tempRowText?.includes('K all') || tempRowText?.includes('P all');
-    };
-
 
 
     // Get custom actions for current pattern type
@@ -216,66 +160,23 @@ const EnhancedKeyboard = ({
         setCustomForm({ name: '', consumed: 1, stitches: 1 });
     };
 
-    // Handle long press for editing existing custom actions
-    const handleCustomLongPress = (action, index) => {
-        if (action !== 'Custom') {
-            const currentName = typeof action === 'object' ? action.name : action;
-            const currentStitches = typeof action === 'object' ? action.stitches : 1;
-
-            const newAction = prompt('Edit custom action name (max 8 characters):', currentName);
-            if (newAction !== null) {
-                const newStitchCount = prompt('How many stitches does this produce?', currentStitches.toString());
-                const stitches = parseInt(newStitchCount);
-
-                if (isNaN(stitches) || stitches < 0) {
-                    alert('Please enter a valid number of stitches (0 or higher)');
-                    return;
-                }
-
-                const trimmedAction = newAction.trim().substring(0, 8) || 'Custom';
-
-                const customActionData = trimmedAction === 'Custom' ? 'Custom' : {
-                    name: trimmedAction,
-                    stitches: stitches
-                };
-
-                // Update project storage...
-                const key = patternType === 'Lace Pattern' ? 'lace' :
-                    patternType === 'Cable Pattern' ? 'cable' : 'general';
-
-                const currentCustomActions = context?.project?.customKeyboardActions || {};
-                const patternActions = [...(currentCustomActions[key] || [])];
-
-                while (patternActions.length < 4) {
-                    patternActions.push('Custom');
-                }
-
-                patternActions[index] = customActionData;
-
-                const updatedCustomActions = {
-                    ...currentCustomActions,
-                    [key]: patternActions
-                };
-
-                if (context?.updateProject) {
-                    context.updateProject({ customKeyboardActions: updatedCustomActions });
-                }
-            }
-        }
-    };
 
     return (
         <div className="space-y-3">
             {/* Full-Row Actions (Dark Sage - top row) */}
             <div className={`grid gap-3 ${keyboardLayout.fullRow.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
                 {keyboardLayout.fullRow.map((action, index) => {
+                    // NEW: Check if this is a "to end" action that should be disabled
+                    const isToEndAction = action === 'K to end' || action === 'P to end';
+                    const shouldDisableToEnd = isToEndAction && hasOpenStructure();
+                    const isDisabled = shouldDisableToEnd;
 
                     return (
                         <HoldableButton
                             key={`fullrow-${action}-${index}`}
                             action={action}
-                            className={getButtonStyles('fullRow', isMobile)}
-
+                            className={`${getButtonStyles('fullRow', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            disabled={isDisabled}
                             tempRowText={tempRowText}
                             onClick={onAction}
                             maxMultiplier={getActionMaxMultiplier(action)}
@@ -284,7 +185,6 @@ const EnhancedKeyboard = ({
                         </HoldableButton>
                     );
                 })}
-
             </div>
 
             {/* Input Actions (Light Sage - main keyboard) */}

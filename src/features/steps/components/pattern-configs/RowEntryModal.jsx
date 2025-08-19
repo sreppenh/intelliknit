@@ -22,29 +22,24 @@ const RowEntryModal = ({
     onSave
 }) => {
     // 🔧 CORRECTED renderRunningTotal function:
+    // PHASE 2: In RowEntryModal.jsx - Update renderRunningTotal with validation
+
     const renderRunningTotal = () => {
         const calculation = getStitchCalculation();
 
         // Default state - no pattern entered yet
         if (!tempRowText || !tempRowText.trim()) {
             const baseline = calculation?.previousStitches || 30;
-            const netChange = 0;
-
             return (
                 <div className="text-xs bg-sage-50 border border-sage-200 rounded-lg p-3">
                     <span className="text-sage-600">
-                        Started with <span className="font-bold text-sage-800">{baseline}</span>,
-                        Consumed <span className="font-bold text-sage-800">0</span>,
-                        Produced <span className="font-bold text-sage-800">0</span>
-                    </span>
-                    <span className={`font-bold ml-2 text-sage-600`}>
-                        (0)
+                        Started with <span className="font-bold text-sage-800">{baseline}</span>, no pattern yet
                     </span>
                 </div>
             );
         }
 
-        // NEW: Check if we're in "calculating" mode (open brackets/parens)
+        // Check if we're in "calculating" mode (open brackets/parens)
         if (calculation?.isCalculating) {
             return (
                 <div className="text-xs bg-yarn-50 border border-yarn-200 rounded-lg p-3">
@@ -65,22 +60,53 @@ const RowEntryModal = ({
             );
         }
 
-        // Valid calculation - existing logic stays the same
+        // Valid calculation - show results with validation
         const started = calculation.previousStitches;
         const consumed = calculation.stitchesConsumed;
         const produced = calculation.totalStitches;
         const netChange = produced - consumed;
+        const remaining = started - consumed;
+
+        // Determine validation status
+        const isComplete = consumed === started;
+        const hasOverconsumed = consumed > started;
+        const isIncomplete = consumed < started && consumed > 0;
 
         return (
-            <div className="text-xs bg-sage-50 border border-sage-200 rounded-lg p-3">
-                <span className="text-sage-600">
-                    Started with <span className="font-bold text-sage-800">{started}</span>,
-                    Consumed <span className="font-bold text-sage-800">{consumed}</span>,
-                    Produced <span className="font-bold text-sage-800">{produced}</span>
-                </span>
-                <span className={`font-bold ml-2 ${netChange < 0 ? 'text-red-600' : netChange > 0 ? 'text-green-600' : 'text-sage-600'}`}>
-                    ({netChange > 0 ? '+' : ''}{netChange})
-                </span>
+            <div className="space-y-2">
+                {/* Main calculation display */}
+                <div className="text-xs bg-sage-50 border border-sage-200 rounded-lg p-3">
+                    <span className="text-sage-600">
+                        Started with <span className="font-bold text-sage-800">{started}</span>,
+                        Consumed <span className="font-bold text-sage-800">{consumed}</span>,
+                        Produced <span className="font-bold text-sage-800">{produced}</span>
+                    </span>
+                    <span className={`font-bold ml-2 ${netChange < 0 ? 'text-red-600' : netChange > 0 ? 'text-green-600' : 'text-sage-600'}`}>
+                        ({netChange > 0 ? '+' : ''}{netChange})
+                    </span>
+                </div>
+
+                {/* Validation status */}
+                {isComplete && (
+                    <div className="text-xs bg-green-50 border border-green-200 rounded-lg p-2">
+                        <span className="text-green-700 font-medium">✅ Row complete!</span>
+                        <span className="text-green-600 ml-2">All stitches consumed</span>
+                    </div>
+                )}
+
+                {hasOverconsumed && (
+                    <div className="text-xs bg-red-50 border border-red-200 rounded-lg p-2">
+                        <span className="text-red-700 font-medium">❌ Overconsumed!</span>
+                        <span className="text-red-600 ml-2">Pattern uses {consumed - started} too many stitches</span>
+                    </div>
+                )}
+
+                {isIncomplete && (
+                    <div className="text-xs bg-yellow-50 border border-yellow-200 rounded-lg p-2">
+                        <span className="text-yellow-700 font-medium">⚠️ Incomplete row</span>
+                        <span className="text-yellow-600 ml-2">{remaining} stitches remaining</span>
+                    </div>
+                )}
             </div>
         );
     };
