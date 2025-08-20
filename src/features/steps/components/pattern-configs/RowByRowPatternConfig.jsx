@@ -19,6 +19,7 @@ import { calculateRowStitchesLive, calculateRowStitches, formatRunningTotal, get
 import RowEntryModal from './RowEntryModal';
 import PatternInputContainer from './Keyboards/PatternInputContainer';
 
+
 const RowByRowPatternConfig = ({
     wizardData,
     updateWizardData,
@@ -59,6 +60,8 @@ const RowByRowPatternConfig = ({
 
 
     });
+
+    const [isTransitioning, setIsTransitioning] = useState(false);
 
     // Add these to your existing useState declarations:
     const [editingAction, setEditingAction] = useState(null);
@@ -327,6 +330,13 @@ const RowByRowPatternConfig = ({
     // This properly handles both K2tog and simple actions
 
     const handleQuickAction = (action) => {
+        console.log('🎯 Action received:', action, 'at', Date.now());
+
+        // ✅ BLOCK actions during keyboard transitions
+        if (isTransitioning) {
+            console.log('🚫 Blocked action during transition:', action);
+            return;
+        }
 
         // Handle accumulated actions from hold operations
         const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // K36, P12, YO4
@@ -477,8 +487,16 @@ const RowByRowPatternConfig = ({
                 setPendingRepeatText(textWithClosingBracket);
             }
 
+            // ✅ PROTECTED transition with debouncing
+            setIsTransitioning(true);
             setKeyboardMode('numbers');
             setIsCreatingRepeat(false);
+
+            // Clear transition flag after a short delay
+            setTimeout(() => {
+                setIsTransitioning(false);
+            }, 200); // 200ms buffer
+
             return;
         }
 
@@ -494,8 +512,16 @@ const RowByRowPatternConfig = ({
             if (matchingIndex !== -1) {
                 const parenContent = textWithClosingParen.substring(matchingIndex);
                 setPendingRepeatText(parenContent);
+
+                // ✅ PROTECTED transition with debouncing
+                setIsTransitioning(true);
                 setKeyboardMode('numbers');
                 setIsCreatingRepeat(false);
+
+                // Clear transition flag after a short delay
+                setTimeout(() => {
+                    setIsTransitioning(false);
+                }, 200); // 200ms buffer
             }
             return;
         }
@@ -569,6 +595,7 @@ const RowByRowPatternConfig = ({
 
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
+        console.log('📱 Number input received:', action, 'at', Date.now());
 
 
         if (action === 'Enter' || action === '✓') {
@@ -595,6 +622,25 @@ const RowByRowPatternConfig = ({
             setKeyboardMode('pattern');
             setPendingRepeatText('');
             setCurrentNumber('');
+            return;
+        }
+        // ✅ FIX: Handle back button properly
+        if (action === '⌫') {
+            if (!pendingRepeatText || pendingRepeatText === '') {
+                // Manual mode: remove last digit from currentNumber
+                setCurrentNumber(prev => prev.slice(0, -1));
+            } else {
+                // Bracket mode: remove last digit from multiplier
+                const currentText = pendingRepeatText.replace(/\s*×\s*\d*$/, '');
+                const existingMultiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1] || '';
+                const newMultiplier = existingMultiplier.slice(0, -1);
+
+                if (newMultiplier) {
+                    setPendingRepeatText(`${currentText} × ${newMultiplier}`);
+                } else {
+                    setPendingRepeatText(currentText);
+                }
+            }
             return;
         }
 
