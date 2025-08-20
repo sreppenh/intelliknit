@@ -555,6 +555,7 @@ const getPatternStepDescription = (step) => {
 
 /**
  * Format technical data display (the "good data - do not remove")
+ * ✅ ENHANCED: Calculate total rows for repeat-based patterns
  */
 const getTechnicalDataDisplay = (step) => {
     const parts = [];
@@ -564,8 +565,8 @@ const getTechnicalDataDisplay = (step) => {
     const endingStitches = step.endingStitches || step.expectedStitches || 0;
     parts.push(`${startingStitches} → ${endingStitches} sts`);
 
-    // Duration
-    const duration = getStepDurationDisplay(step);
+    // ✅ ENHANCED: Duration with total row calculation
+    const duration = getEnhancedDurationDisplay(step);
     if (duration) {
         parts.push(duration);
     }
@@ -575,6 +576,54 @@ const getTechnicalDataDisplay = (step) => {
     parts.push(construction);
 
     return parts.join(' • ');
+};
+
+/**
+ * ✅ NEW: Enhanced duration display that calculates total rows for repeats
+ */
+const getEnhancedDurationDisplay = (step) => {
+    const duration = step.wizardConfig?.duration;
+    const construction = step.construction || 'flat';
+    const rowTerm = construction === 'round' ? 'rounds' : 'rows';
+
+    if (!duration?.type) {
+        // Fallback to totalRows if available
+        return step.totalRows ? `${step.totalRows} ${rowTerm}` : null;
+    }
+
+    // ✅ ENHANCED: Handle repeats by calculating total rows
+    if (duration.type === 'repeats') {
+        const repeats = parseInt(duration.value) || 0;
+        const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+        const rowsInPattern = parseInt(stitchPattern?.rowsInPattern) || 0;
+
+        if (repeats > 0 && rowsInPattern > 0) {
+            const totalRows = repeats * rowsInPattern;
+            return `${totalRows} ${rowTerm}`;
+        }
+
+        // Fallback to showing repeats if we can't calculate
+        return `${repeats} repeats`;
+    }
+
+    // Handle other duration types (use existing logic from getStepDurationDisplay)
+    switch (duration.type) {
+        case 'rows':
+        case 'rounds':
+            return `${duration.value} ${rowTerm}`;
+
+        case 'length':
+            return `${duration.value} ${duration.units || 'inches'}`;
+
+        case 'until_length':
+            return `until ${duration.value} ${duration.units || 'inches'}`;
+
+        case 'stitches':
+            return `${duration.value} stitches`;
+
+        default:
+            return null;
+    }
 };
 
 // ===== UTILITY FUNCTIONS =====
