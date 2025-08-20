@@ -72,6 +72,19 @@ export const useStepCalculation = () => {
             netStitchChange: config.calculation.netStitchChange,
             phaseDetails: config.calculation.phases // Store phase breakdown for knitting mode
           };
+
+        }
+        // Add this AFTER the existing phases case:
+        else if (type === 'intrinsic_pattern' && config?.calculation) {
+          return {
+            success: true,
+            totalRows: config.calculation.totalRows || 1,
+            startingStitches: config.calculation.startingStitches,
+            endingStitches: config.calculation.endingStitches,
+            hasShaping: true,
+            shapingMode: 'intrinsic',
+            netStitchChange: config.calculation.netStitchChange
+          };
         }
         else {
           // No valid modern shaping data found
