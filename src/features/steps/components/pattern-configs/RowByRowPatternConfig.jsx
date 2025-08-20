@@ -8,6 +8,7 @@ import {
     getNextKeyboardLayer,
     supportsManualNumbers,
     supportsMultipleLayers,
+    isWorkToEndAction
 } from '../../../../shared/utils/patternKeyboardUtils';
 import {
     handleQuickActionEnhanced,
@@ -432,8 +433,7 @@ const RowByRowPatternConfig = ({
         };
 
         // Row locking check
-        const isRowLocked = tempRowText === 'K to end' || tempRowText === 'P to end' ||
-            tempRowText === 'K all' || tempRowText === 'P all';
+        const isRowLocked = isWorkToEndAction(tempRowText);
 
         if (isRowLocked && !['⌫', 'Enter', '✓'].includes(action)) {
             return; // Block all input except delete and enter

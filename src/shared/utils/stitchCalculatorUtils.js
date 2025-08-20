@@ -48,6 +48,12 @@ const STITCH_VALUES = {
     'LT': { consumes: 2, produces: 2 }
 };
 
+const hasWorkToEndAction = (instruction) => {
+    return /k\s+to\s+end/gi.test(instruction) ||
+        /p\s+to\s+end/gi.test(instruction) ||
+        /k\/p\s+as\s+set/gi.test(instruction);
+};
+
 /**
  * Parse a row instruction and calculate total stitches worked
  * @param {string} instruction - Row instruction (e.g., "[(K2tog)2, P]3")
@@ -218,13 +224,12 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
  */
 const preprocessToEndInstructions = (instruction, startingStitches, customActionsData = {}) => {
     // Check for "K to end" or "P to end" patterns
-    const kToEndPattern = /k\s+to\s+end/gi;
-    const pToEndPattern = /p\s+to\s+end/gi;
+    //const kToEndPattern = /k\s+to\s+end/gi;
+    // const pToEndPattern = /p\s+to\s+end/gi;
 
-    if (!kToEndPattern.test(instruction) && !pToEndPattern.test(instruction)) {
+    if (!hasWorkToEndAction(instruction)) {
         return instruction; // No "to end" patterns, return as-is
     }
-
     // Parse everything BEFORE the "to end" commands to calculate consumed stitches
     let tempConsumed = 0;
     const parts = instruction.split(',').map(part => part.trim());
@@ -239,6 +244,10 @@ const preprocessToEndInstructions = (instruction, startingStitches, customAction
             // Calculate remaining stitches for P to end
             const remainingStitches = startingStitches - tempConsumed;
             processedParts.push(remainingStitches > 0 ? `P${remainingStitches}` : 'P0');
+        } else if (/k\/p\s+as\s+set/gi.test(part)) {
+            // Calculate remaining stitches for K/P as set (works like K to end)
+            const remainingStitches = startingStitches - tempConsumed;
+            processedParts.push(remainingStitches > 0 ? `K${remainingStitches}` : 'K0');
         } else {
             // Regular part - calculate its consumption and add to processed parts
             const partResult = calculatePartialStitches(part, customActionsData);
@@ -525,6 +534,7 @@ export const isRowComplete = (instruction, startingStitches, customActionsData =
 
     // Check for "to end" commands first - these are always complete
     if (instruction.includes('K to end') || instruction.includes('P to end') ||
+        instruction.includes('K/P as set') ||
         instruction.includes('K all') || instruction.includes('P all')) {
         return { isComplete: true, reason: 'to_end_command' };
     }

@@ -24,6 +24,7 @@ export const NON_MULTIPLICABLE_ACTIONS = [
     // Complete row actions (these replace, don't multiply)
     'K to end', 'P to end',  // NEW
     'K all', 'P all',        // Legacy support
+    'K/P as set'
 
     // Copy actions (these replace, don't multiply)  
     // Note: copy actions start with 'copy_' so we check with startsWith
@@ -498,7 +499,7 @@ export const handleCopyRow = (action, rowInstructions, setTempRowText, resetAuto
 // FIXED: Remove auto-close behavior from "to end" actions
 export const handleCompleteRowAction = (action, setTempRowText, resetAutoIncrement, onComplete = null) => {
     // "K to end" and "P to end" should NOT auto-close - they're blocking actions, not completion actions
-    if (action === 'K to end' || action === 'P to end') {
+    if (action === 'K to end' || action === 'P to end' || action === 'K/P as set') {
         setTempRowText(prev => appendWithCommaLogic(prev, action));
         resetAutoIncrement();
         // DO NOT call onComplete() - this was causing auto-close

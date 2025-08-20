@@ -64,23 +64,23 @@ const getCableKeyboardLayout = (layer, context = {}) => {
     switch (layer) {
         case KEYBOARD_LAYERS.PRIMARY:
             return {
-                fullRow: ['K to end', 'P to end'],
-                input: ['K', 'P', 'C4F', 'C4B', 'C6F', 'C6B'],
-                actions: ['⌫', '[', '⇧']
+                fullRow: ['K/P as set', 'K to end', 'P to end'],
+                input: ['1/1 LC', '2/2 LC', 'K', 'P', '2/2 RC', '1/1 RC'],
+                actions: ['⌫', '[', '(', '⇧'] // ✅ Added missing parenthesis
             };
 
         case KEYBOARD_LAYERS.SECONDARY:
             return {
-                fullRow: ['T4F', 'T4B', 'C8F', 'C8B'],
-                input: ['C10F', 'C10B', 'T2F', 'T2B', 'CN', 'RT'],
-                actions: ['⌫', '[', '⇧']
+                fullRow: ['3/3 LC', '3/3 RC', '4/4 LC', '4/4 RC'],
+                input: ['1/2 LC', '2/1 LPC', 'Slip 1', 'Wyif', '2/1 RPC', '1/2 RC'],
+                actions: ['⌫', '[', '(', '⇧']
             };
 
         case KEYBOARD_LAYERS.TERTIARY:
             return {
-                fullRow: ['T4F', 'T4B', 'C8F', 'C8B'],
-                input: ['C10F', 'C10B', 'T2F', 'T2B', 'CN', 'RT'],
-                actions: ['⌫', '[', '⇧'],
+                fullRow: ['6/6 LC', '6/6 RC', '8/8 LC', '8/8 RC'],
+                input: ['1/1 LPC', '2/2 LPC', 'K', 'P', '2/2 RPC', '1/1 RPC'],
+                actions: ['⌫', '[', '(', '⇧'],
                 custom: ['Custom', 'Custom', 'Custom', 'Custom']
             };
 
@@ -144,7 +144,7 @@ export const getLayerDisplayName = (layer) => {
 // ===== BUTTON STYLING =====
 
 export const getButtonStyles = (buttonType, isMobile = false) => {
-    const baseClasses = isMobile ? 'h-10' : 'px-3 py-1';
+    const baseClasses = isMobile ? 'h-10' : 'px-3 py-2 min-h-[40px]';
 
     // Add minimum widths to prevent wrapping on screen resize
     const minWidthClass = 'min-w-[60px]'; // Minimum 60px width for all buttons
@@ -208,6 +208,23 @@ export const supportsManualNumbers = (patternType) => {
 
 export const isCustomAction = (action) => {
     return action.startsWith('Custom ') || action === '★';
+};
+
+/**
+ * Check if an action is a "work to end" type action
+ * Centralized function to avoid hardcoding this everywhere
+ * @param {string} action - The action to check
+ * @returns {boolean} - True if this action works to the end of the row
+ */
+export const isWorkToEndAction = (action) => {
+    const workToEndActions = [
+        'K to end',
+        'P to end',
+        'K/P as set',
+        'K all',  // Legacy support
+        'P all'   // Legacy support
+    ];
+    return workToEndActions.includes(action);
 };
 
 

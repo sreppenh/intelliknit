@@ -5,7 +5,8 @@ import {
     KEYBOARD_LAYERS,
     getKeyboardLayout,
     getButtonStyles,
-    getCustomActions
+    getCustomActions,
+    isWorkToEndAction
 } from '../../../../shared/utils/patternKeyboardUtils';
 import { isRowComplete, getMaxSafeMultiplier } from '../../../../shared/utils/stitchCalculatorUtils';
 
@@ -141,7 +142,7 @@ const EnhancedKeyboard = ({
             <div className={`grid gap-3 ${keyboardLayout.fullRow.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
                 {keyboardLayout.fullRow.map((action, index) => {
                     // NEW: Check if this is a "to end" action that should be disabled
-                    const isToEndAction = action === 'K to end' || action === 'P to end';
+                    const isToEndAction = isWorkToEndAction(action);
                     const shouldDisableToEnd = isToEndAction && hasOpenStructure();
                     const isDisabled = shouldDisableToEnd;
 
@@ -162,7 +163,7 @@ const EnhancedKeyboard = ({
             </div>
 
             {/* Input Actions (Light Sage - main keyboard) */}
-            <div className="grid gap-2 grid-cols-3 md:grid-cols-6 lg:grid-cols-8">
+            <div className="grid gap-2 grid-cols-3">
                 {keyboardLayout.input.map((action, index) => {
                     const buttonType = action === '★' ? 'special' :
                         action.startsWith('Custom ') ? 'special' : 'input';
