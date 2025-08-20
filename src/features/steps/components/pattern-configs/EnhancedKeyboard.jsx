@@ -1,7 +1,6 @@
 // src/features/steps/components/pattern-configs/EnhancedKeyboard.jsx
 import React, { useState } from 'react';
 import HoldableButton from './HoldableButton';
-import IncrementInput from '../../../../shared/components/IncrementInput';
 import {
     KEYBOARD_LAYERS,
     getKeyboardLayout,

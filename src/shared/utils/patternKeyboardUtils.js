@@ -146,21 +146,24 @@ export const getLayerDisplayName = (layer) => {
 export const getButtonStyles = (buttonType, isMobile = false) => {
     const baseClasses = isMobile ? 'h-10' : 'px-3 py-1';
 
+    // Add minimum widths to prevent wrapping on screen resize
+    const minWidthClass = 'min-w-[60px]'; // Minimum 60px width for all buttons
+
     switch (buttonType) {
         case 'fullRow':
-            return `${baseClasses} bg-sage-200 text-sage-800 rounded-lg text-sm font-medium hover:bg-sage-300 border border-sage-300 transition-colors`;
+            return `${baseClasses} ${minWidthClass} bg-sage-200 text-sage-800 rounded-lg text-sm font-medium hover:bg-sage-300 border border-sage-300 transition-colors`;
         case 'input':
-            const inputTextSize = isMobile ? 'text-base' : 'text-sm'; // ← Bigger text on mobile
-            return `${baseClasses} bg-sage-100 text-sage-700 rounded-lg ${inputTextSize} hover:bg-sage-200 transition-colors`;
+            const inputTextSize = isMobile ? 'text-base' : 'text-sm';
+            return `${baseClasses} ${minWidthClass} bg-sage-100 text-sage-700 rounded-lg ${inputTextSize} hover:bg-sage-200 transition-colors`;
         case 'action':
-            const textSize = isMobile ? 'text-lg' : 'text-sm'; // ← Bigger text on mobile
-            return `${baseClasses} bg-lavender-100 text-lavender-700 rounded-lg ${textSize} font-medium hover:bg-lavender-200 border border-lavender-200 transition-colors`;
+            const textSize = isMobile ? 'text-lg' : 'text-sm';
+            return `${baseClasses} ${minWidthClass} bg-lavender-100 text-lavender-700 rounded-lg ${textSize} font-medium hover:bg-lavender-200 border border-lavender-200 transition-colors`;
         case 'copy':
-            return 'px-3 py-1 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 transition-colors';
+            return `px-3 py-1 ${minWidthClass} bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 transition-colors`;
         case 'special':
-            return `${baseClasses} bg-yarn-100 text-yarn-700 rounded-lg text-sm font-medium hover:bg-yarn-200 border border-yarn-200 transition-colors`;
+            return `${baseClasses} ${minWidthClass} bg-yarn-100 text-yarn-700 rounded-lg text-sm font-medium hover:bg-yarn-200 border border-yarn-200 transition-colors`;
         default:
-            return `${baseClasses} bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors`;
+            return `${baseClasses} ${minWidthClass} bg-sage-100 text-sage-700 rounded-lg text-sm hover:bg-sage-200 transition-colors`;
     }
 };
 

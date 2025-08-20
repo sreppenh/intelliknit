@@ -1,5 +1,6 @@
 // src/shared/components/StandardModal.jsx
 import React from 'react';
+import ReactDOM from 'react-dom';
 import { useStandardModal } from '../hooks/useStandardModal';
 
 export const StandardModal = ({
@@ -65,8 +66,12 @@ export const StandardModal = ({
 
     const colors = colorSchemes[colorScheme] || colorSchemes.sage;
 
-    return (
-        <div className="modal" onClick={handleBackdropClick}>
+    // FIXED: Use ReactDOM.createPortal to render outside container constraints
+    const modalContent = (
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50"
+            onClick={handleBackdropClick}
+        >
             <div className={`bg-white rounded-2xl shadow-xl w-full border-2 ${colors.modalBorder} max-h-[80vh] overflow-y-auto max-w-[90vw] sm:max-w-md lg:max-w-lg`} {...getModalProps()}>
                 {/* Connected header - no floating content! */}
                 <div className={`${colors.headerBg} ${colors.headerText} px-6 py-4 rounded-t-2xl border-b-2 ${colors.borderColor}`}>
@@ -116,6 +121,9 @@ export const StandardModal = ({
             </div>
         </div>
     );
+
+    // Render modal content in a portal attached to document.body
+    return ReactDOM.createPortal(modalContent, document.body);
 };
 
 // Convenience components for common patterns
