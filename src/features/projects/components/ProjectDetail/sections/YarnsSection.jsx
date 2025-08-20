@@ -16,7 +16,7 @@ const YarnsSection = ({
     const [tempYarns, setTempYarns] = useState([]);
     const [newYarn, setNewYarn] = useState({
         name: '',
-        colors: [{ color: '', skeins: '' }]
+        colors: [{ color: '', skeins: '1' }]
     });
 
 
@@ -32,7 +32,7 @@ const YarnsSection = ({
             setTempYarns([...yarns]);
             setNewYarn({
                 name: '',
-                colors: [{ color: '', skeins: '' }]
+                colors: [{ color: '', skeins: '1' }]
             });
         }
     }, [showEditModal]);
@@ -105,7 +105,7 @@ const YarnsSection = ({
             setTempYarns(prev => [...prev, yarnToAdd]);
             setNewYarn({
                 name: '',
-                colors: [{ color: '', skeins: '' }]
+                colors: [{ color: '', skeins: '1' }]
             });
         }
     };
@@ -166,21 +166,10 @@ const YarnsSection = ({
                                 return yarn.colors
                                     .filter(c => c.color && c.color.trim())
                                     .map((color, colorIndex) => {
-                                        // 🔍 DEBUG: Let's see what's actually happening
-                                        console.log('🔍 Color debug:', {
-                                            color: color.color,
-                                            skeins: color.skeins,
-                                            skeinType: typeof color.skeins,
-                                            hasSkeins: !!color.skeins,
-                                            trimmed: color.skeins ? color.skeins.trim() : 'NO_SKEINS',
-                                            isEmpty: color.skeins ? color.skeins.trim() === '' : 'NO_SKEINS_PROP'
-                                        });
 
                                         const skeinText = color.skeins && color.skeins.trim() !== ''
                                             ? ` (${color.skeins} ${parseInt(color.skeins) === 1 ? 'skein' : 'skeins'})`
                                             : '';
-
-                                        console.log('🔍 Generated skeinText:', `"${skeinText}"`);
 
                                         return (
                                             <div key={`${yarnIndex}-${colorIndex}`}>

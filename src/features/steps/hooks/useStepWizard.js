@@ -70,7 +70,9 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
       method: '',
       rowsInPattern: '',
       stitchCount: '',
-      customDetails: ''
+      customDetails: '',
+      entryMode: 'row_by_row', // ✅ ADD THIS LINE - it's probably missing!
+      rowInstructions: []       // ✅ ADD THIS LINE - also probably missing!
     },
     duration: { type: '', value: '', units: defaultUnits, measurement: '', targetLength: '' },
     hasShaping: false,
@@ -212,9 +214,12 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
           return true; // Skip validation for basic patterns
         }
 
-        // Use centralized validation from stepDisplayUtils
-        return validatePatternConfiguration(wizardData.stitchPattern);
+        // ✅ ADD DEBUG LOGGING HERE
 
+        const validationResult = validatePatternConfiguration(wizardData.stitchPattern);
+
+        // Use centralized validation from stepDisplayUtils
+        return validationResult;
 
       case 3: // Duration/Shaping choice
         return true; // Choice steps handle their own advancement

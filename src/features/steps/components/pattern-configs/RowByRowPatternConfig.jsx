@@ -166,40 +166,43 @@ const RowByRowPatternConfig = ({
     // In RowByRowPatternConfig.jsx - find the handleSaveRow function and replace it with this:
 
     const handleSaveRow = () => {
-        if (!tempRowText.trim()) return;
 
-        // NEW: Validate that row consumes all available stitches
+        if (!tempRowText.trim()) {
+            console.log('🔧 No text, returning early');
+            return;
+        }
+
+        // Validation logic...
         const calculation = getStitchCalculation();
         if (calculation && calculation.isValid) {
             const startingStitches = calculation.previousStitches;
             const consumedStitches = calculation.stitchesConsumed;
 
-            // Only allow save if all stitches are consumed
             if (consumedStitches !== startingStitches) {
-                return; // Block save - row is incomplete
+                return;
             }
         }
 
         let updatedInstructions = [...rowInstructions];
 
         if (editingRowIndex === null) {
-            // Adding new row
             updatedInstructions.push(tempRowText.trim());
         } else {
-            // Editing existing row
             updatedInstructions[editingRowIndex] = tempRowText.trim();
         }
 
+
         updateWizardData('stitchPattern', {
             rowInstructions: updatedInstructions,
-            rowsInPattern: updatedInstructions.length.toString() // Auto-update count
+            rowsInPattern: updatedInstructions.length.toString()
         });
 
         setshowRowEntryModal(false);
         setTempRowText('');
         setEditingRowIndex(null);
-        setLastQuickAction(null); // Reset auto-increment
+        setLastQuickAction(null);
         setConsecutiveCount(1);
+
     };
 
     const handleDeleteRow = (index) => {
@@ -222,7 +225,6 @@ const RowByRowPatternConfig = ({
         if (!currentProject) return null;
 
         const baselineStitches = currentStitches || 80;
-        console.log('🔍 Baseline stitches:', baselineStitches);
 
         if (!tempRowText || !tempRowText.trim()) {
             const previousStitches = getPreviousRowStitches(
@@ -271,7 +273,6 @@ const RowByRowPatternConfig = ({
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
             baselineStitches
         );
-        console.log('🔍 Previous row stitches:', previousStitches, 'for row index:', editingRowIndex === null ? rowInstructions.length : editingRowIndex);
 
         // Build custom actions lookup from project data
         const customActionsLookup = {};
@@ -326,8 +327,6 @@ const RowByRowPatternConfig = ({
     // This properly handles both K2tog and simple actions
 
     const handleQuickAction = (action) => {
-        console.log('🎯 handleQuickAction received:', action, 'keyboardMode:', keyboardMode);
-
 
         // Handle accumulated actions from hold operations
         const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // K36, P12, YO4
@@ -570,8 +569,7 @@ const RowByRowPatternConfig = ({
 
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
-        console.log('📱 NUMBER INPUT RECEIVED:', action);
-        console.log('📱 handleNumberInput received:', action);
+
 
         if (action === 'Enter' || action === '✓') {
             if (!pendingRepeatText || pendingRepeatText === '') {
@@ -624,14 +622,18 @@ const RowByRowPatternConfig = ({
         }
     };
 
-    // ===== VALIDATION =====
     const canSave = () => {
+
         if (currentEntryMode === 'description') {
-            return wizardData.stitchPattern.customText?.trim() && wizardData.stitchPattern.rowsInPattern;
+            const result = wizardData.stitchPattern.customText?.trim() && wizardData.stitchPattern.rowsInPattern;
+            return result;
         } else {
-            return rowInstructions.length > 0;
+            const currentRows = wizardData.stitchPattern.rowInstructions || [];
+            const result = currentRows.length > 0;
+            return result;
         }
     };
+
 
     // ===== SAVE HANDLERS =====
     const handleSave = () => {
@@ -845,7 +847,6 @@ const RowByRowPatternConfig = ({
                 </div>
             )}
 
-            {/* Mode-aware save/cancel actions */}
             {shouldShowActions && (
                 <div className="pt-4 border-t border-wool-200">
                     <div className="flex gap-3">
