@@ -111,12 +111,16 @@ const formatReadableInstruction = (instruction) => {
     const exactReplacements = {
         'K to end': 'Knit to end',
         'P to end': 'Purl to end',
-        'K/P as Set': 'Knit the knits, Purl the purls'
+        'K/P as set': 'Knit the knits, Purl the purls'
     };
 
     if (exactReplacements[formatted]) {
         return exactReplacements[formatted];
     }
+
+
+    console.log('🔍 No exact match, continuing to other replacements...');
+
 
     // ===== SPECIFIC PATTERN REPLACEMENTS =====
     // Handle bracket patterns: [K, P] → [K1, P1]
@@ -188,6 +192,7 @@ const formatReadableInstruction = (instruction) => {
     // Only match single K or P in stitch pattern contexts (brackets, commas, etc.)
     // Avoid matching K or P that are part of actual words like "Knit" or "Purl"
     formatted = formatted.replace(/(?<![A-Za-z])(K|P)(?=\s*[,\s\]]|$)(?![a-z])/g, (match, letter) => {
+
         return letter === 'K' ? 'K1' : 'P1';
     });
 

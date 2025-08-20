@@ -19,6 +19,7 @@ const YarnsSection = ({
         colors: [{ color: '', skeins: '' }]
     });
 
+
     // Get current yarns data
     const yarns = formData?.yarns || project?.yarns || [];
 
@@ -44,10 +45,15 @@ const YarnsSection = ({
     const handleSaveEdit = () => {
         let finalYarns = [...tempYarns];
 
+        // ✅ FIXED: Always add the current newYarn if it has content
         if (newYarn.name && newYarn.name.trim()) {
             const yarnToAdd = {
                 name: newYarn.name.trim(),
-                colors: newYarn.colors.filter(c => c.color && c.color.trim())
+                // ✅ FIXED: Don't filter colors here - include all with color names
+                colors: newYarn.colors.filter(c => c.color && c.color.trim()).map(c => ({
+                    color: c.color.trim(),
+                    skeins: c.skeins || '' // Keep empty string if no skeins specified
+                }))
             };
             finalYarns = [...tempYarns, yarnToAdd];
         }
@@ -159,11 +165,29 @@ const YarnsSection = ({
                             if (yarn.colors && yarn.colors.length > 0) {
                                 return yarn.colors
                                     .filter(c => c.color && c.color.trim())
-                                    .map((color, colorIndex) => (
-                                        <div key={`${yarnIndex}-${colorIndex}`}>
-                                            • {yarn.name}: <span className="text-wool-500">{color.color}{color.skeins && color.skeins.trim() ? ` (${color.skeins} skeins)` : ''}</span>
-                                        </div>
-                                    ));
+                                    .map((color, colorIndex) => {
+                                        // 🔍 DEBUG: Let's see what's actually happening
+                                        console.log('🔍 Color debug:', {
+                                            color: color.color,
+                                            skeins: color.skeins,
+                                            skeinType: typeof color.skeins,
+                                            hasSkeins: !!color.skeins,
+                                            trimmed: color.skeins ? color.skeins.trim() : 'NO_SKEINS',
+                                            isEmpty: color.skeins ? color.skeins.trim() === '' : 'NO_SKEINS_PROP'
+                                        });
+
+                                        const skeinText = color.skeins && color.skeins.trim() !== ''
+                                            ? ` (${color.skeins} ${parseInt(color.skeins) === 1 ? 'skein' : 'skeins'})`
+                                            : '';
+
+                                        console.log('🔍 Generated skeinText:', `"${skeinText}"`);
+
+                                        return (
+                                            <div key={`${yarnIndex}-${colorIndex}`}>
+                                                • {yarn.name}: <span className="text-wool-500">{color.color}{skeinText}</span>
+                                            </div>
+                                        );
+                                    });
                             } else {
                                 return (
                                     <div key={yarnIndex}>
@@ -200,11 +224,31 @@ const YarnsSection = ({
 
                 {hasContent ? (
                     <div className="text-sm text-wool-700 space-y-1 text-left">
-                        {yarns.map((yarn, index) => (
-                            <div key={index} className="py-1">
-                                {yarn.name}{yarn.colors && yarn.colors.length > 0 ? ' - ' + yarn.colors.filter(c => c.color && c.color.trim()).map(c => c.color + (c.skeins ? ` (${c.skeins} skeins)` : '')).join(', ') : ''}
-                            </div>
-                        ))}
+                        {yarns.map((yarn, index) => {
+                            if (yarn.colors && yarn.colors.length > 0) {
+                                const colorTexts = yarn.colors
+                                    .filter(c => c.color && c.color.trim())
+                                    .map(c => {
+                                        // ✅ FIXED: Same logic for consistent display
+                                        const skeinText = c.skeins && c.skeins.trim() !== ''
+                                            ? ` (${c.skeins} ${parseInt(c.skeins) === 1 ? 'skein' : 'skeins'})`
+                                            : '';
+                                        return c.color + skeinText;
+                                    });
+
+                                return (
+                                    <div key={index} className="py-1">
+                                        {yarn.name}{colorTexts.length > 0 ? ' - ' + colorTexts.join(', ') : ''}
+                                    </div>
+                                );
+                            } else {
+                                return (
+                                    <div key={index} className="py-1">
+                                        {yarn.name}
+                                    </div>
+                                );
+                            }
+                        })}
                     </div>
                 ) : (
                     <div className="text-sm text-wool-500 italic">

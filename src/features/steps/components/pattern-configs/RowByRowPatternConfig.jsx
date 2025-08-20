@@ -65,7 +65,7 @@ const RowByRowPatternConfig = ({
     const [editingIndex, setEditingIndex] = useState(null);
 
     // Initialize entryMode if not set (backwards compatibility)
-    const currentEntryMode = wizardData.stitchPattern.entryMode || 'description';
+    const currentEntryMode = wizardData.stitchPattern.entryMode || 'row_by_row';
     const rowInstructions = wizardData.stitchPattern.rowInstructions || [];
 
     // ===== MODE-AWARE HELPERS =====
@@ -681,26 +681,7 @@ const RowByRowPatternConfig = ({
                     </p>
                 )}
                 <div className="flex gap-3">
-                    <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${currentEntryMode === 'description'
-                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                        } ${isReadOnly('entryMode') ? 'opacity-60 cursor-not-allowed' : ''}`}>
-                        <input
-                            type="radio"
-                            name="entry_mode"
-                            value="description"
-                            checked={currentEntryMode === 'description'}
-                            onChange={() => handleModeToggle('description')}
-                            disabled={isReadOnly('entryMode')}
-                            className="sr-only"
-                        />
-                        <div className="text-center">
-                            <div className="text-2xl mb-2">📝</div>
-                            <div className="font-semibold">Description</div>
-                            <div className="text-sm opacity-75">Traditional text description</div>
-                        </div>
-                    </label>
-
+                    {/* ✅ SWAPPED: Row-by-Row comes first now */}
                     <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${currentEntryMode === 'row_by_row'
                         ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
                         : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
@@ -720,10 +701,29 @@ const RowByRowPatternConfig = ({
                             <div className="text-sm opacity-75">Enter each row individually</div>
                         </div>
                     </label>
+
+                    {/* ✅ SWAPPED: Description comes second now */}
+                    <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${currentEntryMode === 'description'
+                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+                        } ${isReadOnly('entryMode') ? 'opacity-60 cursor-not-allowed' : ''}`}>
+                        <input
+                            type="radio"
+                            name="entry_mode"
+                            value="description"
+                            checked={currentEntryMode === 'description'}
+                            onChange={() => handleModeToggle('description')}
+                            disabled={isReadOnly('entryMode')}
+                            className="sr-only"
+                        />
+                        <div className="text-center">
+                            <div className="text-2xl mb-2">📝</div>
+                            <div className="font-semibold">Description</div>
+                            <div className="text-sm opacity-75">Traditional text description</div>
+                        </div>
+                    </label>
                 </div>
             </div>
-
-
 
             {/* Description Mode */}
             {currentEntryMode === 'description' && (
