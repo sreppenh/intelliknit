@@ -3,9 +3,7 @@ import React, { useState } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 
 /**
- * CustomActionEditor - Ultra-compact custom action editor
- * 
- * Feels like part of the keyboard, not a separate screen
+ * CustomActionEditor - Simple, clean layout matching IntelliKnit design
  */
 const CustomActionEditor = ({
     patternType,
@@ -37,7 +35,7 @@ const CustomActionEditor = ({
             return;
         }
 
-        const trimmedAction = formData.name.trim().substring(0, 8);
+        const trimmedAction = formData.name.trim().substring(0, 6);
         const customActionData = {
             name: trimmedAction,
             consumed: formData.consumed,
@@ -71,90 +69,73 @@ const CustomActionEditor = ({
     };
 
     return (
-        <div className="space-y-3">
-            {/* Minimal Header */}
-            <div className="text-left">
-                <div className="text-sm font-medium text-wool-700">
-                    {editingAction ? 'Edit' : 'Create'} Custom Action
-                </div>
-                <div className="text-xs text-wool-500">
-                    {patternType === 'Lace Pattern' ? 'Lace' :
-                        patternType === 'Cable Pattern' ? 'Cable' : 'General'} pattern
-                </div>
+        <div className="bg-yarn-50 border border-yarn-200 rounded-lg p-4 space-y-4">
+            {/* Small header - left aligned */}
+            <div className="text-sm text-yarn-700">
+                {editingAction ? 'Edit' : 'Create'} Custom Action
             </div>
 
-            {/* Name Input */}
+            {/* Action Name */}
             <div>
-                <label className="block text-sm font-medium text-wool-700 mb-1">
-                    Name
-                </label>
+                <label className="form-label">Action Name:</label>
                 <input
                     type="text"
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({
                         ...prev,
-                        name: e.target.value.substring(0, 8)
+                        name: e.target.value.substring(0, 6)
                     }))}
-                    maxLength={8}
+                    maxLength={6}
                     placeholder="e.g., Bobble"
-                    className="w-full px-3 py-2 border-2 border-wool-300 rounded-lg text-sm focus:border-yarn-500 focus:outline-none"
+                    className="input-field"
                     autoFocus
                 />
-                <div className="text-xs text-wool-500 mt-1">8 characters max</div>
             </div>
 
-            {/* Stitches Grid */}
-            <div className="grid grid-cols-2 gap-3">
-                <div>
-                    <label className="block text-xs font-medium text-wool-700 mb-1">
-                        Consumes
-                    </label>
-                    <IncrementInput
-                        value={formData.consumed}
-                        onChange={(value) => setFormData(prev => ({
-                            ...prev,
-                            consumed: value
-                        }))}
-                        min={0}
-                        max={10}
-                        unit="sts"
-                        size="sm"
-                    />
-                </div>
-
-                <div>
-                    <label className="block text-xs font-medium text-wool-700 mb-1">
-                        Produces
-                    </label>
-                    <IncrementInput
-                        value={formData.stitches}
-                        onChange={(value) => setFormData(prev => ({
-                            ...prev,
-                            stitches: value
-                        }))}
-                        min={0}
-                        max={10}
-                        unit="sts"
-                        size="sm"
-                    />
-                </div>
+            {/* Stitches Consumed */}
+            <div>
+                <label className="form-label">Stitches Consumed:</label>
+                <IncrementInput
+                    value={formData.consumed}
+                    onChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        consumed: value
+                    }))}
+                    min={0}
+                    max={10}
+                    label="consumed"
+                    construction="flat"
+                />
             </div>
 
-            {/* Buttons */}
-            <div className="grid grid-cols-2 gap-2 pt-2">
+            {/* Stitches Produced */}
+            <div>
+                <label className="form-label">Stitches Produced:</label>
+                <IncrementInput
+                    value={formData.stitches}
+                    onChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        stitches: value
+                    }))}
+                    min={0}
+                    max={10}
+                    label="produced"
+                    construction="flat"
+                />
+            </div>
+
+            {/* Buttons using proper CSS classes */}
+            <div className="flex gap-3">
                 <button
                     onClick={handleCancel}
-                    className="h-10 bg-wool-100 text-wool-700 rounded-lg text-sm font-medium hover:bg-wool-200 border border-wool-200"
+                    className="flex-1 btn-tertiary"
                 >
                     Cancel
                 </button>
                 <button
                     onClick={handleSave}
                     disabled={!formData.name.trim()}
-                    className={`h-10 rounded-lg text-sm font-medium ${formData.name.trim()
-                            ? 'bg-sage-500 text-white hover:bg-sage-600'
-                            : 'bg-wool-300 text-wool-500 cursor-not-allowed'
-                        }`}
+                    className="flex-1 btn-primary"
                 >
                     {editingAction ? 'Save' : 'Create'}
                 </button>

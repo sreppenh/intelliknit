@@ -229,21 +229,35 @@ const EnhancedKeyboard = ({
                         <div className="grid grid-cols-4 gap-3">
 
                             {customActions.map((action, index) => (
-                                <button
-                                    key={`custom-${index}`}
-                                    onClick={() => handleCustomAction(action, index)}
-                                    onDoubleClick={() => handleCustomLongPress(action, index)}
-                                    className={`h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
-                                        ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
-                                        : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
-                                        }`}
-                                >
-                                    {action === 'Custom' ? (
-                                        <span className="italic">+ Custom</span>
-                                    ) : (
-                                        typeof action === 'object' ? action.name : action
+                                <div key={`custom-${index}`} className="relative">
+                                    <button
+                                        onClick={() => handleCustomAction(action, index)}
+                                        className={`w-full h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
+                                            ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
+                                            : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
+                                            }`}
+                                    >
+                                        {action === 'Custom' ? (
+                                            <span className="italic">Custom</span>
+                                        ) : (
+                                            typeof action === 'object' ? action.name : action
+                                        )}
+                                    </button>
+
+                                    {/* Edit icon for existing actions */}
+                                    {action !== 'Custom' && (
+                                        <button
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                handleCustomLongPress(action, index);
+                                            }}
+                                            className="absolute -top-1 -right-1 w-5 h-5 bg-yarn-200 hover:bg-yarn-300 text-yarn-700 rounded-full text-xs flex items-center justify-center border border-yarn-300"
+                                            title="Edit custom action"
+                                        >
+                                            ✏️
+                                        </button>
                                     )}
-                                </button>
+                                </div>
                             ))}
                         </div>
                     </>

@@ -3,10 +3,7 @@ import React, { useState } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 
 /**
- * CustomActionEditor - Compact custom action creation/editing interface
- * 
- * Designed to fit naturally within the PatternInputContainer space
- * without feeling like a separate screen
+ * CustomActionEditor - Simple, clean layout matching IntelliKnit design
  */
 const CustomActionEditor = ({
     patternType,
@@ -38,7 +35,7 @@ const CustomActionEditor = ({
             return;
         }
 
-        const trimmedAction = formData.name.trim().substring(0, 8);
+        const trimmedAction = formData.name.trim().substring(0, 6);
         const customActionData = {
             name: trimmedAction,
             consumed: formData.consumed,
@@ -72,107 +69,73 @@ const CustomActionEditor = ({
     };
 
     return (
-        <div className="space-y-4">
-            {/* Compact Header */}
+        <div className="bg-yarn-50 border border-yarn-200 rounded-lg p-4 space-y-4">
+            {/* Small header - left aligned */}
+            <div className="text-sm text-yarn-700">
+                {editingAction ? 'Edit' : 'Create'} Custom Action
+            </div>
+
+            {/* Action Name */}
             <div>
-                <h4 className="text-base font-semibold text-wool-700">
-                    {editingAction ? 'Edit Custom Action' : 'Create Custom Action'}
-                </h4>
-                <p className="text-xs text-wool-500">
-                    {patternType === 'Lace Pattern' ? 'Lace' :
-                        patternType === 'Cable Pattern' ? 'Cable' : 'General'} pattern stitch
-                </p>
+                <label className="form-label">Action Name:</label>
+                <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        name: e.target.value.substring(0, 6)
+                    }))}
+                    maxLength={6}
+                    placeholder="e.g., Bobble"
+                    className="input-field"
+                    autoFocus
+                />
             </div>
 
-            {/* Compact Form */}
-            <div className="space-y-3">
-                {/* Name */}
-                <div>
-                    <label className="block text-sm font-medium text-wool-700 mb-1">
-                        Action Name
-                    </label>
-                    <input
-                        type="text"
-                        value={formData.name}
-                        onChange={(e) => setFormData(prev => ({
-                            ...prev,
-                            name: e.target.value.substring(0, 8)
-                        }))}
-                        maxLength={8}
-                        placeholder="e.g., Bobble"
-                        className="w-full px-3 py-2 border-2 border-wool-300 rounded-lg text-sm focus:border-yarn-500 focus:outline-none transition-colors"
-                        autoFocus
-                    />
-                    <p className="text-xs text-wool-500 mt-1">Maximum 8 characters for button display</p>
-                </div>
-
-                {/* Consumed & Produced in a grid */}
-                <div className="grid grid-cols-2 gap-3">
-                    <div>
-                        <label className="block text-sm font-medium text-wool-700 mb-1">
-                            Stitches Consumed
-                        </label>
-                        <IncrementInput
-                            value={formData.consumed}
-                            onChange={(value) => setFormData(prev => ({
-                                ...prev,
-                                consumed: value
-                            }))}
-                            min={0}
-                            max={10}
-                            unit="stitches"
-                            size="sm"
-                        />
-                    </div>
-
-                    <div>
-                        <label className="block text-sm font-medium text-wool-700 mb-1">
-                            Stitches Produced
-                        </label>
-                        <IncrementInput
-                            value={formData.stitches}
-                            onChange={(value) => setFormData(prev => ({
-                                ...prev,
-                                stitches: value
-                            }))}
-                            min={0}
-                            max={10}
-                            unit="stitches"
-                            size="sm"
-                        />
-                    </div>
-                </div>
+            {/* Stitches Consumed */}
+            <div>
+                <label className="form-label">Stitches Consumed:</label>
+                <IncrementInput
+                    value={formData.consumed}
+                    onChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        consumed: value
+                    }))}
+                    min={0}
+                    max={10}
+                    label="consumed"
+                    construction="flat"
+                />
             </div>
 
-            {/* Compact Net Effect */}
-            {formData.consumed !== formData.stitches && (
-                <div className="bg-sage-50 border border-sage-200 rounded-lg p-2 text-center">
-                    <span className="text-xs text-sage-700">
-                        Net:
-                        <span className={`font-bold ml-1 ${formData.stitches > formData.consumed ? 'text-green-600' : 'text-red-600'
-                            }`}>
-                            {formData.stitches > formData.consumed ? '+' : ''}
-                            {formData.stitches - formData.consumed} stitches
-                        </span>
-                    </span>
-                </div>
-            )}
+            {/* Stitches Produced */}
+            <div>
+                <label className="form-label">Stitches Produced:</label>
+                <IncrementInput
+                    value={formData.stitches}
+                    onChange={(value) => setFormData(prev => ({
+                        ...prev,
+                        stitches: value
+                    }))}
+                    min={0}
+                    max={10}
+                    label="produced"
+                    construction="flat"
+                />
+            </div>
 
-            {/* Compact Action Buttons */}
-            <div className="grid grid-cols-2 gap-2">
+            {/* Buttons using proper CSS classes */}
+            <div className="flex gap-3">
                 <button
                     onClick={handleCancel}
-                    className="h-9 bg-wool-100 text-wool-700 rounded-lg text-sm font-medium hover:bg-wool-200 border border-wool-200 transition-colors"
+                    className="flex-1 btn-tertiary"
                 >
                     Cancel
                 </button>
                 <button
                     onClick={handleSave}
                     disabled={!formData.name.trim()}
-                    className={`h-9 rounded-lg text-sm font-medium transition-colors ${formData.name.trim()
-                            ? 'bg-sage-500 text-white hover:bg-sage-600'
-                            : 'bg-wool-300 text-wool-500 cursor-not-allowed'
-                        }`}
+                    className="flex-1 btn-primary"
                 >
                     {editingAction ? 'Save' : 'Create'}
                 </button>
