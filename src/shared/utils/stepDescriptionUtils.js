@@ -141,6 +141,14 @@ const formatReadableInstruction = (instruction) => {
     formatted = formatted.replace(/\bK2tog\b/g, 'knit 2 together');
     formatted = formatted.replace(/\bSSK\b/g, 'slip slip knit');
 
+    // ===== CABLE & TWIST ABBREVIATION EXPANSIONS =====
+    formatted = formatted.replace(/\bT2F\b/g, '2-stitch front twist');
+    formatted = formatted.replace(/\bT2B\b/g, '2-stitch back twist');
+    formatted = formatted.replace(/\bT4F\b/g, '4-stitch front twist');
+    formatted = formatted.replace(/\bT4B\b/g, '4-stitch back twist');
+    formatted = formatted.replace(/\bRT\b/g, 'right twist');
+    formatted = formatted.replace(/\bLT\b/g, 'left twist');
+
     // Handle cable abbreviations  
     formatted = formatted.replace(/\bC(\d+)F\b/g, (match, num) => `${num}-stitch front cable`);
     formatted = formatted.replace(/\bC(\d+)B\b/g, (match, num) => `${num}-stitch back cable`);
