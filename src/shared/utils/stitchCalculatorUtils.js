@@ -579,3 +579,25 @@ export const isRowComplete = (instruction, startingStitches, customActionsData =
         total: startingStitches
     };
 };
+
+/**
+ * Calculate final stitch count after processing all row instructions
+ * @param {Array} rowInstructions - Array of row instruction strings
+ * @param {number} startingStitches - Initial stitch count
+ * @param {Object} customActionsData - Custom actions lookup from project
+ * @returns {number} - Final stitch count after all rows
+ */
+export const calculateFinalStitchCount = (rowInstructions, startingStitches, customActionsData = {}) => {
+    if (!rowInstructions || rowInstructions.length === 0) {
+        return startingStitches;
+    }
+
+    let currentStitches = startingStitches;
+
+    for (const instruction of rowInstructions) {
+        const result = calculateRowStitches(instruction, currentStitches, customActionsData);
+        currentStitches = result.totalStitches;
+    }
+
+    return currentStitches;
+};

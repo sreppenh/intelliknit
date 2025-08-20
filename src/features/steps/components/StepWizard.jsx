@@ -14,6 +14,9 @@ import DurationWizard from './DurationWizard';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
+import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
+import { isAdvancedRowByRowPattern } from '../../../shared/utils/stepDisplayUtils';
+
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex, editMode);
@@ -70,6 +73,70 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     }
     return wizard.wizardData.prepNote || '';
   };
+
+  /**
+   * Detect if a pattern has intrinsic shaping from row-by-row instructions
+   * Put this function inside StepWizard.jsx since it needs both utilities
+   */
+  const detectIntrinsicShaping = (wizardData, currentStitches, customActionsData = {}) => {
+    const { pattern, entryMode, rowInstructions } = wizardData.stitchPattern || {};
+
+    // Only check advanced row-by-row patterns
+    if (!isAdvancedRowByRowPattern(pattern) || entryMode !== 'row_by_row') {
+      return null;
+    }
+
+    // Must have row instructions to analyze
+    if (!rowInstructions || rowInstructions.length === 0) {
+      return null;
+    }
+
+    // Calculate final stitch count using existing utilities
+    const finalStitches = calculateFinalStitchCount(rowInstructions, currentStitches, customActionsData);
+
+    // Check if stitches changed
+    if (finalStitches !== currentStitches) {
+      const netChange = finalStitches - currentStitches;
+      return {
+        hasIntrinsicShaping: true,
+        startingStitches: currentStitches,
+        endingStitches: finalStitches,
+        netChange,
+        action: netChange > 0 ? 'increase' : 'decrease',
+        amount: Math.abs(netChange)
+      };
+    }
+
+    return { hasIntrinsicShaping: false };
+  };
+
+  /**
+   * Create shaping config for intrinsic pattern shaping
+   * Put this function inside StepWizard.jsx as well
+   */
+  const createIntrinsicShapingConfig = (shapingInfo) => {
+    return {
+      type: 'intrinsic_pattern',
+      config: {
+        action: shapingInfo.action,
+        amount: shapingInfo.amount,
+        patternBased: true,
+        calculation: {
+          instruction: "Shaping integrated into pattern rows",
+          startingStitches: shapingInfo.startingStitches,
+          endingStitches: shapingInfo.endingStitches,
+          totalRows: shapingInfo.totalRows || 1,
+          netStitchChange: shapingInfo.netChange
+        }
+      }
+    };
+  };
+
+
+
+
+
+
 
   // If showing ending wizard
   if (wizardState.showEndingWizard) {
@@ -208,8 +275,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
               construction={wizard.construction}
               existingPrepNote={getExistingPrepNote()}
               onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
-              currentStitches={wizard.currentStitches}  // ← ADD THIS
-
+              currentStitches={wizard.currentStitches}
             />
 
             {/* 🎯 SIMPLIFIED: Navigation for Step 2 */}
@@ -223,7 +289,47 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                 </button>
 
                 <button
-                  onClick={navigation.nextStep}
+                  onClick={() => {
+                    console.log('🎯 CONTINUE BUTTON: Checking for intrinsic shaping...');
+
+                    // Get custom actions for calculation
+                    const customActionsData = {};
+                    const patternType = wizard.wizardData.stitchPattern.pattern;
+                    const patternKey = patternType === 'Lace Pattern' ? 'lace' :
+                      patternType === 'Cable Pattern' ? 'cable' : 'general';
+                    const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
+
+                    customActions.forEach(action => {
+                      if (typeof action === 'object' && action.name) {
+                        customActionsData[action.name] = action;
+                      }
+                    });
+
+                    // Check for intrinsic shaping
+                    const shapingInfo = detectIntrinsicShaping(
+                      wizard.wizardData,
+                      wizard.currentStitches,
+                      customActionsData
+                    );
+
+                    console.log('🎯 INTRINSIC SHAPING DETECTION:', shapingInfo);
+
+                    if (shapingInfo?.hasIntrinsicShaping) {
+                      console.log('✅ DETECTED: Auto-populating shaping data and skipping to preview');
+
+                      // Auto-populate shaping data
+                      wizard.updateWizardData('hasShaping', true);
+                      wizard.updateWizardData('shapingConfig', createIntrinsicShapingConfig(shapingInfo));
+
+                      // Skip to preview (step 5)
+                      wizard.navigation.goToStep(5);
+                    } else {
+                      console.log('❌ NO INTRINSIC SHAPING: Following normal flow');
+
+                      // Normal flow to shaping selection
+                      wizard.navigation.nextStep();
+                    }
+                  }}
                   disabled={!navigation.canProceed()}
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
