@@ -13,10 +13,30 @@ export const useStepActions = (wizard, onBack) => {
   const handleAddStep = () => {
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
-    IntelliKnitLogger.debug('Step Actions', 'handleAddStep called');
 
-    console.log('🔧 WIZARD navigationStack:', wizard.navigationStack);
-    console.log('🔧 WIZARD navigationCache:', wizard.navigationCache);
+    // ✅ ADD: Log the complete step object for debugging
+    const stepObject = {
+      description: instruction,
+      type: effect.success ? 'calculated' : 'manual',
+      patternType: effect.detection?.type,
+      parsedData: effect.detection?.parsedData,
+      construction: wizard.construction,
+      calculatedRows: effect.calculation?.rows || effect.rows || [],
+      startingStitches: effect.isCastOn ? 0 : wizard.currentStitches,
+      endingStitches: effect.endingStitches,
+      totalRows: effect.totalRows,
+      expectedStitches: effect.endingStitches,
+      wizardConfig: wizard.wizardData,
+      advancedWizardConfig: {
+        hasShaping: wizard.wizardData.hasShaping,
+        shapingConfig: wizard.wizardData.shapingConfig
+      },
+      navigationStack: wizard.navigationStack,
+      navigationCache: wizard.navigationCache
+    };
+
+    console.log('🎯 COMPLETE STEP OBJECT:');
+    console.log(JSON.stringify(stepObject, null, 2));
 
     if (wizard.isEditing) {
       // Update existing step

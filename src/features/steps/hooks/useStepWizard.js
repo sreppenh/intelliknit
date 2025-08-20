@@ -214,7 +214,6 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
           return true; // Skip validation for basic patterns
         }
 
-        // ✅ ADD DEBUG LOGGING HERE
 
         const validationResult = validatePatternConfiguration(wizardData.stitchPattern);
 

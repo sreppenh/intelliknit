@@ -42,7 +42,6 @@ export const getHumanReadableDescription = (step, componentName = null) => {
 export const getContextualPatternNotes = (step) => {
     const pattern = getStepPatternName(step);
     // ✅ TEMPORARY: Debug what pattern we're getting
-    console.log('Debug: pattern detected =', pattern);
 
     // For Pick Up & Knit, show the instruction (how to pick up)
     if (pattern === 'Pick Up & Knit') {
@@ -117,10 +116,6 @@ const formatReadableInstruction = (instruction) => {
     if (exactReplacements[formatted]) {
         return exactReplacements[formatted];
     }
-
-
-    console.log('🔍 No exact match, continuing to other replacements...');
-
 
     // ===== SPECIFIC PATTERN REPLACEMENTS =====
     // Handle bracket patterns: [K, P] → [K1, P1]
