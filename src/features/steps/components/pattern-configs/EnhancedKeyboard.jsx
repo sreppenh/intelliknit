@@ -23,6 +23,7 @@ const EnhancedKeyboard = ({
     tempRowText,
     getStitchCalculation, // Added back
     isLocked = false,
+    directStateAccess  // ← ADD THIS
 }) => {
     const keyboardLayout = getKeyboardLayout(patternType, layer, context);
 
@@ -108,58 +109,32 @@ const EnhancedKeyboard = ({
         (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) ?
         getCustomActions(patternType, context?.project) : [];
 
-    // Handle custom action click
+
     const handleCustomAction = (action, index) => {
         if (action === 'Custom') {
-            setEditingCustomIndex(index);
-            setCustomForm({ name: '', consumed: 1, stitches: 1 });
+            // Empty slot - create new action
+            if (directStateAccess) {
+                directStateAccess.setKeyboardMode('button_edit');
+                directStateAccess.setEditingAction(null);
+                directStateAccess.setEditingIndex(index);
+            }
         } else {
+            // Existing action - use it
             const actionName = typeof action === 'object' ? action.name : action;
             onAction(actionName);
         }
     };
 
-    const handleSaveCustomAction = () => {
-        if (!customForm.name.trim()) {
-            alert('Please enter a name for the custom action');
-            return;
+    const handleCustomLongPress = (action, index) => {
+        if (action !== 'Custom') {
+            // Long press on existing action - edit it
+            if (directStateAccess) {
+                directStateAccess.setKeyboardMode('button_edit');
+                directStateAccess.setEditingAction(action);
+                directStateAccess.setEditingIndex(index);
+            }
         }
-
-        const trimmedAction = customForm.name.trim().substring(0, 8);
-        const customActionData = {
-            name: trimmedAction,
-            consumed: customForm.consumed,
-            stitches: customForm.stitches
-        };
-
-        const key = patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general';
-        const currentCustomActions = context?.project?.customKeyboardActions || {};
-        const patternActions = [...(currentCustomActions[key] || [])];
-
-        while (patternActions.length < 4) {
-            patternActions.push('Custom');
-        }
-
-        patternActions[editingCustomIndex] = customActionData;
-
-        const updatedCustomActions = {
-            ...currentCustomActions,
-            [key]: patternActions
-        };
-
-        if (context?.updateProject) {
-            context.updateProject({ customKeyboardActions: updatedCustomActions });
-        }
-
-        setEditingCustomIndex(null);
-        setCustomForm({ name: '', consumed: 1, stitches: 1 });
     };
-
-    const handleCancelCustomAction = () => {
-        setEditingCustomIndex(null);
-        setCustomForm({ name: '', consumed: 1, stitches: 1 });
-    };
-
 
     return (
         <div className="space-y-3">
@@ -252,120 +227,25 @@ const EnhancedKeyboard = ({
                     <>
                         {/* Original 4-button grid - completely normal */}
                         <div className="grid grid-cols-4 gap-3">
-                            {customActions.map((action, index) => {
-                                let pressTimer;
 
-                                return (
-                                    <button
-                                        key={`custom-${index}`}
-                                        onClick={() => handleCustomAction(action, index)}
-                                        onMouseLeave={() => clearTimeout(pressTimer)}
-                                        className={`h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
-                                            ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
-                                            : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
-                                            }`}
-                                    >
-                                        {action === 'Custom' ? (
-                                            <span className="italic">+ Custom</span>
-                                        ) : (
-                                            typeof action === 'object' ? action.name : action
-                                        )}
-                                    </button>
-                                );
-                            })}
+                            {customActions.map((action, index) => (
+                                <button
+                                    key={`custom-${index}`}
+                                    onClick={() => handleCustomAction(action, index)}
+                                    onDoubleClick={() => handleCustomLongPress(action, index)}
+                                    className={`h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
+                                        ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
+                                        : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
+                                        }`}
+                                >
+                                    {action === 'Custom' ? (
+                                        <span className="italic">+ Custom</span>
+                                    ) : (
+                                        typeof action === 'object' ? action.name : action
+                                    )}
+                                </button>
+                            ))}
                         </div>
-
-                        {/* YARN-THEMED OVERLAY - minimal and clean */}
-                        {editingCustomIndex !== null && (
-                            <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-                                {/* No backdrop - direct overlay */}
-                                <div className="bg-white rounded-2xl shadow-xl border-2 border-yarn-200 w-full max-w-sm max-h-[80vh] overflow-y-auto">
-                                    {/* Minimal header */}
-                                    <div className="bg-yarn-200 text-yarn-800 px-6 py-4 rounded-t-2xl border-b-2 border-yarn-300">
-                                        <h2 className="text-lg font-semibold text-center">
-                                            Create Custom Stitch
-                                        </h2>
-                                    </div>
-
-                                    {/* Clean form content */}
-                                    <div className="bg-white px-6 py-6">
-                                        <div className="space-y-5">
-                                            {/* Name */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-wool-700 mb-2">
-                                                    Name
-                                                </label>
-                                                <input
-                                                    type="text"
-                                                    value={customForm.name}
-                                                    onChange={(e) => setCustomForm(prev => ({
-                                                        ...prev,
-                                                        name: e.target.value.substring(0, 8)
-                                                    }))}
-                                                    maxLength={8}
-                                                    placeholder="8 char limit"
-                                                    className="w-full px-4 py-3 border-2 border-wool-300 rounded-lg text-base font-mono focus:border-yarn-500 focus:outline-none transition-colors"
-                                                    autoFocus
-                                                />
-                                            </div>
-
-                                            {/* Consumed Stitches */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-wool-700 mb-2">
-                                                    Consumed Stitches
-                                                </label>
-                                                <IncrementInput
-                                                    value={customForm.consumed}
-                                                    onChange={(value) => setCustomForm(prev => ({
-                                                        ...prev,
-                                                        consumed: value
-                                                    }))}
-                                                    min={0}
-                                                    max={10}
-                                                    unit="stitches"
-                                                    size="default"
-                                                />
-                                            </div>
-
-                                            {/* Resulting Stitches */}
-                                            <div>
-                                                <label className="block text-sm font-medium text-wool-700 mb-2">
-                                                    Resulting Stitches
-                                                </label>
-                                                <IncrementInput
-                                                    value={customForm.stitches}
-                                                    onChange={(value) => setCustomForm(prev => ({
-                                                        ...prev,
-                                                        stitches: value
-                                                    }))}
-                                                    min={0}
-                                                    max={10}
-                                                    unit="stitches"
-                                                    size="default"
-                                                />
-                                            </div>
-                                        </div>
-
-                                        {/* Action Buttons */}
-                                        <div className="flex gap-3 mt-6">
-                                            <button
-                                                onClick={handleCancelCustomAction}
-                                                className="flex-1 btn-tertiary"
-                                            >
-                                                Cancel
-                                            </button>
-                                            <button
-                                                onClick={handleSaveCustomAction}
-                                                disabled={!customForm.name.trim()}
-                                                className="flex-1 btn-secondary"
-                                            >
-                                                Save
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
                     </>
                 )}
 

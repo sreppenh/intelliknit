@@ -1,135 +1,166 @@
-// src/features/steps/components/pattern-configs/CustomActionManager.jsx
+// src/features/steps/components/pattern-configs/CustomActionEditor.jsx
 import React, { useState } from 'react';
+import IncrementInput from '../../../../shared/components/IncrementInput';
 
-const CustomActionManager = ({ patternType, onActionSelect, currentProject, updateProject, newActionStitches, setNewActionStitches }) => {
-    const [newActionName, setNewActionName] = useState('');
-    const [showAddForm, setShowAddForm] = useState(false);
+/**
+ * CustomActionEditor - Ultra-compact custom action editor
+ * 
+ * Feels like part of the keyboard, not a separate screen
+ */
+const CustomActionEditor = ({
+    patternType,
+    currentProject,
+    updateProject,
+    editingAction = null,
+    editingIndex = null,
+    onSave,
+    onCancel
+}) => {
 
-    // Get custom actions from current project
-    const customActions = currentProject?.customActions?.[
-        patternType === 'Lace Pattern' ? 'lace' :
-            patternType === 'Cable Pattern' ? 'cable' : 'general'
-    ] || [];
+    // Form state
+    const [formData, setFormData] = useState({
+        name: editingAction?.name || '',
+        consumed: editingAction?.consumed || 1,
+        stitches: editingAction?.stitches || 1
+    });
 
-    const handleAddAction = () => {
-        if (newActionName.trim() && newActionStitches.trim()) {
-            const stitchCount = parseInt(newActionStitches);
-            if (isNaN(stitchCount) || stitchCount < 0) {
-                alert('Please enter a valid number of stitches (0 or higher)');
-                return;
-            }
-
-            const key = patternType === 'Lace Pattern' ? 'lace' :
-                patternType === 'Cable Pattern' ? 'cable' : 'general';
-
-            // Store as object with stitch count
-            const customActionData = {
-                name: newActionName.trim(),
-                stitches: stitchCount
-            };
-
-            const currentCustomActions = currentProject?.customKeyboardActions || {};
-            const updatedCustomActions = {
-                ...currentCustomActions,
-                [key]: [...(currentCustomActions[key] || []), customActionData]
-            };
-
-            updateProject({ customKeyboardActions: updatedCustomActions });
-            setNewActionName('');
-            setNewActionStitches('1');
-            setShowAddForm(false);
-        }
+    // Get pattern key for storage
+    const getPatternKey = () => {
+        return patternType === 'Lace Pattern' ? 'lace' :
+            patternType === 'Cable Pattern' ? 'cable' : 'general';
     };
 
-    const handleRemoveAction = (actionToRemove) => {
-        const key = patternType === 'Lace Pattern' ? 'lace' :
-            patternType === 'Cable Pattern' ? 'cable' : 'general';
+    // Handle save
+    const handleSave = () => {
+        if (!formData.name.trim()) {
+            alert('Please enter a name for the custom action');
+            return;
+        }
 
-        const currentCustomActions = currentProject?.customActions || {};
-        const updatedCustomActions = {
-            ...currentCustomActions,
-            [key]: (currentCustomActions[key] || []).filter(action => action !== actionToRemove)
+        const trimmedAction = formData.name.trim().substring(0, 8);
+        const customActionData = {
+            name: trimmedAction,
+            consumed: formData.consumed,
+            stitches: formData.stitches
         };
 
-        updateProject({ customActions: updatedCustomActions });
+        const key = getPatternKey();
+        const currentCustomActions = currentProject?.customKeyboardActions || {};
+        const patternActions = [...(currentCustomActions[key] || [])];
+
+        // Ensure we have 4 slots
+        while (patternActions.length < 4) {
+            patternActions.push('Custom');
+        }
+
+        // Update the specific slot
+        patternActions[editingIndex] = customActionData;
+
+        const updatedCustomActions = {
+            ...currentCustomActions,
+            [key]: patternActions
+        };
+
+        updateProject({ customKeyboardActions: updatedCustomActions });
+        onSave(); // Return to keyboard mode
     };
 
-    if (showAddForm) {
-        return (
-            <div className="bg-lavender-50 border-2 border-lavender-200 rounded-lg p-3 mb-3">
-                <div className="text-sm font-medium text-lavender-700 mb-2">Add Custom Action</div>
-                <div className="space-y-2">
-                    <input
-                        type="text"
-                        value={newActionName}
-                        onChange={(e) => setNewActionName(e.target.value)}
-                        placeholder="e.g., Bobble, Nupps, Tree Branch"
-                        className="w-full px-3 py-2 border border-lavender-300 rounded-lg text-sm"
-                        onKeyPress={(e) => e.key === 'Enter' && handleAddAction()}
-                        autoFocus
-                    />
-                    <div className="flex gap-2">
-                        <input
-                            type="number"
-                            value={newActionStitches}
-                            onChange={(e) => setNewActionStitches(e.target.value)}
-                            placeholder="Stitches"
-                            min="0"
-                            className="w-20 px-3 py-2 border border-lavender-300 rounded-lg text-sm"
-                        />
-                        <span className="text-xs text-lavender-600 flex items-center">stitches produced</span>
-                    </div>
-                </div>
-                <div className="flex gap-2 mt-2">
-                    <button
-                        onClick={handleAddAction}
-                        className="px-3 py-2 bg-lavender-500 text-white rounded-lg text-sm hover:bg-lavender-600"
-                    >
-                        Add
-                    </button>
-                    <button
-                        onClick={() => setShowAddForm(false)}
-                        className="px-3 py-2 bg-lavender-200 text-lavender-700 rounded-lg text-sm hover:bg-lavender-300"
-                    >
-                        Cancel
-                    </button>
-                </div>
-            </div>
-        );
-    }
+    // Handle cancel
+    const handleCancel = () => {
+        onCancel(); // Return to keyboard mode
+    };
 
     return (
-        <div className="mb-3">
-            <div className="text-sm font-medium text-wool-600 mb-2">
-                Custom {patternType.replace(' Pattern', '')} Actions
+        <div className="space-y-3">
+            {/* Minimal Header */}
+            <div className="text-left">
+                <div className="text-sm font-medium text-wool-700">
+                    {editingAction ? 'Edit' : 'Create'} Custom Action
+                </div>
+                <div className="text-xs text-wool-500">
+                    {patternType === 'Lace Pattern' ? 'Lace' :
+                        patternType === 'Cable Pattern' ? 'Cable' : 'General'} pattern
+                </div>
             </div>
-            <div className="flex flex-wrap gap-2">
-                {customActions.map((action, index) => (
-                    <div key={index} className="flex items-center gap-1">
-                        <button
-                            onClick={() => onActionSelect(action)}
-                            className="px-3 py-2 bg-yarn-100 text-yarn-700 rounded-lg text-sm hover:bg-yarn-200 border border-yarn-200"
-                        >
-                            {typeof action === 'object' ? `${action.name} (${action.stitches})` : action}
-                        </button>
-                        <button
-                            onClick={() => handleRemoveAction(action)}
-                            className="w-6 h-6 bg-red-100 text-red-600 rounded-full text-xs hover:bg-red-200 flex items-center justify-center"
-                            title="Remove custom action"
-                        >
-                            ×
-                        </button>
-                    </div>
-                ))}
+
+            {/* Name Input */}
+            <div>
+                <label className="block text-sm font-medium text-wool-700 mb-1">
+                    Name
+                </label>
+                <input
+                    type="text"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({
+                        ...prev,
+                        name: e.target.value.substring(0, 8)
+                    }))}
+                    maxLength={8}
+                    placeholder="e.g., Bobble"
+                    className="w-full px-3 py-2 border-2 border-wool-300 rounded-lg text-sm focus:border-yarn-500 focus:outline-none"
+                    autoFocus
+                />
+                <div className="text-xs text-wool-500 mt-1">8 characters max</div>
+            </div>
+
+            {/* Stitches Grid */}
+            <div className="grid grid-cols-2 gap-3">
+                <div>
+                    <label className="block text-xs font-medium text-wool-700 mb-1">
+                        Consumes
+                    </label>
+                    <IncrementInput
+                        value={formData.consumed}
+                        onChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            consumed: value
+                        }))}
+                        min={0}
+                        max={10}
+                        unit="sts"
+                        size="sm"
+                    />
+                </div>
+
+                <div>
+                    <label className="block text-xs font-medium text-wool-700 mb-1">
+                        Produces
+                    </label>
+                    <IncrementInput
+                        value={formData.stitches}
+                        onChange={(value) => setFormData(prev => ({
+                            ...prev,
+                            stitches: value
+                        }))}
+                        min={0}
+                        max={10}
+                        unit="sts"
+                        size="sm"
+                    />
+                </div>
+            </div>
+
+            {/* Buttons */}
+            <div className="grid grid-cols-2 gap-2 pt-2">
                 <button
-                    onClick={() => setShowAddForm(true)}
-                    className="px-3 py-2 bg-lavender-100 text-lavender-700 rounded-lg text-sm hover:bg-lavender-200 border border-lavender-200 border-dashed"
+                    onClick={handleCancel}
+                    className="h-10 bg-wool-100 text-wool-700 rounded-lg text-sm font-medium hover:bg-wool-200 border border-wool-200"
                 >
-                    + Add Custom
+                    Cancel
+                </button>
+                <button
+                    onClick={handleSave}
+                    disabled={!formData.name.trim()}
+                    className={`h-10 rounded-lg text-sm font-medium ${formData.name.trim()
+                            ? 'bg-sage-500 text-white hover:bg-sage-600'
+                            : 'bg-wool-300 text-wool-500 cursor-not-allowed'
+                        }`}
+                >
+                    {editingAction ? 'Save' : 'Create'}
                 </button>
             </div>
         </div>
     );
 };
 
-export default CustomActionManager;
+export default CustomActionEditor;

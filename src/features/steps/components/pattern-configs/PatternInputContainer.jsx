@@ -1,10 +1,10 @@
 // src/features/steps/components/pattern-configs/PatternInputContainer.jsx
 import React from 'react';
 import NumberKeyboard from './NumberKeyboard';
-import IncrementInputNumberMode from './IncrementInputNumberMode';
 import EnhancedKeyboard from './EnhancedKeyboard';
 import CustomActionManager from './CustomActionManager';
 import { KEYBOARD_LAYERS } from '../../../../shared/utils/patternKeyboardUtils';
+import CustomActionEditor from './CustomActionEditor';
 
 /**
  * PatternInputContainer - Pattern-aware input orchestrator
@@ -57,26 +57,6 @@ const PatternInputContainer = ({
 
     // Render number input mode
     if (keyboardMode === 'numbers') {
-        // Advanced patterns with stitch validation get IncrementInput  
-        {/*}    if (isAdvancedPattern() && pendingRepeatText && pendingRepeatText !== '') {
-            return (
-                <IncrementInputNumberMode
-                    // Core props
-                    pendingText={pendingRepeatText}
-                    currentNumber={currentNumber}
-                    tempRowText={tempRowText}
-
-                    // Advanced pattern features
-                    getStitchCalculation={getStitchCalculation}
-                    currentProject={currentProject}
-                    patternType={patternType}
-
-                    // Direct state access for advanced patterns
-                    directStateAccess={directStateAccess}
-                />
-            );
-        } else { */}
-        // Basic patterns get NumberKeyboard
         return (
             <NumberKeyboard
                 onAction={onAction}
@@ -87,21 +67,25 @@ const PatternInputContainer = ({
         //  }
     }
 
+    // Add after numbers mode check:
+    if (keyboardMode === 'button_edit') {
+        return (
+            <CustomActionEditor
+                patternType={patternType}
+                currentProject={currentProject}
+                updateProject={updateProject}
+                editingAction={directStateAccess?.editingAction}
+                editingIndex={directStateAccess?.editingIndex}
+                onSave={() => directStateAccess?.setKeyboardMode('pattern')}
+                onCancel={() => directStateAccess?.setKeyboardMode('pattern')}
+            />
+        );
+    }
+
+
     // Render pattern keyboards for normal mode
     return (
         <>
-            {/* Custom Action Manager for tertiary layer */}
-            {currentKeyboardLayer === KEYBOARD_LAYERS.TERTIARY && (
-                <CustomActionManager
-                    patternType={patternType}
-                    onActionSelect={onAction}
-                    currentProject={currentProject}
-                    updateProject={updateProject}
-                    newActionStitches={newActionStitches}
-                    setNewActionStitches={setNewActionStitches}
-                />
-            )}
-
             {/* Enhanced Keyboard - main pattern input */}
             <EnhancedKeyboard
                 patternType={patternType}
@@ -120,7 +104,7 @@ const PatternInputContainer = ({
                 tempRowText={tempRowText}
                 isLocked={isLocked}
                 getStitchCalculation={getStitchCalculation}
-
+                directStateAccess={directStateAccess}
 
             />
         </>

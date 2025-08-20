@@ -179,30 +179,33 @@ const RowEntryModal = ({
                 {keyboardComponent}
             </div>
 
-            {/* Action buttons */}
-            <div className="flex gap-3">
-                <button
-                    onClick={onClose}
-                    className="flex-1 py-3 px-4 border-2 border-wool-200 rounded-lg text-wool-600 hover:bg-wool-50 transition-colors"
-                >
-                    Cancel
-                </button>
-                <button
-                    onClick={onSave}
-                    disabled={!getRowCompletionStatus().isComplete}
-                    className={`flex-1 py-3 px-4 rounded-lg transition-colors ${getRowCompletionStatus().isComplete
-                        ? 'bg-sage-500 text-white hover:bg-sage-600'
-                        : 'bg-wool-300 text-wool-500 cursor-not-allowed'
-                        }`}
-                    title={
-                        !getRowCompletionStatus().isComplete && getRowCompletionStatus().reason === 'incomplete'
-                            ? `Row incomplete - ${getRowCompletionStatus().remaining || 0} stitches remaining`
-                            : undefined
-                    }
-                >
-                    {editingRowIndex === null ? 'Add Row' : 'Save Row'}
-                </button>
-            </div>
+            {/* Action buttons - hide when in numbers or button_edit mode */}
+            {keyboardComponent?.props?.keyboardMode !== 'numbers' &&
+                keyboardComponent?.props?.keyboardMode !== 'button_edit' && (
+                    <div className="flex gap-3">
+                        <button
+                            onClick={onClose}
+                            className="flex-1 py-3 px-4 border-2 border-wool-200 rounded-lg text-wool-600 hover:bg-wool-50 transition-colors"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={onSave}
+                            disabled={!getRowCompletionStatus().isComplete}
+                            className={`flex-1 py-3 px-4 rounded-lg transition-colors ${getRowCompletionStatus().isComplete
+                                ? 'bg-sage-500 text-white hover:bg-sage-600'
+                                : 'bg-wool-300 text-wool-500 cursor-not-allowed'
+                                }`}
+                            title={
+                                !getRowCompletionStatus().isComplete && getRowCompletionStatus().reason === 'incomplete'
+                                    ? `Row incomplete - ${getRowCompletionStatus().remaining || 0} stitches remaining`
+                                    : undefined
+                            }
+                        >
+                            {editingRowIndex === null ? 'Add Row' : 'Save Row'}
+                        </button>
+                    </div>
+                )}
         </StandardModal>
     );
 };

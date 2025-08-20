@@ -5,27 +5,17 @@ import { getPatternQuickActions, getPatternPlaceholderText } from '../../../../s
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import {
     KEYBOARD_LAYERS,
-    getKeyboardLayout,
     getNextKeyboardLayer,
-    getLayerDisplayName,
     supportsManualNumbers,
-    getButtonStyles,
     supportsMultipleLayers,
-    getCustomActions
 } from '../../../../shared/utils/patternKeyboardUtils';
 import {
     handleQuickActionEnhanced,
-    shouldMultiplyAction,
-    isBracketAction,
     isNumberAction,
     handleSmartDelete
 } from '../../../../shared/utils/patternInputUtils';
 import { calculateRowStitchesLive, calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
-import NumberKeyboard from './NumberKeyboard';
-import CustomActionManager from './CustomActionManager';
-import HoldableButton from './HoldableButton';
-import EnhancedKeyboard from './EnhancedKeyboard';
 import PatternInputContainer from './PatternInputContainer';
 
 const RowByRowPatternConfig = ({
@@ -68,6 +58,10 @@ const RowByRowPatternConfig = ({
 
 
     });
+
+    // Add these to your existing useState declarations:
+    const [editingAction, setEditingAction] = useState(null);
+    const [editingIndex, setEditingIndex] = useState(null);
 
     // Initialize entryMode if not set (backwards compatibility)
     const currentEntryMode = wizardData.stitchPattern.entryMode || 'description';
@@ -929,7 +923,11 @@ const RowByRowPatternConfig = ({
                             setPendingRepeatText,
                             setTempRowText,
                             setKeyboardMode,
-                            setCurrentNumber
+                            setCurrentNumber,
+                            setEditingAction,
+                            setEditingIndex,
+                            editingAction,
+                            editingIndex
                         }}
                     />
                 }
