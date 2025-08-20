@@ -251,18 +251,6 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, han
 
                 {/* Actions */}
                 <div className="flex items-center gap-2 relative z-10">
-                    {/* Main Action button */}
-                    {/*}          <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            onAction(component, mainAction.action);
-                        }}
-                        className="btn-tertiary btn-sm flex items-center gap-1"
-                    >
-                        {mainAction.icon}
-                    </button>.   */}
-
-                    {/* Menu Button - WORKING PATTERN FROM COMPACTCOMPONENTCARD */}
                     <div className="relative ml-2 flex-shrink-0">
                         <button
                             ref={buttonRef}
@@ -324,10 +312,12 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, han
                                             onAction(component, 'delete');
                                             closeMenu();
                                         }}
-                                        className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
-                                        disabled={component.steps?.some(s => s.completed)}
+                                        className={`w-full px-4 py-3 text-left hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100 ${component.steps?.some(s => s.completed)
+                                                ? 'text-red-700 font-semibold' // Warning styling
+                                                : 'text-red-600'               // Normal styling
+                                            }`}
                                     >
-                                        🗑️ Delete
+                                        🗑️ {component.steps?.some(s => s.completed) ? 'Delete (Has Progress)' : 'Delete'}
                                     </button>
                                 </div>
                             </>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
-import { StandardModal } from '../../../../../shared/components/StandardModal';
+import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
  * ⚖️ GaugeSection - Technical Precision Showcase with Perfect Wizard Integration

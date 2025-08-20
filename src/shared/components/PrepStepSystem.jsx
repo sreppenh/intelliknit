@@ -1,6 +1,6 @@
 // src/shared/components/PrepStepSystem.jsx
 import React, { useState, useEffect } from 'react';
-import { StandardModal } from './StandardModal';
+import { StandardModal } from './modals/StandardModal';
 
 // Updated PrepStepModal using StandardModal
 export const PrepStepModal = ({

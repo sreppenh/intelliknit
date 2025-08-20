@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { StandardModal } from '../../../../../shared/components/StandardModal';
+import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
  * 🪡 NeedlesSection - Live Preview Multi-Add Pattern

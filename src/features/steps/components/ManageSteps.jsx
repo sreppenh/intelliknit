@@ -21,7 +21,7 @@ import {
   isAdvancedRowByRowPattern,
   getComponentStatusWithDisplay
 } from '../../../shared/utils/stepDisplayUtils';
-import DeleteStepModal from '../../../shared/components/DeleteStepModal';
+import DeleteStepModal from '../../../shared/components/modals/DeleteStepModal';
 import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
 
 /**

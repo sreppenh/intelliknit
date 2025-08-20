@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import PageHeader from '../../../shared/components/PageHeader';
 

@@ -11,7 +11,7 @@ import DurationShapingChoice from './wizard-steps/DurationShapingChoice';
 import { useWizardState } from './wizard-navigation/WizardState';
 import ShapingWizard from './ShapingWizard';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
-import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import DurationWizard from './DurationWizard';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import WizardContextBar from './wizard-layout/WizardContextBar';

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
 import { requiresAdvancedPatternEdit } from '../../../../shared/utils/stepDisplayUtils';
 import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
-import { StandardModal } from '../../../../shared/components/StandardModal';
+import { StandardModal } from '../../../../shared/components/modals/StandardModal';
 
 const EditPatternModal = ({
     isOpen,

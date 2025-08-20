@@ -6,7 +6,7 @@ import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
 import PhaseConfigSummary from './shaping-wizard/PhaseConfigSummary';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
-import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
 // import SequentialPhasesWizard from './shaping-wizard/xx  SequentialPhasesWizard';

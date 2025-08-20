@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import PageHeader from '../../../shared/components/PageHeader';
-import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
-import ComponentCompletionModal from '../../../shared/components/ComponentCompletionModal';
+import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
+import ComponentCompletionModal from '../../../shared/components/modals/ComponentCompletionModal';
 import { PrepStepModal, usePrepNoteManager, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';

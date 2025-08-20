@@ -3,7 +3,7 @@ import { useProjectsContext } from '../hooks/useProjectsContext';
 import { PrepStepModal, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IncrementInput from '../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
-import UnsavedChangesModal from '../../../shared/components/UnsavedChangesModal';
+import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import SegmentedControl from '../../../shared/components/SegmentedControl';
 
 

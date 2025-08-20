@@ -1,6 +1,6 @@
 // src/features/projects/components/CompleteProjectModal.jsx
 import React from 'react';
-import { CelebrationModal } from '../../../shared/components/StandardModal';
+import { CelebrationModal } from '../../../shared/components/modals/StandardModal';
 
 const CompleteProjectModal = ({ projectName, onClose, onComplete }) => {
   return (

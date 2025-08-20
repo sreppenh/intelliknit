@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import SegmentedControl from '../../../../../shared/components/SegmentedControl';
-import { StandardModal } from '../../../../../shared/components/StandardModal';
+import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
  * UnitsConstructionSection - Extracted Units & Construction fields

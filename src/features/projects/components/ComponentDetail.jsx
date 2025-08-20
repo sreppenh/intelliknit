@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
-import DeleteComponentModal from '../../../shared/components/DeleteComponentModal'; // ADD THIS IMPORT
+import DeleteComponentModal from '../../../shared/components/modals/DeleteComponentModal'; // ADD THIS IMPORT
 
 const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnitting, onGoToLanding }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -59,7 +59,8 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
     alert(`${component.name} has been copied!`);
   };
 
-  const canDelete = component.steps.every(step => !step.completed);
+  // ✅ UPDATED: Always allow deletion, but track progress for UI
+  const hasCompletedSteps = component.steps.some(step => step.completed);
 
   return (
     <div className="min-h-screen bg-yarn-50">
@@ -172,21 +173,23 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                   Copy Component
                 </button>
 
-                {/* Delete Component */}
-                {canDelete && (
-                  <button
-                    onClick={() => setShowDeleteModal(true)}
-                    className="w-full btn-danger flex items-center justify-center gap-2"
-                  >
-                    <span>🗑️</span>
-                    Delete Component
-                  </button>
-                )}
+                {/* ✅ UPDATED: Always show delete button with smart styling */}
+                <button
+                  onClick={() => setShowDeleteModal(true)}
+                  className={`w-full flex items-center justify-center gap-2 ${hasCompletedSteps
+                      ? 'btn-danger font-semibold' // Emphasize warning state
+                      : 'btn-danger'              // Normal styling
+                    }`}
+                >
+                  <span>🗑️</span>
+                  {hasCompletedSteps ? 'Delete (Has Progress)' : 'Delete Component'}
+                </button>
 
-                {!canDelete && (
-                  <div className="bg-yarn-50 border border-yarn-200 rounded-lg p-3">
-                    <p className="text-xs text-yarn-700">
-                      <strong>💡 Note:</strong> Cannot delete components with completed steps
+                {/* ✅ UPDATED: Show helpful context instead of blocking */}
+                {hasCompletedSteps && (
+                  <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                    <p className="text-xs text-red-700">
+                      <strong>⚠️ Note:</strong> This component has completed steps. You'll see a confirmation warning.
                     </p>
                   </div>
                 )}

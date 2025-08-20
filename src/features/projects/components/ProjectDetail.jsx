@@ -25,9 +25,9 @@ import TabBar from '../../../shared/components/TabBar';
 
 // Modal components
 import CompleteProjectModal from './CompleteProjectModal';
-import DeleteComponentModal from '../../../shared/components/DeleteComponentModal';
-import RenameComponentModal from '../../../shared/components/RenameComponentModal';
-import CopyComponentModal from '../../../shared/components/CopyComponentModal';
+import DeleteComponentModal from '../../../shared/components/modals/DeleteComponentModal';
+import RenameComponentModal from '../../../shared/components/modals/RenameComponentModal';
+import CopyComponentModal from '../../../shared/components/modals/CopyComponentModal';
 
 import { getStepPatternName, getComponentState } from '../../../shared/utils/stepDisplayUtils';
 

@@ -41,6 +41,8 @@ export const getHumanReadableDescription = (step, componentName = null) => {
  */
 export const getContextualPatternNotes = (step) => {
     const pattern = getStepPatternName(step);
+    // ✅ TEMPORARY: Debug what pattern we're getting
+    console.log('Debug: pattern detected =', pattern);
 
     // For Pick Up & Knit, show the instruction (how to pick up)
     if (pattern === 'Pick Up & Knit') {
@@ -82,10 +84,110 @@ export const getContextualPatternNotes = (step) => {
         return null;
     }
 
-    // Check for custom pattern text
+    // ✅ NEW: Handle advanced patterns (Lace, Cable, Custom)
+    if (['Lace Pattern', 'Cable Pattern', 'Custom pattern'].includes(pattern)) {
+        return getAdvancedPatternNotes(step);
+    }
+
+    // Check for custom pattern text (for other pattern types)
     const customText = step.wizardConfig?.stitchPattern?.customText;
     if (customText && customText.trim() !== '') {
         return customText.trim();
+    }
+
+    return null;
+};
+
+/**
+ * ✅ SMART: Format knitting instruction using explicit pattern matching
+ * Avoids fragile regex by targeting known abbreviation patterns
+ */
+const formatReadableInstruction = (instruction) => {
+    if (!instruction || typeof instruction !== 'string') return instruction;
+
+    let formatted = instruction.trim();
+
+    // ===== EXACT MATCHES (full instruction replacements) =====
+    const exactReplacements = {
+        'K to end': 'Knit to end',
+        'P to end': 'Purl to end',
+        'K/P as set': 'Knit the knits, Purl the purls'
+    };
+
+    if (exactReplacements[formatted]) {
+        return exactReplacements[formatted];
+    }
+
+    // ===== SPECIFIC PATTERN REPLACEMENTS =====
+    // Handle bracket patterns: [K, P] → [K1, P1]
+    formatted = formatted.replace(/\[K,\s*P\]/g, '[K1, P1]');
+    formatted = formatted.replace(/\[P,\s*K\]/g, '[P1, K1]');
+
+    // Handle common comma patterns: "K, P to end" → "K1, Purl to end"
+    formatted = formatted.replace(/^K,\s*P to end$/g, 'K1, Purl to end');
+    formatted = formatted.replace(/^P,\s*K to end$/g, 'P1, Knit to end');
+
+    // Handle simple standalone cases at start/end: "K" or "P" → "K1" or "P1"
+    if (formatted === 'K') return 'K1';
+    if (formatted === 'P') return 'P1';
+
+    // ===== PARTIAL PHRASE REPLACEMENTS =====
+    // These should be safe since they're not single letters
+    formatted = formatted.replace(/P to end/g, 'Purl to end');
+    formatted = formatted.replace(/K to end/g, 'Knit to end');
+
+    // ===== ABBREVIATION EXPANSIONS =====
+    formatted = formatted.replace(/\bYO\b/g, 'yarn over');
+    formatted = formatted.replace(/\bK2tog\b/g, 'knit 2 together');
+    formatted = formatted.replace(/\bSSK\b/g, 'slip slip knit');
+
+    // Handle cable abbreviations  
+    formatted = formatted.replace(/\bC(\d+)F\b/g, (match, num) => `${num}-stitch front cable`);
+    formatted = formatted.replace(/\bC(\d+)B\b/g, (match, num) => `${num}-stitch back cable`);
+
+    return formatted;
+};
+
+/**
+ * ✅ NEW: Get contextual notes for advanced patterns (Lace, Cable, Custom)
+ * Handles both Description mode and Row by Row mode
+ */
+const getAdvancedPatternNotes = (step) => {
+    // Check both wizardConfig and advancedWizardConfig
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+
+    if (!stitchPattern) return null;
+
+    const entryMode = stitchPattern.entryMode;
+
+    // Row by Row mode - show the actual row instructions
+    if (entryMode === 'row_by_row') {
+        const rowInstructions = stitchPattern.rowInstructions;
+
+        if (rowInstructions && rowInstructions.length > 0) {
+            // Show up to 8 rows, full text with wrapping
+            const rowsToShow = rowInstructions.slice(0, 8);
+            const formattedRows = rowsToShow.map((row, index) => {
+                // ✅ ENHANCED: Format for readability
+                const readableInstruction = formatReadableInstruction(row);
+                return `Row ${index + 1}: ${readableInstruction}`;
+            }).join('\n');
+
+            // If there are more than 8 rows, add indicator
+            if (rowInstructions.length > 8) {
+                return `${formattedRows}\n... (${rowInstructions.length - 8} more rows)`;
+            }
+
+            return formattedRows;
+        }
+    }
+
+    // Description mode - show the custom text description (no formatting needed)
+    else {
+        const customText = stitchPattern.customText;
+        if (customText && customText.trim() !== '') {
+            return customText.trim();
+        }
     }
 
     return null;
@@ -130,6 +232,7 @@ export const getContextualConfigNotes = (step) => {
             notes.push(`${duration.value} repeats of ${rowsInPattern}-row pattern`);
         }
     }
+
 
     // Future: Add other config-specific notes here
     // - Gauge adjustments
@@ -234,12 +337,25 @@ const getNonShapingStepDescription = (step) => {
     const pattern = getStepPatternName(step);
     const duration = getStepDurationDisplay(step);
 
-    // Build the description: [pattern][duration config]
-    if (duration) {
-        return `Work ${duration} in ${pattern}`;
+    // ✅ NEW: For advanced patterns, include row count in pattern name
+    let enhancedPattern = pattern;
+    if (['Lace Pattern', 'Cable Pattern', 'Custom pattern'].includes(pattern)) {
+        const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+        const rowsInPattern = stitchPattern?.rowsInPattern;
+
+        if (rowsInPattern && parseInt(rowsInPattern) > 1) {
+            const construction = step.construction || 'flat';
+            const rowTerm = construction === 'round' ? 'round' : 'row';
+            enhancedPattern = `${rowsInPattern}-${rowTerm} ${pattern}`;
+        }
     }
 
-    return `Work in ${pattern}`;
+    // Build the description: [pattern][duration config]
+    if (duration) {
+        return `Work ${duration} in ${enhancedPattern}`;
+    }
+
+    return `Work in ${enhancedPattern}`;
 };
 
 // ===== ORIGINAL SPECIFIC DESCRIPTION GENERATORS =====

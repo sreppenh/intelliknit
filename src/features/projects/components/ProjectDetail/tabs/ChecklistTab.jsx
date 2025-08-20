@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
 import useProjectUpdate from '../../../../../shared/hooks/useProjectUpdate';
-import { StandardModal } from '../../../../../shared/components/StandardModal';
+import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
  * 📋 ChecklistTab - The Ultimate Finishing Task Management System

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { getSmartProjectStatus } from '../../../../../shared/utils/projectStatus';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
-import { StandardModal } from '../../../../../shared/components/StandardModal';
+import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
  * ProjectStatusSection - The Ultimate Project Lifecycle Control Center

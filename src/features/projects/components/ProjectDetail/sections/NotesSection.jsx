@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { InputModal } from '../../../../../shared/components/StandardModal';
+import { InputModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
  * 💭 NotesSection - Text Management Showcase with StandardModal

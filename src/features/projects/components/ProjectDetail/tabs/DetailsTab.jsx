@@ -9,7 +9,7 @@ import YarnsSection from '../sections/YarnsSection';
 import GaugeSection from '../sections/GaugeSection';
 import NotesSection from '../sections/NotesSection';
 import TimelineSection from '../sections/TimeLineSection';
-import { StandardModal } from '../../../../../shared/components/StandardModal';
+import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 const DetailsTab = ({ project, onProjectUpdate }) => {
     const [isNotesExpanded, setIsNotesExpanded] = useState(false);
