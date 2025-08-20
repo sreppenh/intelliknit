@@ -99,8 +99,8 @@ export const getContextualPatternNotes = (step) => {
 };
 
 /**
- * ✅ SMART: Format knitting instruction using explicit pattern matching
- * Avoids fragile regex by targeting known abbreviation patterns
+ * ✅ ENHANCED: Format knitting instruction with comprehensive cable support
+ * Converts button-optimized text to human-readable instructions
  */
 const formatReadableInstruction = (instruction) => {
     if (!instruction || typeof instruction !== 'string') return instruction;
@@ -111,7 +111,7 @@ const formatReadableInstruction = (instruction) => {
     const exactReplacements = {
         'K to end': 'Knit to end',
         'P to end': 'Purl to end',
-        'K/P as set': 'Knit the knits, Purl the purls'
+        'K/P as Set': 'Knit the knits, Purl the purls'
     };
 
     if (exactReplacements[formatted]) {
@@ -137,21 +137,59 @@ const formatReadableInstruction = (instruction) => {
     formatted = formatted.replace(/K to end/g, 'Knit to end');
 
     // ===== ABBREVIATION EXPANSIONS =====
+
+    // Basic lace abbreviations
     formatted = formatted.replace(/\bYO\b/g, 'yarn over');
     formatted = formatted.replace(/\bK2tog\b/g, 'knit 2 together');
     formatted = formatted.replace(/\bSSK\b/g, 'slip slip knit');
 
-    // ===== CABLE & TWIST ABBREVIATION EXPANSIONS =====
-    formatted = formatted.replace(/\bT2F\b/g, '2-stitch front twist');
-    formatted = formatted.replace(/\bT2B\b/g, '2-stitch back twist');
-    formatted = formatted.replace(/\bT4F\b/g, '4-stitch front twist');
-    formatted = formatted.replace(/\bT4B\b/g, '4-stitch back twist');
+    // ✅ ENHANCED: Comprehensive cable abbreviations
+
+    // Standard cable crosses (original format)
+    formatted = formatted.replace(/\bC(\d+)F\b/g, (match, num) => `${num}-stitch front cable`);
+    formatted = formatted.replace(/\bC(\d+)B\b/g, (match, num) => `${num}-stitch back cable`);
+
+    // Left cross cables (LC format)
+    formatted = formatted.replace(/\b(\d+)\/(\d+)\s+LC\b/g, (match, over, under) => {
+        if (over === under) {
+            return `${over}-over-${under} left cross`;
+        } else {
+            return `${over}-over-${under} left cross`;
+        }
+    });
+
+    // Right cross cables (RC format)
+    formatted = formatted.replace(/\b(\d+)\/(\d+)\s+RC\b/g, (match, over, under) => {
+        if (over === under) {
+            return `${over}-over-${under} right cross`;
+        } else {
+            return `${over}-over-${under} right cross`;
+        }
+    });
+
+    // Left purl cross (LPC format)
+    formatted = formatted.replace(/\b(\d+)\/(\d+)\s+LPC\b/g, (match, over, under) => {
+        return `${over}-over-${under} left purl cross`;
+    });
+
+    // Right purl cross (RPC format)
+    formatted = formatted.replace(/\b(\d+)\/(\d+)\s+RPC\b/g, (match, over, under) => {
+        return `${over}-over-${under} right purl cross`;
+    });
+
+    // Twist abbreviations
+    formatted = formatted.replace(/\bT(\d+)F\b/g, (match, num) => `${num}-stitch front twist`);
+    formatted = formatted.replace(/\bT(\d+)B\b/g, (match, num) => `${num}-stitch back twist`);
     formatted = formatted.replace(/\bRT\b/g, 'right twist');
     formatted = formatted.replace(/\bLT\b/g, 'left twist');
 
-    // Handle cable abbreviations  
-    formatted = formatted.replace(/\bC(\d+)F\b/g, (match, num) => `${num}-stitch front cable`);
-    formatted = formatted.replace(/\bC(\d+)B\b/g, (match, num) => `${num}-stitch back cable`);
+    // ===== SINGLE LETTER REPLACEMENTS (LAST) =====
+    // Handle K and P that should become K1 and P1
+    // Only match single K or P in stitch pattern contexts (brackets, commas, etc.)
+    // Avoid matching K or P that are part of actual words like "Knit" or "Purl"
+    formatted = formatted.replace(/(?<![A-Za-z])(K|P)(?=\s*[,\s\]]|$)(?![a-z])/g, (match, letter) => {
+        return letter === 'K' ? 'K1' : 'P1';
+    });
 
     return formatted;
 };
