@@ -45,7 +45,27 @@ const STITCH_VALUES = {
     'T4F': { consumes: 4, produces: 4 },
     'T4B': { consumes: 4, produces: 4 },
     'RT': { consumes: 2, produces: 2 },
-    'LT': { consumes: 2, produces: 2 }
+    'LT': { consumes: 2, produces: 2 },
+    '1/1 LC': { consumes: 2, produces: 2 },
+    '2/2 LC': { consumes: 4, produces: 4 },
+    '3/3 LC': { consumes: 6, produces: 6 },
+    '1/1 RC': { consumes: 2, produces: 2 },
+    '2/2 RC': { consumes: 4, produces: 4 },
+    '3/3 RC': { consumes: 6, produces: 6 },
+    '4/4 LC': { consumes: 8, produces: 8 },
+    '4/4 RC': { consumes: 8, produces: 8 },
+    '1/2 LC': { consumes: 3, produces: 3 },
+    '2/1 LPC': { consumes: 3, produces: 3 },
+    '2/1 RPC': { consumes: 3, produces: 3 },
+    '1/2 RC': { consumes: 3, produces: 3 },
+    '6/6 LC': { consumes: 12, produces: 12 },
+    '6/6 RC': { consumes: 12, produces: 12 },
+    '8/8 LC': { consumes: 16, produces: 16 },
+    '8/8 RC': { consumes: 16, produces: 16 },
+    '1/1 LPC': { consumes: 2, produces: 2 },
+    '2/2 LPC': { consumes: 4, produces: 4 },
+    '2/2 RPC': { consumes: 4, produces: 4 },
+    '1/1 RPC': { consumes: 2, produces: 2 },
 };
 
 const hasWorkToEndAction = (instruction) => {

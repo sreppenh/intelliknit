@@ -72,14 +72,14 @@ const getCableKeyboardLayout = (layer, context = {}) => {
         case KEYBOARD_LAYERS.SECONDARY:
             return {
                 fullRow: ['3/3 LC', '3/3 RC', '4/4 LC', '4/4 RC'],
-                input: ['1/2 LC', '2/1 LPC', 'Slip 1', 'Wyif', '2/1 RPC', '1/2 RC'],
+                input: ['1/2 LC', '2/1 LPC', 'Sl1', '2/1 RPC', '1/2 RC'],
                 actions: ['⌫', '[', '(', '⇧']
             };
 
         case KEYBOARD_LAYERS.TERTIARY:
             return {
                 fullRow: ['6/6 LC', '6/6 RC', '8/8 LC', '8/8 RC'],
-                input: ['1/1 LPC', '2/2 LPC', 'K', 'P', '2/2 RPC', '1/1 RPC'],
+                input: ['1/1 LPC', '2/2 LPC', '2/2 RPC', '1/1 RPC'],
                 actions: ['⌫', '[', '(', '⇧'],
                 custom: ['Custom', 'Custom', 'Custom', 'Custom']
             };
