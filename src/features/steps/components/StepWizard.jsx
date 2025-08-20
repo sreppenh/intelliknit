@@ -16,6 +16,7 @@ import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
 import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
 import { isAdvancedRowByRowPattern } from '../../../shared/utils/stepDisplayUtils';
+import { StandardModal } from '../../../shared/components/modals/StandardModal';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack }) => {
@@ -25,6 +26,31 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const wizardState = useWizardState(wizard, onBack);
   const [showShapingWizard, setShowShapingWizard] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
+  const [showStepConfirmModal, setShowStepConfirmModal] = useState(false);
+  const [pendingShapingInfo, setPendingShapingInfo] = useState(null);
+
+  // Add this function inside StepWizard component:
+  const handleConfirmIntrinsicStep = () => {
+    if (pendingShapingInfo) {
+      console.log('✅ CONFIRMED: Auto-populating shaping data and creating step');
+
+      // Auto-populate shaping data
+      wizard.updateWizardData('hasShaping', true);
+      wizard.updateWizardData('shapingConfig', createIntrinsicShapingConfig(pendingShapingInfo));
+
+      // Create the step immediately using existing logic
+      handleAddStep();
+
+      // Clean up
+      setShowStepConfirmModal(false);
+      setPendingShapingInfo(null);
+    }
+  };
+
+  const handleCancelIntrinsicStep = () => {
+    setShowStepConfirmModal(false);
+    setPendingShapingInfo(null);
+  };
 
   // Component validation
   if (!wizard.component) {
@@ -315,14 +341,11 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                     console.log('🎯 INTRINSIC SHAPING DETECTION:', shapingInfo);
 
                     if (shapingInfo?.hasIntrinsicShaping) {
-                      console.log('✅ DETECTED: Auto-populating shaping data and skipping to preview');
+                      console.log('✅ DETECTED: Showing confirmation modal');
 
-                      // Auto-populate shaping data
-                      wizard.updateWizardData('hasShaping', true);
-                      wizard.updateWizardData('shapingConfig', createIntrinsicShapingConfig(shapingInfo));
-
-                      // Skip to preview (step 5)
-                      wizard.navigation.goToStep(5);
+                      // Store shaping info and show confirmation modal
+                      setPendingShapingInfo(shapingInfo);
+                      setShowStepConfirmModal(true);
                     } else {
                       console.log('❌ NO INTRINSIC SHAPING: Following normal flow');
 
@@ -330,6 +353,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                       wizard.navigation.nextStep();
                     }
                   }}
+
                   disabled={!navigation.canProceed()}
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
@@ -403,6 +427,75 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
         onConfirmExit={handleConfirmExit}
         onCancel={handleCancelExit}
       />
+
+      {/* Step Confirmation Modal for Intrinsic Shaping */}
+      <StandardModal
+        isOpen={showStepConfirmModal}
+        onClose={handleCancelIntrinsicStep}
+        onConfirm={handleConfirmIntrinsicStep}
+        category="simple"
+        colorScheme="sage"
+        title="Ready to Add Step"
+        subtitle="Shaped pattern detected"
+        icon="🧶"
+        primaryButtonText="Add Step"
+        secondaryButtonText="Cancel"
+      >
+        {pendingShapingInfo && (
+          <div className="space-y-4">
+            <div className="bg-sage-50 border border-sage-200 rounded-lg p-4">
+              <h4 className="font-medium text-sage-800 mb-2">Pattern Summary</h4>
+              <div className="space-y-2 text-sm text-sage-700">
+                <div className="flex justify-between">
+                  <span>Pattern Type:</span>
+                  <span className="font-medium">{wizard.wizardData.stitchPattern.pattern}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Entry Mode:</span>
+                  <span className="font-medium">Row-by-Row</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Total Rows:</span>
+                  <span className="font-medium">{wizard.wizardData.stitchPattern.rowInstructions?.length || 0}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-lavender-50 border border-lavender-200 rounded-lg p-4">
+              <h4 className="font-medium text-lavender-800 mb-2">Shaping Detected</h4>
+              <div className="space-y-2 text-sm text-lavender-700">
+                <div className="flex justify-between">
+                  <span>Starting Stitches:</span>
+                  <span className="font-medium">{pendingShapingInfo.startingStitches}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Ending Stitches:</span>
+                  <span className="font-medium">{pendingShapingInfo.endingStitches}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Net Change:</span>
+                  <span className={`font-medium ${pendingShapingInfo.netChange > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                    {pendingShapingInfo.netChange > 0 ? '+' : ''}{pendingShapingInfo.netChange} stitches
+                  </span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Shaping Type:</span>
+                  <span className="font-medium capitalize">{pendingShapingInfo.action}</span>
+                </div>
+              </div>
+            </div>
+
+            <p className="text-sm text-wool-600">
+              Your pattern includes built-in shaping. This step will be added with the shaping automatically configured.
+            </p>
+          </div>
+        )}
+      </StandardModal>
+
+
+
+
+
     </WizardLayout>
   );
 };
