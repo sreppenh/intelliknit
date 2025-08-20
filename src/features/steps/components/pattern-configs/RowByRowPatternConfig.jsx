@@ -17,7 +17,7 @@ import {
 } from '../../../../shared/utils/patternInputUtils';
 import { calculateRowStitchesLive, calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
-import PatternInputContainer from './PatternInputContainer';
+import PatternInputContainer from './Keyboards/PatternInputContainer';
 
 const RowByRowPatternConfig = ({
     wizardData,
@@ -894,8 +894,7 @@ const RowByRowPatternConfig = ({
                         isCreatingRepeat={isCreatingRepeat}
                         bracketState={bracketState}
                         tempRowText={tempRowText}
-                        isLocked={tempRowText === 'K to end' || tempRowText === 'P to end' ||
-                            tempRowText === 'K all' || tempRowText === 'P all'}
+                        isLocked={isWorkToEndAction(tempRowText)}
 
                         // Data
                         rowInstructions={rowInstructions}
