@@ -1,166 +1,231 @@
 // src/features/steps/components/pattern-configs/StripesConfig.jsx
-import React, { useState } from 'react';
-import IncrementInput from '../../../../shared/components/IncrementInput';
+import React, { useState, useEffect } from 'react';
+import { Plus, X, GripVertical } from 'lucide-react';
 
 const StripesConfig = ({ wizardData, updateWizardData, construction }) => {
-    const [activeTab, setActiveTab] = useState('simple'); // 'simple' or 'complex'
+    // Initialize stripe sequence from existing data or create default
+    const [stripeSequence, setStripeSequence] = useState(() => {
+        if (wizardData.stitchPattern?.stripeSequence) {
+            return wizardData.stitchPattern.stripeSequence;
+        }
+        // Default: simple 2-color stripe
+        return [
+            { rows: 4, color: "A" },
+            { rows: 2, color: "B" }
+        ];
+    });
 
-    const handlePatternChange = (value) => {
-        updateWizardData('stitchPattern', { customText: value });
+    // Auto-calculate total rows whenever sequence changes
+    useEffect(() => {
+        const totalRows = stripeSequence.reduce((sum, stripe) => sum + stripe.rows, 0);
+
+        updateWizardData('stitchPattern', {
+            ...wizardData.stitchPattern,
+            stripeSequence: stripeSequence,
+            rowsInPattern: totalRows.toString()
+        });
+    }, [stripeSequence, updateWizardData, wizardData.stitchPattern]);
+
+    const addStripe = () => {
+        // Get next available color letter
+        const usedColors = stripeSequence.map(s => s.color);
+        const nextColor = String.fromCharCode(65 + usedColors.length); // A, B, C, D...
+
+        setStripeSequence([...stripeSequence, { rows: 2, color: nextColor }]);
     };
 
-    const handleRowsChange = (value) => {
-        updateWizardData('stitchPattern', { rowsInPattern: value });
+    const removeStripe = (index) => {
+        if (stripeSequence.length > 1) { // Keep at least one stripe
+            setStripeSequence(stripeSequence.filter((_, i) => i !== index));
+        }
     };
 
-    // Helper to add common stripe patterns
-    const insertPattern = (pattern) => {
-        const current = wizardData.stitchPattern.customText || '';
-        const newText = current ? `${current}\n${pattern}` : pattern;
-        handlePatternChange(newText);
+    const updateStripe = (index, field, value) => {
+        const newSequence = [...stripeSequence];
+        if (field === 'rows') {
+            newSequence[index].rows = parseInt(value) || 1;
+        } else {
+            newSequence[index].color = value.toUpperCase();
+        }
+        setStripeSequence(newSequence);
     };
+
+    const moveStripe = (index, direction) => {
+        const newSequence = [...stripeSequence];
+        const newIndex = direction === 'up' ? index - 1 : index + 1;
+
+        if (newIndex >= 0 && newIndex < newSequence.length) {
+            [newSequence[index], newSequence[newIndex]] = [newSequence[newIndex], newSequence[index]];
+            setStripeSequence(newSequence);
+        }
+    };
+
+    const insertQuickPattern = (pattern) => {
+        let newSequence;
+
+        switch (pattern) {
+            case 'thin':
+                newSequence = [
+                    { rows: 1, color: "A" },
+                    { rows: 1, color: "B" }
+                ];
+                break;
+            case 'classic':
+                newSequence = [
+                    { rows: 4, color: "A" },
+                    { rows: 4, color: "B" }
+                ];
+                break;
+            case 'wide':
+                newSequence = [
+                    { rows: 8, color: "A" },
+                    { rows: 2, color: "B" }
+                ];
+                break;
+            case 'graduated':
+                newSequence = [
+                    { rows: 1, color: "A" },
+                    { rows: 2, color: "B" },
+                    { rows: 3, color: "C" },
+                    { rows: 4, color: "D" },
+                    { rows: 3, color: "C" },
+                    { rows: 2, color: "B" }
+                ];
+                break;
+            default:
+                return;
+        }
+
+        setStripeSequence(newSequence);
+    };
+
+    const totalRows = stripeSequence.reduce((sum, stripe) => sum + stripe.rows, 0);
+    const rowUnit = construction === 'round' ? 'rounds' : 'rows';
 
     return (
         <div className="space-y-6">
-            {/* Pattern Type Toggle */}
+            {/* Quick Pattern Templates */}
             <div>
-                <label className="form-label">Stripe Pattern Type</label>
-                <div className="flex gap-2 p-1 bg-wool-100 rounded-lg">
-                    <button
-                        onClick={() => setActiveTab('simple')}
-                        className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'simple'
-                            ? 'bg-white text-sage-700 shadow-sm'
-                            : 'text-wool-600 hover:text-wool-800'
-                            }`}
-                    >
-                        🌈 Simple Stripes
-                    </button>
-                    <button
-                        onClick={() => setActiveTab('complex')}
-                        className={`flex-1 py-2 px-3 text-sm font-medium rounded-md transition-colors ${activeTab === 'complex'
-                            ? 'bg-white text-sage-700 shadow-sm'
-                            : 'text-wool-600 hover:text-wool-800'
-                            }`}
-                    >
-                        🎨 Complex Pattern
-                    </button>
+                <label className="form-label">Quick Patterns</label>
+                <div className="grid grid-cols-2 gap-2">
+                    {[
+                        { key: 'thin', label: '🌈 Thin Stripes', desc: '1-1 alternating' },
+                        { key: 'classic', label: '📏 Classic Stripes', desc: '4-4 even' },
+                        { key: 'wide', label: '🎯 Wide Accent', desc: '8-2 uneven' },
+                        { key: 'graduated', label: '📊 Graduated', desc: '1-2-3-4-3-2' }
+                    ].map(pattern => (
+                        <button
+                            key={pattern.key}
+                            onClick={() => insertQuickPattern(pattern.key)}
+                            className="text-left p-3 rounded-xl border-2 border-wool-200 hover:border-sage-300 hover:bg-sage-50 transition-colors bg-white"
+                        >
+                            <div className="text-sm font-medium mb-1">{pattern.label}</div>
+                            <div className="text-xs text-wool-600">{pattern.desc}</div>
+                        </button>
+                    ))}
                 </div>
             </div>
 
-            {/* Simple Stripes Tab */}
-            {activeTab === 'simple' && (
-                <div className="space-y-4">
-                    {/* Quick Pattern Buttons */}
-                    <div>
-                        <label className="form-label">Quick Patterns</label>
-                        <div className="grid grid-cols-1 gap-2">
-                            {[
-                                '2 rows Color A, 2 rows Color B',
-                                '4 rows Color A, 2 rows Color B',
-                                '6 rows Color A, 1 row Color B',
-                                '1 row Color A, 1 row Color B (thin stripes)'
-                            ].map((pattern, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => insertPattern(pattern)}
-                                    className="text-left p-3 rounded-lg border-2 border-wool-200 hover:border-sage-300 hover:bg-sage-50 transition-colors text-sm"
-                                >
-                                    {pattern}
-                                </button>
-                            ))}
-                        </div>
-                    </div>
+            {/* Stripe Sequence Editor */}
+            <div>
+                <div className="flex items-center justify-between mb-3">
+                    <label className="form-label">Stripe Sequence</label>
+                    <button
+                        onClick={addStripe}
+                        className="btn-secondary btn-sm flex items-center gap-1"
+                    >
+                        <Plus size={14} />
+                        Add Stripe
+                    </button>
+                </div>
 
-                    {/* Construction-Specific Tips */}
-                    {construction === 'round' && (
-                        <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
-                            <h4 className="text-sm font-semibold text-yarn-700 mb-2">🔄 Circular Knitting Tips</h4>
-                            <div className="text-sm text-yarn-600 space-y-1">
-                                <div>• Consider jogless stripes for smooth color transitions</div>
-                                <div>• Slip the first stitch of each color change round</div>
-                                <div>• Plan color changes at an inconspicuous spot</div>
+                <div className="space-y-2">
+                    {stripeSequence.map((stripe, index) => (
+                        <div key={index} className="flex items-center gap-3 p-3 bg-white rounded-xl border-2 border-wool-200">
+                            {/* Drag Handle */}
+                            <div className="text-wool-400 cursor-move">
+                                <GripVertical size={16} />
+                            </div>
+
+                            {/* Row Count Input */}
+                            <div className="flex items-center gap-2">
+                                <input
+                                    type="number"
+                                    value={stripe.rows}
+                                    onChange={(e) => updateStripe(index, 'rows', e.target.value)}
+                                    min="1"
+                                    className="w-16 text-center border-2 border-wool-200 rounded-lg px-2 py-1 text-sm"
+                                />
+                                <span className="text-sm text-wool-600">{rowUnit}</span>
+                            </div>
+
+                            {/* Color Input */}
+                            <div className="flex items-center gap-2 flex-1">
+                                <span className="text-sm text-wool-600">of Color</span>
+                                <input
+                                    type="text"
+                                    value={stripe.color}
+                                    onChange={(e) => updateStripe(index, 'color', e.target.value)}
+                                    maxLength="1"
+                                    className="w-12 text-center border-2 border-wool-200 rounded-lg px-2 py-1 text-sm font-mono font-bold"
+                                    placeholder="A"
+                                />
+                            </div>
+
+                            {/* Move and Delete Buttons */}
+                            <div className="flex items-center gap-1">
+                                {index > 0 && (
+                                    <button
+                                        onClick={() => moveStripe(index, 'up')}
+                                        className="p-1 text-wool-400 hover:text-wool-600 transition-colors"
+                                        title="Move up"
+                                    >
+                                        ↑
+                                    </button>
+                                )}
+                                {index < stripeSequence.length - 1 && (
+                                    <button
+                                        onClick={() => moveStripe(index, 'down')}
+                                        className="p-1 text-wool-400 hover:text-wool-600 transition-colors"
+                                        title="Move down"
+                                    >
+                                        ↓
+                                    </button>
+                                )}
+                                {stripeSequence.length > 1 && (
+                                    <button
+                                        onClick={() => removeStripe(index)}
+                                        className="p-1 text-red-400 hover:text-red-600 transition-colors"
+                                        title="Remove stripe"
+                                    >
+                                        <X size={14} />
+                                    </button>
+                                )}
                             </div>
                         </div>
-                    )}
+                    ))}
                 </div>
-            )}
+            </div>
 
-            {/* Complex Pattern Tab */}
-            {activeTab === 'complex' && (
-                <div className="space-y-4">
-                    {/* Advanced Pattern Ideas */}
-                    <div>
-                        <label className="form-label">Pattern Ideas</label>
-                        <div className="grid grid-cols-1 gap-2">
-                            {[
-                                'Graduated stripes: 1,2,3,4,3,2,1 rows',
-                                'Random width: 1-5 rows each color',
-                                'Ombré fade: gradually changing colors',
-                                'Color sequence: A,B,C,A,B,C repeat'
-                            ].map((idea, index) => (
-                                <button
-                                    key={index}
-                                    onClick={() => insertPattern(idea)}
-                                    className="text-left p-3 rounded-lg border-2 border-wool-200 hover:border-lavender-300 hover:bg-lavender-50 transition-colors text-sm"
-                                >
-                                    💡 {idea}
-                                </button>
-                            ))}
-                        </div>
+            {/* Pattern Summary */}
+            <div className="bg-sage-50 rounded-xl p-4 border-2 border-sage-200">
+                <h4 className="text-sm font-semibold text-sage-700 mb-2">📋 Pattern Summary</h4>
+                <div className="text-sm text-sage-600 space-y-1">
+                    <div><strong>Total {rowUnit} per repeat:</strong> {totalRows}</div>
+                    <div><strong>Sequence:</strong> {stripeSequence.map(s => `${s.rows} ${s.color}`).join(' → ')}</div>
+                    <div className="text-xs mt-2 opacity-75">
+                        This sequence will repeat based on the duration you set in the next step
                     </div>
                 </div>
-            )}
-
-            {/* Pattern Description */}
-            <div>
-                <label className="form-label">
-                    Stripe Pattern Description
-                    <span className="text-red-500 ml-1">*</span>
-                </label>
-                <textarea
-                    value={wizardData.stitchPattern.customText || ''}
-                    onChange={(e) => handlePatternChange(e.target.value)}
-                    placeholder="Describe your stripe pattern...
-
-Examples:
-• 4 rows Navy, 2 rows Cream, repeat
-• Alternating 1 row Red, 1 row White
-• 6 rows Main Color, 2 rows Contrast, 2 rows Accent"
-                    rows={6}
-                    className="input-field-lg resize-none font-mono text-sm"
-                />
-                <label className="form-help">
-                    Describe the color sequence, row counts, and any special techniques
-                </label>
             </div>
 
-            {/* Rows in Pattern */}
-            <div>
-                <label className="form-label">
-                    Rows in Complete Pattern
-                    <span className="text-red-500 ml-1">*</span>
-                </label>
-                <IncrementInput
-                    value={wizardData.stitchPattern.rowsInPattern}
-                    onChange={handleRowsChange}
-                    label="rows in complete stripe pattern"
-                    unit={construction === 'round' ? 'rounds' : 'rows'}
-                    construction={construction}
-                    min={1}
-                />
-                <label className="form-help">
-                    Total {construction === 'round' ? 'rounds' : 'rows'} for one complete stripe sequence
-                </label>
-            </div>
-
-            {/* Color Management Tips */}
-            <div className="bg-sage-100 border-2 border-sage-200 rounded-xl p-4">
-                <h4 className="text-sm font-semibold text-sage-700 mb-2">🎨 Color Management Tips</h4>
+            {/* Color Mapping Info */}
+            <div className="help-block">
+                <h4 className="text-sm font-semibold text-sage-700 mb-2">🎨 About Color Letters</h4>
                 <div className="text-sm text-sage-600 space-y-1">
-                    <div>• Cut yarn leaving 6" tails for weaving in</div>
-                    <div>• Consider carrying unused colors up the side</div>
-                    <div>• Plan color changes for the least visible area</div>
-                    <div>• Keep consistent tension across color changes</div>
+                    <div>• Use letters A, B, C, etc. to represent different colors</div>
+                    <div>• You can map these to actual yarn colors in your project details</div>
+                    <div>• Example: A = "Wolf Gray", B = "Burnt Cinnamon"</div>
                 </div>
             </div>
         </div>
