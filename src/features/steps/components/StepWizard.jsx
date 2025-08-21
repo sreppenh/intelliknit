@@ -150,6 +150,9 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
    * Put this function inside StepWizard.jsx as well
    */
   const createIntrinsicShapingConfig = (shapingInfo) => {
+    // Get the actual row count from rowInstructions
+    const rowCount = wizard.wizardData.stitchPattern?.rowInstructions?.length || 1;
+
     return {
       type: 'intrinsic_pattern',
       config: {
@@ -160,7 +163,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
           instruction: "Shaping integrated into pattern rows",
           startingStitches: shapingInfo.startingStitches,
           endingStitches: shapingInfo.endingStitches,
-          totalRows: shapingInfo.totalRows || 1,
+          totalRows: rowCount,
           netStitchChange: shapingInfo.netChange
         }
       }

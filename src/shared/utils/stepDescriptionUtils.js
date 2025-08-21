@@ -365,6 +365,14 @@ const getShapingStepDescription = (step) => {
         if (phases > 0) {
             shapingText = ` with ${phases} shaping phases`;
         }
+
+    } else if (shapingConfig?.type === 'intrinsic_pattern') {
+        const action = shapingConfig.config?.action;
+        const amount = Math.abs(shapingConfig.config?.calculation?.netStitchChange || 0);
+        if (action && amount > 0) {
+            const actionText = action === 'increase' ? 'increases' : 'decreases';
+            shapingText = ` with ${amount} ${actionText} integrated into pattern`;
+        }
     }
 
     // Build the description: [pattern][shaping config]
@@ -620,9 +628,18 @@ const getTechnicalDataDisplay = (step) => {
  * ✅ NEW: Enhanced duration display that calculates total rows for repeats
  */
 const getEnhancedDurationDisplay = (step) => {
+    // ✅ NEW: Handle intrinsic shaping first - get totalRows from shaping config
+    const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+    if (shapingConfig?.type === 'intrinsic_pattern' && shapingConfig.config?.calculation?.totalRows) {
+        const construction = step.construction || 'flat';
+        const rowTerm = construction === 'round' ? 'rounds' : 'rows';
+        return `${shapingConfig.config.calculation.totalRows} ${rowTerm}`;
+    }
+
     const duration = step.wizardConfig?.duration;
     const construction = step.construction || 'flat';
     const rowTerm = construction === 'round' ? 'rounds' : 'rows';
+
 
     if (!duration?.type) {
         // Fallback to totalRows if available
