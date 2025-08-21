@@ -4,37 +4,46 @@ import { useStepCalculation } from './useStepCalculation';
 import { useStepGeneration } from './useStepGeneration';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
+// ✅ EXTRACTED: Helper function to create step objects consistently
+const createStepObject = (instruction, effect, wizard, options = {}) => {
+  const {
+    forceManualType = false,
+    includeNavigation = true,
+    useCurrentStitches = false
+  } = options;
+
+  return {
+    description: instruction,
+    type: forceManualType ? 'manual' : (effect.success ? 'calculated' : 'manual'),
+    patternType: effect.detection?.type,
+    parsedData: effect.detection?.parsedData,
+    construction: wizard.construction,
+    calculatedRows: effect.calculation?.rows || effect.rows || [],
+    startingStitches: effect.isCastOn ? 0 : (useCurrentStitches ? wizard.currentStitches : wizard.currentStitches),
+    endingStitches: effect.endingStitches,
+    totalRows: effect.totalRows,
+    expectedStitches: effect.endingStitches,
+    wizardConfig: wizard.wizardData,
+    advancedWizardConfig: {
+      hasShaping: wizard.wizardData.hasShaping,
+      shapingConfig: wizard.wizardData.shapingConfig
+    },
+    ...(includeNavigation && wizard.navigationStack && { navigationStack: wizard.navigationStack }),
+    ...(includeNavigation && wizard.navigationCache && { navigationCache: wizard.navigationCache })
+  };
+};
 
 export const useStepActions = (wizard, onBack) => {
   const { dispatch } = useProjectsContext();
   const { calculateEffect } = useStepCalculation();
   const { generateInstruction } = useStepGeneration(wizard.construction);
 
-
   const handleAddStepWithCustomData = (customWizard) => {
     const instruction = generateInstruction(customWizard.wizardData);
     const effect = calculateEffect(customWizard.wizardData, customWizard.currentStitches, customWizard.construction);
 
-    // ✅ ADD: Log the complete step object for debugging
-    const stepObject = {
-      description: instruction,
-      type: effect.success ? 'calculated' : 'manual',
-      patternType: effect.detection?.type,
-      parsedData: effect.detection?.parsedData,
-      construction: customWizard.construction,
-      calculatedRows: effect.calculation?.rows || effect.rows || [],
-      startingStitches: effect.isCastOn ? 0 : customWizard.currentStitches,
-      endingStitches: effect.endingStitches,
-      totalRows: effect.totalRows,
-      expectedStitches: effect.endingStitches,
-      wizardConfig: customWizard.wizardData,
-      advancedWizardConfig: {
-        hasShaping: customWizard.wizardData.hasShaping,
-        shapingConfig: customWizard.wizardData.shapingConfig
-      },
-      navigationStack: customWizard.navigationStack,
-      navigationCache: customWizard.navigationCache
-    };
+    // ✅ USE HELPER: Create step object for debugging
+    const stepObject = createStepObject(instruction, effect, customWizard);
 
     if (customWizard.isEditing) {
       // Update existing step
@@ -43,43 +52,19 @@ export const useStepActions = (wizard, onBack) => {
         payload: {
           componentIndex: customWizard.componentIndex,
           stepIndex: customWizard.editingStepIndex,
-          step: {
-            description: instruction,
-            type: effect.success ? 'calculated' : 'manual',
-            patternType: effect.detection?.type,
-            parsedData: effect.detection?.parsedData,
-            construction: customWizard.construction,
-            calculatedRows: effect.calculation?.rows || effect.rows || [],
-            startingStitches: effect.isCastOn ? 0 : customWizard.currentStitches,
-            endingStitches: effect.endingStitches,
-            totalRows: effect.totalRows,
-            wizardConfig: customWizard.wizardData,
-            advancedWizardConfig: {
-              hasShaping: customWizard.wizardData.hasShaping,
-              shapingConfig: customWizard.wizardData.shapingConfig
-            }
-          }
+          step: createStepObject(instruction, effect, customWizard, { includeNavigation: false })
         }
       });
     } else {
+      // Add new step
       dispatch({
         type: 'ADD_STEP',
         payload: {
           componentIndex: customWizard.componentIndex,
-          step: {
-            description: instruction,
-            expectedStitches: effect.endingStitches,
-            type: 'manual',
-            construction: customWizard.construction,
-            startingStitches: customWizard.currentStitches,
-            endingStitches: effect.endingStitches,
-            totalRows: effect.totalRows,
-            wizardConfig: customWizard.wizardData,
-            advancedWizardConfig: {
-              hasShaping: customWizard.wizardData.hasShaping,
-              shapingConfig: customWizard.wizardData.shapingConfig
-            }
-          }
+          step: createStepObject(instruction, effect, customWizard, {
+            forceManualType: true,
+            includeNavigation: false
+          })
         }
       });
     }
@@ -92,34 +77,12 @@ export const useStepActions = (wizard, onBack) => {
     onBack();
   };
 
-
   const handleAddStep = () => {
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
 
-
-
-
-    // ✅ ADD: Log the complete step object for debugging
-    const stepObject = {
-      description: instruction,
-      type: effect.success ? 'calculated' : 'manual',
-      patternType: effect.detection?.type,
-      parsedData: effect.detection?.parsedData,
-      construction: wizard.construction,
-      calculatedRows: effect.calculation?.rows || effect.rows || [],
-      startingStitches: effect.isCastOn ? 0 : wizard.currentStitches,
-      endingStitches: effect.endingStitches,
-      totalRows: effect.totalRows,
-      expectedStitches: effect.endingStitches,
-      wizardConfig: wizard.wizardData,
-      advancedWizardConfig: {
-        hasShaping: wizard.wizardData.hasShaping,
-        shapingConfig: wizard.wizardData.shapingConfig
-      },
-      navigationStack: wizard.navigationStack,
-      navigationCache: wizard.navigationCache
-    };
+    // ✅ USE HELPER: Create step object for debugging
+    const stepObject = createStepObject(instruction, effect, wizard);
 
     if (wizard.isEditing) {
       // Update existing step
@@ -128,25 +91,7 @@ export const useStepActions = (wizard, onBack) => {
         payload: {
           componentIndex: wizard.componentIndex,
           stepIndex: wizard.editingStepIndex,
-          step: {
-            description: instruction,
-            type: effect.success ? 'calculated' : 'manual',
-            patternType: effect.detection?.type,
-            parsedData: effect.detection?.parsedData,
-            construction: wizard.construction,
-            calculatedRows: effect.calculation?.rows || effect.rows || [],
-            startingStitches: effect.isCastOn ? 0 : wizard.currentStitches,
-            endingStitches: effect.endingStitches,
-            totalRows: effect.totalRows,
-            expectedStitches: effect.endingStitches,
-            wizardConfig: wizard.wizardData,
-            advancedWizardConfig: {
-              hasShaping: wizard.wizardData.hasShaping,
-              shapingConfig: wizard.wizardData.shapingConfig
-            }, navigationStack: wizard.navigationStack,     // ✅ ADD THIS
-            navigationCache: wizard.navigationCache      // ✅ ADD THIS
-
-          }
+          step: createStepObject(instruction, effect, wizard)
         }
       });
     } else {
@@ -156,24 +101,7 @@ export const useStepActions = (wizard, onBack) => {
           type: 'ADD_CALCULATED_STEP',
           payload: {
             componentIndex: wizard.componentIndex,
-            step: {
-              description: instruction,
-              type: 'calculated',
-              patternType: effect.detection?.type,
-              parsedData: effect.detection?.parsedData,
-              construction: wizard.construction,
-              calculatedRows: effect.calculation?.rows || effect.rows || [],
-              startingStitches: effect.isCastOn ? 0 : wizard.currentStitches,
-              endingStitches: effect.endingStitches,
-              totalRows: effect.totalRows,
-              wizardConfig: wizard.wizardData,
-              advancedWizardConfig: {
-                hasShaping: wizard.wizardData.hasShaping,
-                shapingConfig: wizard.wizardData.shapingConfig
-              },
-              navigationStack: wizard.navigationStack,     // ✅ ADD THIS
-              navigationCache: wizard.navigationCache      // ✅ ADD THIS
-            }
+            step: createStepObject(instruction, effect, wizard, { forceManualType: false })
           }
         });
       } else {
@@ -181,22 +109,7 @@ export const useStepActions = (wizard, onBack) => {
           type: 'ADD_STEP',
           payload: {
             componentIndex: wizard.componentIndex,
-            step: {
-              description: instruction,
-              expectedStitches: effect.endingStitches,
-              type: 'manual',
-              construction: wizard.construction,
-              startingStitches: wizard.currentStitches,
-              endingStitches: effect.endingStitches,
-              totalRows: effect.totalRows,
-              wizardConfig: wizard.wizardData,
-              advancedWizardConfig: {
-                hasShaping: wizard.wizardData.hasShaping,
-                shapingConfig: wizard.wizardData.shapingConfig
-              },
-              navigationStack: wizard.navigationStack,     // ✅ ADD THIS
-              navigationCache: wizard.navigationCache      // ✅ ADD THIS
-            }
+            step: createStepObject(instruction, effect, wizard, { useCurrentStitches: true })
           }
         });
       }
@@ -216,22 +129,7 @@ export const useStepActions = (wizard, onBack) => {
         type: 'ADD_CALCULATED_STEP',
         payload: {
           componentIndex: wizard.componentIndex,
-          step: {
-            description: instruction,
-            type: 'calculated',
-            patternType: effect.detection?.type,
-            parsedData: effect.detection?.parsedData,
-            construction: wizard.construction,
-            calculatedRows: effect.calculation?.rows || effect.rows || [],
-            startingStitches: effect.isCastOn ? 0 : wizard.currentStitches,
-            endingStitches: effect.endingStitches,
-            totalRows: effect.totalRows,
-            wizardConfig: wizard.wizardData,
-            advancedWizardConfig: {
-              hasShaping: wizard.wizardData.hasShaping,
-              shapingConfig: wizard.wizardData.shapingConfig
-            }
-          }
+          step: createStepObject(instruction, effect, wizard, { includeNavigation: false })
         }
       });
     } else {
@@ -239,20 +137,10 @@ export const useStepActions = (wizard, onBack) => {
         type: 'ADD_STEP',
         payload: {
           componentIndex: wizard.componentIndex,
-          step: {
-            description: instruction,
-            expectedStitches: effect.endingStitches,
-            type: 'manual',
-            construction: wizard.construction,
-            startingStitches: wizard.currentStitches,
-            endingStitches: effect.endingStitches,
-            totalRows: effect.totalRows,
-            wizardConfig: wizard.wizardData,
-            advancedWizardConfig: {
-              hasShaping: wizard.wizardData.hasShaping,
-              shapingConfig: wizard.wizardData.shapingConfig
-            }
-          }
+          step: createStepObject(instruction, effect, wizard, {
+            useCurrentStitches: true,
+            includeNavigation: false
+          })
         }
       });
     }
@@ -263,11 +151,11 @@ export const useStepActions = (wizard, onBack) => {
     // Reset wizard for next step but stay in wizard
     wizard.navigation.goToStep(1);
     wizard.resetWizardData();
-
   };
 
   return {
     handleAddStep,
-    handleAddStepAndContinue, handleAddStepWithCustomData
+    handleAddStepAndContinue,
+    handleAddStepWithCustomData
   };
 };
