@@ -4,6 +4,7 @@ import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import PageHeader from '../../../shared/components/PageHeader';
 import SegmentedControl from '../../../shared/components/SegmentedControl';
+import IncrementInput from '../../../shared/components/IncrementInput';
 
 const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitToProjectList, onGoToLanding }) => {
   const { dispatch } = useProjectsContext();
@@ -11,14 +12,16 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
     name: '',
     size: '',
     defaultUnits: 'inches',
-    construction: 'flat'
+    construction: 'flat',
+    colorCount: 2  // ✅ NEW: Default to 2 colors
   });
 
   // Check if user has entered any data (unsaved data)
   const hasUnsavedData = () => {
     return projectData.name.trim().length > 0 ||
       projectData.size.trim().length > 0 ||
-      projectData.defaultUnits !== 'inches';
+      projectData.defaultUnits !== 'inches' ||
+      projectData.colorCount !== 2;
   };
 
   const handleXButtonClick = () => {
@@ -59,6 +62,8 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
       size: projectData.size.trim() || 'Not specified',
       defaultUnits: projectData.defaultUnits,
       construction: projectData.construction,
+      colorCount: projectData.colorCount,  // ✅ NEW: Include color count
+      colorMapping: {},  // ✅ NEW: Empty color mapping to start
       projectType: selectedProjectType,
       // Set empty defaults for additional details (can be added later)
       source: '',
@@ -126,6 +131,25 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
                 placeholder="e.g., Medium, 36 inches"
                 className="input-field"
               />
+            </div>
+
+            {/* ✅ NEW: How many colors section */}
+            <div>
+              <label className="form-label">
+                How many colors will this project use?
+              </label>
+              <IncrementInput
+                value={projectData.colorCount}
+                onChange={(value) => handleInputChange('colorCount', value)}
+                label="colors in this project"
+                unit="colors"
+                min={1}
+                max={26}
+                size="default"
+              />
+              <div className="form-help">
+                You can change this later in project details
+              </div>
             </div>
 
             {/* Segmented Units Control */}
