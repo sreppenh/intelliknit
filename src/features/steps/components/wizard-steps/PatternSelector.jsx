@@ -304,7 +304,7 @@ export const PatternSelector = ({
                   <button
                     key={key}
                     onClick={() => handleAdvancedCategorySelect(key)}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${
+                    className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${
                       // Show selected state if this category is currently selected AND has a pattern
                       selectedCategory === key && selectedPattern
                         ? 'card-selectable-selected'
@@ -315,16 +315,13 @@ export const PatternSelector = ({
                           'card-selectable'
                       }`}
                   >
-                    <div className="text-2xl mb-2">{category.icon}</div>
-                    <div className="text-sm font-medium mb-1">{category.name}</div>
-                    <div className="text-xs opacity-60">
-                      {category.patterns.length === 1 ? 'Ready to use' : 'Choose pattern'}
-                    </div>
+                    <div className="text-xl mb-1">{category.icon}</div>
+                    <div className="text-xs font-medium">{category.name}</div>
                   </button>
                 ))}
               </div>
 
-              {/* ✅ FIX: Inline Pattern Selection with min-height to prevent jumping */}
+              {/* ✅ STANDARDIZED: Pattern Selection matching Basic Patterns style */}
               <div style={{ minHeight: expandedAdvancedCategory && PATTERN_CATEGORIES[expandedAdvancedCategory]?.patterns.length > 1 ? '120px' : '0px' }}>
                 {expandedAdvancedCategory && PATTERN_CATEGORIES[expandedAdvancedCategory]?.patterns.length > 1 && (
                   <div className="border-t border-wool-200 pt-4">
