@@ -63,6 +63,8 @@ const RowByRowPatternConfig = ({
 
     const [isTransitioning, setIsTransitioning] = useState(false);
 
+    const [lastClickTime, setLastClickTime] = useState(0);
+
     // Add these to your existing useState declarations:
     const [editingAction, setEditingAction] = useState(null);
     const [editingIndex, setEditingIndex] = useState(null);
@@ -107,7 +109,9 @@ const RowByRowPatternConfig = ({
     useEffect(() => {
         const handleEscKey = (event) => {
             if (event.key === 'Escape' && showRowEntryModal) {
-                setshowRowEntryModal(false);
+                setTimeout(() => {
+                    setshowRowEntryModal(false);
+                }, 100);
             }
         };
 
@@ -200,7 +204,9 @@ const RowByRowPatternConfig = ({
             rowsInPattern: updatedInstructions.length.toString()
         });
 
-        setshowRowEntryModal(false);
+        setTimeout(() => {
+            setshowRowEntryModal(false);
+        }, 100);
         setTempRowText('');
         setEditingRowIndex(null);
         setLastQuickAction(null);
@@ -332,6 +338,21 @@ const RowByRowPatternConfig = ({
     const handleQuickAction = (action) => {
         console.log('🎯 Action received:', action, 'at', Date.now());
 
+        // Enhanced debouncing to prevent ghost clicks across different UI elements
+        const now = Date.now();
+        const timeSinceLastClick = now - lastClickTime;
+
+        // Block ALL actions if they happen too quickly (prevents cross-element ghost clicks)
+        if (timeSinceLastClick < 400) { // Increased to 400ms
+            console.log('🚫 DEBOUNCED: Preventing ghost click, action:', action, 'Gap:', timeSinceLastClick);
+            return;
+        }
+        setLastClickTime(now);
+
+        // Rest of your existing function...
+
+
+
         // ✅ BLOCK actions during keyboard transitions
         if (isTransitioning) {
             console.log('🚫 Blocked action during transition:', action);
@@ -442,7 +463,11 @@ const RowByRowPatternConfig = ({
         };
 
         // Row locking check
-        const isRowLocked = isWorkToEndAction(tempRowText);
+        const isRowLocked = /k\s+to\s+end/gi.test(tempRowText) ||
+            /p\s+to\s+end/gi.test(tempRowText) ||
+            /k\/p\s+as\s+set/gi.test(tempRowText);
+
+        console.log('🔒 Lock check:', { tempRowText, isRowLocked }); // ADD THIS LINE
 
         if (isRowLocked && !['⌫', 'Enter', '✓'].includes(action)) {
             return; // Block all input except delete and enter
@@ -916,7 +941,11 @@ const RowByRowPatternConfig = ({
             {/* ===== ROW ENTRY MODAL ===== */}
             <RowEntryModal
                 isOpen={showRowEntryModal}
-                onClose={() => setshowRowEntryModal(false)}
+                onClose={() => {
+                    setTimeout(() => {
+                        setshowRowEntryModal(false);
+                    }, 100);
+                }}
                 editingRowIndex={editingRowIndex}
                 rowInstructions={rowInstructions}
                 tempRowText={tempRowText}
@@ -941,7 +970,9 @@ const RowByRowPatternConfig = ({
                         isCreatingRepeat={isCreatingRepeat}
                         bracketState={bracketState}
                         tempRowText={tempRowText}
-                        isLocked={isWorkToEndAction(tempRowText)}
+                        isLocked={/k\s+to\s+end/gi.test(tempRowText) ||
+                            /p\s+to\s+end/gi.test(tempRowText) ||
+                            /k\/p\s+as\s+set/gi.test(tempRowText)}
 
                         // Data
                         rowInstructions={rowInstructions}

@@ -362,39 +362,40 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
     const getStitchValue = (operation) => {
         if (customActionsData[operation]) {
             const customAction = customActionsData[operation];
-
-            // Handle new format: { consumes: 5, produces: 1 }
             if (typeof customAction === 'object' && customAction.consumes !== undefined && customAction.produces !== undefined) {
                 return { consumes: customAction.consumes, produces: customAction.produces };
             }
-
-            // Handle legacy format: just a number (assumes 1:1 consumption)
             if (typeof customAction === 'number') {
                 return { consumes: 1, produces: customAction };
             }
-
-            // Fallback for malformed custom actions
             return { consumes: 1, produces: 1 };
         }
         return STITCH_VALUES[operation] || { consumes: 1, produces: 1 };
     };
 
+    // ✅ NEW: Handle × multiplier operations like "1/1 LC × 3", "K2tog × 10"
+    const multiplierMatch = partialInstruction.match(/^(.+?)\s*×\s*(\d+)$/);
+    if (multiplierMatch) {
+        const [, stitchOp, repeatNum] = multiplierMatch;
+        const count = parseInt(repeatNum);
+        const stitchValue = getStitchValue(stitchOp.trim());
+        return { consumed: stitchValue.consumes * count, produced: stitchValue.produces * count };
+    }
+
     // Handle numbered operations like "K5", "P3"
-    const numberedMatch = partialInstruction.match(/^([A-Za-z]+)(\d+)$/);
+    const numberedMatch = partialInstruction.match(/^([A-Za-z\/]+)(\d+)$/);
     if (numberedMatch) {
         const [, stitchOp, repeatNum] = numberedMatch;
         const count = parseInt(repeatNum);
         const stitchValue = getStitchValue(stitchOp);
-        consumed += stitchValue.consumes * count;
-        produced += stitchValue.produces * count;
-    } else {
-        // Single operation like "K", "YO", "SSK"
-        const stitchValue = getStitchValue(partialInstruction);
-        consumed += stitchValue.consumes;
-        produced += stitchValue.produces;
+        return { consumed: stitchValue.consumes * count, produced: stitchValue.produces * count };
     }
 
-    return { consumed, produced };
+    // Single operation like "1/1 LC", "K2tog", "K", etc.
+    else {
+        const stitchValue = getStitchValue(partialInstruction.trim());
+        return { consumed: stitchValue.consumes, produced: stitchValue.produces };
+    }
 };
 
 /**
