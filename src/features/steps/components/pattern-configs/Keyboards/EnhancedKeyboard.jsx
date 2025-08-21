@@ -141,10 +141,12 @@ const EnhancedKeyboard = ({
             {/* Full-Row Actions (Dark Sage - top row) */}
             <div className={`grid gap-3 ${keyboardLayout.fullRow.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
                 {keyboardLayout.fullRow.map((action, index) => {
-                    // NEW: Check if this is a "to end" action that should be disabled
+                    // Enhanced disabling logic for full-row actions
                     const isToEndAction = isWorkToEndAction(action);
-                    const shouldDisableToEnd = isToEndAction && hasOpenStructure();
-                    const isDisabled = shouldDisableToEnd;
+                    const isRowLocked = isWorkToEndAction(tempRowText);
+                    const hasOpenStructures = hasOpenStructure();
+
+                    const isDisabled = isLocked || isRowLocked || (isToEndAction && hasOpenStructures);
 
                     return (
                         <HoldableButton
@@ -217,8 +219,8 @@ const EnhancedKeyboard = ({
                         isDisabledByBracketRules = true;
                     }
 
-                    const isDisabled = (isLocked && displayAction !== '⌫') || isDisabledByBracketRules;
-
+                    const isRowLocked = isWorkToEndAction(tempRowText);
+                    const isDisabled = (isLocked || isRowLocked) && !['⌫', 'Enter', '✓'].includes(displayAction) || isDisabledByBracketRules;
                     return (
                         <HoldableButton
                             key={`action-${action}-${index}`}
