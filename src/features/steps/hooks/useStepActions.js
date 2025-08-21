@@ -36,9 +36,6 @@ export const useStepActions = (wizard, onBack) => {
       navigationCache: customWizard.navigationCache
     };
 
-    console.log('🎯 COMPLETE STEP OBJECT (with custom data):');
-    console.log(JSON.stringify(stepObject, null, 2));
-
     if (customWizard.isEditing) {
       // Update existing step
       dispatch({
@@ -123,9 +120,6 @@ export const useStepActions = (wizard, onBack) => {
       navigationStack: wizard.navigationStack,
       navigationCache: wizard.navigationCache
     };
-
-    console.log('🎯 COMPLETE STEP OBJECT:');
-    console.log(JSON.stringify(stepObject, null, 2));
 
     if (wizard.isEditing) {
       // Update existing step

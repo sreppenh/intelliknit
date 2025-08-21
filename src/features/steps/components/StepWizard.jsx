@@ -328,7 +328,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
 
                 <button
                   onClick={() => {
-                    console.log('🎯 CONTINUE BUTTON: Checking for intrinsic shaping...');
 
                     // Get custom actions for calculation
                     const customActionsData = {};
@@ -350,16 +349,12 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                       customActionsData
                     );
 
-                    console.log('🎯 INTRINSIC SHAPING DETECTION:', shapingInfo);
-
                     if (shapingInfo?.hasIntrinsicShaping) {
-                      console.log('✅ DETECTED: Showing confirmation modal');
 
                       // Store shaping info and show confirmation modal
                       setPendingShapingInfo(shapingInfo);
                       setShowStepConfirmModal(true);
                     } else {
-                      console.log('❌ NO INTRINSIC SHAPING: Following normal flow');
 
                       // Normal flow to shaping selection
                       wizard.navigation.nextStep();

@@ -477,9 +477,6 @@ export const handleSpecialSymbol = (setTempRowText) => {
         // TODO: Store custom action with consumes/produces values in project data
         setTempRowText(prev => appendWithCommaLogic(prev, customAction.trim()));
 
-        // Log the values for debugging (remove in production)
-        console.log(`Custom action "${customAction}": consumes ${consumes}, produces ${produces}`);
-
         return true;
     }
     return false;
@@ -543,7 +540,6 @@ export const handleQuickActionEnhanced = (
     rowInstructions,
     onCompleteAction = null
 ) => {
-    console.log('🔍 ENHANCED:', action, 'lastAction:', lastQuickAction, 'count:', consecutiveCount, 'text:', tempRowText);
 
     const resetAutoIncrement = () => {
         setLastQuickAction(null);

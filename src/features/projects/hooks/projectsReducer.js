@@ -547,7 +547,7 @@ export const projectsReducer = (state, action) => {
       };
 
     case 'UPDATE_STEP_AFTER_NOTE':
-      console.log('🔧 UPDATE_STEP_AFTER_NOTE Debug:', action.payload); // ← Add this
+
       if (!state.currentProject) {
         IntelliKnitLogger.error('UPDATE_STEP_AFTER_NOTE: No current project');
         return state;

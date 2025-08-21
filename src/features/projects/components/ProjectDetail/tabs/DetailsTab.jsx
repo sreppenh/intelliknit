@@ -37,11 +37,6 @@ const DetailsTab = ({ project, onProjectUpdate }) => {
     const { updateField, addArrayItem, removeArrayItem } = useProjectUpdate(onProjectUpdate);
 
     const handleInputChange = (field, value) => {
-        console.log('🔧 DetailsTab handleInputChange called:', { field, value });
-        // ADD THIS DEBUG LINE:
-        if (field === 'needles') {
-            console.log('🔧 NEEDLES DETAIL DEBUG:', JSON.stringify(value, null, 2));
-        }
         updateField(project, field, value);
     };
 

@@ -111,7 +111,7 @@ const RowByRowPatternConfig = ({
             if (event.key === 'Escape' && showRowEntryModal) {
                 setTimeout(() => {
                     setshowRowEntryModal(false);
-                }, 100);
+                }, 200);
             }
         };
 
@@ -175,7 +175,6 @@ const RowByRowPatternConfig = ({
     const handleSaveRow = () => {
 
         if (!tempRowText.trim()) {
-            console.log('🔧 No text, returning early');
             return;
         }
 
@@ -206,7 +205,7 @@ const RowByRowPatternConfig = ({
 
         setTimeout(() => {
             setshowRowEntryModal(false);
-        }, 100);
+        }, 200);
         setTempRowText('');
         setEditingRowIndex(null);
         setLastQuickAction(null);
@@ -336,7 +335,6 @@ const RowByRowPatternConfig = ({
     // This properly handles both K2tog and simple actions
 
     const handleQuickAction = (action) => {
-        console.log('🎯 Action received:', action, 'at', Date.now());
 
         // Enhanced debouncing to prevent ghost clicks across different UI elements
         const now = Date.now();
@@ -344,7 +342,6 @@ const RowByRowPatternConfig = ({
 
         // Block ALL actions if they happen too quickly (prevents cross-element ghost clicks)
         if (timeSinceLastClick < 400) { // Increased to 400ms
-            console.log('🚫 DEBOUNCED: Preventing ghost click, action:', action, 'Gap:', timeSinceLastClick);
             return;
         }
         setLastClickTime(now);
@@ -355,7 +352,6 @@ const RowByRowPatternConfig = ({
 
         // ✅ BLOCK actions during keyboard transitions
         if (isTransitioning) {
-            console.log('🚫 Blocked action during transition:', action);
             return;
         }
 
@@ -620,8 +616,6 @@ const RowByRowPatternConfig = ({
 
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
-        console.log('📱 Number input received:', action, 'at', Date.now());
-
 
         if (action === 'Enter' || action === '✓') {
             if (!pendingRepeatText || pendingRepeatText === '') {
@@ -944,7 +938,7 @@ const RowByRowPatternConfig = ({
                 onClose={() => {
                     setTimeout(() => {
                         setshowRowEntryModal(false);
-                    }, 100);
+                    }, 200);
                 }}
                 editingRowIndex={editingRowIndex}
                 rowInstructions={rowInstructions}

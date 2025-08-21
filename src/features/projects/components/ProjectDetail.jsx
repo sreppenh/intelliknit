@@ -219,7 +219,6 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
                     onBack();
                   }}
                   onCopyProject={(projectData) => {
-                    console.log('Copy project:', projectData);
                     alert('📋 Copy Project feature coming soon!');
                   }}
                 />
