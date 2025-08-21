@@ -169,7 +169,15 @@ const EnhancedKeyboard = ({
                         action.startsWith('Custom ') ? 'special' : 'input';
 
                     // NEW: Check if input button should be disabled
-                    const isInputDisabled = isLocked;
+                    // Enhanced input disabling logic
+                    const isRowLocked = isWorkToEndAction(tempRowText);
+                    const hasOpenStructures = hasOpenStructure();
+                    const isToEndAction = isWorkToEndAction(action);
+
+                    // Disable input if:
+                    // 1. Row is locked by work-to-end action, OR
+                    // 2. This is a work-to-end action and we have open brackets/parens
+                    const isInputDisabled = isLocked || isRowLocked || (isToEndAction && hasOpenStructures);
 
                     const buttonClass = getButtonStyles(buttonType, isMobile);
 
