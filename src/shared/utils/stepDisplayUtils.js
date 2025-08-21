@@ -536,61 +536,6 @@ export const getComponentStatusWithDisplay = (component) => {
     };
 };
 
-// Add these functions to the end of stepDisplayUtils.js, before the existing exports
-
-// ===== PATTERN-SPECIFIC HELPER FUNCTIONS =====
-
-/**
- * Get quick action buttons for pattern type
- * Used by: RowByRowPatternConfig, EditRowByRowPatternForm
- */
-export const getPatternQuickActions = (patternType) => {
-    switch (patternType) {
-        case 'Cable Pattern':
-            return ['K to end', 'P to end', 'C6F', 'C6B', 'T2F', 'T2B'];
-        case 'Lace Pattern':
-            return ['K to end', 'P to end', 'YO', 'K2tog', 'SSK', 'CDD'];
-        case 'Custom pattern':
-            return ['K to end', 'P to end'];
-        default:
-            return ['K to end', 'P to end'];
-    }
-};
-
-
-/**
- * Get placeholder text for pattern row input
- * Used by: RowByRowPatternConfig, EditRowByRowPatternForm
- */
-export const getPatternPlaceholderText = (patternType) => {
-    switch (patternType) {
-        case 'Cable Pattern':
-            return "e.g., 'K2, P2, C6F, P2, K2'";
-        case 'Lace Pattern':
-            return "e.g., 'K1, YO, K2tog, K3, SSK, YO, K1'";
-        case 'Custom pattern':
-            return "e.g., '5 rows stockinette, 1 bobble row'";
-        default:
-            return "Enter row instruction...";
-    }
-};
-
-/**
- * Get description placeholder for pattern configuration
- * Used by: EditRowByRowPatternForm
- */
-export const getPatternDescriptionPlaceholder = (patternType) => {
-    switch (patternType) {
-        case 'Cable Pattern':
-            return "Describe your cable pattern crossings, directions, and any background stitches...";
-        case 'Lace Pattern':
-            return "Describe your lace pattern with key techniques and any chart references...";
-        case 'Custom pattern':
-            return "e.g., '5 rows stockinette, 1 bobble row'";
-        default:
-            return "Describe your pattern...";
-    }
-};
 
 /**
  * Get user-friendly validation error message
@@ -639,6 +584,59 @@ export const getPatternValidationError = (stitchPattern) => {
 
     return null; // No validation errors
 };
+
+// Replace the THREE functions at the bottom of your file with this:
+
+// ===== PATTERN CONFIGURATION (CONSOLIDATES 3 SWITCH STATEMENTS) =====
+
+const PATTERN_CONFIG = {
+    'Cable Pattern': {
+        quickActions: ['K to end', 'P to end', 'C6F', 'C6B', 'T2F', 'T2B'],
+        placeholderText: "e.g., 'K2, P2, C6F, P2, K2'",
+        descriptionPlaceholder: "Describe your cable pattern crossings, directions, and any background stitches..."
+    },
+    'Lace Pattern': {
+        quickActions: ['K to end', 'P to end', 'YO', 'K2tog', 'SSK', 'CDD'],
+        placeholderText: "e.g., 'K1, YO, K2tog, K3, SSK, YO, K1'",
+        descriptionPlaceholder: "Describe your lace pattern with key techniques and any chart references..."
+    },
+    'Custom pattern': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "e.g., '5 rows stockinette, 1 bobble row'",
+        descriptionPlaceholder: "e.g., '5 rows stockinette, 1 bobble row'"
+    }
+};
+
+const DEFAULT_PATTERN_CONFIG = {
+    quickActions: ['K to end', 'P to end'],
+    placeholderText: "Enter row instruction...",
+    descriptionPlaceholder: "Describe your pattern..."
+};
+
+/**
+ * Get quick action buttons for pattern type
+ * Used by: RowByRowPatternConfig, EditRowByRowPatternForm
+ */
+export const getPatternQuickActions = (patternType) => {
+    return PATTERN_CONFIG[patternType]?.quickActions || DEFAULT_PATTERN_CONFIG.quickActions;
+};
+
+/**
+ * Get placeholder text for pattern row input
+ * Used by: RowByRowPatternConfig, EditRowByRowPatternForm
+ */
+export const getPatternPlaceholderText = (patternType) => {
+    return PATTERN_CONFIG[patternType]?.placeholderText || DEFAULT_PATTERN_CONFIG.placeholderText;
+};
+
+/**
+ * Get description placeholder for pattern configuration
+ * Used by: EditRowByRowPatternForm
+ */
+export const getPatternDescriptionPlaceholder = (patternType) => {
+    return PATTERN_CONFIG[patternType]?.descriptionPlaceholder || DEFAULT_PATTERN_CONFIG.descriptionPlaceholder;
+};
+
 
 export default {
     getStepPatternName,

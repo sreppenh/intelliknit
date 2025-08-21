@@ -138,9 +138,9 @@ const formatReadableInstruction = (instruction) => {
     // ===== ABBREVIATION EXPANSIONS =====
 
     // Basic lace abbreviations
-    formatted = formatted.replace(/\bYO\b/g, 'yarn over');
-    formatted = formatted.replace(/\bK2tog\b/g, 'knit 2 together');
-    formatted = formatted.replace(/\bSSK\b/g, 'slip slip knit');
+    formatted = formatted.replace(/\bYO\b/g, 'YO');
+    formatted = formatted.replace(/\bK2tog\b/g, 'k2tog');
+    formatted = formatted.replace(/\bSSK\b/g, 'SSK');
 
     // ✅ ENHANCED: Comprehensive cable abbreviations
 
