@@ -21,7 +21,7 @@ import { StandardModal } from '../../../shared/components/modals/StandardModal';
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex, editMode);
-  const { handleAddStep, handleAddStepAndContinue } = useStepActions(wizard, onBack);
+  const { handleAddStep, handleAddStepAndContinue, handleAddStepWithCustomData } = useStepActions(wizard, onBack);
   const { currentProject } = useProjectsContext();
   const wizardState = useWizardState(wizard, onBack);
   const [showShapingWizard, setShowShapingWizard] = useState(false);
@@ -34,12 +34,21 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     if (pendingShapingInfo) {
       console.log('✅ CONFIRMED: Auto-populating shaping data and creating step');
 
-      // Auto-populate shaping data
-      wizard.updateWizardData('hasShaping', true);
-      wizard.updateWizardData('shapingConfig', createIntrinsicShapingConfig(pendingShapingInfo));
+      // Create updated wizard data object synchronously
+      const updatedWizardData = {
+        ...wizard.wizardData,
+        hasShaping: true,
+        shapingConfig: createIntrinsicShapingConfig(pendingShapingInfo)
+      };
 
-      // Create the step immediately using existing logic
-      handleAddStep();
+      // Create a temporary wizard object with updated data
+      const updatedWizard = {
+        ...wizard,
+        wizardData: updatedWizardData
+      };
+
+      // Call handleAddStep with the updated wizard data
+      handleAddStepWithCustomData(updatedWizard);
 
       // Clean up
       setShowStepConfirmModal(false);

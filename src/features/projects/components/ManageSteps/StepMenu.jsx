@@ -40,7 +40,11 @@ const StepMenu = ({
     const hasEditablePattern = step.wizardConfig?.stitchPattern?.pattern;
 
     // Check if step has editable configuration
-    const hasEditableConfig = step.wizardConfig && (
+    // Exclude intrinsic shaping since it can't be edited separately
+    const hasIntrinsicShaping = step.wizardConfig?.shapingConfig?.type === 'intrinsic_pattern' ||
+        step.advancedWizardConfig?.shapingConfig?.type === 'intrinsic_pattern';
+
+    const hasEditableConfig = !hasIntrinsicShaping && step.wizardConfig && (
         step.wizardConfig.duration?.type ||
         step.wizardConfig.hasShaping ||
         step.wizardConfig.shapingConfig?.type ||
