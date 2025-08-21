@@ -70,7 +70,9 @@ export const PATTERN_CATEGORIES = {
         icon: '🌈',
         type: 'advanced',
         patterns: [
-            { name: 'Colorwork', icon: '🌈', desc: 'Define your colorwork pattern' }
+            { name: 'Fair Isle', icon: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', desc: 'Traditional stranded colorwork' },
+            { name: 'Intarsia', icon: '🎨', desc: 'Large color blocks' },
+            { name: 'Stripes', icon: '🌈', desc: 'Horizontal color bands' }
         ]
     },
 

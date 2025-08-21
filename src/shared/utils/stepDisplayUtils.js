@@ -1,5 +1,4 @@
 // src/shared/utils/stepDisplayUtils.js
-
 /**
  * Step Display Utilities - Data-Driven Approach
  * 

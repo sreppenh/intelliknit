@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from 'react'; // ✅ Add useCallback import
+// src/features/steps/components/wizard-steps/PatternSelector.jsx
+import React, { useState, useEffect, useCallback } from 'react';
 import { PrepStepModal, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
 import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
 
@@ -11,8 +12,6 @@ export const PatternSelector = ({
   onSavePrepNote
 }) => {
   // State for toggle between Quick and Advanced
-  // const [activeTab, setActiveTab] = useState('quick');
-
   const [activeTab, setActiveTab] = useState(() => {
     // Initialize based on existing data if available
     const selectedCategory = wizardData?.stitchPattern?.category;
@@ -23,8 +22,10 @@ export const PatternSelector = ({
     return 'quick'; // Default fallback
   });
 
-
   const [selectedQuickCategory, setSelectedQuickCategory] = useState(null);
+
+  // ✅ NEW: Track which advanced category is expanded
+  const [expandedAdvancedCategory, setExpandedAdvancedCategory] = useState('colorwork'); // Default to colorwork
 
   // Prep note management
   const {
@@ -49,7 +50,7 @@ export const PatternSelector = ({
       }
     }
     return null;
-  }, []); // Empty dependency array since PATTERN_CATEGORIES is static
+  }, []);
 
   useEffect(() => {
     const selectedCategory = wizardData?.stitchPattern?.category;
@@ -61,6 +62,8 @@ export const PatternSelector = ({
 
       if (categoryType === 'quick') {
         setSelectedQuickCategory(selectedCategory);
+      } else if (categoryType === 'advanced') {
+        setExpandedAdvancedCategory(selectedCategory);
       }
     } else if (selectedPattern) {
       // Reverse lookup if we only have pattern
@@ -69,6 +72,8 @@ export const PatternSelector = ({
         setActiveTab(found.type === 'quick' ? 'quick' : 'advanced');
         if (found.type === 'quick') {
           setSelectedQuickCategory(found.categoryKey);
+        } else {
+          setExpandedAdvancedCategory(found.categoryKey);
         }
         // Update wizardData with found category
         updateWizardData('stitchPattern', {
@@ -77,16 +82,21 @@ export const PatternSelector = ({
         });
       }
     } else {
-      // Auto - select Basic Stitches on FIRST LOAD only
-      if (!selectedCategory && !selectedPattern && activeTab === 'quick') {
-        setSelectedQuickCategory('basic');
-        updateWizardData('stitchPattern', {
-          category: 'basic',
-          pattern: null,
-          customText: '',
-          rowsInPattern: '',
-          method: ''
-        });
+      // Auto-select defaults on first load
+      if (!selectedCategory && !selectedPattern) {
+        if (activeTab === 'quick') {
+          setSelectedQuickCategory('basic');
+          updateWizardData('stitchPattern', {
+            category: 'basic',
+            pattern: null,
+            customText: '',
+            rowsInPattern: '',
+            method: ''
+          });
+        } else if (activeTab === 'advanced') {
+          // Default to colorwork expanded but don't set wizardData yet
+          setExpandedAdvancedCategory('colorwork');
+        }
       }
     }
   }, [
@@ -95,14 +105,13 @@ export const PatternSelector = ({
     updateWizardData,
     findCategoryFromPattern,
     activeTab
-    // 🎯 ONLY REMOVED: selectedQuickCategory (this was the loop maker!)
   ]);
 
-  // Rest of your component code stays exactly the same...
   // Tab switching
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setSelectedQuickCategory(null);
+    setExpandedAdvancedCategory(tab === 'advanced' ? 'colorwork' : null); // Default to colorwork for advanced
 
     // Only clear selection if user actually had selections
     if (wizardData?.stitchPattern?.category || wizardData?.stitchPattern?.pattern) {
@@ -116,7 +125,7 @@ export const PatternSelector = ({
     }
   };
 
-  // Quick pattern handlers
+  // Quick pattern handlers (unchanged)
   const handleQuickCategorySelect = (categoryKey) => {
     if (selectedQuickCategory === categoryKey) {
       setSelectedQuickCategory(null);
@@ -135,12 +144,12 @@ export const PatternSelector = ({
     });
   };
 
-  // Advanced pattern handlers
+  // ✅ NEW: Advanced pattern handlers
   const handleAdvancedCategorySelect = (categoryKey) => {
     const category = PATTERN_CATEGORIES[categoryKey];
 
     if (category.patterns.length === 1) {
-      // Single pattern - set both category and pattern
+      // Single pattern - immediately select pattern and activate Continue
       updateWizardData('stitchPattern', {
         category: categoryKey,
         pattern: category.patterns[0].name,
@@ -148,84 +157,35 @@ export const PatternSelector = ({
         rowsInPattern: '',
         method: ''
       });
+      setExpandedAdvancedCategory(categoryKey);
     } else {
-      // Multiple patterns - set category only
-      updateWizardData('stitchPattern', {
-        category: categoryKey,
-        pattern: null,
-        customText: '',
-        rowsInPattern: '',
-        method: ''
-      });
+      // Multi-pattern - expand/collapse the category
+      if (expandedAdvancedCategory === categoryKey) {
+        setExpandedAdvancedCategory(null); // Collapse if already expanded
+      } else {
+        setExpandedAdvancedCategory(categoryKey); // Expand
+        // Don't set wizardData yet - wait for pattern selection
+      }
     }
   };
 
-  const handleAdvancedPatternSelect = (pattern) => {
+  const handleAdvancedPatternSelect = (categoryKey, pattern) => {
     updateWizardData('stitchPattern', {
-      ...wizardData.stitchPattern,
-      pattern: pattern.name
+      category: categoryKey,
+      pattern: pattern.name,
+      customText: '',
+      rowsInPattern: '',
+      method: ''
     });
+    // Keep this category expanded since user just selected a pattern from it
+    setExpandedAdvancedCategory(categoryKey);
   };
 
   // Get current selections
   const selectedCategory = wizardData?.stitchPattern?.category;
   const selectedPattern = wizardData?.stitchPattern?.pattern;
 
-  // Render advanced pattern detail screen
-  if (activeTab === 'advanced' && selectedCategory && !selectedPattern && PATTERN_CATEGORIES[selectedCategory]?.type === 'advanced') {
-    const category = PATTERN_CATEGORIES[selectedCategory];
-
-    return (
-      <>
-        <div className="space-y-4 relative">
-          <PrepStepButton
-            onClick={handleOpenModal}
-            hasNote={hasNote}
-            notePreview={notePreview}
-            position="top-right"
-            size="normal"
-            variant="ghost"
-          />
-
-          <div className="text-center">
-            <h2 className="content-header-secondary mb-1">Configure {category.name}</h2>
-            <p className="text-sm text-wool-500">Define your pattern details</p>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            {category.patterns.map(pattern => (
-              <button
-                key={pattern.name}
-                onClick={() => handleAdvancedPatternSelect(pattern)}
-                className="card-selectable"
-              >
-                <div className="text-2xl mb-2">{pattern.icon}</div>
-                <div className="text-sm font-semibold mb-1">{pattern.name}</div>
-                <div className="text-xs opacity-75">{pattern.desc}</div>
-              </button>
-            ))}
-          </div>
-
-          <button
-            onClick={() => updateWizardData('stitchPattern', { category: null, pattern: null })}
-            className="w-full text-wool-500 text-sm py-2 hover:text-wool-700 transition-colors"
-          >
-            ← Choose different category
-          </button>
-        </div>
-
-        <PrepStepModal
-          isOpen={isModalOpen}
-          onClose={handleCloseModal}
-          onSave={handleSaveNote}
-          existingNote={currentNote}
-          {...prepConfig}
-        />
-      </>
-    );
-  }
-
-  // Main pattern selector with toggle
+  // Main pattern selector
   return (
     <>
       <div className="space-y-4 relative">
@@ -244,7 +204,7 @@ export const PatternSelector = ({
           </div>
         </div>
 
-        {/* Pattern Type Toggle - Standardized Segmented Control */}
+        {/* Pattern Type Toggle */}
         <div className="mb-4">
           <div className="segmented-control">
             <div className="grid grid-cols-2 gap-1">
@@ -264,11 +224,11 @@ export const PatternSelector = ({
           </div>
         </div>
 
-        {/* Quick Patterns View */}
+        {/* Quick Patterns View (unchanged) */}
         {activeTab === 'quick' && (
           <div className="space-y-4">
             <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
-              {/* Category Selection - Always Visible */}
+              {/* Category Selection */}
               <div className="grid grid-cols-3 gap-2 mb-4">
                 {Object.entries(PATTERN_CATEGORIES)
                   .filter(([_, category]) => category.type === 'quick')
@@ -287,7 +247,7 @@ export const PatternSelector = ({
                   ))}
               </div>
 
-              {/* Pattern Selection - Always Open When Category Selected */}
+              {/* Pattern Selection */}
               {selectedQuickCategory && (
                 <div className="border-t border-wool-200 pt-4">
                   <h4 className="text-sm font-semibold text-wool-700 mb-3 text-left">
@@ -302,7 +262,6 @@ export const PatternSelector = ({
                           ? 'card-selectable-selected'
                           : ''
                           }`}
-
                       >
                         <div className="text-lg mb-1">{pattern.icon}</div>
                         <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
@@ -314,7 +273,6 @@ export const PatternSelector = ({
               )}
             </div>
 
-            {/* Quick Help Text */}
             <div className="help-block">
               <div className="text-xs text-sage-600 text-center">
                 💡 <strong>Quick patterns</strong> work right out of the box with simple setup
@@ -323,29 +281,64 @@ export const PatternSelector = ({
           </div>
         )}
 
-        {/* Advanced Patterns View */}
+        {/* ✅ NEW: Advanced Patterns View - 2x2 Grid with Inline Expansion */}
         {activeTab === 'advanced' && (
           <div className="space-y-4">
-            <div className="grid grid-cols-2 gap-3">
-              {Object.entries(PATTERN_CATEGORIES)
-                .filter(([_, category]) => category.type === 'advanced')
-                .map(([key, category]) => (
-                  <button
-                    key={key}
-                    onClick={() => handleAdvancedCategorySelect(key)}
-                    className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${selectedCategory === key
-                      ? 'border-yarn-500 bg-yarn-100 text-yarn-800 shadow-sm'
-                      : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-sm'
-                      }`}
-                  >
-                    <div className="text-2xl mb-2">{category.icon}</div>
-                    <div className="text-sm font-medium mb-1">{category.name}</div>
-                    <div className="text-xs opacity-60">Needs configuration</div>
-                  </button>
-                ))}
+            <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
+              {/* ✅ NEW: 2x2 Grid for Advanced Categories */}
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                {Object.entries(PATTERN_CATEGORIES)
+                  .filter(([_, category]) => category.type === 'advanced')
+                  .map(([key, category]) => (
+                    <button
+                      key={key}
+                      onClick={() => handleAdvancedCategorySelect(key)}
+                      className={`p-4 rounded-xl border-2 transition-all duration-200 text-center ${
+                        // Only show selected if this category is currently selected AND has a pattern
+                        selectedCategory === key && selectedPattern
+                          ? 'card-selectable-selected'
+                          : // Show expanded state for multi-pattern categories that are expanded but no pattern selected yet
+                          expandedAdvancedCategory === key && !selectedPattern && PATTERN_CATEGORIES[key].patterns.length > 1
+                            ? 'card-selectable-selected'
+                            : // Default state
+                            'card-selectable'
+                        }`}
+                    >
+                      <div className="text-2xl mb-2">{category.icon}</div>
+                      <div className="text-sm font-medium mb-1">{category.name}</div>
+                      <div className="text-xs opacity-60">
+                        {category.patterns.length === 1 ? 'Ready to use' : 'Choose pattern'}
+                      </div>
+                    </button>
+                  ))}
+              </div>
+
+              {/* ✅ NEW: Inline Pattern Selection for Multi-Pattern Categories */}
+              {expandedAdvancedCategory && PATTERN_CATEGORIES[expandedAdvancedCategory]?.patterns.length > 1 && (
+                <div className="border-t border-wool-200 pt-4">
+                  <h4 className="text-sm font-semibold text-wool-700 mb-3 text-left">
+                    {PATTERN_CATEGORIES[expandedAdvancedCategory].name} Patterns
+                  </h4>
+                  <div className="grid grid-cols-2 gap-3">
+                    {PATTERN_CATEGORIES[expandedAdvancedCategory].patterns.map(pattern => (
+                      <button
+                        key={pattern.name}
+                        onClick={() => handleAdvancedPatternSelect(expandedAdvancedCategory, pattern)}
+                        className={`card-selectable ${selectedPattern === pattern.name
+                          ? 'card-selectable-selected'
+                          : ''
+                          }`}
+                      >
+                        <div className="text-lg mb-1">{pattern.icon}</div>
+                        <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
+                        <div className="text-xs opacity-70">{pattern.desc}</div>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
 
-            {/* Advanced Help Text */}
             <div className="tip-block">
               <div className="text-xs text-yarn-700 text-center">
                 ⚙️ <strong>Advanced patterns</strong> require additional setup and configuration
