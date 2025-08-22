@@ -260,8 +260,8 @@ const YarnsSection = ({
                                 type="button"
                                 onClick={() => handleYarnFormChange('colorHex', color.hex)}
                                 className={`w-8 h-8 rounded-full border-2 transition-all ${yarnForm.colorHex === color.hex
-                                        ? 'border-gray-800 scale-110'
-                                        : 'border-gray-300 hover:scale-105'
+                                    ? 'border-gray-800 scale-110'
+                                    : 'border-gray-300 hover:scale-105'
                                     }`}
                                 style={{ backgroundColor: color.hex }}
                                 title={color.name}
@@ -338,12 +338,14 @@ const YarnsSection = ({
                         onCancel={() => setIsEditing(false)}
                     />
 
-                    <div className="content-header-with-buttons px-6 py-4 bg-white border-b border-wool-100">
-                        <div className="content-title">Yarns & Colors</div>
+                    {/* Add proper spacing after PageHeader */}
+                    <div className="pt-6">
+                        <div className="content-header-primary">Yarns & Colors</div>
                     </div>
 
-                    <div className="p-6 bg-yarn-50 space-y-6">
-                        {/* Colors in Project */}
+                    {/* Use proper DetailsTab spacing pattern: p-6 space-y-6 */}
+                    <div className="p-6 space-y-6">
+                        {/* Colors in Project Section */}
                         <div>
                             <label className="form-label">Colors in Project</label>
                             <IncrementInput
@@ -360,7 +362,35 @@ const YarnsSection = ({
                             </div>
                         </div>
 
-                        {/* Current Yarns */}
+                        {/* Color Letter Preview */}
+                        {colorCount > 0 && (
+                            <div>
+                                <label className="form-label">Color Letter Assignments</label>
+                                <div className="grid grid-cols-4 gap-3">
+                                    {getAvailableLetters().map(letter => {
+                                        const assignedYarn = yarns.find(y => y.letter === letter);
+                                        return (
+                                            <div key={letter} className="text-center">
+                                                <div
+                                                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-2 border-gray-300 mx-auto mb-2"
+                                                    style={{
+                                                        backgroundColor: assignedYarn?.colorHex || '#f3f4f6',
+                                                        color: assignedYarn?.colorHex && assignedYarn.colorHex !== '#ffffff' ? 'white' : '#6b7280'
+                                                    }}
+                                                >
+                                                    {letter}
+                                                </div>
+                                                <div className="text-xs text-gray-600">
+                                                    {assignedYarn ? assignedYarn.color : 'Unassigned'}
+                                                </div>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Current Yarns Section */}
                         <div>
                             <div className="flex items-center justify-between mb-4">
                                 <label className="form-label">Current Yarns</label>
@@ -427,34 +457,6 @@ const YarnsSection = ({
                                 </div>
                             )}
                         </div>
-
-                        {/* Color Letter Preview */}
-                        {colorCount > 0 && (
-                            <div>
-                                <label className="form-label">Color Letter Assignments</label>
-                                <div className="grid grid-cols-4 gap-3">
-                                    {getAvailableLetters().map(letter => {
-                                        const assignedYarn = yarns.find(y => y.letter === letter);
-                                        return (
-                                            <div key={letter} className="text-center">
-                                                <div
-                                                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-2 border-gray-300 mx-auto mb-2"
-                                                    style={{
-                                                        backgroundColor: assignedYarn?.colorHex || '#f3f4f6',
-                                                        color: assignedYarn?.colorHex && assignedYarn.colorHex !== '#ffffff' ? 'white' : '#6b7280'
-                                                    }}
-                                                >
-                                                    {letter}
-                                                </div>
-                                                <div className="text-xs text-gray-600">
-                                                    {assignedYarn ? assignedYarn.color : 'Unassigned'}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
                     </div>
                 </div>
             </div>
@@ -468,8 +470,6 @@ const YarnsSection = ({
             </>
         );
     }
-
-
 
     // Read-only view
     return (
