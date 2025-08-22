@@ -314,6 +314,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
               existingPrepNote={getExistingPrepNote()}
               onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
               currentStitches={wizard.currentStitches}
+              project={currentProject}
             />
 
             {/* 🎯 SIMPLIFIED: Navigation for Step 2 */}

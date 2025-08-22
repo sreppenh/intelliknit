@@ -3,7 +3,8 @@ import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig
 import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
 
 
-const PatternConfiguration = ({ wizardData, updateWizardData, navigation, construction, currentStitches }) => {
+const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
+  construction, currentStitches, project }) => {
   const { pattern } = wizardData.stitchPattern;
 
   if (!pattern) {
@@ -51,6 +52,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation, constr
             wizardData={wizardData}
             updateWizardData={updateWizardData}
             construction={construction}
+            project={project}
           />
         );
 
