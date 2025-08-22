@@ -222,26 +222,25 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
                     <div>
                         <label className="form-label">What color?</label>
 
-                        {/* ✅ DEBUG: Show what we have */}
-                        <div className="text-xs text-wool-400 mb-2 font-mono">
-                            Debug - Colors available: {projectColorCount}, Mapping: {JSON.stringify(colorMapping)}
-                        </div>
-
                         <select
                             value={newStripe.color}
                             onChange={(e) => setNewStripe({ ...newStripe, color: e.target.value })}
                             className="w-full border-2 border-wool-200 rounded-xl px-3 py-3 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white"
                         >
                             {getAvailableColors().map(letter => {
-                                // ✅ FIX: Remove the isUsed restriction - colors can be reused!
                                 const displayName = getColorDisplayName(letter);
+
+                                // ✅ NEW: Show both mapped name AND letter for clarity
+                                const optionText = colorMapping[letter]
+                                    ? `${letter} - ${colorMapping[letter]}`  // "A - Winter Wolf"
+                                    : `${letter}`; // "B"
 
                                 return (
                                     <option
                                         key={letter}
                                         value={letter}
                                     >
-                                        {displayName}
+                                        {optionText}
                                     </option>
                                 );
                             })}
