@@ -19,13 +19,15 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
     const projectColorCount = project?.colorCount || 6;
     const colorMapping = project?.colorMapping || {};
 
-    // ✅ DEBUG: Log what we're getting
-    console.log('🎨 StripesConfig received:', {
-        project,
-        projectColorCount,
-        colorMapping,
-        hasProject: !!project
-    });
+    // ✅ FIX: Only log once when component mounts, not on every render
+    useEffect(() => {
+        console.log('🎨 StripesConfig mounted:', {
+            project,
+            projectColorCount,
+            colorMapping,
+            hasProject: !!project
+        });
+    }, []); // Empty dependency array = only run once
 
     // Auto-calculate total rows and save to wizardData
     useEffect(() => {
@@ -36,7 +38,7 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
             stripeSequence: stripeSequence,
             rowsInPattern: totalRows > 0 ? totalRows.toString() : ''
         });
-    }, [stripeSequence, updateWizardData, wizardData.stitchPattern]);
+    }, [stripeSequence]); // Only when stripeSequence changes
 
     // Get next available color letter (for suggesting, not restricting)
     const getNextColor = () => {
@@ -120,55 +122,8 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
 
     return (
         <div className="space-y-6">
-            {/* ✅ MOVED: Current Stripe Sequence - Display ABOVE selection like Needles/Yarns */}
-            {stripeSequence.length > 0 && (
-                <div>
-                    <label className="form-label">Current Stripe Sequence</label>
+            {/* ===== 1. FORM INPUTS SECTION ===== */}
 
-                    {/* Stripe List */}
-                    <div className="space-y-2 mb-4">
-                        {stripeSequence.map((stripe, index) => (
-                            <div key={index} className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-wool-200">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-full bg-sage-100 flex items-center justify-center text-sm font-bold text-sage-700">
-                                        {stripe.color}
-                                    </div>
-                                    <div>
-                                        <div className="text-sm font-medium">
-                                            {stripe.rows} {rowUnit} of {getColorDisplayName(stripe.color)}
-                                        </div>
-                                        <div className="text-xs text-wool-500">
-                                            {/* Show letter if mapped to something different */}
-                                            {colorMapping[stripe.color] ? `(Color ${stripe.color})` : ''}
-                                        </div>
-                                    </div>
-                                </div>
-                                <button
-                                    onClick={() => removeStripe(index)}
-                                    className="p-1 text-red-400 hover:text-red-600 transition-colors"
-                                    title="Remove stripe"
-                                >
-                                    <X size={16} />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-
-                    {/* Enhanced Pattern Summary */}
-                    <div className="bg-sage-50 rounded-xl p-4 border-2 border-sage-200">
-                        <h4 className="text-sm font-semibold text-sage-700 mb-2">📋 Pattern Summary</h4>
-                        <div className="text-sm text-sage-600 space-y-1">
-                            <div><strong>Total {rowUnit} per repeat:</strong> {totalRows}</div>
-                            <div><strong>Sequence:</strong> {stripeSequence.map(s =>
-                                `${s.rows} ${getColorDisplayName(s.color)}`
-                            ).join(' → ')}</div>
-                            <div className="text-xs mt-2 opacity-75">
-                                This sequence will repeat based on the duration you set in the next step
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
             {/* Quick Patterns - Only show when starting fresh */}
             {stripeSequence.length === 0 && (
                 <div>
@@ -196,13 +151,12 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
                 </div>
             )}
 
-            {/* ✅ NEW: Inline Add Stripe Section (YarnModal style) */}
+            {/* Add Stripe Form */}
             <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
                 <h4 className="text-sm font-medium text-wool-700 mb-4">
                     {stripeSequence.length === 0 ? 'Create Your First Stripe' : 'Add Another Stripe'}
                 </h4>
 
-                {/* ✅ COMBINED: Both inputs on same screen */}
                 <div className="space-y-4">
                     {/* How many rows */}
                     <div>
@@ -218,7 +172,7 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
                         />
                     </div>
 
-                    {/* ✅ CHANGED: Dropdown instead of letter boxes for better color name display */}
+                    {/* Color selection dropdown */}
                     <div>
                         <label className="form-label">What color?</label>
 
@@ -264,23 +218,90 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
                 </div>
             </div>
 
-            {/* Current Stripe Sequence was moved above */}
+            {/* ===== 2. RUNNING SUMMARY SECTION ===== */}
 
-            {/* Enhanced Color Mapping Info */}
-            <div className="help-block">
-                <h4 className="text-sm font-semibold text-sage-700 mb-2">🎨 About Color Letters</h4>
-                <div className="text-sm text-sage-600 space-y-1">
-                    <div>• This project is set up for {projectColorCount} colors</div>
+            {stripeSequence.length > 0 && (
+                <div>
+                    <label className="form-label">Current Stripe Sequence</label>
+
+                    {/* Individual Stripe List */}
+                    <div className="space-y-2 mb-4">
+                        {stripeSequence.map((stripe, index) => (
+                            <div key={index} className="flex items-center justify-between p-3 bg-white rounded-xl border-2 border-wool-200">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-sage-100 flex items-center justify-center text-sm font-bold text-sage-700">
+                                        {stripe.color}
+                                    </div>
+                                    <div>
+                                        <div className="text-sm font-medium">
+                                            {stripe.rows} {rowUnit} of {getColorDisplayName(stripe.color)}
+                                        </div>
+                                        <div className="text-xs text-wool-500">
+                                            {/* Show letter if mapped to something different */}
+                                            {colorMapping[stripe.color] ? `(Color ${stripe.color})` : ''}
+                                        </div>
+                                    </div>
+                                </div>
+                                <button
+                                    onClick={() => removeStripe(index)}
+                                    className="p-1 text-red-400 hover:text-red-600 transition-colors"
+                                    title="Remove stripe"
+                                >
+                                    <X size={16} />
+                                </button>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Pattern Summary - Styled like EvenDistributionConfig */}
+                    <div className="bg-sage-50 rounded-xl p-4 border-2 border-sage-200">
+                        <h4 className="text-sm font-semibold text-sage-700 mb-3">📋 Pattern Summary</h4>
+
+                        <div className="space-y-3">
+                            {/* Summary Stats */}
+                            <div className="grid grid-cols-2 gap-4">
+                                <div className="bg-white rounded-lg p-3 border border-sage-200">
+                                    <div className="text-xs text-sage-600 uppercase tracking-wide">Total per repeat</div>
+                                    <div className="text-lg font-semibold text-sage-800">{totalRows} {rowUnit}</div>
+                                </div>
+                                <div className="bg-white rounded-lg p-3 border border-sage-200">
+                                    <div className="text-xs text-sage-600 uppercase tracking-wide">Colors used</div>
+                                    <div className="text-lg font-semibold text-sage-800">{[...new Set(stripeSequence.map(s => s.color))].length}</div>
+                                </div>
+                            </div>
+
+                            {/* Sequence Display */}
+                            <div className="bg-white rounded-lg p-3 border border-sage-200">
+                                <div className="text-xs text-sage-600 uppercase tracking-wide mb-2">Sequence</div>
+                                <div className="text-sm text-sage-800">
+                                    {stripeSequence.map(s => `${s.rows} ${getColorDisplayName(s.color)}`).join(' → ')}
+                                </div>
+                            </div>
+
+                            <div className="text-xs text-sage-600 italic">
+                                This sequence will repeat based on the duration you set in the next step
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* ===== 3. HELP/INFO SECTION ===== */}
+
+            <div className="bg-wool-50 rounded-xl p-4 border border-wool-200">
+                <h4 className="text-sm font-semibold text-wool-700 mb-3">🎨 About Color Letters</h4>
+                <div className="text-sm text-wool-600 space-y-2">
+                    <div>• This project is set up for <strong>{projectColorCount} colors</strong></div>
                     {Object.keys(colorMapping).length > 0 ? (
-                        <div>• Current mapping: {Object.entries(colorMapping).map(([letter, name]) =>
-                            `${letter}=${name.split(' ')[0]}`
-                        ).join(', ')}</div>
+                        <div>• Current mapping: <strong>{Object.entries(colorMapping).map(([letter, name]) =>
+                            `${letter}=${name}`
+                        ).join(', ')}</strong></div>
                     ) : (
-                        <div>• Map letters to yarn colors in Project Details → Yarns & Colors</div>
+                        <div>• Map letters to yarn colors in <strong>Project Details → Yarns & Colors</strong></div>
                     )}
                     <div>• Letters represent colors that will repeat across any duration</div>
                     {Object.keys(colorMapping).length > 0 && (
-                        <div className="text-xs mt-1 opacity-75">
+                        <div className="text-xs mt-2 text-wool-500 italic">
                             💡 When you change color mapping in project details, all stripe patterns update automatically!
                         </div>
                     )}
