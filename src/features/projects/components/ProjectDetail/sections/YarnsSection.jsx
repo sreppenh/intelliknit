@@ -339,7 +339,7 @@ const YarnsSection = ({
                     />
 
                     {/* Add proper spacing after PageHeader */}
-                    <div className="pt-6">
+                    <div className="px-6 pt-6">
                         <div className="content-header-primary">Yarns & Colors</div>
                     </div>
 
@@ -361,34 +361,6 @@ const YarnsSection = ({
                                 How many different colors will this project use?
                             </div>
                         </div>
-
-                        {/* Color Letter Preview */}
-                        {colorCount > 0 && (
-                            <div>
-                                <label className="form-label">Color Letter Assignments</label>
-                                <div className="grid grid-cols-4 gap-3">
-                                    {getAvailableLetters().map(letter => {
-                                        const assignedYarn = yarns.find(y => y.letter === letter);
-                                        return (
-                                            <div key={letter} className="text-center">
-                                                <div
-                                                    className="w-12 h-12 rounded-full flex items-center justify-center text-sm font-bold border-2 border-gray-300 mx-auto mb-2"
-                                                    style={{
-                                                        backgroundColor: assignedYarn?.colorHex || '#f3f4f6',
-                                                        color: assignedYarn?.colorHex && assignedYarn.colorHex !== '#ffffff' ? 'white' : '#6b7280'
-                                                    }}
-                                                >
-                                                    {letter}
-                                                </div>
-                                                <div className="text-xs text-gray-600">
-                                                    {assignedYarn ? assignedYarn.color : 'Unassigned'}
-                                                </div>
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            </div>
-                        )}
 
                         {/* Current Yarns Section */}
                         <div>
