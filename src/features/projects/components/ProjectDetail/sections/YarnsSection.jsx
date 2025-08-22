@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { Plus, Edit2, X } from 'lucide-react';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
 import PageHeader from '../../../../../shared/components/PageHeader';
+import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
  * 🧶 YarnsSection - Full-screen yarn and color management
@@ -93,6 +94,7 @@ const YarnsSection = ({
 
     // Handle add yarn
     const handleAddYarn = () => {
+        console.log('🎯 Opening Add Yarn modal'); // Debug log
         setYarnForm({
             brand: '',
             color: '',
@@ -205,6 +207,120 @@ const YarnsSection = ({
         setShowYarnModal(false);
         setConflictPreview(null);
     };
+
+    // Add/Edit Yarn Modal using StandardModal - MOVED TO TOP
+    const yarnModal = (
+        <StandardModal
+            isOpen={showYarnModal}
+            onClose={() => setShowYarnModal(false)}
+            onConfirm={handleSaveYarn}
+            category="input"
+            colorScheme="sage"
+            title={editingYarnIndex !== null ? 'Edit Yarn' : 'Add New Yarn'}
+            subtitle="Configure yarn details and color assignment"
+            primaryButtonText={editingYarnIndex !== null ? 'Save Changes' : 'Add Yarn'}
+            secondaryButtonText="Cancel"
+            primaryButtonProps={{
+                disabled: !yarnForm.brand || !yarnForm.color
+            }}
+        >
+            <div className="space-y-4">
+                {/* Brand Name */}
+                <div>
+                    <label className="form-label">Brand Name</label>
+                    <input
+                        data-modal-focus
+                        type="text"
+                        value={yarnForm.brand}
+                        onChange={(e) => handleYarnFormChange('brand', e.target.value)}
+                        placeholder="e.g., Cascade Yarns"
+                        className="w-full border-2 border-wool-200 rounded-xl px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                    />
+                </div>
+
+                {/* Color Name */}
+                <div>
+                    <label className="form-label">Color Name</label>
+                    <input
+                        type="text"
+                        value={yarnForm.color}
+                        onChange={(e) => handleYarnFormChange('color', e.target.value)}
+                        placeholder="e.g., Forest Green"
+                        className="w-full border-2 border-wool-200 rounded-xl px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                    />
+                </div>
+
+                {/* Color Picker */}
+                <div>
+                    <label className="form-label">Color Swatch</label>
+                    <div className="grid grid-cols-6 gap-2">
+                        {colorPalette.map((color) => (
+                            <button
+                                key={color.hex}
+                                type="button"
+                                onClick={() => handleYarnFormChange('colorHex', color.hex)}
+                                className={`w-8 h-8 rounded-full border-2 transition-all ${yarnForm.colorHex === color.hex
+                                        ? 'border-gray-800 scale-110'
+                                        : 'border-gray-300 hover:scale-105'
+                                    }`}
+                                style={{ backgroundColor: color.hex }}
+                                title={color.name}
+                            />
+                        ))}
+                    </div>
+                    <div className="mt-2 text-sm text-wool-600">
+                        Selected: {colorPalette.find(c => c.hex === yarnForm.colorHex)?.name || 'Custom'}
+                    </div>
+                </div>
+
+                {/* Letter Assignment */}
+                <div>
+                    <label className="form-label">Assign to Letter (Optional)</label>
+                    <select
+                        value={yarnForm.letter}
+                        onChange={(e) => handleYarnFormChange('letter', e.target.value)}
+                        className="w-full border-2 border-wool-200 rounded-xl px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                    >
+                        <option value="">No assignment</option>
+                        {getAvailableLetters().map(letter => {
+                            const isOccupied = yarns.some(y => y.letter === letter);
+                            const isCurrentYarn = editingYarnIndex !== null && yarns[editingYarnIndex]?.letter === letter;
+
+                            return (
+                                <option key={letter} value={letter}>
+                                    {letter} {isOccupied && !isCurrentYarn ? '(will reassign)' : '(available)'}
+                                </option>
+                            );
+                        })}
+                    </select>
+                </div>
+
+                {/* Number of Skeins */}
+                <div>
+                    <label className="form-label">Number of Skeins</label>
+                    <IncrementInput
+                        value={yarnForm.skeins}
+                        onChange={(value) => handleYarnFormChange('skeins', value)}
+                        min={1}
+                        max={50}
+                        label="skeins"
+                        size="sm"
+                    />
+                </div>
+
+                {/* Conflict Preview */}
+                {conflictPreview && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                        <div className="text-sm font-medium text-yellow-800 mb-1">Preview Changes:</div>
+                        <div className="text-sm text-yellow-700 space-y-1">
+                            <div>✅ {yarnForm.brand} {yarnForm.color} → Letter {yarnForm.letter}</div>
+                            <div>⚠️ {conflictPreview.conflictYarn.brand} {conflictPreview.conflictYarn.color} → Unassigned</div>
+                        </div>
+                    </div>
+                )}
+            </div>
+        </StandardModal>
+    );
 
     // Full-screen edit mode
     if (isEditing) {
@@ -344,147 +460,16 @@ const YarnsSection = ({
             </div>
         );
 
-        return createPortal(fullScreenContent, document.body);
+        return (
+            <>
+                {createPortal(fullScreenContent, document.body)}
+                {/* Render yarn modal separately to avoid portal conflicts */}
+                {showYarnModal && createPortal(yarnModal, document.body)}
+            </>
+        );
     }
 
-    // Add/Edit Yarn Modal
-    const yarnModal = showYarnModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-            <div className="bg-white rounded-xl p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-                <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-lg font-semibold">
-                        {editingYarnIndex !== null ? 'Edit Yarn' : 'Add New Yarn'}
-                    </h3>
-                    <button
-                        onClick={() => setShowYarnModal(false)}
-                        className="text-gray-400 hover:text-gray-600"
-                    >
-                        <X size={20} />
-                    </button>
-                </div>
 
-                <div className="space-y-4">
-                    {/* Brand Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Brand Name
-                        </label>
-                        <input
-                            type="text"
-                            value={yarnForm.brand}
-                            onChange={(e) => handleYarnFormChange('brand', e.target.value)}
-                            placeholder="e.g., Cascade Yarns"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-
-                    {/* Color Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Color Name
-                        </label>
-                        <input
-                            type="text"
-                            value={yarnForm.color}
-                            onChange={(e) => handleYarnFormChange('color', e.target.value)}
-                            placeholder="e.g., Forest Green"
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-
-                    {/* Color Picker */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">
-                            Color Swatch
-                        </label>
-                        <div className="grid grid-cols-6 gap-2">
-                            {colorPalette.map((color) => (
-                                <button
-                                    key={color.hex}
-                                    onClick={() => handleYarnFormChange('colorHex', color.hex)}
-                                    className={`w-8 h-8 rounded-full border-2 transition-all ${yarnForm.colorHex === color.hex
-                                            ? 'border-gray-800 scale-110'
-                                            : 'border-gray-300 hover:scale-105'
-                                        }`}
-                                    style={{ backgroundColor: color.hex }}
-                                    title={color.name}
-                                />
-                            ))}
-                        </div>
-                        <div className="mt-2 text-sm text-gray-600">
-                            Selected: {colorPalette.find(c => c.hex === yarnForm.colorHex)?.name || 'Custom'}
-                        </div>
-                    </div>
-
-                    {/* Letter Assignment */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Assign to Letter (Optional)
-                        </label>
-                        <select
-                            value={yarnForm.letter}
-                            onChange={(e) => handleYarnFormChange('letter', e.target.value)}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        >
-                            <option value="">No assignment</option>
-                            {getAvailableLetters().map(letter => {
-                                const isOccupied = yarns.some(y => y.letter === letter);
-                                const isCurrentYarn = editingYarnIndex !== null && yarns[editingYarnIndex]?.letter === letter;
-
-                                return (
-                                    <option key={letter} value={letter}>
-                                        {letter} {isOccupied && !isCurrentYarn ? '(will reassign)' : '(available)'}
-                                    </option>
-                                );
-                            })}
-                        </select>
-                    </div>
-
-                    {/* Number of Skeins */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">
-                            Number of Skeins
-                        </label>
-                        <input
-                            type="number"
-                            min="1"
-                            value={yarnForm.skeins}
-                            onChange={(e) => handleYarnFormChange('skeins', parseInt(e.target.value) || 1)}
-                            className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                        />
-                    </div>
-
-                    {/* Conflict Preview */}
-                    {conflictPreview && (
-                        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                            <div className="text-sm font-medium text-yellow-800 mb-1">Preview Changes:</div>
-                            <div className="text-sm text-yellow-700 space-y-1">
-                                <div>✅ {yarnForm.brand} {yarnForm.color} → Letter {yarnForm.letter}</div>
-                                <div>⚠️ {conflictPreview.conflictYarn.brand} {conflictPreview.conflictYarn.color} → Unassigned</div>
-                            </div>
-                        </div>
-                    )}
-                </div>
-
-                {/* Modal Actions */}
-                <div className="flex gap-3 mt-6">
-                    <button
-                        onClick={() => setShowYarnModal(false)}
-                        className="flex-1 px-4 py-2 text-gray-700 border border-gray-300 rounded-lg hover:bg-gray-50"
-                    >
-                        Cancel
-                    </button>
-                    <button
-                        onClick={handleSaveYarn}
-                        disabled={!yarnForm.brand || !yarnForm.color}
-                        className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
-                    >
-                        {editingYarnIndex !== null ? 'Save Changes' : 'Add Yarn'}
-                    </button>
-                </div>
-            </div>
-        </div>
-    );
 
     // Read-only view
     return (
@@ -531,8 +516,8 @@ const YarnsSection = ({
                 </div>
             </div>
 
-            {/* Render modal if open */}
-            {yarnModal && createPortal(yarnModal, document.body)}
+            {/* Render modal outside of read-only view if open */}
+            {showYarnModal && createPortal(yarnModal, document.body)}
         </>
     );
 };
