@@ -17,6 +17,19 @@ const YarnsSection = ({
     const [showYarnModal, setShowYarnModal] = useState(false);
     const [editingYarnIndex, setEditingYarnIndex] = useState(null);
 
+    // Unsaved changes warning modal
+    const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
+
+    // Separate temp form state for editing
+    const [tempFormState, setTempFormState] = useState({
+        yarns: [],
+        colorCount: 2,
+        colorMapping: {}
+    });
+
+    // Track if there are unsaved changes
+    const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+
     // Yarn modal form state
     const [yarnForm, setYarnForm] = useState({
         brand: '',
@@ -26,13 +39,69 @@ const YarnsSection = ({
         skeins: 1
     });
 
+    // Yarn modal unsaved changes tracking
+    const [yarnModalHasChanges, setYarnModalHasChanges] = useState(false);
+    const [showYarnUnsavedModal, setShowYarnUnsavedModal] = useState(false);
+
     // Conflict preview state
     const [conflictPreview, setConflictPreview] = useState(null);
 
-    // Get current data with proper fallbacks
-    const yarns = formData?.yarns || project?.yarns || [];
-    const colorCount = formData?.colorCount || project?.colorCount || 2;
-    const colorMapping = formData?.colorMapping || project?.colorMapping || {};
+    // Get current data - use temp state when editing, real data when not
+    const yarns = isEditing ? tempFormState.yarns : (formData?.yarns || project?.yarns || []);
+    const colorCount = isEditing ? tempFormState.colorCount : (formData?.colorCount || project?.colorCount || 2);
+    const colorMapping = isEditing ? tempFormState.colorMapping : (formData?.colorMapping || project?.colorMapping || {});
+
+    // Initialize temp form state when entering edit mode
+    useEffect(() => {
+        if (isEditing && !hasUnsavedChanges) {
+            setTempFormState({
+                yarns: formData?.yarns || project?.yarns || [],
+                colorCount: formData?.colorCount || project?.colorCount || 2,
+                colorMapping: formData?.colorMapping || project?.colorMapping || {}
+            });
+        }
+    }, [isEditing, formData, project, hasUnsavedChanges]);
+
+    // Handle temp form changes (only updates temp state)
+    const handleTempInputChange = (field, value) => {
+        setTempFormState(prev => ({
+            ...prev,
+            [field]: value
+        }));
+        setHasUnsavedChanges(true);
+    };
+
+    // Handle save changes
+    const handleSaveChanges = () => {
+        // Commit temp state to real project data
+        handleInputChange('yarns', tempFormState.yarns);
+        handleInputChange('colorCount', tempFormState.colorCount);
+        handleInputChange('colorMapping', tempFormState.colorMapping);
+
+        setHasUnsavedChanges(false);
+        setIsEditing(false);
+    };
+
+    // Handle cancel with unsaved changes check
+    const handleCancel = () => {
+        if (hasUnsavedChanges) {
+            setShowUnsavedChangesModal(true);
+        } else {
+            setIsEditing(false);
+        }
+    };
+
+    // Handle confirmed cancel (discard changes)
+    const handleConfirmCancel = () => {
+        setHasUnsavedChanges(false);
+        setTempFormState({
+            yarns: [],
+            colorCount: 2,
+            colorMapping: {}
+        });
+        setShowUnsavedChangesModal(false);
+        setIsEditing(false);
+    };
 
     // Rainbow color palette for yarn selection
     const colorPalette = [
@@ -80,10 +149,10 @@ const YarnsSection = ({
         { name: 'Black', hex: '#000000' }
     ];
 
-    // Get available color letters
+    // Get available color letters (use temp state when editing)
     const getAvailableLetters = () => {
-        const allLetters = Array.from({ length: colorCount }, (_, i) => String.fromCharCode(65 + i));
-        return allLetters;
+        const count = isEditing ? tempFormState.colorCount : colorCount;
+        return Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
     };
 
     // Get color for letter assignment
@@ -92,24 +161,26 @@ const YarnsSection = ({
         return yarnWithLetter ? yarnWithLetter.colorHex || '#f3f4f6' : '#f3f4f6';
     };
 
-    // Handle add yarn
+    // Handle add yarn (use temp state for available letters)
     const handleAddYarn = () => {
         console.log('🎯 Opening Add Yarn modal'); // Debug log
+        const availableLetters = getAvailableLetters();
         setYarnForm({
             brand: '',
             color: '',
             colorHex: colorPalette[0].hex,
-            letter: getAvailableLetters().find(letter => !yarns.some(y => y.letter === letter)) || '',
+            letter: availableLetters.find(letter => !tempFormState.yarns.some(y => y.letter === letter)) || '',
             skeins: 1
         });
         setEditingYarnIndex(null);
         setConflictPreview(null);
+        setYarnModalHasChanges(false);
         setShowYarnModal(true);
     };
 
-    // Handle edit yarn
+    // Handle edit yarn (use temp state)
     const handleEditYarn = (yarnIndex) => {
-        const yarn = yarns[yarnIndex];
+        const yarn = tempFormState.yarns[yarnIndex];
         setYarnForm({
             brand: yarn.brand || '',
             color: yarn.color || '',
@@ -119,32 +190,38 @@ const YarnsSection = ({
         });
         setEditingYarnIndex(yarnIndex);
         setConflictPreview(null);
+        setYarnModalHasChanges(false);
         setShowYarnModal(true);
     };
 
-    // Handle delete yarn
+    // Handle delete yarn (now uses temp state)
     const handleDeleteYarn = (yarnIndex) => {
-        const updatedYarns = yarns.filter((_, index) => index !== yarnIndex);
-        handleInputChange('yarns', updatedYarns);
+        const updatedYarns = tempFormState.yarns.filter((_, index) => index !== yarnIndex);
+        const updatedMapping = { ...tempFormState.colorMapping };
 
-        // Update color mapping to remove deleted yarn
-        const deletedYarn = yarns[yarnIndex];
+        // Remove letter mapping for deleted yarn
+        const deletedYarn = tempFormState.yarns[yarnIndex];
         if (deletedYarn.letter) {
-            const updatedMapping = { ...colorMapping };
             delete updatedMapping[deletedYarn.letter];
-            handleInputChange('colorMapping', updatedMapping);
         }
+
+        setTempFormState(prev => ({
+            ...prev,
+            yarns: updatedYarns,
+            colorMapping: updatedMapping
+        }));
+        setHasUnsavedChanges(true);
     };
 
-    // Check for letter conflicts and generate preview
+    // Check for letter conflicts using temp state
     const checkConflicts = (newYarnData) => {
         if (!newYarnData.letter) return null;
 
-        const existingYarnIndex = yarns.findIndex(y => y.letter === newYarnData.letter);
+        const existingYarnIndex = tempFormState.yarns.findIndex(y => y.letter === newYarnData.letter);
         const isCurrentYarn = editingYarnIndex !== null && existingYarnIndex === editingYarnIndex;
 
         if (existingYarnIndex !== -1 && !isCurrentYarn) {
-            const conflictYarn = yarns[existingYarnIndex];
+            const conflictYarn = tempFormState.yarns[existingYarnIndex];
             return {
                 newYarn: newYarnData,
                 conflictYarn: conflictYarn,
@@ -159,6 +236,7 @@ const YarnsSection = ({
     const handleYarnFormChange = (field, value) => {
         const updatedForm = { ...yarnForm, [field]: value };
         setYarnForm(updatedForm);
+        setYarnModalHasChanges(true);
 
         // Check for conflicts when letter changes
         if (field === 'letter') {
@@ -167,15 +245,33 @@ const YarnsSection = ({
         }
     };
 
-    // Handle save yarn
+    // Handle yarn modal close with unsaved check
+    const handleYarnModalClose = () => {
+        if (yarnModalHasChanges) {
+            setShowYarnUnsavedModal(true);
+        } else {
+            setShowYarnModal(false);
+            setYarnModalHasChanges(false);
+        }
+    };
+
+    // Handle confirmed yarn modal cancel
+    const handleConfirmYarnCancel = () => {
+        setShowYarnModal(false);
+        setShowYarnUnsavedModal(false);
+        setYarnModalHasChanges(false);
+        setConflictPreview(null);
+    };
+
+    // Handle save yarn (now uses temp state)
     const handleSaveYarn = () => {
-        let updatedYarns = [...yarns];
-        let updatedMapping = { ...colorMapping };
+        let updatedYarns = [...tempFormState.yarns];
+        let updatedMapping = { ...tempFormState.colorMapping };
 
         // Handle conflicts first
         if (conflictPreview) {
             // Remove letter from conflicted yarn
-            const conflictIndex = yarns.findIndex(y => y.letter === yarnForm.letter);
+            const conflictIndex = tempFormState.yarns.findIndex(y => y.letter === yarnForm.letter);
             if (conflictIndex !== -1) {
                 updatedYarns[conflictIndex] = { ...updatedYarns[conflictIndex], letter: '' };
                 delete updatedMapping[yarnForm.letter];
@@ -185,7 +281,7 @@ const YarnsSection = ({
         // Add or update the current yarn
         if (editingYarnIndex !== null) {
             // Editing existing yarn
-            const oldYarn = yarns[editingYarnIndex];
+            const oldYarn = tempFormState.yarns[editingYarnIndex];
             if (oldYarn.letter && oldYarn.letter !== yarnForm.letter) {
                 delete updatedMapping[oldYarn.letter];
             }
@@ -200,11 +296,16 @@ const YarnsSection = ({
             updatedMapping[yarnForm.letter] = `${yarnForm.brand} - ${yarnForm.color}`;
         }
 
-        // Save changes
-        handleInputChange('yarns', updatedYarns);
-        handleInputChange('colorMapping', updatedMapping);
+        // Update temp state
+        setTempFormState(prev => ({
+            ...prev,
+            yarns: updatedYarns,
+            colorMapping: updatedMapping
+        }));
+        setHasUnsavedChanges(true);
 
         setShowYarnModal(false);
+        setYarnModalHasChanges(false);
         setConflictPreview(null);
     };
 
@@ -212,7 +313,7 @@ const YarnsSection = ({
     const yarnModal = (
         <StandardModal
             isOpen={showYarnModal}
-            onClose={() => setShowYarnModal(false)}
+            onClose={handleYarnModalClose}
             onConfirm={handleSaveYarn}
             category="input"
             colorScheme="sage"
@@ -221,7 +322,7 @@ const YarnsSection = ({
             primaryButtonText={editingYarnIndex !== null ? 'Save Changes' : 'Add Yarn'}
             secondaryButtonText="Cancel"
             primaryButtonProps={{
-                disabled: !yarnForm.brand || !yarnForm.color
+                disabled: !yarnForm.brand?.trim() || !yarnForm.color?.trim() || !yarnForm.colorHex
             }}
         >
             <div className="space-y-4">
@@ -273,26 +374,63 @@ const YarnsSection = ({
                     </div>
                 </div>
 
-                {/* Letter Assignment */}
+                {/* Letter Assignment - Visual Button Grid */}
                 <div>
                     <label className="form-label">Assign to Letter (Optional)</label>
-                    <select
-                        value={yarnForm.letter}
-                        onChange={(e) => handleYarnFormChange('letter', e.target.value)}
-                        className="w-full border-2 border-wool-200 rounded-xl px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                    >
-                        <option value="">No assignment</option>
+                    <div className="grid grid-cols-4 gap-2">
+                        {/* None Button */}
+                        <button
+                            type="button"
+                            onClick={() => handleYarnFormChange('letter', '')}
+                            className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${yarnForm.letter === ''
+                                    ? 'border-sage-500 bg-sage-50 text-sage-700'
+                                    : 'border-wool-200 hover:border-wool-300 text-wool-600'
+                                }`}
+                        >
+                            <div className="font-bold text-lg">—</div>
+                            <div className="text-xs mt-1">None</div>
+                        </button>
+
+                        {/* Letter Buttons */}
                         {getAvailableLetters().map(letter => {
-                            const isOccupied = yarns.some(y => y.letter === letter);
-                            const isCurrentYarn = editingYarnIndex !== null && yarns[editingYarnIndex]?.letter === letter;
+                            const assignedYarn = tempFormState.yarns.find(y => y.letter === letter);
+                            const isCurrentYarn = editingYarnIndex !== null && tempFormState.yarns[editingYarnIndex]?.letter === letter;
+                            const isSelected = yarnForm.letter === letter;
+                            const isOccupied = assignedYarn && !isCurrentYarn;
 
                             return (
-                                <option key={letter} value={letter}>
-                                    {letter} {isOccupied && !isCurrentYarn ? '(will reassign)' : '(available)'}
-                                </option>
+                                <button
+                                    key={letter}
+                                    type="button"
+                                    onClick={() => handleYarnFormChange('letter', letter)}
+                                    className={`p-3 rounded-lg border-2 text-sm font-medium transition-all relative ${isSelected
+                                            ? 'border-sage-500 bg-sage-50 text-sage-700'
+                                            : isOccupied
+                                                ? 'border-yellow-400 bg-yellow-50 text-yellow-800'
+                                                : 'border-wool-200 hover:border-wool-300 text-wool-600 hover:bg-wool-25'
+                                        }`}
+                                >
+                                    <div className="font-bold text-lg">{letter}</div>
+                                    <div className="text-xs mt-1">
+                                        {isSelected ? 'Selected' : isOccupied ? 'Reassign' : 'Available'}
+                                    </div>
+
+                                    {/* Color dot if assigned */}
+                                    {assignedYarn && (
+                                        <div
+                                            className="absolute top-1 right-1 w-3 h-3 rounded-full border border-gray-300"
+                                            style={{ backgroundColor: assignedYarn.colorHex || '#f3f4f6' }}
+                                        />
+                                    )}
+                                </button>
                             );
                         })}
-                    </select>
+                    </div>
+
+                    {/* Helper text */}
+                    <div className="text-xs text-wool-500 mt-2">
+                        💡 Letters help organize colors in your pattern instructions
+                    </div>
                 </div>
 
                 {/* Number of Skeins */}
@@ -333,9 +471,9 @@ const YarnsSection = ({
                         useBranding={true}
                         onHome={() => { }}
                         compact={true}
-                        onBack={() => setIsEditing(false)}
+                        onBack={handleCancel}
                         showCancelButton={true}
-                        onCancel={() => setIsEditing(false)}
+                        onCancel={handleCancel}
                     />
 
                     {/* Add proper spacing after PageHeader */}
@@ -350,7 +488,7 @@ const YarnsSection = ({
                             <label className="form-label">Colors in Project</label>
                             <IncrementInput
                                 value={colorCount}
-                                onChange={(value) => handleInputChange('colorCount', value)}
+                                onChange={(value) => handleTempInputChange('colorCount', value)}
                                 label="colors in this project"
                                 unit="colors"
                                 min={1}
@@ -430,6 +568,22 @@ const YarnsSection = ({
                             )}
                         </div>
                     </div>
+
+                    {/* Save/Cancel Button Bar */}
+                    <div className="sticky bottom-0 bg-yarn-50 border-t-2 border-wool-200 p-6 flex gap-3">
+                        <button
+                            onClick={handleCancel}
+                            className="flex-1 btn-tertiary"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveChanges}
+                            className="flex-1 btn-primary"
+                        >
+                            Save Changes
+                        </button>
+                    </div>
                 </div>
             </div>
         );
@@ -439,6 +593,43 @@ const YarnsSection = ({
                 {createPortal(fullScreenContent, document.body)}
                 {/* Render yarn modal separately to avoid portal conflicts */}
                 {showYarnModal && createPortal(yarnModal, document.body)}
+
+                {/* Yarn Modal Unsaved Changes Warning - Also use portal */}
+                {showYarnUnsavedModal && createPortal(
+                    <StandardModal
+                        isOpen={showYarnUnsavedModal}
+                        onClose={() => setShowYarnUnsavedModal(false)}
+                        onConfirm={handleConfirmYarnCancel}
+                        category="warning"
+                        colorScheme="red"
+                        title="Discard Yarn Changes?"
+                        subtitle="You have unsaved changes to this yarn"
+                        primaryButtonText="Discard Changes"
+                        secondaryButtonText="Keep Editing"
+                    >
+                        <p className="text-sm text-gray-700">
+                            Are you sure you want to close without saving? Your yarn details will be lost.
+                        </p>
+                    </StandardModal>,
+                    document.body
+                )}
+
+                {/* Main Unsaved Changes Warning Modal */}
+                <StandardModal
+                    isOpen={showUnsavedChangesModal}
+                    onClose={() => setShowUnsavedChangesModal(false)}
+                    onConfirm={handleConfirmCancel}
+                    category="warning"
+                    colorScheme="red"
+                    title="Unsaved Changes"
+                    subtitle="You have unsaved changes that will be lost"
+                    primaryButtonText="Discard Changes"
+                    secondaryButtonText="Keep Editing"
+                >
+                    <p className="text-sm text-gray-700">
+                        Are you sure you want to leave without saving? Your yarn and color changes will be lost.
+                    </p>
+                </StandardModal>
             </>
         );
     }
@@ -466,18 +657,28 @@ const YarnsSection = ({
                         <div className="text-sm text-wool-700">
                             <strong>Current yarns:</strong>
                             <div className="ml-4 mt-1 space-y-1">
-                                {yarns.map((yarn, index) => (
-                                    <div key={yarn.id || index} className="flex items-center gap-2">
-                                        <div
-                                            className="w-4 h-4 rounded-full border border-gray-300"
-                                            style={{ backgroundColor: yarn.colorHex || '#f3f4f6' }}
-                                        />
-                                        <span>
-                                            {yarn.letter ? `${yarn.letter} - ` : ''}
-                                            {yarn.brand}: {yarn.color} ({yarn.skeins} {yarn.skeins === 1 ? 'skein' : 'skeins'})
-                                        </span>
-                                    </div>
-                                ))}
+                                {/* Sort yarns by letter assignment for display */}
+                                {[...yarns]
+                                    .sort((a, b) => {
+                                        // Yarns with letters come first, sorted alphabetically
+                                        // Yarns without letters come after
+                                        if (a.letter && !b.letter) return -1;
+                                        if (!a.letter && b.letter) return 1;
+                                        if (a.letter && b.letter) return a.letter.localeCompare(b.letter);
+                                        return 0;
+                                    })
+                                    .map((yarn, index) => (
+                                        <div key={yarn.id || index} className="flex items-center gap-2">
+                                            <div
+                                                className="w-4 h-4 rounded-full border border-gray-300"
+                                                style={{ backgroundColor: yarn.colorHex || '#f3f4f6' }}
+                                            />
+                                            <span>
+                                                {yarn.letter ? `${yarn.letter} - ` : ''}
+                                                {yarn.brand}: {yarn.color} ({yarn.skeins} {yarn.skeins === 1 ? 'skein' : 'skeins'})
+                                            </span>
+                                        </div>
+                                    ))}
                             </div>
                         </div>
                     ) : (
