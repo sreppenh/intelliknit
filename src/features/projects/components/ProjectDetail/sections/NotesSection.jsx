@@ -132,7 +132,7 @@ const NotesSection = ({
                         )}
                     </div>
                 ) : (
-                    <div className="text-sm text-wool-400 italic">
+                    <div className="text-sm text-wool-500 italic">
                         + Add project notes
                     </div>
                 )}

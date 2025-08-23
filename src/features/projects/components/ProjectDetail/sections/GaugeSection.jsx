@@ -184,7 +184,7 @@ const GaugeSection = ({
                         )}
                     </div>
                 ) : (
-                    <div className="text-sm text-wool-500 italic">
+                    <div className="text-sm text-wool-500 italic text-left">
                         + Add gauge information
                     </div>
                 )}
