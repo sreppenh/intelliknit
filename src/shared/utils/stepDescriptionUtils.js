@@ -39,7 +39,7 @@ export const getHumanReadableDescription = (step, componentName = null) => {
  * Get contextual notes (user-provided text in italics)
  * Returns formatted string or null if no context available
  */
-export const getContextualPatternNotes = (step) => {
+export const getContextualPatternNotes = (step, project = null) => {
     const pattern = getStepPatternName(step);
     // ✅ TEMPORARY: Debug what pattern we're getting
 
@@ -58,6 +58,11 @@ export const getContextualPatternNotes = (step) => {
     // ✅ FIX: For ALL other Cast On methods, show NO contextual notes
     if (pattern === 'Cast On') {
         return null;
+    }
+
+    // ✅ NEW: Show detailed stripe sequence instead of generic text
+    if (pattern === 'Stripes') {
+        return getStripeSequenceDisplay(step, project);
     }
 
     // ✅ NEW: Show custom method for bind-off "other" method in italics
@@ -240,9 +245,52 @@ const getAdvancedPatternNotes = (step) => {
 };
 
 /**
+ * ✅ NEW: Generate detailed stripe sequence display
+ */
+const getStripeSequenceDisplay = (step, project) => {
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+    const stripeSequence = stitchPattern?.stripeSequence;
+
+    if (!stripeSequence || !Array.isArray(stripeSequence) || stripeSequence.length === 0) {
+        return null;
+    }
+
+    const construction = step.construction || 'flat';
+    const rowTerm = construction === 'round' ? 'rounds' : 'rows';
+    const rowTermSingle = construction === 'round' ? 'round' : 'row';
+
+    // Get color mapping from project (if available)
+    const getColorName = (letter) => {
+        // Try to get actual color name from project yarns
+        const yarn = project?.yarns?.find(y => y.letter === letter);
+        if (yarn?.color) {
+            return yarn.color;
+        }
+
+        // Fallback to generic "Color A" format
+        return `Color ${letter}`;
+    };
+
+    // Format each stripe in the sequence
+    const stripeDescriptions = stripeSequence.map(stripe => {
+        const colorName = getColorName(stripe.color);
+        const rowCount = stripe.rows || 1;
+        const term = rowCount === 1 ? rowTermSingle : rowTerm;
+        return `${rowCount} ${term} ${colorName}`;
+    });
+
+    return stripeDescriptions.join(', ');
+};
+
+/**
  * Get configuration-specific contextual notes
  * Used for shaping details, timing specifics, duration notes
  */
+
+export const hasContextualPatternNotes = (step) => {
+    return getContextualPatternNotes(step) !== null;
+};
+
 export const getContextualConfigNotes = (step) => {
     const notes = [];
 
@@ -292,10 +340,10 @@ export const getContextualConfigNotes = (step) => {
  * Get complete formatted step display
  * Returns object with description, notes, and technical data
  */
-export const getFormattedStepDisplay = (step) => {
+export const getFormattedStepDisplay = (step, componentName = null, project = null) => {
     return {
-        description: getHumanReadableDescription(step),
-        contextualPatternNotes: getContextualPatternNotes(step),
+        description: getHumanReadableDescription(step, componentName),
+        contextualPatternNotes: getContextualPatternNotes(step, project),
         contextualConfigNotes: getContextualConfigNotes(step),
         technicalData: getTechnicalDataDisplay(step)
     };
@@ -383,6 +431,28 @@ const getShapingStepDescription = (step) => {
     return `Work in ${pattern}${shapingText}`;
 };
 
+
+
+/**
+ * ✅ NEW: Generate stripe pattern description with proper formatting
+ */
+const getStripePatternDescription = (step) => {
+    const duration = getStepDurationDisplay(step);
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+    const rowsInPattern = parseInt(stitchPattern?.rowsInPattern) || 0;
+
+    if (duration && rowsInPattern > 0) {
+        return `Work ${duration} in ${rowsInPattern}-row Stripe Pattern`;
+    }
+
+    // Fallback for edge cases
+    if (duration) {
+        return `Work ${duration} in Stripe Pattern`;
+    }
+
+    return 'Work in Stripe Pattern';
+};
+
 /**
  * ✅ NEW: Generate descriptions for non-shaping steps  
  * Handles the [pattern][duration config] format
@@ -390,6 +460,11 @@ const getShapingStepDescription = (step) => {
 const getNonShapingStepDescription = (step) => {
     const pattern = getStepPatternName(step);
     const duration = getStepDurationDisplay(step);
+
+    // ✅ SPECIAL HANDLING for Stripes
+    if (pattern === 'Stripes') {
+        return getStripePatternDescription(step);
+    }
 
     // ✅ NEW: For advanced patterns, include row count in pattern name
     let enhancedPattern = pattern;
@@ -411,6 +486,7 @@ const getNonShapingStepDescription = (step) => {
 
     return `Work in ${enhancedPattern}`;
 };
+
 
 // ===== ORIGINAL SPECIFIC DESCRIPTION GENERATORS =====
 // These are used by the step-type functions above
@@ -686,9 +762,6 @@ const getEnhancedDurationDisplay = (step) => {
 /**
  * Check if step has contextual notes to display
  */
-export const hasContextualPatternNotes = (step) => {
-    return getContextualPatternNotes(step) !== null;
-};
 
 export const hasContextualConfigNotes = (step) => {
     return getContextualConfigNotes(step) !== null;
