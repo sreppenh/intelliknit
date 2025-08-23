@@ -20,6 +20,7 @@ const StepsList = ({
     // New props for buttons
     onAddStep,
     onFinishComponent,
+    project,
 }) => {
     // Determine if component is fully entered (same logic as ManageSteps)
     const isComponentFullyEntered = () => {
@@ -96,6 +97,7 @@ const StepsList = ({
                         onDeleteStep={onDeleteStep}
                         onPrepNoteClick={onPrepNoteClick}
                         onAfterNoteClick={onAfterNoteClick}
+                        project={project}
                     />
                 );
             })}
