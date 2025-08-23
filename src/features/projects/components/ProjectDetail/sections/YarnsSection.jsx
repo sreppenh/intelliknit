@@ -382,7 +382,7 @@ const YarnsSection = ({
                         <button
                             type="button"
                             onClick={() => handleYarnFormChange('letter', '')}
-                            className={`p-3 rounded-lg border-2 text-sm font-medium transition-all ${yarnForm.letter === ''
+                            className={`p-3 rounded-lg border-2 text-sm font-medium transition-all text-center ${yarnForm.letter === ''
                                     ? 'border-sage-500 bg-sage-50 text-sage-700'
                                     : 'border-wool-200 hover:border-wool-300 text-wool-600'
                                 }`}
@@ -403,10 +403,10 @@ const YarnsSection = ({
                                     key={letter}
                                     type="button"
                                     onClick={() => handleYarnFormChange('letter', letter)}
-                                    className={`p-3 rounded-lg border-2 text-sm font-medium transition-all relative ${isSelected
+                                    className={`p-3 rounded-lg border-2 text-sm font-medium transition-all relative text-center ${isSelected
                                             ? 'border-sage-500 bg-sage-50 text-sage-700'
                                             : isOccupied
-                                                ? 'border-yellow-400 bg-yellow-50 text-yellow-800'
+                                                ? 'border-wool-400 bg-wool-50 text-wool-800'
                                                 : 'border-wool-200 hover:border-wool-300 text-wool-600 hover:bg-wool-25'
                                         }`}
                                 >
@@ -415,11 +415,15 @@ const YarnsSection = ({
                                         {isSelected ? 'Selected' : isOccupied ? 'Reassign' : 'Available'}
                                     </div>
 
-                                    {/* Color dot if assigned */}
-                                    {assignedYarn && (
+                                    {/* Color dot - show selected yarn's color when selected */}
+                                    {(assignedYarn || (isSelected && yarnForm.colorHex)) && (
                                         <div
                                             className="absolute top-1 right-1 w-3 h-3 rounded-full border border-gray-300"
-                                            style={{ backgroundColor: assignedYarn.colorHex || '#f3f4f6' }}
+                                            style={{
+                                                backgroundColor: isSelected && yarnForm.colorHex
+                                                    ? yarnForm.colorHex
+                                                    : (assignedYarn?.colorHex || '#f3f4f6')
+                                            }}
                                         />
                                     )}
                                 </button>
@@ -466,7 +470,7 @@ const YarnsSection = ({
             <div className="fixed inset-0 z-50 min-h-screen bg-yarn-50 overflow-y-auto">
                 <div className="absolute inset-0 bg-yarn-50"></div>
 
-                <div className="relative app-container bg-yarn-50 min-h-screen shadow-lg">
+                <div className="relative app-container bg-yarn-50 min-h-screen shadow-lg" style={{ transform: 'none' }}>
                     <PageHeader
                         useBranding={true}
                         onHome={() => { }}
@@ -516,10 +520,10 @@ const YarnsSection = ({
                             {yarns.length > 0 ? (
                                 <div className="space-y-3">
                                     {yarns.map((yarn, index) => (
-                                        <div key={yarn.id || index} className="flex items-center gap-4 p-4 bg-white rounded-xl border-2 border-wool-200">
-                                            {/* Color chip */}
+                                        <div key={yarn.id || index} className="flex items-start gap-4 p-4 bg-white rounded-xl border-2 border-wool-200">
+                                            {/* Color chip - aligned to top */}
                                             <div
-                                                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 border-gray-300"
+                                                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 border-gray-300 flex-shrink-0"
                                                 style={{
                                                     backgroundColor: yarn.colorHex || '#f3f4f6',
                                                     color: yarn.colorHex && yarn.colorHex !== '#ffffff' ? 'white' : '#6b7280'
