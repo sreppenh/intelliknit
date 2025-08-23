@@ -54,10 +54,13 @@ const StepsList = ({
                 <div className="flex gap-2">
                     {!isComponentFullyEntered() ? (
                         <>
-                            <button onClick={onAddStep} className="btn-secondary btn-sm">+ Add Step</button>
+
                             {component.steps.length > 0 && (
-                                <button onClick={onFinishComponent} className="btn-primary btn-sm">🏁 Finish</button>
+                                <button onClick={onFinishComponent} className="btn-secondary btn-sm">🏁 Finish</button>
                             )}
+
+                            <button onClick={onAddStep} className="btn-primary btn-sm">+ Add Step</button>
+
                         </>
                     ) : (
                         <>

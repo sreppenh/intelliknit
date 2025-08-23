@@ -210,16 +210,30 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
     const step = component.steps[stepIndex];
     const patternName = getStepPatternName(step);
 
+    console.log('🔧 ManageSteps - Editing pattern:', patternName);
 
     // Check if this is an advanced pattern that needs row-by-row editing
     if (isAdvancedRowByRowPattern(patternName)) {
       setEditingStepIndex(stepIndex);
       setEditMode('rowByRow');
       setIsEditing(true);
-    } else {
-      setEditingStepIndex(stepIndex);
-      setShowEditPatternModal(true);
+      setOpenMenuId(null);
+      return;
     }
+
+    // CHECK FOR STRIPES PATTERN - Route to EditStepRouter
+    if (patternName === 'Stripes') {
+      console.log('🔧 ManageSteps - Routing Stripes to EditStepRouter');
+      setEditingStepIndex(stepIndex);
+      setEditMode('pattern'); // This tells EditStepRouter to handle pattern editing
+      setIsEditing(true);
+      setOpenMenuId(null);
+      return;
+    }
+
+    // For other simple patterns, use the modal
+    setEditingStepIndex(stepIndex);
+    setShowEditPatternModal(true);
     setOpenMenuId(null);
   };
 
@@ -399,7 +413,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
     // Handle special cases that need the router
     console.log('🔧 editMode:', editMode);
 
-    if (editMode === 'rowByRow' || editMode === 'duration' || editMode === 'shaping') {
+    if (editMode === 'rowByRow' || editMode === 'duration' || editMode === 'shaping' || editMode === 'pattern') {
       return (
         <EditStepRouter
           componentIndex={componentIndex}
@@ -500,23 +514,27 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
           {/* Action Buttons */}
           {!isComponentFullyEntered() ? (
             <div className="flex gap-3">
-              <button
-                onClick={handleAddNewStep}
-                className="flex-1 btn-secondary flex items-center justify-center gap-2"
-              >
-                <span className="text-lg">➕</span>
-                Add Step
-              </button>
+
 
               {component.steps.length > 0 && (
                 <button
                   onClick={handleFinishComponent}
-                  className="flex-1 btn-primary flex items-center justify-center gap-2"
+                  className="flex-1 btn-secondary flex items-center justify-center gap-2"
                 >
                   <span className="text-lg">🏁</span>
                   Finish
                 </button>
               )}
+
+              <button
+                onClick={handleAddNewStep}
+                className="flex-1 btn-primary flex items-center justify-center gap-2"
+              >
+                <span className="text-lg">➕</span>
+                Add Step
+              </button>
+
+
             </div>
           ) : (
             <div className="flex gap-3">

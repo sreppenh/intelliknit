@@ -6,12 +6,14 @@ import { StandardModal } from '../../../../shared/components/modals/StandardModa
 
 const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onCancel, project }) => {
     // Stripe sequence state
-    const [stripeSequence, setStripeSequence] = useState(() => {
-        if (wizardData.stitchPattern?.stripeSequence) {
-            return wizardData.stitchPattern.stripeSequence;
+    const [stripeSequence, setStripeSequence] = useState([]);
+
+    useEffect(() => {
+        if (wizardData.stitchPattern?.stripeSequence && wizardData.stitchPattern.stripeSequence.length > 0) {
+            console.log('🔧 StripesConfig - Loading stripe sequence:', wizardData.stitchPattern.stripeSequence);
+            setStripeSequence(wizardData.stitchPattern.stripeSequence);
         }
-        return [];
-    });
+    }, [wizardData.stitchPattern?.stripeSequence]);
 
     // View toggle state
     const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'visual'
@@ -40,9 +42,11 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
             ...wizardData.stitchPattern,
             stripeSequence: stripeSequence,
             rowsInPattern: totalRows > 0 ? totalRows.toString() : '',
-            customText: stripeSequence.length >= 2 ? 'Stripe pattern configured' : '' // Add this line!
+            customText: stripeSequence.length >= 2 ? 'Stripe pattern configured' : ''
         });
-    }, [stripeSequence, updateWizardData, wizardData.stitchPattern]);
+    }, [stripeSequence]); // Only depend on stripeSequence to prevent infinite loops
+
+
     // Get available color letters
     const getAvailableColors = () => {
         const maxLetters = Math.min(projectColorCount, 26);
