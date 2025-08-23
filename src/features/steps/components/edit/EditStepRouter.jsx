@@ -7,6 +7,7 @@ import EditPatternModal from './EditPatternModal';
 import EditConfigScreen from './EditConfigScreen';
 import EditEvenDistributionForm from './EditEvenDistributionForm';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';
+import EditStripesForm from './EditStripesForm';
 import {
     getStepPatternName,
     isAdvancedRowByRowPattern,
@@ -32,6 +33,8 @@ const EditStepRouter = ({
     onGoToLanding
 }) => {
     const { currentProject } = useProjectsContext();
+
+    console.log('🔧 hellow editType:', editType);
 
     // Validation
     if (!currentProject ||
@@ -81,13 +84,24 @@ const EditStepRouter = ({
     // ===== SPECIFIC EDIT TYPE ROUTING =====
     // When ManageSteps specifies exactly what to edit
 
+    console.log('🔧 editType:', editType);
+
     if (editType === 'pattern') {
         const patternName = getStepPatternName(step);
+        console.log('🔧 EditStepRouter - Pattern name:', patternName); // Add this debug line
+
 
         // Advanced patterns need row-by-row editor
         if (isAdvancedRowByRowPattern(patternName)) {
             return <EditRowByRowPatternForm {...commonProps} />;
         }
+
+        // ADD THIS BLOCK HERE:
+        if (patternName === 'Stripes') {
+            console.log('🔧 Should route to EditStripesForm'); // Add this too
+            return <EditStripesForm {...commonProps} />;
+        }
+
 
         // Simple patterns can use modal or dedicated screen
         // For now, we'll return null and let ManageSteps handle the modal

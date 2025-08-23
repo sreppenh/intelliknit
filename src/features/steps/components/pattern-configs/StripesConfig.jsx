@@ -4,7 +4,7 @@ import { Plus, Edit2, X, List, Palette } from 'lucide-react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
 
-const StripesConfig = ({ wizardData, updateWizardData, construction, project }) => {
+const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onCancel, project }) => {
     // Stripe sequence state
     const [stripeSequence, setStripeSequence] = useState(() => {
         if (wizardData.stitchPattern?.stripeSequence) {
@@ -33,16 +33,16 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
     const colorMapping = project?.colorMapping || {};
     const yarns = project?.yarns || [];
 
-    // Auto-calculate total rows and save to wizardData
     useEffect(() => {
         const totalRows = stripeSequence.reduce((sum, stripe) => sum + stripe.rows, 0);
+
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
             stripeSequence: stripeSequence,
-            rowsInPattern: totalRows > 0 ? totalRows.toString() : ''
+            rowsInPattern: totalRows > 0 ? totalRows.toString() : '',
+            customText: stripeSequence.length >= 2 ? 'Stripe pattern configured' : '' // Add this line!
         });
-    }, [stripeSequence]);
-
+    }, [stripeSequence, updateWizardData, wizardData.stitchPattern]);
     // Get available color letters
     const getAvailableColors = () => {
         const maxLetters = Math.min(projectColorCount, 26);
@@ -251,6 +251,9 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
         </StandardModal>
     );
 
+    const canProceed = stripeSequence.length > 0;
+
+
     return (
         <div className="space-y-6">
             {/* Add Stripe Button and Toggle - Split layout */}
@@ -280,6 +283,10 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
                         </button>
                     </div>
                 )}
+
+                {/* Add empty div when no toggle to maintain right alignment */}
+                {stripeSequence.length === 0 && <div></div>}
+
 
                 {/* Add Stripe Button - Right side */}
                 <button
@@ -489,6 +496,8 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, project }) 
             )}
         </div>
     );
+
+
 };
 
 export default StripesConfig;

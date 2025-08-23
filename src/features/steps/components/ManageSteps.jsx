@@ -210,6 +210,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
     const step = component.steps[stepIndex];
     const patternName = getStepPatternName(step);
 
+
     // Check if this is an advanced pattern that needs row-by-row editing
     if (isAdvancedRowByRowPattern(patternName)) {
       setEditingStepIndex(stepIndex);
@@ -396,6 +397,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
 
     // EDIT flow - use router for specific edits
     // Handle special cases that need the router
+    console.log('🔧 editMode:', editMode);
+
     if (editMode === 'rowByRow' || editMode === 'duration' || editMode === 'shaping') {
       return (
         <EditStepRouter
