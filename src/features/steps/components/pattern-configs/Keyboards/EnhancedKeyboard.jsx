@@ -9,6 +9,7 @@ import {
     isWorkToEndAction
 } from '../../../../../shared/utils/patternKeyboardUtils';
 import { isRowComplete, getMaxSafeMultiplier } from '../../../../../shared/utils/stitchCalculatorUtils';
+import { getKeyboardPatternKey, getKeyboardLayer } from '../../../../../shared/utils/stepDisplayUtils';
 
 
 const EnhancedKeyboard = ({
@@ -37,6 +38,10 @@ const EnhancedKeyboard = ({
         stitches: 1
     });
 
+    // 🔄 REPLACED: Centralized pattern key lookup
+    // OLD: patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general'
+    const patternKey = getKeyboardPatternKey(patternType);
+
     // Validation Function
     // Simplified validation using shared function:
     const getRowStatus = () => {
@@ -45,10 +50,8 @@ const EnhancedKeyboard = ({
         const currentCalc = getStitchCalculation();
         if (!currentCalc || !currentCalc.isValid) return { isComplete: false, reason: 'invalid' };
 
-        // Get custom actions
+        // 🔄 REPLACED: Use centralized pattern key
         const customActionsLookup = {};
-        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
-            patternType === 'Cable Pattern' ? 'cable' : 'general';
         const customActions = context?.project?.customKeyboardActions?.[patternKey] || [];
 
         customActions.forEach(customAction => {
@@ -70,10 +73,8 @@ const EnhancedKeyboard = ({
 
         const remainingStitches = currentCalc.previousStitches - currentCalc.stitchesConsumed;
 
-        // Get custom actions for current pattern
+        // 🔄 REPLACED: Use centralized pattern key
         const customActionsLookup = {};
-        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
-            patternType === 'Cable Pattern' ? 'cable' : 'general';
         const customActions = context?.project?.customKeyboardActions?.[patternKey] || [];
 
         customActions.forEach(customAction => {
@@ -103,12 +104,13 @@ const EnhancedKeyboard = ({
         return openBrackets > 0 || openParens > 0;
     };
 
+    // 🔄 REPLACED: Use centralized layer checking
+    // OLD: ((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') || (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern'))
+    const expectedLayer = getKeyboardLayer(patternType);
+    const shouldShowCustomActions = expectedLayer && layer === KEYBOARD_LAYERS[expectedLayer];
 
     // Get custom actions for current pattern type
-    const customActions = ((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
-        (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) ?
-        getCustomActions(patternType, context?.project) : [];
-
+    const customActions = shouldShowCustomActions ? getCustomActions(patternType, context?.project) : [];
 
     const handleCustomAction = (action, index) => {
         if (action === 'Custom') {
@@ -235,64 +237,60 @@ const EnhancedKeyboard = ({
                 })}
             </div>
 
-            {/* Custom Actions Row (Secondary for Lace, Tertiary for Cable) */}
-            {((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
-                (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) && (
-                    <>
-                        {/* Original 4-button grid - completely normal */}
-                        <div className="grid grid-cols-4 gap-3">
-
-                            {customActions.map((action, index) => (
-                                <div key={`custom-${index}`} className="relative">
-                                    <button
-                                        onClick={() => handleCustomAction(action, index)}
-                                        className={`w-full h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
-                                            ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
-                                            : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
-                                            }`}
-                                    >
-                                        {action === 'Custom' ? (
-                                            <span className="italic">Custom</span>
-                                        ) : (
-                                            typeof action === 'object' ? action.name : action
-                                        )}
-                                    </button>
-
-                                    {/* Edit icon for existing actions */}
-                                    {action !== 'Custom' && (
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                handleCustomLongPress(action, index);
-                                            }}
-                                            className="absolute -top-1 -right-1 w-5 h-5 bg-yarn-200 hover:bg-yarn-300 text-yarn-700 rounded-full text-xs flex items-center justify-center border border-yarn-300"
-                                            title="Edit custom action"
-                                        >
-                                            ✏️
-                                        </button>
+            {/* 🔄 REPLACED: Custom Actions Row using centralized layer checking */}
+            {shouldShowCustomActions && (
+                <>
+                    {/* Original 4-button grid - completely normal */}
+                    <div className="grid grid-cols-4 gap-3">
+                        {customActions.map((action, index) => (
+                            <div key={`custom-${index}`} className="relative">
+                                <button
+                                    onClick={() => handleCustomAction(action, index)}
+                                    className={`w-full h-10 rounded-lg text-sm font-medium border-2 transition-colors ${action === 'Custom'
+                                        ? 'bg-yarn-50 text-yarn-600 border-yarn-300 border-dashed hover:bg-yarn-100'
+                                        : 'bg-yarn-100 text-yarn-700 border-yarn-300 hover:bg-yarn-200'
+                                        }`}
+                                >
+                                    {action === 'Custom' ? (
+                                        <span className="italic">Custom</span>
+                                    ) : (
+                                        typeof action === 'object' ? action.name : action
                                     )}
-                                </div>
-                            ))}
-                        </div>
-                    </>
-                )}
+                                </button>
 
-            {/* Copy Row Actions (if any) */}
-            {rowInstructions.length > 0 &&
-                !((layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern') ||
-                    (layer === KEYBOARD_LAYERS.TERTIARY && patternType === 'Cable Pattern')) && (
-                    <div className="flex flex-wrap gap-2">
-                        {rowInstructions.map((_, index) => (
-                            <button
-                                key={`copy_${index}`}
-                                onClick={() => onAction(`copy_${index}`)}
-                                className={getButtonStyles('copy')}
-                            >
-                                Copy Row {index + 1}
-                            </button>
+                                {/* Edit icon for existing actions */}
+                                {action !== 'Custom' && (
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleCustomLongPress(action, index);
+                                        }}
+                                        className="absolute -top-1 -right-1 w-5 h-5 bg-yarn-200 hover:bg-yarn-300 text-yarn-700 rounded-full text-xs flex items-center justify-center border border-yarn-300"
+                                        title="Edit custom action"
+                                    >
+                                        ✏️
+                                    </button>
+                                )}
+                            </div>
                         ))}
                     </div>
-                )}
+                </>
+            )}
+
+            {/* 🔄 REPLACED: Copy Row Actions using centralized layer checking */}
+            {rowInstructions.length > 0 && !shouldShowCustomActions && (
+                <div className="flex flex-wrap gap-2">
+                    {rowInstructions.map((_, index) => (
+                        <button
+                            key={`copy_${index}`}
+                            onClick={() => onAction(`copy_${index}`)}
+                            className={getButtonStyles('copy')}
+                        >
+                            Copy Row {index + 1}
+                        </button>
+                    ))}
+                </div>
+            )}
         </div>
     );
 };
