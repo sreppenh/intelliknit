@@ -75,6 +75,18 @@ export const PATTERN_CATEGORIES = {
             { name: 'Stripes', icon: '🌈', desc: 'Horizontal color bands' }
         ]
     },
+    custom_texture: {
+        type: 'advanced',
+        name: 'Custom Texture',
+        icon: '🧶',
+        patterns: [
+            {
+                name: 'Custom Texture',
+                icon: '🧶',
+                desc: 'Define your custom texture pattern'
+            }
+        ]
+    },
 
     // Custom Category
     custom: {

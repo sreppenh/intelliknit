@@ -129,6 +129,41 @@ const PATTERN_CONFIG = {
         ]
     },
 
+
+    'Custom Texture': {
+        // Keyboard config 
+        quickActions: ['K to end', 'P to end', 'K', 'P', 'Bobble', 'Sl1'],
+        placeholderText: "e.g., 'K2, P2, Bobble, P2, K2'",
+        descriptionPlaceholder: "Describe your custom texture pattern...",
+
+        // Classification (same as Cable/Lace)
+        category: 'texture',
+        requiresAdvancedRowByRow: true,
+        isAdvancedPattern: true,
+
+        // Validation (same as Cable/Lace)
+        requiresCustomText: false,
+        requiresRowsInPattern: true,
+        needsDescriptionInput: false,
+        needsRowInput: false,
+
+        // Keyboard setup (simplified vs Cable/Lace)
+        keyboardPatternKey: 'custom_texture',
+        keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,    // ← This enables brackets/parens with numerical keyboard
+        availableLayers: ['PRIMARY'],
+
+        includesInRowCountPatterns: true,
+
+        configurationTips: [
+            'Use K and P for basic stitches',
+            'Add Bobble for texture interest',
+            'Use brackets [ ] for repeats',
+            'Use parentheses ( ) for stitch groups'
+        ]
+    },
+
     'Custom pattern': {
         quickActions: ['K to end', 'P to end'],
         placeholderText: "e.g., '5 rows stockinette, 1 bobble row'",

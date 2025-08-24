@@ -33,6 +33,9 @@ export const getKeyboardLayout = (patternType, layer = KEYBOARD_LAYERS.PRIMARY, 
             return getCableKeyboardLayout(layer, { rowNumber, construction });
         case 'Custom pattern':
             return getCustomKeyboardLayout(layer);
+        // In getKeyboardLayout function, add this case after 'Custom pattern':
+        case 'Custom Texture':
+            return getCustomTextureKeyboardLayout(layer);
         default:
             return getBasicKeyboardLayout(layer);
     }
@@ -103,6 +106,17 @@ const getCustomKeyboardLayout = (layer) => {
         actions: ['⌫', '[', '(', '⇧']
     };
 };
+
+// Add this new function after getCustomKeyboardLayout:
+const getCustomTextureKeyboardLayout = (layer) => {
+    return {
+        fullRow: ['K to end', 'P to end', 'K/P as set'],
+        input: ['K', 'P', 'Bobble', 'Sl1'],
+        actions: ['⌫', '[', '(', '⇧']
+    };
+};
+
+
 
 const getBasicKeyboardLayout = (layer) => {
     return {
