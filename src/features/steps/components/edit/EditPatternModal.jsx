@@ -1,7 +1,7 @@
 // src/features/steps/components/EditPatternModal.jsx
 import React, { useState, useEffect } from 'react';
 import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
-import { requiresAdvancedPatternEdit } from '../../../../shared/utils/stepDisplayUtils';
+import { requiresAdvancedPatternEdit, getPatternConfigurationTips } from '../../../../shared/utils/stepDisplayUtils';
 import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
 
@@ -118,6 +118,9 @@ const EditPatternModal = ({
 
         return false;
     };
+
+    // 🆕 NEW: Get configuration tips from centralized config
+    const configurationTips = getPatternConfigurationTips(patternData.pattern);
 
     if (shouldRouteToAdvancedEdit) {
         return null;
@@ -305,41 +308,17 @@ const EditPatternModal = ({
                             </>
                         )}
 
-                        {/* Configuration Tips */}
-                        <div className="help-block">
-                            <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Configuration Tips</h4>
-                            <div className="text-sm text-sage-600 space-y-1">
-                                {patternData.pattern === 'Lace Pattern' && (
-                                    <>
-                                        <div>• Include chart name or written instructions</div>
-                                        <div>• Note any yarn-over/decrease pairings</div>
-                                        <div>• Mention blocking requirements if important</div>
-                                    </>
-                                )}
-                                {patternData.pattern === 'Cable Pattern' && (
-                                    <>
-                                        <div>• Describe cable crossing (e.g., "6-st left cross")</div>
-                                        <div>• Include chart reference if you have one</div>
-                                        <div>• Note cable needle size if specific</div>
-                                    </>
-                                )}
-                                {patternData.pattern === 'Colorwork' && (
-                                    <>
-                                        <div>• Include color names or codes</div>
-                                        <div>• Describe pattern sequence or motif</div>
-                                        <div>• Note chart references if available</div>
-                                        <div>• Include special technique notes</div>
-                                    </>
-                                )}
-                                {patternData.pattern === 'Custom pattern' && (
-                                    <>
-                                        <div>• Be specific about stitch sequences</div>
-                                        <div>• Include any special techniques needed</div>
-                                        <div>• Note if pattern has right/wrong side differences</div>
-                                    </>
-                                )}
+                        {/* 🔄 REPLACED: Configuration Tips using centralized configuration */}
+                        {configurationTips.length > 0 && (
+                            <div className="help-block">
+                                <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Configuration Tips</h4>
+                                <div className="text-sm text-sage-600 space-y-1">
+                                    {configurationTips.map((tip, index) => (
+                                        <div key={index}>• {tip}</div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
+                        )}
                     </div>
                 )}
             </div>

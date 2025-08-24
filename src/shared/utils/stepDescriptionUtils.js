@@ -7,7 +7,7 @@
  * Generates human-friendly descriptions and contextual notes for step display.
  */
 
-import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote, getStepType, hasShaping } from './stepDisplayUtils';
+import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote, getStepType, hasShaping, requiresAdvancedPatternEdit } from './stepDisplayUtils';
 import { formatKnittingInstruction } from './knittingNotation';
 import { PhaseCalculationService } from './PhaseCalculationService';
 
@@ -88,8 +88,9 @@ export const getContextualPatternNotes = (step, project = null) => {
         return null;
     }
 
-    // ✅ NEW: Handle advanced patterns (Lace, Cable, Custom)
-    if (['Lace Pattern', 'Cable Pattern', 'Custom pattern'].includes(pattern)) {
+    // 🔄 REPLACED: Handle advanced patterns using centralized function
+    // OLD: ['Lace Pattern', 'Cable Pattern', 'Custom pattern'].includes(pattern)
+    if (requiresAdvancedPatternEdit({ wizardConfig: { stitchPattern: { pattern } } })) {
         return getAdvancedPatternNotes(step);
     }
 
@@ -466,9 +467,10 @@ const getNonShapingStepDescription = (step) => {
         return getStripePatternDescription(step);
     }
 
-    // ✅ NEW: For advanced patterns, include row count in pattern name
+    // 🔄 REPLACED: For advanced patterns, include row count in pattern name
+    // OLD: ['Lace Pattern', 'Cable Pattern', 'Custom pattern'].includes(pattern)
     let enhancedPattern = pattern;
-    if (['Lace Pattern', 'Cable Pattern', 'Custom pattern'].includes(pattern)) {
+    if (requiresAdvancedPatternEdit({ wizardConfig: { stitchPattern: { pattern } } })) {
         const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
         const rowsInPattern = stitchPattern?.rowsInPattern;
 
