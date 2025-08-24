@@ -1,11 +1,13 @@
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import { needsDescriptionInput, needsRowInput, getPatternConfigurationTips } from '../../../../shared/utils/stepDisplayUtils';
 
 const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
-  // ===== UPDATED: Remove advanced patterns from needsRowInput and needsDescription =====
-  const needsRowInput = ['Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern);
-  const needsDescription = ['Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern);
+  // 🔄 REPLACED: Hardcoded arrays with centralized functions
+  // OLD: ['Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern)
+  const needsRowInputValue = needsRowInput(wizardData.stitchPattern.pattern);
+  const needsDescriptionValue = needsDescriptionInput(wizardData.stitchPattern.pattern);
   const isOtherPattern = wizardData.stitchPattern.pattern === 'Other';
 
   // Check if this is a Basic/Rib/Textured pattern that can have optional repeats
@@ -14,10 +16,13 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
     return ['basic', 'rib', 'textured'].includes(wizardData.stitchPattern.category);
   };
 
+  // 🆕 NEW: Get configuration tips from centralized config
+  const configTips = getPatternConfigurationTips(wizardData.stitchPattern.pattern);
+
   return (
     <div className="stack-lg">
       {/* Pattern Description - For Lace, Cable, Colorwork patterns */}
-      {needsDescription && (
+      {needsDescriptionValue && (
         <div>
           <label className="form-label">
             Pattern Description
@@ -30,14 +35,13 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
             className="input-field-lg resize-none"
           />
           <label className="form-help">
-
             Describe the pattern sequence, special techniques, or any important notes
           </label>
         </div>
       )}
 
       {/* Lace/Cable/Colorwork - Required row input */}
-      {needsRowInput && (
+      {needsRowInputValue && (
         <div>
           <label className="form-label">
             Rows in Pattern
@@ -56,7 +60,7 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
       )}
 
       {/* Basic/Rib/Textured - Optional repeat input */}
-      {canHaveOptionalRepeats() && !needsRowInput && (
+      {canHaveOptionalRepeats() && !needsRowInputValue && (
         <div>
           <label className="form-label">
             Pattern Repeat (optional)
@@ -75,7 +79,6 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
         </div>
       )}
 
-
       {/* Other pattern input */}
       {isOtherPattern && (
         <div>
@@ -92,25 +95,14 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
         </div>
       )}
 
-      {/* ===== UPDATED: Simplified helper info (removed Cable and Lace) ===== */}
-      {needsDescription && (
+      {/* 🔄 REPLACED: Hardcoded pattern tips with centralized configuration */}
+      {needsDescriptionValue && configTips.length > 0 && (
         <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
           <h4 className="text-sm font-semibold text-yarn-700 mb-2">💡 Pattern Tips</h4>
           <div className="text-sm text-yarn-600 space-y-1">
-            {wizardData.stitchPattern.pattern === 'Stripes' && (
-              <>
-                <div>• List colors and row counts: "2 rows Navy, 4 rows Cream"</div>
-                <div>• Note any special color change techniques</div>
-                <div>• Include total repeat if complex sequence</div>
-              </>
-            )}
-            {(wizardData.stitchPattern.pattern === 'Fair Isle' || wizardData.stitchPattern.pattern === 'Intarsia') && (
-              <>
-                <div>• List color names or codes</div>
-                <div>• Describe the motif or pattern sequence</div>
-                <div>• Note any chart references</div>
-              </>
-            )}
+            {configTips.map((tip, index) => (
+              <div key={index}>• {tip}</div>
+            ))}
           </div>
         </div>
       )}
