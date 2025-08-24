@@ -500,6 +500,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding })
             onAfterNoteClick={handleAfterNoteClick}
             onStartKnitting={handleKnittingView}
             onBack={handleViewAllComponents}
+            project={currentProject}
           />
 
           {/* Editing Rules Info */}
