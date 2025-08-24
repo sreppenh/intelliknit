@@ -3,6 +3,7 @@ import React from 'react';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
 import { formatRunningTotal, getPreviousRowStitches, calculateRowStitchesLive, calculateRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import { isRowComplete } from '../../../../shared/utils/stitchCalculatorUtils';
+import { getKeyboardPatternKey } from '../../../../shared/utils/stepDisplayUtils';
 
 const RowEntryModal = ({
     isOpen,
@@ -121,11 +122,10 @@ const RowEntryModal = ({
             return { isComplete: false, reason: 'invalid' };
         }
 
-        // Get custom actions (same pattern as EnhancedKeyboard)
+        // 🔄 REPLACED: Get custom actions using centralized pattern key function
         const customActionsLookup = {};
         const patternType = wizardData?.stitchPattern?.pattern;
-        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
-            patternType === 'Cable Pattern' ? 'cable' : 'general';
+        const patternKey = getKeyboardPatternKey(patternType);
         const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
 
         customActions.forEach(customAction => {
