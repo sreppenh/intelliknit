@@ -388,49 +388,49 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
                             })}
                         </div>
                     ) : (
-                        /* Visual View */
+
+                        /* Visual View - Replace the existing visual view section */
                         <div className="bg-white rounded-xl border-2 border-wool-200 p-6">
                             <div className="text-sm text-wool-600 mb-4 text-center">
                                 Stripe Pattern Preview ({totalRows} {rowUnit} total)
                             </div>
 
-                            {/* Visual stripe bars */}
+                            {/* Visual stripe bars - proportional thickness, no text inside */}
                             <div className="space-y-1">
                                 {stripeSequence.map((stripe, index) => {
                                     const colorInfo = getColorInfo(stripe.color);
-                                    const heightPercent = Math.max((stripe.rows / totalRows) * 100, 8); // Min 8% height
+                                    // Proportional height: each row gets equal visual weight
+                                    const heightPx = stripe.rows * 12; // 12px per row (adjust this value as needed)
 
                                     return (
                                         <div key={stripe.id || index} className="relative">
                                             <div
-                                                className="w-full rounded border border-gray-300 flex items-center justify-center text-sm font-medium"
+                                                className="w-full rounded border border-gray-300"
                                                 style={{
                                                     backgroundColor: colorInfo.hex,
-                                                    color: colorInfo.hex !== '#ffffff' ? 'white' : '#6b7280',
-                                                    height: `${Math.max(heightPercent, 40)}px` // Min 40px for readability
+                                                    height: `${heightPx}px`
                                                 }}
-                                            >
-                                                {stripe.rows} {stripe.color}
-                                            </div>
+                                                title={`${stripe.rows} ${stripe.rows === 1 ? rowUnit.slice(0, -1) : rowUnit} of ${colorInfo.displayName}`}
+                                            />
                                         </div>
                                     );
                                 })}
                             </div>
 
-                            {/* Legend */}
+                            {/* Legend - Enhanced with row counts */}
                             <div className="mt-4 pt-4 border-t border-wool-200">
-                                <div className="text-xs text-wool-600 mb-2">Colors:</div>
-                                <div className="flex flex-wrap gap-2">
-                                    {[...new Set(stripeSequence.map(s => s.color))].map(letter => {
-                                        const colorInfo = getColorInfo(letter);
+                                <div className="text-xs text-wool-600 mb-2">Pattern Sequence:</div>
+                                <div className="flex flex-wrap gap-3">
+                                    {stripeSequence.map((stripe, index) => {
+                                        const colorInfo = getColorInfo(stripe.color);
                                         return (
-                                            <div key={letter} className="flex items-center gap-2">
+                                            <div key={`${stripe.color}-${index}`} className="flex items-center gap-2">
                                                 <div
                                                     className="w-4 h-4 rounded border border-gray-300"
                                                     style={{ backgroundColor: colorInfo.hex }}
                                                 />
                                                 <span className="text-xs text-wool-700">
-                                                    {letter} - {colorInfo.name}
+                                                    {stripe.color}: {stripe.rows} {stripe.rows === 1 ? rowUnit.slice(0, -1) : rowUnit}
                                                 </span>
                                             </div>
                                         );
