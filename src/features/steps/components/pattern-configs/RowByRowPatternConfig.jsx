@@ -1,7 +1,7 @@
 // src/features/steps/components/pattern-configs/RowByRowPatternConfig.jsx
 import React, { useState, useEffect } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import { getPatternQuickActions, getPatternPlaceholderText } from '../../../../shared/utils/stepDisplayUtils';
+import { getPatternQuickActions, getPatternPlaceholderText, getKeyboardPatternKey } from '../../../../shared/utils/stepDisplayUtils';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import {
     KEYBOARD_LAYERS,
@@ -124,6 +124,10 @@ const RowByRowPatternConfig = ({
     // Get pattern-specific data
     const patternType = wizardData.stitchPattern.pattern;
     const placeholderText = getPatternPlaceholderText(patternType);
+
+    // 🔄 REPLACED: Centralized pattern key lookup
+    // OLD: patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general'
+    const patternKey = getKeyboardPatternKey(patternType);
 
     // Get current enhanced keyboard
     const currentRowNumber = editingRowIndex === null ? rowInstructions.length + 1 : editingRowIndex + 1;
@@ -282,10 +286,9 @@ const RowByRowPatternConfig = ({
             baselineStitches
         );
 
-        // Build custom actions lookup from project data
+        // 🔄 REPLACED: Use centralized pattern key
+        // OLD: patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general'
         const customActionsLookup = {};
-        const patternKey = patternType === 'Lace Pattern' ? 'lace' :
-            patternType === 'Cable Pattern' ? 'cable' : 'general';
         const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
 
         customActions.forEach(action => {
@@ -296,8 +299,6 @@ const RowByRowPatternConfig = ({
 
         return calculateRowStitchesLive(tempRowText, previousStitches, customActionsLookup);
     };
-
-
 
     /**
      * Find the matching opening bracket for a closing bracket at the end of text
@@ -741,7 +742,8 @@ const RowByRowPatternConfig = ({
 
             {/* Entry Mode Toggle */}
             <div>
-                <label className="form-label">Pattern Entry Method</label>
+                <label className="form-label">Pattern Entry Method                    </label>
+
                 {isReadOnly('entryMode') && (
                     <p className="text-xs text-yarn-600 mb-2">
                         Entry method is locked to preserve existing row data
