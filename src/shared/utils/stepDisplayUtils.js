@@ -53,7 +53,346 @@ const PATTERN_CATEGORIES = {
     'structure': ['Lace', 'Cable', 'Brioche']
 };
 
-// ===== CORE UTILITY FUNCTIONS =====
+// ===== 🆕 EXPANDED PATTERN CONFIGURATION - SINGLE SOURCE OF TRUTH =====
+
+/**
+ * COMPREHENSIVE PATTERN REGISTRY
+ * This replaces ALL hardcoded pattern checks throughout the application.
+ * 
+ * Adding a new pattern type? Just add ONE entry here and everything works!
+ */
+const PATTERN_CONFIG = {
+    // ===== ADVANCED ROW-BY-ROW PATTERNS =====
+    'Lace Pattern': {
+        // Existing keyboard config (preserved)
+        quickActions: ['K to end', 'P to end', 'YO', 'K2tog', 'SSK', 'CDD'],
+        placeholderText: "e.g., 'K1, YO, K2tog, K3, SSK, YO, K1'",
+        descriptionPlaceholder: "Describe your lace pattern with key techniques and any chart references...",
+
+        // 🆕 Pattern classification
+        category: 'structure',
+        requiresAdvancedRowByRow: true,
+        isAdvancedPattern: true,
+
+        // 🆕 Validation rules
+        requiresCustomText: false,      // Only required in description mode
+        requiresRowsInPattern: true,    // Always required
+
+        // 🆕 UI behavior (different from colorwork patterns)
+        needsDescriptionInput: false,   // No description input in basic config
+        needsRowInput: false,           // No row input in basic config
+
+        // 🆕 Keyboard configuration
+        keyboardPatternKey: 'lace',
+        keyboardLayer: 'SECONDARY',
+
+        // 🆕 Step generation behavior
+        includesInRowCountPatterns: true,
+
+        // 🆕 UI configuration tips
+        configurationTips: [
+            'Include chart name or written instructions',
+            'Note any yarn-over/decrease pairings',
+            'Mention blocking requirements if important'
+        ]
+    },
+
+    'Cable Pattern': {
+        quickActions: ['K to end', 'P to end', 'C6F', 'C6B', 'T2F', 'T2B'],
+        placeholderText: "e.g., 'K2, P2, C6F, P2, K2'",
+        descriptionPlaceholder: "Describe your cable pattern crossings, directions, and any background stitches...",
+        category: 'structure',
+        requiresAdvancedRowByRow: true,
+        isAdvancedPattern: true,
+        requiresCustomText: false,
+        requiresRowsInPattern: true,
+        needsDescriptionInput: false,
+        needsRowInput: false,
+        keyboardPatternKey: 'cable',
+        keyboardLayer: 'TERTIARY',
+        includesInRowCountPatterns: true,
+        configurationTips: [
+            'Describe cable crossing (e.g., "6-st left cross")',
+            'Include chart reference if you have one',
+            'Note cable needle size if specific'
+        ]
+    },
+
+    'Custom pattern': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "e.g., '5 rows stockinette, 1 bobble row'",
+        descriptionPlaceholder: "e.g., '5 rows stockinette, 1 bobble row'",
+        category: 'texture',
+        requiresAdvancedRowByRow: true,
+        isAdvancedPattern: true,
+        requiresCustomText: true,       // Always required
+        requiresRowsInPattern: true,
+        needsDescriptionInput: true,    // Shows description input in basic config
+        needsRowInput: false,
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,            // No special keyboard layer
+        includesInRowCountPatterns: false, // Different generation logic
+        configurationTips: [
+            'Describe your custom pattern clearly',
+            'Include any special techniques or notes'
+        ]
+    },
+
+    // ===== COLORWORK PATTERNS (Need description + rows, but not advanced row-by-row) =====
+    'Fair Isle': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "Enter row instruction...",
+        descriptionPlaceholder: "Describe your Fair Isle pattern...",
+        category: 'colorwork',
+        requiresAdvancedRowByRow: false,
+        isAdvancedPattern: false,
+        requiresCustomText: true,
+        requiresRowsInPattern: true,
+        needsDescriptionInput: true,    // Shows in basic config (different from Lace)
+        needsRowInput: true,            // Shows in basic config (different from Lace)
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,
+        includesInRowCountPatterns: true,
+        configurationTips: [
+            'List color names or codes',
+            'Describe the motif or pattern sequence',
+            'Note any chart references',
+            'Include float management techniques'
+        ]
+    },
+
+    'Intarsia': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "Enter row instruction...",
+        descriptionPlaceholder: "Describe your Intarsia pattern...",
+        category: 'colorwork',
+        requiresAdvancedRowByRow: false,
+        isAdvancedPattern: false,
+        requiresCustomText: true,
+        requiresRowsInPattern: true,
+        needsDescriptionInput: true,
+        needsRowInput: true,
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,
+        includesInRowCountPatterns: true,
+        configurationTips: [
+            'List color names or codes',
+            'Describe the motif or pattern sequence',
+            'Note any chart references',
+            'Include bobbin or yarn management notes'
+        ]
+    },
+
+    'Stripes': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "Enter row instruction...",
+        descriptionPlaceholder: "Describe your stripe pattern...",
+        category: 'colorwork',
+        requiresAdvancedRowByRow: false,
+        isAdvancedPattern: false,
+        requiresCustomText: true,
+        requiresRowsInPattern: true,
+        needsDescriptionInput: true,
+        needsRowInput: true,
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,
+        includesInRowCountPatterns: true,
+        configurationTips: [
+            'List colors and row counts: "2 rows Navy, 4 rows Cream"',
+            'Note any special color change techniques',
+            'Include total repeat if complex sequence',
+            'Mention if stripes are jogless (for circular knitting)'
+        ]
+    },
+
+    // ===== BASIC PATTERNS (No special requirements) =====
+    'Stockinette': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "Enter row instruction...",
+        descriptionPlaceholder: "Describe your pattern...",
+        category: 'texture',
+        requiresAdvancedRowByRow: false,
+        isAdvancedPattern: false,
+        requiresCustomText: false,
+        requiresRowsInPattern: false,
+        needsDescriptionInput: false,
+        needsRowInput: false,
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,
+        includesInRowCountPatterns: false,
+        configurationTips: []
+    },
+
+    'Garter': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "Enter row instruction...",
+        descriptionPlaceholder: "Describe your pattern...",
+        category: 'texture',
+        requiresAdvancedRowByRow: false,
+        isAdvancedPattern: false,
+        requiresCustomText: false,
+        requiresRowsInPattern: false,
+        needsDescriptionInput: false,
+        needsRowInput: false,
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,
+        includesInRowCountPatterns: false,
+        configurationTips: []
+    },
+
+    // ===== CONSTRUCTION PATTERNS =====
+    'Cast On': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "Enter row instruction...",
+        descriptionPlaceholder: "Describe your pattern...",
+        category: 'construction',
+        requiresAdvancedRowByRow: false,
+        isAdvancedPattern: false,
+        requiresCustomText: false,
+        requiresRowsInPattern: false,
+        needsDescriptionInput: false,
+        needsRowInput: false,
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,
+        includesInRowCountPatterns: false,
+        configurationTips: []
+    },
+
+    'Bind Off': {
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "Enter row instruction...",
+        descriptionPlaceholder: "Describe your pattern...",
+        category: 'construction',
+        requiresAdvancedRowByRow: false,
+        isAdvancedPattern: false,
+        requiresCustomText: false,
+        requiresRowsInPattern: false,
+        needsDescriptionInput: false,
+        needsRowInput: false,
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,
+        includesInRowCountPatterns: false,
+        configurationTips: []
+    }
+};
+
+const DEFAULT_PATTERN_CONFIG = {
+    quickActions: ['K to end', 'P to end'],
+    placeholderText: "Enter row instruction...",
+    descriptionPlaceholder: "Describe your pattern...",
+    category: 'texture',
+    requiresAdvancedRowByRow: false,
+    isAdvancedPattern: false,
+    requiresCustomText: false,
+    requiresRowsInPattern: false,
+    needsDescriptionInput: false,
+    needsRowInput: false,
+    keyboardPatternKey: 'general',
+    keyboardLayer: null,
+    includesInRowCountPatterns: false,
+    configurationTips: []
+};
+
+// ===== 🆕 NEW UTILITY FUNCTIONS (Replace ALL hardcoded checks) =====
+
+/**
+ * Get complete configuration for a pattern
+ * @param {string} patternName - The pattern name
+ * @returns {object} Complete pattern configuration
+ */
+export const getPatternConfig = (patternName) => {
+    return PATTERN_CONFIG[patternName] || DEFAULT_PATTERN_CONFIG;
+};
+
+// ===== CENTRALIZED REPLACEMENT FUNCTIONS =====
+// These functions replace ALL the hardcoded arrays we found in the audit
+
+/**
+ * 🔄 REPLACES: ['Custom pattern', 'Cable Pattern', 'Lace Pattern'].includes(pattern)
+ * Used by: stepDisplayUtils.js, EditPatternModal.jsx
+ */
+export const requiresAdvancedPatternEdit = (step) => {
+    const pattern = getStepPatternName(step);
+    return getPatternConfig(pattern).requiresAdvancedRowByRow === true;
+};
+
+/**
+ * 🔄 REPLACES: ['Custom pattern', 'Cable Pattern', 'Lace Pattern'].includes(patternName)
+ * Used by: stepDisplayUtils.js (overloaded version)
+ */
+export const isAdvancedRowByRowPattern = (patternName) => {
+    return getPatternConfig(patternName).requiresAdvancedRowByRow === true;
+};
+
+/**
+ * 🔄 REPLACES: patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general'
+ * Used by: EnhancedKeyboard.jsx, CustomActionEditor.jsx, RowByRowPatternConfig.jsx (5+ locations)
+ */
+export const getKeyboardPatternKey = (patternType) => {
+    return getPatternConfig(patternType).keyboardPatternKey;
+};
+
+/**
+ * 🔄 REPLACES: ['Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)
+ * Used by: BasicPatternConfig.jsx (needsDescription, needsRowInput)
+ */
+export const needsDescriptionInput = (patternName) => {
+    return getPatternConfig(patternName).needsDescriptionInput === true;
+};
+
+export const needsRowInput = (patternName) => {
+    return getPatternConfig(patternName).needsRowInput === true;
+};
+
+/**
+ * 🔄 REPLACES: ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)
+ * Used by: useStepGeneration.js, useStepValidation.js
+ */
+export const includesInRowCountPatterns = (patternName) => {
+    return getPatternConfig(patternName).includesInRowCountPatterns === true;
+};
+
+/**
+ * 🔄 REPLACES: individual pattern === 'Lace Pattern' && configurationTips
+ * Used by: EditPatternModal.jsx
+ */
+export const getPatternConfigurationTips = (patternName) => {
+    return getPatternConfig(patternName).configurationTips || [];
+};
+
+/**
+ * 🔄 REPLACES: ['Cable Pattern', 'Lace Pattern'].includes(patternType)
+ * Used by: PatternInputContainer.jsx, EnhancedKeyboard.jsx
+ */
+export const isAdvancedPattern = (patternName) => {
+    return getPatternConfig(patternName).isAdvancedPattern === true;
+};
+
+/**
+ * 🔄 REPLACES: layer === KEYBOARD_LAYERS.SECONDARY && patternType === 'Lace Pattern'
+ * Used by: EnhancedKeyboard.jsx
+ */
+export const getKeyboardLayer = (patternName) => {
+    return getPatternConfig(patternName).keyboardLayer;
+};
+
+/**
+ * Check if pattern requires custom text validation
+ * Used by validation functions
+ */
+export const requiresCustomText = (patternName) => {
+    return getPatternConfig(patternName).requiresCustomText === true;
+};
+
+/**
+ * Check if pattern requires rows in pattern validation
+ * Used by validation functions
+ */
+export const requiresRowsInPattern = (patternName) => {
+    return getPatternConfig(patternName).requiresRowsInPattern === true;
+};
+
+// ===== CORE UTILITY FUNCTIONS (Preserved as-is) =====
 
 /**
  * Get step's pattern name from structured data
@@ -367,22 +706,6 @@ export const validateStepConfiguration = (step) => {
     }
 
     return { isValid: true };
-
-
-};
-
-/**
- * Check if step requires advanced row-by-row pattern editing
- * Used for both create and edit flows
- */
-export const requiresAdvancedPatternEdit = (step) => {
-    const pattern = getStepPatternName(step);
-    return ['Custom pattern', 'Cable Pattern', 'Lace Pattern'].includes(pattern);
-};
-
-// And also add this overloaded version for when you just have the pattern name:
-export const isAdvancedRowByRowPattern = (patternName) => {
-    return ['Custom pattern', 'Cable Pattern', 'Lace Pattern'].includes(patternName);
 };
 
 // ===== COMPONENT STATE UTILITIES =====
@@ -420,8 +743,8 @@ export const getComponentState = (component) => {
 };
 
 /**
- * Validate pattern configuration based on pattern type and entry mode
- * Centralized validation for all pattern types
+ * 🔄 UPDATED: Validate pattern configuration using centralized config
+ * Replaces hardcoded arrays with getPatternConfig()
  */
 export const validatePatternConfiguration = (stitchPattern) => {
     if (!stitchPattern || !stitchPattern.pattern) {
@@ -429,6 +752,7 @@ export const validatePatternConfiguration = (stitchPattern) => {
     }
 
     const { pattern, entryMode, customText, rowsInPattern, rowInstructions, stitchCount, colorworkType } = stitchPattern;
+    const config = getPatternConfig(pattern);
 
     // Cast On patterns - need stitch count
     if (pattern === 'Cast On') {
@@ -441,7 +765,7 @@ export const validatePatternConfiguration = (stitchPattern) => {
     }
 
     // Advanced Row-by-Row patterns (Custom, Cable, Lace)
-    if (isAdvancedRowByRowPattern(pattern)) {
+    if (config.requiresAdvancedRowByRow) {
         if (entryMode === 'row_by_row') {
             // Row-by-row mode: need at least one row instruction
             return rowInstructions && rowInstructions.length > 0;
@@ -459,8 +783,8 @@ export const validatePatternConfiguration = (stitchPattern) => {
             rowsInPattern && parseInt(rowsInPattern) > 0;
     }
 
-    // Traditional complex patterns (Fair Isle, Intarsia, Stripes)
-    if (['Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
+    // 🔄 REPLACED: Traditional complex patterns using centralized config
+    if (config.requiresCustomText && config.requiresRowsInPattern) {
         return customText && customText.trim() !== '' &&
             rowsInPattern && parseInt(rowsInPattern) > 0;
     }
@@ -470,7 +794,7 @@ export const validatePatternConfiguration = (stitchPattern) => {
         return customText && customText.trim() !== '';
     }
 
-    // Basic patterns (Stockinette, Garter, etc.) - always valid
+    // Basic patterns - always valid
     return true;
 };
 
@@ -535,10 +859,9 @@ export const getComponentStatusWithDisplay = (component) => {
     };
 };
 
-
 /**
- * Get user-friendly validation error message
- * Helps with debugging and user feedback
+ * 🔄 UPDATED: Get user-friendly validation error message using centralized config
+ * Replaces hardcoded arrays with getPatternConfig()
  */
 export const getPatternValidationError = (stitchPattern) => {
     if (!stitchPattern || !stitchPattern.pattern) {
@@ -546,12 +869,13 @@ export const getPatternValidationError = (stitchPattern) => {
     }
 
     const { pattern, entryMode, customText, rowsInPattern, rowInstructions, stitchCount, colorworkType } = stitchPattern;
+    const config = getPatternConfig(pattern);
 
     if (pattern === 'Cast On' && (!stitchCount || parseInt(stitchCount) <= 0)) {
         return 'Cast On requires a valid stitch count';
     }
 
-    if (isAdvancedRowByRowPattern(pattern)) {
+    if (config.requiresAdvancedRowByRow) {
         if (entryMode === 'row_by_row') {
             if (!rowInstructions || rowInstructions.length === 0) {
                 return 'Row-by-row mode requires at least one row instruction';
@@ -572,9 +896,13 @@ export const getPatternValidationError = (stitchPattern) => {
         if (!rowsInPattern || parseInt(rowsInPattern) <= 0) return 'Colorwork requires rows in pattern';
     }
 
-    if (['Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
-        if (!customText || customText.trim() === '') return `${pattern} requires description`;
-        if (!rowsInPattern || parseInt(rowsInPattern) <= 0) return `${pattern} requires rows in pattern`;
+    // 🔄 REPLACED: Use centralized config instead of hardcoded array
+    if (config.requiresCustomText && (!customText || customText.trim() === '')) {
+        return `${pattern} requires description`;
+    }
+
+    if (config.requiresRowsInPattern && (!rowsInPattern || parseInt(rowsInPattern) <= 0)) {
+        return `${pattern} requires rows in pattern`;
     }
 
     if (pattern === 'Other' && (!customText || customText.trim() === '')) {
@@ -584,40 +912,14 @@ export const getPatternValidationError = (stitchPattern) => {
     return null; // No validation errors
 };
 
-// Replace the THREE functions at the bottom of your file with this:
-
-// ===== PATTERN CONFIGURATION (CONSOLIDATES 3 SWITCH STATEMENTS) =====
-
-const PATTERN_CONFIG = {
-    'Cable Pattern': {
-        quickActions: ['K to end', 'P to end', 'C6F', 'C6B', 'T2F', 'T2B'],
-        placeholderText: "e.g., 'K2, P2, C6F, P2, K2'",
-        descriptionPlaceholder: "Describe your cable pattern crossings, directions, and any background stitches..."
-    },
-    'Lace Pattern': {
-        quickActions: ['K to end', 'P to end', 'YO', 'K2tog', 'SSK', 'CDD'],
-        placeholderText: "e.g., 'K1, YO, K2tog, K3, SSK, YO, K1'",
-        descriptionPlaceholder: "Describe your lace pattern with key techniques and any chart references..."
-    },
-    'Custom pattern': {
-        quickActions: ['K to end', 'P to end'],
-        placeholderText: "e.g., '5 rows stockinette, 1 bobble row'",
-        descriptionPlaceholder: "e.g., '5 rows stockinette, 1 bobble row'"
-    }
-};
-
-const DEFAULT_PATTERN_CONFIG = {
-    quickActions: ['K to end', 'P to end'],
-    placeholderText: "Enter row instruction...",
-    descriptionPlaceholder: "Describe your pattern..."
-};
+// ===== EXISTING KEYBOARD UTILITY FUNCTIONS (Preserved) =====
 
 /**
  * Get quick action buttons for pattern type
  * Used by: RowByRowPatternConfig, EditRowByRowPatternForm
  */
 export const getPatternQuickActions = (patternType) => {
-    return PATTERN_CONFIG[patternType]?.quickActions || DEFAULT_PATTERN_CONFIG.quickActions;
+    return getPatternConfig(patternType).quickActions;
 };
 
 /**
@@ -625,7 +927,7 @@ export const getPatternQuickActions = (patternType) => {
  * Used by: RowByRowPatternConfig, EditRowByRowPatternForm
  */
 export const getPatternPlaceholderText = (patternType) => {
-    return PATTERN_CONFIG[patternType]?.placeholderText || DEFAULT_PATTERN_CONFIG.placeholderText;
+    return getPatternConfig(patternType).placeholderText;
 };
 
 /**
@@ -633,9 +935,10 @@ export const getPatternPlaceholderText = (patternType) => {
  * Used by: EditRowByRowPatternForm
  */
 export const getPatternDescriptionPlaceholder = (patternType) => {
-    return PATTERN_CONFIG[patternType]?.descriptionPlaceholder || DEFAULT_PATTERN_CONFIG.descriptionPlaceholder;
+    return getPatternConfig(patternType).descriptionPlaceholder;
 };
 
+// ===== EXPORT EVERYTHING =====
 
 export default {
     getStepPatternName,
@@ -654,5 +957,19 @@ export default {
     getComponentState,
     getPatternPlaceholderText,
     getStepType,
-    getComponentStatusWithDisplay
+    getComponentStatusWithDisplay,
+
+    // 🆕 NEW CENTRALIZED FUNCTIONS
+    getPatternConfig,
+    requiresAdvancedPatternEdit,
+    isAdvancedRowByRowPattern,
+    getKeyboardPatternKey,
+    needsDescriptionInput,
+    needsRowInput,
+    includesInRowCountPatterns,
+    getPatternConfigurationTips,
+    isAdvancedPattern,
+    getKeyboardLayer,
+    requiresCustomText,
+    requiresRowsInPattern
 };
