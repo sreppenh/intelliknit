@@ -6,6 +6,8 @@
  * for enhanced pattern entry (Lace, Cable, Custom, etc.)
  */
 
+import { getKeyboardPatternKey } from './stepDisplayUtils';
+
 // ===== KEYBOARD LAYER DEFINITIONS =====
 
 export const KEYBOARD_LAYERS = {
@@ -114,7 +116,10 @@ export const getNextKeyboardLayer = (currentLayer, patternType) => {
     return availableLayers[nextIndex];
 };
 
+// 🔄 REPLACED: Use centralized configuration for available layers
 const getAvailableLayers = (patternType) => {
+    // For now, keep the hardcoded logic until we add centralized support
+    // TODO: Replace with centralized getAvailableLayers() from stepDisplayUtils
     switch (patternType) {
         case 'Lace Pattern':
             return [KEYBOARD_LAYERS.PRIMARY, KEYBOARD_LAYERS.SECONDARY]; // Only 2 layers!
@@ -125,8 +130,6 @@ const getAvailableLayers = (patternType) => {
             return [KEYBOARD_LAYERS.PRIMARY];
     }
 };
-
-
 
 export const getLayerDisplayName = (layer) => {
     switch (layer) {
@@ -168,14 +171,14 @@ export const getButtonStyles = (buttonType, isMobile = false) => {
 };
 
 /**
- * Get custom actions for a pattern type from project data
+ * 🔄 REPLACED: Get custom actions using centralized pattern key
  * @param {string} patternType - Pattern type (Lace Pattern, Cable Pattern, etc.)
  * @param {Object} project - Current project object
  * @returns {Array} - Array of 4 custom actions (with 'Custom' as fallback)
  */
 export const getCustomActions = (patternType, project = {}) => {
-    const key = patternType === 'Lace Pattern' ? 'lace' :
-        patternType === 'Cable Pattern' ? 'cable' : 'general';
+    // OLD: const key = patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general';
+    const key = getKeyboardPatternKey(patternType);
 
     const projectCustomActions = project?.customKeyboardActions?.[key] || [];
 
@@ -188,8 +191,10 @@ export const getCustomActions = (patternType, project = {}) => {
     return customActions.slice(0, 4); // Only take first 4
 };
 
-// ===== VALIDATION & HELPERS =====
+// ===== 🔄 REPLACED: VALIDATION & HELPERS USING CENTRALIZED FUNCTIONS =====
 
+// TODO: Import these from stepDisplayUtils once they're added
+// For now, keep existing logic to avoid breaking changes
 export const supportsMultipleLayers = (patternType) => {
     return ['Lace Pattern', 'Cable Pattern'].includes(patternType);
 };
@@ -204,7 +209,6 @@ export const supportsManualNumbers = (patternType) => {
             return true; // Allow manual number access
     }
 };
-
 
 export const isCustomAction = (action) => {
     return action.startsWith('Custom ') || action === '★';
@@ -226,12 +230,6 @@ export const isWorkToEndAction = (action) => {
     ];
     return workToEndActions.includes(action);
 };
-
-
-
-
-
-
 
 export default {
     KEYBOARD_LAYERS,
