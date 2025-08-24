@@ -85,6 +85,11 @@ const PATTERN_CONFIG = {
         // 🆕 Keyboard configuration
         keyboardPatternKey: 'lace',
         keyboardLayer: 'SECONDARY',
+        // Added
+        supportsMultipleLayers: true,
+        supportsManualNumbers: false,  // Only contextual numbers (brackets/parens)
+        availableLayers: ['PRIMARY', 'SECONDARY'], // Only 2 layers
+
 
         // 🆕 Step generation behavior
         includesInRowCountPatterns: true,
@@ -95,6 +100,8 @@ const PATTERN_CONFIG = {
             'Note any yarn-over/decrease pairings',
             'Mention blocking requirements if important'
         ]
+
+
     },
 
     'Cable Pattern': {
@@ -110,6 +117,10 @@ const PATTERN_CONFIG = {
         needsRowInput: false,
         keyboardPatternKey: 'cable',
         keyboardLayer: 'TERTIARY',
+        supportsMultipleLayers: true,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY', 'SECONDARY', 'TERTIARY'], // All 3 layers
+
         includesInRowCountPatterns: true,
         configurationTips: [
             'Describe cable crossing (e.g., "6-st left cross")',
@@ -131,6 +142,10 @@ const PATTERN_CONFIG = {
         needsRowInput: false,
         keyboardPatternKey: 'general',
         keyboardLayer: null,            // No special keyboard layer
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'], // Only primary layer
+
         includesInRowCountPatterns: false, // Different generation logic
         configurationTips: [
             'Describe your custom pattern clearly',
@@ -152,6 +167,10 @@ const PATTERN_CONFIG = {
         needsRowInput: true,            // Shows in basic config (different from Lace)
         keyboardPatternKey: 'general',
         keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'],
+
         includesInRowCountPatterns: true,
         configurationTips: [
             'List color names or codes',
@@ -174,6 +193,10 @@ const PATTERN_CONFIG = {
         needsRowInput: true,
         keyboardPatternKey: 'general',
         keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'],
+
         includesInRowCountPatterns: true,
         configurationTips: [
             'List color names or codes',
@@ -196,6 +219,10 @@ const PATTERN_CONFIG = {
         needsRowInput: true,
         keyboardPatternKey: 'general',
         keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'],
+
         includesInRowCountPatterns: true,
         configurationTips: [
             'List colors and row counts: "2 rows Navy, 4 rows Cream"',
@@ -219,6 +246,10 @@ const PATTERN_CONFIG = {
         needsRowInput: false,
         keyboardPatternKey: 'general',
         keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'],
+
         includesInRowCountPatterns: false,
         configurationTips: []
     },
@@ -236,6 +267,10 @@ const PATTERN_CONFIG = {
         needsRowInput: false,
         keyboardPatternKey: 'general',
         keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'],
+
         includesInRowCountPatterns: false,
         configurationTips: []
     },
@@ -254,6 +289,10 @@ const PATTERN_CONFIG = {
         needsRowInput: false,
         keyboardPatternKey: 'general',
         keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'],
+
         includesInRowCountPatterns: false,
         configurationTips: []
     },
@@ -271,6 +310,10 @@ const PATTERN_CONFIG = {
         needsRowInput: false,
         keyboardPatternKey: 'general',
         keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'],
+
         includesInRowCountPatterns: false,
         configurationTips: []
     }
@@ -289,6 +332,9 @@ const DEFAULT_PATTERN_CONFIG = {
     needsRowInput: false,
     keyboardPatternKey: 'general',
     keyboardLayer: null,
+    supportsMultipleLayers: false,
+    supportsManualNumbers: true,
+    availableLayers: ['PRIMARY'],
     includesInRowCountPatterns: false,
     configurationTips: []
 };
@@ -938,6 +984,32 @@ export const getPatternDescriptionPlaceholder = (patternType) => {
     return getPatternConfig(patternType).descriptionPlaceholder;
 };
 
+// New keyboard related funtions!!
+
+/**
+ * 🔄 REPLACES: ['Lace Pattern', 'Cable Pattern'].includes(patternType)
+ * Used by: patternKeyboardUtils.js
+ */
+export const supportsMultipleLayers = (patternName) => {
+    return getPatternConfig(patternName).supportsMultipleLayers === true;
+};
+
+/**
+ * 🔄 REPLACES: switch statement in patternKeyboardUtils.js supportsManualNumbers()
+ * Used by: patternKeyboardUtils.js
+ */
+export const supportsManualNumbers = (patternName) => {
+    return getPatternConfig(patternName).supportsManualNumbers !== false; // Default true
+};
+
+/**
+ * 🔄 REPLACES: switch statement in patternKeyboardUtils.js getAvailableLayers()
+ * Used by: patternKeyboardUtils.js
+ */
+export const getAvailableLayers = (patternName) => {
+    return getPatternConfig(patternName).availableLayers || ['PRIMARY'];
+};
+
 // ===== EXPORT EVERYTHING =====
 
 export default {
@@ -958,6 +1030,9 @@ export default {
     getPatternPlaceholderText,
     getStepType,
     getComponentStatusWithDisplay,
+    supportsMultipleLayers,
+    supportsManualNumbers,
+    getAvailableLayers,
 
     // 🆕 NEW CENTRALIZED FUNCTIONS
     getPatternConfig,
