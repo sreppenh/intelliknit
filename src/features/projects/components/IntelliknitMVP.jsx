@@ -7,7 +7,7 @@ import CreateProject from './CreateProject';
 import ProjectDetail from './ProjectDetail';
 import ComponentDetail from './ComponentDetail';
 import EditProjectDetails from './EditProjectDetails';
-import Tracking from './Tracking';
+import Tracking from '../../knitting/components/Tracking';
 import StepWizard from '../../steps/components/StepWizard';
 import ManageSteps from '../../steps/components/ManageSteps';
 import ProjectTypeSelector from './ProjectTypeSelector';
