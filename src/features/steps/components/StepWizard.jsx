@@ -15,7 +15,7 @@ import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
 import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
-import { isAdvancedRowByRowPattern } from '../../../shared/utils/stepDisplayUtils';
+import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../shared/utils/stepDisplayUtils';
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
 
 
@@ -330,11 +330,10 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                 <button
                   onClick={() => {
 
-                    // Get custom actions for calculation
+                    // 🔄 REPLACED: Get custom actions using centralized pattern key function
                     const customActionsData = {};
                     const patternType = wizard.wizardData.stitchPattern.pattern;
-                    const patternKey = patternType === 'Lace Pattern' ? 'lace' :
-                      patternType === 'Cable Pattern' ? 'cable' : 'general';
+                    const patternKey = getKeyboardPatternKey(patternType);
                     const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
 
                     customActions.forEach(action => {
