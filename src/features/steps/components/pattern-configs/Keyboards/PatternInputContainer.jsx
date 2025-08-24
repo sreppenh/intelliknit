@@ -63,7 +63,19 @@ const PatternInputContainer = ({
                 currentNumber={currentNumber}
             />
         );
-        //  }
+    }
+
+    // ✨ NEW: Handle copy row mode
+    if (keyboardMode === 'copy_row') {
+        return (
+            <NumberKeyboard
+                onAction={onAction}
+                pendingText={pendingRepeatText}
+                currentNumber={currentNumber}
+                mode="copy_row"
+                maxRowNumber={rowInstructions.length}
+            />
+        );
     }
 
     // Add after numbers mode check:

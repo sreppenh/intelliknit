@@ -336,6 +336,11 @@ const RowByRowPatternConfig = ({
     // This properly handles both K2tog and simple actions
 
     const handleQuickAction = (action) => {
+        // ✨ NEW: Route copy_row mode to number input handler
+        if (keyboardMode === 'copy_row') {
+            handleNumberInput(action);
+            return;
+        }
 
         // Enhanced debouncing to prevent ghost clicks across different UI elements
         const now = Date.now();
@@ -617,6 +622,39 @@ const RowByRowPatternConfig = ({
 
     // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
+
+        // ✨ NEW: Handle copy row mode
+        if (keyboardMode === 'copy_row') {
+            if (action === 'Enter' || action === '✓') {
+                const rowNum = parseInt(currentNumber);
+                if (rowNum >= 1 && rowNum <= rowInstructions.length) {
+                    // Copy the selected row to current input
+                    const selectedRowContent = rowInstructions[rowNum - 1];
+                    setTempRowText(selectedRowContent);
+
+                    // Reset keyboard to pattern mode
+                    setKeyboardMode('pattern');
+                    setPendingRepeatText('');
+                    setCurrentNumber('');
+                }
+                return;
+            }
+
+            if (action === '⌫') {
+                setCurrentNumber(prev => prev.slice(0, -1));
+                return;
+            }
+
+            if (isNumberAction(action)) {
+                // Build up the row number
+                setCurrentNumber(prev => (prev || '') + action);
+                return;
+            }
+
+            // For any other action in copy mode, just return
+            return;
+        }
+
 
         if (action === 'Enter' || action === '✓') {
             if (!pendingRepeatText || pendingRepeatText === '') {

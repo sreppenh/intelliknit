@@ -138,6 +138,16 @@ const EnhancedKeyboard = ({
         }
     };
 
+    // ✨ NEW: Handle Copy Row button click - opens NumberKeyboard
+    const handleCopyRowClick = () => {
+        if (directStateAccess) {
+            // Switch to NumberKeyboard mode with copy context
+            directStateAccess.setKeyboardMode('copy_row');
+            directStateAccess.setCurrentNumber('');
+            directStateAccess.setPendingRepeatText('Copy Row ');
+        }
+    };
+
     return (
         <div className="space-y-3">
             {/* Full-Row Actions (Dark Sage - top row) */}
@@ -275,18 +285,16 @@ const EnhancedKeyboard = ({
                 </>
             )}
 
-            {/* 🔄 REPLACED: Copy Row Actions using centralized layer checking */}
+            {/* ✨ NEW: Single Copy Row Button - cleaner than multiple buttons */}
             {rowInstructions.length > 0 && !shouldShowCustomActions && (
-                <div className="flex flex-wrap gap-2">
-                    {rowInstructions.map((_, index) => (
-                        <button
-                            key={`copy_${index}`}
-                            onClick={() => onAction(`copy_${index}`)}
-                            className={getButtonStyles('copy')}
-                        >
-                            Copy Row {index + 1}
-                        </button>
-                    ))}
+                <div className="flex justify-center">
+                    <button
+                        onClick={handleCopyRowClick}
+                        className={`${getButtonStyles('copy')} px-6`}
+                        disabled={isLocked}
+                    >
+                        📋 Copy Row
+                    </button>
                 </div>
             )}
         </div>
