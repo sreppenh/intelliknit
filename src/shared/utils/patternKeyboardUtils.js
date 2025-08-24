@@ -6,7 +6,12 @@
  * for enhanced pattern entry (Lace, Cable, Custom, etc.)
  */
 
-import { getKeyboardPatternKey } from './stepDisplayUtils';
+import {
+    getKeyboardPatternKey,
+    supportsMultipleLayers as centralizedSupportsMultipleLayers,
+    supportsManualNumbers as centralizedSupportsManualNumbers,
+    getAvailableLayers as centralizedGetAvailableLayers
+} from './stepDisplayUtils';
 
 // ===== KEYBOARD LAYER DEFINITIONS =====
 
@@ -116,19 +121,9 @@ export const getNextKeyboardLayer = (currentLayer, patternType) => {
     return availableLayers[nextIndex];
 };
 
-// 🔄 REPLACED: Use centralized configuration for available layers
+// 🔄 REPLACED: Now uses centralized configuration
 const getAvailableLayers = (patternType) => {
-    // For now, keep the hardcoded logic until we add centralized support
-    // TODO: Replace with centralized getAvailableLayers() from stepDisplayUtils
-    switch (patternType) {
-        case 'Lace Pattern':
-            return [KEYBOARD_LAYERS.PRIMARY, KEYBOARD_LAYERS.SECONDARY]; // Only 2 layers!
-        case 'Cable Pattern':
-            return [KEYBOARD_LAYERS.PRIMARY, KEYBOARD_LAYERS.SECONDARY, KEYBOARD_LAYERS.TERTIARY]; // Keep 3 for cables
-        case 'Custom pattern':
-        default:
-            return [KEYBOARD_LAYERS.PRIMARY];
-    }
+    return centralizedGetAvailableLayers(patternType);
 };
 
 export const getLayerDisplayName = (layer) => {
@@ -177,7 +172,7 @@ export const getButtonStyles = (buttonType, isMobile = false) => {
  * @returns {Array} - Array of 4 custom actions (with 'Custom' as fallback)
  */
 export const getCustomActions = (patternType, project = {}) => {
-    // OLD: const key = patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general';
+    // ✅ ALREADY UPDATED: Uses centralized getKeyboardPatternKey
     const key = getKeyboardPatternKey(patternType);
 
     const projectCustomActions = project?.customKeyboardActions?.[key] || [];
@@ -193,21 +188,13 @@ export const getCustomActions = (patternType, project = {}) => {
 
 // ===== 🔄 REPLACED: VALIDATION & HELPERS USING CENTRALIZED FUNCTIONS =====
 
-// TODO: Import these from stepDisplayUtils once they're added
-// For now, keep existing logic to avoid breaking changes
+// ✅ UPDATED: Now uses centralized functions instead of hardcoded arrays
 export const supportsMultipleLayers = (patternType) => {
-    return ['Lace Pattern', 'Cable Pattern'].includes(patternType);
+    return centralizedSupportsMultipleLayers(patternType);
 };
 
 export const supportsManualNumbers = (patternType) => {
-    switch (patternType) {
-        case 'Lace Pattern':
-            return false; // Only contextual numbers (brackets/parens)
-        case 'Cable Pattern':
-        case 'Custom pattern':
-        default:
-            return true; // Allow manual number access
-    }
+    return centralizedSupportsManualNumbers(patternType);
 };
 
 export const isCustomAction = (action) => {
