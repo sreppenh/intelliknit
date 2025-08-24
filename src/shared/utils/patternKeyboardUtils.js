@@ -112,7 +112,7 @@ const getCustomTextureKeyboardLayout = (layer) => {
     return {
         fullRow: ['K to end', 'P to end', 'K/P as set'],
         input: ['K', 'P', 'Bobble', 'Sl1'],
-        actions: ['⌫', '[', '(', '⇧']
+        actions: ['⌫', '[', '(']
     };
 };
 
@@ -163,7 +163,7 @@ export const getButtonStyles = (buttonType, isMobile = false) => {
 
     switch (buttonType) {
         case 'fullRow':
-            return `${baseClasses} ${minWidthClass} bg-sage-200 text-sage-800 rounded-lg text-sm font-medium hover:bg-sage-300 border border-sage-300 transition-colors`;
+            return `${baseClasses} ${minWidthClass} bg-sage-200 text-sage-800 rounded-lg text-sm font-medium hover:bg-sage-300 border border-sage-300 transition-colors flex-1 text-center`;
         case 'input':
             const inputTextSize = isMobile ? 'text-base' : 'text-sm';
             return `${baseClasses} ${minWidthClass} bg-sage-100 text-sage-700 rounded-lg ${inputTextSize} hover:bg-sage-200 transition-colors`;

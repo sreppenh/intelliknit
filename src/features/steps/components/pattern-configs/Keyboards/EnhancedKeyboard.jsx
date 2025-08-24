@@ -141,20 +141,18 @@ const EnhancedKeyboard = ({
     return (
         <div className="space-y-3">
             {/* Full-Row Actions (Dark Sage - top row) */}
-            <div className={`grid gap-3 ${keyboardLayout.fullRow.length <= 2 ? 'grid-cols-2' : 'grid-cols-4'}`}>
+            <div className="flex gap-3">
                 {keyboardLayout.fullRow.map((action, index) => {
-                    // Enhanced disabling logic for full-row actions
                     const isToEndAction = isWorkToEndAction(action);
                     const isRowLocked = isWorkToEndAction(tempRowText);
                     const hasOpenStructures = hasOpenStructure();
-
                     const isDisabled = isLocked || isRowLocked || (isToEndAction && hasOpenStructures);
 
                     return (
                         <HoldableButton
                             key={`fullrow-${action}-${index}`}
                             action={action}
-                            className={`${getButtonStyles('fullRow', isMobile)} ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+                            className={`${getButtonStyles('fullRow', isMobile)} flex-1 ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                             disabled={isDisabled}
                             tempRowText={tempRowText}
                             onClick={onAction}

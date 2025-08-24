@@ -491,15 +491,6 @@ export const getStitchConsumption = (action, customActionsData = {}) => {
 
 export const getMaxSafeMultiplier = (action, remainingStitches, customActionsData = {}) => {
 
-    if (action === 'K' && remainingStitches > 0) {
-        console.log('📊 getMaxSafeMultiplier inputs:', {
-            action,
-            remainingStitches,
-            consumption: getStitchConsumption(action, customActionsData),
-            calculation: Math.floor(remainingStitches / getStitchConsumption(action, customActionsData))
-        });
-    }
-
     if (remainingStitches <= 0) return 1; // Can't do anything with no stitches
 
     const singleActionConsumption = getStitchConsumption(action, customActionsData);

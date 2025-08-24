@@ -464,7 +464,7 @@ const RowByRowPatternConfig = ({
             /p\s+to\s+end/gi.test(tempRowText) ||
             /k\/p\s+as\s+set/gi.test(tempRowText);
 
-        console.log('🔒 Lock check:', { tempRowText, isRowLocked }); // ADD THIS LINE
+        // console.log('🔒 Lock check:', { tempRowText, isRowLocked }); // ADD THIS LINE
 
         if (isRowLocked && !['⌫', 'Enter', '✓'].includes(action)) {
             return; // Block all input except delete and enter
