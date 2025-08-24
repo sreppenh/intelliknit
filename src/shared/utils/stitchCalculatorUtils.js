@@ -239,20 +239,58 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
 };
 
 /**
- * FIXED: Process "K to end" and "P to end" instructions for calculation only
+ * DEBUG VERSION: Process "K to end" and "P to end" instructions for calculation only
  * Returns processed instruction for math, but doesn't change the display
  */
+/**
+ * FIXED: Process "K to end" and "P to end" instructions for calculation only
+ * Returns processed instruction for math, but doesn't change the display
+ * NOW WITH SMART COMMA SPLITTING that respects brackets and parentheses
+ */
 const preprocessToEndInstructions = (instruction, startingStitches, customActionsData = {}) => {
-    // Check for "K to end" or "P to end" patterns
-    //const kToEndPattern = /k\s+to\s+end/gi;
-    // const pToEndPattern = /p\s+to\s+end/gi;
-
     if (!hasWorkToEndAction(instruction)) {
         return instruction; // No "to end" patterns, return as-is
     }
+
+    // ✨ NEW: Smart comma splitting that respects brackets and parentheses
+    const smartSplit = (text) => {
+        const parts = [];
+        let currentPart = '';
+        let bracketDepth = 0;
+        let parenDepth = 0;
+
+        for (let i = 0; i < text.length; i++) {
+            const char = text[i];
+
+            if (char === '[') {
+                bracketDepth++;
+            } else if (char === ']') {
+                bracketDepth--;
+            } else if (char === '(') {
+                parenDepth++;
+            } else if (char === ')') {
+                parenDepth--;
+            } else if (char === ',' && bracketDepth === 0 && parenDepth === 0) {
+                // Only split on commas that are outside brackets and parentheses
+                parts.push(currentPart.trim());
+                currentPart = '';
+                continue;
+            }
+
+            currentPart += char;
+        }
+
+        // Don't forget the last part
+        if (currentPart.trim()) {
+            parts.push(currentPart.trim());
+        }
+
+        return parts;
+    };
+
     // Parse everything BEFORE the "to end" commands to calculate consumed stitches
     let tempConsumed = 0;
-    const parts = instruction.split(',').map(part => part.trim());
+    const parts = smartSplit(instruction);
     const processedParts = [];
 
     for (const part of parts) {
@@ -354,9 +392,18 @@ const parseBracketContent = (content, getStitchValue) => {
  * Helper function to calculate stitch consumption for a partial instruction
  * Used for "to end" calculations
  */
+/**
+ * ✨ FIXED: Helper function to calculate stitch consumption for a partial instruction
+ * Now handles ALL patterns including brackets with multipliers!
+ * Used for "to end" calculations in preprocessToEndInstructions
+ */
 const calculatePartialStitches = (partialInstruction, customActionsData = {}) => {
-    let consumed = 0;
-    let produced = 0;
+    let totalConsumed = 0;
+    let totalProduced = 0;
+
+    if (!partialInstruction || !partialInstruction.trim()) {
+        return { consumed: 0, produced: 0 };
+    }
 
     // Helper function to get stitch value (same as main function)
     const getStitchValue = (operation) => {
@@ -373,29 +420,74 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
         return STITCH_VALUES[operation] || { consumes: 1, produces: 1 };
     };
 
-    // ✅ NEW: Handle × multiplier operations like "1/1 LC × 3", "K2tog × 10"
-    const multiplierMatch = partialInstruction.match(/^(.+?)\s*×\s*(\d+)$/);
-    if (multiplierMatch) {
-        const [, stitchOp, repeatNum] = multiplierMatch;
-        const count = parseInt(repeatNum);
-        const stitchValue = getStitchValue(stitchOp.trim());
-        return { consumed: stitchValue.consumes * count, produced: stitchValue.produces * count };
+    // ✅ NEW: Handle bracketed repeats - [K2, P2] × 2
+    const bracketPattern = /\[([^\]]*)\](?:\s*(?:×\s*)?(\d+))?/g;
+    let remainingInstruction = partialInstruction;
+    let match;
+
+    while ((match = bracketPattern.exec(partialInstruction)) !== null) {
+        const [fullMatch, bracketContent, repeatCount] = match;
+        const count = repeatCount ? parseInt(repeatCount) : 1;
+
+        // Parse content inside brackets using existing helper
+        const bracketResult = parseBracketContent(bracketContent, getStitchValue);
+
+        totalConsumed += bracketResult.consumed * count;
+        totalProduced += bracketResult.produced * count;
+
+        // Remove this bracket from remaining instruction
+        remainingInstruction = remainingInstruction.replace(fullMatch, '');
     }
 
-    // Handle numbered operations like "K5", "P3"
-    const numberedMatch = partialInstruction.match(/^([A-Za-z\/]+)(\d+)$/);
-    if (numberedMatch) {
-        const [, stitchOp, repeatNum] = numberedMatch;
-        const count = parseInt(repeatNum);
-        const stitchValue = getStitchValue(stitchOp);
-        return { consumed: stitchValue.consumes * count, produced: stitchValue.produces * count };
+    // ✅ NEW: Handle parentheses repeats - (K2tog)3
+    const parenPattern = /\(([^)]*)\)(?:\s*(?:×\s*)?(\d+))?/g;
+    while ((match = parenPattern.exec(remainingInstruction)) !== null) {
+        const [fullMatch, parenContent, repeatCount] = match;
+        const count = repeatCount ? parseInt(repeatCount) : 1;
+
+        if (parenContent.trim()) {
+            const parenResult = parseBracketContent(parenContent, getStitchValue);
+            totalConsumed += parenResult.consumed * count;
+            totalProduced += parenResult.produced * count;
+        }
+
+        remainingInstruction = remainingInstruction.replace(fullMatch, '');
     }
 
-    // Single operation like "1/1 LC", "K2tog", "K", etc.
-    else {
-        const stitchValue = getStitchValue(partialInstruction.trim());
-        return { consumed: stitchValue.consumes, produced: stitchValue.produces };
+    // Handle remaining operations (comma-separated)
+    const remainingOps = remainingInstruction.split(',')
+        .map(op => op.trim())
+        .filter(op => op.length > 0);
+
+    for (const operation of remainingOps) {
+        // Handle × multiplier operations like "K2tog × 10", "SSK × 5"
+        const multiplierMatch = operation.match(/^(.+?)\s*×\s*(\d+)$/);
+        if (multiplierMatch) {
+            const [, stitchOp, repeatNum] = multiplierMatch;
+            const count = parseInt(repeatNum);
+            const stitchValue = getStitchValue(stitchOp.trim());
+            totalConsumed += stitchValue.consumes * count;
+            totalProduced += stitchValue.produces * count;
+            continue;
+        }
+
+        // Handle numbered operations like "K5", "P3"
+        const numberedMatch = operation.match(/^([A-Za-z\/]+)(\d+)$/);
+        if (numberedMatch) {
+            const [, stitchOp, repeatNum] = numberedMatch;
+            const count = parseInt(repeatNum);
+            const stitchValue = getStitchValue(stitchOp);
+            totalConsumed += stitchValue.consumes * count;
+            totalProduced += stitchValue.produces * count;
+        } else if (operation.trim()) {
+            // Single operation like "1/1 LC", "K2tog", "K", etc.
+            const stitchValue = getStitchValue(operation);
+            totalConsumed += stitchValue.consumes;
+            totalProduced += stitchValue.produces;
+        }
     }
+
+    return { consumed: totalConsumed, produced: totalProduced };
 };
 
 /**
