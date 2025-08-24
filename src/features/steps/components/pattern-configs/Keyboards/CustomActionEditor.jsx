@@ -1,6 +1,7 @@
 // src/features/steps/components/pattern-configs/CustomActionEditor.jsx
 import React, { useState } from 'react';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
+import { getKeyboardPatternKey } from '../../../../../shared/utils/stepDisplayUtils';
 
 /**
  * CustomActionEditor - Simple, clean layout matching IntelliKnit design
@@ -22,10 +23,10 @@ const CustomActionEditor = ({
         stitches: editingAction?.stitches || 1
     });
 
-    // Get pattern key for storage
+    // 🔄 REPLACED: Hardcoded pattern key mapping with centralized function
+    // OLD: patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general'
     const getPatternKey = () => {
-        return patternType === 'Lace Pattern' ? 'lace' :
-            patternType === 'Cable Pattern' ? 'cable' : 'general';
+        return getKeyboardPatternKey(patternType);
     };
 
     // Handle save
