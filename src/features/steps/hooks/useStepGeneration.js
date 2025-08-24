@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminology';
-import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
+import { getStepMethodDisplay, includesInRowCountPatterns, requiresCustomText } from '../../../shared/utils/stepDisplayUtils';
 
 // Helper to create mock step for utility usage
 const createMockStep = (wizardData, construction) => ({
@@ -58,8 +58,9 @@ export const useStepGeneration = (construction = 'flat') => {
         `Bind off all stitches${methodText}${detailsText}`;
     }
 
-    // Handle patterns with custom row counts
-    if (['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)) {
+    // 🔄 REPLACED: Handle patterns with custom row counts using centralized function
+    // OLD: ['Lace Pattern', 'Cable Pattern', 'Fair Isle', 'Intarsia', 'Stripes'].includes(pattern)
+    if (includesInRowCountPatterns(pattern)) {
       const rowsText = wizardData.stitchPattern.rowsInPattern ?
         `${wizardData.stitchPattern.rowsInPattern}-row ` : '';
       const detailsText = wizardData.stitchPattern.customDetails ?
@@ -71,8 +72,10 @@ export const useStepGeneration = (construction = 'flat') => {
       return instruction;
     }
 
-    // Handle custom patterns
-    if (pattern === 'Custom pattern') {
+    // 🔄 REPLACED: Handle custom patterns using centralized function
+    // OLD: pattern === 'Custom pattern'
+    // NOTE: Custom pattern has different generation logic (doesn't use includesInRowCountPatterns)
+    if (requiresCustomText(pattern) && !includesInRowCountPatterns(pattern)) {
       const rowsText = wizardData.stitchPattern.rowsInPattern ?
         `${wizardData.stitchPattern.rowsInPattern}-row ` : '';
       const baseText = wizardData.stitchPattern.customText || 'custom pattern';
@@ -98,7 +101,6 @@ export const useStepGeneration = (construction = 'flat') => {
       const { shapingMode, shapingType, positions, frequency, times, comments, type, config } = wizardData.shapingConfig;
 
       // Legacy detection (safety check)
-
       if (shapingMode && !type) {
         IntelliKnitLogger.warn('🚨 UNEXPECTED LEGACY SHAPING DETECTED', {
           shapingMode, shapingType, positions, frequency, times,
