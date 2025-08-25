@@ -117,7 +117,7 @@ const KnittingStepModal = ({
 
     const renderCard = () => {
         if (currentItem.type === 'prep') {
-            // Enhanced lavender prep card with subtle texture
+            // Enhanced lavender prep card - NO X button
             return (
                 <div className="flex-1 flex flex-col bg-gradient-to-br from-lavender-50 via-lavender-25 to-white relative overflow-hidden">
                     {/* Subtle texture overlay */}
@@ -127,25 +127,6 @@ const KnittingStepModal = ({
                             backgroundSize: '40px 40px'
                         }} />
                     </div>
-
-                    {/* Floating Navigation Arrows */}
-                    {navigation.canGoLeft && (
-                        <button
-                            onClick={navigation.navigateLeft}
-                            className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-lavender-600 hover:text-lavender-700 transition-all hover:scale-105"
-                        >
-                            <ChevronLeft size={20} />
-                        </button>
-                    )}
-
-                    {navigation.canGoRight && (
-                        <button
-                            onClick={navigation.navigateRight}
-                            className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-lavender-600 hover:text-lavender-700 transition-all hover:scale-105"
-                        >
-                            <ChevronRight size={20} />
-                        </button>
-                    )}
 
                     {/* Prep Card Content */}
                     <div className="flex-1 flex flex-col items-center justify-center px-8 text-center relative z-10">
@@ -161,15 +142,15 @@ const KnittingStepModal = ({
                             </p>
                         </div>
                         <p className="text-lavender-600 text-sm mt-6 opacity-75">
-                            Take your time to prepare, then swipe to continue →
+                            Take your time to prepare, then use arrows above to continue →
                         </p>
                     </div>
                 </div>
             );
         } else {
-            // Main Step Card with warm theming
+            // Main Step Card - NO X button
             if (!isFlipped) {
-                // Instructions Side with warm theming and texture
+                // Instructions Side
                 return (
                     <div className={`flex-1 flex flex-col ${theme.cardBg} relative overflow-hidden`}>
                         {/* Subtle texture overlay */}
@@ -197,25 +178,6 @@ const KnittingStepModal = ({
                                 </>
                             )}
                         </button>
-
-                        {/* Floating Navigation Arrows */}
-                        {navigation.canGoLeft && (
-                            <button
-                                onClick={navigation.navigateLeft}
-                                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-sage-600 hover:text-sage-700 transition-all hover:scale-105"
-                            >
-                                <ChevronLeft size={20} />
-                            </button>
-                        )}
-
-                        {navigation.canGoRight && (
-                            <button
-                                onClick={navigation.navigateRight}
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-sage-600 hover:text-sage-700 transition-all hover:scale-105"
-                            >
-                                <ChevronRight size={20} />
-                            </button>
-                        )}
 
                         {/* Main Content - Scrollable */}
                         <div className="flex-1 overflow-y-auto px-6 py-6 mt-12 relative z-10">
@@ -275,7 +237,7 @@ const KnittingStepModal = ({
                     </div>
                 );
             } else {
-                // Counter Side with coordinated theming
+                // Counter Side - NO X button
                 return (
                     <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
                         {/* Subtle pattern overlay for counter */}
@@ -285,25 +247,6 @@ const KnittingStepModal = ({
                                 backgroundSize: '80px 80px'
                             }} />
                         </div>
-
-                        {/* Floating Navigation Arrows */}
-                        {navigation.canGoLeft && (
-                            <button
-                                onClick={navigation.navigateLeft}
-                                className="absolute left-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-sage-600 hover:text-sage-700 transition-all hover:scale-105"
-                            >
-                                <ChevronLeft size={20} />
-                            </button>
-                        )}
-
-                        {navigation.canGoRight && (
-                            <button
-                                onClick={navigation.navigateRight}
-                                className="absolute right-4 top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center text-sage-600 hover:text-sage-700 transition-all hover:scale-105"
-                            >
-                                <ChevronRight size={20} />
-                            </button>
-                        )}
 
                         <div className="text-center px-6 relative z-10">
                             <div className="text-6xl mb-4">🧶</div>
@@ -362,27 +305,51 @@ const KnittingStepModal = ({
             <div
                 className="modal-content flex flex-col overflow-hidden shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
-                onTouchStart={navigation.onTouchStart}
+                onTouchStart={(e) => {
+                    // ✅ ONLY handle touch if NOT clicking an arrow
+                    if (e.target.closest('button')) {
+                        return; // Let button handle its own touch
+                    }
+                    navigation.onTouchStart(e);
+                }}
                 onTouchMove={navigation.onTouchMove}
                 onTouchEnd={navigation.onTouchEnd}
             >
                 {/* Header - Clean with just close and context */}
-                <div className="flex-shrink-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-3 relative shadow-sm">
-                    <div className="text-center">
-                        <div className="text-sm font-medium text-gray-900">
-                            Step {stepIndex + 1} of {totalSteps}
-                        </div>
-                        <div className="text-xs text-gray-500">
-                            {component.name}
-                        </div>
+                <div className="flex-shrink-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-3 py-3 relative shadow-sm">
+                    {/* X button - positioned absolutely, outside the main layout */}
+                    <button
+                        onClick={onClose}
+                        className="absolute -top-6 -right-6 z-30 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
+                    >
+                        <X size={18} />
+                    </button>
 
-                        {/* Progress indicator */}
-                        <div className="mt-2 flex justify-center">
-                            <div className="flex space-x-1">
+                    <div className="flex items-center justify-between">
+                        {/* Left: Navigation arrow */}
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                navigation.navigateLeft();
+                            }}
+                            disabled={!navigation.canGoLeft}
+                            className="p-2 rounded-full text-gray-600 hover:text-gray-800 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                        >
+                            <ChevronLeft size={18} />
+                        </button>
+
+                        {/* Center: Compact info + progress */}
+                        <div className="text-center flex-1 px-2">
+                            <div className="text-sm font-medium text-gray-900 mb-1">
+                                Step {stepIndex + 1} of {totalSteps} • {component.name}
+                            </div>
+                            {/* Inline progress dots */}
+                            <div className="flex justify-center space-x-1">
                                 {Array.from({ length: totalSteps }, (_, i) => (
                                     <div
                                         key={i}
-                                        className={`w-2 h-1 rounded-full transition-colors ${i === stepIndex
+                                        className={`w-1.5 h-1.5 rounded-full transition-colors ${i === stepIndex
                                             ? 'bg-sage-500'
                                             : i < stepIndex
                                                 ? 'bg-sage-300'
@@ -392,16 +359,22 @@ const KnittingStepModal = ({
                                 ))}
                             </div>
                         </div>
-                    </div>
 
-                    {/* Close button - top right */}
-                    <button
-                        onClick={onClose}
-                        className="absolute top-3 right-3 p-1.5 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors"
-                    >
-                        <X size={18} />
-                    </button>
+                        {/* Right: Just the right navigation arrow */}
+                        <button
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                navigation.navigateRight();
+                            }}
+                            disabled={!navigation.canGoRight}
+                            className="p-2 rounded-full text-gray-600 hover:text-gray-800 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                        >
+                            <ChevronRight size={18} />
+                        </button>
+                    </div>
                 </div>
+
 
                 {/* Card Content */}
                 {renderCard()}

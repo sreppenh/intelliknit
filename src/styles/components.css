@@ -516,7 +516,14 @@ body.modal-open {
 
 /* Navigation Arrows */
 .knitting-nav-arrow {
-  @apply absolute top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105;
+  pointer-events: auto !important;
+  touch-action: manipulation;
+  z-index: 1000 !important;
+  /* Higher than modal content */
+}
+
+.knitting-nav-arrow:active {
+  transform: translateY(-50%) scale(0.95);
 }
 
 .knitting-nav-arrow-left {
@@ -525,6 +532,11 @@ body.modal-open {
 
 .knitting-nav-arrow-right {
   @apply knitting-nav-arrow right-4;
+}
+
+.modal-content .knitting-nav-arrow {
+  position: fixed !important;
+  /* Break out of modal positioning context */
 }
 
 /* Completion Toggle */
