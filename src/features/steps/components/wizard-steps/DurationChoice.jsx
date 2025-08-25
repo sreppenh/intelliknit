@@ -276,9 +276,9 @@ const DurationChoice = ({
                 </div>
 
                 {wizardData.duration.type === 'until_length' && (
-                  <div className="mt-3 stack-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-sage-700">Work until piece measures</span>
+                  <div className="mt-3 space-y-3">
+                    <div className="flex items-center gap-2 text-sm text-sage-700">
+                      <span>Work until piece measures</span>
                       <IncrementInput
                         value={wizardData.duration.value}
                         onChange={(value) => updateWizardData('duration', { value })}
@@ -288,42 +288,18 @@ const DurationChoice = ({
                         step={0.25}
                         size="sm"
                       />
-                      <select
-                        value={wizardData.duration.units || 'inches'}
-                        onChange={(e) => updateWizardData('duration', { units: e.target.value })}
-                        className="border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                      >
-                        <option value="inches">inches</option>
-                        <option value="cm">cm</option>
-                      </select>
+                      <span>{wizardData.duration.units || project?.defaultUnits || 'inches'}</span>
                     </div>
 
-                    <div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <label className="text-sage-700">from</label>
                       <input
                         type="text"
                         value={wizardData.duration.reference || ''}
                         onChange={(e) => updateWizardData('duration', { reference: e.target.value })}
-                        placeholder="from cast on, from start of armhole, etc."
-                        className="w-full border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white text-sage-600 placeholder-wool-400"
+                        placeholder="cast on, start of armhole, etc."
+                        className="flex-1 border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors"
                       />
-                      <p className="text-xs text-sage-600 mt-1">Reference point (e.g., from cast on, from start of armhole)</p>
-                    </div>
-
-                    {/* Complete repeats checkbox - only for patterns with repeats */}
-                    {patternHasRepeats && (
-                      <label className="flex items-start gap-3 cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={wizardData.duration.completeRepeats || false}
-                          onChange={(e) => updateWizardData('duration', { completeRepeats: e.target.checked })}
-                          className="w-4 h-4 text-sage-600 mt-0.5"
-                        />
-                        <span className="text-sm text-sage-700 text-left">Complete pattern repeats only (no partial patterns)</span>
-                      </label>
-                    )}
-
-                    <div className="text-xs text-sage-600">
-                      💡 Work until your piece reaches the exact target measurement from your reference point
                     </div>
                   </div>
                 )}
