@@ -21,6 +21,7 @@ const PhaseConfig = ({
   onComplete,
   onCancel,
   onBack,
+  mode = 'creation',
   wizardData,
   onGoToLanding,     // Should be here
   wizard             // Should be here too
@@ -109,6 +110,7 @@ const PhaseConfig = ({
         wizard={wizard}  // Make sure this line exists
         onGoToLanding={onGoToLanding}  // And this line
         onCancel={onCancel}
+        mode={mode}
       />
     );
   }

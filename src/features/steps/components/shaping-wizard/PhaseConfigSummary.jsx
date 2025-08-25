@@ -12,7 +12,7 @@ const PhaseConfigSummary = ({
   phaseTypes,
   result,
   construction,
-  currentStitches, //NEW
+  currentStitches,
   componentIndex,
   onExitToComponentSteps,
   onAddPhase,
@@ -23,72 +23,80 @@ const PhaseConfigSummary = ({
   onCancel,
   getPhaseDescription,
   wizardData,
-  onGoToLanding,  // ADD
-  wizard          // ADD
-
+  onGoToLanding,
+  wizard,
+  mode = 'creation' // NEW: Add mode prop with default
 }) => {
 
-  // ✅ ADD THE HELPER HOOKS RIGHT HERE:
+  // Only use save helper in creation mode
   const { dispatch } = useProjectsContext();
   const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
   const [showBackWarning, setShowBackWarning] = useState(false);
 
   const [showExitModal, setShowExitModal] = useState(false);
-  const [exitType, setExitType] = useState('exit'); // NEW: Track exit type
-  const [customNavigation, setCustomNavigation] = useState(null); // NEW: Track custom navigation
+  const [exitType, setExitType] = useState('exit');
+  const [customNavigation, setCustomNavigation] = useState(null);
 
+  // Determine if we're in edit mode
+  const isEditMode = mode === 'edit';
 
+  // FIXED: Mode-aware save handler
   const handleCompleteStep = async () => {
+    if (isEditMode) {
+      // Edit mode: Call onComplete directly (triggers UPDATE_STEP in EditSequentialPhasesForm)
+      onComplete({
+        phases: phases,
+        construction: construction,
+        calculation: result,
+        description: result.instruction
+      });
+    } else {
+      // Creation mode: Use saveStepAndNavigate (triggers ADD_STEP)
+      const originalPhaseData = {
+        phases: phases,
+        construction: construction,
+        calculation: result,
+      };
 
-    // 🎯 PRESERVE: Original data structure that parent expects
-    const originalPhaseData = {
-      phases: phases,
-      construction: construction,
-      calculation: result, // ← This IS the calculation data
-    };
-
-    // ✅ FIXED: Use result directly since it contains the calculated values
-    const saveResult = await saveStepAndNavigate({
-      instruction: result.instruction,
-      effect: {
-        // success: !result.error,
-        success: !result.error,
-        //endingStitches: result.endingStitches || currentStitches, // ← Fixed!
-        endingStitches: result.endingStitches ?? currentStitches, // ← Fix: Use nullish coalescing
-        //startingStitches: result.startingStitches || currentStitches, // ← Fixed!
-        startingStitches: result.startingStitches ?? currentStitches, // ← Same fix
-        totalRows: result.totalRows || 1, // ← Fixed!
-        error: result.error
-      },
-      wizardData: {
-        stitchPattern: wizardData.stitchPattern,
-        hasShaping: true,
-        shapingConfig: {
-          type: 'phases',
-          config: {
-            calculation: result, // ← Fixed! Put result at config.calculation level
-            phases: phases,
-            construction: construction,
+      const saveResult = await saveStepAndNavigate({
+        instruction: result.instruction,
+        effect: {
+          success: !result.error,
+          endingStitches: result.endingStitches ?? currentStitches,
+          startingStitches: result.startingStitches ?? currentStitches,
+          totalRows: result.totalRows || 1,
+          error: result.error
+        },
+        wizardData: {
+          stitchPattern: wizardData.stitchPattern,
+          hasShaping: true,
+          shapingConfig: {
+            type: 'phases',
+            config: {
+              calculation: result,
+              phases: phases,
+              construction: construction,
+            }
           }
-        }
-      },
-      currentStitches,
-      construction,
-      componentIndex,
-      dispatch,
-      skipNavigation: true
-    });
+        },
+        currentStitches,
+        construction,
+        componentIndex,
+        dispatch,
+        skipNavigation: true
+      });
 
-    if (saveResult.success) {
-      onExitToComponentSteps();
+      if (saveResult.success) {
+        onExitToComponentSteps();
+      }
     }
   };
 
   const handleBackWithWarning = () => {
     if (phases.length > 0) {
-      setShowBackWarning(true);  // Show our custom modal
+      setShowBackWarning(true);
     } else {
-      onBack();  // Safe to go back
+      onBack();
     }
   };
 
@@ -140,17 +148,30 @@ const PhaseConfigSummary = ({
   const terms = getConstructionTerms(construction);
 
   return (
-
     <div>
-      <ShapingHeader
-        onBack={handleBackWithWarning}
-        onGoToLanding={onGoToLanding}
-        wizard={wizard}
-        onCancel={() => onCancel('exit')} // Default exit behavior
-      />
+      {/* FIXED: Only show ShapingHeader in creation mode */}
+      {!isEditMode && (
+        <ShapingHeader
+          onBack={handleBackWithWarning}
+          onGoToLanding={onGoToLanding}
+          wizard={wizard}
+          onCancel={() => onCancel('exit')}
+        />
+      )}
 
-
+      {/* FIXED: Add edit mode indicator */}
       <div className="p-6 stack-lg">
+        {isEditMode && (
+          <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-3 mb-4">
+            <p className="text-sm text-yarn-600 font-medium">
+              🔧 Edit Mode - Sequential Phases Configuration
+            </p>
+            <p className="text-xs text-yarn-500 mt-1">
+              Update your phase sequence settings
+            </p>
+          </div>
+        )}
+
         {/* Header */}
         <div>
           <h2 className="content-header-primary text-left">📈 Sequential Phases</h2>
@@ -278,12 +299,10 @@ const PhaseConfigSummary = ({
               </div>
             )}
 
-
-
             {/* Navigation */}
             <div className="flex gap-3 pt-4">
               <button
-                onClick={handleBackWithWarning}  // Change from onBack to handleBackWithWarning
+                onClick={handleBackWithWarning}
                 className="btn-tertiary flex-1"
               >
                 ← Back
@@ -293,13 +312,12 @@ const PhaseConfigSummary = ({
                 disabled={!result.instruction || result.error || phases.length === 0}
                 className="btn-primary flex-1"
               >
-
-                {isLoading ? 'Saving...' : 'Complete Step'}
+                {/* FIXED: Mode-aware button text */}
+                {isLoading ? 'Saving...' : (isEditMode ? 'Save Changes' : 'Complete Step')}
               </button>
             </div>
           </>
         )}
-
 
         <StepSaveErrorModal
           isOpen={!!error}
@@ -309,7 +327,7 @@ const PhaseConfigSummary = ({
         />
       </div>
 
-      {/* Add this modal at the end of your return statement */}
+      {/* Back warning modal */}
       {showBackWarning && (
         <div className="modal" onClick={(event) => {
           if (event.target === event.currentTarget) {
@@ -364,13 +382,8 @@ const PhaseConfigSummary = ({
           </div>
         </div>
       )}
-
     </div>
-
-
   );
-
-
 };
 
 export default PhaseConfigSummary;

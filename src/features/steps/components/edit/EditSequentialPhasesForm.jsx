@@ -158,6 +158,7 @@ const EditSequentialPhasesForm = ({
                         onBack={onBack}
                         wizardData={wizardData}
                         onGoToLanding={onGoToLanding}
+                        mode="edit"
                         wizard={{
                             wizardData,
                             construction,
