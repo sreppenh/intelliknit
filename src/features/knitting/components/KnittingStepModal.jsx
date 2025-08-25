@@ -65,23 +65,12 @@ const KnittingStepModal = ({
         setIsFlipped(false);
     }, [stepIndex]);
 
-    // Get step theme based on pattern type
+    // ✅ FIXED: Updated step theme logic - Yarn for construction steps!
     const getStepTheme = (step) => {
         const patternName = getStepPatternName(step);
 
-        // Lavender: Setup & Finishing
+        // Yarn: Construction & Finishing Steps (Cast On, Bind Off, etc.)
         if (['Cast On', 'Bind Off', 'Put on Holder', 'Other Ending', 'Pick Up & Knit', 'Continue from Stitches'].includes(patternName)) {
-            return {
-                cardBg: 'bg-gradient-to-br from-lavender-25 via-white to-lavender-50',
-                contentBg: 'bg-lavender-50/30 border-lavender-200/50',
-                textPrimary: 'text-lavender-900',
-                textSecondary: 'text-lavender-700',
-                accent: 'lavender'
-            };
-        }
-
-        // Yarn: Colorwork & Special Techniques  
-        if (['Stripes', 'Fair Isle', 'Intarsia', 'Colorwork'].includes(patternName)) {
             return {
                 cardBg: 'bg-gradient-to-br from-yarn-25 via-white to-yarn-50',
                 contentBg: 'bg-yarn-50/30 border-yarn-200/50',
@@ -367,11 +356,11 @@ const KnittingStepModal = ({
 
     const modalContent = (
         <div
-            className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-0"
+            className="modal"
             onClick={onClose}
         >
             <div
-                className="relative w-full h-full max-w-md mx-auto bg-white flex flex-col overflow-hidden shadow-2xl"
+                className="modal-content flex flex-col overflow-hidden shadow-2xl"
                 onClick={(e) => e.stopPropagation()}
                 onTouchStart={navigation.onTouchStart}
                 onTouchMove={navigation.onTouchMove}
@@ -394,10 +383,10 @@ const KnittingStepModal = ({
                                     <div
                                         key={i}
                                         className={`w-2 h-1 rounded-full transition-colors ${i === stepIndex
-                                                ? 'bg-sage-500'
-                                                : i < stepIndex
-                                                    ? 'bg-sage-300'
-                                                    : 'bg-gray-200'
+                                            ? 'bg-sage-500'
+                                            : i < stepIndex
+                                                ? 'bg-sage-300'
+                                                : 'bg-gray-200'
                                             }`}
                                     />
                                 ))}
@@ -447,8 +436,8 @@ const KnittingStepModal = ({
                                 <div
                                     key={index}
                                     className={`w-2 h-2 rounded-full transition-colors ${index === navigation.currentCarouselIndex
-                                            ? 'bg-sage-500'
-                                            : 'bg-white/50'
+                                        ? 'bg-sage-500'
+                                        : 'bg-white/50'
                                         }`}
                                 />
                             ))}

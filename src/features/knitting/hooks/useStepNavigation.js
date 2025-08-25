@@ -23,7 +23,69 @@ export const useStepNavigation = ({
         setCurrentCarouselIndex(0);
     }, [stepIndex]);
 
-    // Keyboard shortcuts - only when modal is open
+    // Safe carousel navigation
+    const safeCarouselIndex = Math.min(currentCarouselIndex, carouselItems.length - 1);
+    const currentItem = carouselItems[safeCarouselIndex];
+
+    // Navigation bounds checking
+    const canGoLeft = safeCarouselIndex > 0 || stepIndex > 0;
+    const canGoRight = safeCarouselIndex < carouselItems.length - 1 || stepIndex < totalSteps - 1;
+
+    // Smooth transition wrapper
+    const withTransition = useCallback(async (action) => {
+        setIsTransitioning(true);
+        try {
+            await action();
+            // Small delay for smooth visual feedback
+            await new Promise(resolve => setTimeout(resolve, 150));
+        } finally {
+            setIsTransitioning(false);
+        }
+    }, []);
+
+    // ✅ DEFINE NAVIGATION FUNCTIONS BEFORE EVENT LISTENERS
+    const navigateLeft = useCallback(() => {
+        if (isTransitioning) return;
+
+        withTransition(async () => {
+            if (safeCarouselIndex > 0) {
+                setCurrentCarouselIndex(safeCarouselIndex - 1);
+            } else if (stepIndex > 0) {
+                onNavigateStep(-1);
+            }
+        });
+    }, [safeCarouselIndex, stepIndex, onNavigateStep, withTransition, isTransitioning]);
+
+    const navigateRight = useCallback(() => {
+        if (isTransitioning) return;
+
+        withTransition(async () => {
+            if (safeCarouselIndex < carouselItems.length - 1) {
+                setCurrentCarouselIndex(safeCarouselIndex + 1);
+            } else if (stepIndex < totalSteps - 1) {
+                onNavigateStep(1);
+            }
+        });
+    }, [safeCarouselIndex, carouselItems.length, stepIndex, totalSteps, onNavigateStep, withTransition, isTransitioning]);
+
+    // Jump directly to a specific step
+    const jumpToStep = useCallback((targetStepIndex) => {
+        if (targetStepIndex >= 0 && targetStepIndex < totalSteps && targetStepIndex !== stepIndex) {
+            withTransition(async () => {
+                const direction = targetStepIndex - stepIndex;
+                onNavigateStep(direction);
+            });
+        }
+    }, [stepIndex, totalSteps, onNavigateStep, withTransition]);
+
+    // Toggle completion for current step
+    const toggleCurrentStepCompletion = useCallback(() => {
+        if (onToggleCompletion) {
+            onToggleCompletion(stepIndex);
+        }
+    }, [stepIndex, onToggleCompletion]);
+
+    // ✅ KEYBOARD SHORTCUTS - NOW WITH PROPER DEPENDENCY ARRAY
     useEffect(() => {
         if (!isModalOpen) return;
 
@@ -70,69 +132,7 @@ export const useStepNavigation = ({
 
         window.addEventListener('keydown', handleKeyDown);
         return () => window.removeEventListener('keydown', handleKeyDown);
-    }, [isModalOpen, stepIndex, currentCarouselIndex, totalSteps]);
-
-    // Safe carousel navigation
-    const safeCarouselIndex = Math.min(currentCarouselIndex, carouselItems.length - 1);
-    const currentItem = carouselItems[safeCarouselIndex];
-
-    // Navigation bounds checking
-    const canGoLeft = safeCarouselIndex > 0 || stepIndex > 0;
-    const canGoRight = safeCarouselIndex < carouselItems.length - 1 || stepIndex < totalSteps - 1;
-
-    // Smooth transition wrapper
-    const withTransition = useCallback(async (action) => {
-        setIsTransitioning(true);
-        try {
-            await action();
-            // Small delay for smooth visual feedback
-            await new Promise(resolve => setTimeout(resolve, 150));
-        } finally {
-            setIsTransitioning(false);
-        }
-    }, []);
-
-    // Navigation functions
-    const navigateLeft = useCallback(() => {
-        if (isTransitioning) return;
-
-        withTransition(async () => {
-            if (safeCarouselIndex > 0) {
-                setCurrentCarouselIndex(safeCarouselIndex - 1);
-            } else if (stepIndex > 0) {
-                onNavigateStep(-1);
-            }
-        });
-    }, [safeCarouselIndex, stepIndex, onNavigateStep, withTransition, isTransitioning]);
-
-    const navigateRight = useCallback(() => {
-        if (isTransitioning) return;
-
-        withTransition(async () => {
-            if (safeCarouselIndex < carouselItems.length - 1) {
-                setCurrentCarouselIndex(safeCarouselIndex + 1);
-            } else if (stepIndex < totalSteps - 1) {
-                onNavigateStep(1);
-            }
-        });
-    }, [safeCarouselIndex, carouselItems.length, stepIndex, totalSteps, onNavigateStep, withTransition, isTransitioning]);
-
-    // Jump directly to a specific step
-    const jumpToStep = useCallback((targetStepIndex) => {
-        if (targetStepIndex >= 0 && targetStepIndex < totalSteps && targetStepIndex !== stepIndex) {
-            withTransition(async () => {
-                const direction = targetStepIndex - stepIndex;
-                onNavigateStep(direction);
-            });
-        }
-    }, [stepIndex, totalSteps, onNavigateStep, withTransition]);
-
-    // Toggle completion for current step
-    const toggleCurrentStepCompletion = useCallback(() => {
-        if (onToggleCompletion) {
-            onToggleCompletion(stepIndex);
-        }
-    }, [stepIndex, onToggleCompletion]);
+    }, [isModalOpen, navigateLeft, navigateRight, toggleCurrentStepCompletion, jumpToStep, totalSteps]);
 
     // Smart preloading - preload adjacent steps
     const preloadStep = useCallback((targetStepIndex) => {
@@ -158,7 +158,7 @@ export const useStepNavigation = ({
         }
     }, [stepIndex, totalSteps, preloadStep]);
 
-    // Swipe gesture handling
+    // ✅ RESTORED: Swipe gesture handling (was missing in my version)
     const handleSwipeGesture = useCallback((direction, distance) => {
         const minSwipeDistance = 50;
 
@@ -242,6 +242,9 @@ export const useStepNavigation = ({
 
         // Progress utilities
         getStepProgress,
+
+        // ✅ RESTORED: Swipe gesture handler (was referenced but missing)
+        handleSwipeGesture,
 
         // Keyboard shortcut info (for help/hints)
         shortcuts: {

@@ -7,10 +7,12 @@
    2. Button System  
    3. Form Controls
    4. Modal System
-   5. Card System
-   6. Layout & Typography
-   7. Interactive Elements
-   8. Mobile & Responsive Fixes
+   5. Knitting Modal System
+   6. Card System
+   7. Layout & Typography
+   8. Interactive Elements
+   9. Mobile & Responsive Fixes
+
    
    ========================================= */
 
@@ -380,7 +382,226 @@ body.modal-open {
   overscroll-behavior: none;
 }
 
-/* ===== 5. CARD SYSTEM ===== */
+
+/* ===== KNITTING MODAL SYSTEM ===== */
+
+/* Base knitting modal - extends standard modal */
+.knitting-modal-content {
+  @apply modal-content;
+  max-height: 90vh;
+  /* Mobile: Full screen experience */
+}
+
+/* Mobile-first: Full screen on small devices */
+@media (max-width: 640px) {
+  .knitting-modal-content {
+    @apply w-full h-full max-w-none rounded-none;
+    max-height: 100vh;
+  }
+}
+
+/* Tablet and up: Proper modal sizing */
+@media (min-width: 640px) {
+  .knitting-modal-content {
+    max-width: 420px;
+    max-height: 90vh;
+    @apply rounded-2xl;
+  }
+}
+
+/* Desktop: Slightly larger */
+@media (min-width: 1024px) {
+  .knitting-modal-content {
+    max-width: 480px;
+  }
+}
+
+/* ===== KNITTING STEP THEMES ===== */
+
+/* Yarn Theme - Construction & Finishing Steps (Cast On, Bind Off) */
+.knitting-card-yarn {
+  @apply bg-gradient-to-br from-yarn-25 via-white to-yarn-50;
+}
+
+.knitting-content-yarn {
+  @apply bg-yarn-50/30 border-yarn-200/50 backdrop-blur-sm rounded-2xl border shadow-sm;
+}
+
+.knitting-text-primary-yarn {
+  @apply text-yarn-900;
+}
+
+.knitting-text-secondary-yarn {
+  @apply text-yarn-700;
+}
+
+.knitting-nav-yarn {
+  @apply text-yarn-600 hover:text-yarn-700;
+}
+
+/* Lavender Theme - Prep Cards */
+.knitting-card-lavender {
+  @apply bg-gradient-to-br from-lavender-50 via-lavender-25 to-white;
+}
+
+.knitting-content-lavender {
+  @apply bg-lavender-50/30 border-lavender-200/50 backdrop-blur-sm rounded-2xl border shadow-sm;
+}
+
+.knitting-text-primary-lavender {
+  @apply text-lavender-900;
+}
+
+.knitting-text-secondary-lavender {
+  @apply text-lavender-700;
+}
+
+.knitting-nav-lavender {
+  @apply text-lavender-600 hover:text-lavender-700;
+}
+
+/* Sage Theme - Regular Pattern Steps */
+.knitting-card-sage {
+  @apply bg-gradient-to-br from-sage-25 via-white to-sage-50;
+}
+
+.knitting-content-sage {
+  @apply bg-sage-50/30 border-sage-200/50 backdrop-blur-sm rounded-2xl border shadow-sm;
+}
+
+.knitting-text-primary-sage {
+  @apply text-sage-900;
+}
+
+.knitting-text-secondary-sage {
+  @apply text-sage-700;
+}
+
+.knitting-nav-sage {
+  @apply text-sage-600 hover:text-sage-700;
+}
+
+/* Completed Theme - Wool */
+.knitting-card-completed {
+  @apply bg-gradient-to-br from-wool-100 via-wool-50 to-wool-75;
+}
+
+.knitting-content-completed {
+  @apply bg-wool-100/50 border-wool-300/50 backdrop-blur-sm rounded-2xl border shadow-sm;
+}
+
+.knitting-text-primary-completed {
+  @apply text-wool-800;
+}
+
+.knitting-text-secondary-completed {
+  @apply text-wool-600;
+}
+
+.knitting-nav-completed {
+  @apply text-wool-600 hover:text-wool-700;
+}
+
+/* ===== 5. KNITTING MODAL SYSTEM ===== */
+
+/* Modal Header */
+.knitting-modal-header {
+  @apply flex-shrink-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-4 py-3 relative shadow-sm;
+}
+
+/* Modal Footer */
+.knitting-modal-footer {
+  @apply flex-shrink-0 bg-white/95 backdrop-blur-sm border-t border-gray-200 px-4 py-3 shadow-sm;
+}
+
+/* Navigation Arrows */
+.knitting-nav-arrow {
+  @apply absolute top-1/2 transform -translate-y-1/2 z-10 w-12 h-12 bg-white/90 hover:bg-white backdrop-blur-sm rounded-full shadow-lg flex items-center justify-center transition-all hover:scale-105;
+}
+
+.knitting-nav-arrow-left {
+  @apply knitting-nav-arrow left-4;
+}
+
+.knitting-nav-arrow-right {
+  @apply knitting-nav-arrow right-4;
+}
+
+/* Completion Toggle */
+.knitting-completion-toggle {
+  @apply absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm shadow-sm border transition-all hover:scale-105;
+}
+
+/* Flip Button */
+.knitting-flip-button {
+  @apply w-full flex items-center justify-center gap-2 py-3 bg-sage-100 hover:bg-sage-200 text-sage-700 rounded-xl transition-colors font-medium shadow-sm;
+}
+
+/* Progress Indicators */
+.knitting-progress-dots {
+  @apply absolute bottom-24 left-1/2 transform -translate-x-1/2;
+}
+
+.knitting-progress-dot {
+  @apply w-2 h-2 rounded-full transition-colors;
+}
+
+.knitting-progress-dot-active {
+  @apply knitting-progress-dot bg-sage-500;
+}
+
+.knitting-progress-dot-inactive {
+  @apply knitting-progress-dot bg-white/50;
+}
+
+/* Header Progress Bar */
+.knitting-header-progress {
+  @apply w-2 h-1 rounded-full transition-colors;
+}
+
+.knitting-header-progress-current {
+  @apply knitting-header-progress bg-sage-500;
+}
+
+.knitting-header-progress-completed {
+  @apply knitting-header-progress bg-sage-300;
+}
+
+.knitting-header-progress-future {
+  @apply knitting-header-progress bg-gray-200;
+}
+
+/* Texture Overlays */
+.knitting-texture-grid {
+  @apply absolute inset-0 opacity-10 pointer-events-none;
+  background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23000' stroke-width='1' stroke-opacity='0.03'%3E%3Cpath d='M30 0v60M0 30h60'/%3E%3Cpath d='M15 15l30 30M45 15L15 45'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 60px 60px;
+}
+
+.knitting-texture-circles {
+  @apply absolute inset-0 opacity-5 pointer-events-none;
+  background-image: url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23000' stroke-width='2' stroke-opacity='0.08'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='10'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 80px 80px;
+}
+
+.knitting-texture-prep {
+  @apply absolute inset-0 opacity-5 pointer-events-none;
+  background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 40px 40px;
+}
+
+/* Transition Effects */
+.knitting-transition-overlay {
+  @apply absolute inset-0 bg-black/10 flex items-center justify-center pointer-events-none;
+}
+
+.knitting-transition-message {
+  @apply bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg;
+}
+
+
+
+/* ===== 6. CARD SYSTEM ===== */
 
 /* Base card variants */
 .card {
@@ -549,7 +770,7 @@ body.modal-open {
   @apply shadow-lg;
 }
 
-/* ===== 6. LAYOUT & TYPOGRAPHY ===== */
+/* ===== 7. LAYOUT & TYPOGRAPHY ===== */
 
 /* Grid layouts */
 .grid-2-equal {
@@ -679,7 +900,7 @@ body.modal-open {
   margin-top: 0 !important;
 }
 
-/* ===== 7. INTERACTIVE ELEMENTS ===== */
+/* ===== 8. INTERACTIVE ELEMENTS ===== */
 
 /* Information blocks */
 .info-block {
@@ -959,7 +1180,7 @@ body.modal-open {
   @apply border-wool-500;
 }
 
-/* ===== 8. MOBILE & RESPONSIVE FIXES ===== */
+/* ===== 9. MOBILE & RESPONSIVE FIXES ===== */
 
 /* Mobile safe area support */
 @supports (padding-top: env(safe-area-inset-top)) {

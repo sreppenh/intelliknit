@@ -9,6 +9,7 @@ module.exports = {
       colors: {
         // IntelliKnit Design System Colors
         sage: {
+          25: '#f8fcf8',   // Even lighter sage, for gradient
           50: '#f0f9f0',   // Very light sage - for light backgrounds
           100: '#d1e4d1',  // Light backgrounds, selection states  
           200: '#b3d4b3',  // Borders, subtle accents
@@ -25,6 +26,7 @@ module.exports = {
           75: '#e0f1e0',   // 🆕 NEW - Between sage-50 and sage-100
         },
         yarn: {
+          25: '#fffefb',   // Even lighter cream, for gradient
           50: '#fefdf8',   // Very light cream/beige - warm background
           100: '#fdefc4',  // Light backgrounds, warm accents
           200: '#fce49a',  // Borders, subtle warm accents
@@ -55,6 +57,7 @@ module.exports = {
         },
         // Lavender accent color - enhanced with more shades
         lavender: {
+          25: '#fdfdff',   // Even lighter lavender, for gradient
           50: '#faf7ff',   // Very light backgrounds
           100: '#f3ebff',  // Light backgrounds, info states
           200: '#e5d4ff',  // Borders, subtle accents
