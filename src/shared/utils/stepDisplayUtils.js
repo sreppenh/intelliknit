@@ -580,7 +580,8 @@ export const getStepDurationDisplay = (step) => {
             return `${duration.value} ${duration.units}`;
 
         case 'until_length':
-            return `until ${duration.value} ${duration.units}`;
+            const referenceText = duration.reference ? ` from ${duration.reference}` : '';
+            return `${duration.value} ${duration.units}${referenceText}`;
 
         case 'repeats':
             return `${duration.value} repeats`;

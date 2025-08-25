@@ -749,8 +749,8 @@ const getEnhancedDurationDisplay = (step) => {
             return `${duration.value} ${duration.units || 'inches'}`;
 
         case 'until_length':
-            return `until ${duration.value} ${duration.units || 'inches'}`;
-
+            const referenceText = duration.reference ? ` from ${duration.reference}` : '';
+            return `until piece measures ${duration.value} ${duration.units || 'inches'}${referenceText}`;
         case 'stitches':
             return `${duration.value} stitches`;
 
