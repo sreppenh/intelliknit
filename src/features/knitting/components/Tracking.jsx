@@ -4,7 +4,7 @@ import { CheckCircle2, Circle, FileText, X } from 'lucide-react';
 import PageHeader from '../../../shared/components/PageHeader';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
 import { PrepNoteDisplay } from '../../../shared/components/PrepStepSystem';
-import KnittingStepModal from './KnittingStepModal';
+import KnittingStepModal from './modal/KnittingStepModal';
 
 const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const { currentProject, activeComponentIndex, dispatch } = useProjectsContext();
