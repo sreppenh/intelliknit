@@ -13,10 +13,9 @@ const KnittingPrepCard = ({ prepNote, stepIndex, navigation }) => {
                 }} />
             </div>
 
-            <div className="flex-1 flex flex-col items-center justify-center px-8 text-center relative z-10">
-                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-lavender-400 to-lavender-500 text-white flex items-center justify-center mb-6 shadow-lg">
-                    <FileText size={28} />
-                </div>
+            <div className="flex-1 flex flex-col items-center justify-center px-8 py-6 text-center relative z-10"><div className="w-16 h-16 rounded-full bg-gradient-to-br from-lavender-400 to-lavender-500 text-white flex items-center justify-center mb-6 shadow-lg">
+                <FileText size={28} />
+            </div>
                 <h2 className="text-2xl font-semibold text-lavender-800 mb-4">
                     Preparation
                 </h2>

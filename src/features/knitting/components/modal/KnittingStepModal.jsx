@@ -153,7 +153,7 @@ const KnittingStepModal = ({
                                     <div
                                         key={i}
                                         className={`w-1.5 h-1.5 rounded-full transition-colors ${i === stepIndex ? 'bg-sage-500' :
-                                                i < stepIndex ? 'bg-sage-300' : 'bg-gray-200'
+                                            i < stepIndex ? 'bg-sage-300' : 'bg-gray-200'
                                             }`}
                                     />
                                 ))}
@@ -185,7 +185,7 @@ const KnittingStepModal = ({
                             className="w-full flex items-center justify-center gap-2 py-3 bg-sage-100 hover:bg-sage-200 text-sage-700 rounded-xl transition-colors font-medium shadow-sm"
                         >
                             <RotateCcw size={18} />
-                            <span>{viewMode === 'instructions' ? 'Row Counter' : 'View Instructions'}</span>
+                            <span>{viewMode === 'instructions' ? 'Switch to Counter' : 'Back to Instructions'}</span>
                         </button>
                     </div>
                 )}
@@ -207,8 +207,8 @@ const KnittingStepModal = ({
                                 <div
                                     key={index}
                                     className={`w-2 h-2 rounded-full transition-colors ${index === navigation.currentCarouselIndex
-                                            ? 'bg-sage-500'
-                                            : 'bg-white/50'
+                                        ? 'bg-sage-500'
+                                        : 'bg-white/50'
                                         }`}
                                 />
                             ))}
