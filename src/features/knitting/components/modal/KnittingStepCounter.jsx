@@ -2,6 +2,8 @@
 import React, { useState } from 'react';
 import { Plus, Minus, RotateCcw, Target, Undo } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
+import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
+import IncrementInput from '../../../../shared/components/IncrementInput';
 
 const KnittingStepCounter = ({
     step,
@@ -41,11 +43,10 @@ const KnittingStepCounter = ({
             </div>
 
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
-                {/* Header */}
-                <div className="text-4xl mb-4">🧶</div>
-                <h3 className={`text-xl font-semibold mb-6 ${theme.textPrimary}`}>
-                    Row Counter
-                </h3>
+                {/* Step context */}
+                {/*}            <div className={`text-lg font-semibold mb-4 ${theme.textPrimary}`}>
+                    {step.description}
+                </div>. */}
 
                 {/* Current Progress Card */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
@@ -66,31 +67,13 @@ const KnittingStepCounter = ({
                     </div>
 
                     {/* Row controls */}
-                    <div className="flex items-center justify-center gap-4">
-                        <button
-                            onClick={handleRowDecrement}
-                            className="p-3 rounded-full bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                            disabled={currentRow <= 1}
-                        >
-                            <Minus size={18} />
-                        </button>
-
-                        <button
-                            onClick={resetCounter}
-                            className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors"
-                        >
-                            <RotateCcw size={14} className="inline mr-1" />
-                            Reset
-                        </button>
-
-                        <button
-                            onClick={handleRowIncrement}
-                            className="p-3 rounded-full bg-sage-100 hover:bg-sage-200 text-sage-700 hover:text-sage-800 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
-                            disabled={currentRow >= totalRows}
-                        >
-                            <Plus size={18} />
-                        </button>
-                    </div>
+                    <IncrementInput
+                        value={currentRow}
+                        onChange={rowCounter.updateRow}
+                        min={1}
+                        max={totalRows}
+                        label="Current Row"
+                    />
                 </div>
 
                 {/* Stitch Counter Card */}

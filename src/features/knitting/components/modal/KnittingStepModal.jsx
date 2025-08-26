@@ -207,7 +207,7 @@ const KnittingStepModal = ({
                 )}
 
                 {/* Progress Dots - Show carousel position */}
-                {carouselItems.length > 1 && (
+                {/*       {carouselItems.length > 1 && (
                     <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2">
                         <div className="flex space-x-2">
                             {carouselItems.map((_, index) => (
@@ -221,7 +221,7 @@ const KnittingStepModal = ({
                             ))}
                         </div>
                     </div>
-                )}
+                )}. */}
             </div>
         </div>,
         document.body
