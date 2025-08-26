@@ -13,10 +13,9 @@ import ManageSteps from '../../steps/components/ManageSteps';
 import ProjectTypeSelector from './ProjectTypeSelector';
 import { useAppNavigation } from '../../../shared/hooks/useAppNavigation';
 
-
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing');
-  const { dispatch, selectedComponentIndex } = useProjectsContext();
+  const { dispatch, selectedComponentIndex, projects } = useProjectsContext();
   const [selectedProjectType, setSelectedProjectType] = useState(null);
   const [projectCreationSource, setProjectCreationSource] = useState(null);
 
@@ -31,10 +30,8 @@ const IntelliknitMVPContent = () => {
     goToEditProjectDetails
   } = useAppNavigation(setCurrentView, setSelectedProjectType, setProjectCreationSource);
 
-
-  // UPDATE handleAddNewProject (from Landing Page):
   const handleAddNewProject = () => {
-    setProjectCreationSource('landing'); // ADD THIS LINE
+    setProjectCreationSource('landing');
     setCurrentView('project-type-selector');
   };
 
@@ -42,24 +39,52 @@ const IntelliknitMVPContent = () => {
     setCurrentView('project-list');
   };
 
-  const handleContinueKnitting = () => {
-    // TODO: Implement smart session resume
-    // For now, go to project list
-    setCurrentView('project-list');
+  const handleContinueKnitting = (resumeData) => {
+    console.log('Resume data received:', resumeData);
+    console.log('Projects array:', projects);
+    console.log('Looking for project ID:', resumeData?.projectId);
+    console.log('Available project IDs:', projects?.map(p => ({ id: p.id, name: p.name })));
+
+    if (!resumeData || !resumeData.hasActiveProject) {
+      setCurrentView('project-list');
+      return;
+    }
+
+    const targetProject = projects.find(p => p.id === resumeData.projectId);
+    console.log('Found target project:', targetProject);
+
+    if (!targetProject) {
+      alert("Could not find your recent project. It may have been deleted.");
+      setCurrentView('project-list');
+      return;
+    }
+
+    // If no specific component, use the current active component or default to 0
+    let componentIndex = 0;
+    if (resumeData.componentId) {
+      componentIndex = targetProject.components.findIndex(c => c.id === resumeData.componentId);
+      if (componentIndex === -1) {
+        componentIndex = targetProject.currentComponent || 0;
+      }
+    } else {
+      // No componentId from localStorage, use project's current component
+      componentIndex = targetProject.currentComponent || 0;
+    }
+
+    dispatch({ type: 'SET_CURRENT_PROJECT', payload: targetProject });
+    dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
+    setCurrentView('tracking');
   };
 
   const handleNotepad = () => {
-    // TODO: Implement notepad feature
     alert('Notepad feature coming soon!');
   };
 
-  // UPDATE handleCreateProject (from Project List):
   const handleCreateProject = () => {
-    setProjectCreationSource('project-list'); // ADD THIS LINE
+    setProjectCreationSource('project-list');
     setCurrentView('project-type-selector');
   };
 
-  // ADD this new handler:
   const handleBackFromProjectTypeSelector = () => {
     if (projectCreationSource === 'project-list') {
       setCurrentView('project-list');
@@ -113,11 +138,9 @@ const IntelliknitMVPContent = () => {
 
   const handleExitProjectCreationToProjectList = () => {
     setCurrentView('project-list');
-    // Clear any project creation state
     setSelectedProjectType(null);
     dispatch({ type: 'SET_CURRENT_PROJECT', payload: null });
   };
-
 
   const handleBackToProjectDetail = () => {
     setCurrentView('project-detail');
@@ -141,8 +164,8 @@ const IntelliknitMVPContent = () => {
         <ProjectList
           onCreateProject={handleCreateProject}
           onOpenProject={handleOpenProject}
-          onBack={handleBackToLanding} // NEW: Add back to landing
-          onGoToLanding={goToLanding}  // ✨ ADD THIS LINE
+          onBack={handleBackToLanding}
+          onGoToLanding={goToLanding}
         />
       );
 
@@ -152,15 +175,14 @@ const IntelliknitMVPContent = () => {
           onBack={() => setCurrentView('project-type-selector')}
           onProjectCreated={handleProjectCreated}
           selectedProjectType={selectedProjectType}
-          onExitToProjectList={projectCreationSource === 'project-list' ? handleExitProjectCreationToProjectList : handleBackToLanding} // CHANGE THIS LINE
+          onExitToProjectList={projectCreationSource === 'project-list' ? handleExitProjectCreationToProjectList : handleBackToLanding}
         />
       );
-
 
     case 'project-type-selector':
       return (
         <ProjectTypeSelector
-          onBack={handleBackFromProjectTypeSelector} // CHANGE THIS LINE
+          onBack={handleBackFromProjectTypeSelector}
           onContinue={() => setCurrentView('create-project')}
           selectedType={selectedProjectType}
           onTypeSelect={setSelectedProjectType}
@@ -177,7 +199,7 @@ const IntelliknitMVPContent = () => {
           onManageSteps={handleManageSteps}
           onStartKnitting={handleStartKnitting}
           onEditProjectDetails={handleEditProjectDetails}
-          onGoToLanding={goToLanding}  // ✨ ADD THIS LINE
+          onGoToLanding={goToLanding}
         />
       );
 
@@ -203,7 +225,7 @@ const IntelliknitMVPContent = () => {
         <StepWizard
           componentIndex={selectedComponentIndex}
           onBack={handleBackToProjectDetail}
-          onGoToLanding={goToLanding}  // ✨ ADD THIS LINE
+          onGoToLanding={goToLanding}
         />
       );
 
@@ -212,7 +234,7 @@ const IntelliknitMVPContent = () => {
         <ManageSteps
           componentIndex={selectedComponentIndex}
           onBack={handleBackToProjectDetail}
-          onStartKnitting={handleStartKnitting}  // ← ADD THIS LINE
+          onStartKnitting={handleStartKnitting}
           onGoToLanding={goToLanding}
         />
       );

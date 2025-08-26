@@ -1,6 +1,7 @@
 import React from 'react';
 import PageHeader from '../../../shared/components/PageHeader';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import { getResumeData } from '../../knitting/utils/resumeDetection';
 
 const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNotepad }) => {
 
@@ -18,9 +19,18 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
   };
 
   const handleContinueKnitting = () => {
-    // For now, show coming soon - will implement session resume later
-    alert("Continue Knitting coming soon! This will drop you right back into your active knitting session.");
+    const resumeData = getResumeData();
+
+    if (!resumeData.hasActiveProject) {
+      alert("No active knitting session found. Start a project to use Continue Knitting!");
+      return;
+    }
+
+    // Call the parent handler with resume data
+    onContinueKnitting(resumeData);
   };
+
+
 
   const handleNotepad = () => {
     // Placeholder for future notepad feature
