@@ -29,29 +29,18 @@ const KnittingStepInstructions = ({
                 }} />
             </div>
 
-            {/* Completion toggle */}
-            <button
-                onClick={() => progress.toggleStepCompletion(navigation.currentStep)}
-                className="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/90 hover:bg-white backdrop-blur-sm shadow-sm border transition-all hover:scale-105"
-            >
-                {isCompleted ? (
-                    <>
-                        <CheckCircle2 size={16} className="text-sage-500" />
-                        <span className="text-xs font-medium text-sage-700">Done</span>
-                    </>
-                ) : (
-                    <>
-                        <Circle size={16} className="text-gray-400" />
-                        <span className="text-xs font-medium text-gray-600">Mark Done</span>
-                    </>
-                )}
-            </button>
-
             {/* Scrollable content */}
             <div className="flex-1 overflow-y-auto px-6 py-6 mt-12 relative z-10">
                 <div className="space-y-6 text-center">
+
                     {/* Step title */}
                     <div className="mb-8">
+                        <div className="flex items-center justify-center gap-3 mb-4">
+                            <div className={`w-3 h-3 rounded-full ${isCompleted ? 'bg-sage-500' : 'bg-gray-300'}`} />
+                            <span className={`text-sm font-medium ${isCompleted ? 'text-sage-700' : 'text-gray-500'}`}>
+                                {isCompleted ? 'Complete' : 'In Progress'}
+                            </span>
+                        </div>
                         <h2 className={`text-2xl font-semibold mb-2 ${theme.textPrimary} ${isCompleted ? 'line-through opacity-75' : ''}`}>
                             {description}
                         </h2>

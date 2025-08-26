@@ -1,6 +1,7 @@
 // src/features/knitting/components/modal/KnittingStepCounter.jsx
 import React, { useState } from 'react';
 import { Plus, Minus, RotateCcw, Target, Undo } from 'lucide-react';
+import { useRowCounter } from '../../hooks/useRowCounter';
 
 const KnittingStepCounter = ({
     step,
@@ -10,8 +11,8 @@ const KnittingStepCounter = ({
     progress,
     navigation
 }) => {
-    const [currentRow, setCurrentRow] = useState(1);
-    const [stitchCount, setStitchCount] = useState(step.startingStitches || 0);
+    const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
+    const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount, resetCounter } = rowCounter;
 
     // Step data
     const totalRows = step.totalRows || 1;
@@ -22,17 +23,8 @@ const KnittingStepCounter = ({
     const rowProgress = (currentRow / totalRows) * 100;
     const isLastRow = currentRow >= totalRows;
 
-    const handleRowIncrement = () => {
-        if (currentRow < totalRows) {
-            setCurrentRow(currentRow + 1);
-        }
-    };
-
-    const handleRowDecrement = () => {
-        if (currentRow > 1) {
-            setCurrentRow(currentRow - 1);
-        }
-    };
+    const handleRowIncrement = incrementRow;
+    const handleRowDecrement = decrementRow;
 
     const handleStepComplete = () => {
         progress.toggleStepCompletion(navigation.currentStep);
@@ -84,7 +76,7 @@ const KnittingStepCounter = ({
                         </button>
 
                         <button
-                            onClick={() => setCurrentRow(1)}
+                            onClick={resetCounter}
                             className="px-4 py-2 rounded-lg bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium transition-colors"
                         >
                             <RotateCcw size={14} className="inline mr-1" />
@@ -118,7 +110,7 @@ const KnittingStepCounter = ({
                     {/* Stitch adjustment controls */}
                     <div className="flex items-center justify-center gap-3">
                         <button
-                            onClick={() => setStitchCount(Math.max(0, stitchCount - 1))}
+                            onClick={() => updateStitchCount(Math.max(0, stitchCount - 1))}
                             className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 transition-colors"
                         >
                             <Minus size={14} />
@@ -127,7 +119,7 @@ const KnittingStepCounter = ({
                             Adjust
                         </span>
                         <button
-                            onClick={() => setStitchCount(stitchCount + 1)}
+                            onClick={() => updateStitchCount(stitchCount + 1)}
                             className="p-2 rounded-full bg-green-100 hover:bg-green-200 text-green-600 hover:text-green-700 transition-colors"
                         >
                             <Plus size={14} />
