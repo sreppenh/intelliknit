@@ -36,8 +36,10 @@ const KnittingStepInstructions = ({
                     {/* Step title */}
                     <div className="mb-8">
                         <div className="flex items-center justify-center gap-3 mb-4">
-                            <div className={`w-3 h-3 rounded-full ${isCompleted ? 'bg-sage-500' : 'bg-gray-300'}`} />
-                            <span className={`text-sm font-medium ${isCompleted ? 'text-sage-700' : 'text-gray-500'}`}>
+                            <div className={`w-4 h-4 rounded-full border-2 ${isCompleted
+                                ? 'bg-sage-500 border-sage-600'
+                                : 'bg-yarn-400 border-yarn-500'
+                                }`} /><span className={`text-sm font-semibold ${isCompleted ? 'text-sage-700' : 'text-yarn-700'}`}>
                                 {isCompleted ? 'Complete' : (() => {
                                     const storageKey = `row-counter-${project?.id}-${component?.id}-${navigation.currentStep}`;
                                     const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');

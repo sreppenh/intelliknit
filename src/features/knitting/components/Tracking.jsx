@@ -192,11 +192,11 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                   <div
                     key={item.id}
                     onClick={() => handleStepClick(stepIndex)}
-                    className={`bg-white border-2 rounded-xl p-4 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md ${isCurrentStep && !isCompleted
-                      ? 'border-sage-400 bg-sage-50 shadow-md'
-                      : isCompleted
-                        ? 'border-gray-200 bg-gray-50'
-                        : 'border-gray-200 hover:border-sage-300'
+                    className={`border-2 rounded-xl p-4 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md ${isCompleted
+                        ? 'bg-sage-50 border-sage-300'
+                        : isCurrentStep
+                          ? 'bg-yarn-25 border-yarn-400 shadow-md'
+                          : 'bg-white border-gray-200 hover:border-sage-300'
                       }`}
                   >
                     <div className="flex items-start gap-3">
@@ -247,6 +247,19 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                           </div>
                         )}
                       </div>
+
+                      {/* Row Progress */}
+                      {(() => {
+                        const storageKey = `row-counter-${currentProject.id}-${activeComponent.id}-${stepIndex}`;
+                        const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                        const currentRow = rowState.currentRow || 1;
+                        const totalRows = step.totalRows || 1;
+                        return (
+                          <div className="text-xs text-gray-500 mt-1">
+                            Row {currentRow} of {totalRows}
+                          </div>
+                        );
+                      })()}
 
                       {/* Tap Indicator */}
                       <div className="flex-shrink-0 text-gray-400 self-center">
