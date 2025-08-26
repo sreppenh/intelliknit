@@ -26,7 +26,7 @@ const KnittingStepInstructions = ({
                 <div className="w-full h-full" style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23000' stroke-width='1' stroke-opacity='0.03'%3E%3Cpath d='M30 0v60M0 30h60'/%3E%3Cpath d='M15 15l30 30M45 15L15 45'/%3E%3C/g%3E%3C/svg%3E")`,
                     backgroundSize: '60px 60px'
-                }} />
+                }} />x
             </div>
 
             {/* Scrollable content */}
@@ -38,8 +38,15 @@ const KnittingStepInstructions = ({
                         <div className="flex items-center justify-center gap-3 mb-4">
                             <div className={`w-3 h-3 rounded-full ${isCompleted ? 'bg-sage-500' : 'bg-gray-300'}`} />
                             <span className={`text-sm font-medium ${isCompleted ? 'text-sage-700' : 'text-gray-500'}`}>
-                                {isCompleted ? 'Complete' : 'In Progress'}
+                                {isCompleted ? 'Complete' : (() => {
+                                    const storageKey = `row-counter-${project?.id}-${component?.id}-${navigation.currentStep}`;
+                                    const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                                    const currentRow = rowState.currentRow || 1;
+                                    const totalRows = step.totalRows || 1;
+                                    return `Row ${currentRow} of ${totalRows}`;
+                                })()}
                             </span>
+
                         </div>
                         <h2 className={`text-2xl font-semibold mb-2 ${theme.textPrimary} ${isCompleted ? 'line-through opacity-75' : ''}`}>
                             {description}

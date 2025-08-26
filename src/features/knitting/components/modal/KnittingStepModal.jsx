@@ -147,6 +147,13 @@ const KnittingStepModal = ({
                         <div className="text-center flex-1 px-2">
                             <div className="text-sm font-medium text-gray-900 mb-1">
                                 Step {stepIndex + 1} of {totalSteps} • {component.name}
+                                {(() => {
+                                    const storageKey = `row-counter-${project.id}-${component.id}-${stepIndex}`;
+                                    const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                                    const currentRow = rowState.currentRow || 1;
+                                    const totalRows = step.totalRows || 1;
+                                    return ` • Row ${currentRow}/${totalRows}`;
+                                })()}
                             </div>
                             <div className="flex justify-center space-x-1">
                                 {Array.from({ length: totalSteps }, (_, i) => (
