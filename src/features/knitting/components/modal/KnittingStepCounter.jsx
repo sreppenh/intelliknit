@@ -22,8 +22,8 @@ const KnittingStepCounter = ({
     const isCompleted = progress.isStepCompleted(navigation.currentStep);
 
     // Progress calculations
-    const rowProgress = (currentRow / totalRows) * 100;
-    const isLastRow = currentRow >= totalRows;
+    const rowProgress = Math.min((currentRow - 1) / totalRows * 100, 100);
+    const isLastRow = currentRow > totalRows;
 
     const handleRowIncrement = incrementRow;
     const handleRowDecrement = decrementRow;
@@ -71,7 +71,7 @@ const KnittingStepCounter = ({
                         value={currentRow}
                         onChange={rowCounter.updateRow}
                         min={1}
-                        max={totalRows}
+                        max={totalRows + 1}
                         label="Current Row"
                     />
                 </div>

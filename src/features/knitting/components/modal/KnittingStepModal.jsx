@@ -8,6 +8,7 @@ import { getModalTheme } from './KnittingModalTheme';
 import KnittingStepInstructions from './KnittingStepInstructions';
 import KnittingStepCounter from './KnittingStepCounter';
 import KnittingPrepCard from './KnittingPrepCard';
+import { useLocalStorage } from '../../../../shared/hooks/useLocalStorage';
 
 const KnittingStepModal = ({
     step,
@@ -19,7 +20,12 @@ const KnittingStepModal = ({
     onToggleCompletion,
     onNavigateStep
 }) => {
-    const [viewMode, setViewMode] = useState('instructions'); // 'instructions' | 'counter'
+
+    // Reset view mode when step changes
+    const [viewMode, setViewMode] = useLocalStorage(
+        `knitting-view-mode-${project.id}`,
+        'instructions'
+    );
 
     // ✅ CREATE CAROUSEL ITEMS - Missing function restored
     const createCarouselItems = (step, stepIndex) => {
@@ -71,11 +77,6 @@ const KnittingStepModal = ({
     // Theme for current step
     const theme = getModalTheme(step);
     const currentItem = navigation.currentItem || carouselItems[0];
-
-    // Reset view mode when step changes
-    useEffect(() => {
-        setViewMode('instructions');
-    }, [stepIndex]);
 
     const renderCardContent = () => {
         if (currentItem.type === 'prep') {
