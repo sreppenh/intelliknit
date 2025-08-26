@@ -125,6 +125,7 @@ const KnittingStepCounter = ({
                 {isLastRow && !isCompleted && (
                     <button
                         onClick={handleStepComplete}
+                        data-completion-button
                         className="w-full flex items-center justify-center gap-2 py-3 bg-sage-500 hover:bg-sage-600 text-white rounded-xl transition-colors font-medium shadow-sm"
                     >
                         <Target size={18} />
@@ -136,6 +137,7 @@ const KnittingStepCounter = ({
                 {isCompleted && (
                     <button
                         onClick={handleStepComplete}
+                        data-completion-button
                         className="w-full flex items-center justify-center gap-2 py-3 bg-wool-200 hover:bg-wool-300 text-wool-700 rounded-xl transition-colors font-medium shadow-sm"
                     >
                         <Target size={18} />

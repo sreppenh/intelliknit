@@ -1,5 +1,6 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
+import { useCelebrations } from './useCelebrations';
 
 /**
  * useKnittingProgress - Smart progress tracking for knitting sessions
@@ -18,6 +19,8 @@ export const useKnittingProgress = (projectId, componentId, steps = []) => {
         {}
     );
 
+    const celebrations = useCelebrations();
+
     // Optimistic state (immediate UI updates)
     const [optimisticProgress, setOptimisticProgress] = useState({});
 
@@ -35,6 +38,8 @@ export const useKnittingProgress = (projectId, componentId, steps = []) => {
     const isStepCompleted = useCallback((stepIndex) => {
         return currentProgress[stepIndex] || false;
     }, [currentProgress]);
+
+
 
     // Get completion stats
     const getProgressStats = useCallback(() => {
@@ -56,7 +61,8 @@ export const useKnittingProgress = (projectId, componentId, steps = []) => {
         const {
             skipUndo = false,
             batchOperation = false,
-            skipPersistence = false
+            skipPersistence = false,
+            skipCelebration = false
         } = options;
 
         const wasCompleted = isStepCompleted(stepIndex);
@@ -67,6 +73,11 @@ export const useKnittingProgress = (projectId, componentId, steps = []) => {
             ...prev,
             [stepIndex]: newState
         }));
+
+        // 2. Trigger celebration for new completions
+        if (newState && !skipCelebration) {
+            celebrations.triggerStepCompletion(stepIndex, steps.length);
+        }
 
         // 2. Add to undo stack (unless it's part of batch or undo disabled)
         if (!skipUndo && !batchOperation) {
