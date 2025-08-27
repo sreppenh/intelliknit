@@ -35,9 +35,11 @@ export const useRowCounter = (projectId, componentId, stepIndex, step) => {
         });
     }, [setRowState, step.startingStitches]);
 
+    // FIXED: Remove artificial limits - let component handle completion logic
     const incrementRow = useCallback(() => {
-        updateRow(Math.min(rowState.currentRow + 1, step.totalRows || 999));
-    }, [rowState.currentRow, step.totalRows, updateRow]);
+        // Don't artificially limit - let component handle completion logic
+        updateRow(rowState.currentRow + 1);
+    }, [rowState.currentRow, updateRow]);
 
     const decrementRow = useCallback(() => {
         updateRow(Math.max(1, rowState.currentRow - 1));

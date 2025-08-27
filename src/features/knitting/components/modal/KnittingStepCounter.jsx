@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Plus, Minus, Target, Undo, Check } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import { getRowInstruction } from '../../../../shared/utils/KnittingInstructionService';
+import { getRowInstruction, getStepType } from '../../../../shared/utils/KnittingInstructionService';
 
 const KnittingStepCounter = ({
     step,
@@ -25,10 +25,9 @@ const KnittingStepCounter = ({
     const isCompleted = progress.isStepCompleted(navigation.currentStep);
     const duration = step.wizardConfig?.duration;
 
-    // Determine step type
+    // Determine step type - use the imported function
     const stepType = getStepType(step, totalRows, duration);
     const isOnFinalRow = currentRow >= totalRows && totalRows > 1;
-    const canIncrement = stepType === 'length_based' || currentRow < totalRows;
 
     // Get current instruction
     const getCurrentInstruction = () => {
@@ -49,8 +48,25 @@ const KnittingStepCounter = ({
         progress.toggleStepCompletion(navigation.currentStep);
     };
 
+    // FIXED: Proper increment logic based on step type
     const handleRowIncrement = () => {
-        if (canIncrement) {
+        if (stepType === 'single_action') {
+            // Single-action steps complete immediately
+            handleStepComplete();
+            return;
+        }
+
+        if (stepType === 'fixed_multi_row') {
+            if (currentRow >= totalRows) {
+                // At final row - complete the step
+                handleStepComplete();
+                return;
+            } else {
+                // Normal increment within step bounds
+                incrementRow();
+            }
+        } else {
+            // Length-based and completion_when_ready can always increment
             incrementRow();
         }
     };
@@ -60,6 +76,12 @@ const KnittingStepCounter = ({
             decrementRow();
         }
     };
+
+    // FIXED: Dynamic increment availability
+    const canIncrement = stepType === 'length_based' ||
+        stepType === 'completion_when_ready' ||
+        (stepType === 'fixed_multi_row' && currentRow <= totalRows) ||
+        stepType === 'single_action';
 
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
@@ -96,8 +118,8 @@ const KnittingStepCounter = ({
                         <button
                             onClick={handleStepComplete}
                             className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold text-lg transition-colors ${isCompleted
-                                    ? 'bg-sage-100 text-sage-700 hover:bg-sage-200'
-                                    : 'bg-sage-500 hover:bg-sage-600 text-white'
+                                ? 'bg-sage-100 text-sage-700 hover:bg-sage-200'
+                                : 'bg-sage-500 hover:bg-sage-600 text-white'
                                 }`}
                         >
                             <Check size={20} />
@@ -144,8 +166,8 @@ const KnittingStepCounter = ({
                                 <button
                                     onClick={handleStepComplete}
                                     className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-colors ${isCompleted
-                                            ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                            : 'bg-sage-500 hover:bg-sage-600 text-white'
+                                        ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                        : 'bg-sage-500 hover:bg-sage-600 text-white'
                                         }`}
                                 >
                                     <Target size={16} />
@@ -210,26 +232,5 @@ const KnittingStepCounter = ({
         </div>
     );
 };
-
-// Helper function to determine step type
-function getStepType(step, totalRows, duration) {
-    // Single action steps
-    if (totalRows === 1) {
-        return 'single_action';
-    }
-
-    // Length-based steps
-    if (duration?.type === 'length' || duration?.type === 'until_length') {
-        return 'length_based';
-    }
-
-    // Steps that need manual completion decision
-    if (duration?.type === 'stitches' && duration?.value === 'all') {
-        return 'completion_when_ready';
-    }
-
-    // Standard multi-row with fixed count
-    return 'fixed_multi_row';
-}
 
 export default KnittingStepCounter;
