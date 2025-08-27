@@ -2,7 +2,6 @@ import React from 'react';
 import PageHeader from '../../../shared/components/PageHeader';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getResumeData } from '../../knitting/utils/resumeDetection';
-import { testPattern } from '../../../shared/utils/KnittingInstructionService';
 
 const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNotepad }) => {
 
@@ -10,7 +9,6 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
   const getGreeting = () => {
     const hour = new Date().getHours();
 
-    testPattern('Basketweave', 14, 'flat', 6);
 
     if (hour < 12) {
       return "Good morning! Ready to knit?";

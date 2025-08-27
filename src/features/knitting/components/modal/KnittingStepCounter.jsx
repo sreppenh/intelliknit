@@ -80,8 +80,8 @@ const KnittingStepCounter = ({
     // FIXED: Dynamic increment availability
     const canIncrement = stepType === 'length_based' ||
         stepType === 'completion_when_ready' ||
-        (stepType === 'fixed_multi_row' && currentRow <= totalRows) ||
-        stepType === 'single_action';
+        (stepType === 'fixed_multi_row' && currentRow < totalRows);
+    // Note: single_action removed because it should complete immediately, not show increment
 
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
