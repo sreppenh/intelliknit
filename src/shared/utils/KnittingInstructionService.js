@@ -1,6 +1,7 @@
 // src/shared/utils/KnittingInstructionService.js
 import { getStepPatternName } from './stepDisplayUtils';
 import { getAlgorithmicRowInstruction, isAlgorithmicPattern } from './AlgorithmicPatterns';
+import { calculateRowStitches } from './stitchCalculatorUtils';
 
 /**
  * Smart Instruction Generation - Phase 2 implementation

@@ -6,6 +6,8 @@
  * mathematically rather than requiring lookup tables.
  */
 
+import { calculateRowStitches } from './stitchCalculatorUtils';
+
 /**
  * ALGORITHMIC PATTERN DEFINITIONS
  * Each pattern includes calculation logic and metadata
@@ -60,24 +62,17 @@ export const ALGORITHMIC_PATTERNS = {
 
     'Seed Stitch': {
         calculateRow: (rowNum, stitchCount, construction, startingRowInPattern = 1) => {
-            const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
-            const isEvenStitchCount = stitchCount % 2 === 0;
-
             if (construction === 'flat') {
-                if (isEvenStitchCount) {
-                    // Even stitches: both rows identical for seed effect
-                    return generateAlternatingPattern('K1, P1', stitchCount);
-                } else {
-                    // Odd stitches: rows alternate to maintain seed pattern
-                    return adjustedRow === 1
-                        ? generateAlternatingPattern('K1, P1', stitchCount)
-                        : generateAlternatingPattern('P1, K1', stitchCount);
-                }
+                const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
+                return adjustedRow === 1
+                    ? generateTexturedPattern('K1, P1', stitchCount, 'RS')
+                    : generateTexturedPattern('K1, P1', stitchCount, 'WS');
             } else {
                 // Round: always alternates every round for seed effect
+                const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
                 return adjustedRow === 1
-                    ? generateAlternatingPattern('K1, P1', stitchCount)
-                    : generateAlternatingPattern('P1, K1', stitchCount);
+                    ? generateSmartPattern('K1, P1', stitchCount)
+                    : generateSmartPattern('P1, K1', stitchCount);
             }
         },
         rowHeight: 2,
@@ -87,18 +82,33 @@ export const ALGORITHMIC_PATTERNS = {
 
     'Moss Stitch': {
         calculateRow: (rowNum, stitchCount, construction, startingRowInPattern = 1) => {
-            // British moss = 4-row pattern, different from American seed stitch
             const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 4) + 1;
 
-            switch (adjustedRow) {
-                case 1:
-                case 2:
-                    return generateAlternatingPattern('K1, P1', stitchCount);
-                case 3:
-                case 4:
-                    return generateAlternatingPattern('P1, K1', stitchCount);
-                default:
-                    return generateAlternatingPattern('K1, P1', stitchCount);
+            if (construction === 'flat') {
+                switch (adjustedRow) {
+                    case 1:
+                        return generateTexturedPattern('K1, P1', stitchCount, 'RS');
+                    case 2:
+                        return generateTexturedPattern('K1, P1', stitchCount, 'WS');
+                    case 3:
+                        return generateTexturedPattern('P1, K1', stitchCount, 'RS');
+                    case 4:
+                        return generateTexturedPattern('P1, K1', stitchCount, 'WS');
+                    default:
+                        return generateTexturedPattern('K1, P1', stitchCount, 'RS');
+                }
+            } else {
+                // Round: standard alternating pattern
+                switch (adjustedRow) {
+                    case 1:
+                    case 2:
+                        return generateSmartPattern('K1, P1', stitchCount);
+                    case 3:
+                    case 4:
+                        return generateSmartPattern('P1, K1', stitchCount);
+                    default:
+                        return generateSmartPattern('K1, P1', stitchCount);
+                }
             }
         },
         rowHeight: 4,
@@ -108,18 +118,33 @@ export const ALGORITHMIC_PATTERNS = {
 
     'Double Seed': {
         calculateRow: (rowNum, stitchCount, construction, startingRowInPattern = 1) => {
-            // 4-row pattern alternating 2x2 blocks
             const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 4) + 1;
 
-            switch (adjustedRow) {
-                case 1:
-                case 2:
-                    return generateAlternatingPattern('K2, P2', stitchCount);
-                case 3:
-                case 4:
-                    return generateAlternatingPattern('P2, K2', stitchCount);
-                default:
-                    return generateAlternatingPattern('K2, P2', stitchCount);
+            if (construction === 'flat') {
+                switch (adjustedRow) {
+                    case 1:
+                        return generateTexturedPattern('K2, P2', stitchCount, 'RS');
+                    case 2:
+                        return generateTexturedPattern('K2, P2', stitchCount, 'WS');
+                    case 3:
+                        return generateTexturedPattern('P2, K2', stitchCount, 'RS');
+                    case 4:
+                        return generateTexturedPattern('P2, K2', stitchCount, 'WS');
+                    default:
+                        return generateTexturedPattern('K2, P2', stitchCount, 'RS');
+                }
+            } else {
+                // Round: standard alternating pattern
+                switch (adjustedRow) {
+                    case 1:
+                    case 2:
+                        return generateSmartPattern('K2, P2', stitchCount);
+                    case 3:
+                    case 4:
+                        return generateSmartPattern('P2, K2', stitchCount);
+                    default:
+                        return generateSmartPattern('K2, P2', stitchCount);
+                }
             }
         },
         rowHeight: 4,
@@ -152,11 +177,10 @@ export const ALGORITHMIC_PATTERNS = {
             if (construction === 'flat') {
                 const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
                 return adjustedRow === 1
-                    ? generateAlternatingPattern('K1, P1', stitchCount)
-                    : generateAlternatingPattern('P1, K1', stitchCount);
+                    ? generateRibPattern('K1, P1', stitchCount, 'RS')
+                    : generateRibPattern('K1, P1', stitchCount, 'WS');
             } else {
-                // In round: same pattern every round
-                return generateAlternatingPattern('K1, P1', stitchCount);
+                return generateSmartPattern('K1, P1', stitchCount);
             }
         },
         rowHeight: 2,
@@ -169,10 +193,10 @@ export const ALGORITHMIC_PATTERNS = {
             if (construction === 'flat') {
                 const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
                 return adjustedRow === 1
-                    ? generateAlternatingPattern('K2, P2', stitchCount)
-                    : generateAlternatingPattern('P2, K2', stitchCount);
+                    ? generateRibPattern('K2, P2', stitchCount, 'RS')
+                    : generateRibPattern('K2, P2', stitchCount, 'WS');
             } else {
-                return generateAlternatingPattern('K2, P2', stitchCount);
+                return generateSmartPattern('K2, P2', stitchCount);
             }
         },
         rowHeight: 2,
@@ -185,10 +209,10 @@ export const ALGORITHMIC_PATTERNS = {
             if (construction === 'flat') {
                 const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
                 return adjustedRow === 1
-                    ? generateAlternatingPattern('K3, P3', stitchCount)
-                    : generateAlternatingPattern('P3, K3', stitchCount);
+                    ? generateRibPattern('K3, P3', stitchCount, 'RS')
+                    : generateRibPattern('K3, P3', stitchCount, 'WS');
             } else {
-                return generateAlternatingPattern('K3, P3', stitchCount);
+                return generateSmartPattern('K3, P3', stitchCount);
             }
         },
         rowHeight: 2,
@@ -201,10 +225,10 @@ export const ALGORITHMIC_PATTERNS = {
             if (construction === 'flat') {
                 const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
                 return adjustedRow === 1
-                    ? generateAlternatingPattern('K2, P1', stitchCount)
-                    : generateAlternatingPattern('P2, K1', stitchCount);
+                    ? generateRibPattern('K2, P1', stitchCount, 'RS')
+                    : generateRibPattern('K2, P1', stitchCount, 'WS');
             } else {
-                return generateAlternatingPattern('K2, P1', stitchCount);
+                return generateSmartPattern('K2, P1', stitchCount);
             }
         },
         rowHeight: 2,
@@ -217,10 +241,10 @@ export const ALGORITHMIC_PATTERNS = {
             if (construction === 'flat') {
                 const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
                 return adjustedRow === 1
-                    ? generateAlternatingPattern('K1tbl, P1', stitchCount)
-                    : generateAlternatingPattern('P1tbl, K1', stitchCount);
+                    ? generateRibPattern('K1tbl, P1', stitchCount, 'RS')
+                    : generateRibPattern('K1tbl, P1', stitchCount, 'WS');
             } else {
-                return generateAlternatingPattern('K1tbl, P1', stitchCount);
+                return generateSmartPattern('K1tbl, P1', stitchCount);
             }
         },
         rowHeight: 2,
@@ -233,10 +257,10 @@ export const ALGORITHMIC_PATTERNS = {
             if (construction === 'flat') {
                 const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
                 return adjustedRow === 1
-                    ? generateAlternatingPattern('K2tbl, P2', stitchCount)
-                    : generateAlternatingPattern('P2tbl, K2', stitchCount);
+                    ? generateRibPattern('K2tbl, P2', stitchCount, 'RS')
+                    : generateRibPattern('K2tbl, P2', stitchCount, 'WS');
             } else {
-                return generateAlternatingPattern('K2tbl, P2', stitchCount);
+                return generateSmartPattern('K2tbl, P2', stitchCount);
             }
         },
         rowHeight: 2,
@@ -269,10 +293,10 @@ export const ALGORITHMIC_PATTERNS = {
 
             if (construction === 'flat') {
                 return adjustedRow === 1
-                    ? generateAlternatingPattern('K1, P1', stitchCount)
-                    : generateAlternatingPattern('K1, P1', stitchCount); // Same both rows
+                    ? generateSmartPattern('K1, P1', stitchCount)
+                    : generateSmartPattern('K1, P1', stitchCount); // Same both rows
             } else {
-                return generateAlternatingPattern('K1, P1', stitchCount);
+                return generateSmartPattern('K1, P1', stitchCount);
             }
         },
         rowHeight: 2,
@@ -306,20 +330,30 @@ export const ALGORITHMIC_PATTERNS = {
         calculateRow: (rowNum, stitchCount, construction, startingRowInPattern = 1) => {
             const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 4) + 1;
 
-            switch (adjustedRow) {
-                case 1:
-                    return generateAlternatingPattern('K1, P1', stitchCount);
-                case 2:
-                    if (construction === 'flat') {
-                        return generateAlternatingPattern('P1, K1', stitchCount);
-                    } else {
-                        return generateAlternatingPattern('K1, P1', stitchCount);
-                    }
-                case 3:
-                case 4:
-                    return construction === 'flat' ? 'P all' : 'K all';
-                default:
-                    return generateAlternatingPattern('K1, P1', stitchCount);
+            if (construction === 'flat') {
+                switch (adjustedRow) {
+                    case 1:
+                        return generateTexturedPattern('K1, P1', stitchCount, 'RS');
+                    case 2:
+                        return generateTexturedPattern('K1, P1', stitchCount, 'WS');
+                    case 3:
+                    case 4:
+                        return construction === 'flat' ? 'P all' : 'K all';
+                    default:
+                        return generateTexturedPattern('K1, P1', stitchCount, 'RS');
+                }
+            } else {
+                switch (adjustedRow) {
+                    case 1:
+                        return generateSmartPattern('K1, P1', stitchCount);
+                    case 2:
+                        return generateSmartPattern('K1, P1', stitchCount);
+                    case 3:
+                    case 4:
+                        return 'K all';
+                    default:
+                        return generateSmartPattern('K1, P1', stitchCount);
+                }
             }
         },
         rowHeight: 4,
@@ -329,43 +363,266 @@ export const ALGORITHMIC_PATTERNS = {
 };
 
 /**
- * UTILITY FUNCTIONS FOR PATTERN GENERATION
+ * FIXED: Smart Pattern Generator - Uses existing stitch calculation system
+ * This replaces the old generateAlternatingPattern with proper pattern math
  */
+function generateSmartPattern(basePattern, stitchCount) {
+    // For simple "all" patterns, return directly
+    if (basePattern === 'K all' || basePattern === 'P all') {
+        return basePattern;
+    }
+
+    try {
+        // Test the pattern against the total stitch count to see how it should repeat
+        const testResult = calculateRowStitches(basePattern, stitchCount);
+
+        if (!testResult.isValid || testResult.stitchesConsumed === 0) {
+            // Can't determine consumption - fall back to generic format
+            return `Work in [${basePattern}] pattern across row`;
+        }
+
+        const stitchesPerRepeat = testResult.stitchesConsumed;
+
+        if (stitchesPerRepeat === stitchCount) {
+            // One complete repeat uses all stitches
+            return basePattern;
+        }
+
+        if (stitchesPerRepeat > stitchCount) {
+            // Pattern is bigger than available stitches - work partial
+            return `Work ${basePattern} pattern as fits`;
+        }
+
+        // Calculate full repeats
+        const fullRepeats = Math.floor(stitchCount / stitchesPerRepeat);
+        const remainingStitches = stitchCount % stitchesPerRepeat;
+
+        let instruction = '';
+
+        if (fullRepeats > 1) {
+            instruction = `[${basePattern}] ${fullRepeats} times`;
+        } else if (fullRepeats === 1) {
+            instruction = basePattern;
+        }
+
+        if (remainingStitches > 0) {
+            // For partial repeats, we'd need more complex logic
+            // For now, just note the remainder
+            const remainderText = remainingStitches === 1 ? '1 st' : `${remainingStitches} sts`;
+            instruction += instruction ? `, work remaining ${remainderText}` : `Work ${remainderText}`;
+        }
+
+        return instruction || basePattern;
+
+    } catch (error) {
+        // Fallback for any calculation errors
+        console.warn(`Pattern calculation error for "${basePattern}":`, error);
+        return `Work in ${basePattern} pattern`;
+    }
+}
 
 /**
- * Generate alternating pattern like "K1, P1" across exact stitch count
- * Returns smart formatted instruction with repeats
+ * NEW: Textured pattern generator for flat knitting
+ * Handles the proper "work as they appear" logic for seed, moss, etc.
  */
-function generateAlternatingPattern(basePattern, stitchCount) {
-    const parts = basePattern.split(', ');
-    const patternLength = parts.length;
+function generateTexturedPattern(basePattern, stitchCount, side) {
+    // For textured patterns like seed stitch, we work stitches "as they appear"
+    // This means we need to track the actual stitch sequence when the work is flipped
+
+    const patternParts = basePattern.split(', ').map(part => part.trim());
+
+    // Calculate pattern repeat length
+    let stitchesPerRepeat = 0;
+    for (const part of patternParts) {
+        const match = part.match(/(\d+)/);
+        stitchesPerRepeat += match ? parseInt(match[1]) : 1;
+    }
+
+    if (stitchesPerRepeat === 0) {
+        return `Work in ${basePattern} pattern`;
+    }
+
+    const fullRepeats = Math.floor(stitchCount / stitchesPerRepeat);
+    const remainingStitches = stitchCount % stitchesPerRepeat;
+
+    if (side === 'RS') {
+        // RS: Standard pattern logic
+        return generateSmartPattern(basePattern, stitchCount);
+    }
+
+    // WS: Work stitches as they appear (flip K/P for each individual stitch)
+    if (remainingStitches === 0) {
+        // Even number of repeats - standard WS conversion
+        const wsPattern = generateWSTexturedPattern(patternParts);
+        return fullRepeats === 1 ? wsPattern : `[${wsPattern}] ${fullRepeats} times`;
+    }
+
+    // Partial pattern on WS - need to consider where the pattern falls
+    const wsBasePattern = generateWSTexturedPattern(patternParts);
+    const partialWS = generatePartialTexturedFromWS(patternParts, remainingStitches);
+
+    if (fullRepeats === 0) {
+        return partialWS;
+    } else if (fullRepeats === 1) {
+        return `${partialWS}, ${wsBasePattern}`;
+    } else {
+        return `${partialWS}, [${wsBasePattern}] ${fullRepeats} times`;
+    }
+}
+
+/**
+ * Generate WS version of textured pattern by flipping each stitch type
+ */
+function generateWSTexturedPattern(patternParts) {
+    const flippedParts = patternParts.map(part => {
+        // Handle single stitches and numbered stitches
+        if (part.startsWith('K')) {
+            return part.replace('K', 'P');
+        } else if (part.startsWith('P')) {
+            return part.replace('P', 'K');
+        }
+        return part;
+    });
+
+    return flippedParts.join(', ');
+}
+
+/**
+ * Generate partial textured pattern from WS perspective
+ * For textured patterns, we work backwards through the pattern
+ */
+function generatePartialTexturedFromWS(patternParts, remainingStitches) {
+    const partialParts = [];
+    let stitchesNeeded = remainingStitches;
+
+    // Work backwards through the pattern to find the partial sequence
+    for (let i = patternParts.length - 1; i >= 0 && stitchesNeeded > 0; i--) {
+        const part = patternParts[i];
+        const match = part.match(/([KP])(\d+)?/);
+
+        if (match) {
+            const stitchType = match[1];
+            const count = match[2] ? parseInt(match[2]) : 1;
+
+            if (stitchesNeeded >= count) {
+                // Use the full part, flipped
+                const flippedType = stitchType === 'K' ? 'P' : 'K';
+                partialParts.unshift(count > 1 ? `${flippedType}${count}` : flippedType);
+                stitchesNeeded -= count;
+            } else {
+                // Use partial count
+                const flippedType = stitchType === 'K' ? 'P' : 'K';
+                partialParts.unshift(`${flippedType}${stitchesNeeded}`);
+                stitchesNeeded = 0;
+            }
+        }
+    }
+
+    return partialParts.join(', ');
+}
+
+/**
+ * NEW: Specialized ribbing pattern generator that handles partial patterns correctly
+ * Generates proper flat knitting instructions with correct WS alignment
+ */
+function generateRibPattern(basePattern, stitchCount, side) {
+    // Parse the base pattern (e.g., "K3, P3" -> ["K3", "P3"])
+    const patternParts = basePattern.split(', ').map(part => part.trim());
+
+    // Calculate stitch consumption per repeat
+    let stitchesPerRepeat = 0;
+    for (const part of patternParts) {
+        const match = part.match(/(\d+)/);
+        stitchesPerRepeat += match ? parseInt(match[1]) : 1;
+    }
+
+    if (stitchesPerRepeat === 0) {
+        return `Work in ${basePattern} pattern`;
+    }
 
     // Calculate full repeats and remainder
-    const fullRepeats = Math.floor(stitchCount / patternLength);
-    const remainder = stitchCount % patternLength;
+    const fullRepeats = Math.floor(stitchCount / stitchesPerRepeat);
+    const remainingStitches = stitchCount % stitchesPerRepeat;
 
-    let instruction = '';
+    if (side === 'RS' || remainingStitches === 0) {
+        // RS or no remainder: use standard smart pattern logic
+        return generateSmartPattern(basePattern, stitchCount);
+    }
 
-    if (fullRepeats > 0) {
-        if (fullRepeats === 1) {
-            instruction = basePattern;
-        } else {
-            instruction = `[${basePattern}] ${fullRepeats} times`;
+    // WS with remainder: need to flip the starting pattern
+    if (fullRepeats === 0) {
+        // Only partial pattern - work what fits from the flipped perspective
+        return generatePartialRibFromWS(patternParts, remainingStitches);
+    }
+
+    // WS: Full repeats + remainder
+    // The remainder comes at the beginning when viewed from WS
+    const remainderParts = generatePartialRibFromWS(patternParts, remainingStitches);
+    const fullRepeatPattern = generateWSRibPattern(patternParts);
+
+    if (fullRepeats === 1) {
+        return `${remainderParts}, ${fullRepeatPattern}`;
+    } else {
+        return `${remainderParts}, [${fullRepeatPattern}] ${fullRepeats} times`;
+    }
+}
+
+/**
+ * Generate WS rib pattern by flipping K/P for each stitch type
+ */
+function generateWSRibPattern(patternParts) {
+    const flippedParts = patternParts.map(part => {
+        if (part.startsWith('K')) {
+            return part.replace('K', 'P');
+        } else if (part.startsWith('P')) {
+            return part.replace('P', 'K');
+        }
+        return part; // Handle special cases like 'K1tbl'
+    });
+
+    return flippedParts.join(', ');
+}
+
+/**
+ * Generate partial rib pattern from WS perspective
+ * For 31-st 3x3 rib: RS ends with K1, so WS starts with P1
+ */
+function generatePartialRibFromWS(patternParts, remainingStitches) {
+    // Work backwards through the pattern to find what the remainder should be
+    let totalStitches = 0;
+    for (const part of patternParts) {
+        const match = part.match(/(\d+)/);
+        totalStitches += match ? parseInt(match[1]) : 1;
+    }
+
+    // Find where we are in the pattern cycle for the remainder
+    const partialParts = [];
+    let stitchesNeeded = remainingStitches;
+
+    // Start from the end of the pattern (since we're flipping)
+    for (let i = patternParts.length - 1; i >= 0 && stitchesNeeded > 0; i--) {
+        const part = patternParts[i];
+        const match = part.match(/([KP]\d*(?:tbl)?)\s*(\d+)?/);
+
+        if (match) {
+            const stitchType = match[1];
+            const count = match[2] ? parseInt(match[2]) : (match[1].match(/\d+/) ? parseInt(match[1].match(/\d+/)[0]) : 1);
+
+            if (stitchesNeeded >= count) {
+                // Use the full part, but flip K/P
+                const flippedType = stitchType.startsWith('K') ? stitchType.replace('K', 'P') : stitchType.replace('P', 'K');
+                partialParts.unshift(count > 1 ? `${flippedType.replace(/\d+/, '')}${count}` : flippedType);
+                stitchesNeeded -= count;
+            } else {
+                // Use partial count
+                const flippedType = stitchType.startsWith('K') ? stitchType.replace('K', 'P') : stitchType.replace('P', 'K');
+                partialParts.unshift(`${flippedType.replace(/\d+/, '')}${stitchesNeeded}`);
+                stitchesNeeded = 0;
+            }
         }
     }
 
-    if (remainder > 0) {
-        const remainderParts = parts.slice(0, remainder);
-        const remainderText = remainderParts.join(', ');
-
-        if (instruction) {
-            instruction += `, ${remainderText}`;
-        } else {
-            instruction = remainderText;
-        }
-    }
-
-    return instruction || basePattern;
+    return partialParts.join(', ');
 }
 
 /**
