@@ -1,9 +1,12 @@
-// src/features/knitting/components/modal/KnittingStepCounter.jsx
+// UPDATED: src/features/knitting/components/modal/KnittingStepCounter.jsx
+
 import React, { useState } from 'react';
 import { Plus, Minus, RotateCcw, Target, Undo } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
 import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
+// ADD THIS IMPORT
+import { getRowInstruction } from '../../../../shared/utils/KnittingInstructionService';
 
 const KnittingStepCounter = ({
     step,
@@ -25,6 +28,21 @@ const KnittingStepCounter = ({
     const rowProgress = Math.min((currentRow - 1) / totalRows * 100, 100);
     const isLastRow = currentRow > totalRows;
 
+    // ADD THIS: Get current row instruction
+    const getCurrentInstruction = () => {
+        try {
+            return getRowInstruction(step, currentRow, stitchCount);
+        } catch (error) {
+            console.error('Error getting row instruction:', error);
+            return {
+                instruction: 'Unable to load instruction',
+                isSupported: false
+            };
+        }
+    };
+
+    const instructionResult = getCurrentInstruction();
+
     const handleRowIncrement = incrementRow;
     const handleRowDecrement = decrementRow;
 
@@ -43,10 +61,17 @@ const KnittingStepCounter = ({
             </div>
 
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
-                {/* Step context */}
-                {/*}            <div className={`text-lg font-semibold mb-4 ${theme.textPrimary}`}>
-                    {step.description}
-                </div>. */}
+                {/* ADD THIS: Row Instruction Card */}
+                {instructionResult.isSupported && instructionResult.instruction && (
+                    <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50 mb-4">
+                        <div className={`text-sm font-medium ${theme.textSecondary} mb-2`}>
+                            Row {currentRow} Instruction:
+                        </div>
+                        <div className={`text-base font-semibold ${theme.textPrimary} leading-relaxed`}>
+                            {instructionResult.instruction}
+                        </div>
+                    </div>
+                )}
 
                 {/* Current Progress Card */}
                 <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
