@@ -5,6 +5,8 @@ import { CONSTRUCTION_TYPES } from '../../../shared/utils/constants';
 import useSmartStepNavigation from '../../../shared/hooks/useSmartStepNavigation';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { validatePatternConfiguration } from '../../../shared/utils/stepDisplayUtils';
+import { shouldSkipConfiguration as shouldSkipPatternConfiguration } from '../../../shared/utils/PatternCategories';
+
 
 export const useStepWizard = (componentIndex, editingStepIndex = null, editMode = null) => {
   const { currentProject } = useProjectsContext();
@@ -15,16 +17,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
   const isEditing = editingStepIndex !== null;
   const editingStep = isEditing ? component?.steps?.[editingStepIndex] : null;
 
-  // Helper function to check if configuration should be skipped
-  const shouldSkipConfiguration = (data) => {
-    const { pattern } = data.stitchPattern || {};
-    const basicPatterns = [
-      'Stockinette', 'Garter', 'Reverse Stockinette',
-      '1x1 Rib', '2x2 Rib', '3x3 Rib', '2x1 Rib', '1x1 Twisted Rib', '2x2 Twisted Rib',
-      'Seed Stitch', 'Moss Stitch', 'Double Seed', 'Basketweave'
-    ];
-    return basicPatterns.includes(pattern);
-  };
+  const shouldSkipConfiguration = shouldSkipPatternConfiguration;
 
   // Helper function to determine starting step based on edit mode and saved stack
   const getStartingStep = () => {
@@ -243,7 +236,13 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     canProceed: () => canProceed(smartNav.currentStep),
 
     nextStep: () => {
+      console.log('Navigation triggered with data:', {
+        currentStep: smartNav.currentStep,
+        wizardData: wizardData,
+        shouldSkip: shouldSkipConfiguration(wizardData)
+      });
       const nextStep = getNextStep(smartNav.currentStep);
+      console.log('Next step calculated:', nextStep);
       smartNav.goToStep(nextStep);
     },
 
