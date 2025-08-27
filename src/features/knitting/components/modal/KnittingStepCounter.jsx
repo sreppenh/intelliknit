@@ -1,11 +1,8 @@
-// UPDATED: src/features/knitting/components/modal/KnittingStepCounter.jsx
-
+// src/features/knitting/components/modal/KnittingStepCounter.jsx
 import React, { useState } from 'react';
-import { Plus, Minus, RotateCcw, Target, Undo } from 'lucide-react';
+import { Plus, Minus, Target, Undo, Check } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
-import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-// ADD THIS IMPORT
 import { getRowInstruction } from '../../../../shared/utils/KnittingInstructionService';
 
 const KnittingStepCounter = ({
@@ -19,16 +16,21 @@ const KnittingStepCounter = ({
     const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount, resetCounter } = rowCounter;
 
-    // Step data
+    // UI state
+    const [showStitchAdjust, setShowStitchAdjust] = useState(false);
+
+    // Step analysis
     const totalRows = step.totalRows || 1;
     const targetStitches = step.endingStitches || step.startingStitches || 0;
     const isCompleted = progress.isStepCompleted(navigation.currentStep);
+    const duration = step.wizardConfig?.duration;
 
-    // Progress calculations
-    const rowProgress = Math.min((currentRow - 1) / totalRows * 100, 100);
-    const isLastRow = currentRow > totalRows;
+    // Determine step type
+    const stepType = getStepType(step, totalRows, duration);
+    const isOnFinalRow = currentRow >= totalRows && totalRows > 1;
+    const canIncrement = stepType === 'length_based' || currentRow < totalRows;
 
-    // ADD THIS: Get current row instruction
+    // Get current instruction
     const getCurrentInstruction = () => {
         try {
             return getRowInstruction(step, currentRow, stitchCount);
@@ -43,16 +45,25 @@ const KnittingStepCounter = ({
 
     const instructionResult = getCurrentInstruction();
 
-    const handleRowIncrement = incrementRow;
-    const handleRowDecrement = decrementRow;
-
     const handleStepComplete = () => {
         progress.toggleStepCompletion(navigation.currentStep);
     };
 
+    const handleRowIncrement = () => {
+        if (canIncrement) {
+            incrementRow();
+        }
+    };
+
+    const handleRowDecrement = () => {
+        if (currentRow > 1) {
+            decrementRow();
+        }
+    };
+
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
-            {/* Texture overlay */}
+            {/* Background texture */}
             <div className="absolute inset-0 opacity-5 pointer-events-none">
                 <div className="w-full h-full" style={{
                     backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23000' stroke-width='2' stroke-opacity='0.08'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='10'/%3E%3C/g%3E%3C/svg%3E")`,
@@ -61,117 +72,164 @@ const KnittingStepCounter = ({
             </div>
 
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
-                {/* ADD THIS: Row Instruction Card */}
-                {instructionResult.isSupported && instructionResult.instruction && (
-                    <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50 mb-4">
-                        <div className={`text-sm font-medium ${theme.textSecondary} mb-2`}>
-                            Row {currentRow} Instruction:
-                        </div>
-                        <div className={`text-base font-semibold ${theme.textPrimary} leading-relaxed`}>
-                            {instructionResult.instruction}
-                        </div>
-                    </div>
-                )}
 
-                {/* Current Progress Card */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
-                    <div className={`text-4xl font-bold ${theme.textPrimary} mb-2`}>
-                        Row {currentRow}
+                {/* MAIN INSTRUCTION CARD - Always prominent */}
+                <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
+                    {stepType !== 'single_action' && (
+                        <div className={`text-sm font-medium ${theme.textSecondary} mb-3`}>
+                            Row {currentRow}{stepType === 'fixed_multi_row' ? ` of ${totalRows}` : ''}
+                        </div>
+                    )}
+
+                    <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed mb-4`}>
+                        {instructionResult.instruction || 'Loading instruction...'}
                     </div>
+
+                    {/* Target stitches - always visible but subtle */}
                     <div className={`text-sm ${theme.textSecondary} mb-4`}>
-                        of {totalRows} total rows
+                        Target: {targetStitches} stitches
                     </div>
 
-                    {/* Progress bar */}
-                    <div className="w-full bg-gray-200 rounded-full h-2 mb-4">
-                        <div
-                            className={`h-2 rounded-full transition-all duration-300 ${isLastRow ? 'bg-sage-500' : 'bg-yarn-400'
+                    {/* PRIMARY ACTION AREA */}
+                    {stepType === 'single_action' ? (
+                        // Single action: just completion
+                        <button
+                            onClick={handleStepComplete}
+                            className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold text-lg transition-colors ${isCompleted
+                                    ? 'bg-sage-100 text-sage-700 hover:bg-sage-200'
+                                    : 'bg-sage-500 hover:bg-sage-600 text-white'
                                 }`}
-                            style={{ width: `${Math.min(rowProgress, 100)}%` }}
-                        />
-                    </div>
+                        >
+                            <Check size={20} />
+                            {isCompleted ? 'Completed' : 'Mark Complete'}
+                        </button>
+                    ) : (
+                        // Multi-row: row counter + completion
+                        <div className="space-y-4">
+                            {/* Row Counter - centered and prominent */}
+                            <div className="flex items-center justify-center gap-4">
+                                <button
+                                    onClick={handleRowDecrement}
+                                    disabled={currentRow <= 1}
+                                    className="p-3 rounded-full bg-red-100 hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 text-red-600 hover:text-red-700 transition-colors disabled:cursor-not-allowed"
+                                >
+                                    <Minus size={18} />
+                                </button>
 
-                    {/* Row controls */}
-                    <IncrementInput
-                        value={currentRow}
-                        onChange={rowCounter.updateRow}
-                        min={1}
-                        max={totalRows + 1}
-                        label="Current Row"
-                    />
+                                <div className={`text-3xl font-bold ${theme.textPrimary} min-w-[80px]`}>
+                                    {currentRow}
+                                </div>
+
+                                <button
+                                    onClick={handleRowIncrement}
+                                    disabled={!canIncrement}
+                                    className="p-3 rounded-full bg-sage-100 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 hover:text-sage-700 transition-colors disabled:cursor-not-allowed"
+                                >
+                                    <Plus size={18} />
+                                </button>
+                            </div>
+
+                            {/* Progress bar for fixed multi-row steps */}
+                            {stepType === 'fixed_multi_row' && (
+                                <div className="w-full bg-gray-200 rounded-full h-2">
+                                    <div
+                                        className="h-2 rounded-full bg-sage-500 transition-all duration-300"
+                                        style={{ width: `${Math.min((currentRow / totalRows) * 100, 100)}%` }}
+                                    />
+                                </div>
+                            )}
+
+                            {/* Completion button - show when appropriate */}
+                            {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') && (
+                                <button
+                                    onClick={handleStepComplete}
+                                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-colors ${isCompleted
+                                            ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                            : 'bg-sage-500 hover:bg-sage-600 text-white'
+                                        }`}
+                                >
+                                    <Target size={16} />
+                                    {isCompleted ? 'Mark Incomplete' : 'Mark Complete'}
+                                </button>
+                            )}
+                        </div>
+                    )}
                 </div>
 
-                {/* Stitch Counter Card */}
-                <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-white/50 mb-6">
+                {/* STITCH COUNT DISPLAY - Subtle, informational */}
+                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 mb-4">
                     <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm font-medium ${theme.textSecondary}`}>
+                        <span className={`text-sm ${theme.textSecondary}`}>
                             Current Stitches
                         </span>
-                        <span className={`text-sm ${theme.textSecondary}`}>
-                            Target: {targetStitches}
-                        </span>
+                        <button
+                            onClick={() => setShowStitchAdjust(!showStitchAdjust)}
+                            className={`text-xs ${theme.textSecondary} hover:text-sage-600 transition-colors`}
+                        >
+                            Adjust
+                        </button>
                     </div>
-                    <div className={`text-2xl font-bold ${theme.textPrimary} text-center mb-3`}>
+
+                    <div className={`text-xl font-semibold ${theme.textPrimary} text-center`}>
                         {stitchCount}
                     </div>
 
-                    {/* Stitch adjustment controls */}
-                    <div className="flex items-center justify-center gap-3">
-                        <button
-                            onClick={() => updateStitchCount(Math.max(0, stitchCount - 1))}
-                            className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 hover:text-red-700 transition-colors"
-                        >
-                            <Minus size={14} />
-                        </button>
-                        <span className={`text-xs ${theme.textSecondary} px-2`}>
-                            Adjust
-                        </span>
-                        <button
-                            onClick={() => updateStitchCount(stitchCount + 1)}
-                            className="p-2 rounded-full bg-green-100 hover:bg-green-200 text-green-600 hover:text-green-700 transition-colors"
-                        >
-                            <Plus size={14} />
-                        </button>
-                    </div>
+                    {/* Stitch adjustment - hidden by default */}
+                    {showStitchAdjust && (
+                        <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-gray-200">
+                            <button
+                                onClick={() => updateStitchCount(Math.max(0, stitchCount - 1))}
+                                className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
+                            >
+                                <Minus size={12} />
+                            </button>
+                            <span className={`text-xs ${theme.textSecondary}`}>
+                                Fine-tune count
+                            </span>
+                            <button
+                                onClick={() => updateStitchCount(stitchCount + 1)}
+                                className="p-2 rounded-full bg-green-100 hover:bg-green-200 text-green-600 transition-colors"
+                            >
+                                <Plus size={12} />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
-                {/* Undo Button (if available) */}
+                {/* SECONDARY ACTIONS - Minimal */}
                 {progress.canUndo && (
                     <button
                         onClick={progress.undoLastAction}
-                        className="w-full mb-4 flex items-center justify-center gap-2 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-xl transition-colors font-medium shadow-sm"
+                        className="w-full mb-4 flex items-center justify-center gap-2 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors text-sm"
                     >
-                        <Undo size={16} />
+                        <Undo size={14} />
                         Undo: {progress.lastAction?.description}
-                    </button>
-                )}
-
-                {/* Complete Step Button */}
-                {isLastRow && !isCompleted && (
-                    <button
-                        onClick={handleStepComplete}
-                        data-completion-button
-                        className="w-full flex items-center justify-center gap-2 py-3 bg-sage-500 hover:bg-sage-600 text-white rounded-xl transition-colors font-medium shadow-sm"
-                    >
-                        <Target size={18} />
-                        Mark Step Complete
-                    </button>
-                )}
-
-                {/* Step Already Complete */}
-                {isCompleted && (
-                    <button
-                        onClick={handleStepComplete}
-                        data-completion-button
-                        className="w-full flex items-center justify-center gap-2 py-3 bg-wool-200 hover:bg-wool-300 text-wool-700 rounded-xl transition-colors font-medium shadow-sm"
-                    >
-                        <Target size={18} />
-                        Mark Incomplete
                     </button>
                 )}
             </div>
         </div>
     );
 };
+
+// Helper function to determine step type
+function getStepType(step, totalRows, duration) {
+    // Single action steps
+    if (totalRows === 1) {
+        return 'single_action';
+    }
+
+    // Length-based steps
+    if (duration?.type === 'length' || duration?.type === 'until_length') {
+        return 'length_based';
+    }
+
+    // Steps that need manual completion decision
+    if (duration?.type === 'stitches' && duration?.value === 'all') {
+        return 'completion_when_ready';
+    }
+
+    // Standard multi-row with fixed count
+    return 'fixed_multi_row';
+}
 
 export default KnittingStepCounter;
