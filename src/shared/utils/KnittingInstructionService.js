@@ -49,7 +49,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
 
     // Priority 2: Steps with shaping
     if (hasShaping) {
-        return getShapingInstruction(step, currentRow, currentStitchCount, construction);
+        return getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, project);
     }
 
     // Priority 3: Colorwork patterns (before algorithmic check)
@@ -249,7 +249,7 @@ function getAttachInstruction(step, stitchPattern) {
 /**
  * Generate instructions for steps with shaping
  */
-function getShapingInstruction(step, currentRow, currentStitchCount, construction) {
+function getShapingInstruction(step, currentRow, currentStitchCount, construction, project) {
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
 
     if (!shapingConfig) {
@@ -435,7 +435,7 @@ function arraysEqual(a, b) {
 /**
  * Generate instruction for specific row in sequential phases shaping
  */
-function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig) {
+function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project) {
     const calculation = shapingConfig.config?.calculation;
     if (!calculation?.phases) {
         return getFallbackInstruction(step, currentRow, currentStitchCount);
@@ -447,7 +447,7 @@ function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, con
 
         if (currentRow >= startRow && currentRow <= endRow) {
             const rowInPhase = currentRow - startRow + 1;
-            return getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow);
+            return getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow, step, currentRow, project);
         }
     }
 
@@ -464,37 +464,41 @@ function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, con
  * Generate instruction for a single row within a shaping phase
  * Enhanced with phase context and intelligent instruction generation
  */
-function getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow) {
+/**
+ * Generate instruction for a single row within a shaping phase
+ * Enhanced to combine base pattern with shaping instructions
+ */
+function getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow, step, currentRow, project) {
     const phaseType = phase.type || 'setup';
-    const rowTerm = construction === 'round' ? 'Round' : 'Row';
 
     if (phaseType === 'setup') {
-        // Setup phase - work in pattern with context
-        const totalRowsInPhase = endRow - startRow + 1;
+        // Setup phase - get the base pattern instruction (including colorwork)
+        const basePatternInstruction = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
         return {
-            instruction: `Work in pattern (setup: row ${rowInPhase} of ${totalRowsInPhase})`,
+            instruction: basePatternInstruction,
             isSupported: true,
             needsHelp: false,
             helpTopic: null
         };
     }
 
-    // For shaping phases, extract the specific instruction from the phase description
-    // Example: "Decrease phase: K1, ssk, work to last 3 sts, k2tog, k1 every other row 6 times"
-    const baseInstruction = extractShapingInstruction(phase.description, construction);
+    // For shaping phases - combine base pattern with shaping
+    const basePatternInstruction = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
+    const shapingInstruction = extractShapingFromPhase(phase);
 
-    if (baseInstruction) {
+    if (shapingInstruction && basePatternInstruction) {
+        const combinedInstruction = combinePatternWithShaping(basePatternInstruction, shapingInstruction);
         return {
-            instruction: baseInstruction,
+            instruction: combinedInstruction,
             isSupported: true,
             needsHelp: false,
             helpTopic: null
         };
     }
 
-    // Fallback using the phase description
+    // Fallback to just the shaping instruction
     return {
-        instruction: phase.description || 'Work with shaping as established',
+        instruction: shapingInstruction || phase.description || 'Work with shaping as established',
         isSupported: true,
         needsHelp: false,
         helpTopic: null
@@ -718,4 +722,81 @@ function formatBaseInstruction(instruction) {
         .replace(/^P all$/, 'Purl all')
         .replace(/^k all$/, 'knit all')
         .replace(/^p all$/, 'purl all');
+}
+
+/**
+ * Get base pattern instruction for the current step/row (handles colorwork, basic patterns)
+ */
+function getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project) {
+    const patternName = getStepPatternName(step);
+
+    // Handle colorwork patterns (like striping)
+    if (isColorworkPattern(patternName)) {
+        const colorworkResult = getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project);
+        if (colorworkResult?.instruction) {
+            // Strip the "Row X:" prefix if it exists
+            return colorworkResult.instruction.replace(/^(?:Row|Round)\s+\d+:\s*/, '');
+        }
+    }
+
+    // Handle basic algorithmic patterns
+    if (isAlgorithmicPattern(patternName)) {
+        const algorithmicResult = getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName);
+        if (algorithmicResult?.instruction) {
+            return algorithmicResult.instruction.replace(/^(?:Row|Round)\s+\d+:\s*/, '');
+        }
+    }
+
+    // Fallback
+    return 'work in pattern';
+}
+
+/**
+ * Extract core shaping instruction from phase description
+ */
+function extractShapingFromPhase(phase) {
+    const description = phase.description;
+    if (!description) return null;
+
+    // Remove phase type prefix
+    let instruction = description.replace(/^[^:]+:\s*/, '');
+
+    // Look for actual knitting instructions (contains knitting abbreviations)
+    const hasKnittingInstructions = /\b(K\d*|P\d*|ssk|k2tog|inc|yo|sl)\b/i.test(instruction);
+
+    if (!hasKnittingInstructions) {
+        return null; // No actual knitting instructions found
+    }
+
+    // Extract the core instruction before frequency information
+    const match = instruction.match(/^(.+?)\s+every\s+(?:other\s+)?(?:row|round)\s+\d+\s+times?$/i);
+    if (match) {
+        return match[1].trim();
+    }
+
+    // Remove trailing frequency info
+    instruction = instruction.replace(/\s+every\s+\w+\s+(?:row|round)\s+\d+\s+times?$/i, '');
+
+    return instruction.trim() || null;
+}
+
+/**
+ * Combine base pattern instruction with shaping instruction
+ */
+function combinePatternWithShaping(basePattern, shapingInstruction) {
+    // If base pattern is colorwork (starts with "Using Color"), integrate shaping
+    const colorMatch = basePattern.match(/^(Using .+?),\s*(.+)$/);
+    if (colorMatch) {
+        const colorPrefix = colorMatch[1];
+        return `${colorPrefix}, ${shapingInstruction}`;
+    }
+
+    // For regular patterns, replace the base instruction with shaping
+    // This handles cases where shaping overrides the basic pattern
+    if (shapingInstruction.toLowerCase().includes('work') || shapingInstruction.toLowerCase().includes('knit') || shapingInstruction.toLowerCase().includes('purl')) {
+        return shapingInstruction;
+    }
+
+    // Fallback: combine them
+    return `${shapingInstruction}, ${basePattern}`;
 }
