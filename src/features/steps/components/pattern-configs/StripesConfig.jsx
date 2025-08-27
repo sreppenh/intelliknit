@@ -26,6 +26,7 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
         color: 'A'
     });
 
+
     // Modal unsaved changes tracking
     const [stripeModalHasChanges, setStripeModalHasChanges] = useState(false);
     const [showStripeUnsavedModal, setShowStripeUnsavedModal] = useState(false);
@@ -45,6 +46,19 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
             customText: stripeSequence.length >= 2 ? 'Stripe pattern configured' : ''
         });
     }, [stripeSequence]); // Only depend on stripeSequence to prevent infinite loops
+
+
+    useEffect(() => {
+        console.log('🔧 StripesConfig DEBUG:', {
+            'project?.colorCount': project?.colorCount,
+            'project?.yarns?.length': project?.yarns?.length,
+            'project?.yarns': project?.yarns,
+            'projectColorCount (final)': projectColorCount,
+            'actual yarns': yarns,
+            'available colors': getAvailableColors()
+        });
+    }, [project, projectColorCount, yarns]);
+
 
 
     // Get available color letters

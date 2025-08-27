@@ -161,15 +161,43 @@ const YarnsSection = ({
         return yarnWithLetter ? yarnWithLetter.colorHex || '#f3f4f6' : '#f3f4f6';
     };
 
-    // Handle add yarn (use temp state for available letters)
+
+    // Replace the handleAddYarn function in YarnsSection.jsx with this enhanced version:
+    // Handle add yarn (use temp state for available letters + auto-assign next letter)
     const handleAddYarn = () => {
         console.log('🎯 Opening Add Yarn modal'); // Debug log
         const availableLetters = getAvailableLetters();
+
+        // 🆕 SMART AUTO-ASSIGNMENT: Find the next available letter
+        const findNextAvailableLetter = () => {
+            // First, try to find an unassigned letter within current color count
+            const unassignedLetter = availableLetters.find(letter =>
+                !tempFormState.yarns.some(y => y.letter === letter)
+            );
+
+            if (unassignedLetter) {
+                return unassignedLetter;
+            }
+
+            // If all letters are assigned, but we have more yarns than colorCount,
+            // suggest expanding the colorCount and use the next letter
+            const maxYarnCount = tempFormState.yarns.length;
+            const suggestedColorCount = Math.max(tempFormState.colorCount, maxYarnCount + 1);
+            const nextLetter = String.fromCharCode(65 + maxYarnCount); // Next in sequence
+
+            // Temporarily expand available letters for this assignment
+            if (nextLetter <= 'Z') {
+                return nextLetter;
+            }
+
+            return ''; // Fallback to no assignment if we're beyond Z
+        };
+
         setYarnForm({
             brand: '',
             color: '',
             colorHex: colorPalette[0].hex,
-            letter: availableLetters.find(letter => !tempFormState.yarns.some(y => y.letter === letter)) || '',
+            letter: findNextAvailableLetter(), // 🆕 SMART AUTO-ASSIGNMENT
             skeins: 1
         });
         setEditingYarnIndex(null);
@@ -264,6 +292,9 @@ const YarnsSection = ({
     };
 
     // Handle save yarn (now uses temp state)
+    // Replace the handleSaveYarn function in YarnsSection.jsx with this enhanced version:
+
+    // Handle save yarn (now uses temp state AND auto-updates colorCount)
     const handleSaveYarn = () => {
         let updatedYarns = [...tempFormState.yarns];
         let updatedMapping = { ...tempFormState.colorMapping };
@@ -296,11 +327,17 @@ const YarnsSection = ({
             updatedMapping[yarnForm.letter] = `${yarnForm.brand} - ${yarnForm.color}`;
         }
 
+        // 🆕 AUTO-UPDATE COLOR COUNT: Ensure colorCount matches or exceeds yarn count
+        const currentColorCount = tempFormState.colorCount;
+        const newYarnCount = updatedYarns.length;
+        const suggestedColorCount = Math.max(currentColorCount, newYarnCount);
+
         // Update temp state
         setTempFormState(prev => ({
             ...prev,
             yarns: updatedYarns,
-            colorMapping: updatedMapping
+            colorMapping: updatedMapping,
+            colorCount: suggestedColorCount  // 🆕 AUTO-BUMP if needed
         }));
         setHasUnsavedChanges(true);
 
@@ -383,8 +420,8 @@ const YarnsSection = ({
                             type="button"
                             onClick={() => handleYarnFormChange('letter', '')}
                             className={`p-3 rounded-lg border-2 text-sm font-medium transition-all text-center ${yarnForm.letter === ''
-                                    ? 'border-sage-500 bg-sage-50 text-sage-700'
-                                    : 'border-wool-200 hover:border-wool-300 text-wool-600'
+                                ? 'border-sage-500 bg-sage-50 text-sage-700'
+                                : 'border-wool-200 hover:border-wool-300 text-wool-600'
                                 }`}
                         >
                             <div className="font-bold text-lg">—</div>
@@ -404,10 +441,10 @@ const YarnsSection = ({
                                     type="button"
                                     onClick={() => handleYarnFormChange('letter', letter)}
                                     className={`p-3 rounded-lg border-2 text-sm font-medium transition-all relative text-center ${isSelected
-                                            ? 'border-sage-500 bg-sage-50 text-sage-700'
-                                            : isOccupied
-                                                ? 'border-wool-400 bg-wool-50 text-wool-800'
-                                                : 'border-wool-200 hover:border-wool-300 text-wool-600 hover:bg-wool-25'
+                                        ? 'border-sage-500 bg-sage-50 text-sage-700'
+                                        : isOccupied
+                                            ? 'border-wool-400 bg-wool-50 text-wool-800'
+                                            : 'border-wool-200 hover:border-wool-300 text-wool-600 hover:bg-wool-25'
                                         }`}
                                 >
                                     <div className="font-bold text-lg">{letter}</div>
