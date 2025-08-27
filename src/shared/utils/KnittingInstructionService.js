@@ -8,14 +8,14 @@ import { formatKnittingInstruction } from './../../shared/utils/knittingNotation
  * Smart Instruction Generation - Phase 2 implementation
  * Generates proper knitting instructions based on step configuration
  */
-export const getRowInstruction = (step, currentRow, currentStitchCount) => {
+export const getRowInstruction = (step, currentRow, currentStitchCount, project = null) => {
     try {
         // Get basic step info
         const construction = step.construction || 'flat';
         const rowTerm = construction === 'round' ? 'Round' : 'Row';
 
         // Route to appropriate instruction type
-        const instructionResult = routeInstruction(step, currentRow, currentStitchCount, construction);
+        const instructionResult = routeInstruction(step, currentRow, currentStitchCount, construction, project);
 
         // Add row number prefix for multi-row steps
         if (step.totalRows > 1 && instructionResult.instruction) {
@@ -38,7 +38,7 @@ export const getRowInstruction = (step, currentRow, currentStitchCount) => {
 /**
  * Route instruction generation based on step type and configuration
  */
-function routeInstruction(step, currentRow, currentStitchCount, construction) {
+function routeInstruction(step, currentRow, currentStitchCount, construction, project) {
     const patternName = getStepPatternName(step);
     const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
@@ -54,7 +54,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction) {
 
     // Priority 3: Colorwork patterns (before algorithmic check)
     if (isColorworkPattern(patternName)) {
-        return getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName);
+        return getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project);
     }
 
     // Priority 4: Basic algorithmic patterns
@@ -555,11 +555,11 @@ function isColorworkPattern(patternName) {
 /**
  * Generate colorwork instructions with intelligent color tracking
  */
-function getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName) {
+function getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project) {
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
     if (patternName === 'Stripes') {
-        return getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern);
+        return getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project);
     }
 
     // Other colorwork patterns - basic handling for now
@@ -579,7 +579,7 @@ function getColorworkInstruction(step, currentRow, currentStitchCount, construct
 /**
  * Generate intelligent stripe instructions with current color tracking
  */
-function getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern) {
+function getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project) {
     const stripeSequence = stitchPattern?.stripeSequence;
 
     if (!stripeSequence || stripeSequence.length === 0) {
@@ -603,26 +603,29 @@ function getStripeInstruction(step, currentRow, currentStitchCount, construction
         };
     }
 
+    // Get display name for the color (check yarn mapping first)
+    const colorDisplay = getColorDisplayName(currentColor.color, project);
+
     // Get the base pattern instruction (usually stockinette)
-    const basePattern = 'Stockinette'; // Most stripes are stockinette-based
+    const basePattern = 'Stockinette';
     const baseInstruction = getAlgorithmicRowInstruction(basePattern, currentRow, currentStitchCount, construction);
 
     if (!baseInstruction) {
         return {
-            instruction: `Using Color ${currentColor.color}, work in pattern`,
+            instruction: `Using ${colorDisplay}, work in pattern`,
             isSupported: true,
             needsHelp: false,
             helpTopic: null
         };
     }
 
+    // Fix capitalization: "K all" -> "Knit all", "P all" -> "Purl all"  
+    const formattedInstruction = formatBaseInstruction(baseInstruction);
+
     const stitchCountText = shouldShowStitchCount(step) ? ` (${currentStitchCount} stitches)` : '';
 
-    // Convert the base instruction to lowercase for better flow
-    const formattedBaseInstruction = baseInstruction.toLowerCase();
-
     return {
-        instruction: `Using Color ${currentColor.color}, ${formattedBaseInstruction}${stitchCountText}`,
+        instruction: `Using ${colorDisplay}, ${formattedInstruction}${stitchCountText}`,
         isSupported: true,
         needsHelp: false,
         helpTopic: null
@@ -684,4 +687,35 @@ function shouldShowStitchCount(step) {
     const isConstructionPattern = step.wizardConfig?.stitchPattern?.category === 'construction';
 
     return !hasShaping && !isConstructionPattern && step.startingStitches === step.endingStitches;
+}
+
+/**
+ * Get display name for stripe color (yarn name, color mapping, or letter fallback)
+ */
+function getColorDisplayName(colorLetter, project) {
+    // Check if we have actual yarn data
+    const yarn = project?.yarns?.find(y => y.letter === colorLetter);
+    if (yarn?.color) {
+        return yarn.color; // e.g., "Maroon Party"
+    }
+
+    // Check color mapping
+    const colorMapping = project?.colorMapping || {};
+    if (colorMapping[colorLetter]) {
+        return colorMapping[colorLetter];
+    }
+
+    // Fallback to letter
+    return `Color ${colorLetter}`;
+}
+
+/**
+ * Format base knitting instruction with proper capitalization
+ */
+function formatBaseInstruction(instruction) {
+    return instruction
+        .replace(/^K all$/, 'Knit all')
+        .replace(/^P all$/, 'Purl all')
+        .replace(/^k all$/, 'knit all')
+        .replace(/^p all$/, 'purl all');
 }

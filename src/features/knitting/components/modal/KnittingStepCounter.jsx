@@ -32,7 +32,7 @@ const KnittingStepCounter = ({
     // Get current instruction
     const getCurrentInstruction = () => {
         try {
-            return getRowInstruction(step, currentRow, stitchCount);
+            return getRowInstruction(step, currentRow, stitchCount, project);
         } catch (error) {
             console.error('Error getting row instruction:', error);
             return {
