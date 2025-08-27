@@ -83,6 +83,15 @@ const KnittingStepCounter = ({
         (stepType === 'fixed_multi_row' && currentRow < totalRows);
     // Note: single_action removed because it should complete immediately, not show increment
 
+    // Add this debug line right before the return statement
+    console.log('🐛 Debug completion state:', {
+        currentRow,
+        totalRows,
+        stepType,
+        isCompleted,
+        stepIndex: navigation.currentStep
+    });
+
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
             {/* Background texture */}
