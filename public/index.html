@@ -4,20 +4,19 @@
 <head>
   <meta charset="utf-8" />
 
-  <!-- Favicon -->
-  <link rel="icon" href="%PUBLIC_URL%/favicon/favicon.ico" sizes="any">
+  <!-- Modern browsers: SVG -->
   <link rel="icon" type="image/svg+xml" href="%PUBLIC_URL%/favicon/favicon.svg">
 
-  <!-- Apple Touch Icon -->
+  <!-- Fallback PNGs -->
+  <link rel="icon" type="image/png" sizes="32x32" href="%PUBLIC_URL%/favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="192x192" href="%PUBLIC_URL%/favicon/favicon-192x192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="%PUBLIC_URL%/favicon/favicon-512x512.png">
+
+  <!-- Apple devices -->
   <link rel="apple-touch-icon" href="%PUBLIC_URL%/favicon/apple-touch-icon.png">
 
-  <!-- Web Manifest -->
-  <link rel="manifest" href="%PUBLIC_URL%/favicon/site.webmanifest">
-
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="theme-color" content="#4a8a4a" />
-  <meta name="description" content="IntelliKnit - The smart project tracker" />
-  <title>IntelliKnit</title>
+  <!-- Legacy browsers -->
+  <link rel="icon" href="%PUBLIC_URL%/favicon/favicon.ico" sizes="any">
 </head>
 
 <body>

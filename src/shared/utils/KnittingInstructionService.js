@@ -2,6 +2,7 @@
 import { getStepPatternName } from './stepDisplayUtils';
 import { getAlgorithmicRowInstruction, isAlgorithmicPattern } from './AlgorithmicPatterns';
 import { calculateRowStitches } from './stitchCalculatorUtils';
+import { formatKnittingInstruction } from './../../shared/utils/knittingNotation'
 
 /**
  * Smart Instruction Generation - Phase 2 implementation
@@ -51,12 +52,17 @@ function routeInstruction(step, currentRow, currentStitchCount, construction) {
         return getShapingInstruction(step, currentRow, currentStitchCount, construction);
     }
 
-    // Priority 3: Basic algorithmic patterns
+    // Priority 3: Colorwork patterns (before algorithmic check)
+    if (isColorworkPattern(patternName)) {
+        return getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName);
+    }
+
+    // Priority 4: Basic algorithmic patterns
     if (isAlgorithmicPattern(patternName)) {
         return getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName);
     }
 
-    // Priority 4: Fallback
+    // Priority 5: Fallback
     return getFallbackInstruction(step, currentRow, currentStitchCount, patternName);
 }
 
@@ -250,12 +256,14 @@ function getShapingInstruction(step, currentRow, currentStitchCount, constructio
         return getFallbackInstruction(step, currentRow, currentStitchCount);
     }
 
-    // For even distribution shaping - single row
+    // For even distribution shaping - single row with intelligent formatting
     if (shapingConfig.type === 'even_distribution') {
         const calculation = shapingConfig.config?.calculation;
         if (calculation?.instruction) {
+            // Use the existing formatKnittingInstruction to clean up repetitive instructions
+            const smartInstruction = formatKnittingInstruction(calculation.instruction);
             return {
-                instruction: `${calculation.instruction} (${calculation.endingStitches} stitches)`,
+                instruction: `${smartInstruction} (${calculation.endingStitches} stitches)`,
                 isSupported: true,
                 needsHelp: false,
                 helpTopic: null
@@ -263,7 +271,7 @@ function getShapingInstruction(step, currentRow, currentStitchCount, constructio
         }
     }
 
-    // For sequential phases shaping - multi row
+    // For sequential phases shaping - multi row with intelligent phase detection
     if (shapingConfig.type === 'phases') {
         return getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig);
     }
@@ -279,6 +287,152 @@ function getShapingInstruction(step, currentRow, currentStitchCount, constructio
 }
 
 /**
+ * Generate smart even distribution instruction using sections data
+ * Converts sections array like [11, 11, 11, 11, 10, 10, 10] into readable format
+ */
+function generateSmartEvenDistributionInstruction(calculation, construction) {
+    const { sections, changeCount, startingStitches, endingStitches } = calculation;
+
+    if (!sections || sections.length === 0) {
+        // Fallback to stored instruction if sections not available
+        return calculation.instruction || 'Work with shaping as established';
+    }
+
+    const action = startingStitches > endingStitches ? 'K2tog' : 'inc';
+    const isDecrease = startingStitches > endingStitches;
+
+    // Group consecutive identical sections
+    const groupedSections = groupConsecutiveSections(sections);
+
+    // Generate instruction parts
+    const parts = [];
+    for (let i = 0; i < groupedSections.length; i++) {
+        const group = groupedSections[i];
+
+        if (group.size > 0) {
+            parts.push(`K${group.size}`);
+        }
+
+        // Add shaping action after each section except possibly the last
+        const needsShaping = shouldAddShapingAfterSection(i, groupedSections.length, construction);
+        if (needsShaping) {
+            parts.push(action);
+        }
+    }
+
+    // Format with smart repeating
+    return formatWithRepeats(parts, groupedSections);
+}
+
+/**
+ * Group consecutive sections of the same size
+ * [11, 11, 11, 11, 10, 10, 10] → [{size: 11, count: 4}, {size: 10, count: 3}]
+ */
+function groupConsecutiveSections(sections) {
+    if (!sections || sections.length === 0) return [];
+
+    const groups = [];
+    let currentGroup = { size: sections[0], count: 1 };
+
+    for (let i = 1; i < sections.length; i++) {
+        if (sections[i] === currentGroup.size) {
+            currentGroup.count++;
+        } else {
+            groups.push(currentGroup);
+            currentGroup = { size: sections[i], count: 1 };
+        }
+    }
+    groups.push(currentGroup);
+
+    return groups;
+}
+
+/**
+ * Determine if shaping action should be added after this section
+ */
+function shouldAddShapingAfterSection(sectionIndex, totalGroups, construction) {
+    if (construction === 'round') {
+        // In circular knitting, add shaping after every section (including last)
+        return true;
+    } else {
+        // In flat knitting, add shaping after every section except the last
+        return sectionIndex < totalGroups - 1;
+    }
+}
+
+/**
+ * Format instruction with smart repeat notation
+ */
+function formatWithRepeats(parts, groupedSections) {
+    if (groupedSections.length === 1) {
+        // All sections same size - simple format
+        const group = groupedSections[0];
+        if (group.count === 1) {
+            return parts.join(', ');
+        } else {
+            // Find the repeating pattern
+            const patternLength = parts.length / group.count;
+            if (Number.isInteger(patternLength) && patternLength > 1) {
+                const pattern = parts.slice(0, patternLength);
+                return `[${pattern.join(', ')}] ${group.count} times`;
+            }
+        }
+    }
+
+    // Mixed sizes or complex pattern - use the parts as-is but look for sub-patterns
+    if (parts.length > 6) {
+        // For longer instructions, try to find repeating patterns
+        const pattern = findRepeatingPattern(parts);
+        if (pattern) {
+            return pattern;
+        }
+    }
+
+    return parts.join(', ');
+}
+
+/**
+ * Find repeating patterns in instruction parts
+ */
+function findRepeatingPattern(parts) {
+    // Try different pattern lengths starting from 2
+    for (let patternLen = 2; patternLen <= Math.floor(parts.length / 2); patternLen++) {
+        const pattern = parts.slice(0, patternLen);
+        let repeatCount = 1;
+        let isRepeating = true;
+
+        // Check how many times this pattern repeats
+        for (let i = patternLen; i < parts.length; i += patternLen) {
+            const segment = parts.slice(i, i + patternLen);
+            if (arraysEqual(pattern, segment)) {
+                repeatCount++;
+            } else if (i + patternLen >= parts.length) {
+                // Partial pattern at end - that's okay
+                break;
+            } else {
+                isRepeating = false;
+                break;
+            }
+        }
+
+        if (isRepeating && repeatCount >= 2) {
+            const remainder = parts.slice(repeatCount * patternLen);
+            const basePattern = `[${pattern.join(', ')}] ${repeatCount} times`;
+            return remainder.length > 0 ? `${basePattern}, ${remainder.join(', ')}` : basePattern;
+        }
+    }
+
+    return null;
+}
+
+/**
+ * Helper function to compare arrays
+ */
+function arraysEqual(a, b) {
+    return a.length === b.length && a.every((val, i) => val === b[i]);
+}
+
+/**
  * Generate instruction for specific row in sequential phases shaping
  */
 function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig) {
@@ -287,18 +441,14 @@ function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, con
         return getFallbackInstruction(step, currentRow, currentStitchCount);
     }
 
-    // Find which phase we're in
-    let accumulatedRows = 0;
+    // Find which phase we're in based on rowRange
     for (const phase of calculation.phases) {
         const [startRow, endRow] = phase.rowRange.split('-').map(Number);
-        const phaseRowCount = endRow - startRow + 1;
 
         if (currentRow >= startRow && currentRow <= endRow) {
             const rowInPhase = currentRow - startRow + 1;
-            return getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction);
+            return getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow);
         }
-
-        accumulatedRows += phaseRowCount;
     }
 
     // If we're somehow outside all phases, use the step description
@@ -312,26 +462,39 @@ function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, con
 
 /**
  * Generate instruction for a single row within a shaping phase
+ * Enhanced with phase context and intelligent instruction generation
  */
-function getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction) {
+function getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow) {
     const phaseType = phase.type || 'setup';
+    const rowTerm = construction === 'round' ? 'Round' : 'Row';
 
     if (phaseType === 'setup') {
-        // Setup rows - just work in pattern
+        // Setup phase - work in pattern with context
+        const totalRowsInPhase = endRow - startRow + 1;
         return {
-            instruction: 'Work in pattern',
+            instruction: `Work in pattern (setup: row ${rowInPhase} of ${totalRowsInPhase})`,
             isSupported: true,
             needsHelp: false,
             helpTopic: null
         };
     }
 
-    // For shaping phases, the description should contain the instruction pattern
-    // e.g., "K1, ssk, work to last 3 sts, k2tog, k1 every other row 6 times"
-    const baseInstruction = phase.description || 'Work with shaping as established';
+    // For shaping phases, extract the specific instruction from the phase description
+    // Example: "Decrease phase: K1, ssk, work to last 3 sts, k2tog, k1 every other row 6 times"
+    const baseInstruction = extractShapingInstruction(phase.description, construction);
 
+    if (baseInstruction) {
+        return {
+            instruction: baseInstruction,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    }
+
+    // Fallback using the phase description
     return {
-        instruction: baseInstruction,
+        instruction: phase.description || 'Work with shaping as established',
         isSupported: true,
         needsHelp: false,
         helpTopic: null
@@ -339,9 +502,31 @@ function getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construct
 }
 
 /**
+ * Extract the specific shaping instruction from phase description
+ * Converts "K1, ssk, work to last 3 sts, k2tog, k1 every other row 6 times" 
+ * to "K1, ssk, work to last 3 sts, k2tog, k1"
+ */
+function extractShapingInstruction(description, construction) {
+    if (!description) return null;
+
+    // Remove phase type prefix (e.g., "Decrease phase: ", "Setup: ")
+    let instruction = description.replace(/^[^:]+:\s*/, '');
+
+    // Remove frequency information (e.g., "every other row 6 times")
+    instruction = instruction.replace(/\s+every\s+\w+\s+row\s+\d+\s+times?$/i, '');
+    instruction = instruction.replace(/\s+every\s+row\s+\d+\s+times?$/i, '');
+
+    // Clean up any remaining text artifacts
+    instruction = instruction.trim();
+
+    return instruction || null;
+}
+
+/**
  * Generate instructions for basic algorithmic patterns
  */
 function getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName) {
+    // Standard algorithmic pattern processing (colorwork handled separately above)
     const rowInstruction = getAlgorithmicRowInstruction(patternName, currentRow, currentStitchCount, construction);
 
     if (!rowInstruction) {
@@ -357,6 +542,122 @@ function getAlgorithmicInstruction(step, currentRow, currentStitchCount, constru
         needsHelp: false,
         helpTopic: null
     };
+}
+
+/**
+ * Check if pattern is colorwork/striping
+ */
+function isColorworkPattern(patternName) {
+    const colorworkPatterns = ['Stripes', 'Fair Isle', 'Intarsia', 'Stranded Colorwork', 'Mosaic'];
+    return colorworkPatterns.includes(patternName);
+}
+
+/**
+ * Generate colorwork instructions with intelligent color tracking
+ */
+function getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName) {
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+
+    if (patternName === 'Stripes') {
+        return getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern);
+    }
+
+    // Other colorwork patterns - basic handling for now
+    const customText = stitchPattern?.customText || stitchPattern?.customDetails || '';
+    if (customText) {
+        return {
+            instruction: `Work in ${patternName}: ${customText}`,
+            isSupported: true,
+            needsHelp: true,
+            helpTopic: 'colorwork_help'
+        };
+    }
+
+    return getFallbackInstruction(step, currentRow, currentStitchCount, patternName);
+}
+
+/**
+ * Generate intelligent stripe instructions with current color tracking
+ */
+function getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern) {
+    const stripeSequence = stitchPattern?.stripeSequence;
+
+    if (!stripeSequence || stripeSequence.length === 0) {
+        return {
+            instruction: 'Work in stripe pattern',
+            isSupported: false,
+            needsHelp: true,
+            helpTopic: 'stripe_setup_help'
+        };
+    }
+
+    // Calculate which color should be used for current row
+    const currentColor = getCurrentStripeColor(currentRow, stripeSequence);
+
+    if (!currentColor) {
+        return {
+            instruction: 'Work in stripe pattern (color sequence error)',
+            isSupported: false,
+            needsHelp: true,
+            helpTopic: 'stripe_setup_help'
+        };
+    }
+
+    // Get the base pattern instruction (usually stockinette)
+    const basePattern = 'Stockinette'; // Most stripes are stockinette-based
+    const baseInstruction = getAlgorithmicRowInstruction(basePattern, currentRow, currentStitchCount, construction);
+
+    if (!baseInstruction) {
+        return {
+            instruction: `Using Color ${currentColor.color}, work in pattern`,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    }
+
+    const stitchCountText = shouldShowStitchCount(step) ? ` (${currentStitchCount} stitches)` : '';
+
+    // Convert the base instruction to lowercase for better flow
+    const formattedBaseInstruction = baseInstruction.toLowerCase();
+
+    return {
+        instruction: `Using Color ${currentColor.color}, ${formattedBaseInstruction}${stitchCountText}`,
+        isSupported: true,
+        needsHelp: false,
+        helpTopic: null
+    };
+}
+
+/**
+ * Calculate which stripe color should be used for the current row
+ */
+function getCurrentStripeColor(currentRow, stripeSequence) {
+    if (!stripeSequence || stripeSequence.length === 0) {
+        return null;
+    }
+
+    // Calculate total pattern repeat length
+    const patternLength = stripeSequence.reduce((total, stripe) => total + stripe.rows, 0);
+
+    if (patternLength === 0) {
+        return null;
+    }
+
+    // Find position within the pattern repeat (1-indexed)
+    const positionInPattern = ((currentRow - 1) % patternLength) + 1;
+
+    // Find which stripe this position falls into
+    let accumulatedRows = 0;
+    for (const stripe of stripeSequence) {
+        accumulatedRows += stripe.rows;
+        if (positionInPattern <= accumulatedRows) {
+            return stripe;
+        }
+    }
+
+    // Fallback to first color if calculation fails
+    return stripeSequence[0];
 }
 
 /**

@@ -20,7 +20,7 @@ const KnittingStepCounter = ({
     const [showStitchAdjust, setShowStitchAdjust] = useState(false);
 
     // Step analysis
-    const totalRows = step.totalRows || 1;
+    const totalRows = calculateActualTotalRows(step);  // updated
     const targetStitches = step.endingStitches || step.startingStitches || 0;
     const isCompleted = progress.isStepCompleted(navigation.currentStep);
     const duration = step.wizardConfig?.duration;
@@ -83,14 +83,21 @@ const KnittingStepCounter = ({
         (stepType === 'fixed_multi_row' && currentRow < totalRows);
     // Note: single_action removed because it should complete immediately, not show increment
 
-    // Add this debug line right before the return statement
-    console.log('🐛 Debug completion state:', {
-        currentRow,
-        totalRows,
-        stepType,
-        isCompleted,
-        stepIndex: navigation.currentStep
-    });
+    function calculateActualTotalRows(step) {
+        const duration = step.wizardConfig?.duration;
+
+        if (duration?.type === 'repeats') {
+            const repeats = parseInt(duration.value) || 0;
+            const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+            const rowsInPattern = parseInt(stitchPattern?.rowsInPattern) || 0;
+
+            if (repeats > 0 && rowsInPattern > 0) {
+                return repeats * rowsInPattern; // 2 × 12 = 24
+            }
+        }
+
+        return step.totalRows || 1;
+    }
 
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
