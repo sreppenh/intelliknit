@@ -490,9 +490,6 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
     // Generate base pattern instruction
     const getBaseInstruction = () => {
-
-
-
         if (isAlgorithmicPattern(patternName)) {
             const result = getAlgorithmicRowInstruction(patternName, currentRow, currentStitchCount, construction);
             if (result) {
@@ -505,10 +502,19 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
     const baseInstruction = getBaseInstruction();
 
+    // 🎯 HELPER FUNCTION: Smart stitch text addition
+    const addStitchesIfNeeded = (instruction) => {
+        // Don't add "stitches" if the instruction already ends with "stitches"
+        if (instruction.toLowerCase().endsWith('stitches')) {
+            return instruction;
+        }
+        return `${instruction} stitches`;
+    };
+
     switch (phaseType) {
         case 'setup':
             return {
-                instruction: `${baseInstruction} stitches`,
+                instruction: addStitchesIfNeeded(baseInstruction),
                 isSupported: true,
                 needsHelp: false,
                 helpTopic: null
@@ -516,7 +522,6 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
         case 'decrease':
             const isDecreaseRow = shouldBeShapingRow(phase, currentRow);
-            const newDecreaseCount = currentStitchCount - getStitchChangeForRow(phase);
 
             if (isDecreaseRow) {
                 const shapingText = generateShapingText(phase, 'decrease');
@@ -528,7 +533,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
                 };
             } else {
                 return {
-                    instruction: `${baseInstruction} stitches`,
+                    instruction: addStitchesIfNeeded(baseInstruction),
                     isSupported: true,
                     needsHelp: false,
                     helpTopic: null
@@ -537,7 +542,6 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
         case 'increase':
             const isIncreaseRow = shouldBeShapingRow(phase, currentRow);
-            const newIncreaseCount = currentStitchCount + getStitchChangeForRow(phase);
 
             if (isIncreaseRow) {
                 const shapingText = generateShapingText(phase, 'increase');
@@ -549,7 +553,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
                 };
             } else {
                 return {
-                    instruction: `${baseInstruction} stitches`,
+                    instruction: addStitchesIfNeeded(baseInstruction),
                     isSupported: true,
                     needsHelp: false,
                     helpTopic: null
@@ -558,7 +562,6 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
         case 'bind_off':
             const bindOffAmount = phase.amount || 1;
-            const newBindOffCount = currentStitchCount - bindOffAmount;
             const bindOffText = `Bind off ${bindOffAmount} stitches`;
 
             return {
