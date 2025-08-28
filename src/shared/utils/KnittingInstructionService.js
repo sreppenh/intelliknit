@@ -42,15 +42,28 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
     const patternName = getStepPatternName(step);
     const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
+    console.log('🔍 DEBUG - routeInstruction called:', {
+        patternName,
+        hasShaping,
+        currentRow,
+        currentStitchCount,
+        shapingConfig: step.wizardConfig?.shapingConfig,
+        advancedShapingConfig: step.advancedWizardConfig?.shapingConfig
+    });
+
     // Priority 1: Construction patterns (Cast On, Bind Off)
     if (isConstructionPattern(patternName)) {
+        console.log('🔍 DEBUG - Taking construction pattern route');
         return getConstructionInstruction(step, patternName);
     }
 
     // Priority 2: Steps with shaping
     if (hasShaping) {
+        console.log('🔍 DEBUG - Taking shaping route, calling getShapingInstruction');
         return getShapingInstruction(step, currentRow, currentStitchCount, construction, project);
     }
+
+    console.log('🔍 DEBUG - Taking fallback route');
 
     // Priority 3: Colorwork patterns (before algorithmic check)
     if (isColorworkPattern(patternName)) {
@@ -252,12 +265,21 @@ function getAttachInstruction(step, stitchPattern) {
 function getShapingInstruction(step, currentRow, currentStitchCount, construction, project) {
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
 
+    console.log('🔍 DEBUG - getShapingInstruction called:', {
+        shapingConfig,
+        shapingType: shapingConfig?.type,
+        currentRow,
+        calculation: shapingConfig?.config?.calculation
+    });
+
     if (!shapingConfig) {
+        console.log('🔍 DEBUG - No shaping config found, returning fallback');
         return getFallbackInstruction(step, currentRow, currentStitchCount);
     }
 
-    // For even distribution shaping - single row with intelligent formatting
+    // For even distribution shaping
     if (shapingConfig.type === 'even_distribution') {
+        console.log('🔍 DEBUG - Even distribution detected');
         const calculation = shapingConfig.config?.calculation;
         if (calculation?.instruction) {
             // Use the existing formatKnittingInstruction to clean up repetitive instructions
@@ -273,9 +295,11 @@ function getShapingInstruction(step, currentRow, currentStitchCount, constructio
 
     // For sequential phases shaping - multi row with intelligent phase detection
     if (shapingConfig.type === 'phases') {
+        console.log('🔍 DEBUG - Sequential phases detected, calling getSequentialPhaseInstruction');
         return getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig);
     }
 
+    console.log('🔍 DEBUG - Unknown shaping type, returning fallback');
     // Fallback for unknown shaping types
     const patternName = getStepPatternName(step);
     return {
@@ -435,28 +459,46 @@ function arraysEqual(a, b) {
 /**
  * Generate instruction for specific row in sequential phases shaping
  */
-function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project) {
+function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig) {
     const calculation = shapingConfig.config?.calculation;
+
     if (!calculation?.phases) {
         return getFallbackInstruction(step, currentRow, currentStitchCount);
     }
 
-    // Find which phase we're in based on rowRange
-    for (const phase of calculation.phases) {
-        const [startRow, endRow] = phase.rowRange.split('-').map(Number);
+    // Generate rowRange data on the fly since existing steps don't have it
+    let currentRowPosition = 1;
+    const phasesWithRowRange = [];
 
-        if (currentRow >= startRow && currentRow <= endRow) {
-            const rowInPhase = currentRow - startRow + 1;
-            return getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow, step, currentRow, project);
+    for (const phase of calculation.phases) {
+        const phaseRows = phase.rows || 1;
+        const startRow = currentRowPosition;
+        const endRow = currentRowPosition + phaseRows - 1;
+
+        phasesWithRowRange.push({
+            ...phase,
+            rowRange: `${startRow}-${endRow}`,
+            startRow,
+            endRow
+        });
+
+        currentRowPosition += phaseRows;
+    }
+
+    // Find which phase we're in
+    for (const phase of phasesWithRowRange) {
+        if (currentRow >= phase.startRow && currentRow <= phase.endRow) {
+            return getPhaseRowInstruction(phase, currentRow, currentStitchCount, construction, step);
         }
     }
 
-    // If we're somehow outside all phases, use the step description
+    // Fallback: generate a basic instruction based on pattern
+    const patternName = getStepPatternName(step);
     return {
-        instruction: step.description || 'Work as established',
-        isSupported: false,
-        needsHelp: true,
-        helpTopic: 'shaping_help'
+        instruction: `Work in ${patternName}`,
+        isSupported: true,
+        needsHelp: false,
+        helpTopic: null
     };
 }
 
@@ -465,40 +507,88 @@ function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, con
  * Replaces the existing function in KnittingInstructionService.js
  */
 
-function getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow, step, currentRow, project) {
-    // Extract phase information from the phase object
-    const phaseDescription = phase.description || '';
-    const phaseType = extractPhaseType(phaseDescription);
-    const stitchChange = phase.stitchChange || 0;
+function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construction, step) {
+    const phaseType = phase.type || 'setup';
+    const patternName = getStepPatternName(step);
 
-    // Calculate current stitch count after this row (if it's a shaping row)
-    const rowStitchCount = isShapingRow(phase, currentRow, startRow) ?
-        currentStitchCount + getRowStitchChange(phase, currentRow, startRow) :
-        currentStitchCount;
+    // Generate base pattern instruction
+    const getBaseInstruction = () => {
+        if (isAlgorithmicPattern(patternName)) {
+            const result = getAlgorithmicRowInstruction(patternName, currentRow, currentStitchCount, construction);
+            return result || `work in ${patternName}`;
+        }
+        return `work in ${patternName}`;
+    };
 
-    // Generate instruction based on phase type
+    const baseInstruction = getBaseInstruction();
+
     switch (phaseType) {
         case 'setup':
-            return generateSetupPhaseInstruction(step, currentRow, currentStitchCount, construction, project);
+            return {
+                instruction: `${baseInstruction} (setup phase - ${currentStitchCount} stitches)`,
+                isSupported: true,
+                needsHelp: false,
+                helpTopic: null
+            };
 
         case 'decrease':
+            // Check if this is a shaping row based on frequency
+            const isDecreaseRow = shouldBeShapingRow(phase, currentRow);
+            if (isDecreaseRow) {
+                const shapingText = generateShapingText(phase, 'decrease');
+                return {
+                    instruction: `${shapingText} (decrease row - ${currentStitchCount - getStitchChangeForRow(phase)} stitches)`,
+                    isSupported: true,
+                    needsHelp: false,
+                    helpTopic: null
+                };
+            } else {
+                return {
+                    instruction: `${baseInstruction} (between decreases - ${currentStitchCount} stitches)`,
+                    isSupported: true,
+                    needsHelp: false,
+                    helpTopic: null
+                };
+            }
+
         case 'increase':
-            return generateShapingPhaseInstruction(phase, currentRow, currentStitchCount, rowStitchCount, construction, startRow, step, project);
+            const isIncreaseRow = shouldBeShapingRow(phase, currentRow);
+            if (isIncreaseRow) {
+                const shapingText = generateShapingText(phase, 'increase');
+                return {
+                    instruction: `${shapingText} (increase row - ${currentStitchCount + getStitchChangeForRow(phase)} stitches)`,
+                    isSupported: true,
+                    needsHelp: false,
+                    helpTopic: null
+                };
+            } else {
+                return {
+                    instruction: `${baseInstruction} (between increases - ${currentStitchCount} stitches)`,
+                    isSupported: true,
+                    needsHelp: false,
+                    helpTopic: null
+                };
+            }
 
         case 'bind_off':
-            return generateBindOffPhaseInstruction(phase, currentRow, currentStitchCount, rowStitchCount, construction, startRow);
+            const bindOffText = `Bind off ${phase.amount || 1} stitches`;
+            return {
+                instruction: `${bindOffText} (bind-off row - ${currentStitchCount - (phase.amount || 1)} stitches)`,
+                isSupported: true,
+                needsHelp: false,
+                helpTopic: null
+            };
 
         default:
-            // Fallback with phase context
-            const basePattern = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
             return {
-                instruction: `${basePattern} (phase row)`,
+                instruction: `${baseInstruction} (${currentStitchCount} stitches)`,
                 isSupported: true,
                 needsHelp: false,
                 helpTopic: null
             };
     }
 }
+
 
 /**
  * Generate instruction for setup phases
@@ -978,4 +1068,35 @@ function combinePatternWithShaping(basePattern, shapingInstruction) {
 
     // Fallback: combine them
     return `${shapingInstruction}, ${basePattern}`;
+}
+
+function shouldBeShapingRow(phase, currentRow) {
+    if (!phase.frequency) return true;
+
+    // For phases with frequency > 1, check if current row should have shaping
+    const rowInPhase = currentRow - phase.startRow + 1;
+    return (rowInPhase - 1) % phase.frequency === 0;
+}
+
+function generateShapingText(phase, action) {
+    const position = phase.position || 'both_ends';
+    const amount = phase.amount || 1;
+
+    if (position === 'both_ends') {
+        if (action === 'decrease') {
+            return `K1, ssk, knit to last 3 sts, k2tog, k1`;
+        } else {
+            return `K1, M1, knit to last st, M1, k1`;
+        }
+    } else if (position === 'beginning') {
+        return action === 'decrease' ? `Ssk, knit to end` : `M1, knit to end`;
+    } else {
+        return action === 'decrease' ? `Knit to last 2 sts, k2tog` : `Knit to last st, M1, k1`;
+    }
+}
+
+function getStitchChangeForRow(phase) {
+    const amount = phase.amount || 1;
+    const position = phase.position || 'both_ends';
+    return position === 'both_ends' ? amount * 2 : amount;
 }

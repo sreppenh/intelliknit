@@ -105,25 +105,37 @@ export class PhaseCalculationService {
     let instructions = [];
     let netStitchChange = 0;
     let phaseDetails = [];
+    let currentRowPosition = 1; // NEW: Track row position for rowRange generation
 
     for (let i = 0; i < phases.length; i++) {
       const phase = phases[i];
       const { type, config } = phase;
 
       if (type === 'setup') {
-        totalRows += config.rows;
-        instructions.push(`work ${config.rows} plain rows`);
+        const phaseRows = config.rows;
+        const startRow = currentRowPosition;
+        const endRow = currentRowPosition + phaseRows - 1;
+
+        totalRows += phaseRows;
+        instructions.push(`work ${phaseRows} plain rows`);
+
         phaseDetails.push({
           type: 'setup',
-          rows: config.rows,
+          description: `Setup: Work ${phaseRows} plain ${phaseRows === 1 ? 'row' : 'rows'}`,
+          rowRange: `${startRow}-${endRow}`, // NEW: Add rowRange
+          rows: phaseRows,
           startingStitches: currentStitchCount,
           endingStitches: currentStitchCount,
           stitchChange: 0
         });
 
+        currentRowPosition += phaseRows; // NEW: Update row position
+
       } else if (type === 'bind_off') {
         const totalBindOff = config.amount * config.frequency;
         const phaseRows = config.frequency;
+        const startRow = currentRowPosition;
+        const endRow = currentRowPosition + phaseRows - 1;
 
         currentStitchCount -= totalBindOff;
         totalRows += phaseRows;
@@ -134,6 +146,8 @@ export class PhaseCalculationService {
 
         phaseDetails.push({
           type: 'bind_off',
+          description: `Bind off ${config.amount} stitches ${positionText} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'}`,
+          rowRange: `${startRow}-${endRow}`, // NEW: Add rowRange
           amount: config.amount,
           frequency: config.frequency,
           position: config.position,
@@ -142,6 +156,8 @@ export class PhaseCalculationService {
           startingStitches: currentStitchCount + totalBindOff,
           endingStitches: currentStitchCount
         });
+
+        currentRowPosition += phaseRows; // NEW: Update row position
 
       } else if (type === 'decrease' || type === 'increase') {
         const isDecrease = type === 'decrease';
@@ -153,13 +169,9 @@ export class PhaseCalculationService {
         // Calculate total stitch change for this phase
         const totalStitchChangeForPhase = stitchChangePerRow * config.times * (isDecrease ? -1 : 1);
 
-        // FIX: Calculate total rows for this phase correctly
-        // If you do something "every other row" 5 times, that's:
-        // Row 1 (shaping), Row 2 (plain), Row 3 (shaping), Row 4 (plain), Row 5 (shaping) = 9 rows total
-        // const phaseRows = config.frequency === 1 ? 
-        //  config.times : // Every row = times
-        //   (config.times - 1) * config.frequency + 1; // Every other/nth row
         const phaseRows = config.times * config.frequency;
+        const startRow = currentRowPosition;
+        const endRow = currentRowPosition + phaseRows - 1;
 
         // Update counters
         currentStitchCount += totalStitchChangeForPhase;
@@ -178,8 +190,13 @@ export class PhaseCalculationService {
 
         instructions.push(`${actionText} ${config.amount} stitch ${positionText} ${frequencyText} ${config.times} times`);
 
+        // NEW: Generate detailed phase description with knitting instructions
+        const phaseDescription = PhaseCalculationService.getPhaseDescription(phase, construction);
+
         phaseDetails.push({
           type: type,
+          description: `${isDecrease ? 'Decrease' : 'Increase'} phase: ${phaseDescription}`,
+          rowRange: `${startRow}-${endRow}`, // NEW: Add rowRange
           amount: config.amount,
           frequency: config.frequency,
           times: config.times,
@@ -189,6 +206,8 @@ export class PhaseCalculationService {
           startingStitches: currentStitchCount - totalStitchChangeForPhase,
           endingStitches: currentStitchCount
         });
+
+        currentRowPosition += phaseRows; // NEW: Update row position
       }
     }
 
@@ -216,7 +235,7 @@ export class PhaseCalculationService {
       endingStitches: currentStitchCount,
       totalRows: totalRows,
       netStitchChange: netStitchChange,
-      phases: phaseDetails,
+      phases: phaseDetails, // Now includes rowRange data!
       construction: construction
     };
   }
