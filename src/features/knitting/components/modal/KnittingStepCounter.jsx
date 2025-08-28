@@ -20,6 +20,12 @@ const KnittingStepCounter = ({
     const [showStitchAdjust, setShowStitchAdjust] = useState(false);
 
     const calculateCurrentStitchCount = (row) => {
+        // For cast-on steps, target should be endingStitches
+        const patternName = step.wizardConfig?.stitchPattern?.pattern;
+        if (patternName === 'Cast On') {
+            return step.endingStitches || 0;
+        }
+
         const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'phases') {

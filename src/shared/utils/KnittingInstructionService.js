@@ -141,7 +141,8 @@ function getConstructionInstruction(step, patternName) {
  */
 function getCastOnInstruction(step, stitchPattern) {
     const method = stitchPattern?.method || 'long_tail';
-    const stitchCount = stitchPattern?.stitchCount || step.endingStitches || '0';
+    // const stitchCount = stitchPattern?.stitchCount || step.endingStitches || '0';
+    const stitchCount = step.endingStitches || stitchPattern?.stitchCount || 0;
 
     const methodNames = {
         'long_tail': 'Long Tail Cast On',
