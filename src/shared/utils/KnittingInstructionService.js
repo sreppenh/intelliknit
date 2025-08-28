@@ -264,7 +264,7 @@ function getShapingInstruction(step, currentRow, currentStitchCount, constructio
             // Use the existing formatKnittingInstruction to clean up repetitive instructions
             const smartInstruction = formatKnittingInstruction(calculation.instruction);
             return {
-                instruction: `${smartInstruction} (${calculation.endingStitches} stitches)`,
+                instruction: smartInstruction,
                 isSupported: true,
                 needsHelp: false,
                 helpTopic: null

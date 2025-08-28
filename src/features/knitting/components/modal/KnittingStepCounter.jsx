@@ -69,6 +69,14 @@ const KnittingStepCounter = ({
             }
         }
 
+        // For even distribution shaping, use the calculated ending stitches
+        if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'even_distribution') {
+            const calculation = step.wizardConfig.shapingConfig.config?.calculation;
+            if (calculation?.endingStitches) {
+                return calculation.endingStitches;
+            }
+        }
+
         // For non-shaping steps, stitch count stays constant
         return step.startingStitches || 0;
     };

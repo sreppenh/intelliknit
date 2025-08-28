@@ -20,9 +20,9 @@ export const ALGORITHMIC_PATTERNS = {
             const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
 
             if (construction === 'flat') {
-                return adjustedRow === 1 ? 'K all' : 'P all';
+                return adjustedRow === 1 ? 'Knit all' : 'Purl all';
             } else {
-                return 'K all'; // All rounds are knit in circular
+                return 'Knit all'; // All rounds are knit in circular
             }
         },
         rowHeight: 2,
@@ -37,7 +37,7 @@ export const ALGORITHMIC_PATTERNS = {
             } else {
                 // In round: alternate knit/purl to create garter effect
                 const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
-                return adjustedRow === 1 ? 'K all' : 'P all';
+                return adjustedRow === 1 ? 'Knit all' : 'Purl all';
             }
         },
         rowHeight: 2,
@@ -50,9 +50,9 @@ export const ALGORITHMIC_PATTERNS = {
             const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;
 
             if (construction === 'flat') {
-                return adjustedRow === 1 ? 'P all' : 'K all'; // Opposite of stockinette
+                return adjustedRow === 1 ? 'Purl all' : 'Knit all'; // Opposite of stockinette
             } else {
-                return 'P all'; // All rounds are purl in circular
+                return 'Purl all'; // All rounds are purl in circular
             }
         },
         rowHeight: 2,
@@ -310,15 +310,15 @@ export const ALGORITHMIC_PATTERNS = {
 
             switch (adjustedRow) {
                 case 1:
-                    return 'P all';
+                    return 'Purl all';
                 case 2:
                     return generateTrinityRow2(stitchCount); // (K1, P1, K1) in next st, P3tog
                 case 3:
-                    return 'P all';
+                    return 'Purl all';
                 case 4:
                     return generateTrinityRow4(stitchCount); // P3tog, (K1, P1, K1) in next st
                 default:
-                    return 'P all';
+                    return 'Purl all';
             }
         },
         rowHeight: 4,
@@ -338,7 +338,7 @@ export const ALGORITHMIC_PATTERNS = {
                         return generateTexturedPattern('K1, P1', stitchCount, 'WS');
                     case 3:
                     case 4:
-                        return construction === 'flat' ? 'P all' : 'K all';
+                        return construction === 'flat' ? 'Purl all' : 'Knit all';
                     default:
                         return generateTexturedPattern('K1, P1', stitchCount, 'RS');
                 }
@@ -350,7 +350,7 @@ export const ALGORITHMIC_PATTERNS = {
                         return generateSmartPattern('K1, P1', stitchCount);
                     case 3:
                     case 4:
-                        return 'K all';
+                        return 'Knit all';
                     default:
                         return generateSmartPattern('K1, P1', stitchCount);
                 }
@@ -368,7 +368,7 @@ export const ALGORITHMIC_PATTERNS = {
  */
 function generateSmartPattern(basePattern, stitchCount) {
     // For simple "all" patterns, return directly
-    if (basePattern === 'K all' || basePattern === 'P all') {
+    if (basePattern === 'Knit all' || basePattern === 'Purl all') {
         return basePattern;
     }
 
@@ -656,7 +656,7 @@ function generateBlockPattern(blocks, stitchCount) {
  * Generate linen stitch row 1 pattern
  */
 function generateLinenStitchRow1(stitchCount) {
-    if (stitchCount < 2) return 'K all';
+    if (stitchCount < 2) return 'Knit all';
 
     const pairs = Math.floor(stitchCount / 2);
     let instruction = '';
@@ -678,7 +678,7 @@ function generateLinenStitchRow1(stitchCount) {
  * Generate linen stitch row 2 pattern  
  */
 function generateLinenStitchRow2(stitchCount) {
-    if (stitchCount < 2) return 'P all';
+    if (stitchCount < 2) return 'Purl all';
 
     const pairs = Math.floor(stitchCount / 2);
     let instruction = '';
