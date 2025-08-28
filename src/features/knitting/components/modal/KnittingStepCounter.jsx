@@ -46,10 +46,17 @@ const KnittingStepCounter = ({
                     if (row >= currentRowPosition && row <= endRow) {
                         // Calculate stitches AFTER completing this row
                         const rowsIntoPhase = row - currentRowPosition;
+
+                        // For bind-off phases, each row removes stitches
+                        if (phase.type === 'bind_off') {
+                            const bindOffAmount = phase.amount || 1;
+                            const rowsCompleted = rowsIntoPhase + 1; // +1 because we want AFTER this row
+                            return runningStitches - (bindOffAmount * rowsCompleted);
+                        }
+
+                        // For other shaping phases
                         const stitchChangePerRow = calculateStitchChangePerRow(phase);
                         const shapingRowsCompleted = Math.floor(rowsIntoPhase / (phase.frequency || 1));
-
-                        // If this row itself is a shaping row, add one more change
                         const isShapingRow = (rowsIntoPhase % (phase.frequency || 1)) === 0;
                         const additionalChange = isShapingRow ? stitchChangePerRow : 0;
 
@@ -258,46 +265,6 @@ const KnittingStepCounter = ({
                                     {isCompleted ? 'Mark Incomplete' : 'Mark Complete'}
                                 </button>
                             )}
-                        </div>
-                    )}
-                </div>
-
-                {/* STITCH COUNT DISPLAY - Subtle, informational */}
-                <div className="bg-white/70 backdrop-blur-sm rounded-xl p-4 mb-4">
-                    <div className="flex items-center justify-between mb-2">
-                        <span className={`text-sm ${theme.textSecondary}`}>
-                            Current Stitches
-                        </span>
-                        <button
-                            onClick={() => setShowStitchAdjust(!showStitchAdjust)}
-                            className={`text-xs ${theme.textSecondary} hover:text-sage-600 transition-colors`}
-                        >
-                            Adjust
-                        </button>
-                    </div>
-
-                    <div className={`text-xl font-semibold ${theme.textPrimary} text-center`}>
-                        {stitchCount}
-                    </div>
-
-                    {/* Stitch adjustment - hidden by default */}
-                    {showStitchAdjust && (
-                        <div className="flex items-center justify-center gap-3 mt-3 pt-3 border-t border-gray-200">
-                            <button
-                                onClick={() => updateStitchCount(Math.max(0, stitchCount - 1))}
-                                className="p-2 rounded-full bg-red-100 hover:bg-red-200 text-red-600 transition-colors"
-                            >
-                                <Minus size={12} />
-                            </button>
-                            <span className={`text-xs ${theme.textSecondary}`}>
-                                Fine-tune count
-                            </span>
-                            <button
-                                onClick={() => updateStitchCount(stitchCount + 1)}
-                                className="p-2 rounded-full bg-green-100 hover:bg-green-200 text-green-600 transition-colors"
-                            >
-                                <Plus size={12} />
-                            </button>
                         </div>
                     )}
                 </div>
