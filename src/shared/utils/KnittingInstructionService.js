@@ -604,7 +604,7 @@ function generateShapingPhaseInstruction(phase, currentRow, currentStitchCount, 
         // This is a "between" row - work in pattern
         const basePattern = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
         return {
-            instruction: `${basePattern} (between shaping rows - ${currentStitchCount} stitches)`,
+            instruction: basePattern,
             isSupported: true,
             needsHelp: false,
             helpTopic: null
@@ -964,10 +964,11 @@ function getFallbackInstruction(step, currentRow, currentStitchCount, patternNam
  */
 function shouldShowStitchCount(step) {
     // Show stitch count for non-shaping steps that maintain stitch count
-    const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
-    const isConstructionPattern = step.wizardConfig?.stitchPattern?.category === 'construction';
+    //const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
+    //const isConstructionPattern = step.wizardConfig?.stitchPattern?.category === 'construction';
 
-    return !hasShaping && !isConstructionPattern && step.startingStitches === step.endingStitches;
+    // return !hasShaping && !isConstructionPattern && step.startingStitches === step.endingStitches;
+    return false;
 }
 
 /**
@@ -995,10 +996,10 @@ function getColorDisplayName(colorLetter, project) {
  */
 function formatBaseInstruction(instruction) {
     return instruction
-        .replace(/^K all$/, 'Knit all')
-        .replace(/^P all$/, 'Purl all')
-        .replace(/^k all$/, 'knit all')
-        .replace(/^p all$/, 'purl all');
+        .replace(/^K all$/, 'Knit all stitches')
+        .replace(/^P all$/, 'Purl all stitches')
+        .replace(/^k all$/, 'knit all stitches')
+        .replace(/^p all$/, 'purl all stitches');
 }
 
 /**

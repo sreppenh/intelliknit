@@ -21,7 +21,6 @@ const EvenDistributionForm = ({
     showSaveActions = false
 }) => {
     const terms = getConstructionTerms(construction);
-
     // Initialize config from props or defaults
     const getInitialConfig = () => {
         if (initialConfig && Object.keys(initialConfig).length > 0) {
