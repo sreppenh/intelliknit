@@ -33,7 +33,6 @@ const KnittingStepCounter = ({
 
         const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
-        // REPLACE the sequential phases calculation with:
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'phases') {
             const calculation = step.wizardConfig.shapingConfig.config?.calculation;
             if (calculation?.phases) {
@@ -45,24 +44,23 @@ const KnittingStepCounter = ({
                     const endRow = currentRowPosition + phaseRows - 1;
 
                     if (row >= currentRowPosition && row <= endRow) {
-                        // We're in this phase - calculate stitches at this specific row
-                        const rowInPhase = row - currentRowPosition + 1;
+                        // Calculate stitches AFTER completing this row
+                        const rowsIntoPhase = row - currentRowPosition;
 
-                        if (phase.type === 'setup') {
-                            return runningStitches; // Setup rows don't change stitch count
-                        }
-
+                        // For bind-off phases, each row removes stitches
                         if (phase.type === 'bind_off') {
                             const bindOffAmount = phase.amount || 1;
-                            return runningStitches - (bindOffAmount * rowInPhase);
+                            const rowsCompleted = rowsIntoPhase + 1; // +1 because we want AFTER this row
+                            return runningStitches - (bindOffAmount * rowsCompleted);
                         }
 
-                        // For increase/decrease phases, only shape on specific rows based on frequency
-                        const frequency = phase.frequency || 1;
-                        const shapingRowsCompleted = Math.floor((rowInPhase - 1) / frequency);
+                        // For other shaping phases
                         const stitchChangePerRow = calculateStitchChangePerRow(phase);
+                        const shapingRowsCompleted = Math.floor(rowsIntoPhase / (phase.frequency || 1));
+                        const isShapingRow = (rowsIntoPhase % (phase.frequency || 1)) === 0;
+                        const additionalChange = isShapingRow ? stitchChangePerRow : 0;
 
-                        return runningStitches + (stitchChangePerRow * shapingRowsCompleted);
+                        return runningStitches + (stitchChangePerRow * shapingRowsCompleted) + additionalChange;
                     }
 
                     runningStitches += phase.stitchChange || 0;
