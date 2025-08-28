@@ -49,7 +49,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
 
     // Priority 2: Steps with shaping
     if (hasShaping) {
-        return getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, project);
+        return getShapingInstruction(step, currentRow, currentStitchCount, construction, project);
     }
 
     // Priority 3: Colorwork patterns (before algorithmic check)
@@ -461,44 +461,55 @@ function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, con
 }
 
 /**
- * Generate instruction for a single row within a shaping phase
- * Enhanced with phase context and intelligent instruction generation
+ * Enhanced getPhaseRowInstruction function
+ * Replaces the existing function in KnittingInstructionService.js
  */
-/**
- * Generate instruction for a single row within a shaping phase
- * Enhanced to combine base pattern with shaping instructions
- */
+
 function getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construction, startRow, endRow, step, currentRow, project) {
-    const phaseType = phase.type || 'setup';
+    // Extract phase information from the phase object
+    const phaseDescription = phase.description || '';
+    const phaseType = extractPhaseType(phaseDescription);
+    const stitchChange = phase.stitchChange || 0;
 
-    if (phaseType === 'setup') {
-        // Setup phase - get the base pattern instruction (including colorwork)
-        const basePatternInstruction = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
-        return {
-            instruction: basePatternInstruction,
-            isSupported: true,
-            needsHelp: false,
-            helpTopic: null
-        };
+    // Calculate current stitch count after this row (if it's a shaping row)
+    const rowStitchCount = isShapingRow(phase, currentRow, startRow) ?
+        currentStitchCount + getRowStitchChange(phase, currentRow, startRow) :
+        currentStitchCount;
+
+    // Generate instruction based on phase type
+    switch (phaseType) {
+        case 'setup':
+            return generateSetupPhaseInstruction(step, currentRow, currentStitchCount, construction, project);
+
+        case 'decrease':
+        case 'increase':
+            return generateShapingPhaseInstruction(phase, currentRow, currentStitchCount, rowStitchCount, construction, startRow, step, project);
+
+        case 'bind_off':
+            return generateBindOffPhaseInstruction(phase, currentRow, currentStitchCount, rowStitchCount, construction, startRow);
+
+        default:
+            // Fallback with phase context
+            const basePattern = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
+            return {
+                instruction: `${basePattern} (phase row)`,
+                isSupported: true,
+                needsHelp: false,
+                helpTopic: null
+            };
     }
+}
 
-    // For shaping phases - combine base pattern with shaping
-    const basePatternInstruction = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
-    const shapingInstruction = extractShapingFromPhase(phase);
+/**
+ * Generate instruction for setup phases
+ * Shows "Work in pattern (setup phase)"
+ */
+function generateSetupPhaseInstruction(step, currentRow, currentStitchCount, construction, project) {
+    const basePattern = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
+    const stitchCountText = ` (${currentStitchCount} stitches)`;
 
-    if (shapingInstruction && basePatternInstruction) {
-        const combinedInstruction = combinePatternWithShaping(basePatternInstruction, shapingInstruction);
-        return {
-            instruction: combinedInstruction,
-            isSupported: true,
-            needsHelp: false,
-            helpTopic: null
-        };
-    }
-
-    // Fallback to just the shaping instruction
     return {
-        instruction: shapingInstruction || phase.description || 'Work with shaping as established',
+        instruction: `${basePattern} - setup phase${stitchCountText}`,
         isSupported: true,
         needsHelp: false,
         helpTopic: null
@@ -506,9 +517,171 @@ function getPhaseRowInstruction(phase, rowInPhase, currentStitchCount, construct
 }
 
 /**
+ * Generate instruction for shaping phases (decrease/increase)
+ * Shows intelligent shaping instructions with stitch counts
+ */
+function generateShapingPhaseInstruction(phase, currentRow, currentStitchCount, rowStitchCount, construction, startRow, step, project) {
+    // Check if this is actually a shaping row or a between-shaping row
+    const isShapingRowActual = isShapingRow(phase, currentRow, startRow);
+
+    if (!isShapingRowActual) {
+        // This is a "between" row - work in pattern
+        const basePattern = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
+        return {
+            instruction: `${basePattern} (between shaping rows - ${currentStitchCount} stitches)`,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    }
+
+    // This IS a shaping row - extract and show the shaping instruction
+    const shapingInstruction = extractShapingInstruction(phase.description, construction);
+    const phaseType = extractPhaseType(phase.description);
+    const actionText = phaseType === 'decrease' ? 'decrease' : 'increase';
+
+    if (shapingInstruction) {
+        // Show the actual shaping instruction
+        return {
+            instruction: `${shapingInstruction} (${actionText} row - ${rowStitchCount} stitches)`,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    } else {
+        // Fallback with phase context
+        const basePattern = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
+        return {
+            instruction: `${basePattern} with ${actionText} (${actionText} row - ${rowStitchCount} stitches)`,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    }
+}
+
+/**
+ * Generate instruction for bind-off phases
+ */
+function generateBindOffPhaseInstruction(phase, currentRow, currentStitchCount, rowStitchCount, construction, startRow) {
+    const bindOffInstruction = extractShapingInstruction(phase.description, construction);
+
+    if (bindOffInstruction) {
+        return {
+            instruction: `${bindOffInstruction} (bind-off row - ${rowStitchCount} stitches)`,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    } else {
+        return {
+            instruction: `Bind off stitches as established (bind-off row - ${rowStitchCount} stitches)`,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    }
+}
+
+/**
+ * Determine if current row is a shaping row within the phase
+ * This is a simplified implementation - you may need to enhance based on phase config
+ */
+function isShapingRow(phase, currentRow, startRow) {
+    const description = phase.description || '';
+    const rowInPhase = currentRow - startRow + 1;
+
+    // For setup phases, no rows are shaping rows
+    if (extractPhaseType(description) === 'setup') {
+        return false;
+    }
+
+    // Check for "every other row" pattern
+    if (description.toLowerCase().includes('every other row')) {
+        // Assume shaping happens on odd rows within the phase (1, 3, 5...)
+        return rowInPhase % 2 === 1;
+    }
+
+    // Check for "every row" pattern  
+    if (description.toLowerCase().includes('every row')) {
+        return true;
+    }
+
+    // For bind-off phases, assume every row is a bind-off row
+    if (extractPhaseType(description) === 'bind_off') {
+        return true;
+    }
+
+    // Default: assume it's a shaping row (conservative approach)
+    return true;
+}
+
+/**
+ * Calculate stitch change for current row
+ * This is a simplified implementation
+ */
+function getRowStitchChange(phase, currentRow, startRow) {
+    const phaseType = extractPhaseType(phase.description || '');
+    const description = phase.description || '';
+
+    if (!isShapingRow(phase, currentRow, startRow)) {
+        return 0; // No change on non-shaping rows
+    }
+
+    // Extract stitch change from description patterns
+    if (phaseType === 'decrease') {
+        // Look for patterns like "decrease 1 stitch at each end" = -2 per row
+        if (description.toLowerCase().includes('each end')) {
+            return -2; // Common decrease pattern
+        }
+        return -1; // Default single decrease
+    }
+
+    if (phaseType === 'increase') {
+        if (description.toLowerCase().includes('each end')) {
+            return 2; // Common increase pattern  
+        }
+        return 1; // Default single increase
+    }
+
+    if (phaseType === 'bind_off') {
+        // Try to extract bind-off amount from description
+        const match = description.match(/bind off (\d+)/i);
+        if (match) {
+            return -parseInt(match[1]);
+        }
+        return -1; // Default single bind-off
+    }
+
+    return 0; // Fallback
+}
+
+/**
+ * Extract phase type from phase description
+ * Returns: 'setup', 'decrease', 'increase', 'bind_off', or 'unknown'
+ */
+function extractPhaseType(description) {
+    if (!description) return 'unknown';
+
+    const lowerDesc = description.toLowerCase();
+
+    if (lowerDesc.includes('setup') || lowerDesc.includes('plain')) return 'setup';
+    if (lowerDesc.includes('decrease')) return 'decrease';
+    if (lowerDesc.includes('increase')) return 'increase';
+    if (lowerDesc.includes('bind off') || lowerDesc.includes('bind-off')) return 'bind_off';
+
+    return 'unknown';
+}
+
+
+/**
  * Extract the specific shaping instruction from phase description
  * Converts "K1, ssk, work to last 3 sts, k2tog, k1 every other row 6 times" 
  * to "K1, ssk, work to last 3 sts, k2tog, k1"
+ */
+/**
+ * Enhanced extractShapingInstruction function
+ * Better extraction of actual knitting instructions from phase descriptions
  */
 function extractShapingInstruction(description, construction) {
     if (!description) return null;
@@ -517,13 +690,19 @@ function extractShapingInstruction(description, construction) {
     let instruction = description.replace(/^[^:]+:\s*/, '');
 
     // Remove frequency information (e.g., "every other row 6 times")
-    instruction = instruction.replace(/\s+every\s+\w+\s+row\s+\d+\s+times?$/i, '');
+    instruction = instruction.replace(/\s+every\s+other\s+row\s+\d+\s+times?$/i, '');
     instruction = instruction.replace(/\s+every\s+row\s+\d+\s+times?$/i, '');
+    instruction = instruction.replace(/\s+\d+\s+times?$/i, '');
 
     // Clean up any remaining text artifacts
     instruction = instruction.trim();
 
-    return instruction || null;
+    // Only return if it contains actual knitting instructions
+    if (/\b(K\d*|P\d*|ssk|k2tog|inc|yo|sl|knit|purl)\b/i.test(instruction)) {
+        return instruction;
+    }
+
+    return null;
 }
 
 /**
