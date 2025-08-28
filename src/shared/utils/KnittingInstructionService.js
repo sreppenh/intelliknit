@@ -502,9 +502,8 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
     const baseInstruction = getBaseInstruction();
 
-    // 🎯 HELPER FUNCTION: Smart stitch text addition
+    // Helper function: Smart stitch text addition
     const addStitchesIfNeeded = (instruction) => {
-        // Don't add "stitches" if the instruction already ends with "stitches"
         if (instruction.toLowerCase().endsWith('stitches')) {
             return instruction;
         }
@@ -513,8 +512,9 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
     switch (phaseType) {
         case 'setup':
+            const coloredSetupInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, step.project);
             return {
-                instruction: addStitchesIfNeeded(baseInstruction),
+                instruction: addStitchesIfNeeded(coloredSetupInstruction),
                 isSupported: true,
                 needsHelp: false,
                 helpTopic: null
@@ -524,7 +524,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
             const isDecreaseRow = shouldBeShapingRow(phase, currentRow);
 
             if (isDecreaseRow) {
-                const shapingText = generateShapingText(phase, 'decrease');
+                const shapingText = generateShapingTextWithColor(phase, 'decrease', step, currentRow, currentStitchCount, construction, step.project);
                 return {
                     instruction: shapingText,
                     isSupported: true,
@@ -532,8 +532,9 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
                     helpTopic: null
                 };
             } else {
+                const coloredBaseInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, step.project);
                 return {
-                    instruction: addStitchesIfNeeded(baseInstruction),
+                    instruction: addStitchesIfNeeded(coloredBaseInstruction),
                     isSupported: true,
                     needsHelp: false,
                     helpTopic: null
@@ -544,7 +545,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
             const isIncreaseRow = shouldBeShapingRow(phase, currentRow);
 
             if (isIncreaseRow) {
-                const shapingText = generateShapingText(phase, 'increase');
+                const shapingText = generateShapingTextWithColor(phase, 'increase', step, currentRow, currentStitchCount, construction, step.project);
                 return {
                     instruction: shapingText,
                     isSupported: true,
@@ -552,8 +553,9 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
                     helpTopic: null
                 };
             } else {
+                const coloredBaseInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, step.project);
                 return {
-                    instruction: addStitchesIfNeeded(baseInstruction),
+                    instruction: addStitchesIfNeeded(coloredBaseInstruction),
                     isSupported: true,
                     needsHelp: false,
                     helpTopic: null
@@ -562,10 +564,11 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
         case 'bind_off':
             const bindOffAmount = phase.amount || 1;
-            const bindOffText = `Bind off ${bindOffAmount} stitches`;
+            const baseBindOffText = `Bind off ${bindOffAmount} stitches`;
+            const coloredBindOffText = addColorToInstruction(baseBindOffText, step, currentRow, construction, step.project);
 
             return {
-                instruction: bindOffText,
+                instruction: coloredBindOffText,
                 isSupported: true,
                 needsHelp: false,
                 helpTopic: null
@@ -1093,20 +1096,79 @@ function shouldBeShapingRow(phase, currentRow) {
     return (rowInPhase - 1) % phase.frequency === 0;
 }
 
+/**
+ * Generate shaping instruction with color integration (realistic approach)
+ * Only handles color scenarios that actually exist in the codebase
+ */
+function generateShapingTextWithColor(phase, action, step, currentRow, currentStitchCount, construction, project) {
+    // Get the base shaping instruction (without color)
+    const baseShapingText = generateShapingText(phase, action);
+
+    // Check if this step has stripe pattern (the main color scenario that exists)
+    const patternName = getStepPatternName(step);
+
+    if (patternName === 'Stripes') {
+        const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+        const stripeSequence = stitchPattern?.stripeSequence;
+
+        if (stripeSequence && stripeSequence.length > 0) {
+            const currentColor = getCurrentStripeColor(currentRow, stripeSequence);
+            if (currentColor) {
+                const colorDisplay = getColorDisplayName(currentColor.color, project);
+                return `Using ${colorDisplay}, ${baseShapingText}`;
+            }
+        }
+    }
+
+    // Future: Add other colorwork patterns here as they get implemented
+    // if (patternName === 'Fair Isle') { ... }
+    // if (patternName === 'Intarsia') { ... }
+
+    // No color information found, return basic shaping
+    return baseShapingText;
+}
+
+/**
+ * Add color to non-shaping instructions (realistic approach)
+ */
+function addColorToInstruction(instruction, step, currentRow, construction, project) {
+    const patternName = getStepPatternName(step);
+
+    // Handle stripes (the main implemented color feature)
+    if (patternName === 'Stripes') {
+        const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+        const stripeSequence = stitchPattern?.stripeSequence;
+
+        if (stripeSequence && stripeSequence.length > 0) {
+            const currentColor = getCurrentStripeColor(currentRow, stripeSequence);
+            if (currentColor) {
+                const colorDisplay = getColorDisplayName(currentColor.color, project);
+                return `Using ${colorDisplay}, ${instruction}`;
+            }
+        }
+    }
+
+    // No color integration needed/available
+    return instruction;
+}
+
+/**
+ * Enhanced generateShapingText with consistent formatting
+ */
 function generateShapingText(phase, action) {
     const position = phase.position || 'both_ends';
     const amount = phase.amount || 1;
 
     if (position === 'both_ends') {
         if (action === 'decrease') {
-            return `K1, SSK, Knit to last 3 stitches, K2tog, K1`;
+            return `K1, SSK, knit to last 3 sts, k2tog, k1`;
         } else {
-            return `K1, M1, Knit to last stitch, M1, K1`;
+            return `K1, M1, knit to last stitch, M1, k1`;
         }
     } else if (position === 'beginning') {
-        return action === 'decrease' ? `SSK, Knit to end` : `M1, Knit to end`;
-    } else {
-        return action === 'decrease' ? `Knit to last 2 sts, K2tog` : `Knit to last stitch, M1, k1`;
+        return action === 'decrease' ? `SSK, knit to end` : `M1, knit to end`;
+    } else { // 'end'
+        return action === 'decrease' ? `Knit to last 2 sts, k2tog` : `Knit to last stitch, M1, k1`;
     }
 }
 
