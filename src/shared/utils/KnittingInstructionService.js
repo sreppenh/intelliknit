@@ -926,16 +926,38 @@ function getCurrentStripeColor(currentRow, stripeSequence) {
  * Fallback instruction generation
  */
 function getFallbackInstruction(step, currentRow, currentStitchCount, patternName) {
+    // Try to generate a specific instruction based on pattern name
+    if (isAlgorithmicPattern(patternName)) {
+        const algorithmicResult = getAlgorithmicInstruction(step, currentRow, currentStitchCount, step.construction || 'flat', patternName);
+        if (algorithmicResult) {
+            return algorithmicResult;
+        }
+    }
+
+    // For custom patterns, try to extract from step configuration
+    const customText = step.wizardConfig?.stitchPattern?.customText;
+    if (customText && customText.trim()) {
+        return {
+            instruction: customText.trim(),
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    }
+
+    // Final fallback - but more specific
     const pattern = patternName || 'pattern';
-    const stitchCountText = shouldShowStitchCount(step) ? ` (${currentStitchCount} stitches)` : '';
+    const construction = step.construction || 'flat';
+    const rowTerm = construction === 'round' ? 'round' : 'row';
 
     return {
-        instruction: `Work in ${pattern}${stitchCountText}`,
+        instruction: `Continue in ${pattern} as established`,
         isSupported: false,
         needsHelp: true,
         helpTopic: 'pattern_help'
     };
 }
+
 
 /**
  * Determine if stitch count should be shown in instruction
