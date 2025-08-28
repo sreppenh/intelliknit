@@ -36,36 +36,42 @@ const KnittingStepCounter = ({
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'phases') {
             const calculation = step.wizardConfig.shapingConfig.config?.calculation;
             if (calculation?.phases) {
-                let runningStitches = step.startingStitches || 0;
-                let currentRowPosition = 1;
+                // 🎯 MUCH SIMPLER APPROACH: Use a row-by-row stitch tracking array
+
+                let stitchCountByRow = [step.startingStitches || 0]; // Index 0 = starting stitches
+                let currentRowGlobal = 1;
 
                 for (const phase of calculation.phases) {
                     const phaseRows = phase.rows || 1;
-                    const endRow = currentRowPosition + phaseRows - 1;
 
-                    if (row >= currentRowPosition && row <= endRow) {
-                        // Calculate stitches AFTER completing this row
-                        const rowsIntoPhase = row - currentRowPosition;
+                    for (let rowInPhase = 0; rowInPhase < phaseRows; rowInPhase++) {
+                        let stitchesAfterThisRow = stitchCountByRow[currentRowGlobal - 1]; // Start with what we had
 
-                        // For bind-off phases, each row removes stitches
-                        if (phase.type === 'bind_off') {
+                        // Determine if this specific row has shaping
+                        if (phase.type === 'decrease' || phase.type === 'increase') {
+                            const frequency = phase.frequency || 1;
+                            const isShapingRow = (rowInPhase % frequency) === 0;
+
+                            if (isShapingRow) {
+                                const amount = phase.amount || 1;
+                                const multiplier = phase.position === 'both_ends' ? 2 : 1;
+                                const stitchChange = phase.type === 'decrease' ?
+                                    -(amount * multiplier) : (amount * multiplier);
+                                stitchesAfterThisRow += stitchChange;
+                            }
+                        } else if (phase.type === 'bind_off') {
                             const bindOffAmount = phase.amount || 1;
-                            const rowsCompleted = rowsIntoPhase + 1; // +1 because we want AFTER this row
-                            return runningStitches - (bindOffAmount * rowsCompleted);
+                            stitchesAfterThisRow -= bindOffAmount;
                         }
+                        // setup phases don't change stitch count
 
-                        // For other shaping phases
-                        const stitchChangePerRow = calculateStitchChangePerRow(phase);
-                        const shapingRowsCompleted = Math.floor(rowsIntoPhase / (phase.frequency || 1));
-                        const isShapingRow = (rowsIntoPhase % (phase.frequency || 1)) === 0;
-                        const additionalChange = isShapingRow ? stitchChangePerRow : 0;
-
-                        return runningStitches + (stitchChangePerRow * shapingRowsCompleted) + additionalChange;
+                        stitchCountByRow[currentRowGlobal] = stitchesAfterThisRow;
+                        currentRowGlobal++;
                     }
-
-                    runningStitches += phase.stitchChange || 0;
-                    currentRowPosition += phaseRows;
                 }
+
+                // Return the stitch count after completing the requested row
+                return stitchCountByRow[row] || step.startingStitches || 0;
             }
         }
 
