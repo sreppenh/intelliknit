@@ -20,9 +20,14 @@ const KnittingStepCounter = ({
     const [showStitchAdjust, setShowStitchAdjust] = useState(false);
 
     const calculateCurrentStitchCount = (row) => {
-        // For cast-on steps, target should be endingStitches
+        // For cast-on steps, target should be endingStitches (what you'll have after casting on)
         const patternName = step.wizardConfig?.stitchPattern?.pattern;
         if (patternName === 'Cast On') {
+            return step.endingStitches || 0;
+        }
+
+        // For bind-off steps, target should be endingStitches (what remains after binding off)
+        if (patternName === 'Bind Off') {
             return step.endingStitches || 0;
         }
 
@@ -39,10 +44,16 @@ const KnittingStepCounter = ({
                     const endRow = currentRowPosition + phaseRows - 1;
 
                     if (row >= currentRowPosition && row <= endRow) {
+                        // Calculate stitches AFTER completing this row
                         const rowsIntoPhase = row - currentRowPosition;
                         const stitchChangePerRow = calculateStitchChangePerRow(phase);
                         const shapingRowsCompleted = Math.floor(rowsIntoPhase / (phase.frequency || 1));
-                        return runningStitches + (stitchChangePerRow * shapingRowsCompleted);
+
+                        // If this row itself is a shaping row, add one more change
+                        const isShapingRow = (rowsIntoPhase % (phase.frequency || 1)) === 0;
+                        const additionalChange = isShapingRow ? stitchChangePerRow : 0;
+
+                        return runningStitches + (stitchChangePerRow * shapingRowsCompleted) + additionalChange;
                     }
 
                     runningStitches += phase.stitchChange || 0;
@@ -51,12 +62,17 @@ const KnittingStepCounter = ({
             }
         }
 
+        // For non-shaping steps, stitch count stays constant
         return step.startingStitches || 0;
     };
 
-
-
-
+    // Auto-sync stitch count with calculated count when row changes
+    const calculatedStitchCount = calculateCurrentStitchCount(currentRow);
+    React.useEffect(() => {
+        if (stitchCount !== calculatedStitchCount && calculatedStitchCount > 0) {
+            updateStitchCount(calculatedStitchCount);
+        }
+    }, [currentRow, calculatedStitchCount, stitchCount, updateStitchCount]);
 
     // Step analysis
     const totalRows = calculateActualTotalRows(step);  // updated
