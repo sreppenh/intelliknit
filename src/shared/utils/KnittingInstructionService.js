@@ -559,7 +559,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
             const bindOffText = `Bind off ${bindOffAmount} stitches`;
 
             return {
-                instruction: `${bindOffText} (${newBindOffCount} stitches remaining)`,
+                instruction: bindOffText,
                 isSupported: true,
                 needsHelp: false,
                 helpTopic: null
