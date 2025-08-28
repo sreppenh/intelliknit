@@ -18,9 +18,9 @@ export const getRowInstruction = (step, currentRow, currentStitchCount, project 
         const instructionResult = routeInstruction(step, currentRow, currentStitchCount, construction, project);
 
         // Add row number prefix for multi-row steps
-        if (step.totalRows > 1 && instructionResult.instruction) {
-            instructionResult.instruction = `${rowTerm} ${currentRow}: ${instructionResult.instruction}`;
-        }
+        // if (step.totalRows > 1 && instructionResult.instruction) {
+        //  instructionResult.instruction = `${rowTerm} ${currentRow}: ${instructionResult.instruction}`;
+        //  }
 
         return instructionResult;
 
