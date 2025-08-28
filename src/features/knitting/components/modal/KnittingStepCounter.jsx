@@ -19,9 +19,43 @@ const KnittingStepCounter = ({
     // UI state
     const [showStitchAdjust, setShowStitchAdjust] = useState(false);
 
+    const calculateCurrentStitchCount = (row) => {
+        const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
+
+        if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'phases') {
+            const calculation = step.wizardConfig.shapingConfig.config?.calculation;
+            if (calculation?.phases) {
+                let runningStitches = step.startingStitches || 0;
+                let currentRowPosition = 1;
+
+                for (const phase of calculation.phases) {
+                    const phaseRows = phase.rows || 1;
+                    const endRow = currentRowPosition + phaseRows - 1;
+
+                    if (row >= currentRowPosition && row <= endRow) {
+                        const rowsIntoPhase = row - currentRowPosition;
+                        const stitchChangePerRow = calculateStitchChangePerRow(phase);
+                        const shapingRowsCompleted = Math.floor(rowsIntoPhase / (phase.frequency || 1));
+                        return runningStitches + (stitchChangePerRow * shapingRowsCompleted);
+                    }
+
+                    runningStitches += phase.stitchChange || 0;
+                    currentRowPosition += phaseRows;
+                }
+            }
+        }
+
+        return step.startingStitches || 0;
+    };
+
+
+
+
+
     // Step analysis
     const totalRows = calculateActualTotalRows(step);  // updated
-    const targetStitches = step.endingStitches || step.startingStitches || 0;
+    const targetStitches = calculateCurrentStitchCount(currentRow);
+    // const targetStitches = step.endingStitches || step.startingStitches || 0;
     const isCompleted = progress.isStepCompleted(navigation.currentStep);
     const duration = step.wizardConfig?.duration;
 
@@ -97,6 +131,18 @@ const KnittingStepCounter = ({
         }
 
         return step.totalRows || 1;
+    }
+
+
+    function calculateStitchChangePerRow(phase) {
+        if (phase.type === 'setup') return 0;
+        if (phase.type === 'bind_off') return -(phase.amount || 1);
+
+        const amount = phase.amount || 1;
+        const multiplier = phase.position === 'both_ends' ? 2 : 1;
+        const change = amount * multiplier;
+
+        return phase.type === 'decrease' ? -change : change;
     }
 
     return (
