@@ -82,7 +82,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
               className="bg-gradient-to-br from-sage-500 to-sage-600 text-white rounded-xl p-6 text-center hover:from-sage-600 hover:to-sage-700 hover:shadow-lg hover:transform hover:scale-[1.02] transition-all duration-200 active:scale-95 shadow-md"
             >
               <div className="text-4xl mb-3">🧶</div>
-              <div className="font-semibold text-base mb-1">Resume knitting</div>
+              <div className="font-semibold text-base mb-1">Keep Knitting</div>
               <div className="text-xs text-sage-100">Continue your current project</div>
             </button>
           </div>
