@@ -505,7 +505,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
     switch (phaseType) {
         case 'setup':
             return {
-                instruction: `${baseInstruction} - setup phase (${currentStitchCount} stitches)`,
+                instruction: `${baseInstruction} stitches`,
                 isSupported: true,
                 needsHelp: false,
                 helpTopic: null
@@ -518,14 +518,14 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
             if (isDecreaseRow) {
                 const shapingText = generateShapingText(phase, 'decrease');
                 return {
-                    instruction: `${shapingText} (decrease row - ${newDecreaseCount} stitches)`,
+                    instruction: shapingText,
                     isSupported: true,
                     needsHelp: false,
                     helpTopic: null
                 };
             } else {
                 return {
-                    instruction: `${baseInstruction} (between shaping rows - ${currentStitchCount} stitches)`,
+                    instruction: `${baseInstruction} stitches`,
                     isSupported: true,
                     needsHelp: false,
                     helpTopic: null
@@ -539,14 +539,14 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
             if (isIncreaseRow) {
                 const shapingText = generateShapingText(phase, 'increase');
                 return {
-                    instruction: `${shapingText} (increase row - ${newIncreaseCount} stitches)`,
+                    instruction: shapingText,
                     isSupported: true,
                     needsHelp: false,
                     helpTopic: null
                 };
             } else {
                 return {
-                    instruction: `${baseInstruction} (between shaping rows - ${currentStitchCount} stitches)`,
+                    instruction: `${baseInstruction} stitches`,
                     isSupported: true,
                     needsHelp: false,
                     helpTopic: null
@@ -585,7 +585,7 @@ function generateSetupPhaseInstruction(step, currentRow, currentStitchCount, con
     const stitchCountText = ` (${currentStitchCount} stitches)`;
 
     return {
-        instruction: `${basePattern} - setup phase${stitchCountText}`,
+        instruction: basePattern,
         isSupported: true,
         needsHelp: false,
         helpTopic: null
@@ -1093,14 +1093,14 @@ function generateShapingText(phase, action) {
 
     if (position === 'both_ends') {
         if (action === 'decrease') {
-            return `K1, ssk, knit to last 3 sts, k2tog, k1`;
+            return `K1, SSK, Knit to last 3 stitches, K2tog, K1`;
         } else {
-            return `K1, M1, knit to last st, M1, k1`;
+            return `K1, M1, Knit to last stitch, M1, K1`;
         }
     } else if (position === 'beginning') {
-        return action === 'decrease' ? `Ssk, knit to end` : `M1, knit to end`;
+        return action === 'decrease' ? `SSK, Knit to end` : `M1, Knit to end`;
     } else {
-        return action === 'decrease' ? `Knit to last 2 sts, k2tog` : `Knit to last st, M1, k1`;
+        return action === 'decrease' ? `Knit to last 2 sts, K2tog` : `Knit to last stitch, M1, k1`;
     }
 }
 

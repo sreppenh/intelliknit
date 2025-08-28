@@ -199,7 +199,7 @@ const PhaseConfigForm = ({
               <div>
                 <label className="form-label">
                   <label className="form-label">
-                    Over how many {construction === 'round' ? 'rounds' : 'rows'}?
+                    For how many {construction === 'round' ? 'rounds' : 'rows'}?
                   </label>
                 </label>
 
