@@ -3,6 +3,8 @@ import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import ShapingHeader from './ShapingHeader';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+
 
 const PhaseConfigForm = ({
   tempPhaseConfig,
@@ -23,6 +25,8 @@ const PhaseConfigForm = ({
   wizard          // ADD
 }) => {
   const phaseType = phaseTypes.find(t => t.id === tempPhaseConfig.type);
+
+  const terms = getConstructionTerms(construction);  // round or flat
 
   // Calculate contextual max for Times input
   const getMaxTimes = () => {
@@ -276,8 +280,8 @@ const PhaseConfigForm = ({
                 </label>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    { value: 'beginning', label: `Beginning of ${construction === 'round' ? 'Round' : 'Row'}` },
-                    { value: 'end', label: `End of ${construction === 'round' ? 'Round' : 'Row'}` }
+                    { value: 'beginning', label: `Beginning of ${terms.Row}` },
+                    { value: 'end', label: `End of ${terms.Row}` }
                   ].map(option => (
                     <button
                       key={option.value}
@@ -354,8 +358,8 @@ const PhaseConfigForm = ({
                   {/* Preset Buttons - Simplified */}
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     {[
-                      { value: 1, label: `Every ${construction === 'round' ? 'Round' : 'Row'}` },
-                      { value: 2, label: `Every Other ${construction === 'round' ? 'Round' : 'Row'}` }
+                      { value: 1, label: `Every ${terms.Row}` },
+                      { value: 2, label: `Every Other ${terms.Row}` }
                     ].map(option => (
                       <button
                         key={option.value}
