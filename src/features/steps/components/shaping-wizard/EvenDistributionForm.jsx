@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { formatKnittingInstruction } from '../../../../shared/utils/knittingNotation';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 /**
  * EvenDistributionForm - Pure form component for even distribution shaping
@@ -19,6 +20,7 @@ const EvenDistributionForm = ({
     onCancel,
     showSaveActions = false
 }) => {
+    const terms = getConstructionTerms(construction);
 
     // Initialize config from props or defaults
     const getInitialConfig = () => {
@@ -199,7 +201,8 @@ const EvenDistributionForm = ({
 
             <div>
                 <h2 className="content-header-primary">⚖️ Even Distribution</h2>
-                <p className="content-subheader">Spread increases or decreases evenly across the {construction === 'round' ? 'round' : 'row'}</p>
+                const terms = getConstructionTerms(construction);
+                <p className="content-subheader">Spread increases or decreases evenly across the {terms.row}</p>
             </div>
 
             {/* Action Selection - Radio button style */}
@@ -224,7 +227,7 @@ const EvenDistributionForm = ({
                                 <div className="text-2xl">📈</div>
                                 <div className="text-left">
                                     <div className="font-semibold text-base">Increase</div>
-                                    <div className="text-sm opacity-75">Add stitches evenly across {construction === 'round' ? 'round' : 'row'}</div>
+                                    <div className="text-sm opacity-75">Add stitches evenly across {terms.row}</div>
                                 </div>
                             </div>
 
