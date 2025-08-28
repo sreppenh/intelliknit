@@ -491,13 +491,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
     // Generate base pattern instruction
     const getBaseInstruction = () => {
 
-        // FIRST check if this is a colorwork pattern
-        if (isColorworkPattern(patternName)) {
-            const colorworkResult = getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project);
-            if (colorworkResult?.instruction) {
-                return colorworkResult.instruction;
-            }
-        }
+
 
         if (isAlgorithmicPattern(patternName)) {
             const result = getAlgorithmicRowInstruction(patternName, currentRow, currentStitchCount, construction);
