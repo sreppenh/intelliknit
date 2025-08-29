@@ -5,6 +5,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
 import { PrepNoteDisplay } from '../../../shared/components/PrepStepSystem';
 import KnittingStepModal from './modal/KnittingStepModal';
+import { isLengthBasedStep, formatLengthHeaderDisplay } from '../../../shared/utils/gaugeUtils';
 
 const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const { currentProject, activeComponentIndex, dispatch } = useProjectsContext();
@@ -193,10 +194,10 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                     key={item.id}
                     onClick={() => handleStepClick(stepIndex)}
                     className={`border-2 rounded-xl p-4 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md ${isCompleted
-                        ? 'bg-sage-50 border-sage-300'
-                        : isCurrentStep
-                          ? 'bg-yarn-25 border-yarn-400 shadow-md'
-                          : 'bg-white border-gray-200 hover:border-sage-300'
+                      ? 'bg-sage-50 border-sage-300'
+                      : isCurrentStep
+                        ? 'bg-yarn-25 border-yarn-400 shadow-md'
+                        : 'bg-white border-gray-200 hover:border-sage-300'
                       }`}
                   >
                     <div className="flex items-start gap-3">
@@ -253,7 +254,22 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                         const storageKey = `row-counter-${currentProject.id}-${activeComponent.id}-${stepIndex}`;
                         const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
                         const currentRow = rowState.currentRow || 1;
+
+                        // Check if this is a length-based step
+                        if (isLengthBasedStep(step)) {
+                          return (
+                            <div className="text-xs text-gray-500 mt-1">
+                              Row {currentRow}
+                            </div>
+                          );
+                        }
+
+                        // Traditional steps with fixed row counts
                         const totalRows = step.totalRows || 1;
+                        if (totalRows === 1) {
+                          return null; // Don't show row progress for single-action steps
+                        }
+
                         return (
                           <div className="text-xs text-gray-500 mt-1">
                             Row {currentRow} of {totalRows}

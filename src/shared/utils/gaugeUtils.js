@@ -117,8 +117,10 @@ export const getLengthProgressDisplay = (step, currentRow, project) => {
         currentLength: Math.round(currentLength * 10) / 10, // 1 decimal place
         progressPercent: Math.round(progressPercent),
         showEstimate: true,
-        isNearTarget: currentRow >= estimatedRows * 0.9, // 90% threshold
-        hasReachedEstimate: currentRow >= estimatedRows
+        isNearTarget: currentRow >= estimatedRows * 0.9, // 90% - bar turns yarn color
+        hasReachedEstimate: currentRow >= estimatedRows, // 100% - hit the target
+        shouldShowNearAlert: currentRow >= estimatedRows * 0.9 && currentRow < estimatedRows,
+        shouldShowTargetAlert: currentRow >= estimatedRows
     };
 };
 

@@ -2,6 +2,7 @@
 import React from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
+import { isLengthBasedStep } from '../../../../shared/utils/gaugeUtils';
 
 const KnittingStepInstructions = ({
     step,
@@ -43,6 +44,11 @@ const KnittingStepInstructions = ({
                                 const storageKey = `row-counter-${project?.id}-${component?.id}-${navigation.currentStep}`;
                                 const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
                                 const currentRow = rowState.currentRow || 1;
+                                // Check if length-based step
+                                if (isLengthBasedStep(step)) {
+                                    return `Row ${currentRow}`;
+                                }
+
                                 const totalRows = step.totalRows || 1;
                                 return `Row ${currentRow} of ${totalRows}`;
                             })()}
