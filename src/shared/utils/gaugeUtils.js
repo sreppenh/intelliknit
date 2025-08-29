@@ -117,8 +117,8 @@ export const getLengthProgressDisplay = (step, currentRow, project) => {
         currentLength: Math.round(currentLength * 10) / 10, // 1 decimal place
         progressPercent: Math.round(progressPercent),
         showEstimate: true,
-        isNearTarget: currentRow >= estimatedRows * 0.9, // 90% - bar turns yarn color
-        hasReachedEstimate: currentRow >= estimatedRows, // 100% - hit the target
+        isNearTarget: currentRow >= estimatedRows * 0.9, // 90% threshold
+        hasReachedEstimate: currentRow >= estimatedRows,
         shouldShowNearAlert: currentRow >= estimatedRows * 0.9 && currentRow < estimatedRows,
         shouldShowTargetAlert: currentRow >= estimatedRows
     };
@@ -193,25 +193,71 @@ export const getCompletionSuggestionText = (step, currentRow, project) => {
     return `🎯 You've likely reached ${lengthTarget.value} ${lengthTarget.units}. Measure to confirm!`;
 };
 
-// ===== ADAPTIVE LEARNING (Future Implementation) =====
+// ===== ADAPTIVE LEARNING =====
 
 /**
- * Update project gauge based on completed length step
- * This will be implemented when we add the learning system
+ * Calculate measured gauge from completed length step
  */
-export const updateGaugeFromCompletion = (step, actualRows, project) => {
+export const calculateMeasuredGauge = (actualRows, targetLength, targetUnits) => {
+    const targetInches = targetUnits === 'cm' ? targetLength / 2.54 : targetLength;
+    return actualRows / targetInches; // rows per inch
+};
+
+/**
+ * Check if step completion should prompt for gauge update
+ */
+export const shouldPromptGaugeUpdate = (step, actualRows, project) => {
     const lengthTarget = getLengthTarget(step);
-    if (!lengthTarget) return project.gauge;
+    if (!lengthTarget || !actualRows) return false;
 
-    // Convert target to inches
-    const targetInches = lengthTarget.units === 'cm' ? lengthTarget.value / 2.54 : lengthTarget.value;
-    const measuredGauge = actualRows / targetInches;
+    const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units);
+    const currentGauge = getRowGaugePerInch(project);
 
-    // TODO: Implement weighted average with existing gauge
-    // TODO: Store measurement history
-    // TODO: Update project gauge confidence
+    // Only prompt if there's a meaningful difference (>5% change)
+    if (!currentGauge) return true; // No existing gauge - always prompt
 
-    return project.gauge; // For now, return unchanged
+    const percentDifference = Math.abs((measuredGauge - currentGauge) / currentGauge) * 100;
+    return percentDifference > 5;
+};
+
+/**
+ * Get gauge update prompt data for user display
+ */
+export const getGaugeUpdatePromptData = (actualRows, step, project) => {
+    const lengthTarget = getLengthTarget(step);
+    if (!lengthTarget) return null;
+
+    const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units);
+    const currentGauge = getRowGaugePerInch(project);
+
+    // Convert back to project's measurement format (4" or 10cm)
+    const gaugeMeasurement = project?.gauge?.rowGauge?.measurement || 4;
+    const newRowsForMeasurement = Math.round(measuredGauge * gaugeMeasurement);
+
+    return {
+        measuredGauge: Math.round(measuredGauge * 10) / 10, // 1 decimal
+        newRowsForMeasurement,
+        measurement: gaugeMeasurement,
+        units: project?.defaultUnits === 'cm' ? 'cm' : 'inches',
+        hasExistingGauge: !!currentGauge,
+        oldRowsForMeasurement: currentGauge ? Math.round(currentGauge * gaugeMeasurement) : null
+    };
+};
+
+/**
+ * Update project gauge with measured data
+ */
+export const updateProjectGaugeFromMeasurement = (project, gaugeData) => {
+    return {
+        ...project,
+        gauge: {
+            ...project.gauge,
+            rowGauge: {
+                rows: gaugeData.newRowsForMeasurement,
+                measurement: gaugeData.measurement
+            }
+        }
+    };
 };
 
 // ===== VALIDATION UTILITIES =====

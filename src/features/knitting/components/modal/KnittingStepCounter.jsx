@@ -19,11 +19,15 @@ import SimpleRowSettings from '../SimpleRowSettings';
 // ✨ NEW: Import gauge utilities
 import {
     isLengthBasedStep,
+    getLengthTarget, // ADD THIS
     getLengthProgressDisplay,
     formatLengthCounterDisplay,
     shouldSuggestCompletion,
     getCompletionSuggestionText,
-    hasValidGaugeForLength
+    hasValidGaugeForLength,
+    shouldPromptGaugeUpdate,
+    getGaugeUpdatePromptData,
+    updateProjectGaugeFromMeasurement,
 } from '../../../../shared/utils/gaugeUtils';
 
 const KnittingStepCounter = ({
@@ -50,8 +54,39 @@ const KnittingStepCounter = ({
 
     // ✨ NEW: Length-based step detection and progress
     const isLengthStep = isLengthBasedStep(step);
+    const lengthTarget = isLengthStep ? getLengthTarget(step) : null; // ADD THIS LINE
     const lengthProgressData = isLengthStep ? getLengthProgressDisplay(step, currentRow, project) : null;
     const lengthDisplayData = isLengthStep ? formatLengthCounterDisplay(lengthProgressData, construction) : null;
+
+    // ✨ NEW: Gauge update prompting
+    const [showGaugePrompt, setShowGaugePrompt] = useState(false);
+    const [gaugePromptData, setGaugePromptData] = useState(null);
+
+    // Check for gauge update opportunities when step completes
+    const checkForGaugeUpdate = () => {
+        if (!isLengthStep) return;
+
+        const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project);
+        if (shouldPrompt) {
+            const promptData = getGaugeUpdatePromptData(currentRow, step, project);
+            setGaugePromptData(promptData);
+            setShowGaugePrompt(true);
+        }
+    };
+
+    const handleGaugeAccept = () => {
+        if (gaugePromptData && updateProject) {
+            const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
+            updateProject(updatedProject);
+        }
+        setShowGaugePrompt(false);
+        setGaugePromptData(null);
+    };
+
+    const handleGaugeDecline = () => {
+        setShowGaugePrompt(false);
+        setGaugePromptData(null);
+    };
 
 
 
@@ -169,10 +204,9 @@ const KnittingStepCounter = ({
     const instructionResult = getCurrentInstruction();
 
     const handleStepComplete = () => {
-        // ✨ NEW: Future - Record actual rows for gauge learning
-        if (isLengthStep && lengthProgressData?.showEstimate) {
-            // TODO: Call updateGaugeFromCompletion when we implement learning
-            console.log(`Length step completed at row ${currentRow}, estimated was ${lengthProgressData.estimatedRows}`);
+        // ✨ NEW: Check for gauge update before completing
+        if (isLengthStep) {
+            checkForGaugeUpdate();
         }
 
         // Record actual ending side when step is completed
@@ -277,6 +311,61 @@ const KnittingStepCounter = ({
         return rowText;
     };
 
+    {/* Gauge Update Prompt - inline after instruction */ }
+    {
+        showGaugePrompt && gaugePromptData && (
+            <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
+                <div className="text-sm text-yarn-700 mb-2">
+                    <span className="font-medium">Update your gauge?</span>
+                    <br />
+                    Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
+                    {gaugePromptData.hasExistingGauge && (
+                        <div className="text-xs mt-1">
+                            Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
+                        </div>
+                    )}
+                </div>
+                <div className="flex gap-2">
+                    <button
+                        onClick={handleGaugeAccept}
+                        className="px-3 py-1 bg-yarn-500 hover:bg-yarn-600 text-white text-xs rounded-lg font-medium transition-colors"
+                    >
+                        Update Gauge
+                    </button>
+                    <button
+                        onClick={handleGaugeDecline}
+                        className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs rounded-lg font-medium transition-colors"
+                    >
+                        Keep Current
+                    </button>
+                </div>
+            </div>
+        )
+    }
+
+    {/* Near target alert - when bar turns yarn color */ }
+    {
+        lengthProgressData?.shouldShowNearAlert && (
+            <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
+                <div className="text-sm text-yarn-700">
+                    Getting close to target length. Check your progress!
+                </div>
+            </div>
+        )
+    }
+
+    {/* Target reached alert - when you hit estimate */ }
+    {
+        lengthProgressData?.shouldShowTargetAlert && (
+            <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
+                <div className="text-sm text-sage-700">
+                    You've likely reached your target length. Measure to confirm!
+                </div>
+            </div>
+        )
+    }
+
+
     // ✨ NEW: Get progress info text
     const getProgressInfoText = () => {
         if (isLengthStep && lengthDisplayData) {
@@ -299,22 +388,22 @@ const KnittingStepCounter = ({
 
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
 
-                {/* ✨ REDESIGNED: Subtle completion suggestion as inline alert */}
-                {/* Near target alert - when bar turns yarn color */}
-                {lengthProgressData?.shouldShowNearAlert && (
-                    <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
-                        <div className="text-sm text-yarn-700">
-                            Getting close to target length. Check your progress!
+                {/* ✨ NEW: Completion suggestion card for length steps */}
+                {shouldShowCompletionSuggestion && (
+                    <div className="bg-yarn-100 border-2 border-yarn-300 rounded-2xl p-4 mb-4 shadow-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Ruler size={18} className="text-yarn-600" />
+                            <span className="text-sm font-medium text-yarn-700">Gauge Estimate</span>
                         </div>
-                    </div>
-                )}
-
-                {/* Target reached alert - when you hit estimate */}
-                {lengthProgressData?.shouldShowTargetAlert && (
-                    <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
-                        <div className="text-sm text-sage-700">
-                            You've likely reached your target length. Measure to confirm!
+                        <div className="text-sm text-yarn-600 mb-3">
+                            {completionSuggestionText}
                         </div>
+                        <button
+                            onClick={handleStepComplete}
+                            className="w-full py-2 bg-yarn-500 hover:bg-yarn-600 text-white rounded-lg font-medium transition-colors text-sm"
+                        >
+                            Measure & Complete
+                        </button>
                     </div>
                 )}
 
@@ -338,9 +427,9 @@ const KnittingStepCounter = ({
                     </div>
 
                     {/* ✨ NEW: Gauge availability notice for length steps without gauge */}
-                    {isLengthStep && lengthProgressData && !lengthProgressData.hasGauge && currentRow === 1 && (
-                        <div className="bg-sage-50 border border-sage-200 rounded-lg p-3 mb-4">
-                            <div className="text-xs text-sage-700">
+                    {isLengthStep && lengthProgressData && !lengthProgressData.hasGauge && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                            <div className="text-xs text-blue-700">
                                 💡 Add row gauge to your project for intelligent length tracking!
                             </div>
                         </div>
