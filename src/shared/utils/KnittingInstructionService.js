@@ -274,7 +274,7 @@ function getShapingInstruction(step, currentRow, currentStitchCount, constructio
 
     // For sequential phases shaping - multi row with intelligent phase detection
     if (shapingConfig.type === 'phases') {
-        return getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig);
+        return getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project);
     }
 
     // Fallback for unknown shaping types
@@ -436,7 +436,7 @@ function arraysEqual(a, b) {
 /**
  * Generate instruction for specific row in sequential phases shaping
  */
-function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig) {
+function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project) {
     const calculation = shapingConfig.config?.calculation;
 
     if (!calculation?.phases) {
@@ -465,7 +465,7 @@ function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, con
     // Find which phase we're in
     for (const phase of phasesWithRowRange) {
         if (currentRow >= phase.startRow && currentRow <= phase.endRow) {
-            return getPhaseRowInstruction(phase, currentRow, currentStitchCount, construction, step);
+            return getPhaseRowInstruction(phase, currentRow, currentStitchCount, construction, step, project);
         }
     }
 
@@ -480,11 +480,9 @@ function getSequentialPhaseInstruction(step, currentRow, currentStitchCount, con
 }
 
 /**
- * Enhanced getPhaseRowInstruction function
- * Replaces the existing function in KnittingInstructionService.js
+ * Updated getPhaseRowInstruction function with proper project parameter handling
  */
-
-function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construction, step) {
+function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construction, step, project) {
     const phaseType = phase.type || 'setup';
     const patternName = getStepPatternName(step);
 
@@ -512,7 +510,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
 
     switch (phaseType) {
         case 'setup':
-            const coloredSetupInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, step.project);
+            const coloredSetupInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, project);
             return {
                 instruction: addStitchesIfNeeded(coloredSetupInstruction),
                 isSupported: true,
@@ -524,7 +522,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
             const isDecreaseRow = shouldBeShapingRow(phase, currentRow);
 
             if (isDecreaseRow) {
-                const shapingText = generateShapingTextWithColor(phase, 'decrease', step, currentRow, currentStitchCount, construction, step.project);
+                const shapingText = generateShapingTextWithColor(phase, 'decrease', step, currentRow, currentStitchCount, construction, project);
                 return {
                     instruction: shapingText,
                     isSupported: true,
@@ -532,7 +530,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
                     helpTopic: null
                 };
             } else {
-                const coloredBaseInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, step.project);
+                const coloredBaseInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, project);
                 return {
                     instruction: addStitchesIfNeeded(coloredBaseInstruction),
                     isSupported: true,
@@ -545,7 +543,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
             const isIncreaseRow = shouldBeShapingRow(phase, currentRow);
 
             if (isIncreaseRow) {
-                const shapingText = generateShapingTextWithColor(phase, 'increase', step, currentRow, currentStitchCount, construction, step.project);
+                const shapingText = generateShapingTextWithColor(phase, 'increase', step, currentRow, currentStitchCount, construction, project);
                 return {
                     instruction: shapingText,
                     isSupported: true,
@@ -553,7 +551,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
                     helpTopic: null
                 };
             } else {
-                const coloredBaseInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, step.project);
+                const coloredBaseInstruction = addColorToInstruction(baseInstruction, step, currentRow, construction, project);
                 return {
                     instruction: addStitchesIfNeeded(coloredBaseInstruction),
                     isSupported: true,
@@ -565,7 +563,7 @@ function getPhaseRowInstruction(phase, currentRow, currentStitchCount, construct
         case 'bind_off':
             const bindOffAmount = phase.amount || 1;
             const baseBindOffText = `Bind off ${bindOffAmount} stitches`;
-            const coloredBindOffText = addColorToInstruction(baseBindOffText, step, currentRow, construction, step.project);
+            const coloredBindOffText = addColorToInstruction(baseBindOffText, step, currentRow, construction, project);
 
             return {
                 instruction: coloredBindOffText,
@@ -1100,6 +1098,10 @@ function shouldBeShapingRow(phase, currentRow) {
  * Generate shaping instruction with color integration (realistic approach)
  * Only handles color scenarios that actually exist in the codebase
  */
+/**
+ * Generate shaping instruction with color integration (realistic approach)
+ * Only handles color scenarios that actually exist in the codebase
+ */
 function generateShapingTextWithColor(phase, action, step, currentRow, currentStitchCount, construction, project) {
     // Get the base shaping instruction (without color)
     const baseShapingText = generateShapingText(phase, action);
@@ -1128,6 +1130,9 @@ function generateShapingTextWithColor(phase, action, step, currentRow, currentSt
     return baseShapingText;
 }
 
+/**
+ * Add color to non-shaping instructions (realistic approach)
+ */
 /**
  * Add color to non-shaping instructions (realistic approach)
  */
