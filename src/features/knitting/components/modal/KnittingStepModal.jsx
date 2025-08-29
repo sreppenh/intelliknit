@@ -10,6 +10,9 @@ import KnittingStepCounter from './KnittingStepCounter';
 import KnittingPrepCard from './KnittingPrepCard';
 import { useLocalStorage } from '../../../../shared/hooks/useLocalStorage';
 
+// ✨ NEW: Import gauge utilities for header display
+import { formatLengthHeaderDisplay, isLengthBasedStep } from '../../../../shared/utils/gaugeUtils';
+
 const KnittingStepModal = ({
     step,
     stepIndex,
@@ -27,7 +30,7 @@ const KnittingStepModal = ({
         'instructions'
     );
 
-    // ✅ CREATE CAROUSEL ITEMS - Missing function restored
+    // ✨ CREATE CAROUSEL ITEMS - Missing function restored
     const createCarouselItems = (step, stepIndex) => {
         const items = [];
 
@@ -78,6 +81,32 @@ const KnittingStepModal = ({
     const theme = getModalTheme(step);
     const currentItem = navigation.currentItem || carouselItems[0];
 
+    // ✨ NEW: Get intelligent header row display
+    const getHeaderRowDisplay = () => {
+        const storageKey = `row-counter-${project.id}-${component.id}-${stepIndex}`;
+        const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+        const currentRow = rowState.currentRow || 1;
+        const construction = step.construction || component.construction || 'flat';
+
+        // Check if this is a length-based step
+        if (isLengthBasedStep(step)) {
+            const lengthDisplay = formatLengthHeaderDisplay(step, currentRow, project, construction);
+            if (lengthDisplay) {
+                return ` • ${lengthDisplay}`;
+            }
+        }
+
+        // Fallback to original logic for non-length steps
+        const totalRows = step.totalRows || 1;
+        const rowTerm = construction === 'round' ? 'Round' : 'Row';
+
+        if (totalRows === 1) {
+            return ''; // Don't show row info for single-action steps
+        }
+
+        return ` • ${rowTerm} ${currentRow}/${totalRows}`;
+    };
+
     const renderCardContent = () => {
         if (currentItem.type === 'prep') {
             return (
@@ -123,7 +152,7 @@ const KnittingStepModal = ({
                 onTouchMove={navigation.onTouchMove}
                 onTouchEnd={navigation.onTouchEnd}
             >
-                {/* ✅ HEADER with navigation */}
+                {/* ✨ ENHANCED HEADER with gauge-aware display */}
                 <div className="flex-shrink-0 bg-white/95 backdrop-blur-sm border-b border-gray-200 px-3 py-3 relative shadow-sm">
                     <button
                         onClick={onClose}
@@ -148,13 +177,7 @@ const KnittingStepModal = ({
                         <div className="text-center flex-1 px-2">
                             <div className="text-sm font-medium text-gray-900 mb-1">
                                 Step {stepIndex + 1} of {totalSteps} • {component.name}
-                                {(() => {
-                                    const storageKey = `row-counter-${project.id}-${component.id}-${stepIndex}`;
-                                    const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
-                                    const currentRow = rowState.currentRow || 1;
-                                    const totalRows = step.totalRows || 1;
-                                    return ` • Row ${currentRow}/${totalRows}`;
-                                })()}
+                                {getHeaderRowDisplay()}
                             </div>
                             <div className="flex justify-center space-x-1">
                                 {Array.from({ length: totalSteps }, (_, i) => (
@@ -206,23 +229,6 @@ const KnittingStepModal = ({
                         </div>
                     </div>
                 )}
-
-                {/* Progress Dots - Show carousel position */}
-                {/*       {carouselItems.length > 1 && (
-                    <div className="absolute bottom-24 left-1/2 transform -translate-x-1/2">
-                        <div className="flex space-x-2">
-                            {carouselItems.map((_, index) => (
-                                <div
-                                    key={index}
-                                    className={`w-2 h-2 rounded-full transition-colors ${index === navigation.currentCarouselIndex
-                                        ? 'bg-sage-500'
-                                        : 'bg-white/50'
-                                        }`}
-                                />
-                            ))}
-                        </div>
-                    </div>
-                )}. */}
             </div>
         </div>,
         document.body

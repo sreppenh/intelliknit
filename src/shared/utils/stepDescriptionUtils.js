@@ -10,6 +10,7 @@
 import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote, getStepType, hasShaping, requiresAdvancedPatternEdit } from './stepDisplayUtils';
 import { formatKnittingInstruction } from './knittingNotation';
 import { PhaseCalculationService } from './PhaseCalculationService';
+import { getCorrectDurationDisplay, estimateRowsFromLength } from './gaugeUtils';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
@@ -346,7 +347,7 @@ export const getFormattedStepDisplay = (step, componentName = null, project = nu
         description: getHumanReadableDescription(step, componentName),
         contextualPatternNotes: getContextualPatternNotes(step, project),
         contextualConfigNotes: getContextualConfigNotes(step),
-        technicalData: getTechnicalDataDisplay(step)
+        technicalData: getTechnicalDataDisplay(step, project)
     };
 };
 
@@ -681,16 +682,16 @@ const getPatternStepDescription = (step) => {
  * Format technical data display (the "good data - do not remove")
  * ✅ ENHANCED: Calculate total rows for repeat-based patterns
  */
-const getTechnicalDataDisplay = (step) => {
+const getTechnicalDataDisplay = (step, project = null) => {
     const parts = [];
 
     // Stitch counts
     const startingStitches = step.startingStitches || 0;
     const endingStitches = step.endingStitches || step.expectedStitches || 0;
-    parts.push(`${startingStitches} → ${endingStitches} sts`);
+    parts.push(`${startingStitches} → ${endingStitches} stitches`);
 
     // ✅ ENHANCED: Duration with total row calculation
-    const duration = getEnhancedDurationDisplay(step);
+    const duration = getEnhancedDurationDisplay(step, project);
     if (duration) {
         parts.push(duration);
     }
@@ -705,7 +706,7 @@ const getTechnicalDataDisplay = (step) => {
 /**
  * ✅ NEW: Enhanced duration display that calculates total rows for repeats
  */
-const getEnhancedDurationDisplay = (step) => {
+const getEnhancedDurationDisplay = (step, project = null) => {
     // ✅ NEW: Handle intrinsic shaping first - get totalRows from shaping config
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
     if (shapingConfig?.type === 'intrinsic_pattern' && shapingConfig.config?.calculation?.totalRows) {
@@ -739,21 +740,37 @@ const getEnhancedDurationDisplay = (step) => {
         return `${repeats} repeats`;
     }
 
-    // Handle other duration types (use existing logic from getStepDurationDisplay)
+    // ✨ NEW: Handle length-based steps with gauge awareness
+    if (duration.type === 'length') {
+        // Import the gauge utility function at the top if not already imported
+        // import { estimateRowsFromLength } from './gaugeUtils';
+
+        const targetLength = parseFloat(duration.value) || 0;
+        const targetUnits = duration.units || 'inches';
+
+        // Try to get estimated rows from gauge
+        const estimatedRows = project ? estimateRowsFromLength(targetLength, targetUnits, project) : null;
+
+        if (estimatedRows) {
+            return `${targetLength} ${targetUnits} (~${estimatedRows} ${rowTerm})`;
+        }
+
+        // Fallback without gauge
+        return `${targetLength} ${targetUnits}`;
+    }
+
+    if (duration.type === 'until_length') {
+        const referenceText = duration.reference ? ` from ${duration.reference}` : '';
+        return `until ${duration.value} ${duration.units || 'inches'}${referenceText}`;
+    }
+
+    // Handle other duration types (existing logic unchanged)
     switch (duration.type) {
         case 'rows':
         case 'rounds':
             return `${duration.value} ${rowTerm}`;
-
-        case 'length':
-            return `${duration.value} ${duration.units || 'inches'}`;
-
-        case 'until_length':
-            const referenceText = duration.reference ? ` from ${duration.reference}` : '';
-            return `until piece measures ${duration.value} ${duration.units || 'inches'}${referenceText}`;
         case 'stitches':
-            return `${duration.value} stitches`;
-
+            return `${duration.value || 'all'} stitches`;
         default:
             return null;
     }

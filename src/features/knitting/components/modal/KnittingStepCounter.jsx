@@ -1,6 +1,6 @@
 // src/features/knitting/components/modal/KnittingStepCounter.jsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Target, Undo, Check, RotateCw } from 'lucide-react';
+import { Plus, Minus, Target, Undo, Check, RotateCw, Ruler } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getRowInstruction, getStepType } from '../../../../shared/utils/KnittingInstructionService';
@@ -15,6 +15,16 @@ import {
 } from '../../../../shared/utils/sideIntelligence';
 import { useSideTracking } from '../../hooks/useSideTracking';
 import SimpleRowSettings from '../SimpleRowSettings';
+
+// ✨ NEW: Import gauge utilities
+import {
+    isLengthBasedStep,
+    getLengthProgressDisplay,
+    formatLengthCounterDisplay,
+    shouldSuggestCompletion,
+    getCompletionSuggestionText,
+    hasValidGaugeForLength
+} from '../../../../shared/utils/gaugeUtils';
 
 const KnittingStepCounter = ({
     step,
@@ -33,6 +43,11 @@ const KnittingStepCounter = ({
 
     // UI state
     const [showStitchAdjust, setShowStitchAdjust] = useState(false);
+
+    // ✨ NEW: Length-based step detection and progress
+    const isLengthStep = isLengthBasedStep(step);
+    const lengthProgressData = isLengthStep ? getLengthProgressDisplay(step, currentRow, project) : null;
+    const lengthDisplayData = isLengthStep ? formatLengthCounterDisplay(lengthProgressData, construction) : null;
 
     // Side intelligence calculations
     const construction = step.construction || component.construction || 'flat';
@@ -132,6 +147,10 @@ const KnittingStepCounter = ({
     const stepType = getStepType(step, totalRows, duration);
     const isOnFinalRow = currentRow >= totalRows && totalRows > 1;
 
+    // ✨ NEW: Length-based completion logic
+    const shouldShowCompletionSuggestion = isLengthStep && shouldSuggestCompletion(step, currentRow, project);
+    const completionSuggestionText = shouldShowCompletionSuggestion ? getCompletionSuggestionText(step, currentRow, project) : null;
+
     // Get current instruction
     const getCurrentInstruction = () => {
         try {
@@ -148,6 +167,12 @@ const KnittingStepCounter = ({
     const instructionResult = getCurrentInstruction();
 
     const handleStepComplete = () => {
+        // ✨ NEW: Future - Record actual rows for gauge learning
+        if (isLengthStep && lengthProgressData?.showEstimate) {
+            // TODO: Call updateGaugeFromCompletion when we implement learning
+            console.log(`Length step completed at row ${currentRow}, estimated was ${lengthProgressData.estimatedRows}`);
+        }
+
         // Record actual ending side when step is completed
         if (useSideIntelligence && currentSide && updateProject) {
             sideTracking.recordEndingSide(currentSide, currentRow, updateProject);
@@ -216,8 +241,21 @@ const KnittingStepCounter = ({
         return step.totalRows || 1;
     }
 
-    // Get display text for row with side
+    // ✨ ENHANCED: Get display text for row with length intelligence
     const getRowDisplayText = () => {
+        // For length-based steps, use the gauge-aware display
+        if (isLengthStep && lengthDisplayData) {
+            let rowText = lengthDisplayData.rowText;
+
+            // Add side info for flat construction with side intelligence
+            if (useSideIntelligence && construction === 'flat' && currentSide) {
+                rowText += ` (${currentSide})`;
+            }
+
+            return rowText;
+        }
+
+        // Original logic for non-length steps
         const rowTerm = construction === 'round' ? 'Round' : 'Row';
 
         if (stepType === 'single_action') {
@@ -237,6 +275,16 @@ const KnittingStepCounter = ({
         return rowText;
     };
 
+    // ✨ NEW: Get progress info text
+    const getProgressInfoText = () => {
+        if (isLengthStep && lengthDisplayData) {
+            return lengthDisplayData.progressText;
+        }
+
+        // Original target stitches for non-length steps
+        return `Target: ${targetStitches} stitches`;
+    };
+
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
             {/* Background texture */}
@@ -248,6 +296,25 @@ const KnittingStepCounter = ({
             </div>
 
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
+
+                {/* ✨ NEW: Completion suggestion card for length steps */}
+                {shouldShowCompletionSuggestion && (
+                    <div className="bg-yarn-100 border-2 border-yarn-300 rounded-2xl p-4 mb-4 shadow-lg">
+                        <div className="flex items-center gap-2 mb-2">
+                            <Ruler size={18} className="text-yarn-600" />
+                            <span className="text-sm font-medium text-yarn-700">Gauge Estimate</span>
+                        </div>
+                        <div className="text-sm text-yarn-600 mb-3">
+                            {completionSuggestionText}
+                        </div>
+                        <button
+                            onClick={handleStepComplete}
+                            className="w-full py-2 bg-yarn-500 hover:bg-yarn-600 text-white rounded-lg font-medium transition-colors text-sm"
+                        >
+                            Measure & Complete
+                        </button>
+                    </div>
+                )}
 
                 {/* MAIN INSTRUCTION CARD - Always prominent */}
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
@@ -263,10 +330,19 @@ const KnittingStepCounter = ({
                         {instructionResult.instruction || 'Loading instruction...'}
                     </div>
 
-                    {/* Target stitches - always visible but subtle */}
+                    {/* ✨ ENHANCED: Progress info - length or stitches */}
                     <div className={`text-sm ${theme.textSecondary} mb-4`}>
-                        Target: {targetStitches} stitches
+                        {getProgressInfoText()}
                     </div>
+
+                    {/* ✨ NEW: Gauge availability notice for length steps without gauge */}
+                    {isLengthStep && lengthProgressData && !lengthProgressData.hasGauge && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
+                            <div className="text-xs text-blue-700">
+                                💡 Add row gauge to your project for intelligent length tracking!
+                            </div>
+                        </div>
+                    )}
 
                     {/* PRIMARY ACTION AREA */}
                     {stepType === 'single_action' ? (
@@ -307,18 +383,25 @@ const KnittingStepCounter = ({
                                 </button>
                             </div>
 
-                            {/* Progress bar for fixed multi-row steps */}
-                            {stepType === 'fixed_multi_row' && (
+                            {/* ✨ ENHANCED: Progress bar - length-aware or traditional */}
+                            {(stepType === 'fixed_multi_row' || (isLengthStep && lengthDisplayData?.showProgressBar)) && (
                                 <div className="w-full bg-gray-200 rounded-full h-2">
                                     <div
-                                        className="h-2 rounded-full bg-sage-500 transition-all duration-300"
-                                        style={{ width: `${Math.min((currentRow / totalRows) * 100, 100)}%` }}
+                                        className={`h-2 rounded-full transition-all duration-300 ${lengthDisplayData?.isNearTarget ? 'bg-yarn-500' : 'bg-sage-500'
+                                            }`}
+                                        style={{
+                                            width: `${Math.min(
+                                                lengthDisplayData?.progressPercent ||
+                                                (currentRow / totalRows) * 100,
+                                                100
+                                            )}%`
+                                        }}
                                     />
                                 </div>
                             )}
 
                             {/* Completion button - show when appropriate */}
-                            {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') && (
+                            {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') && !shouldShowCompletionSuggestion && (
                                 <button
                                     onClick={handleStepComplete}
                                     className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-colors ${isCompleted
