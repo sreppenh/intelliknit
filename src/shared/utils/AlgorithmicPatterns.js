@@ -33,7 +33,7 @@ export const ALGORITHMIC_PATTERNS = {
     'Garter': {
         calculateRow: (rowNum, stitchCount, construction, startingRowInPattern = 1) => {
             if (construction === 'flat') {
-                return 'K all'; // Every row knit when flat
+                return 'Knit all stitches'; // Every row knit when flat
             } else {
                 // In round: alternate knit/purl to create garter effect
                 const adjustedRow = ((rowNum - 1 + startingRowInPattern - 1) % 2) + 1;

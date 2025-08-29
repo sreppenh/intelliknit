@@ -48,21 +48,78 @@ export const getStepStartingSide = (component, stepIndex) => {
     const previousStep = component.steps[stepIndex - 1];
     if (!previousStep) return 'RS';
 
+    // Check if previous step has recorded ending side from actual knitting
+    if (previousStep.sideTracking?.actualEndingSide) {
+        return getNextRowSide(previousStep.sideTracking.actualEndingSide, component.construction || 'flat');
+    }
+
+    // SPECIAL CASE: Previous step was initialization (cast-on, pick-up, etc.)
+    if (isInitializationStep(previousStep)) {
+        return getInitializationNextSide(previousStep);
+    }
+
+    // Fall back to calculated ending side
     const previousEndingRow = previousStep.totalRows;
     const previousConstruction = previousStep.construction || component.construction || 'flat';
+    const previousStartingSide = previousStep.sideTracking?.startingSide || 'RS';
 
-    // What side did the previous step end on?
-    const previousEndingSide = getCurrentSide(
+    // Calculate what side the previous step ended on
+    const calculatedEndingSide = getCurrentSide(
         previousConstruction,
         previousEndingRow,
-        previousStep.sideTracking?.startingSide
+        previousStartingSide
     );
 
-    // This step starts on the opposite side (for flat) or same side (for round)
-    if (previousConstruction === 'round') {
-        return 'RS'; // Round always starts RS
-    } else {
-        return previousEndingSide === 'RS' ? 'WS' : 'RS';
+    return getNextRowSide(calculatedEndingSide, previousConstruction);
+};
+
+/**
+ * Get what side the next row should be on
+ * @param {string} currentSide - Current side ('RS' or 'WS')
+ * @param {string} construction - 'flat' or 'round'
+ * @returns {string} - Next side
+ */
+export const getNextRowSide = (currentSide, construction) => {
+    if (construction === 'round') return 'RS'; // Always RS for round
+
+    // For flat: next row is opposite side
+    // If previous step ended on RS, next step starts on WS (and vice versa)
+    return currentSide === 'RS' ? 'WS' : 'RS';
+};
+
+/**
+ * Check if step is an initialization step
+ * @param {object} step - Step object
+ * @returns {boolean} - Whether step is initialization
+ */
+export const isInitializationStep = (step) => {
+    const pattern = step.wizardConfig?.stitchPattern?.pattern;
+    return ['Cast On', 'Pick Up & Knit', 'Continue from Stitches', 'Custom Initialization'].includes(pattern);
+};
+
+/**
+ * Get expected starting side for different initialization step types
+ * @param {object} step - Initialization step
+ * @returns {string} - Expected next side ('RS' or 'WS')
+ */
+export const getInitializationNextSide = (step) => {
+    const pattern = step.wizardConfig?.stitchPattern?.pattern;
+
+    switch (pattern) {
+        case 'Cast On':
+            // After cast-on, first working row is typically RS
+            return 'RS';
+
+        case 'Pick Up & Knit':
+            // After picking up, usually continue on RS
+            return 'RS';
+
+        case 'Continue from Stitches':
+            // Depends on context, but typically RS
+            return 'RS';
+
+        default:
+            return 'RS';
     }
 };
 
@@ -148,11 +205,6 @@ export const validateSideInput = (input) => {
 
     return null;
 };
-
-/**
- * Pattern Row Offset Management
- * Handles starting patterns on specific rows (e.g., "Start on Row 3 of 8-row repeat")
- */
 
 /**
  * Calculate pattern row offset for starting mid-pattern
