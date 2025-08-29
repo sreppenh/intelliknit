@@ -1,30 +1,24 @@
 // src/features/knitting/components/modal/KnittingStepCounter.jsx
 import React, { useState, useEffect } from 'react';
-import { Plus, Minus, Target, Undo, Check, RotateCw, Ruler } from 'lucide-react';
+import { Plus, Minus, Target, Check } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
-import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getRowInstruction, getStepType } from '../../../../shared/utils/KnittingInstructionService';
 import {
     getCurrentSide,
     getStepStartingSide,
-    getRowWithSideDisplay,
     shouldUseSideIntelligence,
-    getSideDisplayStyles,
-    initializeSideTracking,
-    getStepPatternInfo
 } from '../../../../shared/utils/sideIntelligence';
 import { useSideTracking } from '../../hooks/useSideTracking';
 import SimpleRowSettings from '../SimpleRowSettings';
 
-// ✨ NEW: Import gauge utilities
+// Gauge utilities
 import {
     isLengthBasedStep,
-    getLengthTarget, // ADD THIS
+    getLengthTarget,
     getLengthProgressDisplay,
     formatLengthCounterDisplay,
     shouldSuggestCompletion,
     getCompletionSuggestionText,
-    hasValidGaugeForLength,
     shouldPromptGaugeUpdate,
     getGaugeUpdatePromptData,
     updateProjectGaugeFromMeasurement,
@@ -37,80 +31,42 @@ const KnittingStepCounter = ({
     theme,
     progress,
     navigation,
-    updateProject // Add this prop for data persistence
+    updateProject
 }) => {
     const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
-    const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount, resetCounter } = rowCounter;
+    const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
 
     // Side tracking hook
     const sideTracking = useSideTracking(project?.id, component?.id, navigation.currentStep, step, component);
 
-    // UI state
-    const [showStitchAdjust, setShowStitchAdjust] = useState(false);
-
+    // Gauge update state
+    const [showGaugePrompt, setShowGaugePrompt] = useState(false);
+    const [gaugePromptData, setGaugePromptData] = useState(null);
 
     // Side intelligence calculations
     const construction = step.construction || component.construction || 'flat';
     const useSideIntelligence = shouldUseSideIntelligence(step);
 
-    // ✨ NEW: Length-based step detection and progress
+    // Length-based step detection and progress
     const isLengthStep = isLengthBasedStep(step);
-    const lengthTarget = isLengthStep ? getLengthTarget(step) : null; // ADD THIS LINE
+    const lengthTarget = isLengthStep ? getLengthTarget(step) : null;
     const lengthProgressData = isLengthStep ? getLengthProgressDisplay(step, currentRow, project) : null;
     const lengthDisplayData = isLengthStep ? formatLengthCounterDisplay(lengthProgressData, construction) : null;
 
-    // ✨ NEW: Gauge update prompting
-    const [showGaugePrompt, setShowGaugePrompt] = useState(false);
-    const [gaugePromptData, setGaugePromptData] = useState(null);
-
-
-
-    // Check for gauge update opportunities when step completes
-    const checkForGaugeUpdate = () => {
-        if (!isLengthStep) return;
-
-        const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project);
-        if (shouldPrompt) {
-            const promptData = getGaugeUpdatePromptData(currentRow, step, project);
-            setGaugePromptData(promptData);
-            setShowGaugePrompt(true);
-        }
-    };
-
-    const handleGaugeAccept = () => {
-        if (gaugePromptData && updateProject) {
-            const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
-            updateProject(updatedProject);
-        }
-        setShowGaugePrompt(false);
-        setGaugePromptData(null);
-    };
-
-    const handleGaugeDecline = () => {
-        setShowGaugePrompt(false);
-        setGaugePromptData(null);
-    };
-
-
-
-    // Get starting side for this step (from stored data, session override, or calculate)
+    // Get starting side for this step
     const stepStartingSide = useSideIntelligence
         ? (step.sideTracking?.startingSide ||
             sideTracking.sessionOverride ||
             getStepStartingSide(component, navigation.currentStep))
         : null;
 
-    // Calculate current side with session override or stored data
+    // Calculate current side
     const currentSide = useSideIntelligence
         ? getCurrentSide(construction, currentRow, stepStartingSide)
         : null;
 
-    // UI state for side editing
-    const canEditSide = useSideIntelligence && currentRow === 1 && construction === 'flat';
-    const isOverrideActive = Boolean(sideTracking.sessionOverride || step.sideTracking?.userOverride);
-
+    // Calculate current stitch count based on step configuration
     const calculateCurrentStitchCount = (row) => {
-        // [Previous calculateCurrentStitchCount logic remains exactly the same]
         const patternName = step.wizardConfig?.stitchPattern?.pattern;
         if (patternName === 'Cast On') {
             return step.endingStitches || 0;
@@ -187,9 +143,8 @@ const KnittingStepCounter = ({
     const stepType = getStepType(step, totalRows, duration);
     const isOnFinalRow = currentRow >= totalRows && totalRows > 1;
 
-    // ✨ NEW: Length-based completion logic
+    // Length-based completion logic
     const shouldShowCompletionSuggestion = isLengthStep && shouldSuggestCompletion(step, currentRow, project);
-    const completionSuggestionText = shouldShowCompletionSuggestion ? getCompletionSuggestionText(step, currentRow, project) : null;
 
     // Get current instruction
     const getCurrentInstruction = () => {
@@ -206,8 +161,35 @@ const KnittingStepCounter = ({
 
     const instructionResult = getCurrentInstruction();
 
+    // Gauge update handling
+    const checkForGaugeUpdate = () => {
+        if (!isLengthStep) return;
+
+        const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project);
+        if (shouldPrompt) {
+            const promptData = getGaugeUpdatePromptData(currentRow, step, project);
+            setGaugePromptData(promptData);
+            setShowGaugePrompt(true);
+        }
+    };
+
+    const handleGaugeAccept = () => {
+        if (gaugePromptData && updateProject) {
+            const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
+            updateProject(updatedProject);
+        }
+        setShowGaugePrompt(false);
+        setGaugePromptData(null);
+    };
+
+    const handleGaugeDecline = () => {
+        setShowGaugePrompt(false);
+        setGaugePromptData(null);
+    };
+
+    // ✅ FIXED: Proper step completion that syncs with parent
     const handleStepComplete = () => {
-        // ✨ NEW: Check for gauge update before completing
+        // Check for gauge update before completing
         if (isLengthStep) {
             checkForGaugeUpdate();
         }
@@ -222,6 +204,7 @@ const KnittingStepCounter = ({
             sideTracking.commitSideChanges(updateProject);
         }
 
+        // ✅ FIXED: Use the proper completion handler from parent
         progress.toggleStepCompletion(navigation.currentStep);
     };
 
@@ -252,12 +235,10 @@ const KnittingStepCounter = ({
     // Handle pattern offset changes
     const handleSideChange = (newSide) => {
         sideTracking.updateSideOverride(newSide);
-        console.log(`🔄 Side changed to: ${newSide}`);
     };
 
     const handlePatternRowChange = (patternRow) => {
-        sideTracking.updatePatternOffset(patternRow - 1); // Convert to 0-based offset
-        console.log(`📊 Pattern starting on row: ${patternRow}`);
+        sideTracking.updatePatternOffset(patternRow - 1);
     };
 
     const canIncrement = stepType === 'length_based' ||
@@ -280,7 +261,7 @@ const KnittingStepCounter = ({
         return step.totalRows || 1;
     }
 
-    // ✨ ENHANCED: Get display text for row with length intelligence
+    // Get display text for row with length intelligence
     const getRowDisplayText = () => {
         // For length-based steps, use the gauge-aware display
         if (isLengthStep && lengthDisplayData) {
@@ -314,31 +295,23 @@ const KnittingStepCounter = ({
         return rowText;
     };
 
-
-    // ✨ NEW: Get progress info text
+    // Get progress info text
     const getProgressInfoText = () => {
         if (isLengthStep && lengthDisplayData) {
             return lengthDisplayData.progressText;
         }
 
-        // Original target stitches for non-length steps
         return `Target: ${targetStitches} stitches`;
     };
 
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
-            {/* Background texture */}
-            <div className="absolute inset-0 opacity-5 pointer-events-none">
-                <div className="w-full h-full" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23000' stroke-width='2' stroke-opacity='0.08'%3E%3Ccircle cx='40' cy='40' r='30'/%3E%3Ccircle cx='40' cy='40' r='20'/%3E%3Ccircle cx='40' cy='40' r='10'/%3E%3C/g%3E%3C/svg%3E")`,
-                    backgroundSize: '80px 80px'
-                }} />
-            </div>
+            {/* ✅ APPLIED: Design system texture using CSS classes */}
+            <div className="knitting-texture-circles" />
 
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
-
-                {/* MAIN INSTRUCTION CARD - Always prominent */}
-                <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
+                {/* ✅ APPLIED: Design system card styling */}
+                <div className="knitting-content-sage backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
 
                     {/* Row Display with Side Intelligence */}
                     {stepType !== 'single_action' && (
@@ -351,38 +324,38 @@ const KnittingStepCounter = ({
                         {instructionResult.instruction || 'Loading instruction...'}
                     </div>
 
-                    {/* Gauge Update Prompt - inline after instruction */}
-                    {
-                        showGaugePrompt && gaugePromptData && (
-                            <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
-                                <div className="text-sm text-sage-700 mb-2">
-                                    <span className="font-medium">Update your gauge?</span>
-                                    <br />
-                                    Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
-                                    {gaugePromptData.hasExistingGauge && (
-                                        <div className="text-xs mt-1">
-                                            Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
-                                        </div>
-                                    )}
-                                </div>
-                                <div className="flex gap-2">
-
-                                    <button
-                                        onClick={handleGaugeDecline}
-                                        className="btn-tertiary btn-sm"  >
-                                        Keep Current
-                                    </button>
-                                    <button
-                                        onClick={handleGaugeAccept}
-                                        className="btn-secondary btn-sm" >
-                                        Update Gauge
-                                    </button>
-                                </div>
+                    {/* Gauge Update Prompt */}
+                    {showGaugePrompt && gaugePromptData && (
+                        <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
+                            <div className="text-sm text-sage-700 mb-2">
+                                <span className="font-medium">Update your gauge?</span>
+                                <br />
+                                Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
+                                {gaugePromptData.hasExistingGauge && (
+                                    <div className="text-xs mt-1">
+                                        Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
+                                    </div>
+                                )}
                             </div>
-                        )
-                    }
+                            <div className="flex gap-2">
+                                {/* ✅ APPLIED: Design system button classes */}
+                                <button
+                                    onClick={handleGaugeDecline}
+                                    className="btn-tertiary btn-sm"
+                                >
+                                    Keep Current
+                                </button>
+                                <button
+                                    onClick={handleGaugeAccept}
+                                    className="btn-secondary btn-sm"
+                                >
+                                    Update Gauge
+                                </button>
+                            </div>
+                        </div>
+                    )}
 
-                    {/* Near target alert - when bar turns yarn color */}
+                    {/* Progress alerts */}
                     {lengthProgressData?.shouldShowNearAlert && (
                         <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
                             <div className="text-sm text-sage-700">
@@ -391,7 +364,6 @@ const KnittingStepCounter = ({
                         </div>
                     )}
 
-                    {/* Target reached alert - when you hit estimate */}
                     {lengthProgressData?.shouldShowTargetAlert && (
                         <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
                             <div className="text-sm text-sage-700">
@@ -400,12 +372,12 @@ const KnittingStepCounter = ({
                         </div>
                     )}
 
-                    {/* ✨ ENHANCED: Progress info - length or stitches */}
+                    {/* Progress info */}
                     <div className={`text-sm ${theme.textSecondary} mb-4`}>
                         {getProgressInfoText()}
                     </div>
 
-                    {/* ✨ NEW: Gauge availability notice for length steps without gauge */}
+                    {/* Gauge availability notice */}
                     {isLengthStep && lengthProgressData && !lengthProgressData.hasGauge && (
                         <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
                             <div className="text-xs text-blue-700">
@@ -416,16 +388,21 @@ const KnittingStepCounter = ({
 
                     {/* PRIMARY ACTION AREA */}
                     {stepType === 'single_action' ? (
-                        // Single action: just completion
+                        // Single action: big checkbox-style completion toggle
                         <button
                             onClick={handleStepComplete}
-                            className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold text-lg transition-colors ${isCompleted
-                                ? 'bg-sage-100 text-sage-700 hover:bg-sage-200'
-                                : 'bg-sage-500 hover:bg-sage-600 text-white'
+                            className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold text-lg transition-all duration-200 border-2 ${isCompleted
+                                ? 'bg-sage-100 border-sage-300 text-sage-700 hover:bg-sage-150'
+                                : 'bg-white border-sage-300 text-sage-700 hover:bg-sage-50 hover:border-sage-400'
                                 }`}
                         >
-                            <Check size={20} />
-                            {isCompleted ? 'Completed' : 'Mark Complete'}
+                            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${isCompleted
+                                ? 'bg-sage-500 border-sage-500'
+                                : 'bg-white border-sage-300'
+                                }`}>
+                                {isCompleted && <Check size={16} className="text-white" />}
+                            </div>
+                            <span>Step Complete</span>
                         </button>
                     ) : (
                         // Multi-row: row counter + completion
@@ -453,7 +430,7 @@ const KnittingStepCounter = ({
                                 </button>
                             </div>
 
-                            {/* ✨ ENHANCED: Progress bar - length-aware or traditional */}
+                            {/* Progress bar - length-aware or traditional */}
                             {(stepType === 'fixed_multi_row' || (isLengthStep && lengthDisplayData?.showProgressBar)) && (
                                 <div className="w-full bg-gray-200 rounded-full h-2">
                                     <div
@@ -470,17 +447,22 @@ const KnittingStepCounter = ({
                                 </div>
                             )}
 
-                            {/* Completion button - show when appropriate */}
+                            {/* Completion checkbox - show when appropriate */}
                             {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') && (
                                 <button
                                     onClick={handleStepComplete}
-                                    className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-colors ${isCompleted
-                                        ? 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                                        : 'bg-sage-500 hover:bg-sage-600 text-white'
+                                    className={`w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium transition-all duration-200 border-2 ${isCompleted
+                                        ? 'bg-sage-100 border-sage-300 text-sage-700 hover:bg-sage-150'
+                                        : 'bg-white border-sage-300 text-sage-700 hover:bg-sage-50 hover:border-sage-400'
                                         }`}
                                 >
-                                    <Target size={16} />
-                                    {isCompleted ? 'Mark Incomplete' : 'Mark Complete'}
+                                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted
+                                        ? 'bg-sage-500 border-sage-500'
+                                        : 'bg-white border-sage-300'
+                                        }`}>
+                                        {isCompleted && <Check size={12} className="text-white" />}
+                                    </div>
+                                    <span>Step Complete</span>
                                 </button>
                             )}
                         </div>
@@ -498,16 +480,7 @@ const KnittingStepCounter = ({
                     />
                 )}
 
-                {/* SECONDARY ACTIONS - Minimal */}
-                {progress.canUndo && (
-                    <button
-                        onClick={progress.undoLastAction}
-                        className="w-full mb-4 flex items-center justify-center gap-2 py-2 bg-orange-100 hover:bg-orange-200 text-orange-700 rounded-lg transition-colors text-sm"
-                    >
-                        <Undo size={14} />
-                        Undo: {progress.lastAction?.description}
-                    </button>
-                )}
+                {/* ❌ REMOVED: The rogue undo button - this was showing step-level undo in a row counter context */}
             </div>
         </div>
     );
