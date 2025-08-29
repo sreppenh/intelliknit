@@ -1,9 +1,20 @@
 // src/features/knitting/components/modal/KnittingStepCounter.jsx
-import React, { useState } from 'react';
-import { Plus, Minus, Target, Undo, Check } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Plus, Minus, Target, Undo, Check, RotateCw } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getRowInstruction, getStepType } from '../../../../shared/utils/KnittingInstructionService';
+import {
+    getCurrentSide,
+    getStepStartingSide,
+    getRowWithSideDisplay,
+    shouldUseSideIntelligence,
+    getSideDisplayStyles,
+    initializeSideTracking,
+    getStepPatternInfo
+} from '../../../../shared/utils/sideIntelligence';
+import { useSideTracking } from '../../hooks/useSideTracking';
+import SimpleRowSettings from '../SimpleRowSettings';
 
 const KnittingStepCounter = ({
     step,
@@ -11,22 +22,45 @@ const KnittingStepCounter = ({
     project,
     theme,
     progress,
-    navigation
+    navigation,
+    updateProject // Add this prop for data persistence
 }) => {
     const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount, resetCounter } = rowCounter;
 
+    // Side tracking hook
+    const sideTracking = useSideTracking(project?.id, component?.id, navigation.currentStep, step, component);
+
     // UI state
     const [showStitchAdjust, setShowStitchAdjust] = useState(false);
 
+    // Side intelligence calculations
+    const construction = step.construction || component.construction || 'flat';
+    const useSideIntelligence = shouldUseSideIntelligence(step);
+
+    // Get starting side for this step (from stored data, session override, or calculate)
+    const stepStartingSide = useSideIntelligence
+        ? (step.sideTracking?.startingSide ||
+            sideTracking.sessionOverride ||
+            getStepStartingSide(component, navigation.currentStep))
+        : null;
+
+    // Calculate current side with session override or stored data
+    const currentSide = useSideIntelligence
+        ? getCurrentSide(construction, currentRow, stepStartingSide)
+        : null;
+
+    // UI state for side editing
+    const canEditSide = useSideIntelligence && currentRow === 1 && construction === 'flat';
+    const isOverrideActive = Boolean(sideTracking.sessionOverride || step.sideTracking?.userOverride);
+
     const calculateCurrentStitchCount = (row) => {
-        // For cast-on steps, target should be endingStitches (what you'll have after casting on)
+        // [Previous calculateCurrentStitchCount logic remains exactly the same]
         const patternName = step.wizardConfig?.stitchPattern?.pattern;
         if (patternName === 'Cast On') {
             return step.endingStitches || 0;
         }
 
-        // For bind-off steps, target should be endingStitches (what remains after binding off)
         if (patternName === 'Bind Off') {
             return step.endingStitches || 0;
         }
@@ -36,18 +70,15 @@ const KnittingStepCounter = ({
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'phases') {
             const calculation = step.wizardConfig.shapingConfig.config?.calculation;
             if (calculation?.phases) {
-                // 🎯 MUCH SIMPLER APPROACH: Use a row-by-row stitch tracking array
-
-                let stitchCountByRow = [step.startingStitches || 0]; // Index 0 = starting stitches
+                let stitchCountByRow = [step.startingStitches || 0];
                 let currentRowGlobal = 1;
 
                 for (const phase of calculation.phases) {
                     const phaseRows = phase.rows || 1;
 
                     for (let rowInPhase = 0; rowInPhase < phaseRows; rowInPhase++) {
-                        let stitchesAfterThisRow = stitchCountByRow[currentRowGlobal - 1]; // Start with what we had
+                        let stitchesAfterThisRow = stitchCountByRow[currentRowGlobal - 1];
 
-                        // Determine if this specific row has shaping
                         if (phase.type === 'decrease' || phase.type === 'increase') {
                             const frequency = phase.frequency || 1;
                             const isShapingRow = (rowInPhase % frequency) === 0;
@@ -63,19 +94,16 @@ const KnittingStepCounter = ({
                             const bindOffAmount = phase.amount || 1;
                             stitchesAfterThisRow -= bindOffAmount;
                         }
-                        // setup phases don't change stitch count
 
                         stitchCountByRow[currentRowGlobal] = stitchesAfterThisRow;
                         currentRowGlobal++;
                     }
                 }
 
-                // Return the stitch count after completing the requested row
                 return stitchCountByRow[row] || step.startingStitches || 0;
             }
         }
 
-        // For even distribution shaping, use the calculated ending stitches
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'even_distribution') {
             const calculation = step.wizardConfig.shapingConfig.config?.calculation;
             if (calculation?.endingStitches) {
@@ -83,26 +111,24 @@ const KnittingStepCounter = ({
             }
         }
 
-        // For non-shaping steps, stitch count stays constant
         return step.startingStitches || 0;
     };
 
     // Auto-sync stitch count with calculated count when row changes
     const calculatedStitchCount = calculateCurrentStitchCount(currentRow);
-    React.useEffect(() => {
+    useEffect(() => {
         if (stitchCount !== calculatedStitchCount && calculatedStitchCount > 0) {
             updateStitchCount(calculatedStitchCount);
         }
     }, [currentRow, calculatedStitchCount, stitchCount, updateStitchCount]);
 
     // Step analysis
-    const totalRows = calculateActualTotalRows(step);  // updated
+    const totalRows = calculateActualTotalRows(step);
     const targetStitches = calculateCurrentStitchCount(currentRow);
-    // const targetStitches = step.endingStitches || step.startingStitches || 0;
     const isCompleted = progress.isStepCompleted(navigation.currentStep);
     const duration = step.wizardConfig?.duration;
 
-    // Determine step type - use the imported function
+    // Determine step type
     const stepType = getStepType(step, totalRows, duration);
     const isOnFinalRow = currentRow >= totalRows && totalRows > 1;
 
@@ -122,28 +148,33 @@ const KnittingStepCounter = ({
     const instructionResult = getCurrentInstruction();
 
     const handleStepComplete = () => {
+        // Record actual ending side when step is completed
+        if (useSideIntelligence && currentSide && updateProject) {
+            sideTracking.recordEndingSide(currentSide, currentRow, updateProject);
+        }
+
+        // Commit any session changes to permanent storage
+        if (sideTracking.hasSessionChanges && updateProject) {
+            sideTracking.commitSideChanges(updateProject);
+        }
+
         progress.toggleStepCompletion(navigation.currentStep);
     };
 
-    // FIXED: Proper increment logic based on step type
     const handleRowIncrement = () => {
         if (stepType === 'single_action') {
-            // Single-action steps complete immediately
             handleStepComplete();
             return;
         }
 
         if (stepType === 'fixed_multi_row') {
             if (currentRow >= totalRows) {
-                // At final row - complete the step
                 handleStepComplete();
                 return;
             } else {
-                // Normal increment within step bounds
                 incrementRow();
             }
         } else {
-            // Length-based and completion_when_ready can always increment
             incrementRow();
         }
     };
@@ -154,11 +185,20 @@ const KnittingStepCounter = ({
         }
     };
 
-    // FIXED: Dynamic increment availability
+    // Handle pattern offset changes
+    const handleSideChange = (newSide) => {
+        sideTracking.updateSideOverride(newSide);
+        console.log(`🔄 Side changed to: ${newSide}`);
+    };
+
+    const handlePatternRowChange = (patternRow) => {
+        sideTracking.updatePatternOffset(patternRow - 1); // Convert to 0-based offset
+        console.log(`📊 Pattern starting on row: ${patternRow}`);
+    };
+
     const canIncrement = stepType === 'length_based' ||
         stepType === 'completion_when_ready' ||
         (stepType === 'fixed_multi_row' && currentRow < totalRows);
-    // Note: single_action removed because it should complete immediately, not show increment
 
     function calculateActualTotalRows(step) {
         const duration = step.wizardConfig?.duration;
@@ -169,24 +209,33 @@ const KnittingStepCounter = ({
             const rowsInPattern = parseInt(stitchPattern?.rowsInPattern) || 0;
 
             if (repeats > 0 && rowsInPattern > 0) {
-                return repeats * rowsInPattern; // 2 × 12 = 24
+                return repeats * rowsInPattern;
             }
         }
 
         return step.totalRows || 1;
     }
 
+    // Get display text for row with side
+    const getRowDisplayText = () => {
+        const rowTerm = construction === 'round' ? 'Round' : 'Row';
 
-    function calculateStitchChangePerRow(phase) {
-        if (phase.type === 'setup') return 0;
-        if (phase.type === 'bind_off') return -(phase.amount || 1);
+        if (stepType === 'single_action') {
+            return '';
+        }
 
-        const amount = phase.amount || 1;
-        const multiplier = phase.position === 'both_ends' ? 2 : 1;
-        const change = amount * multiplier;
+        // Base row text
+        let rowText = stepType === 'fixed_multi_row'
+            ? `${rowTerm} ${currentRow} of ${totalRows}`
+            : `${rowTerm} ${currentRow}`;
 
-        return phase.type === 'decrease' ? -change : change;
-    }
+        // Add side info only for flat construction with side intelligence
+        if (useSideIntelligence && construction === 'flat' && currentSide) {
+            rowText += ` (${currentSide})`;
+        }
+
+        return rowText;
+    };
 
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
@@ -202,9 +251,11 @@ const KnittingStepCounter = ({
 
                 {/* MAIN INSTRUCTION CARD - Always prominent */}
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
+
+                    {/* Row Display with Side Intelligence */}
                     {stepType !== 'single_action' && (
                         <div className={`text-sm font-medium ${theme.textSecondary} mb-3`}>
-                            Row {currentRow}{stepType === 'fixed_multi_row' ? ` of ${totalRows}` : ''}
+                            {getRowDisplayText()}
                         </div>
                     )}
 
@@ -282,6 +333,17 @@ const KnittingStepCounter = ({
                         </div>
                     )}
                 </div>
+
+                {/* Row 1 Settings - Clean & Simple */}
+                {currentRow === 1 && useSideIntelligence && (
+                    <SimpleRowSettings
+                        step={step}
+                        construction={construction}
+                        currentSide={currentSide}
+                        onSideChange={handleSideChange}
+                        onPatternRowChange={handlePatternRowChange}
+                    />
+                )}
 
                 {/* SECONDARY ACTIONS - Minimal */}
                 {progress.canUndo && (
