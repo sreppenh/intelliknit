@@ -1,175 +1,330 @@
-// src/features/knitting/components/SimpleRowSettings.jsx
-import React, { useState } from 'react';
-import { ChevronDown, Settings } from 'lucide-react';
-import SegmentedControl from '../../../shared/components/SegmentedControl';
-import { getStepPatternInfo } from '../../../shared/utils/sideIntelligence';
-import { isAlgorithmicPattern, getPatternMetadata } from '../../../shared/utils/AlgorithmicPatterns';
+// src/shared/utils/sideIntelligence.js
 
 /**
- * Simple Row 1 Settings
- * Collapsible, mobile-friendly controls for side and pattern row adjustment
- * Only appears on Row 1, uses existing IntelliKnit components
+ * Side Intelligence System
+ * Comprehensive RS/WS tracking for IntelliKnit patterns
+ * 
+ * Features:
+ * - Automatic side detection based on construction
+ * - User override capabilities  
+ * - Step chain context tracking
+ * - Pattern row adjustment support
  */
-const SimpleRowSettings = ({
-    step,
-    construction,
-    currentSide,
-    onSideChange,
-    onPatternRowChange
-}) => {
-    const [isExpanded, setIsExpanded] = useState(false);
-    const patternInfo = getStepPatternInfo(step);
-    const [selectedPatternRow, setSelectedPatternRow] = useState(1);
 
-    const handleSideToggle = (newSide) => {
-        onSideChange?.(newSide);
-    };
+/**
+ * Core side determination logic
+ * @param {string} construction - 'flat' or 'round'
+ * @param {number} currentRow - Current row number (1-based)
+ * @param {string|null} startingSide - User override: 'RS', 'WS', or null for auto
+ * @returns {string} - 'RS' or 'WS'
+ */
+export const getCurrentSide = (construction, currentRow, startingSide = null) => {
+    // Round construction: always RS (no wrong side in circular knitting)
+    if (construction === 'round') return 'RS';
 
-    const handlePatternRowChange = (patternRow) => {
-        setSelectedPatternRow(patternRow);
-        onPatternRowChange?.(patternRow);
-    };
-
-    // Use existing IntelliKnit intelligence with construction awareness
-    const shouldShowPatternRows = () => {
-        if (!patternInfo?.hasRepeat || patternInfo.patternLength <= 1) return false;
-
-        // Use the existing algorithmic pattern system intelligence  
-        if (isAlgorithmicPattern(patternInfo.patternName)) {
-            const metadata = getPatternMetadata(patternInfo.patternName);
-            const rowHeight = metadata?.rowHeight || patternInfo.patternLength;
-
-            // For flat construction: only show if rowHeight > 2 (more than just RS/WS)
-            if (construction === 'flat') {
-                return rowHeight > 2;
-            }
-
-            // For round construction: show if rowHeight > 1 (any pattern variation)
-            if (construction === 'round') {
-                return rowHeight > 1;
-            }
-        }
-
-        // Also check for custom patterns with explicit row instructions
-        const hasCustomInstructions = step.wizardConfig?.stitchPattern?.customText ||
-            step.wizardConfig?.stitchPattern?.customDetails;
-
-        return hasCustomInstructions;
-    };
-
-    // Generate smart pattern row options with meaningful labels
-    const getPatternRowOptions = () => {
-        if (!shouldShowPatternRows()) return [];
-
-        const options = [];
-
-        // For Garter in round, use descriptive names
-        if (patternInfo.patternName === 'Garter' && construction === 'round') {
-            options.push(
-                { value: 1, label: 'Knit Round' },
-                { value: 2, label: 'Purl Round' }
-            );
-        }
-        // For other patterns, use numbered rows with pattern name
-        else {
-            for (let i = 1; i <= patternInfo.patternLength; i++) {
-                options.push({
-                    value: i,
-                    label: `Row ${i}`
-                });
-            }
-        }
-
-        return options;
-    };
-
-    const patternRowOptions = getPatternRowOptions();
-    const showSideToggle = construction === 'flat';
-    const showPatternRows = patternRowOptions.length > 1;
-
-    // Don't render anything if there are no controls to show
-    if (!showSideToggle && !showPatternRows) {
-        return null;
+    // User override takes precedence for flat construction
+    if (startingSide && construction === 'flat') {
+        // If user says this step starts on RS, then:
+        // Row 1 = RS, Row 2 = WS, Row 3 = RS, etc.
+        // If user says this step starts on WS, then:
+        // Row 1 = WS, Row 2 = RS, Row 3 = WS, etc.
+        return (currentRow % 2 === 1) ? startingSide : (startingSide === 'RS' ? 'WS' : 'RS');
     }
 
-    return (
-        <div className="mb-4">
-            {/* Collapsible Header */}
-            <button
-                onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors text-left"
-            >
-                <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <Settings size={14} />
-                    <span className="font-medium">Row 1 Settings</span>
-                    <span className="text-xs text-amber-600">
-                        (optional adjustments)
-                    </span>
-                </div>
-
-                <ChevronDown
-                    size={16}
-                    className={`text-amber-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
-                />
-            </button>
-
-            {/* Expandable Content */}
-            {isExpanded && (
-                <div className="mt-2 p-4 bg-amber-50 border border-amber-200 rounded-xl border-t-0 rounded-t-none">
-                    <div className="space-y-4">
-
-                        {/* Side Toggle - only for flat construction */}
-                        {showSideToggle && (
-                            <div>
-                                <SegmentedControl
-                                    label="Starting Side"
-                                    value={currentSide}
-                                    onChange={handleSideToggle}
-                                    options={[
-                                        { value: 'RS', label: 'Right Side' },
-                                        { value: 'WS', label: 'Wrong Side' }
-                                    ]}
-                                    className="text-sm"
-                                />
-                            </div>
-                        )}
-
-                        {/* Pattern Row Selection - only for patterns with meaningful row differences */}
-                        {showPatternRows && (
-                            <div>
-                                <label className="form-label-sm">
-                                    Start on Pattern Row
-                                </label>
-                                <select
-                                    value={selectedPatternRow}
-                                    onChange={(e) => handlePatternRowChange(parseInt(e.target.value))}
-                                    className="w-full border-2 border-wool-200 rounded-xl px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                                    style={{ fontSize: '16px', minHeight: '44px' }}
-                                >
-                                    {patternRowOptions.map(option => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label} of {patternInfo.patternName}
-                                        </option>
-                                    ))}
-                                </select>
-
-                                {/* Pattern info */}
-                                <div className="form-help">
-                                    {patternInfo.patternName} pattern ({patternInfo.patternLength} row repeat)
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Help text */}
-                        <div className="text-xs text-amber-700 bg-amber-100 rounded-lg p-2">
-                            💡 Only adjust these if you're continuing from a specific row in your pattern chart or written instructions
-                        </div>
-
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+    // Default flat knitting: odd rows = RS, even rows = WS
+    return (currentRow % 2 === 1) ? 'RS' : 'WS';
 };
 
-export default SimpleRowSettings;
+/**
+ * Calculate what side this step should start on based on step chain
+ * @param {object} component - Component containing steps
+ * @param {number} stepIndex - Index of current step (0-based)
+ * @returns {string} - Expected starting side: 'RS' or 'WS'
+ */
+export const getStepStartingSide = (component, stepIndex) => {
+    // First step of any component always starts RS (knitting convention)
+    if (stepIndex === 0) return 'RS';
+
+    const previousStep = component.steps[stepIndex - 1];
+    if (!previousStep) return 'RS';
+
+    const previousEndingRow = previousStep.totalRows;
+    const previousConstruction = previousStep.construction || component.construction || 'flat';
+
+    // What side did the previous step end on?
+    const previousEndingSide = getCurrentSide(
+        previousConstruction,
+        previousEndingRow,
+        previousStep.sideTracking?.startingSide
+    );
+
+    // This step starts on the opposite side (for flat) or same side (for round)
+    if (previousConstruction === 'round') {
+        return 'RS'; // Round always starts RS
+    } else {
+        return previousEndingSide === 'RS' ? 'WS' : 'RS';
+    }
+};
+
+/**
+ * Get side display text with construction context
+ * @param {string} side - 'RS' or 'WS'
+ * @param {string} construction - 'flat' or 'round'
+ * @returns {string} - Display text like "RS" or "all RS"
+ */
+export const getSideDisplayText = (side, construction) => {
+    if (construction === 'round') {
+        return 'all RS'; // Round knitting doesn't have a wrong side
+    }
+    return side;
+};
+
+/**
+ * Get display text for row with side information
+ * @param {number} currentRow - Current row number
+ * @param {number} totalRows - Total rows in step (optional)
+ * @param {string} side - 'RS' or 'WS' 
+ * @param {string} construction - 'flat' or 'round'
+ * @returns {string} - Display text like "Row 3 (RS)" or "Round 5 (all RS)"
+ */
+export const getRowWithSideDisplay = (currentRow, totalRows, side, construction) => {
+    const rowTerm = construction === 'round' ? 'Round' : 'Row';
+    const sideDisplay = getSideDisplayText(side, construction);
+
+    if (totalRows && totalRows > 1) {
+        return `${rowTerm} ${currentRow} of ${totalRows} (${sideDisplay})`;
+    } else {
+        return `${rowTerm} ${currentRow} (${sideDisplay})`;
+    }
+};
+
+/**
+ * Check if a step should use side intelligence
+ * Manual steps and certain construction steps are excluded
+ * @param {object} step - Step object
+ * @returns {boolean} - Whether to apply side intelligence
+ */
+export const shouldUseSideIntelligence = (step) => {
+    // Manual row-by-row patterns are not affected by side logic
+    if (step.type === 'manual') return false;
+
+    // Check for specific patterns that don't need side tracking
+    const pattern = step.wizardConfig?.stitchPattern?.pattern;
+    const excludedPatterns = ['Cast On', 'Bind Off', 'Put on Holder'];
+
+    if (excludedPatterns.includes(pattern)) return false;
+
+    return true;
+};
+
+/**
+ * Initialize side tracking for a step
+ * @param {object} component - Component containing the step
+ * @param {number} stepIndex - Index of the step (0-based)
+ * @param {string|null} userOverride - User-specified starting side ('RS', 'WS', or null)
+ * @returns {object} - Side tracking configuration
+ */
+export const initializeSideTracking = (component, stepIndex, userOverride = null) => {
+    const expectedStartingSide = getStepStartingSide(component, stepIndex);
+
+    return {
+        startingSide: userOverride || expectedStartingSide,
+        userOverride: Boolean(userOverride),
+        expectedStartingSide: expectedStartingSide
+    };
+};
+
+/**
+ * Validate side override input
+ * @param {string} input - User input ('RS', 'WS', etc.)
+ * @returns {string|null} - Normalized side ('RS', 'WS') or null if invalid
+ */
+export const validateSideInput = (input) => {
+    if (typeof input !== 'string') return null;
+
+    const normalized = input.trim().toUpperCase();
+    if (normalized === 'RS' || normalized === 'R') return 'RS';
+    if (normalized === 'WS' || normalized === 'W') return 'WS';
+
+    return null;
+};
+
+/**
+ * Pattern Row Offset Management
+ * Handles starting patterns on specific rows (e.g., "Start on Row 3 of 8-row repeat")
+ */
+
+/**
+ * Calculate pattern row offset for starting mid-pattern
+ * @param {number} targetPatternRow - Which pattern row to start on (1-based)
+ * @param {string} targetSide - Which side the target row should be ('RS' or 'WS')  
+ * @param {string} construction - 'flat' or 'round'
+ * @param {number} patternLength - Total rows in pattern repeat
+ * @returns {object} - { offset: number, adjustedStartingSide: string }
+ */
+export const calculatePatternOffset = (targetPatternRow, targetSide, construction, patternLength) => {
+    if (construction === 'round') {
+        // Round construction: all rows are RS, so just calculate offset
+        return {
+            offset: targetPatternRow - 1,
+            adjustedStartingSide: 'RS'
+        };
+    }
+
+    // Flat construction: figure out what side the target pattern row naturally is
+    const naturalTargetSide = (targetPatternRow % 2 === 1) ? 'RS' : 'WS';
+
+    if (naturalTargetSide === targetSide) {
+        // Target side matches natural side, no adjustment needed
+        return {
+            offset: targetPatternRow - 1,
+            adjustedStartingSide: 'RS'
+        };
+    } else {
+        // Target side is opposite of natural side, adjust starting side
+        return {
+            offset: targetPatternRow - 1,
+            adjustedStartingSide: 'WS'
+        };
+    }
+};
+
+/**
+ * Get pattern row information for any step with a pattern
+ * @param {object} step - Step object with pattern configuration
+ * @returns {object|null} - Pattern info or null if no pattern
+ */
+export const getStepPatternInfo = (step) => {
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+
+    if (!stitchPattern) return null;
+
+    // Check for explicit pattern length
+    const rowsInPattern = parseInt(stitchPattern.rowsInPattern);
+    if (rowsInPattern && rowsInPattern > 1) {
+        return {
+            patternName: stitchPattern.pattern || stitchPattern.category,
+            patternLength: rowsInPattern,
+            hasRepeat: true
+        };
+    }
+
+    // Check for common patterns with known repeat lengths
+    const patternRepeats = {
+        'Stockinette': 2,
+        'Garter': 2,
+        'Seed': 2,
+        'Moss': 2,
+        'Ribbing': 2, // Could be 1x1, 2x2, etc., but most are 2-row
+        // Add more as needed
+    };
+
+    const pattern = stitchPattern.pattern;
+    if (pattern && patternRepeats[pattern]) {
+        return {
+            patternName: pattern,
+            patternLength: patternRepeats[pattern],
+            hasRepeat: true
+        };
+    }
+
+    // Single-row or non-repeating patterns
+    return {
+        patternName: pattern || stitchPattern.category || 'Custom',
+        patternLength: 1,
+        hasRepeat: false
+    };
+};
+
+/**
+ * Calculate which pattern row a step row corresponds to
+ * @param {number} stepRow - Row number within the step (1-based)
+ * @param {number} patternOffset - Starting offset (0-based)
+ * @param {number} patternLength - Length of pattern repeat
+ * @returns {number} - Pattern row number (1-based)
+ */
+export const getPatternRowNumber = (stepRow, patternOffset, patternLength) => {
+    if (patternLength <= 1) return 1;
+
+    const adjustedRow = (stepRow - 1 + patternOffset) % patternLength;
+    return adjustedRow + 1;
+};
+
+/**
+ * Get pattern instruction for a specific row
+ * @param {object} step - Step object
+ * @param {number} stepRow - Row number within step
+ * @param {number} patternOffset - Pattern offset
+ * @returns {object} - { patternRow: number, instruction: string }
+ */
+export const getPatternRowInstruction = (step, stepRow, patternOffset = 0) => {
+    const patternInfo = getStepPatternInfo(step);
+
+    if (!patternInfo || !patternInfo.hasRepeat) {
+        return {
+            patternRow: 1,
+            instruction: null // Use default step instruction
+        };
+    }
+
+    const patternRow = getPatternRowNumber(stepRow, patternOffset, patternInfo.patternLength);
+    const construction = step.construction || 'flat';
+    const currentSide = getCurrentSide(construction, stepRow, step.sideTracking?.startingSide);
+
+    // Generate pattern-specific instructions based on pattern type and current row
+    return {
+        patternRow,
+        instruction: generatePatternInstruction(patternInfo.patternName, patternRow, currentSide)
+    };
+};
+
+/**
+ * Generate instruction text for common patterns
+ * @param {string} patternName - Name of pattern
+ * @param {number} patternRow - Row within pattern (1-based)  
+ * @param {string} side - 'RS' or 'WS'
+ * @returns {string} - Instruction text
+ */
+export const generatePatternInstruction = (patternName, patternRow, side) => {
+    switch (patternName) {
+        case 'Stockinette':
+            return side === 'RS' ? 'Knit all stitches' : 'Purl all stitches';
+
+        case 'Garter':
+            return 'Knit all stitches';
+
+        case 'Seed':
+        case 'Moss':
+            // Alternating K1, P1 with offset each row
+            if (patternRow === 1) return '*K1, P1; repeat from *';
+            return '*P1, K1; repeat from *';
+
+        case 'Ribbing':
+            return '*K1, P1; repeat from *'; // Could be made more sophisticated
+
+        default:
+            return `Work Row ${patternRow} of ${patternName} pattern`;
+    }
+};
+
+/**
+ * Get CSS classes for side display
+ * @param {string} side - 'RS' or 'WS'
+ * @param {boolean} isOverride - Whether this is a user override
+ * @returns {object} - CSS class objects
+ */
+export const getSideDisplayStyles = (side, isOverride = false) => {
+    const baseClasses = 'px-2 py-1 rounded-md text-xs font-medium';
+
+    if (side === 'RS') {
+        return {
+            container: `${baseClasses} bg-sage-100 text-sage-800 ${isOverride ? 'border border-sage-400' : ''}`,
+            icon: '🟢' // Right side indicator
+        };
+    } else {
+        return {
+            container: `${baseClasses} bg-wool-100 text-wool-800 ${isOverride ? 'border border-wool-400' : ''}`,
+            icon: '🔴' // Wrong side indicator  
+        };
+    }
+};
