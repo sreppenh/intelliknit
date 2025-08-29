@@ -48,6 +48,7 @@ const KnittingStepCounter = ({
     // UI state
     const [showStitchAdjust, setShowStitchAdjust] = useState(false);
 
+
     // Side intelligence calculations
     const construction = step.construction || component.construction || 'flat';
     const useSideIntelligence = shouldUseSideIntelligence(step);
@@ -61,6 +62,12 @@ const KnittingStepCounter = ({
     // ✨ NEW: Gauge update prompting
     const [showGaugePrompt, setShowGaugePrompt] = useState(false);
     const [gaugePromptData, setGaugePromptData] = useState(null);
+
+    const [alertShownAtRow, setAlertShownAtRow] = useState({
+        nearTarget: null,
+        targetReached: null,
+        gaugePrompt: null
+    });
 
     // Check for gauge update opportunities when step completes
     const checkForGaugeUpdate = () => {
@@ -351,8 +358,8 @@ const KnittingStepCounter = ({
                     {/* Gauge Update Prompt - inline after instruction */}
                     {
                         showGaugePrompt && gaugePromptData && (
-                            <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
-                                <div className="text-sm text-yarn-700 mb-2">
+                            <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
+                                <div className="text-sm text-sage-700 mb-2">
                                     <span className="font-medium">Update your gauge?</span>
                                     <br />
                                     Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
@@ -363,17 +370,16 @@ const KnittingStepCounter = ({
                                     )}
                                 </div>
                                 <div className="flex gap-2">
-                                    <button
-                                        onClick={handleGaugeAccept}
-                                        className="px-3 py-1 bg-yarn-500 hover:bg-yarn-600 text-white text-xs rounded-lg font-medium transition-colors"
-                                    >
-                                        Update Gauge
-                                    </button>
+
                                     <button
                                         onClick={handleGaugeDecline}
-                                        className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs rounded-lg font-medium transition-colors"
-                                    >
+                                        className="btn-tertiary btn-sm"  >
                                         Keep Current
+                                    </button>
+                                    <button
+                                        onClick={handleGaugeAccept}
+                                        className="btn-secondary btn-sm" >
+                                        Update Gauge
                                     </button>
                                 </div>
                             </div>
@@ -381,26 +387,30 @@ const KnittingStepCounter = ({
                     }
 
                     {/* Near target alert - when bar turns yarn color */}
-                    {
-                        lengthProgressData?.shouldShowNearAlert && (
-                            <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
-                                <div className="text-sm text-yarn-700">
+                    {lengthProgressData?.shouldShowNearAlert && alertShownAtRow.nearTarget !== currentRow && (() => {
+                        // Show alert and mark this row as shown
+                        setAlertShownAtRow(prev => ({ ...prev, nearTarget: currentRow }));
+                        return (
+                            <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
+                                <div className="text-sm text-sage-700">
                                     Getting close to target length. Check your progress!
                                 </div>
                             </div>
-                        )
-                    }
+                        );
+                    })()}
 
                     {/* Target reached alert - when you hit estimate */}
-                    {
-                        lengthProgressData?.shouldShowTargetAlert && (
+                    {lengthProgressData?.shouldShowTargetAlert && alertShownAtRow.targetReached !== currentRow && (() => {
+                        // Show alert and mark this row as shown
+                        setAlertShownAtRow(prev => ({ ...prev, targetReached: currentRow }));
+                        return (
                             <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
                                 <div className="text-sm text-sage-700">
                                     You've likely reached your target length. Measure to confirm!
                                 </div>
                             </div>
-                        )
-                    }
+                        );
+                    })()}
 
                     {/* ✨ ENHANCED: Progress info - length or stitches */}
                     <div className={`text-sm ${theme.textSecondary} mb-4`}>
