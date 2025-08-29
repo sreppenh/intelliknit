@@ -119,8 +119,8 @@ export const getLengthProgressDisplay = (step, currentRow, project) => {
         showEstimate: true,
         isNearTarget: currentRow >= estimatedRows * 0.9, // 90% threshold
         hasReachedEstimate: currentRow >= estimatedRows,
-        shouldShowNearAlert: currentRow >= estimatedRows * 0.9 && currentRow < estimatedRows,
-        shouldShowTargetAlert: currentRow >= estimatedRows
+        shouldShowNearAlert: currentRow === Math.ceil(estimatedRows * 0.9),
+        shouldShowTargetAlert: currentRow === estimatedRows
     };
 };
 

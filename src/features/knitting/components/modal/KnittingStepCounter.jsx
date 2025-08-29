@@ -63,11 +63,7 @@ const KnittingStepCounter = ({
     const [showGaugePrompt, setShowGaugePrompt] = useState(false);
     const [gaugePromptData, setGaugePromptData] = useState(null);
 
-    const [alertShownAtRow, setAlertShownAtRow] = useState({
-        nearTarget: null,
-        targetReached: null,
-        gaugePrompt: null
-    });
+
 
     // Check for gauge update opportunities when step completes
     const checkForGaugeUpdate = () => {
@@ -387,30 +383,22 @@ const KnittingStepCounter = ({
                     }
 
                     {/* Near target alert - when bar turns yarn color */}
-                    {lengthProgressData?.shouldShowNearAlert && alertShownAtRow.nearTarget !== currentRow && (() => {
-                        // Show alert and mark this row as shown
-                        setAlertShownAtRow(prev => ({ ...prev, nearTarget: currentRow }));
-                        return (
-                            <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
-                                <div className="text-sm text-sage-700">
-                                    Getting close to target length. Check your progress!
-                                </div>
+                    {lengthProgressData?.shouldShowNearAlert && (
+                        <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
+                            <div className="text-sm text-sage-700">
+                                Getting close to target length. Check your progress!
                             </div>
-                        );
-                    })()}
+                        </div>
+                    )}
 
                     {/* Target reached alert - when you hit estimate */}
-                    {lengthProgressData?.shouldShowTargetAlert && alertShownAtRow.targetReached !== currentRow && (() => {
-                        // Show alert and mark this row as shown
-                        setAlertShownAtRow(prev => ({ ...prev, targetReached: currentRow }));
-                        return (
-                            <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
-                                <div className="text-sm text-sage-700">
-                                    You've likely reached your target length. Measure to confirm!
-                                </div>
+                    {lengthProgressData?.shouldShowTargetAlert && (
+                        <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
+                            <div className="text-sm text-sage-700">
+                                You've likely reached your target length. Measure to confirm!
                             </div>
-                        );
-                    })()}
+                        </div>
+                    )}
 
                     {/* ✨ ENHANCED: Progress info - length or stitches */}
                     <div className={`text-sm ${theme.textSecondary} mb-4`}>
