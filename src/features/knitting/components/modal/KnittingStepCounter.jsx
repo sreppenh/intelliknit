@@ -311,60 +311,6 @@ const KnittingStepCounter = ({
         return rowText;
     };
 
-    {/* Gauge Update Prompt - inline after instruction */ }
-    {
-        showGaugePrompt && gaugePromptData && (
-            <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
-                <div className="text-sm text-yarn-700 mb-2">
-                    <span className="font-medium">Update your gauge?</span>
-                    <br />
-                    Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
-                    {gaugePromptData.hasExistingGauge && (
-                        <div className="text-xs mt-1">
-                            Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
-                        </div>
-                    )}
-                </div>
-                <div className="flex gap-2">
-                    <button
-                        onClick={handleGaugeAccept}
-                        className="px-3 py-1 bg-yarn-500 hover:bg-yarn-600 text-white text-xs rounded-lg font-medium transition-colors"
-                    >
-                        Update Gauge
-                    </button>
-                    <button
-                        onClick={handleGaugeDecline}
-                        className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs rounded-lg font-medium transition-colors"
-                    >
-                        Keep Current
-                    </button>
-                </div>
-            </div>
-        )
-    }
-
-    {/* Near target alert - when bar turns yarn color */ }
-    {
-        lengthProgressData?.shouldShowNearAlert && (
-            <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
-                <div className="text-sm text-yarn-700">
-                    Getting close to target length. Check your progress!
-                </div>
-            </div>
-        )
-    }
-
-    {/* Target reached alert - when you hit estimate */ }
-    {
-        lengthProgressData?.shouldShowTargetAlert && (
-            <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
-                <div className="text-sm text-sage-700">
-                    You've likely reached your target length. Measure to confirm!
-                </div>
-            </div>
-        )
-    }
-
 
     // ✨ NEW: Get progress info text
     const getProgressInfoText = () => {
@@ -388,25 +334,6 @@ const KnittingStepCounter = ({
 
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
 
-                {/* ✨ NEW: Completion suggestion card for length steps */}
-                {shouldShowCompletionSuggestion && (
-                    <div className="bg-yarn-100 border-2 border-yarn-300 rounded-2xl p-4 mb-4 shadow-lg">
-                        <div className="flex items-center gap-2 mb-2">
-                            <Ruler size={18} className="text-yarn-600" />
-                            <span className="text-sm font-medium text-yarn-700">Gauge Estimate</span>
-                        </div>
-                        <div className="text-sm text-yarn-600 mb-3">
-                            {completionSuggestionText}
-                        </div>
-                        <button
-                            onClick={handleStepComplete}
-                            className="w-full py-2 bg-yarn-500 hover:bg-yarn-600 text-white rounded-lg font-medium transition-colors text-sm"
-                        >
-                            Measure & Complete
-                        </button>
-                    </div>
-                )}
-
                 {/* MAIN INSTRUCTION CARD - Always prominent */}
                 <div className="bg-white/95 backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
 
@@ -420,6 +347,60 @@ const KnittingStepCounter = ({
                     <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed mb-4`}>
                         {instructionResult.instruction || 'Loading instruction...'}
                     </div>
+
+                    {/* Gauge Update Prompt - inline after instruction */}
+                    {
+                        showGaugePrompt && gaugePromptData && (
+                            <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
+                                <div className="text-sm text-yarn-700 mb-2">
+                                    <span className="font-medium">Update your gauge?</span>
+                                    <br />
+                                    Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
+                                    {gaugePromptData.hasExistingGauge && (
+                                        <div className="text-xs mt-1">
+                                            Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
+                                        </div>
+                                    )}
+                                </div>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={handleGaugeAccept}
+                                        className="px-3 py-1 bg-yarn-500 hover:bg-yarn-600 text-white text-xs rounded-lg font-medium transition-colors"
+                                    >
+                                        Update Gauge
+                                    </button>
+                                    <button
+                                        onClick={handleGaugeDecline}
+                                        className="px-3 py-1 bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs rounded-lg font-medium transition-colors"
+                                    >
+                                        Keep Current
+                                    </button>
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    {/* Near target alert - when bar turns yarn color */}
+                    {
+                        lengthProgressData?.shouldShowNearAlert && (
+                            <div className="bg-yarn-50 border-l-4 border-yarn-400 rounded-r-lg p-3 mb-4">
+                                <div className="text-sm text-yarn-700">
+                                    Getting close to target length. Check your progress!
+                                </div>
+                            </div>
+                        )
+                    }
+
+                    {/* Target reached alert - when you hit estimate */}
+                    {
+                        lengthProgressData?.shouldShowTargetAlert && (
+                            <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
+                                <div className="text-sm text-sage-700">
+                                    You've likely reached your target length. Measure to confirm!
+                                </div>
+                            </div>
+                        )
+                    }
 
                     {/* ✨ ENHANCED: Progress info - length or stitches */}
                     <div className={`text-sm ${theme.textSecondary} mb-4`}>
@@ -492,7 +473,7 @@ const KnittingStepCounter = ({
                             )}
 
                             {/* Completion button - show when appropriate */}
-                            {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') && !shouldShowCompletionSuggestion && (
+                            {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') && (
                                 <button
                                     onClick={handleStepComplete}
                                     className={`w-full flex items-center justify-center gap-2 py-3 rounded-xl font-medium transition-colors ${isCompleted
