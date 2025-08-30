@@ -178,9 +178,12 @@ const KnittingStepCounter = ({
         if (gaugePromptData && updateProject) {
             const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
             updateProject(updatedProject);
+
+            setGaugePromptData({
+                ...gaugePromptData,
+                success: true
+            });
         }
-        setShowGaugePrompt(false);
-        setGaugePromptData(null);
     };
 
     const handleGaugeDecline = () => {
@@ -188,8 +191,9 @@ const KnittingStepCounter = ({
         setGaugePromptData(null);
     };
 
-    // ✅ FIXED: Proper step completion that syncs with parent
     const handleStepComplete = () => {
+        console.log('Calling onToggleCompletion with:', navigation.currentStep);
+        console.log('Step completed status before:', isCompleted);
         // Check for gauge update only when completing (not uncompleting)
         if (isLengthStep && !isCompleted) {
             checkForGaugeUpdate();
@@ -205,7 +209,7 @@ const KnittingStepCounter = ({
             sideTracking.commitSideChanges(updateProject);
         }
 
-        // ✅ FIXED: Use the actual project completion handler
+        // Toggle completion
         onToggleCompletion?.(navigation.currentStep);
     };
 
@@ -307,11 +311,9 @@ const KnittingStepCounter = ({
 
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
-            {/* ✅ APPLIED: Design system texture using CSS classes */}
             <div className="knitting-texture-circles" />
 
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
-                {/* ✅ APPLIED: Design system card styling */}
                 <div className="knitting-content-sage backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
 
                     {/* Row Display with Side Intelligence */}
@@ -327,32 +329,39 @@ const KnittingStepCounter = ({
 
                     {/* Gauge Update Prompt */}
                     {showGaugePrompt && gaugePromptData && (
-                        <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
-                            <div className="text-sm text-sage-700 mb-2">
-                                <span className="font-medium">Update your gauge?</span>
-                                <br />
-                                Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
-                                {gaugePromptData.hasExistingGauge && (
-                                    <div className="text-xs mt-1">
-                                        Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
+                        <div className={`border-l-4 rounded-r-lg p-3 mb-4 ${gaugePromptData.success ? 'bg-yarn-50 border-yarn-400' : 'bg-sage-50 border-sage-400'}`}>
+                            {gaugePromptData.success ? (
+                                <div className="text-sm text-yarn-700">
+                                    <span className="font-medium">Gauge successfully updated!</span>
+                                </div>
+                            ) : (
+                                <>
+                                    <div className="text-sm text-sage-700 mb-2">
+                                        <span className="font-medium">Update your gauge?</span>
+                                        <br />
+                                        Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
+                                        {gaugePromptData.hasExistingGauge && (
+                                            <div className="text-xs mt-1">
+                                                Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
+                                            </div>
+                                        )}
                                     </div>
-                                )}
-                            </div>
-                            <div className="flex gap-2">
-                                {/* ✅ APPLIED: Design system button classes */}
-                                <button
-                                    onClick={handleGaugeDecline}
-                                    className="btn-tertiary btn-sm"
-                                >
-                                    Keep Current
-                                </button>
-                                <button
-                                    onClick={handleGaugeAccept}
-                                    className="btn-secondary btn-sm"
-                                >
-                                    Update Gauge
-                                </button>
-                            </div>
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleGaugeDecline}
+                                            className="btn-tertiary btn-sm"
+                                        >
+                                            Keep Current
+                                        </button>
+                                        <button
+                                            onClick={handleGaugeAccept}
+                                            className="btn-secondary btn-sm"
+                                        >
+                                            Update Gauge
+                                        </button>
+                                    </div>
+                                </>
+                            )}
                         </div>
                     )}
 
@@ -480,8 +489,6 @@ const KnittingStepCounter = ({
                         onPatternRowChange={handlePatternRowChange}
                     />
                 )}
-
-                {/* ❌ REMOVED: The rogue undo button - this was showing step-level undo in a row counter context */}
             </div>
         </div>
     );
