@@ -178,8 +178,12 @@ const KnittingStepCounter = ({
     const handleGaugeAccept = () => {
         if (gaugePromptData) {
             const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
-            // Instead of calling updateProject here, we'll pass it to the parent
-            onToggleCompletion?.(stepIndex, updatedProject);
+
+            // Update project directly using the updateProject prop from the modal
+            if (updateProject) {
+                updateProject(updatedProject);
+            }
+
             setGaugePromptData({
                 ...gaugePromptData,
                 success: true

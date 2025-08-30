@@ -100,7 +100,7 @@ const KnittingStepModal = ({
                     progress={progress}
                     stepIndex={stepIndex}
                     navigation={navigation}
-                    //  updateProject={updateProject}
+                    updateProject={updateProject}
                     // onToggleCompletion={() => onToggleCompletion(stepIndex)} // Add this line
                     onToggleCompletion={onToggleCompletion}
                 />
