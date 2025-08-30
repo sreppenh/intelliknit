@@ -114,6 +114,8 @@ export const projectsReducer = (state, action) => {
         projectType: action.payload.projectType || 'other', // NEW LINE
         components: [],
         currentComponent: 0,
+        colorCount: action.payload.colorCount || 2,        // ✅ ADD THIS
+        colorMapping: action.payload.colorMapping || {},   // ✅ ADD THIS
         createdAt: new Date().toISOString(),
         lastActivityAt: new Date().toISOString(), // NEW: Track activity on creation
         completed: false
