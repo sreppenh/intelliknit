@@ -93,7 +93,7 @@ const SimpleRowSettings = ({
     const showPatternRows = patternRowOptions.length > 1;
 
     // Don't render anything if there are no controls to show
-    if (!showSideToggle && !showPatternRows) {
+    if (!showSideToggle && !showPatternRows && lengthTarget?.type !== 'until_length') {
         return null;
     }
 
@@ -102,26 +102,22 @@ const SimpleRowSettings = ({
             {/* Collapsible Header */}
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="w-full flex items-center justify-between p-3 bg-amber-50 hover:bg-amber-100 border border-amber-200 rounded-xl transition-colors text-left"
-            >
-                <div className="flex items-center gap-2 text-sm text-amber-800">
-                    <Settings size={14} />
+                className="w-full flex items-center justify-between p-2 bg-yarn-50 hover:bg-yarn-100 border border-yarn-200 rounded-lg transition-colors text-left"  >
+                <div className="flex items-center gap-2 text-xs text-yarn-800">
+                    <Settings size={12} />
                     <span className="font-medium">Row 1 Settings</span>
-                    <span className="text-xs text-amber-600">
-                        (optional adjustments)
-                    </span>
                 </div>
 
                 <ChevronDown
                     size={16}
-                    className={`text-amber-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
+                    className={`text-yarn-600 transition-transform ${isExpanded ? 'rotate-180' : ''}`}
                 />
             </button>
 
             {/* Expandable Content */}
             {isExpanded && (
-                <div className="mt-2 p-4 bg-amber-50 border border-amber-200 rounded-xl border-t-0 rounded-t-none">
-                    <div className="space-y-4">
+                <div className="mt-1 p-3 bg-yarn-50 border border-yarn-200 rounded-lg border-t-0 rounded-t-none">
+                    <div className="space-y-3">
 
                         {/* Until-Length Starting Measurement */}
                         {lengthTarget?.type === 'until_length' && (
@@ -140,11 +136,11 @@ const SimpleRowSettings = ({
                                         step={0.25}
                                         size="sm"
                                     />
-                                    <span className="text-sm text-amber-700">
+                                    <span className="text-sm text-yarn-700">
                                         {lengthTarget.units}
                                     </span>
                                 </div>
-                                <div className="text-xs text-amber-600 mt-1">
+                                <div className="text-xs text-yarn-600 mt-1">
                                     How long is your piece currently?
                                 </div>
                             </div>
@@ -194,7 +190,7 @@ const SimpleRowSettings = ({
                         )}
 
                         {/* Help text */}
-                        <div className="text-xs text-amber-700 bg-amber-100 rounded-lg p-2">
+                        <div className="text-xs text-yarn-700 bg-yarn-100 rounded-lg p-2">
                             💡 Only adjust these if you're continuing from a specific row in your pattern chart or written instructions
                         </div>
 

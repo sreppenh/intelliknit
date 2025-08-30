@@ -64,7 +64,7 @@ const KnittingStepCounter = ({
     // Now calculate progress data (moved down after startingLength is defined)
     const lengthProgressData = useMemo(() => {
         return isLengthStep ? getLengthProgressDisplay(step, currentRow, project, startingLength) : null;
-    }, [isLengthStep, step, currentRow, project, startingLength]);
+    }, [isLengthStep, step.wizardConfig?.duration, currentRow, project?.gauge, startingLength]);
 
     const lengthDisplayData = isLengthStep ? formatLengthCounterDisplay(lengthProgressData, construction) : null;
     // Store starting length when it changes

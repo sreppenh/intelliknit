@@ -59,7 +59,7 @@ const PatternRowOffsetControl = ({
         <div className="text-xs">
             <button
                 onClick={() => setIsExpanded(!isExpanded)}
-                className="flex items-center gap-1 text-amber-700 hover:text-amber-800 transition-colors"
+                className="flex items-center gap-1 text-yarn-700 hover:text-yarn-800 transition-colors"
             >
                 <span>Start on Row {selectedRow}{construction === 'flat' ? ` (${selectedSide})` : ''}</span>
                 <ChevronDown
@@ -69,15 +69,15 @@ const PatternRowOffsetControl = ({
             </button>
 
             {isExpanded && (
-                <div className="mt-2 p-3 bg-white border border-amber-200 rounded-md shadow-sm">
-                    <div className="mb-2 text-amber-800 font-medium">
+                <div className="mt-2 p-3 bg-white border border-yarn-200 rounded-md shadow-sm">
+                    <div className="mb-2 text-yarn-800 font-medium">
                         {patternInfo.patternName} ({patternInfo.patternLength} rows)
                     </div>
 
                     <div className="space-y-2">
                         {/* Row Selection */}
                         <div>
-                            <label className="block text-amber-700 mb-1">Start on Pattern Row:</label>
+                            <label className="block text-yarn-700 mb-1">Start on Pattern Row:</label>
                             <div className="flex gap-1 flex-wrap">
                                 {Array.from({ length: patternInfo.patternLength }, (_, i) => i + 1).map(row => (
                                     <button
@@ -85,7 +85,7 @@ const PatternRowOffsetControl = ({
                                         onClick={() => handleRowChange(row)}
                                         className={`px-2 py-1 rounded text-xs font-medium transition-colors ${row === selectedRow
                                             ? 'bg-sage-500 text-white'
-                                            : 'bg-white border border-amber-300 text-amber-800 hover:bg-amber-50'
+                                            : 'bg-white border border-yarn-300 text-yarn-800 hover:bg-yarn-50'
                                             }`}
                                     >
                                         {row}
@@ -97,13 +97,13 @@ const PatternRowOffsetControl = ({
                         {/* Side Toggle - Only for flat construction */}
                         {construction === 'flat' && (
                             <div>
-                                <label className="block text-amber-700 mb-1">Side:</label>
+                                <label className="block text-yarn-700 mb-1">Side:</label>
                                 <button
                                     onClick={handleSideToggle}
-                                    className="flex items-center gap-1 px-2 py-1 bg-white border border-amber-300 rounded text-xs hover:bg-amber-50 transition-colors"
+                                    className="flex items-center gap-1 px-2 py-1 bg-white border border-yarn-300 rounded text-xs hover:bg-yarn-50 transition-colors"
                                 >
                                     <RotateCw size={10} />
-                                    {selectedSide} <span className="text-amber-600">→ {selectedSide === 'RS' ? 'WS' : 'RS'}</span>
+                                    {selectedSide} <span className="text-yarn-600">→ {selectedSide === 'RS' ? 'WS' : 'RS'}</span>
                                 </button>
                             </div>
                         )}
@@ -112,7 +112,7 @@ const PatternRowOffsetControl = ({
                         {!isDefault && (
                             <button
                                 onClick={() => handleRowChange(1)}
-                                className="text-xs text-amber-600 hover:text-amber-800 underline"
+                                className="text-xs text-yarn-600 hover:text-yarn-800 underline"
                             >
                                 Reset to Row 1 (RS)
                             </button>
