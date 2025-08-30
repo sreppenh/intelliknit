@@ -153,7 +153,8 @@ const KnittingStepModal = ({
                                 // ✅ FORCE PROPER POSITIONING to break out of modal conflicts
                                 position: 'relative',
                                 zIndex: 1001,
-                                pointerEvents: 'auto'
+                                pointerEvents: 'auto',
+                                touchAction: 'none'
                             }}
                         >
                             <ChevronLeft size={18} />
@@ -195,7 +196,8 @@ const KnittingStepModal = ({
                                 // ✅ FORCE PROPER POSITIONING to break out of modal conflicts
                                 position: 'relative',
                                 zIndex: 1001,
-                                pointerEvents: 'auto'
+                                pointerEvents: 'auto',
+                                touchAction: 'none'
                             }}
                         >
                             <ChevronRight size={18} />

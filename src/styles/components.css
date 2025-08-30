@@ -516,27 +516,68 @@ body.modal-open {
 
 /* Navigation Arrows */
 .knitting-nav-arrow {
+  @apply flex items-center justify-center;
   pointer-events: auto !important;
   touch-action: manipulation;
-  z-index: 1000 !important;
-  /* Higher than modal content */
+  z-index: 9999 !important;
+  /* Increased from 1000 */
+
+  /* Fixed positioning and sizing */
+  position: fixed !important;
+  width: 48px !important;
+  height: 48px !important;
+
+  /* Clean styling */
+  background-color: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  transition: all 0.2s ease;
+}
+
+.knitting-nav-arrow:hover {
+  background-color: rgba(255, 255, 255, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
 .knitting-nav-arrow:active {
-  transform: translateY(-50%) scale(0.95);
+  transform: scale(0.95);
 }
 
 .knitting-nav-arrow-left {
-  @apply knitting-nav-arrow left-4;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
 .knitting-nav-arrow-right {
-  @apply knitting-nav-arrow right-4;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
 }
 
-.modal-content .knitting-nav-arrow {
-  position: fixed !important;
-  /* Break out of modal positioning context */
+.knitting-nav-arrow-left:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.knitting-nav-arrow-right:hover {
+  transform: translateY(-50%) scale(1.05);
+}
+
+.knitting-nav-arrow-left:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+.knitting-nav-arrow-right:active {
+  transform: translateY(-50%) scale(0.95);
+}
+
+/* Ensure modal elements stay below arrows */
+.modal-content,
+.knitting-modal-header,
+.knitting-modal-footer,
+.knitting-transition-overlay {
+  z-index: 1000 !important;
 }
 
 /* Completion Toggle */

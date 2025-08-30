@@ -36,8 +36,8 @@ export const useStepNavigation = ({
         setIsTransitioning(true);
         try {
             await action();
-            // Small delay for smooth visual feedback
-            await new Promise(resolve => setTimeout(resolve, 150));
+            // ✅ REMOVE THIS: No artificial delay needed
+            // await new Promise(resolve => setTimeout(resolve, 150));
         } finally {
             setIsTransitioning(false);
         }
