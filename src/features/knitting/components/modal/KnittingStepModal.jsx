@@ -98,7 +98,8 @@ const KnittingStepModal = ({
                     theme={theme}
                     progress={progress}
                     navigation={navigation}
-                    onToggleCompletion={onToggleCompletion}
+                    onToggleCompletion={() => onToggleCompletion(stepIndex)} // Add this line
+
                 />
             );
         }

@@ -137,7 +137,7 @@ const KnittingStepCounter = ({
     // Step analysis
     const totalRows = calculateActualTotalRows(step);
     const targetStitches = calculateCurrentStitchCount(currentRow);
-    const isCompleted = progress.isStepCompleted(navigation.currentStep);
+    const isCompleted = step.completed || false;
     const duration = step.wizardConfig?.duration;
 
     // Determine step type
