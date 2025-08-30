@@ -4,6 +4,7 @@ import { ChevronDown, Settings } from 'lucide-react';
 import SegmentedControl from '../../../shared/components/SegmentedControl';
 import { getStepPatternInfo } from '../../../shared/utils/sideIntelligence';
 import { isAlgorithmicPattern, getPatternMetadata } from '../../../shared/utils/AlgorithmicPatterns';
+import IncrementInput from '../../../shared/components/IncrementInput';
 
 /**
  * Simple Row 1 Settings
@@ -15,9 +16,13 @@ const SimpleRowSettings = ({
     construction,
     currentSide,
     onSideChange,
-    onPatternRowChange
+    onPatternRowChange,
+    lengthTarget = null,
+    startingLength = null,
+    onStartingLengthChange = null,
+    defaultExpanded = false
 }) => {
-    const [isExpanded, setIsExpanded] = useState(false);
+    const [isExpanded, setIsExpanded] = useState(defaultExpanded);
     const patternInfo = getStepPatternInfo(step);
     const [selectedPatternRow, setSelectedPatternRow] = useState(1);
 
@@ -117,6 +122,34 @@ const SimpleRowSettings = ({
             {isExpanded && (
                 <div className="mt-2 p-4 bg-amber-50 border border-amber-200 rounded-xl border-t-0 rounded-t-none">
                     <div className="space-y-4">
+
+                        {/* Until-Length Starting Measurement */}
+                        {lengthTarget?.type === 'until_length' && (
+                            <div>
+                                <label className="form-label-sm">
+                                    Current piece length
+                                </label>
+                                <div className="flex items-center gap-2">
+                                    <IncrementInput
+                                        value={startingLength || ''}
+                                        onChange={onStartingLengthChange}
+                                        label="current distance knit"
+                                        min={0}
+                                        max={lengthTarget.value}
+                                        useDecimals={true}
+                                        step={0.25}
+                                        size="sm"
+                                    />
+                                    <span className="text-sm text-amber-700">
+                                        {lengthTarget.units}
+                                    </span>
+                                </div>
+                                <div className="text-xs text-amber-600 mt-1">
+                                    How long is your piece currently?
+                                </div>
+                            </div>
+                        )}
+
 
                         {/* Side Toggle - only for flat construction */}
                         {showSideToggle && (

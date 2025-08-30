@@ -1,5 +1,5 @@
 // src/features/knitting/components/modal/KnittingStepCounter.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Plus, Minus, Target, Check } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
 import { getRowInstruction, getStepType } from '../../../../shared/utils/KnittingInstructionService';
@@ -45,15 +45,38 @@ const KnittingStepCounter = ({
     const [showGaugePrompt, setShowGaugePrompt] = useState(false);
     const [gaugePromptData, setGaugePromptData] = useState(null);
 
-    // Side intelligence calculations
     const construction = step.construction || component.construction || 'flat';
-    const useSideIntelligence = shouldUseSideIntelligence(step);
 
     // Length-based step detection and progress
     const isLengthStep = isLengthBasedStep(step);
     const lengthTarget = isLengthStep ? getLengthTarget(step) : null;
-    const lengthProgressData = isLengthStep ? getLengthProgressDisplay(step, currentRow, project) : null;
+
+    // Until-length starting measurement state (moved up before lengthProgressData)
+    const startingLengthKey = `until-length-start-${project?.id}-${component?.id}-${stepIndex}`;
+    const [startingLength, setStartingLength] = useState(() => {
+        if (lengthTarget?.type === 'until_length') {
+            const stored = localStorage.getItem(startingLengthKey);
+            return stored ? parseFloat(stored) : null;
+        }
+        return null;
+    });
+
+    // Now calculate progress data (moved down after startingLength is defined)
+    const lengthProgressData = useMemo(() => {
+        return isLengthStep ? getLengthProgressDisplay(step, currentRow, project, startingLength) : null;
+    }, [isLengthStep, step, currentRow, project, startingLength]);
+
     const lengthDisplayData = isLengthStep ? formatLengthCounterDisplay(lengthProgressData, construction) : null;
+    // Store starting length when it changes
+    useEffect(() => {
+        if (lengthTarget?.type === 'until_length' && startingLength !== null) {
+            localStorage.setItem(startingLengthKey, startingLength.toString());
+        }
+    }, [startingLength, startingLengthKey, lengthTarget?.type]);
+
+    // Side intelligence calculations
+    const useSideIntelligence = shouldUseSideIntelligence(step);
+
 
     // Get starting side for this step
     const stepStartingSide = useSideIntelligence
@@ -485,13 +508,17 @@ const KnittingStepCounter = ({
                 </div>
 
                 {/* Row 1 Settings - Clean & Simple */}
-                {currentRow === 1 && useSideIntelligence && (
+                {currentRow === 1 && (useSideIntelligence || lengthTarget?.type === 'until_length') && (
                     <SimpleRowSettings
                         step={step}
                         construction={construction}
                         currentSide={currentSide}
                         onSideChange={handleSideChange}
                         onPatternRowChange={handlePatternRowChange}
+                        lengthTarget={lengthTarget}
+                        startingLength={startingLength}
+                        onStartingLengthChange={setStartingLength}
+                        defaultExpanded={lengthTarget?.type === 'until_length'}
                     />
                 )}
             </div>

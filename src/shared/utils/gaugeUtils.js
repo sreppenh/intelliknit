@@ -88,12 +88,32 @@ export const calculateLengthProgress = (currentRow, estimatedTotalRows, targetLe
 /**
  * Get gauge-aware display text for length-based steps
  */
-export const getLengthProgressDisplay = (step, currentRow, project) => {
+export const getLengthProgressDisplay = (step, currentRow, project, startingLength = null) => {
     const lengthTarget = getLengthTarget(step);
     if (!lengthTarget) return null;
 
-    const estimatedRows = estimateRowsFromLength(lengthTarget.value, lengthTarget.units, project);
+    // ADD THIS RIGHT AFTER:
+    // Handle until-length steps by converting to equivalent length step
+    let effectiveTargetLength = lengthTarget.value;
+    let effectiveTargetUnits = lengthTarget.units;
 
+    if (lengthTarget.type === 'until_length' && startingLength !== null) {
+        effectiveTargetLength = lengthTarget.value - startingLength;
+
+        if (effectiveTargetLength <= 0) {
+            // Already at or past target
+            return {
+                hasGauge: false,
+                targetLength: lengthTarget.value,
+                targetUnits: lengthTarget.units,
+                currentRow,
+                alreadyComplete: true,
+                showEstimate: false
+            };
+        }
+    }
+
+    const estimatedRows = estimateRowsFromLength(effectiveTargetLength, effectiveTargetUnits, project);
     if (!estimatedRows) {
         // No gauge available - show basic info
         return {
