@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import { CheckCircle2, Circle, FileText, X } from 'lucide-react';
 import PageHeader from '../../../shared/components/PageHeader';
@@ -13,15 +13,26 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const [selectedStepIndex, setSelectedStepIndex] = useState(null);
   const [showStepModal, setShowStepModal] = useState(false);
 
+  // Add this new function after handleCloseStepModal
+  const updateProject = useCallback((updatedProject) => {
+    dispatch({ type: 'UPDATE_PROJECT', payload: updatedProject });
+  }, [dispatch]);
+
   if (!currentProject) {
     return <div>No project selected</div>;
   }
 
-  const handleToggleStepCompletion = (componentIndex, stepIndex) => {
+  const handleToggleStepCompletion = (componentIndex, stepIndex, updatedProject = null) => {
+    // First, toggle the step completion
     dispatch({
       type: 'TOGGLE_STEP_COMPLETION',
       payload: { componentIndex, stepIndex }
     });
+
+    // Then update project if gauge data was provided
+    if (updatedProject) {
+      updateProject(updatedProject);
+    }
   };
 
   const handleComponentTabClick = (index) => {
@@ -38,6 +49,8 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
     setShowStepModal(false);
     setSelectedStepIndex(null);
   };
+
+
 
   const activeComponent = currentProject.components[localActiveIndex];
 
@@ -311,6 +324,7 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
             component={activeComponent}
             project={currentProject}
             totalSteps={activeComponent.steps.length}
+            updateProject={updateProject}
             onClose={handleCloseStepModal}
             onToggleCompletion={(stepIndex) =>
               handleToggleStepCompletion(localActiveIndex, stepIndex)

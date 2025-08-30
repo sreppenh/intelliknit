@@ -30,6 +30,7 @@ const KnittingStepCounter = ({
     project,
     theme,
     progress,
+    stepIndex,
     navigation,
     updateProject, // this doesn't seem to be set anywhere
     onToggleCompletion
@@ -175,17 +176,10 @@ const KnittingStepCounter = ({
     };
 
     const handleGaugeAccept = () => {
-        console.log('da da dum');
-        console.log(gaugePromptData);
-        console.log('dum dum dada');
-        console.log(updateProject);
-
-        if (gaugePromptData && updateProject) {
+        if (gaugePromptData) {
             const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
-
-            console.log('hallo');
-            updateProject(updatedProject);  // is this the problem?
-            console.log('spaceboy');
+            // Instead of calling updateProject here, we'll pass it to the parent
+            onToggleCompletion?.(stepIndex, updatedProject);
             setGaugePromptData({
                 ...gaugePromptData,
                 success: true
@@ -199,25 +193,24 @@ const KnittingStepCounter = ({
     };
 
     const handleStepComplete = () => {
-        console.log('Calling onToggleCompletion with:', navigation.currentStep);
-        console.log('Step completed status before:', isCompleted);
         // Check for gauge update only when completing (not uncompleting)
         if (isLengthStep && !isCompleted) {
             checkForGaugeUpdate();
         }
 
         // Record actual ending side when step is completed
-        if (useSideIntelligence && currentSide && updateProject) {
-            sideTracking.recordEndingSide(currentSide, currentRow, updateProject);
+        if (useSideIntelligence && currentSide) {
+            // We'll handle this differently - store the data but don't call updateProject yet
+            sideTracking.recordEndingSide(currentSide, currentRow, () => { });
         }
 
-        // Commit any session changes to permanent storage
-        if (sideTracking.hasSessionChanges && updateProject) {
-            sideTracking.commitSideChanges(updateProject);
+        // Commit any session changes to permanent storage  
+        if (sideTracking.hasSessionChanges) {
+            sideTracking.commitSideChanges(() => { });
         }
 
         // Toggle completion
-        onToggleCompletion?.(navigation.currentStep);
+        onToggleCompletion?.(stepIndex);
     };
 
     const handleRowIncrement = () => {

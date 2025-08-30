@@ -18,7 +18,8 @@ const KnittingStepModal = ({
     totalSteps,
     onClose,
     onToggleCompletion,
-    onNavigateStep
+    onNavigateStep,
+    updateProject
 }) => {
 
     // Reset view mode when step changes
@@ -97,9 +98,11 @@ const KnittingStepModal = ({
                     project={project}
                     theme={theme}
                     progress={progress}
+                    stepIndex={stepIndex}
                     navigation={navigation}
-                    onToggleCompletion={() => onToggleCompletion(stepIndex)} // Add this line
-
+                    //  updateProject={updateProject}
+                    // onToggleCompletion={() => onToggleCompletion(stepIndex)} // Add this line
+                    onToggleCompletion={onToggleCompletion}
                 />
             );
         }
