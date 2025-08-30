@@ -70,12 +70,14 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
       '';
   };
 
-  // Create display items (prep cards + step cards)
+
+  // Create display items (prep cards + step cards + assembly cards)
   const createDisplayItems = (component) => {
     const items = [];
 
     component.steps.forEach((step, stepIndex) => {
       const prepNote = getStepPrepNote(step);
+      const afterNote = getStepAfterNote(step); // ✅ FIXED: Now in correct scope
 
       // Add prep card if prep note exists
       if (prepNote) {
@@ -94,6 +96,16 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
         step,
         id: `step-${stepIndex}`
       });
+
+      // ✅ FIXED: Add assembly note card if it exists (now in correct scope)
+      if (afterNote) {
+        items.push({
+          type: 'assembly',
+          stepIndex,
+          afterNote,
+          id: `assembly-${stepIndex}`
+        });
+      }
     });
 
     return items;
@@ -189,6 +201,28 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                         </div>
                         <div className="text-sm text-lavender-600 italic">
                           "{item.prepNote}"
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              } else if (item.type === 'assembly') {
+                // ✅ NEW: Assembly Card - Sage themed
+                return (
+                  <div
+                    key={item.id}
+                    className="bg-sage-50 border-l-4 border-sage-400 rounded-r-xl p-4 shadow-sm"
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-7 h-7 rounded-full bg-sage-400 text-white flex items-center justify-center flex-shrink-0">
+                        🔧
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-semibold text-sage-700 mb-1">
+                          Assembly Notes
+                        </div>
+                        <div className="text-sm text-sage-600 italic">
+                          "{item.afterNote}"
                         </div>
                       </div>
                     </div>
