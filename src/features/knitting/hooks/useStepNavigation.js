@@ -17,62 +17,94 @@ export const useStepNavigation = ({
     const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
     const [preloadedSteps, setPreloadedSteps] = useState(new Set());
+    const [navigationDirection, setNavigationDirection] = useState('forward');
 
-    // Reset carousel when step changes
+    // Enhanced carousel positioning when step changes
     useEffect(() => {
-        setCurrentCarouselIndex(0);
-    }, [stepIndex]);
+        if (carouselItems.length > 0) {
+            // Check if this step has different content types
+            const hasPrep = carouselItems.some(item => item.type === 'prep');
+
+            // For backward navigation, land on main step (skip prep initially)
+            if (navigationDirection === 'backward' && hasPrep && carouselItems.length > 1) {
+                // Find the main step index (should be 1 if prep exists at 0)
+                const mainStepIndex = carouselItems.findIndex(item => item.type === 'step');
+                setCurrentCarouselIndex(mainStepIndex >= 0 ? mainStepIndex : 0);
+            } else {
+                // For forward navigation or steps without prep, start at beginning
+                setCurrentCarouselIndex(0);
+            }
+        }
+
+        // Reset direction after handling
+        setNavigationDirection('forward');
+    }, [stepIndex, carouselItems, navigationDirection]);
 
     // Safe carousel navigation
     const safeCarouselIndex = Math.min(currentCarouselIndex, carouselItems.length - 1);
     const currentItem = carouselItems[safeCarouselIndex];
 
-    // Navigation bounds checking
-    const canGoLeft = safeCarouselIndex > 0 || stepIndex > 0;
-    const canGoRight = safeCarouselIndex < carouselItems.length - 1 || stepIndex < totalSteps - 1;
+    // Enhanced navigation bounds checking with absolute positioning
+    const getNavigationBounds = () => {
+        // Calculate absolute bounds across all steps and carousel items
+        const isAtAbsoluteStart = stepIndex === 0 && safeCarouselIndex === 0;
+        const isAtAbsoluteEnd = stepIndex === totalSteps - 1 && safeCarouselIndex === carouselItems.length - 1;
 
-    // Smooth transition wrapper
+        const canGoLeft = !isAtAbsoluteStart;
+        const canGoRight = !isAtAbsoluteEnd;
+
+        return { canGoLeft, canGoRight, isAtAbsoluteStart, isAtAbsoluteEnd };
+    };
+
+    const navigationBounds = getNavigationBounds();
+
+    // Smooth transition wrapper (removed artificial delay)
     const withTransition = useCallback(async (action) => {
         setIsTransitioning(true);
         try {
             await action();
-            // ✅ REMOVE THIS: No artificial delay needed
-            // await new Promise(resolve => setTimeout(resolve, 150));
         } finally {
             setIsTransitioning(false);
         }
     }, []);
 
-    // ✅ DEFINE NAVIGATION FUNCTIONS BEFORE EVENT LISTENERS
+    // Smart left navigation with proper prep step handling
     const navigateLeft = useCallback(() => {
-        if (isTransitioning) return;
+        if (isTransitioning || !navigationBounds.canGoLeft) return;
 
         withTransition(async () => {
             if (safeCarouselIndex > 0) {
+                // Move within current step's carousel
                 setCurrentCarouselIndex(safeCarouselIndex - 1);
             } else if (stepIndex > 0) {
+                // Set direction for landing on main step
+                setNavigationDirection('backward');
                 onNavigateStep(-1);
             }
         });
-    }, [safeCarouselIndex, stepIndex, onNavigateStep, withTransition, isTransitioning]);
+    }, [safeCarouselIndex, stepIndex, onNavigateStep, withTransition, isTransitioning, navigationBounds.canGoLeft]);
 
+    // Smart right navigation
     const navigateRight = useCallback(() => {
-        if (isTransitioning) return;
+        if (isTransitioning || !navigationBounds.canGoRight) return;
 
         withTransition(async () => {
             if (safeCarouselIndex < carouselItems.length - 1) {
+                // Move within current step's carousel
                 setCurrentCarouselIndex(safeCarouselIndex + 1);
             } else if (stepIndex < totalSteps - 1) {
+                setNavigationDirection('forward');
                 onNavigateStep(1);
             }
         });
-    }, [safeCarouselIndex, carouselItems.length, stepIndex, totalSteps, onNavigateStep, withTransition, isTransitioning]);
+    }, [safeCarouselIndex, carouselItems.length, stepIndex, totalSteps, onNavigateStep, withTransition, isTransitioning, navigationBounds.canGoRight]);
 
     // Jump directly to a specific step
     const jumpToStep = useCallback((targetStepIndex) => {
         if (targetStepIndex >= 0 && targetStepIndex < totalSteps && targetStepIndex !== stepIndex) {
             withTransition(async () => {
                 const direction = targetStepIndex - stepIndex;
+                setNavigationDirection(direction > 0 ? 'forward' : 'backward');
                 onNavigateStep(direction);
             });
         }
@@ -85,7 +117,7 @@ export const useStepNavigation = ({
         }
     }, [stepIndex, onToggleCompletion]);
 
-    // ✅ KEYBOARD SHORTCUTS - NOW WITH PROPER DEPENDENCY ARRAY
+    // Keyboard shortcuts
     useEffect(() => {
         if (!isModalOpen) return;
 
@@ -158,7 +190,7 @@ export const useStepNavigation = ({
         }
     }, [stepIndex, totalSteps, preloadStep]);
 
-    // ✅ RESTORED: Swipe gesture handling (was missing in my version)
+    // Swipe gesture handling
     const handleSwipeGesture = useCallback((direction, distance) => {
         const minSwipeDistance = 50;
 
@@ -191,24 +223,28 @@ export const useStepNavigation = ({
         const isLeftSwipe = distance > 50;  // Swipe left
         const isRightSwipe = distance < -50; // Swipe right
 
-        if (isLeftSwipe) {
+        if (isLeftSwipe && navigationBounds.canGoRight) {
             navigateRight();
-        } else if (isRightSwipe) {
+        } else if (isRightSwipe && navigationBounds.canGoLeft) {
             navigateLeft();
         }
-    }, [touchStart, touchEnd, navigateLeft, navigateRight]);
+    }, [touchStart, touchEnd, navigateLeft, navigateRight, navigationBounds]);
 
-    // Navigation state
+    // Navigation state with absolute boundary info
     const navigationState = {
         currentStep: stepIndex,
         totalSteps,
         currentCarouselIndex: safeCarouselIndex,
         totalCarouselItems: carouselItems.length,
-        canGoLeft,
-        canGoRight,
+        canGoLeft: navigationBounds.canGoLeft,
+        canGoRight: navigationBounds.canGoRight,
         isTransitioning,
         currentItem,
-        preloadedSteps: Array.from(preloadedSteps)
+        preloadedSteps: Array.from(preloadedSteps),
+
+        // Additional boundary info for UI
+        isAtAbsoluteStart: navigationBounds.isAtAbsoluteStart,
+        isAtAbsoluteEnd: navigationBounds.isAtAbsoluteEnd
     };
 
     // Progress helpers
@@ -243,7 +279,7 @@ export const useStepNavigation = ({
         // Progress utilities
         getStepProgress,
 
-        // ✅ RESTORED: Swipe gesture handler (was referenced but missing)
+        // Swipe gesture handler
         handleSwipeGesture,
 
         // Keyboard shortcut info (for help/hints)

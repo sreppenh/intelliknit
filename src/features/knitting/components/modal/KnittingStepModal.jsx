@@ -8,6 +8,7 @@ import { getModalTheme } from './KnittingModalTheme';
 import KnittingStepInstructions from './KnittingStepInstructions';
 import KnittingStepCounter from './KnittingStepCounter';
 import KnittingPrepCard from './KnittingPrepCard';
+import KnittingAssemblyCard from './KnittingAssemblyCard';
 import { useLocalStorage } from '../../../../shared/hooks/useLocalStorage';
 
 const KnittingStepModal = ({
@@ -38,6 +39,12 @@ const KnittingStepModal = ({
             step.advancedWizardConfig?.prepNote ||
             '';
 
+        // Extract assembly note (afterNote)
+        const afterNote = step.afterNote ||
+            step.wizardConfig?.afterNote ||
+            step.advancedWizardConfig?.afterNote ||
+            '';
+
         // Add prep card if prep note exists
         if (prepNote) {
             items.push({
@@ -48,7 +55,7 @@ const KnittingStepModal = ({
             });
         }
 
-        // Add main step card
+        // Add main step card (always present)
         items.push({
             type: 'step',
             stepIndex,
@@ -56,8 +63,19 @@ const KnittingStepModal = ({
             id: `step-${stepIndex}`
         });
 
+        // Add assembly card if assembly note exists
+        if (afterNote) {
+            items.push({
+                type: 'assembly',
+                stepIndex,
+                afterNote,
+                id: `assembly-${stepIndex}`
+            });
+        }
+
         return items;
     };
+
 
     // Create carousel items
     const carouselItems = createCarouselItems(step, stepIndex);
@@ -90,6 +108,17 @@ const KnittingStepModal = ({
             );
         }
 
+        // ✅ NEW: Assembly notes card
+        if (currentItem.type === 'assembly') {
+            return (
+                <KnittingAssemblyCard
+                    afterNote={currentItem.afterNote}
+                    stepIndex={stepIndex}
+                    navigation={navigation}
+                />
+            );
+        }
+
         if (viewMode === 'counter') {
             return (
                 <KnittingStepCounter
@@ -101,7 +130,6 @@ const KnittingStepModal = ({
                     stepIndex={stepIndex}
                     navigation={navigation}
                     updateProject={updateProject}
-                    // onToggleCompletion={() => onToggleCompletion(stepIndex)} // Add this line
                     onToggleCompletion={onToggleCompletion}
                 />
             );
@@ -138,27 +166,25 @@ const KnittingStepModal = ({
                     </button>
 
                     <div className="flex items-center justify-between">
-                        <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                // ✅ DEFENSIVE: Check transition state and navigation capability
-                                if (!navigation.isTransitioning && navigation.canGoLeft) {
-                                    navigation.navigateLeft();
-                                }
-                            }}
-                            disabled={!navigation.canGoLeft || navigation.isTransitioning}
-                            className="knitting-nav-arrow knitting-nav-arrow-left"
-                            style={{
-                                // ✅ FORCE PROPER POSITIONING to break out of modal conflicts
-                                position: 'relative',
-                                zIndex: 1001,
-                                pointerEvents: 'auto',
-                                touchAction: 'none'
-                            }}
-                        >
-                            <ChevronLeft size={18} />
-                        </button>
+                        {/* ✅ LEFT ARROW: Only show if not at absolute beginning */}
+                        {navigation.canGoLeft && (
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (!navigation.isTransitioning && navigation.canGoLeft) {
+                                        navigation.navigateLeft();
+                                    }
+                                }}
+                                disabled={!navigation.canGoLeft || navigation.isTransitioning}
+                                className="knitting-nav-arrow knitting-nav-arrow-left"
+                            >
+                                <ChevronLeft size={18} />
+                            </button>
+                        )}
+
+                        {/* ✅ SPACER: When left arrow is hidden, center the progress info */}
+                        {!navigation.canGoLeft && <div style={{ width: '48px' }} />}
 
                         <div className="text-center flex-1 px-2">
                             {/* ✅ SIMPLIFIED: Just step progress + component name */}
@@ -181,27 +207,25 @@ const KnittingStepModal = ({
                             </div>
                         </div>
 
-                        <button
-                            onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                // ✅ DEFENSIVE: Check transition state and navigation capability
-                                if (!navigation.isTransitioning && navigation.canGoRight) {
-                                    navigation.navigateRight();
-                                }
-                            }}
-                            disabled={!navigation.canGoRight || navigation.isTransitioning}
-                            className="knitting-nav-arrow knitting-nav-arrow-right"
-                            style={{
-                                // ✅ FORCE PROPER POSITIONING to break out of modal conflicts
-                                position: 'relative',
-                                zIndex: 1001,
-                                pointerEvents: 'auto',
-                                touchAction: 'none'
-                            }}
-                        >
-                            <ChevronRight size={18} />
-                        </button>
+                        {/* ✅ RIGHT ARROW: Only show if not at absolute end */}
+                        {navigation.canGoRight && (
+                            <button
+                                onClick={(e) => {
+                                    e.preventDefault();
+                                    e.stopPropagation();
+                                    if (!navigation.isTransitioning && navigation.canGoRight) {
+                                        navigation.navigateRight();
+                                    }
+                                }}
+                                disabled={!navigation.canGoRight || navigation.isTransitioning}
+                                className="knitting-nav-arrow knitting-nav-arrow-right"
+                            >
+                                <ChevronRight size={18} />
+                            </button>
+                        )}
+
+                        {/* ✅ SPACER: When right arrow is hidden, maintain spacing */}
+                        {!navigation.canGoRight && <div style={{ width: '48px' }} />}
                     </div>
                 </div>
 
