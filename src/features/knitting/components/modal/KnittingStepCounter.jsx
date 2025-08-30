@@ -31,7 +31,7 @@ const KnittingStepCounter = ({
     theme,
     progress,
     navigation,
-    updateProject,
+    updateProject, // this doesn't seem to be set anywhere
     onToggleCompletion
 }) => {
     const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
@@ -175,10 +175,17 @@ const KnittingStepCounter = ({
     };
 
     const handleGaugeAccept = () => {
+        console.log('da da dum');
+        console.log(gaugePromptData);
+        console.log('dum dum dada');
+        console.log(updateProject);
+
         if (gaugePromptData && updateProject) {
             const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
-            updateProject(updatedProject);
 
+            console.log('hallo');
+            updateProject(updatedProject);  // is this the problem?
+            console.log('spaceboy');
             setGaugePromptData({
                 ...gaugePromptData,
                 success: true
@@ -354,6 +361,7 @@ const KnittingStepCounter = ({
                                             Keep Current
                                         </button>
                                         <button
+
                                             onClick={handleGaugeAccept}
                                             className="btn-secondary btn-sm"
                                         >
