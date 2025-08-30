@@ -6,13 +6,16 @@
  * Companion to stepDisplayUtils.js and stepCreationUtils.js
  * Generates human-friendly descriptions and contextual notes for step display.
  */
-
-import { getStepPatternName, getStepMethodDisplay, getStepDurationDisplay, getStepPrepNote, getStepType, hasShaping, requiresAdvancedPatternEdit } from './stepDisplayUtils';
-import { formatKnittingInstruction } from './knittingNotation';
+import { getStepPatternName, getStepMethodDisplay, getStepPrepNote, getStepType, hasShaping, requiresAdvancedPatternEdit } from './stepDisplayUtils'; import { formatKnittingInstruction } from './knittingNotation';
 import { PhaseCalculationService } from './PhaseCalculationService';
 import { getCorrectDurationDisplay, estimateRowsFromLength } from './gaugeUtils';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
+
+// Add this function right after the imports section:
+const getStepDurationDisplay = (step, project = null) => {
+    return getCorrectDurationDisplay(step, project);
+};
 
 /**
  * ✅ REFACTORED: Generate human-readable description for any step
@@ -706,76 +709,12 @@ const getTechnicalDataDisplay = (step, project = null) => {
 /**
  * ✅ NEW: Enhanced duration display that calculates total rows for repeats
  */
+/**
+ * ✅ SIMPLIFIED: Enhanced duration display using gauge-aware utility
+ */
 const getEnhancedDurationDisplay = (step, project = null) => {
-    // ✅ NEW: Handle intrinsic shaping first - get totalRows from shaping config
-    const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
-    if (shapingConfig?.type === 'intrinsic_pattern' && shapingConfig.config?.calculation?.totalRows) {
-        const construction = step.construction || 'flat';
-        const rowTerm = construction === 'round' ? 'rounds' : 'rows';
-        return `${shapingConfig.config.calculation.totalRows} ${rowTerm}`;
-    }
-
-    const duration = step.wizardConfig?.duration;
-    const construction = step.construction || 'flat';
-    const rowTerm = construction === 'round' ? 'rounds' : 'rows';
-
-
-    if (!duration?.type) {
-        // Fallback to totalRows if available
-        return step.totalRows ? `${step.totalRows} ${rowTerm}` : null;
-    }
-
-    // ✅ ENHANCED: Handle repeats by calculating total rows
-    if (duration.type === 'repeats') {
-        const repeats = parseInt(duration.value) || 0;
-        const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
-        const rowsInPattern = parseInt(stitchPattern?.rowsInPattern) || 0;
-
-        if (repeats > 0 && rowsInPattern > 0) {
-            const totalRows = repeats * rowsInPattern;
-            return `${totalRows} ${rowTerm}`;
-        }
-
-        // Fallback to showing repeats if we can't calculate
-        return `${repeats} repeats`;
-    }
-
-    // ✨ NEW: Handle length-based steps with gauge awareness
-    if (duration.type === 'length') {
-        // Import the gauge utility function at the top if not already imported
-        // import { estimateRowsFromLength } from './gaugeUtils';
-
-        const targetLength = parseFloat(duration.value) || 0;
-        const targetUnits = duration.units || 'inches';
-
-        // Try to get estimated rows from gauge
-        const estimatedRows = project ? estimateRowsFromLength(targetLength, targetUnits, project) : null;
-
-        if (estimatedRows) {
-            return `${targetLength} ${targetUnits} (~${estimatedRows} ${rowTerm})`;
-        }
-
-        // Fallback without gauge
-        return `${targetLength} ${targetUnits}`;
-    }
-
-    if (duration.type === 'until_length') {
-        const referenceText = duration.reference ? ` from ${duration.reference}` : '';
-        return `until ${duration.value} ${duration.units || 'inches'}${referenceText}`;
-    }
-
-    // Handle other duration types (existing logic unchanged)
-    switch (duration.type) {
-        case 'rows':
-        case 'rounds':
-            return `${duration.value} ${rowTerm}`;
-        case 'stitches':
-            return `${duration.value || 'all'} stitches`;
-        default:
-            return null;
-    }
+    return getCorrectDurationDisplay(step, project);
 };
-
 // ===== UTILITY FUNCTIONS =====
 
 /**
