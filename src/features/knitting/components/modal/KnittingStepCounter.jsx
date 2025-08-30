@@ -190,8 +190,8 @@ const KnittingStepCounter = ({
 
     // ✅ FIXED: Proper step completion that syncs with parent
     const handleStepComplete = () => {
-        // Check for gauge update before completing
-        if (isLengthStep) {
+        // Check for gauge update only when completing (not uncompleting)
+        if (isLengthStep && !isCompleted) {
             checkForGaugeUpdate();
         }
 
