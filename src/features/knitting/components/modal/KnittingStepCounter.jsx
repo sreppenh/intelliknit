@@ -31,7 +31,8 @@ const KnittingStepCounter = ({
     theme,
     progress,
     navigation,
-    updateProject
+    updateProject,
+    onToggleCompletion
 }) => {
     const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
@@ -204,8 +205,8 @@ const KnittingStepCounter = ({
             sideTracking.commitSideChanges(updateProject);
         }
 
-        // ✅ FIXED: Use the proper completion handler from parent
-        progress.toggleStepCompletion(navigation.currentStep);
+        // ✅ FIXED: Use the actual project completion handler
+        onToggleCompletion?.(navigation.currentStep);
     };
 
     const handleRowIncrement = () => {
