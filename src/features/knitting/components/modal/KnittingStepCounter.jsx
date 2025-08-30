@@ -394,8 +394,8 @@ const KnittingStepCounter = ({
 
                     {/* Gauge availability notice */}
                     {isLengthStep && lengthProgressData && !lengthProgressData.hasGauge && (
-                        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4">
-                            <div className="text-xs text-blue-700">
+                        <div className="bg-sage-50 border border-sage-200 rounded-lg p-3 mb-4">
+                            <div className="text-xs text-sage-700">
                                 💡 Add row gauge to your project for intelligent length tracking!
                             </div>
                         </div>
