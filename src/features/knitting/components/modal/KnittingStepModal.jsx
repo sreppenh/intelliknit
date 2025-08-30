@@ -128,7 +128,7 @@ const KnittingStepModal = ({
                 onTouchMove={navigation.onTouchMove}
                 onTouchEnd={navigation.onTouchEnd}
             >
-                {/* ✅ CLEANED HEADER - Focus on essential info */}
+                {/* ✅ FIXED HEADER - Proper CSS classes and event handling */}
                 <div className="knitting-modal-header">
                     <button
                         onClick={onClose}
@@ -142,10 +142,19 @@ const KnittingStepModal = ({
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                navigation.navigateLeft();
+                                // ✅ DEFENSIVE: Check transition state and navigation capability
+                                if (!navigation.isTransitioning && navigation.canGoLeft) {
+                                    navigation.navigateLeft();
+                                }
                             }}
-                            disabled={!navigation.canGoLeft}
-                            className="knitting-nav-arrow-left p-2 rounded-full text-gray-600 hover:text-gray-800 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                            disabled={!navigation.canGoLeft || navigation.isTransitioning}
+                            className="knitting-nav-arrow knitting-nav-arrow-left"
+                            style={{
+                                // ✅ FORCE PROPER POSITIONING to break out of modal conflicts
+                                position: 'relative',
+                                zIndex: 1001,
+                                pointerEvents: 'auto'
+                            }}
                         >
                             <ChevronLeft size={18} />
                         </button>
@@ -175,10 +184,19 @@ const KnittingStepModal = ({
                             onClick={(e) => {
                                 e.preventDefault();
                                 e.stopPropagation();
-                                navigation.navigateRight();
+                                // ✅ DEFENSIVE: Check transition state and navigation capability
+                                if (!navigation.isTransitioning && navigation.canGoRight) {
+                                    navigation.navigateRight();
+                                }
                             }}
-                            disabled={!navigation.canGoRight}
-                            className="knitting-nav-arrow-right p-2 rounded-full text-gray-600 hover:text-gray-800 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors flex-shrink-0"
+                            disabled={!navigation.canGoRight || navigation.isTransitioning}
+                            className="knitting-nav-arrow knitting-nav-arrow-right"
+                            style={{
+                                // ✅ FORCE PROPER POSITIONING to break out of modal conflicts
+                                position: 'relative',
+                                zIndex: 1001,
+                                pointerEvents: 'auto'
+                            }}
                         >
                             <ChevronRight size={18} />
                         </button>
