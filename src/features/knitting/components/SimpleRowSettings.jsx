@@ -189,11 +189,6 @@ const SimpleRowSettings = ({
                             </div>
                         )}
 
-                        {/* Help text */}
-                        <div className="text-xs text-yarn-700 bg-yarn-100 rounded-lg p-2">
-                            💡 Only adjust these if you're continuing from a specific row in your pattern chart or written instructions
-                        </div>
-
                     </div>
                 </div>
             )}
