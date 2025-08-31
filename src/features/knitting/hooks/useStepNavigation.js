@@ -20,25 +20,25 @@ export const useStepNavigation = ({
     const [navigationDirection, setNavigationDirection] = useState('forward');
 
     // Enhanced carousel positioning when step changes
+    // Enhanced carousel positioning when step changes
     useEffect(() => {
         if (carouselItems.length > 0) {
             // Check if this step has different content types
             const hasPrep = carouselItems.some(item => item.type === 'prep');
 
             // For backward navigation, land on main step (skip prep initially)
-            if (navigationDirection === 'backward' && hasPrep && carouselItems.length > 1) {
-                // Find the main step index (should be 1 if prep exists at 0)
+            if (navigationDirection === 'backward' && carouselItems.length > 1) {
+                // Find the main step index (skip prep when going backward)
                 const mainStepIndex = carouselItems.findIndex(item => item.type === 'step');
                 setCurrentCarouselIndex(mainStepIndex >= 0 ? mainStepIndex : 0);
             } else {
-                // For forward navigation or steps without prep, start at beginning
                 setCurrentCarouselIndex(0);
             }
         }
 
         // Reset direction after handling
         setNavigationDirection('forward');
-    }, [stepIndex, carouselItems, navigationDirection]);
+    }, [stepIndex]);
 
     // Safe carousel navigation
     const safeCarouselIndex = Math.min(currentCarouselIndex, carouselItems.length - 1);
@@ -50,9 +50,18 @@ export const useStepNavigation = ({
         const isAtAbsoluteStart = stepIndex === 0 && safeCarouselIndex === 0;
         const isAtAbsoluteEnd = stepIndex === totalSteps - 1 && safeCarouselIndex === carouselItems.length - 1;
 
-        const canGoLeft = !isAtAbsoluteStart;
-        const canGoRight = !isAtAbsoluteEnd;
+        const canGoLeft = safeCarouselIndex > 0 || stepIndex > 0;
+        const canGoRight = safeCarouselIndex < carouselItems.length - 1 || stepIndex < totalSteps - 1;
 
+
+        console.log('getNavigationBounds calculation:', {
+            stepIndex,
+            safeCarouselIndex,
+            carouselItemsLength: carouselItems.length,
+            totalSteps,
+            calculatedCanGoLeft: canGoLeft,
+            calculatedCanGoRight: canGoRight
+        });
         return { canGoLeft, canGoRight, isAtAbsoluteStart, isAtAbsoluteEnd };
     };
 

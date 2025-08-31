@@ -1166,14 +1166,14 @@ function generateShapingText(phase, action) {
 
     if (position === 'both_ends') {
         if (action === 'decrease') {
-            return `K1, SSK, knit to last 3 sts, k2tog, k1`;
+            return `K1, SSK, Knit to last 3 sts, K2tog, K1`;
         } else {
-            return `K1, M1, knit to last stitch, M1, k1`;
+            return `K1, M1, knit to last stitch, M1, K1`;
         }
     } else if (position === 'beginning') {
-        return action === 'decrease' ? `SSK, knit to end` : `M1, knit to end`;
+        return action === 'decrease' ? `SSK, Knit to end` : `M1, Knit to end`;
     } else { // 'end'
-        return action === 'decrease' ? `Knit to last 2 sts, k2tog` : `Knit to last stitch, M1, k1`;
+        return action === 'decrease' ? `Knit to last 2 sts, K2tog` : `Knit to last stitch, M1, K1`;
     }
 }
 

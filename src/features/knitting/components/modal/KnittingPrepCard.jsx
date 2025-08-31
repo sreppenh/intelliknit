@@ -24,9 +24,6 @@ const KnittingPrepCard = ({ prepNote, stepIndex, navigation }) => {
                         "{prepNote}"
                     </p>
                 </div>
-                <p className="text-lavender-600 text-sm mt-6 opacity-75">
-                    Take your time to prepare, then use arrows above to continue →
-                </p>
             </div>
         </div>
     );

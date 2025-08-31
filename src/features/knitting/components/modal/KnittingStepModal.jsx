@@ -172,6 +172,14 @@ const KnittingStepModal = ({
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
+                                    console.log('Left arrow clicked:', {
+                                        canGoLeft: navigation.canGoLeft,
+                                        currentCarouselIndex: navigation.currentCarouselIndex,
+                                        totalCarouselItems: navigation.totalCarouselItems,
+                                        stepIndex: stepIndex,
+                                        totalSteps: totalSteps,
+                                        currentItemType: navigation.currentItem?.type
+                                    });
                                     if (!navigation.isTransitioning && navigation.canGoLeft) {
                                         navigation.navigateLeft();
                                     }
@@ -213,6 +221,14 @@ const KnittingStepModal = ({
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
+                                    console.log('Right arrow clicked:', {
+                                        canGoLeft: navigation.canGoLeft,
+                                        currentCarouselIndex: navigation.currentCarouselIndex,
+                                        totalCarouselItems: navigation.totalCarouselItems,
+                                        stepIndex: stepIndex,
+                                        totalSteps: totalSteps,
+                                        currentItemType: navigation.currentItem?.type
+                                    });
                                     if (!navigation.isTransitioning && navigation.canGoRight) {
                                         navigation.navigateRight();
                                     }
