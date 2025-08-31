@@ -135,7 +135,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                                     onClick={() => onEditSteps(0)} // Component index 0
                                     className="btn-primary btn-sm"
                                 >
-                                    Create Note
+                                    Configure Note
                                 </button>
                             )}
                         </div>
@@ -168,7 +168,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                                 <div className="text-4xl mb-3">⚡</div>
                                 <h3 className="text-lg font-medium text-wool-700 mb-2">Ready for Your Note</h3>
                                 <p className="text-wool-600 text-sm mb-4">
-                                    Create your note using the step wizard.
+                                    Configure your note using the step wizard.
                                 </p>
                             </div>
                         )}
