@@ -5,7 +5,7 @@
 import React, { useState } from 'react';
 import { useNotesContext } from '../hooks/useNotesContext';
 import PageHeader from '../../../shared/components/PageHeader';
-import StandardModal from '../../../shared/components/StandardModal';
+import StandardModal from '../../../shared/components/modals/StandardModal';
 
 const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => {
     const { currentNote, updateNote, deleteNote } = useNotesContext();

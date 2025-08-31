@@ -102,7 +102,7 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
 
             {/* Notepad - Bottom Right (Placeholder) */}
             <button
-              onClick={handleNotepad}
+              onClick={onNotepad}
               className="card-interactive relative"
             >
               <div className="text-4xl mb-3">📝</div>

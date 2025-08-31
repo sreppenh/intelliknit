@@ -13,9 +13,9 @@ import ManageSteps from '../../steps/components/ManageSteps';
 import ProjectTypeSelector from './ProjectTypeSelector';
 import { useAppNavigation } from '../../../shared/hooks/useAppNavigation';
 import { NotesProvider } from '../../../features/notes/hooks/useNotesContext';
-import NotesList from './path/to/features/notes/components/NotesList';
-import NoteDetail from './path/to/features/notes/components/NoteDetail';
-import { useNotesContext } from './path/to/features/notes/hooks/useNotesContext';
+import NotesList from '../../../features/notes/components/NotesList';
+import NoteDetail from '../../../features/notes/components/NoteDetail';
+import { useNotesContext } from '../../../features/notes/hooks/useNotesContext';
 
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing');
@@ -150,7 +150,6 @@ const IntelliknitMVPContent = () => {
     setCurrentView('project-detail');
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: null });
   };
-
 
   // Get notes context
   const notesContext = useNotesContext();

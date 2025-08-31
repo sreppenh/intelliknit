@@ -4,7 +4,7 @@
  */
 
 import React, { useState } from 'react';
-import StandardModal from '../../../shared/components/StandardModal';
+import StandardModal from '../../../shared/components/modals/StandardModal';
 import IncrementInput from '../../../shared/components/IncrementInput';
 
 const CreateNoteModal = ({
@@ -171,8 +171,8 @@ const CreateNoteModal = ({
                             <label className="form-label">Construction Type</label>
                             <div className="flex gap-3">
                                 <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${noteData.construction === 'flat'
-                                        ? 'border-lavender-500 bg-lavender-50 text-lavender-700'
-                                        : 'border-wool-200 bg-white text-wool-600 hover:border-lavender-300'
+                                    ? 'border-lavender-500 bg-lavender-50 text-lavender-700'
+                                    : 'border-wool-200 bg-white text-wool-600 hover:border-lavender-300'
                                     }`}>
                                     <input
                                         type="radio"
@@ -190,8 +190,8 @@ const CreateNoteModal = ({
                                 </label>
 
                                 <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${noteData.construction === 'round'
-                                        ? 'border-lavender-500 bg-lavender-50 text-lavender-700'
-                                        : 'border-wool-200 bg-white text-wool-600 hover:border-lavender-300'
+                                    ? 'border-lavender-500 bg-lavender-50 text-lavender-700'
+                                    : 'border-wool-200 bg-white text-wool-600 hover:border-lavender-300'
                                     }`}>
                                     <input
                                         type="radio"
@@ -309,8 +309,8 @@ const CreateNoteModal = ({
                                     type="button"
                                     onClick={() => updateField('units', 'inches')}
                                     className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${noteData.units === 'inches'
-                                            ? 'bg-lavender-500 text-white shadow-sm'
-                                            : 'text-wool-600 hover:text-lavender-600 border border-wool-200'
+                                        ? 'bg-lavender-500 text-white shadow-sm'
+                                        : 'text-wool-600 hover:text-lavender-600 border border-wool-200'
                                         }`}
                                 >
                                     🇺🇸 Inches
@@ -320,8 +320,8 @@ const CreateNoteModal = ({
                                     type="button"
                                     onClick={() => updateField('units', 'cm')}
                                     className={`flex-1 py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200 ${noteData.units === 'cm'
-                                            ? 'bg-lavender-500 text-white shadow-sm'
-                                            : 'text-wool-600 hover:text-lavender-600 border border-wool-200'
+                                        ? 'bg-lavender-500 text-white shadow-sm'
+                                        : 'text-wool-600 hover:text-lavender-600 border border-wool-200'
                                         }`}
                                 >
                                     🇪🇺 Centimeters
@@ -362,10 +362,10 @@ const CreateNoteModal = ({
                 {[1, 2, 3].map((stepNum) => (
                     <React.Fragment key={stepNum}>
                         <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-colors ${stepNum === step
-                                ? 'bg-lavender-500 text-white'
-                                : stepNum < step
-                                    ? 'bg-lavender-300 text-white'
-                                    : 'bg-wool-200 text-wool-500'
+                            ? 'bg-lavender-500 text-white'
+                            : stepNum < step
+                                ? 'bg-lavender-300 text-white'
+                                : 'bg-wool-200 text-wool-500'
                             }`}>
                             {stepNum}
                         </div>

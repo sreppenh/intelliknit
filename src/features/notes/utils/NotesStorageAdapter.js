@@ -3,7 +3,7 @@
  * Handles note-specific storage with same reliability patterns as projects
  */
 
-import IntelliKnitLogger from '../../shared/utils/ConsoleLogging';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 class NotesStorageAdapter {
     constructor() {

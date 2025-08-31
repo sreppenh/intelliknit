@@ -3,7 +3,7 @@
  */
 
 import React, { useState } from 'react';
-import StandardModal from '../../../shared/components/StandardModal';
+import StandardModal from '../../../shared/components/modals/StandardModal';
 
 const NoteCard = ({ note, onOpen, onDelete, onRename }) => {
     const [showDeleteModal, setShowDeleteModal] = useState(false);
