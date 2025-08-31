@@ -6,9 +6,9 @@ import React, { useState } from 'react';
 import { useNotesContext } from '../hooks/useNotesContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import NoteCard from './NoteCard';
-import CreateNoteModal from './CreateNoteModal';
+import CreateNoteWizard from './CreateNoteWizard';
 
-const NotesList = ({ onBack, onGoToLanding, onOpenNote }) => {
+const NotesList = ({ onBack, onGoToLanding, onOpenNote, onCreateNote }) => {
     const { notes, createNote, deleteNote, updateNote } = useNotesContext();
     const [sortBy, setSortBy] = useState('recent'); // 'recent', 'name', 'pattern'
     const [showCreateModal, setShowCreateModal] = useState(false);
@@ -84,7 +84,7 @@ const NotesList = ({ onBack, onGoToLanding, onOpenNote }) => {
                     </div>
                     <div className="button-group">
                         <button
-                            onClick={() => setShowCreateModal(true)}
+                            onClick={() => onCreateNote()}
                             className="btn-primary btn-sm"
                         >
                             Create Note
@@ -103,8 +103,8 @@ const NotesList = ({ onBack, onGoToLanding, onOpenNote }) => {
                                 <button
                                     onClick={() => setSortBy('recent')}
                                     className={`font-medium transition-colors ${sortBy === 'recent'
-                                            ? 'text-lavender-600'
-                                            : 'text-wool-400 hover:text-lavender-600'
+                                        ? 'text-lavender-600'
+                                        : 'text-wool-400 hover:text-lavender-600'
                                         }`}
                                 >
                                     recent
@@ -113,8 +113,8 @@ const NotesList = ({ onBack, onGoToLanding, onOpenNote }) => {
                                 <button
                                     onClick={() => setSortBy('name')}
                                     className={`font-medium transition-colors ${sortBy === 'name'
-                                            ? 'text-lavender-600'
-                                            : 'text-wool-400 hover:text-lavender-600'
+                                        ? 'text-lavender-600'
+                                        : 'text-wool-400 hover:text-lavender-600'
                                         }`}
                                 >
                                     name
@@ -123,8 +123,8 @@ const NotesList = ({ onBack, onGoToLanding, onOpenNote }) => {
                                 <button
                                     onClick={() => setSortBy('pattern')}
                                     className={`font-medium transition-colors ${sortBy === 'pattern'
-                                            ? 'text-lavender-600'
-                                            : 'text-wool-400 hover:text-lavender-600'
+                                        ? 'text-lavender-600'
+                                        : 'text-wool-400 hover:text-lavender-600'
                                         }`}
                                 >
                                     pattern
@@ -147,7 +147,7 @@ const NotesList = ({ onBack, onGoToLanding, onOpenNote }) => {
                                     Create quick notes to test patterns, knit swatches, or track small projects without the overhead of a full project setup.
                                 </p>
                                 <button
-                                    onClick={() => setShowCreateModal(true)}
+                                    onClick={() => onCreateNote()}
                                     className="bg-lavender-600 text-white px-6 py-3 rounded-xl font-semibold hover:bg-lavender-700 transition-colors shadow-sm"
                                 >
                                     ✨ Create Your First Note
@@ -182,13 +182,6 @@ const NotesList = ({ onBack, onGoToLanding, onOpenNote }) => {
                     </div>
                 </div>
             </div>
-
-            {/* Create Note Modal */}
-            <CreateNoteModal
-                isOpen={showCreateModal}
-                onClose={() => setShowCreateModal(false)}
-                onCreateNote={handleCreateNote}
-            />
         </div>
     );
 };

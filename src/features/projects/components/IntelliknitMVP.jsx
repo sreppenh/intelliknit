@@ -16,6 +16,7 @@ import { NotesProvider } from '../../../features/notes/hooks/useNotesContext';
 import NotesList from '../../../features/notes/components/NotesList';
 import NoteDetail from '../../../features/notes/components/NoteDetail';
 import { useNotesContext } from '../../../features/notes/hooks/useNotesContext';
+import CreateNoteWizard from '../../notes/components/CreateNoteWizard';
 
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing');
@@ -276,6 +277,7 @@ const IntelliknitMVPContent = () => {
           onBack={handleBackToLanding}
           onGoToLanding={goToLanding}
           onOpenNote={handleOpenNote}
+          onCreateNote={() => setCurrentView('create-note')} // Add this line
         />
       );
 
@@ -286,6 +288,19 @@ const IntelliknitMVPContent = () => {
           onGoToLanding={goToLanding}
           onEditSteps={handleNoteEditSteps}
           onStartKnitting={handleNoteStartKnitting}
+        />
+      );
+
+    // In IntelliknitMVP.jsx, replace the note creation flow:
+    case 'create-note':
+      return (
+        <CreateNoteWizard
+          onBack={() => setCurrentView('note-list')}
+          onGoToLanding={goToLanding}
+          onNoteCreated={(note) => {
+            // The createNote function in the wizard will set the current note
+            setCurrentView('note-detail');
+          }}
         />
       );
 
