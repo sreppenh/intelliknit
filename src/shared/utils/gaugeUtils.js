@@ -87,12 +87,12 @@ export const calculateLengthProgress = (currentRow, estimatedTotalRows, targetLe
 
 /**
  * Get gauge-aware display text for length-based steps
+ * FIXED: Now correctly calculates progress for until_length steps
  */
 export const getLengthProgressDisplay = (step, currentRow, project, startingLength = null) => {
     const lengthTarget = getLengthTarget(step);
     if (!lengthTarget) return null;
 
-    // ADD THIS RIGHT AFTER:
     // Handle until-length steps by converting to equivalent length step
     let effectiveTargetLength = lengthTarget.value;
     let effectiveTargetUnits = lengthTarget.units;
@@ -125,8 +125,15 @@ export const getLengthProgressDisplay = (step, currentRow, project, startingLeng
         };
     }
 
-    const currentLength = estimateLengthFromRows(currentRow, estimatedRows, lengthTarget.value, lengthTarget.units);
-    const progressPercent = calculateLengthProgress(currentRow, estimatedRows, lengthTarget.value);
+    // 🔧 FIXED: Use effectiveTargetLength for calculations
+    const currentLength = estimateLengthFromRows(currentRow, estimatedRows, effectiveTargetLength, effectiveTargetUnits);
+    const progressPercent = calculateLengthProgress(currentRow, estimatedRows, effectiveTargetLength);
+
+    // 🔧 FIXED: For until_length steps, add starting length to current progress for display
+    let displayCurrentLength = currentLength;
+    if (lengthTarget.type === 'until_length' && startingLength !== null) {
+        displayCurrentLength = startingLength + currentLength;
+    }
 
     return {
         hasGauge: true,
@@ -134,7 +141,7 @@ export const getLengthProgressDisplay = (step, currentRow, project, startingLeng
         targetUnits: lengthTarget.units,
         estimatedRows,
         currentRow,
-        currentLength: Math.round(currentLength * 10) / 10, // 1 decimal place
+        currentLength: Math.round(displayCurrentLength * 10) / 10, // 1 decimal place
         progressPercent: Math.round(progressPercent),
         showEstimate: true,
         isNearTarget: currentRow >= estimatedRows * 0.9, // 90% threshold
