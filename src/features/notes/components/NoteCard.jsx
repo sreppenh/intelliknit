@@ -160,7 +160,7 @@ const NoteCard = ({ note, onOpen, onDelete, onRename }) => {
                 icon="✏️"
             >
                 <div>
-                    <label className="form-label">Note Name</label>
+                    <label className="form-label">Name</label>
                     <input
                         type="text"
                         value={newName}

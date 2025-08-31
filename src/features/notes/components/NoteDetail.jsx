@@ -88,6 +88,9 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                         <div className="flex items-start gap-4 min-w-0 flex-1">
                             <div className="text-3xl">📝</div>
                             <div className="min-w-0 flex-1">
+
+
+
                                 <h1 className="text-xl font-bold text-wool-700 mb-1 truncate">
                                     {currentNote.name}
                                 </h1>
@@ -121,18 +124,18 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                 {/* Content */}
                 <div className="p-6 space-y-6">
 
-                    {/* Pattern Status Card */}
+                    {/* Note Status Card */}
                     <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-lavender-200">
                         <div className="flex items-center justify-between mb-4">
                             <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
-                                🧶 Pattern Status
+                                🧶 Note Status
                             </h2>
                             {!hasStep && (
                                 <button
                                     onClick={() => onEditSteps(0)} // Component index 0
                                     className="btn-primary btn-sm"
                                 >
-                                    Create Pattern
+                                    Create Note
                                 </button>
                             )}
                         </div>
@@ -163,9 +166,9 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                         ) : (
                             <div className="text-center py-8">
                                 <div className="text-4xl mb-3">⚡</div>
-                                <h3 className="text-lg font-medium text-wool-700 mb-2">Ready for Your Pattern</h3>
+                                <h3 className="text-lg font-medium text-wool-700 mb-2">Ready for Your Note</h3>
                                 <p className="text-wool-600 text-sm mb-4">
-                                    Create your knitting pattern using the step wizard.
+                                    Create your note using the step wizard.
                                 </p>
                             </div>
                         )}
@@ -174,14 +177,14 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                     {/* Note Details Card */}
                     <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-wool-200">
                         <h2 className="text-lg font-semibold text-wool-700 mb-4 flex items-center gap-2">
-                            📋 Note Details
+                            📋 Details
                         </h2>
 
                         <div className="space-y-4">
-                            {/* Text Notes */}
+                            {/* Description */}
                             {currentNote.textNotes && (
                                 <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-1">Notes</h4>
+                                    <h4 className="text-sm font-medium text-wool-700 mb-1">Description</h4>
                                     <p className="text-sm text-wool-600 italic">"{currentNote.textNotes}"</p>
                                 </div>
                             )}
@@ -298,7 +301,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
             >
                 <div className="space-y-4">
                     <div>
-                        <label className="form-label">Note Name</label>
+                        <label className="form-label">Name</label>
                         <input
                             type="text"
                             value={editData.name || ''}
@@ -310,7 +313,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                     </div>
 
                     <div>
-                        <label className="form-label">Text Notes</label>
+                        <label className="form-label">Description</label>
                         <textarea
                             value={editData.textNotes || ''}
                             onChange={(e) => setEditData(prev => ({ ...prev, textNotes: e.target.value }))}

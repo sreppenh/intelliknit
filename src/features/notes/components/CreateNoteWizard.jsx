@@ -97,14 +97,10 @@ const CreateNoteWizard = ({ onBack, onGoToLanding, onNoteCreated }) => {
 
                 <div className="p-6 space-y-6">
 
-                    {/* Header */}
-                    <div>
-                        <h1 className="text-2xl font-bold text-lavender-700 mb-2 flex items-center gap-3">
-                            📝 Create Note
-                        </h1>
-                        <p className="text-lavender-600">
-                            Set up a quick note for pattern testing, swatches, or experiments
-                        </p>
+                    {/* Compact Welcome Message */}
+                    <div className="text-center">
+                        <h2 className="content-header-secondary mb-1">Create Note</h2>
+                        <p className="text-wool-500 text-sm">Set up a quick note for pattern testing, swatches, or experiments</p>
                     </div>
 
                     {/* Basic Information */}
@@ -112,9 +108,9 @@ const CreateNoteWizard = ({ onBack, onGoToLanding, onNoteCreated }) => {
                         <h2 className="text-lg font-semibold text-lavender-700 mb-4">Basic Information</h2>
 
                         <div className="space-y-4">
-                            {/* Note Name */}
+                            {/* Name */}
                             <div>
-                                <label className="form-label">Note Name</label>
+                                <label className="form-label">Name</label>
                                 <input
                                     type="text"
                                     value={noteData.name}
@@ -125,10 +121,10 @@ const CreateNoteWizard = ({ onBack, onGoToLanding, onNoteCreated }) => {
                                 />
                             </div>
 
-                            {/* Text Notes (Optional) */}
+                            {/* Description (Optional) */}
                             <div>
                                 <label className="form-label">
-                                    Text Notes
+                                    Description
                                     <span className="text-wool-500 text-sm font-normal ml-1">(optional)</span>
                                 </label>
                                 <textarea
@@ -151,9 +147,7 @@ const CreateNoteWizard = ({ onBack, onGoToLanding, onNoteCreated }) => {
                                     max={500}
                                     className="w-full"
                                 />
-                                <div className="text-xs text-wool-500 mt-1">
-                                    How many stitches will you cast on or start with?
-                                </div>
+
                             </div>
                         </div>
                     </div>
@@ -179,9 +173,7 @@ const CreateNoteWizard = ({ onBack, onGoToLanding, onNoteCreated }) => {
                                     max={10}
                                     className="w-full"
                                 />
-                                <div className="text-xs text-wool-500 mt-1">
-                                    For single color patterns, use 1. For colorwork, select how many colors you'll use.
-                                </div>
+
                             </div>
 
                             {/* Color Preview */}
@@ -209,10 +201,8 @@ const CreateNoteWizard = ({ onBack, onGoToLanding, onNoteCreated }) => {
                     {/* Optional Details */}
                     <div className="bg-wool-50 rounded-xl p-6 border-2 border-wool-200">
                         <h2 className="text-lg font-semibold text-wool-700 mb-2">
-                            Optional Details
-                            <span className="text-wool-500 text-sm font-normal ml-2">
-                                (helps create a better reference)
-                            </span>
+                            Details
+
                         </h2>
 
                         <div className="space-y-4">

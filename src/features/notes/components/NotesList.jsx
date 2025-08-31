@@ -154,12 +154,7 @@ const NotesList = ({ onBack, onGoToLanding, onOpenNote, onCreateNote }) => {
                                 </button>
                             </div>
 
-                            <div className="bg-yarn-100 rounded-2xl p-4 border-2 border-yarn-200">
-                                <div className="text-2xl mb-2">💡</div>
-                                <div className="text-sm text-wool-600">
-                                    Perfect for swatches, colorwork tests, and pattern experiments
-                                </div>
-                            </div>
+
                         </div>
                     ) : (
                         /* Notes grid */
