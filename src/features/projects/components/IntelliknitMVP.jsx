@@ -12,6 +12,10 @@ import StepWizard from '../../steps/components/StepWizard';
 import ManageSteps from '../../steps/components/ManageSteps';
 import ProjectTypeSelector from './ProjectTypeSelector';
 import { useAppNavigation } from '../../../shared/hooks/useAppNavigation';
+import { NotesProvider } from '../../../features/notes/hooks/useNotesContext';
+import NotesList from './path/to/features/notes/components/NotesList';
+import NoteDetail from './path/to/features/notes/components/NoteDetail';
+import { useNotesContext } from './path/to/features/notes/hooks/useNotesContext';
 
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing');
@@ -77,7 +81,7 @@ const IntelliknitMVPContent = () => {
   };
 
   const handleNotepad = () => {
-    alert('Notepad feature coming soon!');
+    setCurrentView('note-list');
   };
 
   const handleCreateProject = () => {
@@ -145,6 +149,25 @@ const IntelliknitMVPContent = () => {
   const handleBackToProjectDetail = () => {
     setCurrentView('project-detail');
     dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: null });
+  };
+
+
+  // Get notes context
+  const notesContext = useNotesContext();
+
+  const handleOpenNote = (note) => {
+    notesContext.setCurrentNote(note);
+    setCurrentView('note-detail');
+  };
+
+  const handleNoteEditSteps = (componentIndex) => {
+    // TODO: Phase 2 - Build note step wizard
+    alert('Note step wizard coming in Phase 2!');
+  };
+
+  const handleNoteStartKnitting = (componentIndex) => {
+    // TODO: Phase 2 - Build note counter  
+    alert('Note knitting mode coming in Phase 2!');
   };
 
   // Router logic based on current view
@@ -248,6 +271,25 @@ const IntelliknitMVPContent = () => {
         />
       );
 
+    case 'note-list':
+      return (
+        <NotesList
+          onBack={handleBackToLanding}
+          onGoToLanding={goToLanding}
+          onOpenNote={handleOpenNote}
+        />
+      );
+
+    case 'note-detail':
+      return (
+        <NoteDetail
+          onBack={() => setCurrentView('note-list')}
+          onGoToLanding={goToLanding}
+          onEditSteps={handleNoteEditSteps}
+          onStartKnitting={handleNoteStartKnitting}
+        />
+      );
+
     default:
       return <div>View not found</div>;
   }
@@ -256,9 +298,11 @@ const IntelliknitMVPContent = () => {
 const IntelliknitMVP = () => {
   return (
     <ProjectsProvider>
-      <div className="min-h-screen bg-yarn-50">
-        <IntelliknitMVPContent />
-      </div>
+      <NotesProvider>
+        <div className="min-h-screen bg-yarn-50">
+          <IntelliknitMVPContent />
+        </div>
+      </NotesProvider>
     </ProjectsProvider>
   );
 };

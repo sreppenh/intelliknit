@@ -225,19 +225,37 @@ export const getCompletionSuggestionText = (step, currentRow, project) => {
 /**
  * Calculate measured gauge from completed length step
  */
-export const calculateMeasuredGauge = (actualRows, targetLength, targetUnits) => {
-    const targetInches = targetUnits === 'cm' ? targetLength / 2.54 : targetLength;
-    return actualRows / targetInches; // rows per inch
+export const calculateMeasuredGauge = (actualRows, targetLength, targetUnits, step, startingLength = null) => {
+    // Calculate the effective distance that was actually knitted
+    let effectiveDistance = targetLength;
+
+    // For until_length steps, use only the distance actually knitted
+    if (step) {
+        const lengthTarget = getLengthTarget(step);
+        if (lengthTarget?.type === 'until_length' && startingLength !== null) {
+            effectiveDistance = targetLength - startingLength;
+
+            // Safety check - if no effective distance, can't calculate gauge
+            if (effectiveDistance <= 0) {
+                return null;
+            }
+        }
+    }
+
+    const effectiveInches = targetUnits === 'cm' ? effectiveDistance / 2.54 : effectiveDistance;
+    return actualRows / effectiveInches; // rows per inch
 };
 
 /**
  * Check if step completion should prompt for gauge update
  */
-export const shouldPromptGaugeUpdate = (step, actualRows, project) => {
+export const shouldPromptGaugeUpdate = (step, actualRows, project, startingLength = null) => {
     const lengthTarget = getLengthTarget(step);
     if (!lengthTarget || !actualRows) return false;
 
-    const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units);
+    const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units, step, startingLength);
+    if (!measuredGauge) return false; // Can't calculate gauge
+
     const currentGauge = getRowGaugePerInch(project);
 
     // Only prompt if there's a meaningful difference (>5% change)
@@ -250,16 +268,24 @@ export const shouldPromptGaugeUpdate = (step, actualRows, project) => {
 /**
  * Get gauge update prompt data for user display
  */
-export const getGaugeUpdatePromptData = (actualRows, step, project) => {
+export const getGaugeUpdatePromptData = (actualRows, step, project, startingLength = null) => {
     const lengthTarget = getLengthTarget(step);
     if (!lengthTarget) return null;
 
-    const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units);
+    const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units, step, startingLength);
+    if (!measuredGauge) return null; // Can't calculate gauge
+
     const currentGauge = getRowGaugePerInch(project);
 
     // Convert back to project's measurement format (4" or 10cm)
     const gaugeMeasurement = project?.gauge?.rowGauge?.measurement || 4;
     const newRowsForMeasurement = Math.round(measuredGauge * gaugeMeasurement);
+
+    // Calculate what distance was actually knitted for display
+    let actualDistance = lengthTarget.value;
+    if (lengthTarget.type === 'until_length' && startingLength !== null) {
+        actualDistance = lengthTarget.value - startingLength;
+    }
 
     return {
         measuredGauge: Math.round(measuredGauge * 10) / 10, // 1 decimal
@@ -267,7 +293,9 @@ export const getGaugeUpdatePromptData = (actualRows, step, project) => {
         measurement: gaugeMeasurement,
         units: project?.defaultUnits === 'cm' ? 'cm' : 'inches',
         hasExistingGauge: !!currentGauge,
-        oldRowsForMeasurement: currentGauge ? Math.round(currentGauge * gaugeMeasurement) : null
+        oldRowsForMeasurement: currentGauge ? Math.round(currentGauge * gaugeMeasurement) : null,
+        actualDistance: Math.round(actualDistance * 10) / 10, // Show what was actually knitted
+        actualRows: actualRows
     };
 };
 

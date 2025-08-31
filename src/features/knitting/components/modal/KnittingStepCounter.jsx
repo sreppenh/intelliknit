@@ -190,9 +190,10 @@ const KnittingStepCounter = ({
     const checkForGaugeUpdate = () => {
         if (!isLengthStep) return;
 
-        const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project);
+        // FIXED: Pass startingLength to gauge functions
+        const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
         if (shouldPrompt) {
-            const promptData = getGaugeUpdatePromptData(currentRow, step, project);
+            const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
             setGaugePromptData(promptData);
             setShowGaugePrompt(true);
         }
@@ -366,7 +367,8 @@ const KnittingStepCounter = ({
                                     <div className="text-sm text-sage-700 mb-2">
                                         <span className="font-medium">Update your gauge?</span>
                                         <br />
-                                        Based on this step: {currentRow} rows = {lengthTarget?.value} {lengthTarget?.units}
+                                        {/* FIXED: Show actual distance knitted */}
+                                        Based on this step: {gaugePromptData.actualRows} rows = {gaugePromptData.actualDistance} {lengthTarget?.units}
                                         {gaugePromptData.hasExistingGauge && (
                                             <div className="text-xs mt-1">
                                                 Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
