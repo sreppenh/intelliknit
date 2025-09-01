@@ -46,7 +46,6 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
 
     // Update wizard data helper
     const updateWizardData = (sectionOrKey, dataOrValue) => {
-        console.log('ConfigureNotePattern updateWizardData called:', sectionOrKey, dataOrValue);
 
         setWizardData(prev => {
             if (typeof dataOrValue === 'boolean' || typeof dataOrValue === 'string' || typeof dataOrValue === 'number') {
@@ -73,9 +72,7 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
         // Use the same validation logic as the project wizard
         const { validatePatternConfiguration } = require('../../../shared/utils/stepDisplayUtils');
 
-        console.log('Step 2 validation - wizardData.stitchPattern:', wizardData.stitchPattern);
         const isValid = validatePatternConfiguration(wizardData.stitchPattern);
-        console.log('Step 2 validation result:', isValid);
 
         return isValid;
     };
@@ -106,15 +103,11 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
     };
 
     const handleSaveConfiguration = () => {
-        console.log('Saving note configuration with wizardData:', wizardData);
 
         // Generate step instruction and calculate effects
         const instruction = generateInstruction(wizardData);
         const currentStitches = currentNote?.startingStitches || 0;
         const effect = calculateEffect(wizardData, currentStitches, currentNote?.construction || 'flat');
-
-        console.log('Generated instruction:', instruction);
-        console.log('Calculated effect:', effect);
 
         // Create proper step object
         const stepObject = {
@@ -139,8 +132,6 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
             }
         };
 
-        console.log('Created step object:', stepObject);
-
         // Update the note with the new step
         const updatedNote = {
             ...currentNote,
@@ -150,8 +141,6 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
             }],
             lastActivityAt: new Date().toISOString()
         };
-
-        console.log('Updating note with:', updatedNote);
 
         updateNote(updatedNote);
 

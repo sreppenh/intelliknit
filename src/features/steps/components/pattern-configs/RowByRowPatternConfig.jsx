@@ -249,8 +249,7 @@ const RowByRowPatternConfig = ({
     };
 
     const getStitchCalculation = () => {
-        console.log('getStitchCalculation called, currentProject:', !!currentProject, 'tempRowText:', tempRowText);
-
+        // This is the nonsense here
         if (!currentProject) {
             const result = {
                 isValid: true,
@@ -259,8 +258,7 @@ const RowByRowPatternConfig = ({
                 stitchChange: 0,
                 stitchesConsumed: 4
             };
-            console.log('Fallback result:', result);
-            return result;
+            //  return result;
         }
 
         const baselineStitches = currentStitches || 80;
