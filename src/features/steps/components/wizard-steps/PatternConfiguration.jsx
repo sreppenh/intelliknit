@@ -4,7 +4,7 @@ import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayU
 
 
 const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
-  construction, currentStitches, project }) => {
+  construction, currentStitches, project, mode }) => {
   const { pattern } = wizardData.stitchPattern;
 
   if (!pattern) {
@@ -59,12 +59,18 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
       default:
         // ===== UPDATED: Use utility function to determine routing =====
         if (isAdvancedRowByRowPattern(pattern)) {
+          console.log('🔧 PatternConfiguration passing currentStitches:', currentStitches);
           return (
+
             <RowByRowPatternConfig
               wizardData={wizardData}
               updateWizardData={updateWizardData}
               construction={construction}
-              currentStitches={currentStitches}  // ADD THIS LINE
+              currentStitches={currentStitches}  // this may be a lie
+              // currentStitches={wizard.currentStitches}  // ✅ CHANGE: was {wizard.currentStitches}
+
+              project={project}
+              mode={mode}
             />
           );
         }

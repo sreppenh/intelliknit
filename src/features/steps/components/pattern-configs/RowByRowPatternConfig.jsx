@@ -250,7 +250,7 @@ const RowByRowPatternConfig = ({
 
     const getStitchCalculation = () => {
         // This is the nonsense here
-        if (!currentProject) {
+        {/*    if (!currentProject) {
             const result = {
                 isValid: true,
                 previousStitches: currentStitches || 40,
@@ -259,9 +259,9 @@ const RowByRowPatternConfig = ({
                 stitchesConsumed: 4
             };
             //  return result;
-        }
+        }. */}
 
-        const baselineStitches = currentStitches || 80;
+        const baselineStitches = currentStitches || 0; // ✅ CHANGE: No hardcoded 80
 
         if (!tempRowText || !tempRowText.trim()) {
             const previousStitches = getPreviousRowStitches(

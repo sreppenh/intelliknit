@@ -80,8 +80,15 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
   };
 
   const handleAddStep = () => {
+    console.log('🔧 useStepActions handleAddStep called with mode:', mode);
+    console.log('🔧 wizard.isEditing:', wizard.isEditing);
+    console.log('🔧 wizard.componentIndex:', wizard.componentIndex);
+
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
+
+    console.log('🔧 Generated step object:', createStepObject(instruction, effect, wizard));
+
 
     // ✅ USE HELPER: Create step object for debugging
     const stepObject = createStepObject(instruction, effect, wizard);

@@ -103,6 +103,14 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
   // Inherit construction from previous step
   // Get current stitch count from the step chain
   useEffect(() => {
+
+    console.log('🔧 useStepWizard currentStitches effect triggered');
+    console.log('🔧 mode:', mode);
+    console.log('🔧 component:', component);
+    console.log('🔧 component.startingStitches:', component?.startingStitches);
+    console.log('🔧 currentProject (from context):', currentProject);
+
+
     if (!component) return;
 
     // Special handling for notepad mode
@@ -110,6 +118,8 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
       if (component.steps.length === 0) {
         // For notes, use the component's startingStitches (which came from note mapping)
         const noteStartingStitches = component.startingStitches || 0;
+        console.log('🔧 Note mode - setting currentStitches to:', noteStartingStitches);
+
         setCurrentStitches(noteStartingStitches);
         return;
       }
@@ -126,24 +136,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     const stitchCount = lastStep.endingStitches || lastStep.expectedStitches || 0;
     setCurrentStitches(stitchCount);
 
-  }, [component?.steps, componentIndex, mode]);
-
-  // Get current stitch count from the step chain
-  useEffect(() => {
-    if (!component) return;
-
-    if (component.steps.length === 0) {
-      // No steps yet - start with 0
-      setCurrentStitches(0);
-      return;
-    }
-
-    // Get the ending stitch count from the last step
-    const lastStep = component.steps[component.steps.length - 1];
-    const stitchCount = lastStep.endingStitches || lastStep.expectedStitches || 0;
-    setCurrentStitches(stitchCount);
-
-  }, [component?.steps, componentIndex]);
+  }, [component?.steps, componentIndex, mode, component?.startingStitches]);
 
   const updateWizardData = (sectionOrKey, dataOrValue) => {
 
@@ -301,6 +294,9 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
       canProceed: canProceed(smartNav.currentStep)
     };
   };
+  // Add this just before the return statement in useStepWizard.js:
+  console.log('🔧 useStepWizard returning currentStitches:', currentStitches);
+
 
   return {
     // State (updated to use smart navigation)

@@ -14,6 +14,24 @@ export const useActiveContext = (mode = 'project') => {
     if (mode === 'notepad' || mode === 'note') {
         const currentNote = notesContext.currentNote;
 
+        const mappedComponents = currentNote?.components?.map(comp => {
+            const result = {
+                ...comp,
+                startingStitches: comp.startingStitches || currentNote.startingStitches || 0,
+                construction: comp.construction || currentNote.construction || 'flat'
+            };
+
+            return result;
+        }) || [{
+            id: 'note-component',
+            name: 'Pattern',
+            construction: currentNote?.construction || 'flat',
+            startingStitches: currentNote?.startingStitches || 0,
+            steps: []
+        }];
+
+
+
         return {
             // Core state (mapped to project-like structure)
             currentProject: currentNote ? {
