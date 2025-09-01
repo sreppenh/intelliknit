@@ -17,6 +17,8 @@ import NotesList from '../../../features/notes/components/NotesList';
 import NoteDetail from '../../../features/notes/components/NoteDetail';
 import { useNotesContext } from '../../../features/notes/hooks/useNotesContext';
 import CreateNoteWizard from '../../notes/components/CreateNoteWizard';
+import ConfigureNotePattern from '../../notes/components/ConfigureNotePattern';
+
 
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing');
@@ -161,8 +163,8 @@ const IntelliknitMVPContent = () => {
   };
 
   const handleNoteEditSteps = (componentIndex) => {
-    // TODO: Phase 2 - Build note step wizard
-    alert('Note step wizard coming in Phase 2!');
+    notesContext.setSelectedComponentIndex(componentIndex);
+    setCurrentView('configure-note-pattern');
   };
 
   const handleNoteStartKnitting = (componentIndex) => {
@@ -301,6 +303,14 @@ const IntelliknitMVPContent = () => {
             // The createNote function in the wizard will set the current note
             setCurrentView('note-detail');
           }}
+        />
+      );
+
+    case 'configure-note-pattern':
+      return (
+        <ConfigureNotePattern
+          onBack={() => setCurrentView('note-detail')}
+          onGoToLanding={goToLanding}
         />
       );
 

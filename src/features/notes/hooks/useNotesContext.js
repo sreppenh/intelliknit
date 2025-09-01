@@ -78,6 +78,10 @@ export const NotesProvider = ({ children }) => {
             }
         },
 
+        setSelectedComponentIndex: (index) => {
+            dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: index });
+        },
+
         // Set current note (for editing/viewing)
         setCurrentNote: (note) => {
             dispatch({ type: 'SET_CURRENT_NOTE', payload: note });

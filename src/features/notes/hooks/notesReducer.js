@@ -77,6 +77,13 @@ export const notesReducer = (state, action) => {
             };
         }
 
+        case 'SET_SELECTED_COMPONENT_INDEX':
+            return {
+                ...state,
+                selectedComponentIndex: action.payload
+            };
+
+
         case 'ADD_STEP_TO_NOTE': {
             if (!state.currentNote) {
                 IntelliKnitLogger.error('ADD_STEP_TO_NOTE: No current note');
