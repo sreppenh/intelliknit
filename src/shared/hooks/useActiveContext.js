@@ -12,20 +12,37 @@ export const useActiveContext = (mode = 'project') => {
 
     // For notepad mode, use notes context
     if (mode === 'notepad' || mode === 'note') {
+        const currentNote = notesContext.currentNote;
+
         return {
             // Core state (mapped to project-like structure)
-            currentProject: notesContext.currentNote,
+            currentProject: currentNote ? {
+                ...currentNote,
+                // Ensure components array exists with proper note-to-component mapping
+                components: currentNote.components?.map(comp => ({
+                    ...comp,
+                    // Map note's startingStitches to component level if not already set
+                    startingStitches: comp.startingStitches || currentNote.startingStitches || 0,
+                    construction: comp.construction || currentNote.construction || 'flat'
+                })) || [{
+                    id: 'note-component',
+                    name: 'Pattern',
+                    construction: currentNote.construction || 'flat',
+                    startingStitches: currentNote.startingStitches || 0,
+                    steps: []
+                }]
+            } : null,
             projects: notesContext.notes,
             selectedComponentIndex: notesContext.selectedComponentIndex,
             dispatch: notesContext.dispatch,
 
             // Data access (note-specific)
-            yarns: notesContext.currentNote?.yarns || [],
-            gauge: notesContext.currentNote?.gauge || null,
-            colorMapping: notesContext.currentNote?.colorMapping || {},
-            colorCount: notesContext.currentNote?.numberOfColors || 1,
-            defaultUnits: notesContext.currentNote?.defaultUnits || 'inches',
-            needleInfo: notesContext.currentNote?.needleInfo || '',
+            yarns: currentNote?.yarns || [],
+            gauge: currentNote?.gauge || null,
+            colorMapping: currentNote?.colorMapping || {},
+            colorCount: currentNote?.numberOfColors || 1,
+            defaultUnits: currentNote?.defaultUnits || 'inches',
+            needleInfo: currentNote?.needleInfo || '',
 
             // Actions (mapped to note operations)
             updateProject: notesContext.updateNote,

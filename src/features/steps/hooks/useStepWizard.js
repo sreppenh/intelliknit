@@ -101,14 +101,32 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
   );
 
   // Inherit construction from previous step
+  // Get current stitch count from the step chain
   useEffect(() => {
-    if (component && component.steps.length > 0) {
-      const lastStep = component.steps[component.steps.length - 1];
-      if (lastStep.construction) {
-        setConstruction(lastStep.construction);
+    if (!component) return;
+
+    // Special handling for notepad mode
+    if (mode === 'notepad' || mode === 'note') {
+      if (component.steps.length === 0) {
+        // For notes, use the component's startingStitches (which came from note mapping)
+        const noteStartingStitches = component.startingStitches || 0;
+        setCurrentStitches(noteStartingStitches);
+        return;
+      }
+    } else {
+      // Original project logic
+      if (component.steps.length === 0) {
+        setCurrentStitches(0);
+        return;
       }
     }
-  }, [component?.steps]);
+
+    // Common logic for both modes: get stitches from last step
+    const lastStep = component.steps[component.steps.length - 1];
+    const stitchCount = lastStep.endingStitches || lastStep.expectedStitches || 0;
+    setCurrentStitches(stitchCount);
+
+  }, [component?.steps, componentIndex, mode]);
 
   // Get current stitch count from the step chain
   useEffect(() => {
