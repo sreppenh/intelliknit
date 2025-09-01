@@ -29,6 +29,8 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const [showStepConfirmModal, setShowStepConfirmModal] = useState(false);
   const [pendingShapingInfo, setPendingShapingInfo] = useState(null);
 
+  const wizardState = useWizardState(wizard, onBack, mode);
+
   // Add this function inside StepWizard component:
   const handleConfirmIntrinsicStep = () => {
     if (pendingShapingInfo) {
@@ -170,18 +172,17 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     };
   };
 
-  // HAD TO COMMENT THIS OUT!!!!
   // If showing ending wizard
-  {/*} if (wizardState.showEndingWizard) {
+  // Replace the commented-out section with this:
+  if (wizardState.showEndingWizard) {
     return (
-
       <ComponentEndingWizard
         component={wizard.component}
         onBack={wizardState.handleBackFromEnding}
         onComplete={wizardState.handleEndingComplete}
       />
     );
-  } */}
+  }
 
   // If showing shaping wizard
   if (showShapingWizard) {
