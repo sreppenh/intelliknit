@@ -7,6 +7,7 @@ import PatternSelector from '../../steps/components/wizard-steps/PatternSelector
 import PatternConfiguration from '../../steps/components/wizard-steps/PatternConfiguration';
 import DurationShapingChoice from '../../steps/components/wizard-steps/DurationShapingChoice';
 import DurationWizard from '../../steps/components/DurationWizard';
+import ShapingWizard from '../../steps/components/ShapingWizard';
 import { shouldSkipConfiguration } from '../../../shared/utils/PatternCategories';
 
 const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
@@ -39,9 +40,14 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
     });
 
     const [currentStep, setCurrentStep] = useState(1); // 1: Pattern Selection, 2: Configuration, 3: Duration/Shaping, 4: Duration Config
+    const [showShapingWizard, setShowShapingWizard] = useState(false);
+    const [construction, setConstruction] = useState(currentNote?.construction || 'flat');
+    const [currentStitches, setCurrentStitches] = useState(currentNote?.startingStitches || 0);
 
     // Update wizard data helper
     const updateWizardData = (sectionOrKey, dataOrValue) => {
+        console.log('ConfigureNotePattern updateWizardData called:', sectionOrKey, dataOrValue);
+
         setWizardData(prev => {
             if (typeof dataOrValue === 'boolean' || typeof dataOrValue === 'string' || typeof dataOrValue === 'number') {
                 return {
@@ -63,8 +69,15 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
 
     const canProceedFromStep2 = () => {
         if (shouldSkipConfiguration(wizardData)) return true;
-        // Add basic validation here based on pattern requirements
-        return true; // For now, allow proceeding
+
+        // Use the same validation logic as the project wizard
+        const { validatePatternConfiguration } = require('../../../shared/utils/stepDisplayUtils');
+
+        console.log('Step 2 validation - wizardData.stitchPattern:', wizardData.stitchPattern);
+        const isValid = validatePatternConfiguration(wizardData.stitchPattern);
+        console.log('Step 2 validation result:', isValid);
+
+        return isValid;
     };
 
     const handleNext = () => {
@@ -157,6 +170,40 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
         );
     }
 
+    // Show shaping wizard if active
+    if (showShapingWizard) {
+        return (
+            <ShapingWizard
+                wizardData={wizardData}
+                updateWizardData={updateWizardData}
+                currentStitches={currentStitches}
+                construction={construction}
+                setConstruction={setConstruction}
+                setCurrentStitches={setCurrentStitches}
+                component={currentNote.components[0]}
+                componentIndex={0}
+                editingStepIndex={null}
+                onExitToComponentSteps={onBack}
+                onBack={() => {
+                    setShowShapingWizard(false);
+
+                    // Check if shaping was actually completed
+                    const hasCompletedShaping = wizardData.shapingConfig?.type &&
+                        wizardData.shapingConfig?.config?.calculation;
+
+                    if (hasCompletedShaping) {
+                        // Shaping completed - advance to duration step
+                        setCurrentStep(4);
+                    } else {
+                        // Shaping not completed - clear selection and stay on duration/shaping choice
+                        updateWizardData('hasShaping', false);
+                        updateWizardData('choiceMade', false);
+                    }
+                }}
+            />
+        );
+    }
+
     return (
         <div className="min-h-screen bg-lavender-50">
             <div className="app-container bg-white min-h-screen shadow-lg">
@@ -232,8 +279,20 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
                                 existingPrepNote=""
                                 onSavePrepNote={() => { }} // Notes don't use prep notes
                                 currentStitches={currentNote?.startingStitches || 0}
-                                project={currentNote} // Pass note as project for compatibility
+                                project={{
+                                    ...currentNote,
+                                    customKeyboardActions: currentNote?.customKeyboardActions || {},
+                                    // Ensure all expected project properties exist
+                                    defaultUnits: currentNote?.defaultUnits || 'inches',
+                                    yarns: currentNote?.yarns || [],
+                                    gauge: currentNote?.gauge || null
+                                }}
                             />
+
+                            {/* Debug info */}
+                            <div className="text-xs text-gray-500 mt-2">
+                                Debug: currentStitches = {currentNote?.startingStitches || 0}
+                            </div>
 
                             <div className="flex gap-3 pt-4 border-t border-wool-100">
                                 <button
@@ -264,12 +323,9 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
                             <DurationShapingChoice
                                 wizardData={wizardData}
                                 updateWizardData={updateWizardData}
-                                construction={currentNote?.construction || 'flat'}
+                                construction={construction}
                                 onAdvanceStep={() => setCurrentStep(4)}
-                                onShowShapingWizard={() => {
-                                    // TODO: Add shaping wizard for notes
-                                    console.log('Shaping wizard not implemented for notes yet');
-                                }}
+                                onShowShapingWizard={() => setShowShapingWizard(true)}
                                 existingPrepNote=""
                                 onSavePrepNote={() => { }}
                             />

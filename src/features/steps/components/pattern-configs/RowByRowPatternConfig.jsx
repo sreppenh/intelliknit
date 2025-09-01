@@ -25,6 +25,7 @@ const RowByRowPatternConfig = ({
     updateWizardData,
     construction,
     currentStitches,
+    project,
 
     // NEW: Mode-aware props
     mode = 'wizard',           // 'wizard' | 'edit' | 'notepad'
@@ -87,17 +88,31 @@ const RowByRowPatternConfig = ({
     // ===== NEW: MOBILE DETECTION =====
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-    const { currentProject, dispatch } = useProjectsContext();
+    //const { currentProject, dispatch } = useProjectsContext();
+    // Then replace the useProjectsContext line with:
+    const projectsContext = useProjectsContext();
+    const currentProject = project || projectsContext.currentProject; // Use prop first, fall back to context
 
     const [newActionStitches, setNewActionStitches] = useState('1'); // Default to 1
 
-    // Helper function to update project data
+
+
     const updateProject = (updates) => {
-        dispatch({
-            type: 'UPDATE_PROJECT',
-            payload: { ...currentProject, ...updates }
-        });
+        if (project) {
+            // Notes mode: project is passed as prop, but we can't update it directly
+            // In notes mode, custom keyboard actions should be handled by the parent
+            console.warn('RowByRowPatternConfig: updateProject called in notes mode, but notes handle updates differently');
+            // For now, do nothing - notes don't support custom keyboard actions yet
+            return;
+        } else {
+            // Projects mode: use dispatch as normal
+            projectsContext.dispatch({
+                type: 'UPDATE_PROJECT',
+                payload: { ...currentProject, ...updates }
+            });
+        }
     };
+
 
     useEffect(() => {
         const handleResize = () => setIsMobile(window.innerWidth <= 768);
@@ -234,7 +249,19 @@ const RowByRowPatternConfig = ({
     };
 
     const getStitchCalculation = () => {
-        if (!currentProject) return null;
+        console.log('getStitchCalculation called, currentProject:', !!currentProject, 'tempRowText:', tempRowText);
+
+        if (!currentProject) {
+            const result = {
+                isValid: true,
+                previousStitches: currentStitches || 40,
+                totalStitches: currentStitches || 40,
+                stitchChange: 0,
+                stitchesConsumed: 4
+            };
+            console.log('Fallback result:', result);
+            return result;
+        }
 
         const baselineStitches = currentStitches || 80;
 
