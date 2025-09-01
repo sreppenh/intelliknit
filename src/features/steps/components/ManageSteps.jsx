@@ -30,7 +30,7 @@ import { getHumanReadableDescription } from '../../../shared/utils/stepDescripti
  * Handles step creation, editing, deletion, and navigation
  * for component construction workflows
  */
-const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding }) => {
+const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, mode = 'project' }) => {
   // ===== STATE MANAGEMENT =====
   const { currentProject, dispatch } = useProjectsContext();
   const [isEditing, setIsEditing] = useState(false);

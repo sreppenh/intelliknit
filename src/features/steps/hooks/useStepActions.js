@@ -1,5 +1,6 @@
 // features/steps/hooks/useStepActions.js
-import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+// import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+import { useActiveContext } from '../../../shared/hooks/useActiveContext';
 import { useStepCalculation } from './useStepCalculation';
 import { useStepGeneration } from './useStepGeneration';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
@@ -33,8 +34,9 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
   };
 };
 
-export const useStepActions = (wizard, onBack) => {
-  const { dispatch } = useProjectsContext();
+export const useStepActions = (wizard, onBack, mode = 'project') => {
+  const { dispatch } = useActiveContext(mode);
+
   const { calculateEffect } = useStepCalculation();
   const { generateInstruction } = useStepGeneration(wizard.construction);
 

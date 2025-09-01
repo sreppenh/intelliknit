@@ -1,6 +1,7 @@
 // src/features/steps/hooks/useStepWizard.js (ENHANCED VERSION)
 import { useState, useEffect } from 'react';
-import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+// import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+import { useActiveContext } from '../../../shared/hooks/useActiveContext';
 import { CONSTRUCTION_TYPES } from '../../../shared/utils/constants';
 import useSmartStepNavigation from '../../../shared/hooks/useSmartStepNavigation';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
@@ -8,8 +9,8 @@ import { validatePatternConfiguration } from '../../../shared/utils/stepDisplayU
 import { shouldSkipConfiguration as shouldSkipPatternConfiguration } from '../../../shared/utils/PatternCategories';
 
 
-export const useStepWizard = (componentIndex, editingStepIndex = null, editMode = null) => {
-  const { currentProject } = useProjectsContext();
+export const useStepWizard = (componentIndex, editingStepIndex = null, editMode = null, mode = 'project') => {
+  const { currentProject } = useActiveContext(mode);
   const [construction, setConstruction] = useState(CONSTRUCTION_TYPES.FLAT);
   const [currentStitches, setCurrentStitches] = useState(0);
 

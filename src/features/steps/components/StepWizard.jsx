@@ -11,7 +11,8 @@ import ShapingWizard from './ShapingWizard';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import DurationWizard from './DurationWizard';
-import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+// import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+import { useActiveContext } from '../../../shared/hooks/useActiveContext';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
 import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
@@ -19,11 +20,10 @@ import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../share
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
 
 
-const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack }) => {
-  const wizard = useStepWizard(componentIndex, editingStepIndex, editMode);
-  const { handleAddStep, handleAddStepAndContinue, handleAddStepWithCustomData } = useStepActions(wizard, onBack);
-  const { currentProject } = useProjectsContext();
-  const wizardState = useWizardState(wizard, onBack);
+const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
+  const wizard = useStepWizard(componentIndex, editingStepIndex, editMode, mode);
+  const { handleAddStep, handleAddStepAndContinue, handleAddStepWithCustomData } = useStepActions(wizard, onBack, mode);
+  const { currentProject } = useActiveContext(mode);
   const [showShapingWizard, setShowShapingWizard] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showStepConfirmModal, setShowStepConfirmModal] = useState(false);
@@ -170,14 +170,9 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     };
   };
 
-
-
-
-
-
-
+  // HAD TO COMMENT THIS OUT!!!!
   // If showing ending wizard
-  if (wizardState.showEndingWizard) {
+  {/*} if (wizardState.showEndingWizard) {
     return (
 
       <ComponentEndingWizard
@@ -186,7 +181,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
         onComplete={wizardState.handleEndingComplete}
       />
     );
-  }
+  } */}
 
   // If showing shaping wizard
   if (showShapingWizard) {
@@ -315,6 +310,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
               onSavePrepNote={(note) => wizard.updateWizardData('prepNote', note)}
               currentStitches={wizard.currentStitches}
               project={currentProject}
+              mode={mode}
             />
 
             {/* 🎯 SIMPLIFIED: Navigation for Step 2 */}
@@ -399,6 +395,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
             project={currentProject}
             onBack={navigation.previousStep} // 🎯 SIMPLIFIED: Direct navigation call
             onExitToComponentSteps={onBack}
+            mode={mode}
           />
         );
 

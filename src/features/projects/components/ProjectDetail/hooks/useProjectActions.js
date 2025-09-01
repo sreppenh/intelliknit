@@ -7,7 +7,7 @@ import { useState } from 'react';
  * to create a clean separation of concerns and reduce file complexity.
  */
 const useProjectActions = (currentProject, dispatch, callbacks) => {
-    const { onBack, onEditSteps, onManageSteps, onEditProjectDetails } = callbacks;
+    const { onBack, onEditSteps, onManageSteps, onEditProjectDetails, mode = 'project' } = callbacks;
 
     // Component creation and celebration state
     const [showEnhancedCreation, setShowEnhancedCreation] = useState(false);
