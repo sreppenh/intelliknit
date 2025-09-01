@@ -46,6 +46,7 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
 
     // Update wizard data helper
     const updateWizardData = (sectionOrKey, dataOrValue) => {
+        console.log('ConfigureNotePattern updateWizardData called:', sectionOrKey, dataOrValue);
 
         setWizardData(prev => {
             if (typeof dataOrValue === 'boolean' || typeof dataOrValue === 'string' || typeof dataOrValue === 'number') {
@@ -72,7 +73,9 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
         // Use the same validation logic as the project wizard
         const { validatePatternConfiguration } = require('../../../shared/utils/stepDisplayUtils');
 
+        console.log('Step 2 validation - wizardData.stitchPattern:', wizardData.stitchPattern);
         const isValid = validatePatternConfiguration(wizardData.stitchPattern);
+        console.log('Step 2 validation result:', isValid);
 
         return isValid;
     };
@@ -86,15 +89,30 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
                 setCurrentStep(2);
             }
         } else if (currentStep === 2) {
-            // From configuration to duration/shaping choice
-            setCurrentStep(3);
+            // After pattern configuration, check if stitches changed
+            const instruction = generateInstruction(wizardData);
+            const effect = calculateEffect(wizardData, currentNote?.startingStitches || 0, currentNote?.construction || 'flat');
+
+            console.log('Checking stitch change:', {
+                startingStitches: currentNote?.startingStitches,
+                endingStitches: effect.endingStitches,
+                changed: effect.endingStitches !== (currentNote?.startingStitches || 0)
+            });
+
+            // If stitches changed, save automatically with detected shaping
+            if (effect.endingStitches !== (currentNote?.startingStitches || 0)) {
+                console.log('Auto-saving due to stitch change');
+                handleSaveConfiguration();
+            } else {
+                // Continue to duration/shaping choice
+                setCurrentStep(3);
+            }
         } else if (currentStep === 3) {
             // Duration/Shaping choice handles its own advancement
             if (wizardData.hasShaping === false) {
                 setCurrentStep(4); // Go to duration config
             } else {
                 // For now, skip shaping and go to duration
-                // TODO: Add shaping wizard integration
                 setCurrentStep(4);
             }
         } else if (currentStep === 4) {
@@ -103,11 +121,15 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
     };
 
     const handleSaveConfiguration = () => {
+        console.log('Saving note configuration with wizardData:', wizardData);
 
         // Generate step instruction and calculate effects
         const instruction = generateInstruction(wizardData);
         const currentStitches = currentNote?.startingStitches || 0;
         const effect = calculateEffect(wizardData, currentStitches, currentNote?.construction || 'flat');
+
+        console.log('Generated instruction:', instruction);
+        console.log('Calculated effect:', effect);
 
         // Create proper step object
         const stepObject = {
@@ -132,6 +154,8 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
             }
         };
 
+        console.log('Created step object:', stepObject);
+
         // Update the note with the new step
         const updatedNote = {
             ...currentNote,
@@ -141,6 +165,8 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
             }],
             lastActivityAt: new Date().toISOString()
         };
+
+        console.log('Updating note with:', updatedNote);
 
         updateNote(updatedNote);
 
@@ -200,7 +226,7 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
                 <PageHeader
                     useBranding={true}
                     onHome={onGoToLanding}
-                    onBack={currentStep === 1 ? onBack : () => setCurrentStep(1)}
+                    onBack={currentStep === 1 ? onBack : currentStep === 4 ? () => setCurrentStep(2) : () => setCurrentStep(1)}
                     showCancelButton={true}
                     onCancel={onBack}
                     compact={true}
@@ -253,6 +279,13 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
 
                     {currentStep === 2 && (
                         <div className="space-y-6">
+                            <div>
+                                <h2 className="content-header-secondary mb-2">Configure Pattern</h2>
+                                <p className="text-wool-500 text-sm">
+                                    Set up your {wizardData.stitchPattern.pattern} pattern
+                                </p>
+                            </div>
+
                             <PatternConfiguration
                                 wizardData={wizardData}
                                 updateWizardData={updateWizardData}
@@ -270,6 +303,11 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
                                     gauge: currentNote?.gauge || null
                                 }}
                             />
+
+                            {/* Debug info */}
+                            <div className="text-xs text-gray-500 mt-2">
+                                Debug: currentStitches = {currentNote?.startingStitches || 0}
+                            </div>
 
                             <div className="flex gap-3 pt-4 border-t border-wool-100">
                                 <button
@@ -324,10 +362,9 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
                                 componentIndex={0}
                                 editingStepIndex={null}
                                 project={currentNote}
+                                buttonText="Save Configuration"
                                 onBack={() => setCurrentStep(3)}
-                                onExitToComponentSteps={onBack}
-                                // Override the default save behavior
-                                onComplete={handleSaveConfiguration}
+                                onExitToComponentSteps={handleSaveConfiguration}
                             />
                         </div>
                     )}
