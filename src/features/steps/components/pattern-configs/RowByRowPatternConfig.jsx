@@ -366,7 +366,6 @@ const RowByRowPatternConfig = ({
             handleNumberInput(action);
             return;
         }
-
         // Enhanced debouncing to prevent ghost clicks across different UI elements
         const now = Date.now();
         const timeSinceLastClick = now - lastClickTime;

@@ -253,13 +253,6 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
 
                     {currentStep === 2 && (
                         <div className="space-y-6">
-                            <div>
-                                <h2 className="content-header-secondary mb-2">Configure Pattern</h2>
-                                <p className="text-wool-500 text-sm">
-                                    Set up your {wizardData.stitchPattern.pattern} pattern
-                                </p>
-                            </div>
-
                             <PatternConfiguration
                                 wizardData={wizardData}
                                 updateWizardData={updateWizardData}
@@ -277,11 +270,6 @@ const ConfigureNotePattern = ({ onBack, onGoToLanding }) => {
                                     gauge: currentNote?.gauge || null
                                 }}
                             />
-
-                            {/* Debug info */}
-                            <div className="text-xs text-gray-500 mt-2">
-                                Debug: currentStitches = {currentNote?.startingStitches || 0}
-                            </div>
 
                             <div className="flex gap-3 pt-4 border-t border-wool-100">
                                 <button
