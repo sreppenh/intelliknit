@@ -18,6 +18,7 @@ import NoteDetail from '../../../features/notes/components/NoteDetail';
 import { useNotesContext } from '../../../features/notes/hooks/useNotesContext';
 import CreateNoteWizard from '../../notes/components/CreateNoteWizard';
 import ConfigureNotePattern from '../../notes/components/ConfigureNotePattern';
+import NoteCounter from '../../notes/components/NoteCounter';
 
 
 const IntelliknitMVPContent = () => {
@@ -168,8 +169,8 @@ const IntelliknitMVPContent = () => {
   };
 
   const handleNoteStartKnitting = (componentIndex) => {
-    // TODO: Phase 2 - Build note counter  
-    alert('Note knitting mode coming in Phase 2!');
+    notesContext.setSelectedComponentIndex(componentIndex);
+    setCurrentView('note-counter');
   };
 
   // Router logic based on current view
@@ -314,10 +315,20 @@ const IntelliknitMVPContent = () => {
         />
       );
 
+    case 'note-counter':
+      return (
+        <NoteCounter
+          onBack={() => setCurrentView('note-detail')}
+          onGoToLanding={goToLanding}
+        />
+      );
+
     default:
       return <div>View not found</div>;
   }
 };
+
+
 
 const IntelliknitMVP = () => {
   return (
