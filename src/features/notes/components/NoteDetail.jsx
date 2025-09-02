@@ -6,6 +6,7 @@ import React, { useState } from 'react';
 import { useNotesContext } from '../hooks/useNotesContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import StandardModal from '../../../shared/components/modals/StandardModal';
+import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
 
 const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => {
     const { currentNote, updateNote, deleteNote } = useNotesContext();
@@ -145,9 +146,47 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                                 <div className="text-base text-wool-700 mb-2">
                                     ✅ {getPatternInfo()}
                                 </div>
-                                <div className="text-sm text-wool-600 mb-4">
-                                    {step.description}
+
+                                {/* Rich step display */}
+                                <div className="bg-sage-50 border-sage-300 border-2 rounded-xl p-4 mb-4">
+                                    <div className="flex items-start gap-3">
+                                        <div className="w-7 h-7 rounded-full bg-sage-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                            1
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            {(() => {
+                                                const { description, contextualPatternNotes, contextualConfigNotes, technicalData } =
+                                                    getFormattedStepDisplay(step, "Pattern", currentNote);
+
+                                                return (
+                                                    <div>
+                                                        <h4 className="text-sm font-semibold mb-1 text-wool-700">
+                                                            {description}
+                                                        </h4>
+
+                                                        {contextualPatternNotes && (
+                                                            <div className="text-xs text-wool-600 italic mb-1 whitespace-pre-line">
+                                                                {contextualPatternNotes}
+                                                            </div>
+                                                        )}
+
+                                                        {contextualConfigNotes && (
+                                                            <div className="text-xs text-wool-600 italic mb-1 whitespace-pre-line">
+                                                                {contextualConfigNotes}
+                                                            </div>
+                                                        )}
+
+                                                        <div className="text-xs text-wool-500">
+                                                            {technicalData}
+                                                        </div>
+                                                    </div>
+                                                );
+                                            })()}
+                                        </div>
+                                    </div>
                                 </div>
+
+
                                 <div className="flex gap-3">
                                     <button
                                         onClick={() => onEditSteps(0)}

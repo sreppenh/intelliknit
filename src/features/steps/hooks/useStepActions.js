@@ -96,6 +96,7 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
       // Update existing step
       const updateActionType = mode === 'notepad' ? 'UPDATE_STEP_IN_NOTE' : 'UPDATE_STEP';
       console.log(`🔧 Dispatching ${updateActionType}`);
+      console.log('🔧 Full step object being saved:', JSON.stringify(stepObject, null, 2));
       dispatch({
         type: updateActionType,
         payload: {
@@ -108,6 +109,7 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
       // Add new step
       if (effect.success) {
         const actionType = mode === 'notepad' ? 'ADD_STEP_TO_NOTE' : 'ADD_CALCULATED_STEP';
+        console.log('🔧 Full step object being saved:', JSON.stringify(stepObject, null, 2));
         console.log(`🔧 Dispatching ${actionType} with payload:`, {
           componentIndex: wizard.componentIndex,
           step: createStepObject(instruction, effect, wizard, { forceManualType: false })
