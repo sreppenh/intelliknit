@@ -111,7 +111,7 @@ export const getContextualPatternNotes = (step, project = null) => {
  * ✅ ENHANCED: Format knitting instruction with comprehensive cable support
  * Converts button-optimized text to human-readable instructions
  */
-const formatReadableInstruction = (instruction) => {
+export const formatReadableInstruction = (instruction) => {
     if (!instruction || typeof instruction !== 'string') return instruction;
 
     let formatted = instruction.trim();

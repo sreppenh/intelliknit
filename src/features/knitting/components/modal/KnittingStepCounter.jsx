@@ -10,6 +10,7 @@ import {
 } from '../../../../shared/utils/sideIntelligence';
 import { useSideTracking } from '../../hooks/useSideTracking';
 import SimpleRowSettings from '../SimpleRowSettings';
+import { formatReadableInstruction } from '../../../../shared/utils/stepDescriptionUtils';
 
 // Gauge utilities
 import {
@@ -190,7 +191,7 @@ const KnittingStepCounter = ({
                 // Handle string format (standard case)
                 if (rowData && typeof rowData === 'string') {
                     return {
-                        instruction: rowData,
+                        instruction: formatReadableInstruction(rowData), // 🎯 ADD FORMATTING
                         isSupported: true,
                         isRowByRow: true
                     };
@@ -198,7 +199,7 @@ const KnittingStepCounter = ({
                 // Handle object format (fallback for legacy data)
                 else if (rowData && rowData.instruction) {
                     return {
-                        instruction: rowData.instruction,
+                        instruction: formatReadableInstruction(rowData.instruction), // 🎯 ADD FORMATTING
                         isSupported: true,
                         isRowByRow: true
                     };
