@@ -148,9 +148,9 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                                 </div>
 
                                 {/* Rich step display */}
-                                <div className="bg-sage-50 border-sage-300 border-2 rounded-xl p-4 mb-4">
+                                <div className="bg-lavender-50 border-lavender-300 border-2 rounded-xl p-4 mb-4">
                                     <div className="flex items-start gap-3">
-                                        <div className="w-7 h-7 rounded-full bg-sage-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                                        <div className="w-7 h-7 rounded-full bg-lavender-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
                                             1
                                         </div>
                                         <div className="flex-1 min-w-0">

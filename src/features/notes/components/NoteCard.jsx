@@ -62,7 +62,7 @@ const NoteCard = ({ note, onOpen, onDelete, onRename }) => {
     return (
         <>
             <div
-                className="card-interactive p-4 cursor-pointer hover:shadow-md transition-all duration-200 border-2 border-lavender-200 hover:border-lavender-400 bg-white"
+                className="card-interactive p-4 cursor-pointer hover:shadow-md transition-all duration-200 border-2 border-lavender-200 hover:border-lavender-400  hover:bg-lavender-75 bg-white"
                 onClick={onOpen}
             >
                 {/* Header: Note icon + name + menu */}
