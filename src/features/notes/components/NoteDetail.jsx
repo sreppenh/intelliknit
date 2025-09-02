@@ -7,11 +7,13 @@ import { useNotesContext } from '../hooks/useNotesContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import StandardModal from '../../../shared/components/modals/StandardModal';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
+import NoteCounter from './NoteCounter';
 
 const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => {
     const { currentNote, updateNote, deleteNote } = useNotesContext();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
+    const [showKnittingModal, setShowKnittingModal] = useState(false); // NEW: Modal state
     const [editData, setEditData] = useState({});
 
     if (!currentNote) {
@@ -59,6 +61,16 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
             needleInfo: editData.needleInfo.trim()
         });
         setShowEditModal(false);
+    };
+
+    // NEW: Handle start knitting - opens modal instead of routing
+    const handleStartKnitting = () => {
+        setShowKnittingModal(true);
+    };
+
+    // NEW: Handle close knitting modal
+    const handleCloseKnittingModal = () => {
+        setShowKnittingModal(false);
     };
 
     // Get pattern info
@@ -195,7 +207,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                                         Edit Pattern
                                     </button>
                                     <button
-                                        onClick={() => onStartKnitting(0)}
+                                        onClick={handleStartKnitting}  // Remove the (0) parameter
                                         className="btn-primary btn-sm"
                                     >
                                         Start Knitting
@@ -374,7 +386,17 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                     </div>
                 </div>
             </StandardModal>
+
+            {/* NEW: Knitting Modal - Rendered conditionally */}
+            {showKnittingModal && hasStep && (
+                <NoteCounter
+                    onBack={handleCloseKnittingModal}
+                    onGoToLanding={onGoToLanding}
+                />
+            )}
         </div>
+
+
     );
 };
 

@@ -168,11 +168,6 @@ const IntelliknitMVPContent = () => {
     setCurrentView('configure-note-pattern');
   };
 
-  const handleNoteStartKnitting = (componentIndex) => {
-    notesContext.setSelectedComponentIndex(componentIndex);
-    setCurrentView('note-counter');
-  };
-
   // Router logic based on current view
   switch (currentView) {
     case 'landing':
@@ -290,7 +285,7 @@ const IntelliknitMVPContent = () => {
           onBack={() => setCurrentView('note-list')}
           onGoToLanding={goToLanding}
           onEditSteps={handleNoteEditSteps}
-          onStartKnitting={handleNoteStartKnitting}
+
         />
       );
 
@@ -310,14 +305,6 @@ const IntelliknitMVPContent = () => {
     case 'configure-note-pattern':
       return (
         <ConfigureNotePattern
-          onBack={() => setCurrentView('note-detail')}
-          onGoToLanding={goToLanding}
-        />
-      );
-
-    case 'note-counter':
-      return (
-        <NoteCounter
           onBack={() => setCurrentView('note-detail')}
           onGoToLanding={goToLanding}
         />

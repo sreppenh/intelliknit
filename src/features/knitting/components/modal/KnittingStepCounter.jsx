@@ -174,28 +174,39 @@ const KnittingStepCounter = ({
     const shouldShowCompletionSuggestion = isLengthStep && shouldSuggestCompletion(step, currentRow, project);
 
     // Get current instruction
+    // Replace the getCurrentInstruction function with this clean version:
+
     const getCurrentInstruction = () => {
         try {
-            // Force row-by-row mode for notepad
-            if (isNotepadMode || step?.forceRowByRowMode) {
-                // Get the actual row instruction from the step's pattern data
-                const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+            // Get the actual row instruction from the step's pattern data
+            const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
-                if (stitchPattern?.entryMode === 'row_by_row' && stitchPattern?.rowInstructions) {
-                    const rowInstructions = stitchPattern.rowInstructions;
-                    const rowIndex = (currentRow - 1) % rowInstructions.length;
-                    const rowData = rowInstructions[rowIndex];
+            // Check for row-by-row instructions FIRST (works for both project and notepad mode)
+            if (stitchPattern?.entryMode === 'row_by_row' && stitchPattern?.rowInstructions) {
+                const rowInstructions = stitchPattern.rowInstructions;
+                const rowIndex = (currentRow - 1) % rowInstructions.length;
+                const rowData = rowInstructions[rowIndex];
 
-                    if (rowData && rowData.instruction) {
-                        return {
-                            instruction: rowData.instruction,
-                            isSupported: true,
-                            isRowByRow: true
-                        };
-                    }
+                // Handle string format (standard case)
+                if (rowData && typeof rowData === 'string') {
+                    return {
+                        instruction: rowData,
+                        isSupported: true,
+                        isRowByRow: true
+                    };
                 }
+                // Handle object format (fallback for legacy data)
+                else if (rowData && rowData.instruction) {
+                    return {
+                        instruction: rowData.instruction,
+                        isSupported: true,
+                        isRowByRow: true
+                    };
+                }
+            }
 
-                // Fallback to pattern name if no row instructions
+            // For notepad mode without row-by-row, use pattern fallback
+            if (isNotepadMode || step?.forceRowByRowMode) {
                 const patternName = stitchPattern?.pattern || 'Continue Pattern';
                 return {
                     instruction: `${patternName} - Row ${currentRow}`,
