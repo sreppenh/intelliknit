@@ -1,12 +1,12 @@
 // 📱 NOTEPAD WRAPPER - Standalone step tracking
-// NotepadCardWrapper.jsx
+// NotepadStepCard.jsx
 import React, { useState } from 'react';
 import { X, Plus } from 'lucide-react';
 import KnittingStepCard from '../modal/KnittingStepCardWrapper';
 import { getModalTheme } from '../modal/KnittingModalTheme';
 import { useKnittingProgress } from '../../hooks/useKnittingProgress';
 
-const NotepadCardWrapper = ({
+const NotepadStepCard = ({
     step,
     onClose,
     onDuplicate,
@@ -73,4 +73,4 @@ const NotepadCardWrapper = ({
     );
 };
 
-export default NotepadCardWrapper;
+export default NotepadStepCard;
