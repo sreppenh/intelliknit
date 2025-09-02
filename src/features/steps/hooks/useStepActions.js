@@ -89,14 +89,15 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
 
     console.log('🔧 Generated step object:', createStepObject(instruction, effect, wizard));
 
-
     // ✅ USE HELPER: Create step object for debugging
     const stepObject = createStepObject(instruction, effect, wizard);
 
     if (wizard.isEditing) {
       // Update existing step
+      const updateActionType = mode === 'notepad' ? 'UPDATE_STEP_IN_NOTE' : 'UPDATE_STEP';
+      console.log(`🔧 Dispatching ${updateActionType}`);
       dispatch({
-        type: 'UPDATE_STEP',
+        type: updateActionType,
         payload: {
           componentIndex: wizard.componentIndex,
           stepIndex: wizard.editingStepIndex,
@@ -106,16 +107,26 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
     } else {
       // Add new step
       if (effect.success) {
+        const actionType = mode === 'notepad' ? 'ADD_STEP_TO_NOTE' : 'ADD_CALCULATED_STEP';
+        console.log(`🔧 Dispatching ${actionType} with payload:`, {
+          componentIndex: wizard.componentIndex,
+          step: createStepObject(instruction, effect, wizard, { forceManualType: false })
+        });
         dispatch({
-          type: 'ADD_CALCULATED_STEP',
+          type: actionType,
           payload: {
             componentIndex: wizard.componentIndex,
             step: createStepObject(instruction, effect, wizard, { forceManualType: false })
           }
         });
       } else {
+        const actionType = mode === 'notepad' ? 'ADD_STEP_TO_NOTE' : 'ADD_STEP';
+        console.log(`🔧 Dispatching ${actionType} with payload:`, {
+          componentIndex: wizard.componentIndex,
+          step: createStepObject(instruction, effect, wizard, { useCurrentStitches: true })
+        });
         dispatch({
-          type: 'ADD_STEP',
+          type: actionType,
           payload: {
             componentIndex: wizard.componentIndex,
             step: createStepObject(instruction, effect, wizard, { useCurrentStitches: true })
@@ -125,6 +136,7 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
     }
 
     // Navigate back to component detail
+    console.log('🔧 About to call onBack()');
     onBack();
   };
 
