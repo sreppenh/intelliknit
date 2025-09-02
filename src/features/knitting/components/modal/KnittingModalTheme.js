@@ -2,12 +2,25 @@
 import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
 
 /**
- * Get theme configuration for knitting step modal based on step type
+ * Get theme configuration for knitting step modal based on step type and context
  * 
  * @param {Object} step - Step data object
+ * @param {string} context - Context: 'project', 'notepad', 'note' (default: 'project')
  * @returns {Object} Theme configuration with colors and styling
  */
-export const getModalTheme = (step) => {
+export const getModalTheme = (step, context = 'project') => {
+    // Force lavender theme for notepad context
+    if (context === 'notepad' || context === 'note') {
+        return {
+            cardBg: 'bg-gradient-to-br from-lavender-50 via-lavender-25 to-white',
+            contentBg: 'bg-lavender-50/30 border-lavender-200/50',
+            textPrimary: 'text-lavender-900',
+            textSecondary: 'text-lavender-700',
+            accent: 'lavender'
+        };
+    }
+
+    // Existing project-based theme logic
     const patternName = getStepPatternName(step);
 
     // Yarn theme for construction & finishing steps

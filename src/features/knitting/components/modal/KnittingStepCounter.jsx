@@ -38,6 +38,8 @@ const KnittingStepCounter = ({
     const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
 
+    const isNotepadMode = project?.isNotepadMode || false;
+
     // Side tracking hook
     const sideTracking = useSideTracking(project?.id, component?.id, navigation.currentStep, step, component);
 
@@ -174,6 +176,35 @@ const KnittingStepCounter = ({
     // Get current instruction
     const getCurrentInstruction = () => {
         try {
+            // Force row-by-row mode for notepad
+            if (isNotepadMode || step?.forceRowByRowMode) {
+                // Get the actual row instruction from the step's pattern data
+                const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+
+                if (stitchPattern?.entryMode === 'row_by_row' && stitchPattern?.rowInstructions) {
+                    const rowInstructions = stitchPattern.rowInstructions;
+                    const rowIndex = (currentRow - 1) % rowInstructions.length;
+                    const rowData = rowInstructions[rowIndex];
+
+                    if (rowData && rowData.instruction) {
+                        return {
+                            instruction: rowData.instruction,
+                            isSupported: true,
+                            isRowByRow: true
+                        };
+                    }
+                }
+
+                // Fallback to pattern name if no row instructions
+                const patternName = stitchPattern?.pattern || 'Continue Pattern';
+                return {
+                    instruction: `${patternName} - Row ${currentRow}`,
+                    isSupported: true,
+                    isRowByRow: false
+                };
+            }
+
+            // Use original logic for project mode
             return getRowInstruction(step, currentRow, stitchCount, project);
         } catch (error) {
             console.error('Error getting row instruction:', error);
@@ -190,12 +221,23 @@ const KnittingStepCounter = ({
     const checkForGaugeUpdate = () => {
         if (!isLengthStep) return;
 
-        // FIXED: Pass startingLength to gauge functions
         const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
         if (shouldPrompt) {
-            const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
-            setGaugePromptData(promptData);
-            setShowGaugePrompt(true);
+            if (isNotepadMode) {
+                // Auto-save gauge for notepad mode without prompting
+                const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
+                const updatedProject = updateProjectGaugeFromMeasurement(project, promptData);
+
+                // Update project if updateProject function is available
+                if (updateProject) {
+                    updateProject(updatedProject);
+                }
+            } else {
+                // Show prompt for project mode
+                const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
+                setGaugePromptData(promptData);
+                setShowGaugePrompt(true);
+            }
         }
     };
 
@@ -510,7 +552,8 @@ const KnittingStepCounter = ({
                 </div>
 
                 {/* Row 1 Settings - Clean & Simple */}
-                {currentRow === 1 && (useSideIntelligence || lengthTarget?.type === 'until_length') && (
+                {!isNotepadMode && currentRow === 1 && (useSideIntelligence || lengthTarget?.type === 'until_length') && (
+
                     <SimpleRowSettings
                         step={step}
                         construction={construction}
