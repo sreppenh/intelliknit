@@ -1,5 +1,5 @@
 /**
- * NoteDetail - Individual note management (simplified ProjectDetail for notes)
+ * NoteDetail - Redesigned with DetailsTab pattern for better readability
  */
 
 import React, { useState } from 'react';
@@ -9,12 +9,14 @@ import StandardModal from '../../../shared/components/modals/StandardModal';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
 import NoteCounter from './NoteCounter';
 
-const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => {
+const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
     const { currentNote, updateNote, deleteNote } = useNotesContext();
     const [showDeleteModal, setShowDeleteModal] = useState(false);
-    const [showEditModal, setShowEditModal] = useState(false);
-    const [showKnittingModal, setShowKnittingModal] = useState(false); // NEW: Modal state
-    const [editData, setEditData] = useState({});
+    const [showKnittingModal, setShowKnittingModal] = useState(false);
+
+    // Edit states for inline editing
+    const [editingSection, setEditingSection] = useState(null);
+    const [editForm, setEditForm] = useState({});
 
     if (!currentNote) {
         return (
@@ -30,62 +32,60 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
     // Get note info
     const hasStep = currentNote.components?.[0]?.steps?.length > 0;
     const step = hasStep ? currentNote.components[0].steps[0] : null;
-    const hasYarns = currentNote.yarns?.length > 0;
+    const hasYarns = currentNote.yarns?.length > 0 && currentNote.yarns.some(y => y.colorHex);
     const hasGauge = currentNote.gauge?.stitchGauge || currentNote.gauge?.rowGauge;
 
     // Handle delete note
     const handleDeleteNote = async () => {
         const success = await deleteNote(currentNote.id);
         if (success) {
-            onBack(); // Go back to notes list
+            onBack();
         }
         setShowDeleteModal(false);
     };
 
-    // Handle edit note details
-    const handleEditNote = () => {
-        setEditData({
-            name: currentNote.name,
-            textNotes: currentNote.textNotes || '',
-            needleInfo: currentNote.needleInfo || ''
-        });
-        setShowEditModal(true);
-    };
-
-    // Save note edits
-    const handleSaveEdit = () => {
-        updateNote({
-            ...currentNote,
-            name: editData.name.trim(),
-            textNotes: editData.textNotes.trim(),
-            needleInfo: editData.needleInfo.trim()
-        });
-        setShowEditModal(false);
-    };
-
-    // NEW: Handle start knitting - opens modal instead of routing
+    // Handle start knitting
     const handleStartKnitting = () => {
         setShowKnittingModal(true);
     };
 
-    // NEW: Handle close knitting modal
     const handleCloseKnittingModal = () => {
         setShowKnittingModal(false);
     };
 
-    // Get pattern info
-    const getPatternInfo = () => {
-        if (!hasStep) return 'No pattern configured yet';
-        const pattern = step.wizardConfig?.stitchPattern?.pattern || 'Unknown pattern';
-        const rows = step.totalRows || 1;
-        return `${pattern} (${rows} ${rows === 1 ? 'row' : 'rows'})`;
+    // Inline editing handlers
+    const startEditing = (section) => {
+        setEditingSection(section);
+        setEditForm({
+            name: currentNote.name,
+            textNotes: currentNote.textNotes || '',
+            needleInfo: currentNote.needleInfo || ''
+        });
+    };
+
+    const cancelEditing = () => {
+        setEditingSection(null);
+        setEditForm({});
+    };
+
+    const saveEdit = () => {
+        updateNote({
+            ...currentNote,
+            name: editForm.name?.trim() || currentNote.name,
+            textNotes: editForm.textNotes?.trim() || '',
+            needleInfo: editForm.needleInfo?.trim() || ''
+        });
+        setEditingSection(null);
+        setEditForm({});
+    };
+
+    const updateEditForm = (field, value) => {
+        setEditForm(prev => ({ ...prev, [field]: value }));
     };
 
     return (
         <div className="min-h-screen bg-lavender-50">
             <div className="app-container bg-lavender-50 min-h-screen shadow-lg">
-
-                {/* Page Header */}
                 <PageHeader
                     useBranding={true}
                     onHome={onGoToLanding}
@@ -95,220 +95,243 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                     onCancel={onBack}
                 />
 
-                {/* Note Header */}
+                {/* Compact Header */}
                 <div className="px-6 py-4 bg-white border-b border-wool-100">
-                    <div className="flex items-start justify-between">
-                        <div className="flex items-start gap-4 min-w-0 flex-1">
-                            <div className="text-3xl">📝</div>
-                            <div className="min-w-0 flex-1">
-
-
-
-                                <h1 className="text-xl font-bold text-wool-700 mb-1 truncate">
-                                    {currentNote.name}
-                                </h1>
-                                <div className="text-sm text-wool-600">
-                                    {currentNote.startingStitches} stitches • {currentNote.construction === 'round' ? 'In the round' : 'Flat knitting'}
-                                    {currentNote.numberOfColors > 1 && ` • ${currentNote.numberOfColors} colors`}
-                                </div>
+                    {editingSection === 'header' ? (
+                        // Editing mode
+                        <div className="space-y-3">
+                            <input
+                                type="text"
+                                value={editForm.name}
+                                onChange={(e) => updateEditForm('name', e.target.value)}
+                                className="w-full text-xl font-bold text-wool-700 bg-transparent border-0 border-b-2 border-sage-300 focus:border-sage-500 focus:ring-0 px-0"
+                                maxLength={100}
+                                autoFocus
+                            />
+                            <div className="flex gap-2">
+                                <button onClick={saveEdit} className="btn-primary btn-sm">Save</button>
+                                <button onClick={cancelEditing} className="btn-tertiary btn-sm">Cancel</button>
                             </div>
                         </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-2">
-                            <button
-                                onClick={handleEditNote}
-                                className="btn-tertiary btn-sm"
-                                title="Edit note details"
-                            >
-                                ✏️
-                            </button>
-                            <button
-                                onClick={() => setShowDeleteModal(true)}
-                                className="btn-tertiary btn-sm text-red-600 hover:bg-red-50"
-                                title="Delete note"
-                            >
-                                🗑️
-                            </button>
+                    ) : (
+                        // Read mode
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <h1 className="text-xl font-bold text-wool-700 mb-1">{currentNote.name}</h1>
+                                <div className="text-sm text-wool-600">
+                                    {currentNote.startingStitches} stitches • {currentNote.construction === 'round' ? 'In the round' : 'Flat knitting'} • {currentNote.defaultUnits === 'cm' ? 'Metric' : 'Imperial'}
+                                </div>
+                            </div>
+                            <div className="flex items-center gap-2">
+                                <button
+                                    onClick={() => startEditing('header')}
+                                    className="btn-tertiary btn-sm"
+                                    title="Edit note name"
+                                >
+                                    ✏️
+                                </button>
+                                <button
+                                    onClick={() => setShowDeleteModal(true)}
+                                    className="btn-tertiary btn-sm text-red-600 hover:bg-red-50"
+                                    title="Delete note"
+                                >
+                                    🗑️
+                                </button>
+                            </div>
                         </div>
-                    </div>
+                    )}
                 </div>
 
-                {/* Content */}
-                <div className="p-6 space-y-6">
+                {/* Content Sections */}
+                <div className="p-6 space-y-4">
 
-                    {/* Note Status Card */}
-                    <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-lavender-200">
-                        <div className="flex items-center justify-between mb-4">
-                            <h2 className="text-lg font-semibold text-wool-700 flex items-center gap-2">
-                                🧶 Note Status
-                            </h2>
-                            {!hasStep && (
-                                <button
-                                    onClick={() => onEditSteps(0)} // Component index 0
-                                    className="btn-primary btn-sm"
-                                >
-                                    Configure Note
-                                </button>
-                            )}
-                        </div>
-
-                        {hasStep ? (
-                            <div>
-                                <div className="text-base text-wool-700 mb-2">
-                                    ✅ {getPatternInfo()}
-                                </div>
-
-                                {/* Rich step display */}
-                                <div className="bg-lavender-50 border-lavender-300 border-2 rounded-xl p-4 mb-4">
-                                    <div className="flex items-start gap-3">
-                                        <div className="w-7 h-7 rounded-full bg-lavender-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
-                                            1
-                                        </div>
-                                        <div className="flex-1 min-w-0">
-                                            {(() => {
-                                                const { description, contextualPatternNotes, contextualConfigNotes, technicalData } =
-                                                    getFormattedStepDisplay(step, "Pattern", currentNote);
-
-                                                return (
-                                                    <div>
-                                                        <h4 className="text-sm font-semibold mb-1 text-wool-700">
-                                                            {description}
-                                                        </h4>
-
-                                                        {contextualPatternNotes && (
-                                                            <div className="text-xs text-wool-600 italic mb-1 whitespace-pre-line">
-                                                                {contextualPatternNotes}
-                                                            </div>
-                                                        )}
-
-                                                        {contextualConfigNotes && (
-                                                            <div className="text-xs text-wool-600 italic mb-1 whitespace-pre-line">
-                                                                {contextualConfigNotes}
-                                                            </div>
-                                                        )}
-
-                                                        <div className="text-xs text-wool-500">
-                                                            {technicalData}
-                                                        </div>
-                                                    </div>
-                                                );
-                                            })()}
-                                        </div>
-                                    </div>
-                                </div>
-
-
-                                <div className="flex gap-3">
-                                    <button
-                                        onClick={() => onEditSteps(0)}
-                                        className="btn-secondary btn-sm"
-                                    >
+                    {/* Pattern Section */}
+                    {hasStep ? (
+                        <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-lavender-200">
+                            <div className="flex items-center justify-between mb-4">
+                                <h3 className="text-lg font-semibold text-lavender-700">🧶 Pattern</h3>
+                                <div className="flex gap-2">
+                                    <button onClick={() => onEditSteps(0)} className="btn-secondary btn-sm">
                                         Edit Pattern
                                     </button>
-                                    <button
-                                        onClick={handleStartKnitting}  // Remove the (0) parameter
-                                        className="btn-primary btn-sm"
-                                    >
+                                    <button onClick={handleStartKnitting} className="btn-primary btn-sm">
                                         Start Knitting
                                     </button>
                                 </div>
                             </div>
+
+                            <div className="text-left">
+                                {(() => {
+                                    const { description, contextualPatternNotes, contextualConfigNotes } =
+                                        getFormattedStepDisplay(step, "Pattern", currentNote);
+
+                                    return (
+                                        <div className="space-y-2">
+                                            <div className="font-medium text-wool-700">{description}</div>
+                                            {contextualPatternNotes && (
+                                                <div className="text-sm text-wool-600 whitespace-pre-line bg-lavender-50 p-3 rounded-lg">
+                                                    {contextualPatternNotes}
+                                                </div>
+                                            )}
+                                            {contextualConfigNotes && (
+                                                <div className="text-sm text-wool-600 italic">
+                                                    {contextualConfigNotes}
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })()}
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-wool-200">
+                            <div className="flex items-center justify-between">
+                                <div className="text-left">
+                                    <h3 className="text-lg font-semibold text-wool-700 mb-2">🧶 Pattern</h3>
+                                    <p className="text-wool-500">No pattern configured yet</p>
+                                </div>
+                                <button onClick={() => onEditSteps(0)} className="btn-primary btn-sm">
+                                    Configure Pattern
+                                </button>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Description Section */}
+                    <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-wool-200">
+                        <div className="flex items-center justify-between mb-3">
+                            <h3 className="text-lg font-semibold text-wool-700">📝 Description</h3>
+                            {editingSection !== 'description' && (
+                                <button onClick={() => startEditing('description')} className="text-wool-400 hover:text-sage-600">
+                                    ✏️
+                                </button>
+                            )}
+                        </div>
+
+                        {editingSection === 'description' ? (
+                            <div className="space-y-3">
+                                <textarea
+                                    value={editForm.textNotes}
+                                    onChange={(e) => updateEditForm('textNotes', e.target.value)}
+                                    placeholder="What are you testing or working on?"
+                                    className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 resize-none"
+                                    rows={3}
+                                    maxLength={200}
+                                    autoFocus
+                                />
+                                <div className="flex gap-2">
+                                    <button onClick={saveEdit} className="btn-primary btn-sm">Save</button>
+                                    <button onClick={cancelEditing} className="btn-tertiary btn-sm">Cancel</button>
+                                </div>
+                            </div>
                         ) : (
-                            <div className="text-center py-8">
-                                <div className="text-4xl mb-3">⚡</div>
-                                <h3 className="text-lg font-medium text-wool-700 mb-2">Ready for Your Note</h3>
-                                <p className="text-wool-600 text-sm mb-4">
-                                    Configure your note using the step wizard.
-                                </p>
+                            <div className="text-left" onClick={() => startEditing('description')} style={{ cursor: 'pointer' }}>
+                                {currentNote.textNotes ? (
+                                    <p className="text-wool-700">{currentNote.textNotes}</p>
+                                ) : (
+                                    <p className="text-wool-500 italic">+ Add description</p>
+                                )}
                             </div>
                         )}
                     </div>
 
-                    {/* Note Details Card */}
+                    {/* Colors Section */}
                     <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-wool-200">
-                        <h2 className="text-lg font-semibold text-wool-700 mb-4 flex items-center gap-2">
-                            📋 Details
-                        </h2>
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-wool-700 text-left">🎨 Colors</h3>
+                            <button onClick={() => startEditing('colors')} className="text-wool-400 hover:text-sage-600">
+                                ✏️
+                            </button>
+                        </div>
 
-                        <div className="space-y-4">
-                            {/* Description */}
-                            {currentNote.textNotes && (
-                                <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-1">Description</h4>
-                                    <p className="text-sm text-wool-600 italic">"{currentNote.textNotes}"</p>
-                                </div>
-                            )}
+                        <div className="space-y-1 text-left">
+                            <div>
+                                <span className="text-sm font-medium text-wool-700">Colors in project: {currentNote.numberOfColors || 1}</span>
+                            </div>
 
-                            {/* Needles */}
-                            {currentNote.needleInfo && (
+                            {hasYarns && (
                                 <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-1">Needles</h4>
-                                    <p className="text-sm text-wool-600">{currentNote.needleInfo}</p>
-                                </div>
-                            )}
-
-                            {/* Yarns */}
-                            {hasYarns ? (
-                                <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-2">Yarns ({currentNote.yarns.length})</h4>
-                                    <div className="space-y-2">
-                                        {currentNote.yarns.map((yarn, index) => (
-                                            <div key={index} className="flex items-center gap-3 text-sm">
-                                                <div className="w-6 h-6 rounded-full bg-wool-300 flex items-center justify-center text-xs font-bold text-wool-700">
-                                                    {yarn.letter}
-                                                </div>
-                                                <span className="text-wool-700">
-                                                    {yarn.color || `Color ${yarn.letter}`}
-                                                    {yarn.brand && <span className="text-wool-500"> - {yarn.brand}</span>}
+                                    <span className="text-sm font-medium text-wool-700 block mb-1">Current colors:</span>
+                                    <div className="space-y-1">
+                                        {currentNote.yarns.filter(y => y.colorHex).map((yarn, index) => (
+                                            <div key={index} className="flex items-center gap-2">
+                                                <div
+                                                    className="w-4 h-4 rounded-full border border-gray-300"
+                                                    style={{ backgroundColor: yarn.colorHex }}
+                                                />
+                                                <span className="text-sm text-wool-700">
+                                                    Color {yarn.letter}
                                                 </span>
                                             </div>
                                         ))}
                                     </div>
                                 </div>
-                            ) : currentNote.numberOfColors > 1 ? (
-                                <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-1">Colors</h4>
-                                    <p className="text-sm text-wool-600">
-                                        {currentNote.numberOfColors} colors (using defaults: {
-                                            Array.from({ length: currentNote.numberOfColors }, (_, i) =>
-                                                `Color ${String.fromCharCode(65 + i)}`
-                                            ).join(', ')
-                                        })
-                                    </p>
-                                </div>
-                            ) : null}
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Technical Details Section */}
+                    <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-wool-200">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="text-lg font-semibold text-wool-700 text-left">⚙️ Details</h3>
+                            <button onClick={() => startEditing('needles')} className="text-wool-400 hover:text-sage-600">
+                                ✏️
+                            </button>
+                        </div>
+
+                        <div className="space-y-1 text-left">
+                            {/* Needles */}
+                            <div>
+                                {editingSection === 'needles' ? (
+                                    <div className="space-y-2">
+                                        <span className="text-sm font-medium text-wool-700">Needles:</span>
+                                        <input
+                                            type="text"
+                                            value={editForm.needleInfo}
+                                            onChange={(e) => updateEditForm('needleInfo', e.target.value)}
+                                            placeholder="e.g., US 8, 5.0mm"
+                                            className="w-full border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0"
+                                            maxLength={50}
+                                            autoFocus
+                                        />
+                                        <div className="flex gap-2">
+                                            <button onClick={saveEdit} className="btn-primary btn-sm">Save</button>
+                                            <button onClick={cancelEditing} className="btn-tertiary btn-sm">Cancel</button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <div>
+                                        <span className="text-sm font-medium text-wool-700">Needles: </span>
+                                        <span className="text-sm text-wool-600">
+                                            {currentNote.needleInfo || 'Not specified'}
+                                        </span>
+                                    </div>
+                                )}
+                            </div>
 
                             {/* Gauge */}
                             {hasGauge && (
                                 <div>
-                                    <h4 className="text-sm font-medium text-wool-700 mb-1">Gauge</h4>
-                                    <p className="text-sm text-wool-600">
-                                        {currentNote.gauge.stitchGauge &&
-                                            `${currentNote.gauge.stitchGauge.stitches} stitches`
-                                        }
+                                    <span className="text-sm font-medium text-wool-700">Gauge: </span>
+                                    <span className="text-sm text-wool-600">
+                                        {currentNote.gauge.stitchGauge && `${currentNote.gauge.stitchGauge.stitches} sts`}
                                         {currentNote.gauge.stitchGauge && currentNote.gauge.rowGauge && ', '}
-                                        {currentNote.gauge.rowGauge &&
-                                            `${currentNote.gauge.rowGauge.rows} rows`
-                                        }
-                                        {' = 4 '}
-                                        {currentNote.defaultUnits === 'cm' ? 'cm' : 'inches'}
-                                    </p>
+                                        {currentNote.gauge.rowGauge && `${currentNote.gauge.rowGauge.rows} rows`}
+                                        {' = 4 '}{currentNote.defaultUnits === 'cm' ? 'cm' : 'inches'}
+                                    </span>
                                 </div>
                             )}
 
                             {/* Creation Date */}
                             <div>
-                                <h4 className="text-sm font-medium text-wool-700 mb-1">Created</h4>
-                                <p className="text-sm text-wool-600">
+                                <span className="text-sm font-medium text-wool-700">Created: </span>
+                                <span className="text-sm text-wool-600">
                                     {new Date(currentNote.createdAt).toLocaleDateString('en-US', {
                                         year: 'numeric',
-                                        month: 'long',
-                                        day: 'numeric',
-                                        hour: 'numeric',
-                                        minute: '2-digit'
+                                        month: 'short',
+                                        day: 'numeric'
                                     })}
-                                </p>
+                                </span>
                             </div>
                         </div>
                     </div>
@@ -327,67 +350,9 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                 primaryButtonText="Delete Note"
                 secondaryButtonText="Cancel"
                 icon="🗑️"
-            >
-                <div className="text-center py-4">
-                    <div className="text-4xl mb-3">📝</div>
-                    <div className="text-lg font-semibold text-wool-700 mb-2">{currentNote.name}</div>
-                    <div className="text-sm text-wool-600">
-                        {hasStep ? `Pattern: ${getPatternInfo()}` : 'No pattern configured'}
-                    </div>
-                </div>
-            </StandardModal>
+            />
 
-            {/* Edit Note Modal */}
-            <StandardModal
-                isOpen={showEditModal}
-                onClose={() => setShowEditModal(false)}
-                onConfirm={handleSaveEdit}
-                category="input"
-                colorScheme="lavender"
-                title="Edit Note Details"
-                subtitle="Update your note information"
-                primaryButtonText="Save Changes"
-                secondaryButtonText="Cancel"
-                icon="✏️"
-            >
-                <div className="space-y-4">
-                    <div>
-                        <label className="form-label">Name</label>
-                        <input
-                            type="text"
-                            value={editData.name || ''}
-                            onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
-                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-lavender-500 focus:ring-0 transition-colors bg-white"
-                            data-modal-focus
-                            maxLength={100}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="form-label">Description</label>
-                        <textarea
-                            value={editData.textNotes || ''}
-                            onChange={(e) => setEditData(prev => ({ ...prev, textNotes: e.target.value }))}
-                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-lavender-500 focus:ring-0 transition-colors bg-white resize-none"
-                            rows={3}
-                            maxLength={200}
-                        />
-                    </div>
-
-                    <div>
-                        <label className="form-label">Needle Information</label>
-                        <input
-                            type="text"
-                            value={editData.needleInfo || ''}
-                            onChange={(e) => setEditData(prev => ({ ...prev, needleInfo: e.target.value }))}
-                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-lavender-500 focus:ring-0 transition-colors bg-white"
-                            maxLength={50}
-                        />
-                    </div>
-                </div>
-            </StandardModal>
-
-            {/* NEW: Knitting Modal - Rendered conditionally */}
+            {/* Knitting Modal */}
             {showKnittingModal && hasStep && (
                 <NoteCounter
                     onBack={handleCloseKnittingModal}
@@ -395,8 +360,6 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps, onStartKnitting }) => 
                 />
             )}
         </div>
-
-
     );
 };
 
