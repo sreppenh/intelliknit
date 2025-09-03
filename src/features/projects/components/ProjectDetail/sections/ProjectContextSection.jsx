@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
  * ProjectContextSection - Conversational Project Context fields
  * 
+ * Now using StandardModal pattern for consistency with UnitsConstructionSection
  * Handles recipient, size, occasion, deadline, priority with beautiful
  * conversational language and smart empty states.
- * 
- * Zero functionality changes - pure architectural extraction with elegant UX
  */
 const ProjectContextSection = ({
     project,
@@ -18,9 +18,9 @@ const ProjectContextSection = ({
     const [showEditModal, setShowEditModal] = useState(false);
     const [tempFormData, setTempFormData] = useState({});
 
-    // Initialize modal form data when opening
+    // Initialize modal form data when opening - prevent reset flash
     useEffect(() => {
-        if (showEditModal) {
+        if (showEditModal && Object.keys(tempFormData).length === 0) {
             setTempFormData({
                 recipient: formData?.recipient || project?.recipient || '',
                 size: formData?.size || project?.size || '',
@@ -29,23 +29,6 @@ const ProjectContextSection = ({
             });
         }
     }, [showEditModal, formData, project]);
-
-    // Handle ESC key and backdrop click
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape' && showEditModal) {
-                handleCancelEdit();
-            }
-        };
-
-        if (showEditModal) {
-            document.addEventListener('keydown', handleEscKey);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-        };
-    }, [showEditModal]);
 
     const handleEditClick = () => {
         if (isEditing) {
@@ -61,7 +44,6 @@ const ProjectContextSection = ({
     const handleSaveEdit = () => {
         // Update parent form data - batch all updates
         if (handleInputChange) {
-            // Use the batched update pattern
             Object.keys(tempFormData).forEach(field => {
                 handleInputChange(field, tempFormData[field]);
             });
@@ -71,12 +53,7 @@ const ProjectContextSection = ({
 
     const handleCancelEdit = () => {
         setShowEditModal(false);
-    };
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            handleCancelEdit();
-        }
+        setTempFormData({}); // Clear temp data for next time
     };
 
     const handleTempInputChange = (field, value) => {
@@ -118,182 +95,170 @@ const ProjectContextSection = ({
                     </div>
                 </div>
 
-                <div className="text-sm text-wool-700 space-y-1 text-left">
-                    {/* Recipient */}
-                    {displayData?.recipient ? (
-                        <div>👤 For {displayData.recipient}</div>
-                    ) : (
-                        <div className="text-wool-500 italic">+ Add recipient</div>
-                    )}
+                {hasContent ? (
+                    <div className="text-sm text-wool-700 space-y-1 text-left">
+                        {/* Recipient */}
+                        {displayData?.recipient ? (
+                            <div>👤 For {displayData.recipient}</div>
+                        ) : (
+                            <div className="text-wool-500 italic">+ Add recipient</div>
+                        )}
 
-                    {/* Size */}
-                    {displayData?.size ? (
-                        <div>📏 Size {displayData.size}</div>
-                    ) : (
-                        <div className="text-wool-500 italic">+ Add size</div>
-                    )}
+                        {/* Size */}
+                        {displayData?.size ? (
+                            <div>📏 Size {displayData.size}</div>
+                        ) : (
+                            <div className="text-wool-500 italic">+ Add size</div>
+                        )}
 
-                    {/* Deadline */}
-                    {displayData?.deadline ? (
-                        <div>📅 Due {formatDate(displayData.deadline)}</div>
-                    ) : (
-                        <div className="text-wool-500 italic">+ Add deadline</div>
-                    )}
+                        {/* Deadline */}
+                        {displayData?.deadline ? (
+                            <div>📅 Due {formatDate(displayData.deadline)}</div>
+                        ) : (
+                            <div className="text-wool-500 italic">+ Add deadline</div>
+                        )}
 
-                    {/* Priority - Smart icons by level */}
-                    {displayData?.priority && displayData.priority !== 'normal' ? (
-                        <div>
-                            {displayData.priority === 'high' && '🔥 High priority'}
-                            {displayData.priority === 'low' && '🌱 Low priority'}
-                        </div>
-                    ) : null}
-                </div>
+                        {/* Priority - Smart icons by level */}
+                        {displayData?.priority && displayData.priority !== 'normal' ? (
+                            <div>
+                                {displayData.priority === 'high' && '🔥 High priority'}
+                                {displayData.priority === 'low' && '🌱 Low priority'}
+                            </div>
+                        ) : null}
+                    </div>
+                ) : (
+                    <div className="text-sm text-wool-500 italic">
+                        + Add project context details
+                    </div>
+                )}
             </div>
         );
     }
 
-    // Edit Modal
+    // Edit Modal using StandardModal
     return (
         <>
             {/* Background section for read view */}
-            <div
-                className="read-mode-section hover:bg-sage-25 active:scale-95 cursor-pointer transition-all duration-200"
-                onClick={handleEditClick}
-            >
+            <div className="read-mode-section">
                 <div className="details-section-header">
                     <h3 className="section-header-secondary">🎯 Project Context</h3>
-                    <div className="details-edit-button pointer-events-none">
+                    <button
+                        onClick={handleEditClick}
+                        className="details-edit-button"
+                        title="Edit project context"
+                    >
                         ✏️
+                    </button>
+                </div>
+
+                {hasContent ? (
+                    <div className="text-sm text-wool-700 space-y-1 text-left">
+                        {displayData?.recipient ? (
+                            <div>👤 For {displayData.recipient}</div>
+                        ) : (
+                            <div className="text-wool-500 italic">+ Add recipient</div>
+                        )}
+
+                        {displayData?.size ? (
+                            <div>📏 Size {displayData.size}</div>
+                        ) : (
+                            <div className="text-wool-500 italic">+ Add size</div>
+                        )}
+
+                        {displayData?.deadline ? (
+                            <div>📅 Due {formatDate(displayData.deadline)}</div>
+                        ) : (
+                            <div className="text-wool-500 italic">+ Add deadline</div>
+                        )}
+
+                        {displayData?.priority && displayData.priority !== 'normal' ? (
+                            <div>
+                                {displayData.priority === 'high' && '🔥 High priority'}
+                                {displayData.priority === 'low' && '🌱 Low priority'}
+                            </div>
+                        ) : null}
                     </div>
-                </div>
-
-                <div className="text-sm text-wool-700 space-y-1 text-left">
-                    {/* Show current values while modal is open */}
-                    {displayData?.recipient ? (
-                        <div>👤 For {displayData.recipient}</div>
-                    ) : (
-                        <div className="text-wool-500 italic">+ Add recipient</div>
-                    )}
-
-                    {displayData?.size ? (
-                        <div>📏 Size {displayData.size}</div>
-                    ) : (
-                        <div className="text-wool-500 italic">+ Add size</div>
-                    )}
-
-                    {displayData?.deadline ? (
-                        <div>📅 Due {formatDate(displayData.deadline)}</div>
-                    ) : (
-                        <div className="text-wool-500 italic">+ Add deadline</div>
-                    )}
-
-                    {displayData?.priority && displayData.priority !== 'normal' ? (
-                        <div>
-                            {displayData.priority === 'high' && '🔥 High priority'}
-                            {displayData.priority === 'low' && '🌱 Low priority'}
-                        </div>
-                    ) : null}
-                </div>
+                ) : (
+                    <div className="text-sm text-wool-500 italic">
+                        + Add project context details
+                    </div>
+                )}
             </div>
 
-            {/* Modal */}
-            <div className="modal" onClick={handleBackdropClick}>
-                <div className="modal-content-light" style={{ maxWidth: '500px' }}>
-                    {/* Modal Header */}
-                    <div className="modal-header-light relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-sage-200">
-                        <div className="text-center">
-                            <h2 className="text-lg font-semibold">🎯 Project Context</h2>
-                            <p className="text-sage-600 text-sm">Set project details and context</p>
-                        </div>
-
-                        <button
-                            onClick={handleCancelEdit}
-                            className="absolute right-5 text-sage-600 text-2xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                        >
-                            ×
-                        </button>
+            {/* StandardModal */}
+            <StandardModal
+                isOpen={showEditModal}
+                onClose={handleCancelEdit}
+                onConfirm={handleSaveEdit}
+                category="input"
+                colorScheme="sage"
+                title="🎯 Project Context"
+                subtitle="Set project details and context"
+                primaryButtonText="Save Changes"
+                secondaryButtonText="Cancel"
+            >
+                <div className="space-y-4">
+                    {/* Recipient */}
+                    <div>
+                        <label className="form-label">Recipient</label>
+                        <input
+                            type="text"
+                            value={tempFormData.recipient || ''}
+                            onChange={(e) => handleTempInputChange('recipient', e.target.value)}
+                            placeholder="e.g., Mom, Myself, Sarah"
+                            className="details-input-field shadow-sm focus:shadow-md transition-shadow"
+                        />
                     </div>
 
-                    {/* Modal Content */}
-                    <div className="p-6">
-                        <div className="space-y-4">
-                            {/* Recipient */}
-                            <div>
-                                <label className="form-label">Recipient</label>
-                                <input
-                                    type="text"
-                                    value={tempFormData.recipient || ''}
-                                    onChange={(e) => handleTempInputChange('recipient', e.target.value)}
-                                    placeholder="e.g., Mom, Myself, Sarah"
-                                    className="details-input-field shadow-sm focus:shadow-md transition-shadow"
-                                />
-                            </div>
+                    {/* Size */}
+                    <div>
+                        <label className="form-label">Size</label>
+                        <input
+                            type="text"
+                            value={tempFormData.size || ''}
+                            onChange={(e) => handleTempInputChange('size', e.target.value)}
+                            placeholder="e.g., Medium, 36 inches, Newborn"
+                            className="details-input-field shadow-sm focus:shadow-md transition-shadow"
+                        />
+                    </div>
 
-                            {/* Size */}
-                            <div>
-                                <label className="form-label">Size</label>
-                                <input
-                                    type="text"
-                                    value={tempFormData.size || ''}
-                                    onChange={(e) => handleTempInputChange('size', e.target.value)}
-                                    placeholder="e.g., Medium, 36 inches, Newborn"
-                                    className="details-input-field shadow-sm focus:shadow-md transition-shadow"
-                                />
-                            </div>
+                    {/* Deadline */}
+                    <div>
+                        <label className="form-label">
+                            Deadline
+                            <span className="text-xs text-wool-500 ml-1">(MM/DD/YYYY)</span>
+                        </label>
+                        <input
+                            type="date"
+                            value={tempFormData.deadline || ''}
+                            onChange={(e) => handleTempInputChange('deadline', e.target.value)}
+                            className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
+                        />
+                    </div>
 
-                            {/* Deadline */}
-                            <div>
-                                <label className="form-label">Deadline <span className="text-xs text-wool-500">(MM/DD/YYYY)</span></label>
-                                <input
-                                    type="date"
-                                    value={tempFormData.deadline || ''}
-                                    onChange={(e) => handleTempInputChange('deadline', e.target.value)}
-                                    className="details-input-field shadow-sm focus:shadow-md transition-shadow text-left"
-                                    style={{ textAlign: 'left' }}
-                                />
+                    {/* Priority - Toggle buttons matching your existing style */}
+                    <div>
+                        <label className="form-label">Priority</label>
+                        <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
+                            <div className="grid grid-cols-3 gap-1">
+                                {['high', 'normal', 'low'].map((priority) => (
+                                    <button
+                                        key={priority}
+                                        type="button"
+                                        onClick={() => handleTempInputChange('priority', priority)}
+                                        className={`py-2 px-3 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.priority === priority
+                                                ? 'bg-sage-500 text-white shadow-sm'
+                                                : 'text-wool-600 hover:text-sage-600'
+                                            }`}
+                                    >
+                                        {priority.charAt(0).toUpperCase() + priority.slice(1)}
+                                    </button>
+                                ))}
                             </div>
-
-                            {/* Priority - Toggle buttons exactly like original */}
-                            <div>
-                                <label className="form-label">Priority</label>
-                                <div className="bg-wool-100 border-2 border-wool-200 rounded-xl p-1">
-                                    <div className="grid grid-cols-3 gap-1">
-                                        {['high', 'normal', 'low'].map((priority) => (
-                                            <button
-                                                key={priority}
-                                                type="button"
-                                                onClick={() => handleTempInputChange('priority', priority)}
-                                                className={`py-2 px-3 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.priority === priority
-                                                    ? 'bg-lavender-500 text-white shadow-sm'
-                                                    : 'text-wool-600 hover:text-lavender-600'
-                                                    }`}
-                                            >
-                                                {priority.charAt(0).toUpperCase() + priority.slice(1)}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
-                        {/* Modal Actions */}
-                        <div className="flex gap-3 mt-6">
-                            <button
-                                onClick={handleCancelEdit}
-                                className="flex-1 btn-tertiary"
-                            >
-                                Cancel
-                            </button>
-                            <button
-                                onClick={handleSaveEdit}
-                                className="flex-1 btn-primary"
-                            >
-                                Save Changes
-                            </button>
                         </div>
                     </div>
                 </div>
-            </div>
+            </StandardModal>
         </>
     );
 };
