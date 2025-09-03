@@ -1,8 +1,13 @@
 export const getResumeData = () => {
     const storage = window.localStorage;
-    const progressKeys = Object.keys(storage).filter(key =>
-        key.startsWith('knitting-progress-') || key.startsWith('row-counter-')
-    );
+
+    // Filter to only include project-related progress keys, exclude notepad keys
+    const progressKeys = Object.keys(storage).filter(key => {
+        const isProgressKey = key.startsWith('knitting-progress-') || key.startsWith('row-counter-');
+        const isNotepadKey = key.includes('notepad');
+
+        return isProgressKey && !isNotepadKey;
+    });
 
     if (progressKeys.length === 0) {
         return { hasActiveProject: false };

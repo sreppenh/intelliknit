@@ -109,10 +109,6 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
               <div className="font-semibold text-base text-wool-700 mb-1">Notepad</div>
               <div className="text-xs text-wool-500">Quick notes & calculations</div>
 
-              {/* Coming Soon Badge */}
-              <div className="absolute top-2 right-2 badge badge-coming-soon">
-                Soon
-              </div>
             </button>
           </div>
 

@@ -39,8 +39,8 @@ const SegmentedControl = ({
                             onClick={() => !disabled && onChange(option.value)}
                             disabled={disabled}
                             className={`segmented-option ${value === option.value
-                                    ? 'segmented-option-active hover:text-white' // ADD hover:text-white
-                                    : ''
+                                ? 'segmented-option-active hover:text-white' // ADD hover:text-white
+                                : ''
                                 } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                             aria-pressed={value === option.value}
                             {...props}
@@ -58,7 +58,7 @@ const SegmentedControl = ({
 // Preset configurations for common use cases
 SegmentedControl.Units = ({ value, onChange, ...props }) => (
     <SegmentedControl
-        label="Preferred Units"
+        label="Units"
         value={value}
         onChange={onChange}
         options={[
