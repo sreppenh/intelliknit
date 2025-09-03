@@ -1,14 +1,17 @@
-// src/features/notes/components/NoteCounter.jsx
 import React, { useState } from 'react';
-import { createPortal } from 'react-dom';
 import { X, RotateCcw } from 'lucide-react';
 import { useActiveContext } from '../../../shared/hooks/useActiveContext';
 import { useKnittingProgress } from '../../knitting/hooks/useKnittingProgress';
 import { getModalTheme } from '../../knitting/components/modal/KnittingModalTheme';
 import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
+import { StandardModal } from '../../../shared/components/modals/StandardModal';
 import KnittingStepCounter from '../../knitting/components/modal/KnittingStepCounter';
 import KnittingStepInstructions from '../../knitting/components/modal/KnittingStepInstructions';
 
+/**
+ * NoteCounter - Knitting modal for notes using StandardModal
+ * Specialized knitting modal with lavender theme for notepad context
+ */
 const NoteCounter = ({ onBack, onGoToLanding }) => {
     const { currentProject: currentNote, updateProject: updateNote } = useActiveContext('notepad');
 
@@ -33,39 +36,27 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
     // Theme (force lavender for notepad context)
     const theme = getModalTheme(step || {}, 'notepad');
 
-    // Early return if no note or step
+    // Early return if no note or step - now using StandardModal
     if (!currentNote || !step) {
-        return createPortal(
-            <div className="modal" onClick={onBack}>
-                <div
-                    className="modal-content flex flex-col overflow-hidden shadow-2xl max-w-sm"
-                    onClick={(e) => e.stopPropagation()}
-                >
-                    <div className="knitting-modal-header">
-                        <button
-                            onClick={onBack}
-                            className="absolute -top-6 -right-6 z-30 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
-                        >
-                            <X size={18} />
-                        </button>
-                        <div className="text-center">
-                            <div className="text-sm font-medium text-lavender-900">No pattern to knit</div>
-                        </div>
-                    </div>
-
-                    <div className="flex-1 flex items-center justify-center p-6">
-                        <div className="text-center">
-                            <p className="text-sm text-wool-500 mb-4">
-                                This note doesn't have a knitting pattern yet.
-                            </p>
-                            <button onClick={onBack} className="btn-primary w-full">
-                                ← Back to Note
-                            </button>
-                        </div>
-                    </div>
+        return (
+            <StandardModal
+                isOpen={true}
+                onClose={onBack}
+                category="complex"
+                colorScheme="knitting"
+                showButtons={false}
+                className="max-w-sm"
+            >
+                <div className="text-center py-8">
+                    <div className="text-sm font-medium text-lavender-900 mb-4">No pattern to knit</div>
+                    <p className="text-sm text-wool-500 mb-6">
+                        This note doesn't have a knitting pattern yet.
+                    </p>
+                    <button onClick={onBack} className="btn-primary w-full">
+                        ← Back to Note
+                    </button>
                 </div>
-            </div>,
-            document.body
+            </StandardModal>
         );
     }
 
@@ -133,13 +124,23 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
         );
     };
 
-    return createPortal(
-        <div className="modal" onClick={onBack}>
-            <div
-                className="modal-content flex flex-col overflow-hidden shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
-            >
-                {/* Header - following KnittingStepModal pattern */}
+    // Main knitting modal using StandardModal - clean white background like project version
+    return (
+        <StandardModal
+            isOpen={true}
+            onClose={onBack}
+            category="complex"
+            colorScheme="lavender"  // Clean white background, not lavender
+            showButtons={false}
+            className="knitting-modal-content"
+            allowBackdropClick={true}
+            title={currentNote.name}
+            subtitle="Notepad Mode"
+        >
+            {/* Match project knitting modal design - clean white header */}
+            <div className="flex flex-col overflow-hidden shadow-2xl -m-6">
+
+                {/* Clean Knitting Header - matches project version styling */}
                 <div className="knitting-modal-header">
                     <button
                         onClick={onBack}
@@ -148,27 +149,12 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
                         <X size={18} />
                     </button>
 
-                    <div className="flex items-center justify-between">
-                        {/* Spacers for centering (no navigation arrows for single-step notes) */}
-                        <div style={{ width: '48px' }} />
-
-                        <div className="text-center flex-1 px-2">
-                            <div className="text-sm font-medium text-lavender-900 mb-1">
-                                {currentNote.name}
-                            </div>
-                            <div className="text-xs text-lavender-600">
-                                Notepad Mode
-                            </div>
-                        </div>
-
-                        <div style={{ width: '48px' }} />
-                    </div>
                 </div>
 
-                {/* Main content */}
+                {/* Main content - exact match to original */}
                 {renderContent()}
 
-                {/* Footer with view toggle - following KnittingStepModal pattern */}
+                {/* Clean Knitting Footer - matches project version with notepad styling */}
                 <div className="knitting-modal-footer">
                     <button
                         onClick={() => setViewMode(viewMode === 'instructions' ? 'counter' : 'instructions')}
@@ -181,8 +167,7 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
                     </button>
                 </div>
             </div>
-        </div>,
-        document.body
+        </StandardModal>
     );
 };
 

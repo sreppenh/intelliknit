@@ -46,7 +46,7 @@ export const StandardModal = ({
         lavender: {
             headerBg: 'bg-lavender-200',
             headerText: 'text-lavender-800',
-            closeBtn: 'modal-close-light',
+            closeBtn: 'modal-close-lavender',
             contentBg: 'bg-white',
             borderColor: 'border-lavender-300',
             modalBorder: 'border-lavender-200'
