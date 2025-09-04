@@ -1,6 +1,6 @@
 // src/features/knitting/components/modal/KnittingStepCounter.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Minus, Target, Check } from 'lucide-react';
+import { Plus, Minus, Target, Check, RotateCcw } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
 import { getRowInstruction, getStepType } from '../../../../shared/utils/KnittingInstructionService';
 import {
@@ -34,7 +34,8 @@ const KnittingStepCounter = ({
     stepIndex,
     navigation,
     updateProject, // this doesn't seem to be set anywhere
-    onToggleCompletion
+    onToggleCompletion,
+    onClose // Add this prop
 }) => {
     const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
@@ -295,6 +296,45 @@ const KnittingStepCounter = ({
         onToggleCompletion?.(stepIndex);
     };
 
+    // Add this new function after handleStepComplete
+    const handleLengthBasedComplete = () => {
+        const rowsKnitted = currentRow;
+        const targetLength = parseFloat(step.wizardConfig?.duration?.value);
+        const units = step.wizardConfig?.duration?.units || project?.defaultUnits || 'inches';
+
+        if (isNotepadMode && rowsKnitted > 0 && targetLength > 0) {
+            // Calculate gauge from this instruction
+            const calculatedGauge = {
+                rowGauge: {
+                    rows: rowsKnitted,
+                    measurement: targetLength,
+                    units: units
+                }
+            };
+
+            // Update note with calculated gauge
+            const updatedProject = {
+                ...project,
+                gauge: calculatedGauge
+            };
+
+            // Use the context's updateProject function
+            if (updateProject) {
+                updateProject(updatedProject);
+            }
+        }
+
+        // Complete the step
+        handleStepComplete();
+
+        // Auto-close for notepad mode
+        if (isNotepadMode) {
+            setTimeout(() => {
+                onClose?.();
+            }, 100);
+        }
+    };
+
     const handleRowIncrement = () => {
         if (stepType === 'single_action') {
             handleStepComplete();
@@ -302,12 +342,23 @@ const KnittingStepCounter = ({
         }
 
         if (stepType === 'fixed_multi_row') {
-            if (currentRow >= totalRows) {
+            if (isNotepadMode && currentRow === totalRows) {
+                // Final row completion - auto-complete and close
+                handleStepComplete();
+                setTimeout(() => {
+                    onClose?.();
+                }, 100);
+                return;
+            } else if (currentRow >= totalRows) {
+                // Project mode - existing behavior
                 handleStepComplete();
                 return;
             } else {
                 incrementRow();
             }
+        } else if (stepType === 'length_based') {
+            // Always allow row increment for length-based
+            incrementRow();
         } else {
             incrementRow();
         }
@@ -330,7 +381,8 @@ const KnittingStepCounter = ({
 
     const canIncrement = stepType === 'length_based' ||
         stepType === 'completion_when_ready' ||
-        (stepType === 'fixed_multi_row' && currentRow < totalRows);
+        (stepType === 'fixed_multi_row' && currentRow < totalRows) ||
+        (isNotepadMode && stepType === 'fixed_multi_row' && currentRow === totalRows); // Allow final click in notepad
 
     function calculateActualTotalRows(step) {
         const duration = step.wizardConfig?.duration;
@@ -390,6 +442,22 @@ const KnittingStepCounter = ({
 
         return `Target: ${targetStitches} stitches`;
     };
+
+
+    // Add this debug block right before the return statement in KnittingStepCounter
+    console.log('🔧 KnittingStepCounter Debug:', {
+        isNotepadMode,
+        stepType,
+        totalRows,
+        currentRow,
+        isLengthStep,
+        lengthTarget,
+        isCompleted,
+        stepWizardConfig: step.wizardConfig,
+        durationConfig: step.wizardConfig?.duration
+    });
+
+
 
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
@@ -506,11 +574,12 @@ const KnittingStepCounter = ({
                                 <button
                                     onClick={handleRowDecrement}
                                     disabled={currentRow <= 1}
-                                    className="p-3 rounded-full bg-red-100 hover:bg-red-200 disabled:bg-gray-100 disabled:text-gray-400 text-red-600 hover:text-red-700 transition-colors disabled:cursor-not-allowed"
+                                    className="p-3 rounded-full bg-orange-100 hover:bg-orange-200 disabled:bg-gray-100 disabled:text-gray-400 text-orange-600 hover:text-orange-700 transition-colors disabled:cursor-not-allowed"
                                 >
-                                    <Minus size={18} />
+                                    <RotateCcw size={18} /> {/* Undo icon */}
                                 </button>
 
+                                {/* This is new */}
                                 <div className={`text-3xl font-bold ${theme.textPrimary} min-w-[80px]`}>
                                     {currentRow}
                                 </div>
@@ -520,7 +589,7 @@ const KnittingStepCounter = ({
                                     disabled={!canIncrement}
                                     className="p-3 rounded-full bg-sage-100 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 hover:text-sage-700 transition-colors disabled:cursor-not-allowed"
                                 >
-                                    <Plus size={18} />
+                                    <Check size={18} /> {/* Checkmark icon */}
                                 </button>
                             </div>
 
@@ -541,23 +610,31 @@ const KnittingStepCounter = ({
                                 </div>
                             )}
 
-                            {/* Completion checkbox - show when appropriate */}
-                            {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') && (
-                                <button
-                                    onClick={handleStepComplete}
-                                    className={`w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium transition-all duration-200 border-2 ${isCompleted
-                                        ? 'bg-sage-100 border-sage-300 text-sage-700 hover:bg-sage-150'
-                                        : 'bg-white border-sage-300 text-sage-700 hover:bg-sage-50 hover:border-sage-400'
-                                        }`}
-                                >
-                                    <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted
-                                        ? 'bg-sage-500 border-sage-500'
-                                        : 'bg-white border-sage-300'
-                                        }`}>
-                                        {isCompleted && <Check size={12} className="text-white" />}
-                                    </div>
-                                    <span>Step Complete</span>
-                                </button>
+                            {/* Completion button - updated for notepad length-based */}
+                            {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') &&
+                                !(isNotepadMode && stepType === 'fixed_multi_row') && (
+                                    <button
+                                        onClick={stepType === 'length_based' && isNotepadMode ? handleLengthBasedComplete : handleStepComplete}
+                                        className={`w-full flex items-center justify-center gap-3 py-3 rounded-xl font-medium transition-all duration-200 border-2 ${isCompleted
+                                            ? 'bg-sage-100 border-sage-300 text-sage-700 hover:bg-sage-150'
+                                            : 'bg-white border-sage-300 text-sage-700 hover:bg-sage-50 hover:border-sage-400'
+                                            }`}
+                                    >
+                                        <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${isCompleted
+                                            ? 'bg-sage-500 border-sage-500'
+                                            : 'bg-white border-sage-300'
+                                            }`}>
+                                            {isCompleted && <Check size={12} className="text-white" />}
+                                        </div>
+                                        <span>Mark Complete</span>
+                                    </button>
+                                )}
+
+                            {/* Add gauge calculation note for length-based notepad */}
+                            {isNotepadMode && stepType === 'length_based' && !isCompleted && (
+                                <div className="text-xs text-sage-600 mt-2 text-center">
+                                    Gauge will be calculated when marked complete
+                                </div>
                             )}
                         </div>
                     )}

@@ -108,6 +108,7 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
                     stepIndex={0}
                     navigation={navigation}
                     onToggleCompletion={handleToggleCompletion}
+                    onClose={onBack}
                 />
             );
         }

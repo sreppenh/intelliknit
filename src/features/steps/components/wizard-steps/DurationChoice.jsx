@@ -6,12 +6,19 @@ const DurationChoice = ({
   updateWizardData,
   construction,
   project,
-  mode = 'creation',
+  // mode = 'creation',
+  mode,
   onSave,
   onCancel,
   showSaveActions = false
 }) => {
   const { pattern } = wizardData.stitchPattern;
+
+  // Add this debug at the top of DurationChoice component
+  console.log('DurationChoice mode received:', mode);
+  console.log('Project context:', project);
+
+
 
   // SAFETY CHECK: Ensure duration exists
   if (!wizardData.duration) {
@@ -253,59 +260,61 @@ const DurationChoice = ({
           </label>
 
           {/* Length until target */}
-          <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${wizardData.duration.type === 'until_length'
-            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-            : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-            }`}>
-            <div className="flex items-start gap-4">
-              <input
-                type="radio"
-                name="duration_type"
-                value="until_length"
-                checked={wizardData.duration.type === 'until_length'}
-                onChange={() => handleDurationTypeSelect('until_length')}
-                className="w-4 h-4 text-sage-600 mt-1"
-              />
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <div className="text-2xl">📐</div>
-                  <div className="text-left">
-                    <div className="font-semibold text-base">Length until target</div>
-                    <div className="text-sm opacity-75">Work until piece measures a specified length</div>
+          {mode !== 'notepad' && (
+            <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${wizardData.duration.type === 'until_length'
+              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+              }`}>
+              <div className="flex items-start gap-4">
+                <input
+                  type="radio"
+                  name="duration_type"
+                  value="until_length"
+                  checked={wizardData.duration.type === 'until_length'}
+                  onChange={() => handleDurationTypeSelect('until_length')}
+                  className="w-4 h-4 text-sage-600 mt-1"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-2xl">📐</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-base">Length until target</div>
+                      <div className="text-sm opacity-75">Work until piece measures a specified length</div>
+                    </div>
                   </div>
+
+                  {wizardData.duration.type === 'until_length' && (
+                    <div className="mt-3 space-y-3">
+                      <div className="flex items-center gap-2 text-sm text-sage-700">
+                        <span>Work until piece measures</span>
+                        <IncrementInput
+                          value={wizardData.duration.value}
+                          onChange={(value) => updateWizardData('duration', { value })}
+                          label="target measurement"
+                          min={0.25}
+                          useDecimals={true}
+                          step={0.25}
+                          size="sm"
+                        />
+                        <span>{wizardData.duration.units || project?.defaultUnits || 'inches'}</span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-sm">
+                        <label className="text-sage-700">from</label>
+                        <input
+                          type="text"
+                          value={wizardData.duration.reference || ''}
+                          onChange={(e) => updateWizardData('duration', { reference: e.target.value })}
+                          placeholder="cast on, start of armhole, etc."
+                          className="flex-1 border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
-
-                {wizardData.duration.type === 'until_length' && (
-                  <div className="mt-3 space-y-3">
-                    <div className="flex items-center gap-2 text-sm text-sage-700">
-                      <span>Work until piece measures</span>
-                      <IncrementInput
-                        value={wizardData.duration.value}
-                        onChange={(value) => updateWizardData('duration', { value })}
-                        label="target measurement"
-                        min={0.25}
-                        useDecimals={true}
-                        step={0.25}
-                        size="sm"
-                      />
-                      <span>{wizardData.duration.units || project?.defaultUnits || 'inches'}</span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-sm">
-                      <label className="text-sage-700">from</label>
-                      <input
-                        type="text"
-                        value={wizardData.duration.reference || ''}
-                        onChange={(e) => updateWizardData('duration', { reference: e.target.value })}
-                        placeholder="cast on, start of armhole, etc."
-                        className="flex-1 border-2 border-sage-300 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors"
-                      />
-                    </div>
-                  </div>
-                )}
               </div>
-            </div>
-          </label>
+            </label>
+          )}
 
           {/* Pattern repeats - only show if pattern has repeats */}
           {patternHasRepeats && (

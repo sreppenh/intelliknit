@@ -13,7 +13,8 @@ const DurationWizard = ({
     project,
     onBack,
     onExitToComponentSteps,
-    editingStepIndex = null
+    editingStepIndex = null,
+    mode
 }) => {
     IntelliKnitLogger.debug('DurationWizard props', { construction, currentStitches });
 
@@ -83,6 +84,7 @@ const DurationWizard = ({
                 project={project}
                 existingPrepNote={wizardData.prepNote || ''}
                 onSavePrepNote={(note) => updateWizardData('prepNote', note)}
+                mode={mode}
             />
 
             {/* Complete Step Button */}

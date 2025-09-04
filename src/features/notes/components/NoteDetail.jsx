@@ -101,19 +101,6 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         }
     });
 
-    // Right after the rowProgressKey definition, add this:
-    console.log('Row Progress Debug:', {
-        hasStep,
-        stepExists: !!step,
-        currentNoteId: currentNote?.id,
-        componentId: currentNote?.components?.[0]?.id,
-        rowProgressKey,
-        rowProgress,
-        allLocalStorageKeys: Object.keys(localStorage).filter(key => key.includes('row-counter'))
-    });
-
-
-
     // All useEffect hooks - BEFORE any early returns
     useEffect(() => {
         if (showDetailsModal && currentNote) {
@@ -156,9 +143,9 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         if (!hasStep || !step) return null;
 
         const currentRow = rowProgress?.currentRow || 0;
-        const totalRows = step.totalRows || 0;
+        const isLengthBased = step.wizardConfig?.duration?.type === 'length';
 
-        if (currentRow >= totalRows && totalRows > 0) {
+        if (step.completed || (isLengthBased && step.completed)) {
             return {
                 text: "Instruction completed",
                 className: "text-sage-600 font-medium",
@@ -166,6 +153,26 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
             };
         }
 
+        if (isLengthBased) {
+            if (currentRow === 0) {
+                return {
+                    text: "No rows completed",
+                    className: "text-wool-600",
+                    icon: null
+                };
+            } else {
+                const targetLength = step.wizardConfig?.duration?.value;
+                const units = step.wizardConfig?.duration?.units || currentNote.defaultUnits || 'inches';
+                return {
+                    text: `${currentRow} rows completed (targeting ${targetLength} ${units})`,
+                    className: "text-wool-600",
+                    icon: null
+                };
+            }
+        }
+
+        // Fixed row instructions (existing logic)
+        const totalRows = step.totalRows || 0;
         if (totalRows > 0) {
             return {
                 text: `Completed ${currentRow} of ${totalRows} rows`,
@@ -179,7 +186,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
             className: "text-wool-600",
             icon: null
         };
-    }, [hasStep, step, rowProgress]);
+    }, [hasStep, step, rowProgress, currentNote]);
 
     const getKnittingButtonConfig = useMemo(() => {
         if (!hasStep || !step) {
