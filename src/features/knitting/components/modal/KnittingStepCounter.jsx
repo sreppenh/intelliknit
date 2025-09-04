@@ -201,7 +201,7 @@ const KnittingStepCounter = ({
                 // Handle string format (standard case)
                 if (rowData && typeof rowData === 'string') {
                     return {
-                        instruction: formatReadableInstruction(rowData), // 🎯 ADD FORMATTING
+                        instruction: formatReadableInstruction(rowData),
                         isSupported: true,
                         isRowByRow: true
                     };
@@ -209,24 +209,14 @@ const KnittingStepCounter = ({
                 // Handle object format (fallback for legacy data)
                 else if (rowData && rowData.instruction) {
                     return {
-                        instruction: formatReadableInstruction(rowData.instruction), // 🎯 ADD FORMATTING
+                        instruction: formatReadableInstruction(rowData.instruction),
                         isSupported: true,
                         isRowByRow: true
                     };
                 }
             }
 
-            // For notepad mode without row-by-row, use pattern fallback
-            if (isNotepadMode || step?.forceRowByRowMode) {
-                const patternName = stitchPattern?.pattern || 'Continue Pattern';
-                return {
-                    instruction: `${patternName} - Row ${currentRow}`,
-                    isSupported: true,
-                    isRowByRow: false
-                };
-            }
-
-            // Use original logic for project mode
+            // Use original logic for ALL modes - no special notepad handling
             return getRowInstruction(step, currentRow, stitchCount, project);
         } catch (error) {
             console.error('Error getting row instruction:', error);

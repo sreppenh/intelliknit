@@ -15,7 +15,8 @@ const KnittingStepInstructions = ({
     const { description, contextualPatternNotes, contextualConfigNotes, technicalData } =
         getFormattedStepDisplay(step, component.name, project);
 
-    const isCompleted = progress.isStepCompleted(navigation.currentStep);
+    // const isCompleted = progress.isStepCompleted(navigation.currentStep);
+    const isCompleted = step.completed || false;
     const hasPatternNotes = contextualPatternNotes?.trim().length > 0;
     const hasConfigNotes = contextualConfigNotes?.trim().length > 0;
     const hasBothNotes = hasPatternNotes && hasConfigNotes;
