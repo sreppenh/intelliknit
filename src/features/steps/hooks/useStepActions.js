@@ -80,12 +80,24 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
   };
 
   const handleAddStep = () => {
+    const creationId = Date.now() + Math.random();
+    console.log('🔧 Step creation ID:', creationId);
     console.log('🔧 useStepActions handleAddStep called with mode:', mode);
     console.log('🔧 wizard.isEditing:', wizard.isEditing);
     console.log('🔧 wizard.componentIndex:', wizard.componentIndex);
 
+    console.log('🔧 handleAddStep called for mode:', mode);
+
+
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
+
+    console.log('🔧 Effect analysis:', {
+      effectSuccess: effect.success,
+      instructionText: instruction,
+      effectHasMultipleSteps: effect.steps ? effect.steps.length : 'no steps array',
+      effectStructure: Object.keys(effect)
+    });
 
     console.log('🔧 Generated step object:', createStepObject(instruction, effect, wizard));
 
@@ -96,7 +108,6 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
       // Update existing step
       const updateActionType = mode === 'notepad' ? 'UPDATE_STEP_IN_NOTE' : 'UPDATE_STEP';
       console.log(`🔧 Dispatching ${updateActionType}`);
-      console.log('🔧 Full step object being saved:', JSON.stringify(stepObject, null, 2));
       dispatch({
         type: updateActionType,
         payload: {
@@ -109,7 +120,7 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
       // Add new step
       if (effect.success) {
         const actionType = mode === 'notepad' ? 'ADD_STEP_TO_NOTE' : 'ADD_CALCULATED_STEP';
-        console.log('🔧 Full step object being saved:', JSON.stringify(stepObject, null, 2));
+
         console.log(`🔧 Dispatching ${actionType} with payload:`, {
           componentIndex: wizard.componentIndex,
           step: createStepObject(instruction, effect, wizard, { forceManualType: false })
@@ -132,6 +143,7 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
           payload: {
             componentIndex: wizard.componentIndex,
             step: createStepObject(instruction, effect, wizard, { useCurrentStitches: true })
+
           }
         });
       }
@@ -144,6 +156,8 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
 
   const handleAddStepAndContinue = () => {
     IntelliKnitLogger.debug('Step Actions', 'handleAddStepAndContinue called');
+    console.log('🔧 handleAddStepAndContinue called for mode:', mode);
+
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
 
