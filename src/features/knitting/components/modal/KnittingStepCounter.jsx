@@ -603,19 +603,18 @@ const KnittingStepCounter = ({
                                 </div>
                             )}
 
-                            {/* Completion button - proper button instead of checkbox */}
-                            {(isOnFinalRow || stepType === 'length_based' || stepType === 'completion_when_ready') &&
-                                !(isNotepadMode && stepType === 'fixed_multi_row') && (
-                                    <button
-                                        onClick={stepType === 'length_based' && isNotepadMode ? handleLengthBasedComplete : handleStepComplete}
-                                        className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isCompleted
-                                            ? 'bg-sage-500 text-white hover:bg-sage-600'
-                                            : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
-                                            }`}
-                                    >
-                                        {isCompleted ? 'Step Completed' : 'Mark Complete'}
-                                    </button>
-                                )}
+                            {/* Completion button - only for length-based steps */}
+                            {stepType === 'length_based' && (
+                                <button
+                                    onClick={isNotepadMode ? handleLengthBasedComplete : handleStepComplete}
+                                    className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isCompleted
+                                        ? 'bg-sage-500 text-white hover:bg-sage-600'
+                                        : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
+                                        }`}
+                                >
+                                    {isCompleted ? 'Step Completed' : 'Mark Complete'}
+                                </button>
+                            )}
 
                             {/* Add gauge calculation note for length-based notepad */}
                             {isNotepadMode && stepType === 'length_based' && !isCompleted && (
