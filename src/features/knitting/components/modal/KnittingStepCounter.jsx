@@ -307,12 +307,9 @@ const KnittingStepCounter = ({
 
     // Add this new function after handleStepComplete
     const handleLengthBasedComplete = () => {
-        console.log('🔧 handleLengthBasedComplete called');
         const rowsKnitted = currentRow;
         const targetLength = parseFloat(step.wizardConfig?.duration?.value);
         const units = step.wizardConfig?.duration?.units || project?.defaultUnits || 'inches';
-
-        console.log('🔧 Gauge calculation:', { rowsKnitted, targetLength, units, isNotepadMode });
 
         if (isNotepadMode && rowsKnitted > 0 && targetLength > 0) {
             // Calculate gauge from this instruction
@@ -324,27 +321,30 @@ const KnittingStepCounter = ({
                 }
             };
 
-            console.log('🔧 Calculated gauge:', calculatedGauge);
-
-
-            // Update note with calculated gauge
             const updatedProject = {
                 ...project,
-                gauge: calculatedGauge
+                gauge: calculatedGauge,
+                // Also update the step completion in the project data
+                components: project.components.map((comp, idx) =>
+                    idx === 0 ? {
+                        ...comp,
+                        steps: comp.steps.map((s, sIdx) =>
+                            sIdx === 0 ? { ...s, completed: true } : s
+                        )
+                    } : comp
+                )
             };
 
-            // Use the context's updateProject function
+            console.log('🔧 Single update with gauge AND completion:', updatedProject);
+
             if (updateProject) {
                 updateProject(updatedProject);
-                console.log('🔧 Note updated with gauge');
-            } else {
-                console.warn('🔧 updateNote function not available');
             }
+
+        } else {
+            // Fallback - just complete the step normally
+            handleStepComplete();
         }
-
-        // Complete the step
-        handleStepComplete();
-
         // Auto-close for notepad mode
         if (isNotepadMode) {
             setTimeout(() => {
