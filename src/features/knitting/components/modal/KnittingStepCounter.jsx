@@ -389,6 +389,7 @@ const KnittingStepCounter = ({
 
     const canIncrement = stepType === 'length_based' ||
         stepType === 'completion_when_ready' ||
+        stepType === 'single_action' || // ADD THIS LINE
         (stepType === 'fixed_multi_row' && currentRow < totalRows) ||
         (isNotepadMode && stepType === 'fixed_multi_row' && currentRow === totalRows); // Allow final click in notepad
 
@@ -542,88 +543,70 @@ const KnittingStepCounter = ({
                     )}
 
                     {/* PRIMARY ACTION AREA */}
-                    {stepType === 'single_action' ? (
-                        // Single action: big checkbox-style completion toggle
-                        <button
-                            onClick={handleStepComplete}
-                            className={`w-full flex items-center justify-center gap-3 py-4 rounded-xl font-semibold text-lg transition-all duration-200 border-2 ${isCompleted
-                                ? 'bg-sage-100 border-sage-300 text-sage-700 hover:bg-sage-150'
-                                : 'bg-white border-sage-300 text-sage-700 hover:bg-sage-50 hover:border-sage-400'
-                                }`}
-                        >
-                            <div className={`w-6 h-6 rounded border-2 flex items-center justify-center transition-all ${isCompleted
-                                ? 'bg-sage-500 border-sage-500'
-                                : 'bg-white border-sage-300'
-                                }`}>
-                                {isCompleted && <Check size={16} className="text-white" />}
-                            </div>
-                            <span>Step Complete</span>
-                        </button>
-                    ) : (
-                        // Multi-row: row counter + completion
-                        <div className="space-y-4">
-                            {/* Row Counter - centered and prominent */}
-                            <div className="flex items-center justify-center gap-4">
-                                <button
-                                    onClick={handleRowDecrement}
-                                    disabled={currentRow <= 1}
-                                    className="p-3 rounded-full bg-orange-100 hover:bg-orange-200 disabled:bg-gray-100 disabled:text-gray-400 text-orange-600 hover:text-orange-700 transition-colors disabled:cursor-not-allowed"
-                                >
-                                    <RotateCcw size={18} /> {/* Undo icon */}
-                                </button>
+                    {/* Always show row counter interface for all steps */}
+                    <div className="space-y-4">
+                        {/* Row Counter - centered and prominent */}
+                        <div className="flex items-center justify-center gap-4">
+                            <button
+                                onClick={handleRowDecrement}
+                                disabled={currentRow <= 1}
+                                className="p-3 rounded-full bg-orange-100 hover:bg-orange-200 disabled:bg-gray-100 disabled:text-gray-400 text-orange-600 hover:text-orange-700 transition-colors disabled:cursor-not-allowed"
+                            >
+                                <RotateCcw size={18} />
+                            </button>
 
-                                {/* This is new */}
-                                <div className={`text-3xl font-bold ${theme.textPrimary} min-w-[80px]`}>
-                                    {currentRow}
-                                </div>
-
-                                <button
-                                    onClick={handleRowIncrement}
-                                    disabled={!canIncrement}
-                                    className="p-3 rounded-full bg-sage-100 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 hover:text-sage-700 transition-colors disabled:cursor-not-allowed"
-                                >
-                                    <Check size={18} /> {/* Checkmark icon */}
-                                </button>
+                            <div className={`text-3xl font-bold ${theme.textPrimary} min-w-[80px]`}>
+                                {currentRow}
                             </div>
 
-                            {/* Progress bar - length-aware or traditional */}
-                            {(stepType === 'fixed_multi_row' || (isLengthStep && lengthDisplayData?.showProgressBar)) && (
-                                <div className="w-full bg-gray-200 rounded-full h-2">
-                                    <div
-                                        className={`h-2 rounded-full transition-all duration-300 ${lengthDisplayData?.isNearTarget ? 'bg-yarn-500' : 'bg-sage-500'
-                                            }`}
-                                        style={{
-                                            width: `${Math.min(
-                                                lengthDisplayData?.progressPercent ||
-                                                (currentRow / totalRows) * 100,
-                                                100
-                                            )}%`
-                                        }}
-                                    />
-                                </div>
-                            )}
-
-                            {/* Completion button - only for length-based steps */}
-                            {stepType === 'length_based' && (
-                                <button
-                                    onClick={isNotepadMode ? handleLengthBasedComplete : handleStepComplete}
-                                    className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isCompleted
-                                        ? 'bg-sage-500 text-white hover:bg-sage-600'
-                                        : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
-                                        }`}
-                                >
-                                    {isCompleted ? 'Step Completed' : 'Mark Complete'}
-                                </button>
-                            )}
-
-                            {/* Add gauge calculation note for length-based notepad */}
-                            {isNotepadMode && stepType === 'length_based' && !isCompleted && (
-                                <div className="text-xs text-sage-600 mt-2 text-center">
-                                    Gauge will be calculated when marked complete
-                                </div>
-                            )}
+                            <button
+                                onClick={handleRowIncrement}
+                                disabled={!canIncrement}
+                                className="p-3 rounded-full bg-sage-100 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 hover:text-sage-700 transition-colors disabled:cursor-not-allowed"
+                            >
+                                <Check size={18} />
+                            </button>
                         </div>
-                    )}
+
+                        {/* Progress bar - for multi-row and length steps */}
+                        {(stepType === 'fixed_multi_row' || (isLengthStep && lengthDisplayData?.showProgressBar)) && (
+                            <div className="w-full bg-gray-200 rounded-full h-2">
+                                <div
+                                    className={`h-2 rounded-full transition-all duration-300 ${lengthDisplayData?.isNearTarget ? 'bg-yarn-500' : 'bg-sage-500'}`}
+                                    style={{
+                                        width: `${Math.min(
+                                            lengthDisplayData?.progressPercent ||
+                                            (currentRow / totalRows) * 100,
+                                            100
+                                        )}%`
+                                    }}
+                                />
+                            </div>
+                        )}
+
+                        {/* Mark Complete button - only for indeterminate steps */}
+                        {stepType === 'length_based' && (
+                            <button
+                                onClick={isNotepadMode ? handleLengthBasedComplete : handleStepComplete}
+                                className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isCompleted
+                                    ? 'bg-sage-500 text-white hover:bg-sage-600'
+                                    : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
+                                    }`}
+                            >
+                                {isCompleted ? 'Step Completed' : 'Mark Complete'}
+                            </button>
+                        )}
+
+                        {/* Gauge calculation note for length-based notepad */}
+                        {isNotepadMode && stepType === 'length_based' && !isCompleted && (
+                            <div className="text-xs text-sage-600 mt-2 text-center">
+                                Gauge will be calculated when marked complete
+                            </div>
+                        )}
+                    </div>
+
+
+
                 </div>
 
                 {/* Row 1 Settings - Clean & Simple */}
