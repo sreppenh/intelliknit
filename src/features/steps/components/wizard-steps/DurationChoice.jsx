@@ -14,12 +14,6 @@ const DurationChoice = ({
 }) => {
   const { pattern } = wizardData.stitchPattern;
 
-  // Add this debug at the top of DurationChoice component
-  console.log('DurationChoice mode received:', mode);
-  console.log('Project context:', project);
-
-
-
   // SAFETY CHECK: Ensure duration exists
   if (!wizardData.duration) {
     console.log('Missing duration in wizardData:', wizardData);

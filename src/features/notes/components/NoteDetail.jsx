@@ -145,7 +145,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         const currentRow = rowProgress?.currentRow || 0;
         const isLengthBased = step.wizardConfig?.duration?.type === 'length';
 
-        if (step.completed || (isLengthBased && step.completed)) {
+        if (step.completed) {
             return {
                 text: "Instruction completed",
                 className: "text-sage-600 font-medium",
@@ -171,9 +171,9 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
             }
         }
 
-        // Fixed row instructions (existing logic)
+        // Fixed row instructions - only use totalRows > 1 to avoid length-based confusion
         const totalRows = step.totalRows || 0;
-        if (totalRows > 0) {
+        if (totalRows > 1) {
             return {
                 text: `Completed ${currentRow} of ${totalRows} rows`,
                 className: "text-wool-600",
@@ -197,12 +197,21 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
             };
         }
 
-
-
         const currentRow = rowProgress?.currentRow || 0;
         const totalRows = step.totalRows || 0;
+        const isLengthBased = step.wizardConfig?.duration?.type === 'length';
 
-        if (currentRow >= totalRows && totalRows > 0) {
+        // Only use totalRows logic for fixed-row instructions, not length-based
+        if (currentRow >= totalRows && totalRows > 1 && !isLengthBased) {
+            return {
+                text: "Review Instruction",
+                action: handleStartKnitting,
+                className: "btn-secondary btn-sm"
+            };
+        }
+
+        // For length-based instructions, only show "Review" if step.completed is true
+        if (isLengthBased && step.completed) {
             return {
                 text: "Review Instruction",
                 action: handleStartKnitting,
