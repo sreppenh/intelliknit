@@ -2,8 +2,9 @@
  * NoteDetail - Redesigned with clean sections and proper modal editing
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNotesContext } from '../hooks/useNotesContext';
+import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import PageHeader from '../../../shared/components/PageHeader';
 import StandardModal from '../../../shared/components/modals/StandardModal';
 import SegmentedControl from '../../../shared/components/SegmentedControl';
@@ -19,6 +20,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
     const [showKnittingModal, setShowKnittingModal] = useState(false);
     const [showDetailsModal, setShowDetailsModal] = useState(false);
     const [showColorsModal, setShowColorsModal] = useState(false);
+    const [showDeleteInstructionModal, setShowDeleteInstructionModal] = useState(false);
     const [detailsForm, setDetailsForm] = useState({});
     const [colorsForm, setColorsForm] = useState({});
     const [editingColorIndex, setEditingColorIndex] = useState(null);
@@ -62,6 +64,56 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         { name: 'Black', hex: '#000000' }
     ];
 
+    // Get note info - moved up to be available for hooks
+    const hasStep = currentNote?.components?.[0]?.steps?.length > 0;
+    const step = hasStep ? currentNote.components[0].steps[0] : null;
+    const hasYarns = currentNote?.yarns?.length > 0 && currentNote.yarns.some(y => y.colorHex);
+    const hasGauge = currentNote?.gauge?.stitchGauge || currentNote?.gauge?.rowGauge;
+
+
+    // Add function to refresh progress from localStorage
+    const refreshRowProgress = () => {
+        if (!rowProgressKey) return;
+
+        try {
+            const item = localStorage.getItem(rowProgressKey);
+            const newProgress = item ? JSON.parse(item) : { currentRow: 0 };
+            setRowProgress(newProgress);
+        } catch (error) {
+            console.warn('Error reading row progress:', error);
+        }
+    };
+
+
+    // Row progress tracking - matches StepCounter localStorage pattern
+    const rowProgressKey = hasStep && step && currentNote ?
+        `row-counter-${currentNote.id}-${currentNote.components[0].id}-0` :
+        null;
+
+    const [rowProgress, setRowProgress] = useState(() => {
+        if (!rowProgressKey) return { currentRow: 0 };
+
+        try {
+            const item = localStorage.getItem(rowProgressKey);
+            return item ? JSON.parse(item) : { currentRow: 0 };
+        } catch (error) {
+            return { currentRow: 0 };
+        }
+    });
+
+    // Right after the rowProgressKey definition, add this:
+    console.log('Row Progress Debug:', {
+        hasStep,
+        stepExists: !!step,
+        currentNoteId: currentNote?.id,
+        componentId: currentNote?.components?.[0]?.id,
+        rowProgressKey,
+        rowProgress,
+        allLocalStorageKeys: Object.keys(localStorage).filter(key => key.includes('row-counter'))
+    });
+
+
+
     // All useEffect hooks - BEFORE any early returns
     useEffect(() => {
         if (showDetailsModal && currentNote) {
@@ -97,7 +149,75 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         }
     }, [showColorsModal, currentNote]);
 
+
+
     // Helper functions
+    const getProgressDisplay = useMemo(() => {
+        if (!hasStep || !step) return null;
+
+        const currentRow = rowProgress?.currentRow || 0;
+        const totalRows = step.totalRows || 0;
+
+        if (currentRow >= totalRows && totalRows > 0) {
+            return {
+                text: "Instruction completed",
+                className: "text-sage-600 font-medium",
+                icon: "✓"
+            };
+        }
+
+        if (totalRows > 0) {
+            return {
+                text: `Completed ${currentRow} of ${totalRows} rows`,
+                className: "text-wool-600",
+                icon: null
+            };
+        }
+
+        return {
+            text: `Completed ${currentRow} rows`,
+            className: "text-wool-600",
+            icon: null
+        };
+    }, [hasStep, step, rowProgress]);
+
+    const getKnittingButtonConfig = useMemo(() => {
+        if (!hasStep || !step) {
+            return {
+                text: "Configure Instruction",
+                action: () => onEditSteps(0),
+                className: "btn-primary btn-sm"
+            };
+        }
+
+
+
+        const currentRow = rowProgress?.currentRow || 0;
+        const totalRows = step.totalRows || 0;
+
+        if (currentRow >= totalRows && totalRows > 0) {
+            return {
+                text: "Review Instruction",
+                action: handleStartKnitting,
+                className: "btn-secondary btn-sm"
+            };
+        }
+
+        if (currentRow > 0) {
+            return {
+                text: "Resume Knitting",
+                action: handleStartKnitting,
+                className: "btn-primary btn-sm"
+            };
+        }
+
+        return {
+            text: "Start Knitting",
+            action: handleStartKnitting,
+            className: "btn-primary btn-sm"
+        };
+    }, [hasStep, step, rowProgress, onEditSteps]);
+
     const handleColorSelect = (colorIndex, selectedColor) => {
         const updatedYarns = [...colorsForm.yarns];
         updatedYarns[colorIndex] = {
@@ -121,12 +241,6 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         );
     }
 
-    // Get note info
-    const hasStep = currentNote.components?.[0]?.steps?.length > 0;
-    const step = hasStep ? currentNote.components[0].steps[0] : null;
-    const hasYarns = currentNote.yarns?.length > 0 && currentNote.yarns.some(y => y.colorHex);
-    const hasGauge = currentNote.gauge?.stitchGauge || currentNote.gauge?.rowGauge;
-
     // Handle delete note
     const handleDeleteNote = async () => {
         const success = await deleteNote(currentNote.id);
@@ -136,13 +250,37 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         setShowDeleteModal(false);
     };
 
-    // Handle start knitting
-    const handleStartKnitting = () => {
-        setShowKnittingModal(true);
+    // Handle delete instruction
+    const handleDeleteInstruction = async () => {
+        if (!currentNote || !hasStep) return;
+
+        // Clear row progress
+        if (rowProgressKey) {
+            localStorage.removeItem(rowProgressKey);
+        }
+
+        // Remove the step from the note
+        const updatedNote = {
+            ...currentNote,
+            components: [{
+                ...currentNote.components[0],
+                steps: []
+            }]
+        };
+
+        await updateNote(updatedNote);
+        setShowDeleteInstructionModal(false);
     };
+
+    // Handle start knitting
+    function handleStartKnitting() {
+        setShowKnittingModal(true);
+    }
 
     const handleCloseKnittingModal = () => {
         setShowKnittingModal(false);
+        // Refresh progress display after modal closes
+        setTimeout(refreshRowProgress, 100);
     };
 
     // Details modal handlers
@@ -305,30 +443,30 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
                 {/* Content Sections */}
                 <div className="p-6 space-y-4">
 
-                    {/* Pattern Section */}
+                    {/* Instruction Section - Mobile Optimized */}
                     {hasStep ? (
-                        <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-lavender-200">
-                            <div className="flex items-center justify-between mb-4">
-                                <h3 className="text-lg font-semibold text-wool-700 mb-2">🧶 Pattern</h3>
-
-                                <div className="flex gap-2">
-                                    <button onClick={() => onEditSteps(0)} className="btn-secondary btn-sm">
-                                        Edit Pattern
-                                    </button>
-                                    <button onClick={handleStartKnitting} className="btn-primary btn-sm">
-                                        Start Knitting
-                                    </button>
-                                </div>
+                        <div className="bg-white rounded-xl p-4 shadow-sm border-2 border-lavender-200">
+                            {/* Compact Header - Single Line */}
+                            <div className="flex items-center justify-between mb-3">
+                                <h3 className="text-lg font-semibold text-wool-700">🧶 Instruction</h3>
+                                <button
+                                    onClick={() => setShowDeleteInstructionModal(true)}
+                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors text-sm"
+                                    title="Delete"
+                                >
+                                    🗑️
+                                </button>
                             </div>
 
-                            <div className="text-left">
+                            {/* Step Description */}
+                            <div className="text-left mb-3">
                                 {(() => {
                                     const { description, contextualPatternNotes, contextualConfigNotes } =
-                                        getFormattedStepDisplay(step, "Pattern", currentNote);
+                                        getFormattedStepDisplay(step, "Instruction", currentNote);
 
                                     return (
                                         <div className="space-y-2">
-                                            <div className="font-medium text-wool-700">{description}</div>
+                                            <div className="font-medium text-wool-700 text-base">{description}</div>
                                             {contextualPatternNotes && (
                                                 <div className="text-sm text-wool-600 whitespace-pre-line bg-lavender-50 p-3 rounded-lg">
                                                     {contextualPatternNotes}
@@ -343,16 +481,32 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
                                     );
                                 })()}
                             </div>
+
+                            {/* Progress + Action Row */}
+                            <div className="flex items-center justify-between gap-3">
+                                {getProgressDisplay && (
+                                    <div className="text-sm flex-1">
+                                        {getProgressDisplay.icon && <span className="mr-1">{getProgressDisplay.icon}</span>}
+                                        <span className={getProgressDisplay.className}>{getProgressDisplay.text}</span>
+                                    </div>
+                                )}
+                                <button
+                                    onClick={getKnittingButtonConfig.action}
+                                    className="btn-primary btn-sm flex-shrink-0"
+                                >
+                                    {getKnittingButtonConfig.text}
+                                </button>
+                            </div>
                         </div>
                     ) : (
-                        <div className="bg-white rounded-xl p-6 shadow-sm border-2 border-wool-200">
+                        <div className="bg-white rounded-xl p-4 shadow-sm border-2 border-wool-200">
                             <div className="flex items-center justify-between">
                                 <div className="text-left">
-                                    <h3 className="text-lg font-semibold text-wool-700 mb-2">🧶 Pattern</h3>
-                                    <p className="text-wool-500">No pattern configured yet</p>
+                                    <h3 className="text-lg font-semibold text-wool-700 mb-2">🧶 Instruction</h3>
+                                    <p className="text-wool-500">No instruction configured yet</p>
                                 </div>
-                                <button onClick={() => onEditSteps(0)} className="btn-primary btn-sm">
-                                    Configure Pattern
+                                <button onClick={() => onEditSteps(0)} className="btn-primary btn-sm flex-shrink-0">
+                                    Configure
                                 </button>
                             </div>
                         </div>
@@ -483,6 +637,20 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
                 title="Delete Note?"
                 subtitle={`"${currentNote.name}" will be permanently deleted. This cannot be undone.`}
                 primaryButtonText="Delete Note"
+                secondaryButtonText="Cancel"
+                icon="🗑️"
+            />
+
+            {/* Delete Instruction Confirmation Modal */}
+            <StandardModal
+                isOpen={showDeleteInstructionModal}
+                onClose={() => setShowDeleteInstructionModal(false)}
+                onConfirm={handleDeleteInstruction}
+                category="warning"
+                colorScheme="red"
+                title="Delete Instruction?"
+                subtitle="This will remove the knitting instruction and clear any progress. This cannot be undone."
+                primaryButtonText="Delete Instruction"
                 secondaryButtonText="Cancel"
                 icon="🗑️"
             />
