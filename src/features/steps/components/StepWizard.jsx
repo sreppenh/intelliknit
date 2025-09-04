@@ -197,10 +197,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
         component={wizard.component}
         componentIndex={wizard.componentIndex}
         editingStepIndex={wizard.editingStepIndex}
-        // onExitToComponentSteps={onBack}
-        onExitToComponentSteps={() => {
-          handleAddStep();
-        }}
+        onExitToComponentSteps={mode === 'notepad' ? () => { handleAddStep(); } : onBack}
         onBack={() => {
           setShowShapingWizard(false);
 
@@ -398,10 +395,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
             editingStepIndex={wizard.editingStepIndex}
             project={currentProject}
             onBack={navigation.previousStep} // 🎯 SIMPLIFIED: Direct navigation call
-            // onExitToComponentSteps={onBack}
-            onExitToComponentSteps={() => {
-              handleAddStep();
-            }}
+            onExitToComponentSteps={mode === 'notepad' ? () => { handleAddStep(); } : onBack}
             mode={mode}
           />
         );

@@ -88,6 +88,10 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
 
     console.log('🔧 handleAddStep called for mode:', mode);
 
+    console.log('🚨 EXACT MODE VALUE:', JSON.stringify(mode), typeof mode);
+    console.log('🚨 MODE COMPARISON:', mode === 'notepad', mode === 'project');
+
+
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
 
@@ -98,9 +102,10 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
       effectStructure: Object.keys(effect)
     });
 
-    // ✅ CREATE STEP OBJECT ONCE - Use appropriate options based on context
+    console.log('🔧 Generated step object:', createStepObject(instruction, effect, wizard));
+
+    // ✅ USE HELPER: Create step object for debugging
     const stepObject = createStepObject(instruction, effect, wizard);
-    console.log('🔧 Generated step object:', stepObject);
 
     if (wizard.isEditing) {
       // Update existing step
@@ -111,7 +116,7 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
         payload: {
           componentIndex: wizard.componentIndex,
           stepIndex: wizard.editingStepIndex,
-          step: stepObject  // ← Use the single stepObject
+          step: createStepObject(instruction, effect, wizard)
         }
       });
     } else {
@@ -119,35 +124,29 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
       if (effect.success) {
         const actionType = mode === 'notepad' ? 'ADD_STEP_TO_NOTE' : 'ADD_CALCULATED_STEP';
 
-        // ✅ Create step with calculated type (don't force manual)
-        const calculatedStepObject = createStepObject(instruction, effect, wizard, { forceManualType: false });
-
         console.log(`🔧 Dispatching ${actionType} with payload:`, {
           componentIndex: wizard.componentIndex,
-          step: calculatedStepObject
+          step: createStepObject(instruction, effect, wizard, { forceManualType: false })
         });
         dispatch({
           type: actionType,
           payload: {
             componentIndex: wizard.componentIndex,
-            step: calculatedStepObject  // ← Use the specific object
+            step: createStepObject(instruction, effect, wizard, { forceManualType: false })
           }
         });
       } else {
         const actionType = mode === 'notepad' ? 'ADD_STEP_TO_NOTE' : 'ADD_STEP';
-
-        // ✅ Create step with current stitches for manual type
-        const manualStepObject = createStepObject(instruction, effect, wizard, { useCurrentStitches: true });
-
         console.log(`🔧 Dispatching ${actionType} with payload:`, {
           componentIndex: wizard.componentIndex,
-          step: manualStepObject
+          step: createStepObject(instruction, effect, wizard, { useCurrentStitches: true })
         });
         dispatch({
           type: actionType,
           payload: {
             componentIndex: wizard.componentIndex,
-            step: manualStepObject  // ← Use the specific object
+            step: createStepObject(instruction, effect, wizard, { useCurrentStitches: true })
+
           }
         });
       }
