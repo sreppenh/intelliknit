@@ -220,14 +220,9 @@ const DurationChoice = ({
                         step={0.25}
                         size="sm"
                       />
-                      <select
-                        value={wizardData.duration.units || 'inches'}
-                        onChange={(e) => updateWizardData('duration', { units: e.target.value })}
-                        className="border-2 border-sage-300 rounded-lg px-3 py-2 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                      >
-                        <option value="inches">inches</option>
-                        <option value="cm">cm</option>
-                      </select>
+                      <span className="text-sm text-sage-700">
+                        {project?.defaultUnits || 'inches'}
+                      </span>
                     </div>
 
                     {/* Smart gauge field */}

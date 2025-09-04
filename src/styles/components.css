@@ -166,17 +166,17 @@ body.modal-open {
 
 /* Numeric inputs */
 .input-numeric {
-  @apply w-16 text-center border-2 border-wool-200 rounded-lg px-3 py-2 text-sm;
+  @apply w-20 text-center border-2 border-wool-200 rounded-lg px-3 py-2 text-sm;
   @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:ring-opacity-50 transition-colors;
   @apply bg-white;
 }
 
 .input-numeric-lg {
-  @apply input-numeric w-20 py-3 text-base;
+  @apply input-numeric w-24 py-3 text-base;
 }
 
 .input-numeric-sm {
-  @apply input-numeric w-12 py-1 text-xs;
+  @apply input-numeric w-16 py-1 text-xs;
 }
 
 /* Increment input groups */
