@@ -11,6 +11,7 @@ import {
 import { useSideTracking } from '../../hooks/useSideTracking';
 import SimpleRowSettings from '../SimpleRowSettings';
 import { formatReadableInstruction } from '../../../../shared/utils/stepDescriptionUtils';
+import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
 // Gauge utilities
 import {
@@ -37,7 +38,8 @@ const KnittingStepCounter = ({
     onToggleCompletion,
     onClose // Add this prop
 }) => {
-    const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
+    const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step);
+    // const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
 
     const isNotepadMode = project?.isNotepadMode || false;
@@ -343,25 +345,66 @@ const KnittingStepCounter = ({
         }
     };
 
+    const handleAutoAdvanceToNextStep = () => {
+        IntelliKnitLogger.debug('Row Counter', 'Auto-advancing to next step from final row completion');
+        console.log('🎯 Auto-advancement debug:', {
+            canGoRight: navigation.canGoRight,
+            stepIndex: stepIndex,
+            navigationObject: navigation
+        });
+        console.log('🎯 Navigation.currentStep BEFORE navigation:', navigation.currentStep);
+
+        try {
+            // Check if we can navigate right (this handles both carousel and step navigation)
+            if (navigation.canGoRight) {
+                console.log('🎯 Calling navigation.navigateRight()');
+                navigation.navigateRight();
+                console.log('🎯 Navigation.currentStep AFTER navigation:', navigation.currentStep);
+                IntelliKnitLogger.debug('Row Counter', 'Successfully navigated to next step');
+            } else {
+                console.log('🎯 Cannot navigate right - at end of component');
+                IntelliKnitLogger.debug('Row Counter', 'At end of component - no more steps to advance to');
+                // TODO: Show celebration card when at last step
+            }
+
+        } catch (error) {
+            console.log('🎯 Navigation error:', error);
+            IntelliKnitLogger.error('Row Counter Auto-advancement failed', error);
+            // Stay on current step if navigation fails
+        }
+    };
+
     const handleRowIncrement = () => {
+        console.log('🔧 handleRowIncrement called:', { stepType, currentRow, totalRows, isNotepadMode });
+
         if (stepType === 'single_action') {
-            handleStepComplete();
+            // For single action steps, complete and advance (don't toggle)
+            if (!isCompleted) {
+                handleStepComplete(); // Only complete if not already completed
+            }
+            if (!isNotepadMode) {
+                handleAutoAdvanceToNextStep(); // Auto-advance in project mode
+            }
             return;
         }
 
         if (stepType === 'fixed_multi_row') {
             if (isNotepadMode && currentRow === totalRows) {
                 // Final row completion - auto-complete and close
+                console.log('🔧 Notepad final row completion');
                 handleStepComplete();
                 setTimeout(() => {
                     onClose?.();
                 }, 100);
                 return;
-            } else if (currentRow >= totalRows) {
-                // Project mode - existing behavior
+            } else if (currentRow === totalRows) { // Changed from >= to ===
+                // Project mode - final row completion, auto-complete and advance
+                console.log('🔧 Project mode final row completion - about to complete and advance');
                 handleStepComplete();
+                handleAutoAdvanceToNextStep();
                 return;
             } else {
+                console.log('🔧 Incrementing row from', currentRow, 'to', currentRow + 1);
                 incrementRow();
             }
         } else if (stepType === 'length_based') {
@@ -389,9 +432,9 @@ const KnittingStepCounter = ({
 
     const canIncrement = stepType === 'length_based' ||
         stepType === 'completion_when_ready' ||
-        stepType === 'single_action' || // ADD THIS LINE
-        (stepType === 'fixed_multi_row' && currentRow < totalRows) ||
-        (isNotepadMode && stepType === 'fixed_multi_row' && currentRow === totalRows); // Allow final click in notepad
+        stepType === 'single_action' ||
+        (stepType === 'fixed_multi_row' && currentRow <= totalRows) || // Changed < to <=
+        (isNotepadMode && stepType === 'fixed_multi_row' && currentRow === totalRows);
 
     function calculateActualTotalRows(step) {
         const duration = step.wizardConfig?.duration;
