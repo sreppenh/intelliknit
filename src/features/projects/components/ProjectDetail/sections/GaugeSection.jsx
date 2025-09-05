@@ -59,12 +59,12 @@ const GaugeSection = ({
 
         // Stitch gauge (required)
         if (gauge.stitchGauge?.stitches) {
-            parts.push(`${gauge.stitchGauge.stitches} sts = ${standardDistance}${unit}`);
+            parts.push(`${gauge.stitchGauge.stitches} stitches in ${standardDistance} ${unit === 'cm' ? 'cm' : 'inches'}`);
         }
 
         // Row gauge (optional)
         if (gauge.rowGauge?.rows) {
-            parts.push(`${gauge.rowGauge.rows} rows = ${standardDistance}${unit}`);
+            parts.push(`${gauge.rowGauge.rows} rows in ${standardDistance} ${unit === 'cm' ? 'cm' : 'inches'}`);
         }
 
         let display = parts.join(' • ');

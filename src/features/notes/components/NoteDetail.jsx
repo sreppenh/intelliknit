@@ -147,8 +147,9 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         const isLengthBased = step.wizardConfig?.duration?.type === 'length';
 
         if (step.completed) {
+            const currentRow = rowProgress?.currentRow || 0;
             return {
-                text: "Instruction completed",
+                text: `Finished. ${currentRow} rows completed`,
                 className: "text-sage-600 font-medium",
                 icon: "✓"
             };
@@ -411,19 +412,20 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
     };
 
     // Format gauge display
+    // Format gauge display
     const formatGaugeDisplay = () => {
         if (!hasGauge) return null;
 
         const parts = [];
-        const unit = currentNote.defaultUnits === 'cm' ? 'cm' : '"';
+        const unit = currentNote.defaultUnits === 'cm' ? 'cm' : 'inches';
         const standardDistance = currentNote.defaultUnits === 'cm' ? '10' : '4';
 
         if (currentNote.gauge.stitchGauge?.stitches) {
-            parts.push(`${currentNote.gauge.stitchGauge.stitches} sts = ${standardDistance}${unit}`);
+            parts.push(`${currentNote.gauge.stitchGauge.stitches} stitches in ${standardDistance} ${unit}`);
         }
 
         if (currentNote.gauge.rowGauge?.rows) {
-            parts.push(`${currentNote.gauge.rowGauge.rows} rows = ${standardDistance}${unit}`);
+            parts.push(`${currentNote.gauge.rowGauge.rows} rows in ${standardDistance} ${unit}`);
         }
 
         return parts.join(' • ');

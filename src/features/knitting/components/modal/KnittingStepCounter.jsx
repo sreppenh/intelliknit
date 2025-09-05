@@ -161,6 +161,9 @@ const KnittingStepCounter = ({
             }
         }
     };
+
+
+
     // Calculate current stitch count based on step configuration
     const calculateCurrentStitchCount = (row) => {
         const patternName = step.wizardConfig?.stitchPattern?.pattern;
@@ -365,8 +368,14 @@ const KnittingStepCounter = ({
         console.log('🔧 handleStepComplete finished');
     };
 
-    // Add this new function after handleStepComplete
     const handleLengthBasedComplete = () => {
+        if (isCompleted) {
+            // Currently completed - just toggle to incomplete and stay open
+            onToggleCompletion?.(stepIndex);
+            return; // Don't close modal, don't do gauge stuff
+        }
+
+        // Currently not completed - do your existing completion logic
         const rowsKnitted = currentRow;
         const targetLength = parseFloat(step.wizardConfig?.duration?.value);
         const units = step.wizardConfig?.duration?.units || project?.defaultUnits || 'inches';
@@ -384,7 +393,6 @@ const KnittingStepCounter = ({
             const updatedProject = {
                 ...project,
                 gauge: calculatedGauge,
-                // Also update the step completion in the project data
                 components: project.components.map((comp, idx) =>
                     idx === 0 ? {
                         ...comp,
@@ -395,21 +403,24 @@ const KnittingStepCounter = ({
                 )
             };
 
-            console.log('🔧 Single update with gauge AND completion:', updatedProject);
-
             if (updateProject) {
                 updateProject(updatedProject);
             }
 
+            // Check for gauge prompt
+            const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
+            if (shouldPrompt && onShowGaugeCard) {
+                const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
+                onShowGaugeCard(promptData);
+                return; // Stay open for gauge view
+            }
         } else {
-            // Fallback - just complete the step normally
             handleStepComplete();
         }
-        // Auto-close for notepad mode
-        if (isNotepadMode) {
-            setTimeout(() => {
-                onClose?.();
-            }, 100);
+
+        // Only close if no gauge prompt
+        if (isNotepadMode && onClose) {
+            setTimeout(() => onClose(), 100);
         }
     };
 
