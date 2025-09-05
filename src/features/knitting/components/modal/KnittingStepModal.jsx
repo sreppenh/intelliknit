@@ -10,6 +10,7 @@ import KnittingStepCounter from './KnittingStepCounter';
 import KnittingPrepCard from './KnittingPrepCard';
 import KnittingAssemblyCard from './KnittingAssemblyCard';
 import { useLocalStorage } from '../../../../shared/hooks/useLocalStorage';
+import KnittingCelebrationCard from './KnittingCelebrationCard';
 
 const KnittingStepModal = ({
     step,
@@ -28,6 +29,9 @@ const KnittingStepModal = ({
         `knitting-view-mode-${project.id}`,
         'instructions'
     );
+
+    // State for celebration
+    const [showCelebration, setShowCelebration] = useState(false);
 
     // Create carousel items
     const createCarouselItems = (step, stepIndex) => {
@@ -73,6 +77,15 @@ const KnittingStepModal = ({
             });
         }
 
+        // Add celebration card if component is complete and this is the last step
+        if (showCelebration && stepIndex === totalSteps - 1) {
+            items.push({
+                type: 'celebration',
+                stepIndex,
+                id: `celebration-${stepIndex}`
+            });
+        }
+
         return items;
     };
 
@@ -92,6 +105,9 @@ const KnittingStepModal = ({
 
     // Progress hook integration
     const progress = useKnittingProgress(project.id, component.id, component.steps);
+
+    // Celebration Callback
+    const handleComponentComplete = () => setShowCelebration(true);
 
     // Theme for current step
     const theme = getModalTheme(step);
@@ -119,6 +135,17 @@ const KnittingStepModal = ({
             );
         }
 
+        // Add this after the assembly card case
+        if (currentItem.type === 'celebration') {
+            return (
+                <KnittingCelebrationCard
+                    component={component}
+                    onClose={onClose}
+                    navigation={navigation}
+                />
+            );
+        }
+
         if (viewMode === 'counter') {
             return (
                 <KnittingStepCounter
@@ -131,6 +158,7 @@ const KnittingStepModal = ({
                     navigation={navigation}
                     updateProject={updateProject}
                     onToggleCompletion={onToggleCompletion}
+                    onComponentComplete={handleComponentComplete}
                 />
             );
         }

@@ -36,7 +36,8 @@ const KnittingStepCounter = ({
     navigation,
     updateProject, // this doesn't seem to be set anywhere
     onToggleCompletion,
-    onClose // Add this prop
+    onClose, // Add this prop
+    onComponentComplete
 }) => {
     const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step);
     // const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
@@ -362,9 +363,11 @@ const KnittingStepCounter = ({
                 console.log('🎯 Navigation.currentStep AFTER navigation:', navigation.currentStep);
                 IntelliKnitLogger.debug('Row Counter', 'Successfully navigated to next step');
             } else {
-                console.log('🎯 Cannot navigate right - at end of component');
-                IntelliKnitLogger.debug('Row Counter', 'At end of component - no more steps to advance to');
-                // TODO: Show celebration card when at last step
+                console.log('🎉 No assembly note - component complete! Triggering celebration');
+                // No assembly note - trigger celebration card display
+                if (onComponentComplete) {
+                    onComponentComplete();
+                }
             }
 
         } catch (error) {
