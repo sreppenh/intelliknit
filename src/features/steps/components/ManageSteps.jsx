@@ -107,8 +107,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
   };
 
   const componentStatus = getComponentStatus();
-  console.log('🐛 Component Status:', componentStatus);
-
 
   // ===== COMPONENT STATE HELPERS =====
   const isComponentFinished = () => {
@@ -210,8 +208,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
     const step = component.steps[stepIndex];
     const patternName = getStepPatternName(step);
 
-    console.log('🔧 ManageSteps - Editing pattern:', patternName);
-
     // Check if this is an advanced pattern that needs row-by-row editing
     if (isAdvancedRowByRowPattern(patternName)) {
       setEditingStepIndex(stepIndex);
@@ -223,7 +219,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
 
     // CHECK FOR STRIPES PATTERN - Route to EditStepRouter
     if (patternName === 'Stripes') {
-      console.log('🔧 ManageSteps - Routing Stripes to EditStepRouter');
       setEditingStepIndex(stepIndex);
       setEditMode('pattern'); // This tells EditStepRouter to handle pattern editing
       setIsEditing(true);
@@ -410,8 +405,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
     }
 
     // EDIT flow - use router for specific edits
-    // Handle special cases that need the router
-    console.log('🔧 editMode:', editMode);
 
     if (editMode === 'rowByRow' || editMode === 'duration' || editMode === 'shaping' || editMode === 'pattern') {
       return (

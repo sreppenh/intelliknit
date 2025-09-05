@@ -28,23 +28,14 @@ export const useRowCounter = (projectId, componentId, stepIndex, step) => {
     // Watch for storage key changes and reload state
     useEffect(() => {
 
-        console.log('🔧 useRowCounter key change:', {
-            storageKey,
-            stepId: step.id,
-            stepPattern: step.wizardConfig?.stitchPattern?.pattern
-        });
-
         try {
             const item = window.localStorage.getItem(storageKey);
-
-            console.log('🔧 localStorage value:', item);
             // Check for null, empty string, or "undefined" string
             if (!item || item === 'undefined' || item === 'null') {
                 setRowState(getDefaultState());
                 return;
             }
             const newState = JSON.parse(item);
-            console.log('🔧 Setting new rowState:', newState);
             setRowState(newState);
 
 

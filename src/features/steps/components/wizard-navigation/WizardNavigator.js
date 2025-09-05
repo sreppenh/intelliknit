@@ -23,10 +23,7 @@ export const createWizardNavigator = (wizardData, currentStep) => {
 
     switch (currentStep) {
       case 1: // PatternSelector  
-        console.log('Navigation check:', {
-          wizardData: wizardData.stitchPattern,
-          shouldSkip: shouldSkipConfiguration(wizardData)
-        });
+
         // Skip step 2 for basic patterns - go directly to step 3
         if (shouldSkipConfiguration(wizardData)) {
           return 3; // Skip directly to Duration/Shaping choice

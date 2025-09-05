@@ -34,8 +34,6 @@ const EditStepRouter = ({
 }) => {
     const { currentProject } = useProjectsContext();
 
-    console.log('🔧 hellow editType:', editType);
-
     // Validation
     if (!currentProject ||
         componentIndex === null ||
@@ -84,12 +82,8 @@ const EditStepRouter = ({
     // ===== SPECIFIC EDIT TYPE ROUTING =====
     // When ManageSteps specifies exactly what to edit
 
-    console.log('🔧 editType:', editType);
-
     if (editType === 'pattern') {
         const patternName = getStepPatternName(step);
-        console.log('🔧 EditStepRouter - Pattern name:', patternName); // Add this debug line
-
 
         // Advanced patterns need row-by-row editor
         if (isAdvancedRowByRowPattern(patternName)) {
@@ -98,7 +92,6 @@ const EditStepRouter = ({
 
         // ADD THIS BLOCK HERE:
         if (patternName === 'Stripes') {
-            console.log('🔧 Should route to EditStripesForm'); // Add this too
             return <EditStripesForm {...commonProps} />;
         }
 

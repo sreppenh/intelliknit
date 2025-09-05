@@ -48,10 +48,6 @@ const IntelliknitMVPContent = () => {
   };
 
   const handleContinueKnitting = (resumeData) => {
-    console.log('Resume data received:', resumeData);
-    console.log('Projects array:', projects);
-    console.log('Looking for project ID:', resumeData?.projectId);
-    console.log('Available project IDs:', projects?.map(p => ({ id: p.id, name: p.name })));
 
     if (!resumeData || !resumeData.hasActiveProject) {
       setCurrentView('project-list');
@@ -59,7 +55,6 @@ const IntelliknitMVPContent = () => {
     }
 
     const targetProject = projects.find(p => p.id === resumeData.projectId);
-    console.log('Found target project:', targetProject);
 
     if (!targetProject) {
       alert("Could not find your recent project. It may have been deleted.");

@@ -53,15 +53,6 @@ export const useStepNavigation = ({
         const canGoLeft = safeCarouselIndex > 0 || stepIndex > 0;
         const canGoRight = safeCarouselIndex < carouselItems.length - 1 || stepIndex < totalSteps - 1;
 
-
-        console.log('getNavigationBounds calculation:', {
-            stepIndex,
-            safeCarouselIndex,
-            carouselItemsLength: carouselItems.length,
-            totalSteps,
-            calculatedCanGoLeft: canGoLeft,
-            calculatedCanGoRight: canGoRight
-        });
         return { canGoLeft, canGoRight, isAtAbsoluteStart, isAtAbsoluteEnd };
     };
 
@@ -185,7 +176,6 @@ export const useStepNavigation = ({
             // - Fetch step data
             // - Load images
             // - Prepare calculations
-            console.log(`🔄 Preloading step ${targetStepIndex + 1}`);
         }
     }, [totalSteps, preloadedSteps]);
 

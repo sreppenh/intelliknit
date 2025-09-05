@@ -68,8 +68,6 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
     const hasStep = currentNote?.components?.[0]?.steps?.length > 0;
     const step = hasStep ? currentNote.components[0].steps[0] : null;
 
-    console.log('Step completion debug:', { hasStep, stepCompleted: step?.completed });
-
     const hasYarns = currentNote?.yarns?.length > 0 && currentNote.yarns.some(y => y.colorHex);
     const hasGauge = currentNote?.gauge?.stitchGauge || currentNote?.gauge?.rowGauge;
 
@@ -147,16 +145,6 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
 
         const currentRow = rowProgress?.currentRow || 0;
         const isLengthBased = step.wizardConfig?.duration?.type === 'length';
-
-        console.log('Progress display logic:', {
-            stepCompleted: step.completed,
-            isLengthBased,
-            currentRow,
-            stepCompletedCheck: !!step.completed,
-            condition1: step.completed,
-            condition2: isLengthBased && step.completed
-        });
-
 
         if (step.completed) {
             return {

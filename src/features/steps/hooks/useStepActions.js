@@ -81,16 +81,6 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
 
   const handleAddStep = () => {
     const creationId = Date.now() + Math.random();
-    console.log('🔧 Step creation ID:', creationId);
-    console.log('🔧 useStepActions handleAddStep called with mode:', mode);
-    console.log('🔧 wizard.isEditing:', wizard.isEditing);
-    console.log('🔧 wizard.componentIndex:', wizard.componentIndex);
-
-    console.log('🔧 handleAddStep called for mode:', mode);
-
-    console.log('🚨 EXACT MODE VALUE:', JSON.stringify(mode), typeof mode);
-    console.log('🚨 MODE COMPARISON:', mode === 'notepad', mode === 'project');
-
 
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
@@ -101,8 +91,6 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
       effectHasMultipleSteps: effect.steps ? effect.steps.length : 'no steps array',
       effectStructure: Object.keys(effect)
     });
-
-    console.log('🔧 Generated step object:', createStepObject(instruction, effect, wizard));
 
     // ✅ USE HELPER: Create step object for debugging
     const stepObject = createStepObject(instruction, effect, wizard);

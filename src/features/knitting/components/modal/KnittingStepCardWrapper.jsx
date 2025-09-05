@@ -25,6 +25,8 @@ const KnittingStepCard = ({
     showViewToggle = true,
     layout = 'full', // 'full' | 'compact' | 'minimal'
 
+    onShowGaugeCard,  // ADD THIS PROP
+
     // Progress integration (optional for notepad mode)
     progress = null
 }) => {
@@ -44,6 +46,7 @@ const KnittingStepCard = ({
                 theme={theme}
                 progress={progress}
                 navigation={{ currentStep: 0 }} // Simple navigation object
+                onShowGaugeCard={onShowGaugeCard}
             />
         );
     }

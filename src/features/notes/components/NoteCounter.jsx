@@ -7,6 +7,8 @@ import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
 import KnittingStepCounter from '../../knitting/components/modal/KnittingStepCounter';
 import KnittingStepInstructions from '../../knitting/components/modal/KnittingStepInstructions';
+import KnittingGaugeCard from '../../knitting/components/modal/KnittingGaugeCard';
+import { updateProjectGaugeFromMeasurement } from '../../../shared/utils/gaugeUtils';
 
 /**
  * NoteCounter - Knitting modal for notes using StandardModal
@@ -15,11 +17,14 @@ import KnittingStepInstructions from '../../knitting/components/modal/KnittingSt
 const NoteCounter = ({ onBack, onGoToLanding }) => {
     const { currentProject: currentNote, updateProject: updateNote } = useActiveContext('notepad');
 
-    // View mode (instructions vs counter)
+    // View mode (instructions vs counter vs gauge)
     const [viewMode, setViewMode] = useLocalStorage(
         `notepad-view-mode-${currentNote?.id}`,
         'counter' // Default to counter for notepad mode
     );
+
+    // Gauge card state
+    const [gaugeData, setGaugeData] = useState(null);
 
     // Extract step data (with fallback for hooks)
     const step = currentNote?.components?.[0]?.steps?.[0] || null;
@@ -95,8 +100,41 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
         updateNote(updatedNote);
     };
 
+    // Gauge card handlers
+    const handleShowGaugeCard = (promptData) => {
+        setGaugeData(promptData);
+        setViewMode('gauge');
+    };
+
+    const handleGaugeAccept = () => {
+        if (gaugeData) {
+            // Update project with new gauge
+            const updatedProject = updateProjectGaugeFromMeasurement(notepadProject, gaugeData);
+            updateNote(updatedProject);
+        }
+        // Close modal after gauge decision
+        onBack();
+    };
+
+    const handleGaugeDecline = () => {
+        // Close modal without updating gauge
+        onBack();
+    };
+
     // Render content based on view mode
     const renderContent = () => {
+        if (viewMode === 'gauge') {
+            return (
+                <KnittingGaugeCard
+                    gaugeData={gaugeData}
+                    onAccept={handleGaugeAccept}
+                    onDecline={handleGaugeDecline}
+                    navigation={navigation}
+                    isNotepadMode={true}
+                />
+            );
+        }
+
         if (viewMode === 'counter') {
             return (
                 <KnittingStepCounter
@@ -110,6 +148,7 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
                     onToggleCompletion={handleToggleCompletion}
                     onClose={onBack}
                     updateProject={updateNote}
+                    onShowGaugeCard={handleShowGaugeCard}
                 />
             );
         }
@@ -150,24 +189,26 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
                     >
                         <X size={18} />
                     </button>
-
                 </div>
 
                 {/* Main content - exact match to original */}
                 {renderContent()}
 
                 {/* Clean Knitting Footer - matches project version with notepad styling */}
-                <div className="knitting-modal-footer">
-                    <button
-                        onClick={() => setViewMode(viewMode === 'instructions' ? 'counter' : 'instructions')}
-                        className="w-full flex items-center justify-center gap-2 py-3 rounded-xl transition-colors font-medium shadow-sm bg-lavender-100 hover:bg-lavender-200 text-lavender-700 border border-lavender-300"
-                    >
-                        <RotateCcw size={18} />
-                        <span>
-                            {viewMode === 'instructions' ? 'Switch to Counter' : 'Back to Instructions'}
-                        </span>
-                    </button>
-                </div>
+                {/* Only show view toggle for counter/instructions, not gauge */}
+                {viewMode !== 'gauge' && (
+                    <div className="knitting-modal-footer">
+                        <button
+                            onClick={() => setViewMode(viewMode === 'instructions' ? 'counter' : 'instructions')}
+                            className="w-full flex items-center justify-center gap-2 py-3 rounded-xl transition-colors font-medium shadow-sm bg-lavender-100 hover:bg-lavender-200 text-lavender-700 border border-lavender-300"
+                        >
+                            <RotateCcw size={18} />
+                            <span>
+                                {viewMode === 'instructions' ? 'Switch to Counter' : 'Back to Instructions'}
+                            </span>
+                        </button>
+                    </div>
+                )}
             </div>
         </StandardModal>
     );

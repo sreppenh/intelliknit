@@ -11,6 +11,8 @@ import KnittingPrepCard from './KnittingPrepCard';
 import KnittingAssemblyCard from './KnittingAssemblyCard';
 import { useLocalStorage } from '../../../../shared/hooks/useLocalStorage';
 import KnittingCelebrationCard from './KnittingCelebrationCard';
+import KnittingGaugeCard from './KnittingGaugeCard';
+import { updateProjectGaugeFromMeasurement } from '../../../../shared/utils/gaugeUtils';
 
 const KnittingStepModal = ({
     step,
@@ -21,7 +23,8 @@ const KnittingStepModal = ({
     onClose,
     onToggleCompletion,
     onNavigateStep,
-    updateProject
+    updateProject,
+    onShowGaugeCard
 }) => {
 
     // Reset view mode when step changes
@@ -30,8 +33,65 @@ const KnittingStepModal = ({
         'instructions'
     );
 
-    // State for celebration
+    // States for cards
     const [showCelebration, setShowCelebration] = useState(false);
+    const [showGaugeCard, setShowGaugeCard] = useState(false);
+    const [gaugeData, setGaugeData] = useState(null);
+
+    // Add these gauge card handlers in KnittingStepModal.jsx
+    const handleGaugeAccept = () => {
+        if (gaugeData) {
+            const updatedProject = updateProjectGaugeFromMeasurement(project, gaugeData);
+
+            // Update project with new gauge
+            if (updateProject) {
+                updateProject(updatedProject);
+            }
+
+            // Clear gauge card and navigate
+            setShowGaugeCard(false);
+            setGaugeData(null);
+
+            // Navigate to next step/card or close modal
+            if (project?.isNotepadMode) {
+                onClose(); // Close modal for notepad
+            } else {
+                // Navigate to next step/card for project mode
+                if (navigation.canGoRight) {
+                    navigation.navigateRight();
+                }
+            }
+        }
+    };
+
+    const handleGaugeDecline = () => {
+        // Clear gauge card and navigate without updating gauge
+        setShowGaugeCard(false);
+        setGaugeData(null);
+
+        // Navigate to next step/card or close modal
+        if (project?.isNotepadMode) {
+            onClose(); // Close modal for notepad
+        } else {
+            // Navigate to next step/card for project mode
+            if (navigation.canGoRight) {
+                navigation.navigateRight();
+            }
+        }
+    };
+
+    // Also add the function to show the gauge card
+    const handleShowGaugeCard = (promptData) => {
+        setGaugeData(promptData);
+        setShowGaugeCard(true);
+
+        // Navigate to gauge card after it's added to carousel
+        setTimeout(() => {
+            if (navigation.canGoRight) {
+                navigation.navigateRight();
+            }
+        }, 50);
+    };
 
     // Create carousel items
     const createCarouselItems = (step, stepIndex) => {
@@ -66,6 +126,16 @@ const KnittingStepModal = ({
             step,
             id: `step-${stepIndex}`
         });
+
+        // Add gauge card after main step, before assembly notes
+        if (showGaugeCard && gaugeData) {
+            items.push({
+                type: 'gauge',
+                stepIndex,
+                gaugeData,
+                id: `gauge-${stepIndex}`
+            });
+        }
 
         // Add assembly card if assembly note exists
         if (afterNote) {
@@ -124,6 +194,18 @@ const KnittingStepModal = ({
             );
         }
 
+        if (currentItem.type === 'gauge') {
+            return (
+                <KnittingGaugeCard
+                    gaugeData={currentItem.gaugeData}
+                    onAccept={handleGaugeAccept}
+                    onDecline={handleGaugeDecline}
+                    navigation={navigation}
+                    isNotepadMode={project?.isNotepadMode}
+                />
+            );
+        }
+
         // ✅ NEW: Assembly notes card
         if (currentItem.type === 'assembly') {
             return (
@@ -161,6 +243,7 @@ const KnittingStepModal = ({
                     updateProject={updateProject}
                     onToggleCompletion={onToggleCompletion}
                     onComponentComplete={handleComponentComplete}
+                    onShowGaugeCard={handleShowGaugeCard}
                 />
             );
         }
@@ -202,14 +285,6 @@ const KnittingStepModal = ({
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    console.log('Left arrow clicked:', {
-                                        canGoLeft: navigation.canGoLeft,
-                                        currentCarouselIndex: navigation.currentCarouselIndex,
-                                        totalCarouselItems: navigation.totalCarouselItems,
-                                        stepIndex: stepIndex,
-                                        totalSteps: totalSteps,
-                                        currentItemType: navigation.currentItem?.type
-                                    });
                                     if (!navigation.isTransitioning && navigation.canGoLeft) {
                                         navigation.navigateLeft();
                                     }
@@ -251,14 +326,7 @@ const KnittingStepModal = ({
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-                                    console.log('Right arrow clicked:', {
-                                        canGoLeft: navigation.canGoLeft,
-                                        currentCarouselIndex: navigation.currentCarouselIndex,
-                                        totalCarouselItems: navigation.totalCarouselItems,
-                                        stepIndex: stepIndex,
-                                        totalSteps: totalSteps,
-                                        currentItemType: navigation.currentItem?.type
-                                    });
+
                                     if (!navigation.isTransitioning && navigation.canGoRight) {
                                         navigation.navigateRight();
                                     }

@@ -37,7 +37,8 @@ const KnittingStepCounter = ({
     updateProject, // this doesn't seem to be set anywhere
     onToggleCompletion,
     onClose, // Add this prop
-    onComponentComplete
+    onComponentComplete,
+    onShowGaugeCard
 }) => {
     const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step);
     // const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
@@ -96,6 +97,61 @@ const KnittingStepCounter = ({
     const currentSide = useSideIntelligence
         ? getCurrentSide(construction, currentRow, stepStartingSide)
         : null;
+
+    // Mark Complete function
+    const handleMarkComplete = () => {
+        console.log('🔧 handleMarkComplete called');
+        console.log('🔧 isLengthStep:', isLengthStep);
+        console.log('🔧 shouldPromptGaugeUpdate result:', shouldPromptGaugeUpdate(step, currentRow, project, startingLength));
+
+        // For notepad mode, we need to do all the completion logic first
+        if (isNotepadMode) {
+            // Complete the step
+            handleStepComplete();
+
+            // Update row count to reflect completion (for length-based steps)
+            // The row count should show the actual rows knitted
+            // This is already handled by the existing row counter
+
+            // Check if gauge update should be offered
+            if (isLengthStep && shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
+                const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
+
+                if (onShowGaugeCard) {
+                    onShowGaugeCard(promptData);
+                    return; // Don't continue to close modal
+                }
+            }
+
+            // If no gauge prompt needed, close modal
+            if (onClose) {
+                onClose();
+            }
+            return;
+        }
+
+
+
+        // Complete the step first
+        handleStepComplete();
+
+        // Check if gauge update should be offered
+        if (isLengthStep && shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
+            console.log('🔧 Should show gauge card - calling getGaugeUpdatePromptData');
+            const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
+            console.log('🔧 promptData:', promptData);
+
+            // Trigger gauge card instead of inline prompt
+            if (onShowGaugeCard) {
+                console.log('🔧 Calling onShowGaugeCard');
+                onShowGaugeCard(promptData);
+            } else {
+                console.log('🔧 ERROR: onShowGaugeCard is undefined');
+            }
+        } else {
+            console.log('🔧 NOT showing gauge card');
+        }
+    };
 
     // Calculate current stitch count based on step configuration
     const calculateCurrentStitchCount = (row) => {
@@ -279,6 +335,8 @@ const KnittingStepCounter = ({
 
     const handleStepComplete = () => {
         // Check for gauge update only when completing (not uncompleting)
+        console.log('🔧 handleStepComplete called, current completed status:', isCompleted);
+
         if (isLengthStep && !isCompleted) {
             checkForGaugeUpdate();
         }
@@ -296,6 +354,7 @@ const KnittingStepCounter = ({
 
         // Toggle completion
         onToggleCompletion?.(stepIndex);
+        console.log('🔧 handleStepComplete finished');
     };
 
     // Add this new function after handleStepComplete
@@ -382,7 +441,6 @@ const KnittingStepCounter = ({
     };
 
     const handleRowIncrement = () => {
-        console.log('🔧 handleRowIncrement called:', { stepType, currentRow, totalRows, isNotepadMode });
 
         if (stepType === 'single_action') {
             console.log('🔧 Single action BEFORE completion:', { isCompleted, stepIndex, totalSteps: component.steps.length });
@@ -524,46 +582,6 @@ const KnittingStepCounter = ({
                         {instructionResult.instruction || 'Loading instruction...'}
                     </div>
 
-                    {/* Gauge Update Prompt */}
-                    {showGaugePrompt && gaugePromptData && (
-                        <div className={`border-l-4 rounded-r-lg p-3 mb-4 ${gaugePromptData.success ? 'bg-yarn-50 border-yarn-400' : 'bg-sage-50 border-sage-400'}`}>
-                            {gaugePromptData.success ? (
-                                <div className="text-sm text-yarn-700">
-                                    <span className="font-medium">Gauge successfully updated!</span>
-                                </div>
-                            ) : (
-                                <>
-                                    <div className="text-sm text-sage-700 mb-2">
-                                        <span className="font-medium">Update your gauge?</span>
-                                        <br />
-                                        {/* FIXED: Show actual distance knitted */}
-                                        Based on this step: {gaugePromptData.actualRows} rows = {gaugePromptData.actualDistance} {lengthTarget?.units}
-                                        {gaugePromptData.hasExistingGauge && (
-                                            <div className="text-xs mt-1">
-                                                Current: {gaugePromptData.oldRowsForMeasurement} rows = {gaugePromptData.measurement} {gaugePromptData.units}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={handleGaugeDecline}
-                                            className="btn-tertiary btn-sm"
-                                        >
-                                            Keep Current
-                                        </button>
-                                        <button
-
-                                            onClick={handleGaugeAccept}
-                                            className="btn-secondary btn-sm"
-                                        >
-                                            Update Gauge
-                                        </button>
-                                    </div>
-                                </>
-                            )}
-                        </div>
-                    )}
-
                     {/* Progress alerts */}
                     {lengthProgressData?.shouldShowNearAlert && (
                         <div className="bg-sage-50 border-l-4 border-sage-400 rounded-r-lg p-3 mb-4">
@@ -641,7 +659,7 @@ const KnittingStepCounter = ({
                         {/* Mark Complete button - only for indeterminate steps */}
                         {stepType === 'length_based' && (
                             <button
-                                onClick={isNotepadMode ? handleLengthBasedComplete : handleStepComplete}
+                                onClick={handleMarkComplete}
                                 className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isCompleted
                                     ? 'bg-sage-500 text-white hover:bg-sage-600'
                                     : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'

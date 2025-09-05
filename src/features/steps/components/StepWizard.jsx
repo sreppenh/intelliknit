@@ -34,7 +34,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   // Add this function inside StepWizard component:
   const handleConfirmIntrinsicStep = () => {
     if (pendingShapingInfo) {
-      console.log('✅ CONFIRMED: Auto-populating shaping data and creating step');
 
       // Create updated wizard data object synchronously
       const updatedWizardData = {
