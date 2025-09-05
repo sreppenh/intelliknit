@@ -113,11 +113,13 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
             updateNote(updatedProject);
         }
         // Close modal after gauge decision
+        setGaugeData(null);
         onBack();
     };
 
     const handleGaugeDecline = () => {
         // Close modal without updating gauge
+        setGaugeData(null);
         onBack();
     };
 
