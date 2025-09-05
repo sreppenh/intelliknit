@@ -26,6 +26,8 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
     // Gauge card state
     const [gaugeData, setGaugeData] = useState(null);
 
+
+
     // Extract step data (with fallback for hooks)
     const step = currentNote?.components?.[0]?.steps?.[0] || null;
     const component = currentNote?.components?.[0] || null;

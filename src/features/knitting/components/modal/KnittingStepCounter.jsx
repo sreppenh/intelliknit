@@ -40,11 +40,18 @@ const KnittingStepCounter = ({
     onComponentComplete,
     onShowGaugeCard
 }) => {
-    const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step);
+
+    const isNotepadMode = project?.isNotepadMode || false;
+
+    const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step, isNotepadMode);
+
+
     // const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
 
-    const isNotepadMode = project?.isNotepadMode || false;
+
+
+    console.log('🔧 KnittingStepCounter stepIndex:', stepIndex);
 
     // Side tracking hook
     const sideTracking = useSideTracking(project?.id, component?.id, navigation.currentStep, step, component);

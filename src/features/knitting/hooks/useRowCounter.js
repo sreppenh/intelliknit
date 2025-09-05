@@ -1,8 +1,9 @@
 // src/features/knitting/hooks/useRowCounter.js
 import { useState, useCallback, useEffect } from 'react';
 
-export const useRowCounter = (projectId, componentId, stepIndex, step) => {
-    const storageKey = `row-counter-${projectId}-${componentId}-${step.id}`; // updated from stepIndex
+export const useRowCounter = (projectId, componentId, stepIndex, step, isNotepadMode = false) => {
+    const keyIdentifier = isNotepadMode ? stepIndex : step.id;
+    const storageKey = `row-counter-${projectId}-${componentId}-${keyIdentifier}`;
 
     const getDefaultState = () => ({
         currentRow: 1,

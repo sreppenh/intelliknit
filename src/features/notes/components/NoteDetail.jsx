@@ -11,6 +11,7 @@ import SegmentedControl from '../../../shared/components/SegmentedControl';
 import IncrementInput from '../../../shared/components/IncrementInput';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
 import NoteCounter from './NoteCounter';
+import { CheckCircle2 } from 'lucide-react';
 
 const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
     const { currentNote, updateNote, deleteNote } = useNotesContext();
@@ -67,6 +68,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
     // Get note info - moved up to be available for hooks
     const hasStep = currentNote?.components?.[0]?.steps?.length > 0;
     const step = hasStep ? currentNote.components[0].steps[0] : null;
+    console.log('NoteDetail step.completed:', step?.completed);
 
     const hasYarns = currentNote?.yarns?.length > 0 && currentNote.yarns.some(y => y.colorHex);
     const hasGauge = currentNote?.gauge?.stitchGauge || currentNote?.gauge?.rowGauge;
@@ -149,9 +151,9 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         if (step.completed) {
             const currentRow = rowProgress?.currentRow || 0;
             return {
-                text: `Finished. ${currentRow} rows completed`,
+                text: `Finished! ${currentRow} rows completed`,
                 className: "text-sage-600 font-medium",
-                icon: "✓"
+                icon: <CheckCircle2 size={16} className="text-sage-500" />
             };
         }
 
@@ -389,6 +391,34 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         setEditingColorIndex(null);
     };
 
+    // Handle reset instruction
+    const handleResetInstruction = async () => {
+        if (!currentNote || !hasStep) return;
+
+        // Clear row progress
+        if (rowProgressKey) {
+            localStorage.removeItem(rowProgressKey);
+        }
+
+        // Clear view mode preference
+        localStorage.removeItem(`notepad-view-mode-${currentNote.id}`);
+
+        // Reset step completion
+        const resetStep = { ...step, completed: false };
+        const updatedNote = {
+            ...currentNote,
+            components: [{
+                ...currentNote.components[0],
+                steps: [resetStep]
+            }]
+        };
+
+        await updateNote(updatedNote);
+
+        // Refresh progress display
+        setTimeout(refreshRowProgress, 100);
+    };
+
     // Form update handlers
     const updateDetailsForm = (field, value) => {
         setDetailsForm(prev => ({ ...prev, [field]: value }));
@@ -504,17 +534,36 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
                             {/* Progress + Action Row */}
                             <div className="flex items-center justify-between gap-3">
                                 {getProgressDisplay && (
-                                    <div className="text-sm flex-1">
-                                        {getProgressDisplay.icon && <span className="mr-1">{getProgressDisplay.icon}</span>}
+                                    <div className="text-sm flex-1 flex items-center">
+                                        {getProgressDisplay.icon && <span className="mr-2">{getProgressDisplay.icon}</span>}
                                         <span className={getProgressDisplay.className}>{getProgressDisplay.text}</span>
                                     </div>
                                 )}
-                                <button
-                                    onClick={getKnittingButtonConfig.action}
-                                    className="btn-primary btn-sm flex-shrink-0"
-                                >
-                                    {getKnittingButtonConfig.text}
-                                </button>
+
+                                {step.completed ? (
+                                    <div className="flex gap-2">
+                                        <button
+                                            onClick={handleResetInstruction}
+                                            className="btn-tertiary btn-sm text-orange-600 hover:bg-orange-50"
+                                            title="Reset instruction"
+                                        >
+                                            Reset
+                                        </button>
+                                        <button
+                                            onClick={getKnittingButtonConfig.action}
+                                            className="btn-primary btn-sm flex-shrink-0"
+                                        >
+                                            {getKnittingButtonConfig.text}
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={getKnittingButtonConfig.action}
+                                        className="btn-primary btn-sm flex-shrink-0"
+                                    >
+                                        {getKnittingButtonConfig.text}
+                                    </button>
+                                )}
                             </div>
                         </div>
                     ) : (
