@@ -1,43 +1,80 @@
 // src/features/knitting/hooks/useRowCounter.js
-import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
-import { useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 
 export const useRowCounter = (projectId, componentId, stepIndex, step) => {
     const storageKey = `row-counter-${projectId}-${componentId}-${stepIndex}`;
 
-    const [rowState, setRowState] = useLocalStorage(storageKey, {
+    const getDefaultState = () => ({
         currentRow: 1,
         stitchCount: step.startingStitches || 0,
         lastUpdated: Date.now()
     });
 
+    // Manual localStorage state management that responds to key changes
+    const [rowState, setRowState] = useState(() => {
+        try {
+            const item = window.localStorage.getItem(storageKey);
+            // Check for null, empty string, or "undefined" string
+            if (!item || item === 'undefined' || item === 'null') {
+                return getDefaultState();
+            }
+            return JSON.parse(item);
+        } catch (error) {
+            console.warn(`Error reading localStorage for key "${storageKey}":`, error);
+            return getDefaultState();
+        }
+    });
+
+    // Watch for storage key changes and reload state
+    useEffect(() => {
+        try {
+            const item = window.localStorage.getItem(storageKey);
+            // Check for null, empty string, or "undefined" string
+            if (!item || item === 'undefined' || item === 'null') {
+                setRowState(getDefaultState());
+                return;
+            }
+            const newState = JSON.parse(item);
+            setRowState(newState);
+        } catch (error) {
+            console.warn(`Error reading localStorage for key "${storageKey}":`, error);
+            setRowState(getDefaultState());
+        }
+    }, [storageKey, step.startingStitches]);
+
+    // Save to localStorage whenever state changes
+    const updateState = useCallback((newState) => {
+        const updatedState = typeof newState === 'function' ? newState(rowState) : newState;
+        setRowState(updatedState);
+        try {
+            window.localStorage.setItem(storageKey, JSON.stringify(updatedState));
+        } catch (error) {
+            console.warn(`Error saving to localStorage:`, error);
+        }
+    }, [storageKey, rowState]);
+
+    // Rest of methods stay the same...
     const updateRow = useCallback((newRow) => {
-        setRowState(prev => ({
+        updateState(prev => ({
             ...prev,
             currentRow: newRow,
             lastUpdated: Date.now()
         }));
-    }, [setRowState]);
+    }, [updateState]);
 
     const updateStitchCount = useCallback((newCount) => {
-        setRowState(prev => ({
+        updateState(prev => ({
             ...prev,
             stitchCount: newCount,
             lastUpdated: Date.now()
         }));
-    }, [setRowState]);
+    }, [updateState]);
 
     const resetCounter = useCallback(() => {
-        setRowState({
-            currentRow: 1,
-            stitchCount: step.startingStitches || 0,
-            lastUpdated: Date.now()
-        });
-    }, [setRowState, step.startingStitches]);
+        updateState(getDefaultState());
+    }, [updateState]);
 
-    // FIXED: Remove artificial limits - let component handle completion logic
     const incrementRow = useCallback(() => {
-        // Don't artificially limit - let component handle completion logic
         updateRow(rowState.currentRow + 1);
     }, [rowState.currentRow, updateRow]);
 
