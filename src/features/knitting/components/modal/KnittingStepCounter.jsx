@@ -364,12 +364,16 @@ const KnittingStepCounter = ({
                 IntelliKnitLogger.debug('Row Counter', 'Successfully navigated to next step');
             } else {
                 console.log('🎉 No assembly note - component complete! Triggering celebration');
-                // No assembly note - trigger celebration card display
                 if (onComponentComplete) {
                     onComponentComplete();
+                    // Wait for carousel to update, then navigate to celebration
+                    setTimeout(() => {
+                        if (navigation.canGoRight) {
+                            navigation.navigateRight();
+                        }
+                    }, 50);
                 }
             }
-
         } catch (error) {
             console.log('🎯 Navigation error:', error);
             IntelliKnitLogger.error('Row Counter Auto-advancement failed', error);
@@ -381,10 +385,14 @@ const KnittingStepCounter = ({
         console.log('🔧 handleRowIncrement called:', { stepType, currentRow, totalRows, isNotepadMode });
 
         if (stepType === 'single_action') {
+            console.log('🔧 Single action BEFORE completion:', { isCompleted, stepIndex, totalSteps: component.steps.length });
+
             // For single action steps, complete and advance (don't toggle)
             if (!isCompleted) {
                 handleStepComplete(); // Only complete if not already completed
             }
+
+            console.log('🔧 Single action AFTER completion, calling auto-advance');
             if (!isNotepadMode) {
                 handleAutoAdvanceToNextStep(); // Auto-advance in project mode
             }

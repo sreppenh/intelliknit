@@ -2,7 +2,7 @@
 import { useState, useCallback, useEffect } from 'react';
 
 export const useRowCounter = (projectId, componentId, stepIndex, step) => {
-    const storageKey = `row-counter-${projectId}-${componentId}-${stepIndex}`;
+    const storageKey = `row-counter-${projectId}-${componentId}-${step.id}`; // updated from stepIndex
 
     const getDefaultState = () => ({
         currentRow: 1,
@@ -27,15 +27,27 @@ export const useRowCounter = (projectId, componentId, stepIndex, step) => {
 
     // Watch for storage key changes and reload state
     useEffect(() => {
+
+        console.log('🔧 useRowCounter key change:', {
+            storageKey,
+            stepId: step.id,
+            stepPattern: step.wizardConfig?.stitchPattern?.pattern
+        });
+
         try {
             const item = window.localStorage.getItem(storageKey);
+
+            console.log('🔧 localStorage value:', item);
             // Check for null, empty string, or "undefined" string
             if (!item || item === 'undefined' || item === 'null') {
                 setRowState(getDefaultState());
                 return;
             }
             const newState = JSON.parse(item);
+            console.log('🔧 Setting new rowState:', newState);
             setRowState(newState);
+
+
         } catch (error) {
             console.warn(`Error reading localStorage for key "${storageKey}":`, error);
             setRowState(getDefaultState());
@@ -43,7 +55,7 @@ export const useRowCounter = (projectId, componentId, stepIndex, step) => {
     }, [storageKey, step.startingStitches]);
 
     // Save to localStorage whenever state changes
-    const updateState = useCallback((newState) => {
+    {/*}    const updateState = useCallback((newState) => {
         const updatedState = typeof newState === 'function' ? newState(rowState) : newState;
         setRowState(updatedState);
         try {
@@ -51,7 +63,19 @@ export const useRowCounter = (projectId, componentId, stepIndex, step) => {
         } catch (error) {
             console.warn(`Error saving to localStorage:`, error);
         }
-    }, [storageKey, rowState]);
+    }, [storageKey, rowState]); */}
+
+    const updateState = useCallback((newState) => {
+        setRowState(prev => {
+            const updatedState = typeof newState === 'function' ? newState(prev) : newState;
+            try {
+                window.localStorage.setItem(storageKey, JSON.stringify(updatedState));
+            } catch (error) {
+                console.warn(`Error saving to localStorage:`, error);
+            }
+            return updatedState;
+        });
+    }, [storageKey]);
 
     // Rest of methods stay the same...
     const updateRow = useCallback((newRow) => {

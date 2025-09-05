@@ -78,7 +78,7 @@ const KnittingStepModal = ({
         }
 
         // Add celebration card if component is complete and this is the last step
-        if (showCelebration && stepIndex === totalSteps - 1) {
+        if (stepIndex === totalSteps - 1 && step.completed) {
             items.push({
                 type: 'celebration',
                 stepIndex,
@@ -131,6 +131,8 @@ const KnittingStepModal = ({
                     afterNote={currentItem.afterNote}
                     stepIndex={stepIndex}
                     navigation={navigation}
+                    totalSteps={totalSteps}
+                    onComponentComplete={handleComponentComplete}
                 />
             );
         }
