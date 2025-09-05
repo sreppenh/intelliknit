@@ -112,10 +112,6 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
       if (effect.success) {
         const actionType = mode === 'notepad' ? 'ADD_STEP_TO_NOTE' : 'ADD_CALCULATED_STEP';
 
-        console.log(`🔧 Dispatching ${actionType} with payload:`, {
-          componentIndex: wizard.componentIndex,
-          step: createStepObject(instruction, effect, wizard, { forceManualType: false })
-        });
         dispatch({
           type: actionType,
           payload: {
@@ -125,10 +121,7 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
         });
       } else {
         const actionType = mode === 'notepad' ? 'ADD_STEP_TO_NOTE' : 'ADD_STEP';
-        console.log(`🔧 Dispatching ${actionType} with payload:`, {
-          componentIndex: wizard.componentIndex,
-          step: createStepObject(instruction, effect, wizard, { useCurrentStitches: true })
-        });
+
         dispatch({
           type: actionType,
           payload: {

@@ -100,59 +100,67 @@ const KnittingStepCounter = ({
 
     // Mark Complete function
     const handleMarkComplete = () => {
-        console.log('🔧 handleMarkComplete called');
-        console.log('🔧 isLengthStep:', isLengthStep);
-        console.log('🔧 shouldPromptGaugeUpdate result:', shouldPromptGaugeUpdate(step, currentRow, project, startingLength));
-
-        // For notepad mode, we need to do all the completion logic first
         if (isNotepadMode) {
-            // Complete the step
-            handleStepComplete();
+            // Notepad: Complete step with full state updates
+            const rowsKnitted = currentRow;
+            const targetLength = parseFloat(step.wizardConfig?.duration?.value);
+            const units = step.wizardConfig?.duration?.units || project?.defaultUnits || 'inches';
 
-            // Update row count to reflect completion (for length-based steps)
-            // The row count should show the actual rows knitted
-            // This is already handled by the existing row counter
+            // Calculate gauge and update step completion
+            const calculatedGauge = {
+                rowGauge: {
+                    rows: rowsKnitted,
+                    measurement: targetLength,
+                    units: units
+                }
+            };
 
-            // Check if gauge update should be offered
-            if (isLengthStep && shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
+            // Complete step and update project
+            const completedStep = { ...step, completed: true };
+            const updatedProject = {
+                ...project,
+                gauge: calculatedGauge,
+                components: project.components.map((comp, idx) =>
+                    idx === 0 ? {
+                        ...comp,
+                        steps: comp.steps.map((s, sIdx) =>
+                            sIdx === 0 ? completedStep : s
+                        )
+                    } : comp
+                ),
+                lastActivityAt: new Date().toISOString()
+            };
+
+            // Update project state
+            if (updateProject) {
+                updateProject(updatedProject);
+            }
+
+            // Show gauge card if needed
+            if (shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
                 const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
-
                 if (onShowGaugeCard) {
                     onShowGaugeCard(promptData);
-                    return; // Don't continue to close modal
+                    return;
                 }
             }
 
-            // If no gauge prompt needed, close modal
+            // Close modal
             if (onClose) {
                 onClose();
             }
             return;
         }
 
-
-
-        // Complete the step first
+        // Project mode - existing broken logic
         handleStepComplete();
-
-        // Check if gauge update should be offered
         if (isLengthStep && shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
-            console.log('🔧 Should show gauge card - calling getGaugeUpdatePromptData');
             const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
-            console.log('🔧 promptData:', promptData);
-
-            // Trigger gauge card instead of inline prompt
             if (onShowGaugeCard) {
-                console.log('🔧 Calling onShowGaugeCard');
                 onShowGaugeCard(promptData);
-            } else {
-                console.log('🔧 ERROR: onShowGaugeCard is undefined');
             }
-        } else {
-            console.log('🔧 NOT showing gauge card');
         }
     };
-
     // Calculate current stitch count based on step configuration
     const calculateCurrentStitchCount = (row) => {
         const patternName = step.wizardConfig?.stitchPattern?.pattern;
@@ -659,13 +667,13 @@ const KnittingStepCounter = ({
                         {/* Mark Complete button - only for indeterminate steps */}
                         {stepType === 'length_based' && (
                             <button
-                                onClick={handleMarkComplete}
+                                onClick={isNotepadMode ? handleLengthBasedComplete : handleMarkComplete}
                                 className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isCompleted
                                     ? 'bg-sage-500 text-white hover:bg-sage-600'
                                     : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
                                     }`}
                             >
-                                {isCompleted ? 'Step Completed' : 'Mark Complete'}
+                                {isCompleted ? 'Mark incomplete' : 'Mark Complete'}
                             </button>
                         )}
 

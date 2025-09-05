@@ -46,7 +46,7 @@ const KnittingGaugeCard = ({
                                 <div className="w-2 h-2 bg-yarn-300 rounded-full"></div>
                             </div>
                             <div className="text-yarn-800 font-bold text-lg">
-                                {gaugeData.oldRowsForMeasurement} rows = {gaugeData.measurement} {gaugeData.units}
+                                {gaugeData.oldRowsForMeasurement} rows per {gaugeData.measurement} {gaugeData.units}
                             </div>
                         </div>
                     )}
@@ -60,13 +60,8 @@ const KnittingGaugeCard = ({
                             <TrendingUp size={16} className="text-yarn-500" />
                         </div>
                         <div className="text-yarn-800 font-bold text-lg">
-                            {gaugeData?.actualRows} rows = {gaugeData?.actualDistance} {units}
+                            {gaugeData?.newRowsForMeasurement} rows per {gaugeData?.measurement} {gaugeData?.units}
                         </div>
-                        {hasExistingGauge && (
-                            <div className="text-yarn-600 text-xs mt-1">
-                                {gaugeData.actualRows > gaugeData.oldRowsForMeasurement ? '↑ More rows' : '↓ Fewer rows'} per {units}
-                            </div>
-                        )}
                     </div>
                 </div>
 
