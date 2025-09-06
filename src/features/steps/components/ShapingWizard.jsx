@@ -5,11 +5,11 @@ import ShapingTypeSelector from './shaping-wizard/ShapingTypeSelector';
 import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
 import PhaseConfigSummary from './shaping-wizard/PhaseConfigSummary';
+import MarkerPhasesConfig from './shaping-wizard/MarkerPhasesConfig'; // NEW
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
-// import SequentialPhasesWizard from './shaping-wizard/xx  SequentialPhasesWizard';
 
 const ShapingWizard = ({
   wizardData,
@@ -24,7 +24,7 @@ const ShapingWizard = ({
   onExitToComponentSteps,
   onGoToLanding,
   editingStepIndex = null,
-  mode = 'project' // ✅ ADDED: Accept mode prop with default
+  mode = 'project'
 }) => {
 
   // 🔧 FIX: Initialize step based on whether we have existing data
@@ -70,7 +70,6 @@ const ShapingWizard = ({
     setStep(2);
   };
 
-
   const handleConfigComplete = (config) => {
     IntelliKnitLogger.success('Saving config', config);
     // Update wizard data with shaping configuration
@@ -112,7 +111,6 @@ const ShapingWizard = ({
     }
   };
 
-
   const handleConfirmExit = () => {
     setShowExitModal(false);
     onExitToComponentSteps();
@@ -144,7 +142,6 @@ const ShapingWizard = ({
     }
   };
 
-
   const renderConfigStep = () => {
     switch (shapingData.type) {
       case 'even_distribution':
@@ -163,7 +160,28 @@ const ShapingWizard = ({
             onGoToLanding={onGoToLanding}
             wizard={shapingWizard}
             onCancel={handleCancel}
-            mode={mode} // ✅ ADDED: Pass mode prop down
+            mode={mode}
+          />
+        );
+
+      case 'marker_phases':
+        return (
+          <MarkerPhasesConfig
+            shapingData={shapingData}
+            setShapingData={setShapingData}
+            currentStitches={currentStitches}
+            construction={construction}
+            component={component}
+            componentIndex={componentIndex}
+            editingStepIndex={editingStepIndex}
+            onExitToComponentSteps={onExitToComponentSteps}
+            onComplete={handleConfigComplete}
+            onBack={() => setStep(1)}
+            wizardData={wizardData}
+            onGoToLanding={onGoToLanding}
+            wizard={shapingWizard}
+            onCancel={handleCancel}
+            mode={mode}
           />
         );
 
@@ -182,7 +200,7 @@ const ShapingWizard = ({
             onGoToLanding={onGoToLanding}
             wizard={shapingWizard}
             onCancel={handleCancel}
-            mode={mode} // ✅ ADDED: Pass mode prop down
+            mode={mode}
           />
         );
 
@@ -198,22 +216,6 @@ const ShapingWizard = ({
               className="btn-tertiary btn-sm"
             >
               Back to Types
-            </button>
-          </div>
-        );
-
-      case 'marker_based':
-        // Future implementation  
-        return (
-          <div className="p-6 text-center">
-            <div className="text-4xl mb-4">🚧</div>
-            <h3 className="content-header-secondary mb-2">Coming Soon!</h3>
-            <p className="content-subheader">Marker-based shaping is in development.</p>
-            <button
-              onClick={() => setStep(1)}
-              className="btn-tertiary btn-sm"
-            >
-              ← Back
             </button>
           </div>
         );

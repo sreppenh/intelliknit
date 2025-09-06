@@ -13,6 +13,15 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
       examples: 'Yoke shaping, hat crowns'
     },
     {
+      id: 'marker_phases',
+      name: 'Marker Phases',
+      icon: '📍',
+      description: 'Pattern-based shaping at marker positions',
+      examples: 'Raglan shaping, waist shaping, stepped bind-offs',
+      comingSoon: false,
+      isNew: true
+    },
+    {
       id: 'phases',
       name: 'Sequential Phases',
       icon: '📈',
@@ -27,14 +36,6 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
       description: 'Repeated pattern with shaping built in',
       examples: 'Hat decreases, simple tapers',
       comingSoon: true
-    },
-    {
-      id: 'marker_based',
-      name: 'Marker-Based',
-      icon: '📍',
-      description: 'Shaping at specific marker positions',
-      examples: 'Raglan shaping, center spine increases',
-      comingSoon: true
     }
   ];
 
@@ -46,7 +47,6 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
         wizard={wizard}
         onCancel={onCancel}
       />
-
 
       <div className="p-6 stack-lg">
         <div>
@@ -71,6 +71,11 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-1">
                     <h3 className="font-semibold text-base">{type.name}</h3>
+                    {type.isNew && (
+                      <span className="text-xs bg-sage-200 text-sage-700 px-2 py-1 rounded-full">
+                        New
+                      </span>
+                    )}
                     {type.comingSoon && (
                       <span className="text-xs bg-wool-200 text-wool-600 px-2 py-1 rounded-full">
                         Coming Soon
@@ -87,12 +92,13 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
           ))}
         </div>
 
-        {/* Helpful Context */}
+        {/* Updated Helpful Context */}
         <div className="info-block">
           <h4 className="text-sm font-semibold text-lavender-700 mb-2">💡 Not Sure Which to Choose?</h4>
           <div className="text-sm text-lavender-600 space-y-1">
-            <div>• <strong>Even Distribution:</strong> Best for simple, uniform changes</div>
-            <div>• <strong>Sequential Phases:</strong> Best for complex, multi-step shaping</div>
+            <div>• <strong>Even Distribution:</strong> Mathematical spacing for uniform changes</div>
+            <div>• <strong>Marker Phases:</strong> Translate published patterns directly</div>
+            <div>• <strong>Sequential Phases:</strong> Multi-step mathematical shaping</div>
           </div>
         </div>
       </div>
