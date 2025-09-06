@@ -544,7 +544,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
                                     <div className="flex gap-2">
                                         <button
                                             onClick={handleResetInstruction}
-                                            className="btn-tertiary btn-sm text-orange-600 hover:bg-orange-50"
+                                            className="btn-tertiary btn-sm"
                                             title="Reset instruction"
                                         >
                                             Reset
