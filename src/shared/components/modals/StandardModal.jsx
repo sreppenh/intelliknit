@@ -38,7 +38,7 @@ export const StandardModal = ({
         sage: {
             headerBg: 'bg-sage-200',
             headerText: 'text-sage-800',
-            closeBtn: 'modal-close-light',
+            closeBtn: 'modal-close-sage',
             contentBg: 'bg-white',
             borderColor: 'border-sage-300',
             modalBorder: 'border-sage-200'
@@ -54,7 +54,7 @@ export const StandardModal = ({
         yarn: {
             headerBg: 'bg-yarn-200',
             headerText: 'text-yarn-800',
-            closeBtn: 'modal-close-light',
+            closeBtn: 'modal-close-yarn',
             contentBg: 'bg-white',
             borderColor: 'border-yarn-300',
             modalBorder: 'border-yarn-200'

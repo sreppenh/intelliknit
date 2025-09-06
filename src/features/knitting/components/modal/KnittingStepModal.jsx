@@ -13,6 +13,7 @@ import { useLocalStorage } from '../../../../shared/hooks/useLocalStorage';
 import KnittingCelebrationCard from './KnittingCelebrationCard';
 import KnittingGaugeCard from './KnittingGaugeCard';
 import { updateProjectGaugeFromMeasurement } from '../../../../shared/utils/gaugeUtils';
+import { StandardModal } from '../../../../shared/components/modals/StandardModal';
 
 const KnittingStepModal = ({
     step,
@@ -274,26 +275,36 @@ const KnittingStepModal = ({
         );
     };
 
-    return createPortal(
-        <div className="modal" onClick={onClose}>
+    // Dynamic color scheme based on step type
+    const getModalColorScheme = () => {
+        if (theme.accent === 'lavender') return 'lavender';
+        if (theme.accent === 'yarn') return 'yarn';
+        return 'sage'; // default
+    };
+
+
+    return (
+        <StandardModal
+            isOpen={true}
+            onClose={onClose}
+            category="complex"
+            colorScheme={getModalColorScheme()}
+            showButtons={false}
+            className="knitting-modal-content"
+            allowBackdropClick={true}
+            title={`Step ${stepIndex + 1} of ${totalSteps}`}
+            subtitle={component.name}
+        >
             <div
-                className="modal-content flex flex-col overflow-hidden shadow-2xl"
-                onClick={(e) => e.stopPropagation()}
+                className="flex flex-col overflow-hidden shadow-2xl -m-6"
                 onTouchStart={navigation.onTouchStart}
                 onTouchMove={navigation.onTouchMove}
                 onTouchEnd={navigation.onTouchEnd}
             >
-                {/* ✅ FIXED HEADER - Proper CSS classes and event handling */}
+                {/* ✅ PRESERVED HEADER - Keep existing structure */}
                 <div className="knitting-modal-header">
-                    <button
-                        onClick={onClose}
-                        className="absolute -top-6 -right-6 z-30 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
-                    >
-                        <X size={18} />
-                    </button>
-
                     <div className="flex items-center justify-between">
-                        {/* ✅ LEFT ARROW: Only show if not at absolute beginning */}
+                        {/* Left Arrow */}
                         {navigation.canGoLeft && (
                             <button
                                 onClick={(e) => {
@@ -310,15 +321,13 @@ const KnittingStepModal = ({
                             </button>
                         )}
 
-                        {/* ✅ SPACER: When left arrow is hidden, center the progress info */}
+                        {/* Spacer for centering */}
                         {!navigation.canGoLeft && <div style={{ width: '48px' }} />}
 
                         <div className="text-center flex-1 px-2">
-                            {/* ✅ SIMPLIFIED: Just step progress + component name */}
                             <div className="text-sm font-medium text-gray-900 mb-1">
                                 Step {stepIndex + 1} of {totalSteps} • {component.name}
                             </div>
-                            {/* ✅ KEPT: Progress dots - they're useful and clean */}
                             <div className="flex justify-center space-x-1">
                                 {Array.from({ length: totalSteps }, (_, i) => (
                                     <div
@@ -334,13 +343,12 @@ const KnittingStepModal = ({
                             </div>
                         </div>
 
-                        {/* ✅ RIGHT ARROW: Only show if not at absolute end */}
+                        {/* Right Arrow */}
                         {navigation.canGoRight && (
                             <button
                                 onClick={(e) => {
                                     e.preventDefault();
                                     e.stopPropagation();
-
                                     if (!navigation.isTransitioning && navigation.canGoRight) {
                                         navigation.navigateRight();
                                     }
@@ -352,15 +360,15 @@ const KnittingStepModal = ({
                             </button>
                         )}
 
-                        {/* ✅ SPACER: When right arrow is hidden, maintain spacing */}
+                        {/* Spacer for alignment */}
                         {!navigation.canGoRight && <div style={{ width: '48px' }} />}
                     </div>
                 </div>
 
-                {/* Card content */}
+                {/* ✅ PRESERVED CONTENT - Keep existing renderCardContent() */}
                 {renderCardContent()}
 
-                {/* Footer with view toggle */}
+                {/* ✅ PRESERVED FOOTER - Keep existing footer logic */}
                 {currentItem.type === 'step' && (
                     <div className="knitting-modal-footer">
                         <button
@@ -373,7 +381,7 @@ const KnittingStepModal = ({
                     </div>
                 )}
 
-                {/* Transition feedback */}
+                {/* ✅ PRESERVED TRANSITION OVERLAY */}
                 {navigation.isTransitioning && (
                     <div className="knitting-transition-overlay">
                         <div className="knitting-transition-message">
@@ -382,8 +390,7 @@ const KnittingStepModal = ({
                     </div>
                 )}
             </div>
-        </div>,
-        document.body
+        </StandardModal>
     );
 };
 
