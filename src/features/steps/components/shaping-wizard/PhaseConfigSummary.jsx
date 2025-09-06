@@ -6,6 +6,7 @@ import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { PhaseCalculationService } from '../../../../shared/utils/PhaseCalculationService';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import ShapingHeader from './ShapingHeader';
+import StandardModal from '../../../../shared/components/modals/StandardModal';
 
 const PhaseConfigSummary = ({
   phases,
@@ -327,61 +328,25 @@ const PhaseConfigSummary = ({
         />
       </div>
 
-      {/* Back warning modal */}
-      {showBackWarning && (
-        <div className="modal" onClick={(event) => {
-          if (event.target === event.currentTarget) {
-            setShowBackWarning(false);
-          }
-        }}>
-          <div className="modal-content">
-            {/* Header */}
-            <div className="bg-yarn-600 text-white px-6 py-4 rounded-t-2xl relative flex items-center justify-center">
-              <div className="text-center">
-                <div className="text-2xl mb-2">⚠️</div>
-                <h2 className="text-lg font-semibold">Lose Shaping Configuration?</h2>
-                <p className="text-yarn-100 text-sm">Your phase sequence will be deleted</p>
-              </div>
-              <button
-                onClick={() => setShowBackWarning(false)}
-                className="absolute right-3 text-yarn-100 text-2xl hover:bg-yarn-500 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                aria-label="Close modal"
-              >
-                ×
-              </button>
-            </div>
-
-            {/* Content */}
-            <div className="p-6 bg-yarn-50">
-              <div className="text-center mb-6">
-                <p className="text-wool-600 mb-2">
-                  Going back will delete your current phase sequence. This cannot be undone.
-                </p>
-              </div>
-
-              {/* Action Buttons */}
-              <div className="stack-sm">
-                {/* Primary action - Go Back */}
-                <button
-                  onClick={() => { setShowBackWarning(false); onBack(); }}
-                  data-modal-exit
-                  className="w-full btn-danger flex items-center justify-center gap-2"
-                >
-                  Go Back Anyway
-                </button>
-
-                {/* Secondary action - Stay */}
-                <button
-                  onClick={() => setShowBackWarning(false)}
-                  className="w-full btn-primary"
-                >
-                  Stay Here
-                </button>
-              </div>
-            </div>
-          </div>
+      {/* ✨ BEAUTIFUL StandardModal replacement */}
+      <StandardModal
+        isOpen={showBackWarning}
+        onClose={() => setShowBackWarning(false)}
+        onConfirm={() => { setShowBackWarning(false); onBack(); }}
+        category="warning"
+        colorScheme="red"
+        title="Lose Shaping Configuration?"
+        subtitle="Your phase sequence will be deleted"
+        icon="⚠️"
+        primaryButtonText="Go Back Anyway"
+        secondaryButtonText="Stay Here"
+      >
+        <div className="text-center">
+          <p className="text-wool-600">
+            Going back will delete your current phase sequence. This cannot be undone.
+          </p>
         </div>
-      )}
+      </StandardModal>
     </div>
   );
 };
