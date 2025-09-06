@@ -38,7 +38,8 @@ const KnittingStepCounter = ({
     onToggleCompletion,
     onClose, // Add this prop
     onComponentComplete,
-    onShowGaugeCard
+    onShowGaugeCard,
+    onShowCelebration
 }) => {
 
     const isNotepadMode = project?.isNotepadMode || false;
@@ -143,23 +144,26 @@ const KnittingStepCounter = ({
                 updateProject(updatedProject);
             }
 
-            // Show gauge card if needed
-            if (shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
-                const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
-                if (onShowGaugeCard) {
-                    onShowGaugeCard(promptData);
-                    return;
-                }
+            // Show celebration instead of closing
+            if (onShowCelebration) {
+                const celebrationData = {
+                    rowsCompleted: rowsKnitted,
+                    targetLength: targetLength,
+                    units: units,
+                    calculatedGauge: calculatedGauge
+                };
+                onShowCelebration(celebrationData);
+                return;
             }
 
-            // Close modal
+            // Fallback: close modal if no celebration handler
             if (onClose) {
                 onClose();
             }
             return;
         }
 
-        // Project mode - existing broken logic
+        // Project mode - existing logic
         handleStepComplete();
         if (isLengthStep && shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
             const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
