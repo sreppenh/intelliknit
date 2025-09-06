@@ -8,6 +8,7 @@ import { StandardModal } from '../../../shared/components/modals/StandardModal';
 import KnittingStepCounter from '../../knitting/components/modal/KnittingStepCounter';
 import KnittingStepInstructions from '../../knitting/components/modal/KnittingStepInstructions';
 import KnittingGaugeCard from '../../knitting/components/modal/KnittingGaugeCard';
+import KnittingCelebrationCard from '../../knitting/components/modal/KnittingCelebrationCard';
 import { updateProjectGaugeFromMeasurement } from '../../../shared/utils/gaugeUtils';
 
 /**
@@ -17,7 +18,7 @@ import { updateProjectGaugeFromMeasurement } from '../../../shared/utils/gaugeUt
 const NoteCounter = ({ onBack, onGoToLanding }) => {
     const { currentProject: currentNote, updateProject: updateNote } = useActiveContext('notepad');
 
-    // View mode (instructions vs counter vs gauge)
+    // View mode (instructions vs counter vs gauge vs celebration)
     const [viewMode, setViewMode] = useLocalStorage(
         `notepad-view-mode-${currentNote?.id}`,
         'counter' // Default to counter for notepad mode
@@ -26,7 +27,9 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
     // Gauge card state
     const [gaugeData, setGaugeData] = useState(null);
 
-
+    // Celebration state
+    const [showCelebration, setShowCelebration] = useState(false);
+    const [celebrationData, setCelebrationData] = useState(null);
 
     // Extract step data (with fallback for hooks)
     const step = currentNote?.components?.[0]?.steps?.[0] || null;
@@ -87,6 +90,30 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
         disableRowSettings: true // Flag to disable Row 1 Settings
     };
 
+    // Handle reset instruction
+    const handleResetInstruction = async () => {
+        if (!currentNote || !step) return;
+
+        // Clear row progress
+        const rowProgressKey = `row-counter-${currentNote.id}-${currentNote.components[0].id}-0`;
+        localStorage.removeItem(rowProgressKey);
+
+        // Clear view mode preference
+        localStorage.removeItem(`notepad-view-mode-${currentNote.id}`);
+
+        // Reset step completion
+        const resetStep = { ...step, completed: false };
+        const updatedNote = {
+            ...currentNote,
+            components: [{
+                ...currentNote.components[0],
+                steps: [resetStep]
+            }]
+        };
+
+        await updateNote(updatedNote);
+    };
+
     // Auto-save completion state
     const handleToggleCompletion = () => {
         const isCompleted = progress.isStepCompleted(0);
@@ -125,8 +152,45 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
         onBack();
     };
 
+    // Celebration handlers
+    const handleShowCelebration = (completionData) => {
+        setCelebrationData(completionData);
+        setShowCelebration(true);
+        setViewMode('celebration');
+    };
+
+    const handleCelebrationReset = () => {
+        // Reset the instruction and stay in modal
+        if (celebrationData) {
+            handleResetInstruction();
+            setShowCelebration(false);
+            setCelebrationData(null);
+            setViewMode('counter');
+        }
+    };
+
+    const handleCelebrationDone = () => {
+        // Close modal and return to note detail
+        setShowCelebration(false);
+        setCelebrationData(null);
+        onBack();
+    };
+
     // Render content based on view mode
     const renderContent = () => {
+        if (viewMode === 'celebration') {
+            return (
+                <KnittingCelebrationCard
+                    component={component}
+                    project={notepadProject}
+                    celebrationData={celebrationData}
+                    onReset={handleCelebrationReset}
+                    onDone={handleCelebrationDone}
+                    isNotepadMode={true}
+                />
+            );
+        }
+
         if (viewMode === 'gauge') {
             return (
                 <KnittingGaugeCard
@@ -153,6 +217,7 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
                     onClose={onBack}
                     updateProject={updateNote}
                     onShowGaugeCard={handleShowGaugeCard}
+                    onShowCelebration={handleShowCelebration}
                 />
             );
         }
@@ -169,23 +234,20 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
         );
     };
 
-    // Main knitting modal using StandardModal - clean white background like project version
+    // Main knitting modal using StandardModal
     return (
         <StandardModal
             isOpen={true}
             onClose={onBack}
             category="complex"
-            colorScheme="lavender"  // Clean white background, not lavender
+            colorScheme="lavender"
             showButtons={false}
             className="knitting-modal-content"
             allowBackdropClick={true}
             title={currentNote.name}
             subtitle="Notepad Mode"
         >
-            {/* Match project knitting modal design - clean white header */}
             <div className="flex flex-col overflow-hidden shadow-2xl -m-6">
-
-                {/* Clean Knitting Header - matches project version styling */}
                 <div className="knitting-modal-header">
                     <button
                         onClick={onBack}
@@ -195,12 +257,9 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
                     </button>
                 </div>
 
-                {/* Main content - exact match to original */}
                 {renderContent()}
 
-                {/* Clean Knitting Footer - matches project version with notepad styling */}
-                {/* Only show view toggle for counter/instructions, not gauge */}
-                {viewMode !== 'gauge' && (
+                {viewMode !== 'gauge' && viewMode !== 'celebration' && (
                     <div className="knitting-modal-footer">
                         <button
                             onClick={() => setViewMode(viewMode === 'instructions' ? 'counter' : 'instructions')}
