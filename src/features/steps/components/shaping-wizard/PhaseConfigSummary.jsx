@@ -1,7 +1,7 @@
 // src/features/steps/components/shaping-wizard/PhaseConfigSummary.jsx
 import React, { useState } from 'react';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
-import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import { useActiveContext } from '../../../../shared/hooks/useActiveContext'; // ✅ FIXED: Use context bridge
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { PhaseCalculationService } from '../../../../shared/utils/PhaseCalculationService';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
@@ -26,11 +26,12 @@ const PhaseConfigSummary = ({
   wizardData,
   onGoToLanding,
   wizard,
-  mode = 'creation' // NEW: Add mode prop with default
+  mode = 'creation', // ✅ ADDED: Accept mode prop with default
+  contextMode = 'project' // ✅ ADDED: Accept contextMode for useActiveContext
 }) => {
 
-  // Only use save helper in creation mode
-  const { dispatch } = useProjectsContext();
+  // ✅ FIXED: Use context bridge instead of hardcoded projects context
+  const { dispatch } = useActiveContext(contextMode);
   const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
   const [showBackWarning, setShowBackWarning] = useState(false);
 

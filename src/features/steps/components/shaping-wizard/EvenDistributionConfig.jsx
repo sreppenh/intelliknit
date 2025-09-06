@@ -1,15 +1,14 @@
+// src/features/steps/components/shaping-wizard/EvenDistributionConfig.jsx
 import React from 'react';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
-import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
+import { useActiveContext } from '../../../../shared/hooks/useActiveContext'; // ✅ FIXED: Use context bridge
 import ShapingHeader from './ShapingHeader';
 import EvenDistributionForm from './EvenDistributionForm';
 
 /**
  * EvenDistributionConfig - Creation flow wrapper around EvenDistributionForm
  * 
- * Updated to use the extracted EvenDistributionForm component to eliminate
- * duplication with EditEvenDistributionForm. Now both creation and edit
- * flows use the same form logic.
+ * FIXED: Now uses useActiveContext to work with both projects and notes
  */
 const EvenDistributionConfig = ({
   shapingData,
@@ -24,11 +23,12 @@ const EvenDistributionConfig = ({
   wizardData,
   onGoToLanding,
   onCancel,
-  wizard
+  wizard,
+  mode = 'project' // ✅ ADDED: Accept mode prop with default
 }) => {
 
-  // Save helper for creation flow
-  const { dispatch } = useProjectsContext();
+  // ✅ FIXED: Use context bridge instead of hardcoded projects context
+  const { dispatch } = useActiveContext(mode);
   const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
 
   // Get initial configuration from shapingData

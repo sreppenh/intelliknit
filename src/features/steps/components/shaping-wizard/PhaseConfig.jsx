@@ -16,16 +16,15 @@ const PhaseConfig = ({
   setShapingData,
   currentStitches,
   construction,
-  componentIndex, // ADDED
+  componentIndex,
   onExitToComponentSteps,
   onComplete,
   onCancel,
   onBack,
-  mode = 'creation',
+  mode = 'creation', // ✅ ADDED: Accept mode prop with default
   wizardData,
-  onGoToLanding,     // Should be here
-  wizard             // Should be here too
-
+  onGoToLanding,
+  wizard
 }) => {
   // All state management and logic handled by custom hook
   const phaseManager = usePhaseManager(currentStitches, construction, shapingData);
@@ -37,8 +36,8 @@ const PhaseConfig = ({
     tempPhaseConfig,
     setTempPhaseConfig,
     editingPhaseId,
-    stepDescription,          // NEW: Add this line
-    setStepDescription,       // NEW: Add this line
+    stepDescription,
+    setStepDescription,
     calculateSequentialPhases,
     getPhaseDescription,
     getPhasePreview,
@@ -83,7 +82,7 @@ const PhaseConfig = ({
       phases: phases,
       construction: construction,
       calculation: result,
-      description: stepDescription  // NEW: Add this line
+      description: stepDescription
     });
   };
 
@@ -95,10 +94,10 @@ const PhaseConfig = ({
         phaseTypes={phaseTypes}
         result={result}
         construction={construction}
-        currentStitches={currentStitches} // ← ADD THIS LINE
-        stepDescription={stepDescription}        // NEW: Add this line
-        setStepDescription={setStepDescription}  // NEW: Add this line
-        componentIndex={componentIndex} // also added
+        currentStitches={currentStitches}
+        stepDescription={stepDescription}
+        setStepDescription={setStepDescription}
+        componentIndex={componentIndex}
         onExitToComponentSteps={onExitToComponentSteps}
         onAddPhase={handleAddPhase}
         onEditPhase={handleEditPhase}
@@ -106,11 +105,12 @@ const PhaseConfig = ({
         onBack={onBack}
         onComplete={handleComplete}
         getPhaseDescription={getPhaseDescription}
-        wizardData={wizardData} // ← Add this line
-        wizard={wizard}  // Make sure this line exists
-        onGoToLanding={onGoToLanding}  // And this line
+        wizardData={wizardData}
+        wizard={wizard}
+        onGoToLanding={onGoToLanding}
         onCancel={onCancel}
         mode={mode}
+        contextMode={mode} // ✅ ADDED: Pass contextMode for useActiveContext
       />
     );
   }
@@ -125,8 +125,8 @@ const PhaseConfig = ({
         phases={phases}
         phaseNumber={getCurrentPhaseNumber()}
         wizard={wizard}
-        onGoToLanding={onGoToLanding}  // And this line
-        wizardData={wizardData} // ← Add this line
+        onGoToLanding={onGoToLanding}
+        wizardData={wizardData}
         onCancel={onCancel}
       />
     );
@@ -149,9 +149,9 @@ const PhaseConfig = ({
         getStitchContext={getStitchContext}
         calculatePhaseEndingStitches={calculatePhaseEndingStitches}
         phaseNumber={getCurrentPhaseNumber()}
-        onGoToLanding={onGoToLanding}  // And this line
-        wizard={wizard}  // Make sure this line exists
-        wizardData={wizardData} // ← Add this line
+        onGoToLanding={onGoToLanding}
+        wizard={wizard}
+        wizardData={wizardData}
         onCancel={onCancel}
       />
     );

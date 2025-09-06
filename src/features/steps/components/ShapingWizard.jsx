@@ -11,8 +11,21 @@ import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
 // import SequentialPhasesWizard from './shaping-wizard/xx  SequentialPhasesWizard';
 
-const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construction, onBack,
-  setConstruction, setCurrentStitches, component, componentIndex, onExitToComponentSteps, onGoToLanding, editingStepIndex = null }) => {
+const ShapingWizard = ({
+  wizardData,
+  updateWizardData,
+  currentStitches,
+  construction,
+  onBack,
+  setConstruction,
+  setCurrentStitches,
+  component,
+  componentIndex,
+  onExitToComponentSteps,
+  onGoToLanding,
+  editingStepIndex = null,
+  mode = 'project' // ✅ ADDED: Accept mode prop with default
+}) => {
 
   // 🔧 FIX: Initialize step based on whether we have existing data
   const getInitialStep = () => {
@@ -141,35 +154,35 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
             setShapingData={setShapingData}
             currentStitches={currentStitches}
             construction={construction}
-            componentIndex={componentIndex} // ← ADD THIS LINE
+            componentIndex={componentIndex}
             editingStepIndex={editingStepIndex}
-            onExitToComponentSteps={onExitToComponentSteps} // ← ADD THIS LINE
+            onExitToComponentSteps={onExitToComponentSteps}
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
             wizardData={wizardData}
-            onGoToLanding={onGoToLanding}      // ADD THIS
-            wizard={shapingWizard}            // ADD THIS
+            onGoToLanding={onGoToLanding}
+            wizard={shapingWizard}
             onCancel={handleCancel}
-
+            mode={mode} // ✅ ADDED: Pass mode prop down
           />
         );
 
       case 'phases':
         return (
-          //<SequentialPhasesWizard
           <PhaseConfig
             shapingData={shapingData}
             setShapingData={setShapingData}
             currentStitches={currentStitches}
             construction={construction}
-            componentIndex={componentIndex} // ← ADD THIS LINE
-            onExitToComponentSteps={onExitToComponentSteps} // ← ADD THIS LINE
+            componentIndex={componentIndex}
+            onExitToComponentSteps={onExitToComponentSteps}
             onComplete={handleConfigComplete}
             onBack={() => setStep(1)}
             wizardData={wizardData}
-            onGoToLanding={onGoToLanding}      // ADD THIS
-            wizard={shapingWizard}            // ADD THIS
+            onGoToLanding={onGoToLanding}
+            wizard={shapingWizard}
             onCancel={handleCancel}
+            mode={mode} // ✅ ADDED: Pass mode prop down
           />
         );
 
@@ -219,8 +232,8 @@ const ShapingWizard = ({ wizardData, updateWizardData, currentStitches, construc
               onTypeSelect={handleShapingTypeSelect}
               currentStitches={currentStitches}
               construction={construction}
-              onBack={onBack}                    // ← Did you add this?
-              onGoToLanding={onGoToLanding}      // ← And this?
+              onBack={onBack}
+              onGoToLanding={onGoToLanding}
               wizard={shapingWizard}
               onCancel={handleCancel}
             />

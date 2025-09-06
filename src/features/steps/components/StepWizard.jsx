@@ -188,6 +188,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     return (
       <ShapingWizard
         wizardData={wizard.wizardData}
+        mode={mode}
         updateWizardData={wizard.updateWizardData}
         currentStitches={wizard.currentStitches}
         construction={wizard.construction}
@@ -219,6 +220,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
             wizard.updateWizardData('choiceMade', false);
           }
         }}
+        onGoToLanding={onGoToLanding} // Just added
       />
     );
   }
