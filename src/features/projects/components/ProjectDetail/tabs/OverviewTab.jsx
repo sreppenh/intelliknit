@@ -5,6 +5,7 @@ import { getProjectStatus as getSharedProjectStatus } from '../../../../../share
 // import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 import { getComponentState as getUtilityComponentState, getComponentStatusWithDisplay } from '../../../../../shared/utils/stepDisplayUtils';
+import StandardModal from '../../../../../shared/components/modals/StandardModal';
 
 const OverviewTab = (props) => {
     // Validate props in development
@@ -282,39 +283,6 @@ const OverviewTab = (props) => {
         return `${completedComponents}/${totalComponents} components complete`;
     };
 
-    // === STANDARDIZED MODAL BEHAVIOR (Warning Modal Pattern) ===
-    useEffect(() => {
-        const handleEscKey = (event) => {
-            if (event.key === 'Escape') {
-                if (showFrogModal) setShowFrogModal(false);
-                if (showDeleteModal) setShowDeleteModal(false);
-            }
-        };
-
-        if (showFrogModal || showDeleteModal) {
-            document.addEventListener('keydown', handleEscKey);
-
-            // Focus destructive action button
-            setTimeout(() => {
-                const exitButton = document.querySelector('[data-modal-exit]');
-                if (exitButton) {
-                    exitButton.focus();
-                }
-            }, 100);
-        }
-
-        return () => {
-            document.removeEventListener('keydown', handleEscKey);
-        };
-    }, [showFrogModal, showDeleteModal]);
-
-    const handleBackdropClick = (event) => {
-        if (event.target === event.currentTarget) {
-            if (showFrogModal) setShowFrogModal(false);
-            if (showDeleteModal) setShowDeleteModal(false);
-        }
-    };
-
     // === RENDER ===
     return (
         <>
@@ -456,100 +424,47 @@ const OverviewTab = (props) => {
             </TabContent>
 
             {/* === STANDARDIZED MODALS === */}
-            {showFrogModal && (
-                <div className="modal" onClick={handleBackdropClick}>
-                    <div className="modal-content-light">
-                        <div className="modal-header-light">
-                            <div className="flex items-center gap-3">
-                                <span className="text-2xl">🐸</span>
-                                <div>
-                                    <h2 className="text-lg font-semibold">Frog Project</h2>
-                                    <p className="text-sage-600 text-sm">Reset progress and start fresh</p>
-                                </div>
-                                <button
-                                    onClick={() => setShowFrogModal(false)}
-                                    className="text-sage-600 text-xl hover:bg-sage-300 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors ml-auto"
-                                >
-                                    ×
-                                </button>
-                            </div>
-                        </div>
-                        <div className="p-6 space-y-4">
-                            <p className="text-wool-600">
-                                Frogging will reset all progress while keeping your project structure intact.
-                                You can always restart when you're ready!
-                            </p>
-                            <div className="flex gap-3">
-                                <button
-                                    onClick={() => setShowFrogModal(false)}
-                                    data-modal-cancel
-                                    className="btn-tertiary flex-1"
-                                >
-                                    Keep Going
-                                </button>
-                                <button
-                                    onClick={handleFrogProject}
-                                    data-modal-exit
-                                    className="btn-primary flex-1"
-                                >
-                                    Frog It
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            <StandardModal
+                isOpen={showFrogModal}
+                onClose={() => setShowFrogModal(false)}
+                onConfirm={handleFrogProject}
+                category="warning"
+                colorScheme="sage"
+                title="Frog Project"
+                subtitle="Reset progress and start fresh"
+                icon="🐸"
+                primaryButtonText="Frog It"
+                secondaryButtonText="Keep Going"
+            >
+                <div className="text-center">
+                    <p className="text-wool-600">
+                        Frogging will reset all progress while keeping your project structure intact.
+                        You can always restart when you're ready!
+                    </p>
                 </div>
-            )}
+            </StandardModal>
 
-            {showDeleteModal && (
-                <div className="modal" onClick={handleBackdropClick}>
-                    <div className="modal-content-light">
-                        <div className="modal-header-light-danger relative flex items-center justify-center py-4 px-6 rounded-t-2xl bg-red-100">
-                            <div className="text-center">
-                                <div className="text-2xl mb-2">🗑️</div>
-                                <h2 className="text-lg font-semibold">Delete Project Forever?</h2>
-                                <p className="text-red-600 text-sm">{project.name}</p>
-                            </div>
-                            <button
-                                onClick={() => setShowDeleteModal(false)}
-                                className="absolute right-3 text-red-600 text-2xl hover:bg-red-200 hover:bg-opacity-50 rounded-full w-8 h-8 flex items-center justify-center transition-colors"
-                                aria-label="Close Delete Project modal"
-                            >
-                                ×
-                            </button>
-                        </div>
-
-                        <div className="p-6">
-                            <div className="text-center mb-6">
-                                <p className="text-red-600 mb-2 font-medium">
-                                    This will permanently delete your project.
-                                </p>
-                                <p className="text-wool-500 text-sm">
-                                    All components, steps, and progress will be lost forever. This action cannot be undone.
-                                </p>
-                            </div>
-
-                            <div className="stack-sm">
-                                <button
-                                    onClick={handleDeleteProject}
-                                    data-modal-exit
-                                    className="w-full btn-secondary bg-red-600 hover:bg-red-700 text-white flex items-center justify-center gap-2"
-                                >
-                                    <span className="text-lg">🗑️</span>
-                                    Yes, Delete Forever
-                                </button>
-
-                                <button
-                                    onClick={() => setShowDeleteModal(false)}
-                                    data-modal-cancel
-                                    className="w-full btn-tertiary"
-                                >
-                                    Keep Project
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+            <StandardModal
+                isOpen={showDeleteModal}
+                onClose={() => setShowDeleteModal(false)}
+                onConfirm={handleDeleteProject}
+                category="warning"
+                colorScheme="red"
+                title="Delete Project Forever?"
+                subtitle={project.name}
+                icon="🗑️"
+                primaryButtonText="Yes, Delete Forever"
+                secondaryButtonText="Keep Project"
+            >
+                <div className="text-center">
+                    <p className="text-red-600 mb-2 font-medium">
+                        This will permanently delete your project.
+                    </p>
+                    <p className="text-wool-500 text-sm">
+                        All components, steps, and progress will be lost forever. This action cannot be undone.
+                    </p>
                 </div>
-            )}
+            </StandardModal>
         </>
     );
 };

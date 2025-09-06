@@ -1,6 +1,7 @@
 // src/shared/utils/StepSaveHelper.js
 import React, { useState } from 'react';
 import IntelliKnitLogger from './ConsoleLogging';
+import StandardModal from '../components/modals/StandardModal';
 
 /**
  * Reusable step save and navigation helper
@@ -146,40 +147,34 @@ export const StepSaveErrorModal = ({ isOpen, error, onClose, onRetry }) => {
     if (!isOpen || !error) return null;
 
     return (
-        <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
-            <div className="bg-white rounded-2xl max-w-sm w-full p-6 shadow-xl">
-                {/* Error Header */}
-                <div className="text-center mb-4">
-                    <div className="text-4xl mb-2">❌</div>
-                    <h3 className="text-lg font-semibold text-red-700 mb-1">Save Failed</h3>
-                    <p className="text-red-600 text-sm">Could not save your step</p>
-                </div>
-
-                {/* Error Details */}
-                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4 mb-6">
+        <StandardModal
+            isOpen={isOpen}
+            onClose={onClose}
+            onConfirm={onRetry}
+            category="simple"
+            colorScheme="red"
+            title="Save Failed"
+            subtitle="Could not save your step"
+            icon="❌"
+            primaryButtonText="Try Again"
+            secondaryButtonText="Close"
+            showButtons={!!onRetry}
+        >
+            <div className="space-y-4">
+                <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
                     <p className="text-sm text-red-700 font-medium mb-2">Error Details:</p>
                     <p className="text-sm text-red-600">{error}</p>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="space-y-3">
-                    {onRetry && (
-                        <button
-                            onClick={onRetry}
-                            className="w-full btn-primary"
-                        >
-                            Try Again
+                {!onRetry && (
+                    <div className="flex justify-center">
+                        <button onClick={onClose} className="btn-tertiary">
+                            Close
                         </button>
-                    )}
-                    <button
-                        onClick={onClose}
-                        className="w-full btn-tertiary"
-                    >
-                        Close
-                    </button>
-                </div>
+                    </div>
+                )}
             </div>
-        </div>
+        </StandardModal>
     );
 };
 
