@@ -1,5 +1,5 @@
 // src/features/knitting/components/modal/KnittingStepModal.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { X, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStepNavigation } from '../../hooks/useStepNavigation';
@@ -48,6 +48,9 @@ const KnittingStepModal = ({
                 updateProject(updatedProject);
             }
 
+            // Mark step as complete after accepting gauge
+            onToggleCompletion(stepIndex);
+
             // Clear gauge card and navigate
             setShowGaugeCard(false);
             setGaugeData(null);
@@ -65,6 +68,9 @@ const KnittingStepModal = ({
     };
 
     const handleGaugeDecline = () => {
+        // Mark step as complete even if declining gauge update
+        onToggleCompletion(stepIndex);
+
         // Clear gauge card and navigate without updating gauge
         setShowGaugeCard(false);
         setGaugeData(null);
@@ -80,17 +86,11 @@ const KnittingStepModal = ({
         }
     };
 
-    // Also add the function to show the gauge card
+    // Fixed: Don't navigate immediately, let React re-render with gauge card
     const handleShowGaugeCard = (promptData) => {
         setGaugeData(promptData);
         setShowGaugeCard(true);
-
-        // Navigate to gauge card after it's added to carousel
-        setTimeout(() => {
-            if (navigation.canGoRight) {
-                navigation.navigateRight();
-            }
-        }, 50);
+        // DON'T navigate here - let the useEffect handle it after render
     };
 
     // Create carousel items
@@ -172,6 +172,20 @@ const KnittingStepModal = ({
         onToggleCompletion,
         isModalOpen: true
     });
+
+    // NEW: Auto-navigate to gauge card when it appears
+    useEffect(() => {
+        if (showGaugeCard && gaugeData) {
+            // Find the gauge card index in carousel items
+            const gaugeIndex = carouselItems.findIndex(item => item.type === 'gauge');
+            if (gaugeIndex !== -1 && navigation.currentCarouselIndex !== gaugeIndex) {
+                // Small delay to ensure DOM is updated
+                setTimeout(() => {
+                    navigation.setCurrentCarouselIndex(gaugeIndex);
+                }, 50);
+            }
+        }
+    }, [showGaugeCard, gaugeData, carouselItems.length]); // Use carouselItems.length to detect changes
 
     // Progress hook integration
     const progress = useKnittingProgress(project.id, component.id, component.steps);
