@@ -83,6 +83,68 @@ export const notesReducer = (state, action) => {
                 selectedComponentIndex: action.payload
             };
 
+        case 'ADD_STEP': {
+            // Handle standard ADD_STEP action (same logic as ADD_STEP_TO_NOTE)
+            if (!state.currentNote) {
+                IntelliKnitLogger.error('ADD_STEP: No current note');
+                return state;
+            }
+
+            const { componentIndex, step } = action.payload;
+            const updatedNote = { ...state.currentNote };
+
+            if (!updatedNote.components[componentIndex]) {
+                IntelliKnitLogger.error('ADD_STEP: Invalid component index');
+                return state;
+            }
+
+            // Add step to component
+            updatedNote.components[componentIndex].steps.push(step);
+            updatedNote.lastActivityAt = new Date().toISOString();
+
+            // Update notes array
+            const updatedNotes = state.notes.map(note =>
+                note.id === updatedNote.id ? updatedNote : note
+            );
+
+            return {
+                ...state,
+                notes: updatedNotes,
+                currentNote: updatedNote
+            };
+        }
+
+        case 'UPDATE_STEP': {
+            // Handle standard UPDATE_STEP action (same logic as UPDATE_STEP_IN_NOTE)
+            if (!state.currentNote) {
+                IntelliKnitLogger.error('UPDATE_STEP: No current note');
+                return state;
+            }
+
+            const { componentIndex, stepIndex, step } = action.payload;
+            const updatedNote = { ...state.currentNote };
+
+            if (!updatedNote.components[componentIndex] || !updatedNote.components[componentIndex].steps[stepIndex]) {
+                IntelliKnitLogger.error('UPDATE_STEP: Invalid indices');
+                return state;
+            }
+
+            // Update step
+            updatedNote.components[componentIndex].steps[stepIndex] = step;
+            updatedNote.lastActivityAt = new Date().toISOString();
+
+            // Update notes array
+            const updatedNotes = state.notes.map(note =>
+                note.id === updatedNote.id ? updatedNote : note
+            );
+
+            return {
+                ...state,
+                notes: updatedNotes,
+                currentNote: updatedNote
+            };
+        }
+
 
         case 'ADD_STEP_TO_NOTE': {
             if (!state.currentNote) {
