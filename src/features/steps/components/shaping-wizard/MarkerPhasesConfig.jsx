@@ -5,6 +5,7 @@ import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayV
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
+import { MarkerSequenceCalculator } from '../../../../shared/utils/MarkerSequenceCalculator';
 
 const MarkerPhasesConfig = ({
     shapingData,
@@ -180,16 +181,33 @@ const MarkerPhasesConfig = ({
     const handleComplete = () => {
         if (!isValid) return;
 
+        // For now, create a simple sequence structure
+        // This will be expanded when we add the action definition UI
+        const basicSequence = {
+            id: 'marker_setup',
+            name: 'Marker Setup',
+            startCondition: { type: 'immediate' },
+            phases: [{
+                type: 'setup',
+                config: { rows: 1 }
+            }],
+            actions: [] // Will be populated when action system is built
+        };
+
+        const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
+            [basicSequence],
+            currentArray,
+            construction
+        );
+
         const finalConfig = {
-            markerSetup: hasExistingMarkers ? 'existing' : 'new',
-            stitchArray: currentArray,
-            markerCount: markerCount,
-            calculation: {
-                startingStitches: currentStitches,
-                endingStitches: currentStitches, // No shaping applied yet
-                totalRows: 1,
-                finalArray: currentArray,
-                instruction: `Place ${markerCount} markers`
+            type: 'marker_phases',
+            config: {
+                markerSetup: hasExistingMarkers ? 'existing' : 'new',
+                stitchArray: currentArray,
+                markerCount: markerCount,
+                sequences: [basicSequence],
+                calculation: calculation
             }
         };
 
@@ -268,10 +286,10 @@ const MarkerPhasesConfig = ({
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-semibold text-wool-700">Position & Name Markers</h4>
                             <div className={`text-xs px-2 py-1 rounded ${isValid
-                                    ? 'bg-sage-100 text-sage-700'
-                                    : hasAllStitches
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-wool-100 text-wool-600'
+                                ? 'bg-sage-100 text-sage-700'
+                                : hasAllStitches
+                                    ? 'bg-red-100 text-red-700'
+                                    : 'bg-wool-100 text-wool-600'
                                 }`}>
                                 {!hasAllStitches
                                     ? 'Fill in all stitch counts'
