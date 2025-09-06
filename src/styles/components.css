@@ -652,6 +652,33 @@ body.modal-open {
   @apply bg-white/90 backdrop-blur-sm rounded-xl px-4 py-2 shadow-lg;
 }
 
+/* Override StandardModal height behavior for knitting modals */
+.knitting-modal-content {
+  max-height: none !important;
+  /* Remove fixed height constraint */
+  height: auto !important;
+  /* Let content determine height */
+  overflow-y: visible !important;
+  /* Remove unnecessary scrolling */
+}
+
+/* But still respect viewport limits on mobile */
+@media (max-width: 640px) {
+  .knitting-modal-content {
+    max-height: 90vh !important;
+    /* Keep mobile constraint */
+    overflow-y: auto !important;
+    /* Allow scrolling on mobile if needed */
+  }
+}
+
+/* For tablet and up: content-based sizing with reasonable max */
+@media (min-width: 640px) {
+  .knitting-modal-content {
+    max-height: min(90vh, fit-content) !important;
+    overflow-y: auto !important;
+  }
+}
 
 
 /* ===== 6. CARD SYSTEM ===== */

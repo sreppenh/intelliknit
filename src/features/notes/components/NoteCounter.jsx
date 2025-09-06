@@ -274,20 +274,17 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
             title={currentNote.name}
             subtitle="Notepad Mode"
         >
-            <div className="flex flex-col overflow-hidden shadow-2xl -m-6">
-                <div className="knitting-modal-header">
-                    <button
-                        onClick={onBack}
-                        className="absolute -top-6 -right-6 z-30 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-full transition-colors bg-white shadow-sm border border-gray-200"
-                    >
-                        <X size={18} />
-                    </button>
+
+
+            <div className="flex flex-col min-h-0"> {/* min-h-0 allows flex child to shrink */}
+                {/* Main content area - let it grow and shrink naturally */}
+                <div className="flex-1 min-h-0 overflow-y-auto">
+                    {renderContent()}
                 </div>
 
-                {renderContent()}
-
+                {/* Footer - only show when needed, fixed height */}
                 {viewMode !== 'gauge' && viewMode !== 'celebration' && (
-                    <div className="knitting-modal-footer">
+                    <div className="flex-shrink-0 pt-4 border-t border-lavender-200 mt-4">
                         <button
                             onClick={() => setViewMode(viewMode === 'instructions' ? 'counter' : 'instructions')}
                             className="w-full flex items-center justify-center gap-2 py-3 rounded-xl transition-colors font-medium shadow-sm bg-lavender-100 hover:bg-lavender-200 text-lavender-700 border border-lavender-300"
