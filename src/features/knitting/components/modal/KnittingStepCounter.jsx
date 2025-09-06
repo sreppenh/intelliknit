@@ -375,13 +375,6 @@ const KnittingStepCounter = ({
 
     const handleStepComplete = () => {
         console.log('handleStepComplete called, current completed status:', isCompleted);
-        console.log('Debug celebration check:', {
-            isNotepadMode,
-            isCompleted,
-            hasOnShowCelebration: !!onShowCelebration,
-            currentRow,
-            stepConfig: step.wizardConfig
-        });
 
         // For notepad mode, trigger celebration instead of just completing
         if (isNotepadMode && !isCompleted && onShowCelebration) {
@@ -398,14 +391,19 @@ const KnittingStepCounter = ({
             return;
         }
 
-        // Original handleStepComplete logic continues here...
-        if (isLengthStep && !isCompleted) {
-            checkForGaugeUpdate();
+        // PROJECT MODE: Check for gauge update BEFORE any completion logic
+        if (!isNotepadMode && isLengthStep && !isCompleted) {
+            const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
+            if (shouldPrompt && onShowGaugeCard) {
+                // Show gauge card immediately without completing step yet
+                const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
+                onShowGaugeCard(promptData);
+                return; // Exit early - gauge card will handle completion
+            }
         }
 
         // Record actual ending side when step is completed
         if (useSideIntelligence && currentSide) {
-            // We'll handle this differently - store the data but don't call updateProject yet
             sideTracking.recordEndingSide(currentSide, currentRow, () => { });
         }
 
@@ -414,7 +412,7 @@ const KnittingStepCounter = ({
             sideTracking.commitSideChanges(() => { });
         }
 
-        // Toggle completion
+        // Toggle completion (only for non-gauge cases)
         onToggleCompletion?.(stepIndex);
         console.log('🔧 handleStepComplete finished');
     };

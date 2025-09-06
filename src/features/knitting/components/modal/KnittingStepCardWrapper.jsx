@@ -1,5 +1,5 @@
 // 🎯 CORE REUSABLE CARD - Works in any context
-// KnittingStepCard.jsx
+// KnittingStepCardWrapper.jsx
 import React from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
