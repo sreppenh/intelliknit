@@ -96,7 +96,7 @@ const MarkerPhasesConfig = ({
         if (markerSetup.useExisting) {
             return markerSetup.selectedMarkers.length > 0;
         }
-        return markerSetup.newMarkers.length > 0;
+        return markerSetup.markerCount > 0;
     };
 
     const canProceedFromScreen2 = () => {
