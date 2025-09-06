@@ -42,6 +42,8 @@ const KnittingStepCounter = ({
     onShowCelebration
 }) => {
 
+    console.log('KnittingStepCounter onShowCelebration:', !!onShowCelebration);
+
     const isNotepadMode = project?.isNotepadMode || false;
 
     const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step, isNotepadMode);
@@ -52,7 +54,6 @@ const KnittingStepCounter = ({
 
 
 
-    console.log('🔧 KnittingStepCounter stepIndex:', stepIndex);
 
     // Side tracking hook
     const sideTracking = useSideTracking(project?.id, component?.id, navigation.currentStep, step, component);
@@ -108,6 +109,7 @@ const KnittingStepCounter = ({
 
     // Mark Complete function
     const handleMarkComplete = () => {
+        console.log('handleMarkComplete called, isNotepadMode:', isNotepadMode, 'onShowCelebration:', !!onShowCelebration);
         if (isNotepadMode) {
             // Notepad: Complete step with full state updates
             const rowsKnitted = currentRow;
@@ -357,7 +359,6 @@ const KnittingStepCounter = ({
 
     const handleStepComplete = () => {
         // Check for gauge update only when completing (not uncompleting)
-        console.log('🔧 handleStepComplete called, current completed status:', isCompleted);
 
         if (isLengthStep && !isCompleted) {
             checkForGaugeUpdate();
@@ -437,22 +438,14 @@ const KnittingStepCounter = ({
 
     const handleAutoAdvanceToNextStep = () => {
         IntelliKnitLogger.debug('Row Counter', 'Auto-advancing to next step from final row completion');
-        console.log('🎯 Auto-advancement debug:', {
-            canGoRight: navigation.canGoRight,
-            stepIndex: stepIndex,
-            navigationObject: navigation
-        });
-        console.log('🎯 Navigation.currentStep BEFORE navigation:', navigation.currentStep);
 
         try {
             // Check if we can navigate right (this handles both carousel and step navigation)
             if (navigation.canGoRight) {
                 console.log('🎯 Calling navigation.navigateRight()');
                 navigation.navigateRight();
-                console.log('🎯 Navigation.currentStep AFTER navigation:', navigation.currentStep);
                 IntelliKnitLogger.debug('Row Counter', 'Successfully navigated to next step');
             } else {
-                console.log('🎉 No assembly note - component complete! Triggering celebration');
                 if (onComponentComplete) {
                     onComponentComplete();
                     // Wait for carousel to update, then navigate to celebration
@@ -464,7 +457,6 @@ const KnittingStepCounter = ({
                 }
             }
         } catch (error) {
-            console.log('🎯 Navigation error:', error);
             IntelliKnitLogger.error('Row Counter Auto-advancement failed', error);
             // Stay on current step if navigation fails
         }
@@ -473,14 +465,12 @@ const KnittingStepCounter = ({
     const handleRowIncrement = () => {
 
         if (stepType === 'single_action') {
-            console.log('🔧 Single action BEFORE completion:', { isCompleted, stepIndex, totalSteps: component.steps.length });
 
             // For single action steps, complete and advance (don't toggle)
             if (!isCompleted) {
                 handleStepComplete(); // Only complete if not already completed
             }
 
-            console.log('🔧 Single action AFTER completion, calling auto-advance');
             if (!isNotepadMode) {
                 handleAutoAdvanceToNextStep(); // Auto-advance in project mode
             }
@@ -490,7 +480,7 @@ const KnittingStepCounter = ({
         if (stepType === 'fixed_multi_row') {
             if (isNotepadMode && currentRow === totalRows) {
                 // Final row completion - auto-complete and close
-                console.log('🔧 Notepad final row completion');
+
                 handleStepComplete();
                 setTimeout(() => {
                     onClose?.();
@@ -498,12 +488,10 @@ const KnittingStepCounter = ({
                 return;
             } else if (currentRow === totalRows) { // Changed from >= to ===
                 // Project mode - final row completion, auto-complete and advance
-                console.log('🔧 Project mode final row completion - about to complete and advance');
                 handleStepComplete();
                 handleAutoAdvanceToNextStep();
                 return;
             } else {
-                console.log('🔧 Incrementing row from', currentRow, 'to', currentRow + 1);
                 incrementRow();
             }
         } else if (stepType === 'length_based') {
