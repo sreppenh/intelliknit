@@ -109,20 +109,7 @@ const KnittingStepCounter = ({
 
     // Mark Complete function
     const handleMarkComplete = () => {
-        console.log('handleMarkComplete called, isNotepadMode:', isNotepadMode, 'onShowCelebration:', !!onShowCelebration);
-        console.log('Debug celebration check:', {
-            isNotepadMode,
-            isCompleted,
-            hasOnShowCelebration: !!onShowCelebration,
-            currentRow,
-            stepConfig: step.wizardConfig
-        });
 
-        console.log('Individual checks:');
-        console.log('isNotepadMode:', isNotepadMode, typeof isNotepadMode);
-        console.log('!isCompleted:', !isCompleted, typeof isCompleted);
-        console.log('onShowCelebration:', !!onShowCelebration, typeof onShowCelebration);
-        console.log('Combined condition:', isNotepadMode && !isCompleted && onShowCelebration);
         if (isNotepadMode) {
             // Notepad: Complete step with full state updates
             const rowsKnitted = currentRow;
