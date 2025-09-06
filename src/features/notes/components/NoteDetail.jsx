@@ -531,39 +531,33 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
                                 })()}
                             </div>
 
-                            {/* Progress + Action Row */}
-                            <div className="flex items-center justify-between gap-3">
+                            {/* Progress + Action - Stacked for Mobile */}
+                            <div className="space-y-3">
+                                {/* Status Line */}
                                 {getProgressDisplay && (
-                                    <div className="text-sm flex-1 flex items-center">
+                                    <div className="flex items-center">
                                         {getProgressDisplay.icon && <span className="mr-2">{getProgressDisplay.icon}</span>}
                                         <span className={getProgressDisplay.className}>{getProgressDisplay.text}</span>
                                     </div>
                                 )}
 
-                                {step.completed ? (
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={handleResetInstruction}
-                                            className="btn-tertiary btn-sm"
-                                            title="Reset instruction"
-                                        >
-                                            Reset
-                                        </button>
-                                        <button
-                                            onClick={getKnittingButtonConfig.action}
-                                            className="btn-primary btn-sm flex-shrink-0"
-                                        >
+                                {/* Button Line */}
+                                <div className="flex justify-end">
+                                    {step.completed ? (
+                                        <div className="flex gap-2">
+                                            <button onClick={handleResetInstruction} className="btn-tertiary btn-sm" title="Reset instruction">
+                                                Reset
+                                            </button>
+                                            <button onClick={getKnittingButtonConfig.action} className="btn-primary btn-sm">
+                                                {getKnittingButtonConfig.text}
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <button onClick={getKnittingButtonConfig.action} className="btn-primary btn-sm">
                                             {getKnittingButtonConfig.text}
                                         </button>
-                                    </div>
-                                ) : (
-                                    <button
-                                        onClick={getKnittingButtonConfig.action}
-                                        className="btn-primary btn-sm flex-shrink-0"
-                                    >
-                                        {getKnittingButtonConfig.text}
-                                    </button>
-                                )}
+                                    )}
+                                </div>
                             </div>
                         </div>
                     ) : (
