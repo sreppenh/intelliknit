@@ -28,7 +28,7 @@ const RowByRowPatternConfig = ({
     project,
 
     // NEW: Mode-aware props
-    mode = create,           // create | 'edit' | 'notepad'
+    mode = 'create',           // 'create' | 'edit' | 'notepad'
     onSave,                    // Called when save button is clicked (edit mode)
     onCancel,                  // Called when cancel button is clicked (edit mode)
     readOnlyFields = [],       // Array of field names that should be read-only
@@ -77,7 +77,7 @@ const RowByRowPatternConfig = ({
     // ===== MODE-AWARE HELPERS =====
     const isEditMode = mode === 'edit';
     const isNotepadMode = mode === 'notepad';
-    const isCreateMode = mode === create;
+    const isCreateMode = mode === 'create';
 
     // Check if a field is read-only
     const isReadOnly = (fieldName) => readOnlyFields.includes(fieldName);
