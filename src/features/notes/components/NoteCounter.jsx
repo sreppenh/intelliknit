@@ -79,6 +79,7 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
         isTransitioning: false
     };
 
+
     // Create notepad-optimized project and step
     const notepadProject = {
         ...currentNote,
@@ -183,12 +184,14 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
         setViewMode('celebration');
     };
 
-    const handleCelebrationReset = () => {
+    const handleCelebrationReset = async () => {
         // Reset the instruction and stay in modal
         if (celebrationData) {
-            handleResetInstruction();
+            await handleResetInstruction();
             setShowCelebration(false);
             setCelebrationData(null);
+
+            // Force reset to counter view (both state and localStorage)
             setViewMode('counter');
         }
     };

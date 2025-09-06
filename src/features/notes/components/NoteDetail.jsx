@@ -149,7 +149,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
         const isLengthBased = step.wizardConfig?.duration?.type === 'length';
 
         if (step.completed) {
-            const currentRow = rowProgress?.currentRow || 0;
+            // When completed, currentRow represents the total rows completed
             return {
                 text: `Finished! ${currentRow} rows completed`,
                 className: "text-sage-600 font-medium",
@@ -167,26 +167,32 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
             } else {
                 const targetLength = step.wizardConfig?.duration?.value;
                 const units = step.wizardConfig?.duration?.units || currentNote.defaultUnits || 'inches';
+                // For length-based, show rows completed (currentRow - 1) unless completed
+                const completedRows = step.completed ? currentRow : Math.max(0, currentRow - 1);
                 return {
-                    text: `${currentRow} rows completed (targeting ${targetLength} ${units})`,
+                    text: `${completedRows} rows completed (targeting ${targetLength} ${units})`,
                     className: "text-wool-600",
                     icon: null
                 };
             }
         }
 
-        // Fixed row instructions - only use totalRows > 1 to avoid length-based confusion
+        // Fixed row instructions
         const totalRows = step.totalRows || 0;
         if (totalRows > 1) {
+            // Show completed rows (currentRow - 1) unless step is completed
+            const completedRows = step.completed ? currentRow : Math.max(0, currentRow - 1);
             return {
-                text: `Completed ${currentRow} of ${totalRows} rows`,
+                text: `Completed ${completedRows} of ${totalRows} rows`,
                 className: "text-wool-600",
                 icon: null
             };
         }
 
+        // Single row or indeterminate
+        const completedRows = step.completed ? currentRow : Math.max(0, currentRow - 1);
         return {
-            text: `Completed ${currentRow} rows`,
+            text: `Completed ${completedRows} rows`,
             className: "text-wool-600",
             icon: null
         };
@@ -543,7 +549,7 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
 
                                 {/* Button Line */}
                                 <div className="flex justify-end">
-                                    {step.completed ? (
+                                    {(step.completed || (rowProgress?.currentRow || 0) > 0) ? (
                                         <div className="flex gap-2">
                                             <button onClick={handleResetInstruction} className="btn-tertiary btn-sm" title="Reset instruction">
                                                 Reset
