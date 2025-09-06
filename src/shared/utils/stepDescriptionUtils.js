@@ -320,6 +320,7 @@ export const getContextualConfigNotes = (step) => {
                 notes.push(phaseDescriptions.join('\n'));
             }
         }
+
     }
 
     // Check for duration-specific notes (future expansion)
@@ -417,6 +418,11 @@ const getShapingStepDescription = (step) => {
         const phases = shapingConfig.config?.phases?.length || 0;
         if (phases > 0) {
             shapingText = ` with ${phases} shaping phases`;
+        }
+    } else if (shapingConfig?.type === 'marker_phases') {
+        const markerCount = shapingConfig.config?.markerCount || 0;
+        if (markerCount > 0) {
+            shapingText = ` with marker-based shaping at ${markerCount} markers`;
         }
 
     } else if (shapingConfig?.type === 'intrinsic_pattern') {

@@ -74,6 +74,19 @@ export const useStepCalculation = () => {
           };
 
         }
+        // Add this right after the existing 'phases' case
+        else if (type === 'marker_phases' && config?.calculation) {
+          return {
+            success: true,
+            totalRows: config.calculation.totalRows,
+            startingStitches: config.calculation.startingStitches,
+            endingStitches: config.calculation.endingStitches,
+            hasShaping: true,
+            shapingMode: 'marker_phases',
+            finalArray: config.calculation.finalArray
+          };
+        }
+
         // Add this AFTER the existing phases case:
         else if (type === 'intrinsic_pattern' && config?.calculation) {
           return {
