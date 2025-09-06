@@ -110,6 +110,19 @@ const KnittingStepCounter = ({
     // Mark Complete function
     const handleMarkComplete = () => {
         console.log('handleMarkComplete called, isNotepadMode:', isNotepadMode, 'onShowCelebration:', !!onShowCelebration);
+        console.log('Debug celebration check:', {
+            isNotepadMode,
+            isCompleted,
+            hasOnShowCelebration: !!onShowCelebration,
+            currentRow,
+            stepConfig: step.wizardConfig
+        });
+
+        console.log('Individual checks:');
+        console.log('isNotepadMode:', isNotepadMode, typeof isNotepadMode);
+        console.log('!isCompleted:', !isCompleted, typeof isCompleted);
+        console.log('onShowCelebration:', !!onShowCelebration, typeof onShowCelebration);
+        console.log('Combined condition:', isNotepadMode && !isCompleted && onShowCelebration);
         if (isNotepadMode) {
             // Notepad: Complete step with full state updates
             const rowsKnitted = currentRow;
@@ -154,6 +167,9 @@ const KnittingStepCounter = ({
                     units: units,
                     calculatedGauge: calculatedGauge
                 };
+
+                console.log('Celebration data:', celebrationData);
+
                 onShowCelebration(celebrationData);
                 return;
             }
@@ -358,8 +374,31 @@ const KnittingStepCounter = ({
     };
 
     const handleStepComplete = () => {
-        // Check for gauge update only when completing (not uncompleting)
+        console.log('handleStepComplete called, current completed status:', isCompleted);
+        console.log('Debug celebration check:', {
+            isNotepadMode,
+            isCompleted,
+            hasOnShowCelebration: !!onShowCelebration,
+            currentRow,
+            stepConfig: step.wizardConfig
+        });
 
+        // For notepad mode, trigger celebration instead of just completing
+        if (isNotepadMode && !isCompleted && onShowCelebration) {
+            // Complete the step first
+            onToggleCompletion?.(stepIndex);
+
+            // Then trigger celebration
+            const celebrationData = {
+                rowsCompleted: currentRow,
+                targetLength: step.totalRows || currentRow,
+                units: 'rows'
+            };
+            onShowCelebration(celebrationData);
+            return;
+        }
+
+        // Original handleStepComplete logic continues here...
         if (isLengthStep && !isCompleted) {
             checkForGaugeUpdate();
         }
@@ -482,9 +521,9 @@ const KnittingStepCounter = ({
                 // Final row completion - auto-complete and close
 
                 handleStepComplete();
-                setTimeout(() => {
+                {/*}   setTimeout(() => {
                     onClose?.();
-                }, 100);
+                }, 100); */}
                 return;
             } else if (currentRow === totalRows) { // Changed from >= to ===
                 // Project mode - final row completion, auto-complete and advance

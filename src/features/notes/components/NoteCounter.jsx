@@ -141,15 +141,39 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
             const updatedProject = updateProjectGaugeFromMeasurement(notepadProject, gaugeData);
             updateNote(updatedProject);
         }
-        // Close modal after gauge decision
+
+        // After gauge decision, show celebration instead of closing
         setGaugeData(null);
-        onBack();
+        setViewMode('celebration');
+
+        // Set celebration data based on the current completion
+        const celebrationData = {
+            rowsCompleted: gaugeData?.actualRows || 0,
+            targetLength: gaugeData?.actualDistance || 0,
+            units: gaugeData?.units || 'inches',
+            calculatedGauge: {
+                rowGauge: {
+                    rows: gaugeData?.newRowsForMeasurement || 0,
+                    measurement: gaugeData?.measurement || 4,
+                    units: gaugeData?.units || 'inches'
+                }
+            }
+        };
+        setCelebrationData(celebrationData);
     };
 
     const handleGaugeDecline = () => {
-        // Close modal without updating gauge
+        // Clear gauge data and show celebration without updating gauge
         setGaugeData(null);
-        onBack();
+        setViewMode('celebration');
+
+        // Set basic celebration data
+        const celebrationData = {
+            rowsCompleted: gaugeData?.actualRows || 0,
+            targetLength: gaugeData?.actualDistance || 0,
+            units: gaugeData?.units || 'inches'
+        };
+        setCelebrationData(celebrationData);
     };
 
     // Celebration handlers
