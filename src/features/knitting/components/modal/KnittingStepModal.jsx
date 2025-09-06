@@ -282,7 +282,6 @@ const KnittingStepModal = ({
         return 'sage'; // default
     };
 
-
     return (
         <StandardModal
             isOpen={true}
@@ -295,85 +294,69 @@ const KnittingStepModal = ({
             title={`Step ${stepIndex + 1} of ${totalSteps}`}
             subtitle={component.name}
         >
+            {/* Fixed position navigation arrows - on top of everything */}
+            {navigation.canGoLeft && (
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!navigation.isTransitioning && navigation.canGoLeft) {
+                            navigation.navigateLeft();
+                        }
+                    }}
+                    disabled={!navigation.canGoLeft || navigation.isTransitioning}
+                    className="knitting-nav-arrow knitting-nav-arrow-left"
+                    style={{
+                        position: 'fixed',
+                        left: '16px',
+                        top: '50vh',
+                        transform: 'translateY(-50%)',
+                        zIndex: 9999
+                    }}
+                >
+                    <ChevronLeft size={18} />
+                </button>
+            )}
+
+            {navigation.canGoRight && (
+                <button
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        if (!navigation.isTransitioning && navigation.canGoRight) {
+                            navigation.navigateRight();
+                        }
+                    }}
+                    disabled={!navigation.canGoRight || navigation.isTransitioning}
+                    className="knitting-nav-arrow knitting-nav-arrow-right"
+                    style={{
+                        position: 'fixed',
+                        right: '16px',
+                        top: '50vh',
+                        transform: 'translateY(-50%)',
+                        zIndex: 9999
+                    }}
+                >
+                    <ChevronRight size={18} />
+                </button>
+            )}
+
+            {/* Content with no header gap */}
             <div
                 className="flex flex-col overflow-hidden shadow-2xl -m-6"
                 onTouchStart={navigation.onTouchStart}
                 onTouchMove={navigation.onTouchMove}
                 onTouchEnd={navigation.onTouchEnd}
             >
-                {/* ✅ PRESERVED HEADER - Keep existing structure */}
-                <div className="knitting-modal-header">
-                    <div className="flex items-center justify-between">
-                        {/* Left Arrow */}
-                        {navigation.canGoLeft && (
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    if (!navigation.isTransitioning && navigation.canGoLeft) {
-                                        navigation.navigateLeft();
-                                    }
-                                }}
-                                disabled={!navigation.canGoLeft || navigation.isTransitioning}
-                                className="knitting-nav-arrow knitting-nav-arrow-left"
-                            >
-                                <ChevronLeft size={18} />
-                            </button>
-                        )}
-
-                        {/* Spacer for centering */}
-                        {!navigation.canGoLeft && <div style={{ width: '48px' }} />}
-
-                        <div className="text-center flex-1 px-2">
-                            <div className="text-sm font-medium text-gray-900 mb-1">
-                                Step {stepIndex + 1} of {totalSteps} • {component.name}
-                            </div>
-                            <div className="flex justify-center space-x-1">
-                                {Array.from({ length: totalSteps }, (_, i) => (
-                                    <div
-                                        key={i}
-                                        className={`knitting-progress-dot ${i === stepIndex
-                                            ? 'knitting-progress-dot-active'
-                                            : i < stepIndex
-                                                ? 'bg-sage-300'
-                                                : 'knitting-progress-dot-inactive'
-                                            }`}
-                                    />
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Right Arrow */}
-                        {navigation.canGoRight && (
-                            <button
-                                onClick={(e) => {
-                                    e.preventDefault();
-                                    e.stopPropagation();
-                                    if (!navigation.isTransitioning && navigation.canGoRight) {
-                                        navigation.navigateRight();
-                                    }
-                                }}
-                                disabled={!navigation.canGoRight || navigation.isTransitioning}
-                                className="knitting-nav-arrow knitting-nav-arrow-right"
-                            >
-                                <ChevronRight size={18} />
-                            </button>
-                        )}
-
-                        {/* Spacer for alignment */}
-                        {!navigation.canGoRight && <div style={{ width: '48px' }} />}
-                    </div>
-                </div>
-
-                {/* ✅ PRESERVED CONTENT - Keep existing renderCardContent() */}
+                {/* Content directly connected to header */}
                 {renderCardContent()}
 
-                {/* ✅ PRESERVED FOOTER - Keep existing footer logic */}
+                {/* Footer stays the same */}
                 {currentItem.type === 'step' && (
                     <div className="knitting-modal-footer">
                         <button
                             onClick={() => setViewMode(viewMode === 'instructions' ? 'counter' : 'instructions')}
-                            className="knitting-flip-button w-full flex items-center justify-center gap-2 py-3 rounded-xl transition-colors font-medium shadow-sm"
+                            className="knitting-flip-button"
                         >
                             <RotateCcw size={18} />
                             <span>{viewMode === 'instructions' ? 'Switch to Counter' : 'Back to Instructions'}</span>
@@ -381,7 +364,7 @@ const KnittingStepModal = ({
                     </div>
                 )}
 
-                {/* ✅ PRESERVED TRANSITION OVERLAY */}
+                {/* Transition overlay */}
                 {navigation.isTransitioning && (
                     <div className="knitting-transition-overlay">
                         <div className="knitting-transition-message">
