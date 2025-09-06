@@ -400,6 +400,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
           editMode={null}
           onBack={handleBackFromWizard}
           onGoToLanding={onGoToLanding}
+          mode={mode}
         />
       );
     }
@@ -426,6 +427,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
         editMode={editMode}
         onBack={handleBackFromWizard}
         onGoToLanding={onGoToLanding}
+        mode={mode}
       />
     );
   }

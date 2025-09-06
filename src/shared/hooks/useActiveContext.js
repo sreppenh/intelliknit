@@ -6,12 +6,18 @@
 import { useProjectsContext } from '../../features/projects/hooks/useProjectsContext';
 import { useNotesContext } from '../../features/notes/hooks/useNotesContext';
 
+
 export const useActiveContext = (mode = 'project') => {
     const projectsContext = useProjectsContext();
     const notesContext = useNotesContext();
 
+    console.log('🔧 useActiveContext called with mode:', mode);
+    console.log('🔧 notesContext.currentNote:', notesContext.currentNote);
+
     // For notepad mode, use notes context
     if (mode === 'notepad' || mode === 'note') {
+        console.log('🔧 Using notes context, returning dispatch:', notesContext.dispatch);
+
         const currentNote = notesContext.currentNote;
 
         const mappedComponents = currentNote?.components?.map(comp => {
@@ -74,6 +80,8 @@ export const useActiveContext = (mode = 'project') => {
             contextType: 'note'
         };
     }
+
+    console.log('🔧 Using projects context');
 
     // Default to projects context
     return {

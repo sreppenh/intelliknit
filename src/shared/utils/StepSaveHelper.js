@@ -83,12 +83,15 @@ export const useStepSaveHelper = () => {
                 }
             };
 
-            // Dispatch appropriate action...
-
-            // Dispatch appropriate action (following exact pattern from useStepActions)
+            // Dispatch appropriate action - detect context type from dispatch function
             if (editingStepIndex !== null) {
+                // Editing existing step
+                const actionType = dispatch.toString().includes('notesReducer') ||
+                    (typeof dispatch._context === 'object' && dispatch._context.isNoteMode) ?
+                    'UPDATE_STEP_IN_NOTE' : 'UPDATE_STEP';
+
                 dispatch({
-                    type: 'UPDATE_STEP',
+                    type: actionType,
                     payload: {
                         componentIndex,
                         stepIndex: editingStepIndex,
@@ -96,8 +99,13 @@ export const useStepSaveHelper = () => {
                     }
                 });
             } else {
+                // Adding new step
+                const actionType = dispatch.toString().includes('notesReducer') ||
+                    (typeof dispatch._context === 'object' && dispatch._context.isNoteMode) ?
+                    'ADD_STEP_TO_NOTE' : 'ADD_STEP';
+
                 dispatch({
-                    type: 'ADD_STEP',
+                    type: actionType,
                     payload: {
                         componentIndex,
                         step: stepData

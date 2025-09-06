@@ -50,6 +50,9 @@ const EvenDistributionConfig = ({
 
   // Handle save from form component
   const handleFormSave = async (configData) => {
+    console.log('🔧 EvenDistributionConfig handleFormSave called with mode:', mode);
+    console.log('🔧 configData:', configData);
+    console.log('🔧 dispatch function:', dispatch);
     // Preserve original data structure and flow - EXACTLY as before
     const originalShapingData = {
       ...configData,

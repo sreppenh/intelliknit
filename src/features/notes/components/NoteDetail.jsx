@@ -68,7 +68,6 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
     // Get note info - moved up to be available for hooks
     const hasStep = currentNote?.components?.[0]?.steps?.length > 0;
     const step = hasStep ? currentNote.components[0].steps[0] : null;
-    console.log('NoteDetail step.completed:', step?.completed);
 
     const hasYarns = currentNote?.yarns?.length > 0 && currentNote.yarns.some(y => y.colorHex);
     const hasGauge = currentNote?.gauge?.stitchGauge || currentNote?.gauge?.rowGauge;

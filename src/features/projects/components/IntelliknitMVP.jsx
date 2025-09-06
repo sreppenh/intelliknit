@@ -160,7 +160,9 @@ const IntelliknitMVPContent = () => {
 
   const handleNoteEditSteps = (componentIndex) => {
     notesContext.setSelectedComponentIndex(componentIndex);
+    // setCurrentView('manage-steps-notepad');
     setCurrentView('configure-note-pattern');
+
   };
 
   // Router logic based on current view
@@ -302,6 +304,17 @@ const IntelliknitMVPContent = () => {
         <ConfigureNotePattern
           onBack={() => setCurrentView('note-detail')}
           onGoToLanding={goToLanding}
+        />
+      );
+
+    case 'manage-steps-notepad':
+      return (
+        <ManageSteps
+          componentIndex={notesContext.selectedComponentIndex}
+          onBack={() => setCurrentView('note-detail')}
+          onStartKnitting={() => setCurrentView('note-detail')} // For now, just go back to note detail
+          onGoToLanding={goToLanding}
+          mode="notepad"
         />
       );
 

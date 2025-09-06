@@ -42,8 +42,6 @@ const KnittingStepCounter = ({
     onShowCelebration
 }) => {
 
-    console.log('KnittingStepCounter onShowCelebration:', !!onShowCelebration);
-
     const isNotepadMode = project?.isNotepadMode || false;
 
     const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step, isNotepadMode);
@@ -361,7 +359,6 @@ const KnittingStepCounter = ({
     };
 
     const handleStepComplete = () => {
-        console.log('handleStepComplete called, current completed status:', isCompleted);
 
         // For notepad mode, trigger celebration instead of just completing
         if (isNotepadMode && !isCompleted && onShowCelebration) {
@@ -466,7 +463,6 @@ const KnittingStepCounter = ({
         try {
             // Check if we can navigate right (this handles both carousel and step navigation)
             if (navigation.canGoRight) {
-                console.log('🎯 Calling navigation.navigateRight()');
                 navigation.navigateRight();
                 IntelliKnitLogger.debug('Row Counter', 'Successfully navigated to next step');
             } else {
