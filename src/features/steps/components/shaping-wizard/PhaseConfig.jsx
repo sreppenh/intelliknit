@@ -21,7 +21,7 @@ const PhaseConfig = ({
   onComplete,
   onCancel,
   onBack,
-  mode = 'creation', // ✅ ADDED: Accept mode prop with default
+  mode = 'create', // ✅ ADDED: Accept mode prop with default
   wizardData,
   onGoToLanding,
   wizard

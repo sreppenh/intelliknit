@@ -6,7 +6,6 @@ const DurationChoice = ({
   updateWizardData,
   construction,
   project,
-  // mode = 'creation',
   mode,
   onSave,
   onCancel,
@@ -34,7 +33,7 @@ const DurationChoice = ({
   }
 
   const isEditMode = mode === 'edit';
-  const isCreationMode = mode === 'creation';
+  const isCreateMode = mode === 'create';
 
   const patternHasRepeats = wizardData.stitchPattern.rowsInPattern &&
     parseInt(wizardData.stitchPattern.rowsInPattern) > 0;

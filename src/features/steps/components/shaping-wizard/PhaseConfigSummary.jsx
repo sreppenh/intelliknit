@@ -26,7 +26,7 @@ const PhaseConfigSummary = ({
   wizardData,
   onGoToLanding,
   wizard,
-  mode = 'creation', // ✅ ADDED: Accept mode prop with default
+  mode = 'create', // ✅ ADDED: Accept mode prop with default
   contextMode = 'project' // ✅ ADDED: Accept contextMode for useActiveContext
 }) => {
 
@@ -53,7 +53,7 @@ const PhaseConfigSummary = ({
         description: result.instruction
       });
     } else {
-      // Creation mode: Use saveStepAndNavigate (triggers ADD_STEP)
+      // create mode: Use saveStepAndNavigate (triggers ADD_STEP)
       const originalPhaseData = {
         phases: phases,
         construction: construction,
@@ -151,7 +151,7 @@ const PhaseConfigSummary = ({
 
   return (
     <div>
-      {/* FIXED: Only show ShapingHeader in creation mode */}
+      {/* FIXED: Only show ShapingHeader in create mode */}
       {!isEditMode && (
         <ShapingHeader
           onBack={handleBackWithWarning}

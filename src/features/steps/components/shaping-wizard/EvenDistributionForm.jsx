@@ -15,7 +15,7 @@ const EvenDistributionForm = ({
     currentStitches,
     construction,
     initialConfig = {},
-    mode = 'creation',
+    mode = 'create',
     onSave,
     onCancel,
     showSaveActions = false
