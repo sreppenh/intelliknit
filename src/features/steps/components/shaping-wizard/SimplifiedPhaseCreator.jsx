@@ -2,11 +2,11 @@
 import React, { useState, useMemo } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
-import StandardModal from '../../../../shared/components/StandardModal';
 import ShapingHeader from './ShapingHeader';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import StandardModal from '../../../../shared/components/modals/StandardModal';
 
 const ModalBasedPhaseCreator = ({
     markerArray = [],

@@ -3,40 +3,50 @@ import React, { useState, useEffect, useMemo } from 'react';
 import ShapingHeader from './ShapingHeader';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import MarkerSequenceSummary from './MarkerSequenceSummary';
-import MarkerSequenceWizard from './MarkerSequenceWizard';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { MarkerSequenceCalculator } from '../../../../shared/utils/MarkerSequenceCalculator';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import SimplifiedPhaseCreator from './SimplifiedPhaseCreator';
 
-// ===== NEW: IMPROVED MARKER COLOR SYSTEM =====
+
+// ===== NEW: MARKER TYPE SYSTEM =====
+const MARKER_TYPES = [
+    { letter: 'M', label: 'Marker', bgColor: 'bg-sky-100', borderColor: 'border-sky-400', textColor: 'text-sky-700' },
+    { letter: 'L', label: 'Left', bgColor: 'bg-emerald-100', borderColor: 'border-emerald-400', textColor: 'text-emerald-700' },
+    { letter: 'R', label: 'Right/Raglan', bgColor: 'bg-amber-100', borderColor: 'border-amber-400', textColor: 'text-amber-700' },
+    { letter: 'S', label: 'Side/Shoulder', bgColor: 'bg-rose-100', borderColor: 'border-rose-400', textColor: 'text-rose-700' },
+    { letter: 'V', label: 'V-neck', bgColor: 'bg-violet-100', borderColor: 'border-violet-400', textColor: 'text-violet-700' },
+    { letter: 'W', label: 'Waist', bgColor: 'bg-indigo-100', borderColor: 'border-indigo-400', textColor: 'text-indigo-700' },
+    { letter: 'A', label: 'Armhole', bgColor: 'bg-purple-100', borderColor: 'border-purple-400', textColor: 'text-purple-700' },
+    { letter: 'B', label: 'Back', bgColor: 'bg-teal-100', borderColor: 'border-teal-400', textColor: 'text-teal-700' }
+];
+
+const getMarkerTypeByLetter = (letter) => {
+    return MARKER_TYPES.find(type => type.letter === letter) || MARKER_TYPES[0]; // Default to 'M'
+};
+
 const getMarkerPrefix = (markerName) => {
     if (markerName === 'BOR') return 'BOR';
 
-    // Extract letters before the last number: "RA2" → "RA", "M12" → "M", "ABC" → "ABC"
+    // Extract letters before the number: "R2" → "R", "ABC" → "ABC"
     const match = markerName.match(/^([A-Z]+)(\d*)$/);
     return match ? match[1] : markerName;
 };
 
 const getMarkerColorFromPrefix = (prefix) => {
-    const colors = [
-        { bgColor: 'bg-sky-100', borderColor: 'border-sky-400', textColor: 'text-sky-700' },
-        { bgColor: 'bg-emerald-100', borderColor: 'border-emerald-400', textColor: 'text-emerald-700' },
-        { bgColor: 'bg-amber-100', borderColor: 'border-amber-400', textColor: 'text-amber-700' },
-        { bgColor: 'bg-rose-100', borderColor: 'border-rose-400', textColor: 'text-rose-700' },
-        { bgColor: 'bg-violet-100', borderColor: 'border-violet-400', textColor: 'text-violet-700' },
-        { bgColor: 'bg-indigo-100', borderColor: 'border-indigo-400', textColor: 'text-indigo-700' }
-    ];
-
     if (prefix === 'BOR') {
         return { bgColor: 'bg-sage-200', borderColor: 'border-sage-500', textColor: 'text-sage-700' };
     }
 
-    // Simple hash to get consistent color for prefix
-    const hash = prefix.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
-    return colors[hash % colors.length];
+    const markerType = getMarkerTypeByLetter(prefix);
+    return {
+        bgColor: markerType.bgColor,
+        borderColor: markerType.borderColor,
+        textColor: markerType.textColor
+    };
 };
 
 const MarkerPhasesConfig = ({
@@ -209,24 +219,84 @@ const MarkerPhasesConfig = ({
         });
     };
 
-    // ===== UPDATE SEGMENT =====
+    // ===== UPDATE SEGMENT (STITCH COUNTS ONLY) =====
     const updateSegment = (segmentId, field, value) => {
         setSegments(prev => prev.map(segment => {
-            if (segment.id === segmentId) {
-                if (field === 'count') {
-                    // For stitch count, ensure it's a valid number
-                    const numValue = parseInt(value) || 0;
-                    return { ...segment, count: Math.max(0, numValue) };
-                } else if (field === 'name') {
-                    // For marker name - uppercase and limit to 3 characters
-                    const upperValue = value.toUpperCase();
-                    if (upperValue.length <= 3) {
-                        return { ...segment, name: upperValue };
-                    }
-                }
+            if (segment.id === segmentId && field === 'count') {
+                // For stitch count, ensure it's a valid number
+                const numValue = parseInt(value) || 0;
+                return { ...segment, count: Math.max(0, numValue) };
             }
             return segment;
         }));
+    };
+
+    // ===== AUTO-RENUMBER MARKERS =====
+    const changeMarkerType = (segmentId, newLetter) => {
+        setSegments(prev => {
+            const newSegments = [...prev];
+
+            // Find the marker being changed
+            const markerIndex = newSegments.findIndex(s => s.id === segmentId);
+            if (markerIndex === -1) return prev;
+
+            // Update the marker with new letter
+            const oldMarker = newSegments[markerIndex];
+            newSegments[markerIndex] = {
+                ...oldMarker,
+                name: newLetter // Will get numbered below
+            };
+
+            // Renumber ALL markers of this letter type by their position
+            const markersOfThisType = [];
+            newSegments.forEach((segment, index) => {
+                if (segment.type === 'marker' && !segment.readonly) {
+                    const prefix = getMarkerPrefix(segment.name);
+                    if (prefix === newLetter) {
+                        markersOfThisType.push({ segment, index, position: index });
+                    }
+                }
+            });
+
+            // Sort by position and renumber
+            markersOfThisType.sort((a, b) => a.position - b.position);
+            markersOfThisType.forEach((item, idx) => {
+                newSegments[item.index] = {
+                    ...item.segment,
+                    name: `${newLetter}${idx + 1}`,
+                    id: `marker_${newLetter}${idx + 1}_${item.index}`
+                };
+            });
+
+            return newSegments;
+        });
+    };
+
+    // ===== RENDER MARKER TYPE CHIPS =====
+    const renderMarkerTypeChips = (currentMarker, segmentId) => {
+        const currentPrefix = getMarkerPrefix(currentMarker.name);
+
+        return (
+            <div className="flex flex-wrap gap-1">
+                {MARKER_TYPES.map((type) => {
+                    const isSelected = currentPrefix === type.letter;
+                    return (
+                        <button
+                            key={type.letter}
+                            type="button"
+                            onClick={() => changeMarkerType(segmentId, type.letter)}
+                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all duration-200 ${isSelected
+                                ? `${type.borderColor} ${type.bgColor} ${type.textColor} shadow-sm ring-2 ring-sage-500 ring-opacity-30`
+                                : `${type.borderColor} ${type.bgColor} ${type.textColor} hover:shadow-sm hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
+                                }`}
+                            title={type.label}
+                        >
+                            {type.letter}
+                        </button>
+                    );
+                })}
+            </div>
+        );
     };
 
     // ===== RENDER MARKER BUBBLE =====
@@ -431,30 +501,26 @@ const MarkerPhasesConfig = ({
                             <h4 className="text-sm font-semibold text-sage-700 mb-4">Configure Your Markers</h4>
 
                             {/* Visual builder with live preview */}
-                            <div className="space-y-3">
+                            <div className="space-y-4">
                                 {segments.map((segment, index) => (
-                                    <div key={segment.id} className="flex items-center gap-3">
+                                    <div key={segment.id} className="space-y-2">
                                         {segment.type === 'marker' ? (
-                                            <>
-                                                {renderMarkerBubble(segment, index)}
+                                            <div className="flex items-center justify-between">
+                                                {/* Marker Display */}
+                                                <div className="flex items-center gap-2">
+                                                    {renderMarkerBubble(segment, index)}
+                                                </div>
+
+                                                {/* Type Selection Chips */}
                                                 {!segment.readonly && (
-                                                    <input
-                                                        type="text"
-                                                        value={segment.name}
-                                                        onChange={(e) => {
-                                                            const value = e.target.value.toUpperCase();
-                                                            if (value.length <= 3) {
-                                                                updateSegment(segment.id, 'name', value);
-                                                            }
-                                                        }}
-                                                        className="w-16 text-center border-2 border-wool-200 rounded-lg px-2 py-1 text-sm focus:border-sage-500"
-                                                        placeholder="M1"
-                                                        maxLength={3}
-                                                    />
+                                                    <div className="flex items-center gap-2">
+                                                        <span className="text-xs text-wool-500 mr-1">Type:</span>
+                                                        {renderMarkerTypeChips(segment, segment.id)}
+                                                    </div>
                                                 )}
-                                            </>
+                                            </div>
                                         ) : (
-                                            <div className="flex items-center gap-2 flex-1">
+                                            <div className="flex items-center gap-3 pl-4">
                                                 <span className="text-sm text-wool-600 font-medium min-w-[80px]">
                                                     Stitches:
                                                 </span>
@@ -466,7 +532,7 @@ const MarkerPhasesConfig = ({
                                                     label="stitches"
                                                     size="sm"
                                                 />
-                                                <span className="text-xs text-wool-500 ml-2">
+                                                <span className="text-xs text-wool-500">
                                                     {index === segments.length - 1
                                                         ? (construction === 'round' ? 'back to BOR' : 'to end')
                                                         : 'to next marker'
@@ -568,7 +634,7 @@ const MarkerPhasesConfig = ({
     // ===== RENDER SCREEN 3: SEQUENCE WIZARD =====
     if (currentScreen === 'sequence-wizard') {
         return (
-            <MarkerSequenceWizard
+            <SimplifiedPhaseCreator
                 markerArray={markerArray}
                 construction={construction}
                 onComplete={handleSequenceComplete}
