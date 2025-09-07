@@ -181,8 +181,8 @@ const MarkerPhasesConfig = ({
     const handleComplete = () => {
         if (!isValid) return;
 
-        // For now, create a simple sequence structure
-        // This will be expanded when we add the action definition UI
+        console.log("MarkerPhasesConfig.handleComplete called");
+
         const basicSequence = {
             id: 'marker_setup',
             name: 'Marker Setup',
@@ -191,7 +191,7 @@ const MarkerPhasesConfig = ({
                 type: 'setup',
                 config: { rows: 1 }
             }],
-            actions: [] // Will be populated when action system is built
+            actions: []
         };
 
         const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
@@ -200,19 +200,20 @@ const MarkerPhasesConfig = ({
             construction
         );
 
-        const finalConfig = {
-            type: 'marker_phases',
-            config: {
-                markerSetup: hasExistingMarkers ? 'existing' : 'new',
-                stitchArray: currentArray,
-                markerCount: markerCount,
-                sequences: [basicSequence],
-                calculation: calculation
-            }
+        // Format to match what Sequential Phases provides
+        const shapingConfigData = {
+            markerSetup: hasExistingMarkers ? 'existing' : 'new',
+            stitchArray: currentArray,
+            markerCount: markerCount,
+            sequences: [basicSequence],
+            calculation: calculation
         };
 
-        IntelliKnitLogger.success('Marker Setup Complete', finalConfig);
-        onComplete(finalConfig);
+        console.log("Calling onComplete with shaping config:", shapingConfigData);
+        IntelliKnitLogger.success('Marker Setup Complete', shapingConfigData);
+
+        // Call onComplete with just the config data, not wrapped in type/config
+        onComplete(shapingConfigData);
     };
 
     // ===== RENDER =====

@@ -11,12 +11,8 @@ export const useActiveContext = (mode = 'project') => {
     const projectsContext = useProjectsContext();
     const notesContext = useNotesContext();
 
-    console.log('🔧 useActiveContext called with mode:', mode);
-    console.log('🔧 notesContext.currentNote:', notesContext.currentNote);
-
     // For notepad mode, use notes context
     if (mode === 'notepad' || mode === 'note') {
-        console.log('🔧 Using notes context, returning dispatch:', notesContext.dispatch);
 
         const currentNote = notesContext.currentNote;
 
@@ -80,8 +76,6 @@ export const useActiveContext = (mode = 'project') => {
             contextType: 'note'
         };
     }
-
-    console.log('🔧 Using projects context');
 
     // Default to projects context
     return {
