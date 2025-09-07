@@ -3,6 +3,7 @@ import React from 'react';
 import ShapingHeader from './ShapingHeader';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 const MarkerSequenceSummary = ({
     markerArray = [],
@@ -25,53 +26,48 @@ const MarkerSequenceSummary = ({
             return 'Empty sequence';
         }
 
+        const terms = getConstructionTerms(construction);
+
         const descriptions = sequence.phases.map((phase, index) => {
             if (phase.type === 'plain') {
-                return `Work ${phase.rows} plain ${phase.rows === 1 ? 'row' : 'rows'}`;
+                return `Work ${phase.rows} plain ${phase.rows === 1 ? terms.row : terms.rows}`;
             }
 
-            // Build detailed shaping description
-            let parts = [];
+            // Build detailed shaping description from actions array
+            const actionDescriptions = (phase.actions || []).map(action => {
+                let target = '';
+                if (action.targetType === 'markers' && action.markers?.length > 0) {
+                    target = action.markers.join(', ');
+                } else if (action.targetType === 'edges' && action.edges?.length > 0) {
+                    target = action.edges.join(' & ');
+                } else if (action.targetType === 'bor') {
+                    target = 'BOR';
+                }
 
-            // Marker actions - detail each marker's specific action
-            if (phase.selectedMarkers?.length > 0) {
-                const markerActions = phase.selectedMarkers.map(marker => {
-                    const action = phase.markerAction === 'increase' ? 'increase' : 'decrease';
-                    const position = phase.markerPosition === 'before' ? 'before' : 'after';
-                    const distance = phase.markerDistance || 1;
-                    const actionType = phase.markerActionType || (action === 'increase' ? 'M1L' : 'SSK');
+                const actionText = action.specificAction || action.actionType;
+                const position = action.position ? ` ${action.position}` : '';
+                const distance = action.distance > 0 ? ` ${action.distance}st` : '';
 
-                    return `${actionType} ${distance} st ${position} ${marker}`;
-                });
-                parts.push(markerActions.join(', '));
-            }
+                return `${actionText}${distance}${position} ${target}`;
+            });
 
-            // Edge actions
-            if (phase.selectedEdges?.length > 0) {
-                const edgeActions = phase.selectedEdges.map(edge => {
-                    const action = phase.edgeAction === 'increase' ? 'increase' :
-                        phase.edgeAction === 'decrease' ? 'decrease' : 'bind off';
-                    const distance = phase.edgeDistance || 0;
-                    return distance > 0 ? `${action} ${distance} st from ${edge}` : `${action} at ${edge}`;
-                });
-                parts.push(edgeActions.join(', '));
-            }
+            let description = actionDescriptions.join(', ');
 
             // Add timing if applicable
             if (phase.times > 1 && phase.frequency) {
-                const freqText = phase.frequency === 1 ? 'every row' :
-                    phase.frequency === 2 ? 'every other row' :
-                        `every ${phase.frequency} rows`;
-                parts.push(`${freqText} ${phase.times} times`);
+                const freqText = phase.frequency === 1 ? terms.everyRow :
+                    phase.frequency === 2 ? terms.everyOtherRow :
+                        terms.everyNthRow(phase.frequency);
+                description += ` ${freqText} ${phase.times} times`;
 
-                // Calculate stitch change like PhaseConfig does
+                // Calculate stitch change
                 const stitchChange = calculatePhaseStitchChange(phase);
                 if (stitchChange !== 0) {
-                    parts.push(`(${stitchChange > 0 ? '+' : ''}${stitchChange} stitches)`);
+                    description += ` (${stitchChange > 0 ? '+' : ''}${stitchChange} stitches)`;
                 }
             }
 
-            return parts.join(' ');
+            return description;
         });
 
         return descriptions.join(' → ');
@@ -85,25 +81,24 @@ const MarkerSequenceSummary = ({
         const amount = phase.amount || 1;
         const times = phase.times || 1;
 
-        // Marker actions
-        if (phase.selectedMarkers?.length > 0) {
-            const markerCount = phase.selectedMarkers.length;
-            const isIncrease = phase.markerAction === 'increase';
-            totalChange += (isIncrease ? amount : -amount) * markerCount * times;
-        }
+        // Calculate from actions array
+        (phase.actions || []).forEach(action => {
+            let actionCount = 0;
 
-        // Edge actions  
-        if (phase.selectedEdges?.length > 0) {
-            const edgeCount = phase.selectedEdges.length;
-            const isIncrease = phase.edgeAction === 'increase';
-            const isBindOff = phase.edgeAction === 'bind_off';
-
-            if (isBindOff) {
-                totalChange -= amount * edgeCount * times;
-            } else {
-                totalChange += (isIncrease ? amount : -amount) * edgeCount * times;
+            if (action.targetType === 'markers' && action.markers?.length > 0) {
+                actionCount = action.markers.length;
+            } else if (action.targetType === 'edges' && action.edges?.length > 0) {
+                actionCount = action.edges.length;
+            } else if (action.targetType === 'bor') {
+                actionCount = 1;
             }
-        }
+
+            if (action.actionType === 'increase') {
+                totalChange += amount * actionCount * times;
+            } else if (action.actionType === 'decrease' || action.actionType === 'bind_off') {
+                totalChange -= amount * actionCount * times;
+            }
+        });
 
         return totalChange;
     };
@@ -228,12 +223,12 @@ const MarkerSequenceSummary = ({
                                         </div>
                                         <div>
                                             <span className="text-wool-500">Total:</span>
-                                            <span className="font-medium ml-1">{calculation.totalRows} rows</span>
+                                            <span className="font-medium ml-1">{calculation.totalRows} {getConstructionTerms(construction).rows}</span>
                                         </div>
                                         <div>
                                             <span className="text-wool-500">Change:</span>
                                             <span className={`font-medium ml-1 ${calculation.netStitchChange > 0 ? 'text-green-600' :
-                                                    calculation.netStitchChange < 0 ? 'text-red-600' : 'text-wool-600'
+                                                calculation.netStitchChange < 0 ? 'text-red-600' : 'text-wool-600'
                                                 }`}>
                                                 {calculation.netStitchChange > 0 ? '+' : ''}{calculation.netStitchChange}
                                             </span>
