@@ -1,4 +1,4 @@
-// src/features/steps/components/shaping-wizard/ModalBasedPhaseCreator.jsx
+// src/features/steps/components/shaping-wizard/RowByRowMarkerPhaseCreator.jsx
 import React, { useState, useMemo } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
@@ -6,9 +6,8 @@ import ShapingHeader from './ShapingHeader';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
-import StandardModal from '../../../../shared/components/modals/StandardModal';
 
-const ModalBasedPhaseCreator = ({
+const RowByRowMarkerPhaseCreator = ({
     markerArray = [],
     construction = 'flat',
     currentStitches = 0,
@@ -19,13 +18,25 @@ const ModalBasedPhaseCreator = ({
     onGoToLanding,
     editingSequence = null
 }) => {
-    // ===== MAIN STATE =====
-    const [actions, setActions] = useState([]);
-    const [showActionModal, setShowActionModal] = useState(false);
-    const [editingActionIndex, setEditingActionIndex] = useState(null);
+    // ===== PHASE STATE =====
+    const [phase, setPhase] = useState({
+        rounds: [], // Array of round definitions
+        frequency: 2, // How often the sequence repeats
+        repeatMethod: 'times',
+        times: 10,
+        targetStitches: currentStitches + 20
+    });
 
-    // ===== MODAL STATE =====
-    const [modalAction, setModalAction] = useState({
+    // ===== CURRENT ROUND BEING BUILT =====
+    const [currentRound, setCurrentRound] = useState({
+        actions: [], // Array of simultaneous actions
+        type: 'actions' // 'actions' or 'pattern'
+    });
+
+    const [editingRoundIndex, setEditingRoundIndex] = useState(null);
+
+    // ===== CURRENT ACTION BEING BUILT =====
+    const [currentAction, setCurrentAction] = useState({
         targets: {
             markers: [],
             edges: [],
@@ -35,10 +46,7 @@ const ModalBasedPhaseCreator = ({
         specificAction: 'm1l',
         position: 'before',
         distance: 1,
-        repeatMethod: 'times',
-        frequency: 2,
-        times: 10,
-        targetStitches: null
+        amount: 1
     });
 
     // ===== AVAILABLE TARGETS =====
@@ -74,9 +82,8 @@ const ModalBasedPhaseCreator = ({
 
     // ===== ACTION DESCRIPTION =====
     const getActionDescription = (action) => {
-        const { targets, actionType, specificAction, position, distance, repeatMethod, frequency, times, targetStitches, bindOffAmount } = action;
+        const { targets, actionType, specificAction, position, distance, amount } = action;
 
-        // Build target list
         const targetList = [];
         if (targets.markers.length > 0) {
             targetList.push(...targets.markers);
@@ -92,72 +99,28 @@ const ModalBasedPhaseCreator = ({
         const actionText = specificAction?.toUpperCase() || actionType;
         const positionText = position && actionType !== 'bind_off' ? ` ${position}` : '';
         const distanceText = distance > 0 && actionType !== 'bind_off' ? ` ${distance}st` : '';
-        const bindOffText = actionType === 'bind_off' && bindOffAmount ? ` ${bindOffAmount} stitches` : '';
+        const amountText = actionType === 'bind_off' ? ` ${amount} stitches` :
+            amount > 1 && actionType !== 'bind_off' ? ` ${amount} stitches` : '';
 
-        let timingText = '';
-        if (repeatMethod === 'times') {
-            timingText = ` every ${frequency === 1 ? terms.row : frequency === 2 ? `other ${terms.row}` : `${frequency} ${terms.rows}`} ${times} times`;
-        } else if (repeatMethod === 'target' && targetStitches) {
-            timingText = ` every ${frequency === 1 ? terms.row : frequency === 2 ? `other ${terms.row}` : `${frequency} ${terms.rows}`} until ${targetStitches} stitches remain`;
+        return `${actionText}${amountText}${distanceText}${positionText} ${targetText}`;
+    };
+
+    // ===== ROUND DESCRIPTION =====
+    const getRoundDescription = (round) => {
+        if (round.type === 'pattern') {
+            return 'In Pattern';
         }
 
-        return `${actionText}${bindOffText}${distanceText}${positionText} ${targetText}${timingText}`;
-    };
-
-    // ===== MODAL FUNCTIONS =====
-    const openActionModal = (actionIndex = null) => {
-        if (actionIndex !== null) {
-            // Editing existing action
-            setEditingActionIndex(actionIndex);
-            setModalAction({ ...actions[actionIndex] });
-        } else {
-            // Creating new action
-            setEditingActionIndex(null);
-            setModalAction({
-                targets: {
-                    markers: [],
-                    edges: [],
-                    bor: false
-                },
-                actionType: 'increase',
-                specificAction: 'm1l',
-                position: 'before',
-                distance: 1,
-                repeatMethod: 'times',
-                frequency: 2,
-                times: 10,
-                targetStitches: null,
-                bindOffAmount: 1
-            });
+        if (round.actions.length === 0) {
+            return 'No actions defined';
         }
-        setShowActionModal(true);
+
+        return round.actions.map(getActionDescription).join('; ');
     };
 
-    const closeActionModal = () => {
-        setShowActionModal(false);
-        setEditingActionIndex(null);
-    };
-
-    const saveAction = () => {
-        if (editingActionIndex !== null) {
-            // Update existing action
-            const newActions = [...actions];
-            newActions[editingActionIndex] = { ...modalAction };
-            setActions(newActions);
-        } else {
-            // Add new action
-            setActions([...actions, { ...modalAction }]);
-        }
-        closeActionModal();
-    };
-
-    const removeAction = (index) => {
-        setActions(actions.filter((_, i) => i !== index));
-    };
-
-    // ===== MODAL TARGET SELECTION =====
+    // ===== TARGET MANAGEMENT =====
     const toggleMarkerTarget = (marker) => {
-        setModalAction(prev => ({
+        setCurrentAction(prev => ({
             ...prev,
             targets: {
                 ...prev.targets,
@@ -169,7 +132,7 @@ const ModalBasedPhaseCreator = ({
     };
 
     const toggleEdgeTarget = (edge) => {
-        setModalAction(prev => ({
+        setCurrentAction(prev => ({
             ...prev,
             targets: {
                 ...prev.targets,
@@ -181,7 +144,7 @@ const ModalBasedPhaseCreator = ({
     };
 
     const toggleBORTarget = () => {
-        setModalAction(prev => ({
+        setCurrentAction(prev => ({
             ...prev,
             targets: {
                 ...prev.targets,
@@ -190,25 +153,47 @@ const ModalBasedPhaseCreator = ({
         }));
     };
 
-    // ===== MODAL UPDATE =====
-    const updateModalAction = (field, value) => {
-        setModalAction(prev => {
+    const selectAllMarkers = () => {
+        setCurrentAction(prev => ({
+            ...prev,
+            targets: {
+                ...prev.targets,
+                markers: [...availableMarkers]
+            }
+        }));
+    };
+
+    const clearAllTargets = () => {
+        setCurrentAction(prev => ({
+            ...prev,
+            targets: {
+                markers: [],
+                edges: [],
+                bor: false
+            }
+        }));
+    };
+
+    // ===== ACTION MANAGEMENT =====
+    const updateCurrentAction = (field, value) => {
+        setCurrentAction(prev => {
             const newAction = { ...prev, [field]: value };
 
-            // Smart defaults when changing action type
             if (field === 'actionType') {
                 const specificTypes = getSpecificActionTypes(value);
                 if (specificTypes.length > 0) {
                     newAction.specificAction = specificTypes[0].value;
                 }
 
-                // Set appropriate position defaults
                 if (value === 'increase') {
                     newAction.position = 'before';
+                    newAction.amount = 1;
                 } else if (value === 'decrease') {
                     newAction.position = 'before';
+                    newAction.amount = 1;
                 } else if (value === 'bind_off') {
                     newAction.position = 'at';
+                    newAction.amount = 1;
                 }
             }
 
@@ -216,50 +201,131 @@ const ModalBasedPhaseCreator = ({
         });
     };
 
+    const addActionToCurrentRound = () => {
+        setCurrentRound(prev => ({
+            ...prev,
+            actions: [...prev.actions, { ...currentAction }]
+        }));
+
+        // Reset action but keep some smart defaults
+        setCurrentAction({
+            targets: { markers: [], edges: [], bor: false },
+            actionType: currentAction.actionType,
+            specificAction: currentAction.specificAction,
+            position: currentAction.position,
+            distance: 1,
+            amount: 1
+        });
+    };
+
+    const removeActionFromCurrentRound = (index) => {
+        setCurrentRound(prev => ({
+            ...prev,
+            actions: prev.actions.filter((_, i) => i !== index)
+        }));
+    };
+
+    // ===== ROUND MANAGEMENT =====
+    const saveCurrentRound = () => {
+        if (editingRoundIndex !== null) {
+            // Update existing round
+            setPhase(prev => ({
+                ...prev,
+                rounds: prev.rounds.map((round, index) =>
+                    index === editingRoundIndex ? { ...currentRound } : round
+                )
+            }));
+        } else {
+            // Add new round
+            setPhase(prev => ({
+                ...prev,
+                rounds: [...prev.rounds, { ...currentRound }]
+            }));
+        }
+
+        // Reset current round
+        setCurrentRound({
+            actions: [],
+            type: 'actions'
+        });
+        setEditingRoundIndex(null);
+    };
+
+    const editRound = (index) => {
+        setCurrentRound({ ...phase.rounds[index] });
+        setEditingRoundIndex(index);
+    };
+
+    const deleteRound = (index) => {
+        setPhase(prev => ({
+            ...prev,
+            rounds: prev.rounds.filter((_, i) => i !== index)
+        }));
+    };
+
+    const addPatternRound = () => {
+        setPhase(prev => ({
+            ...prev,
+            rounds: [...prev.rounds, { type: 'pattern', actions: [] }]
+        }));
+    };
+
     // ===== VALIDATION =====
-    const isModalValid = useMemo(() => {
-        const hasTargets = modalAction.targets.markers.length > 0 ||
-            modalAction.targets.edges.length > 0 ||
-            modalAction.targets.bor;
+    const isCurrentActionValid = useMemo(() => {
+        const hasTargets = currentAction.targets.markers.length > 0 ||
+            currentAction.targets.edges.length > 0 ||
+            currentAction.targets.bor;
 
-        const hasValidTiming = modalAction.frequency > 0 &&
-            (modalAction.repeatMethod === 'times' ? modalAction.times > 0 : modalAction.targetStitches > 0);
+        const hasValidAmount = currentAction.actionType !== 'bind_off' || currentAction.amount > 0;
 
-        const hasValidBindOff = modalAction.actionType !== 'bind_off' || modalAction.bindOffAmount > 0;
+        return hasTargets && hasValidAmount;
+    }, [currentAction]);
 
-        return hasTargets && hasValidTiming && hasValidBindOff;
-    }, [modalAction]);
+    const isCurrentRoundValid = useMemo(() => {
+        return currentRound.type === 'pattern' || currentRound.actions.length > 0;
+    }, [currentRound]);
 
-    const isMainValid = useMemo(() => {
-        return actions.length > 0;
-    }, [actions]);
+    const isPhaseValid = useMemo(() => {
+        const hasRounds = phase.rounds.length > 0;
+        const hasValidTiming = phase.frequency > 0 &&
+            (phase.repeatMethod === 'times' ? phase.times > 0 : phase.targetStitches > 0);
+
+        return hasRounds && hasValidTiming;
+    }, [phase]);
+
+    // ===== PHASE PREVIEW =====
+    const getPhasePreview = () => {
+        if (phase.rounds.length === 0) return "No rounds defined yet";
+
+        const roundDescriptions = phase.rounds.map((round, index) =>
+            `${terms.Row} ${index + 1}: ${getRoundDescription(round)}`
+        );
+
+        const timingText = phase.repeatMethod === 'times'
+            ? ` (Repeat ${phase.rounds.length} ${phase.rounds.length === 1 ? terms.row : terms.rows} ${phase.times} times)`
+            : ` (Repeat ${phase.rounds.length} ${phase.rounds.length === 1 ? terms.row : terms.rows} until ${phase.targetStitches} stitches)`;
+
+        return roundDescriptions.join('\n') + timingText;
+    };
 
     // ===== PHASE CREATION =====
     const handleCreatePhase = () => {
-        const shapingPhase = {
-            type: 'shaping',
-            actions: actions.map(action => ({
-                targetType: 'mixed', // Custom type for multiple target types
-                targets: action.targets,
-                actionType: action.actionType,
-                specificAction: action.specificAction,
-                position: action.position,
-                distance: action.distance,
-                repeatMethod: action.repeatMethod,
-                frequency: action.frequency,
-                times: action.times,
-                targetStitches: action.targetStitches,
-                bindOffAmount: action.bindOffAmount
-            }))
+        const markerPhase = {
+            type: 'marker_row_by_row',
+            rounds: phase.rounds,
+            frequency: phase.frequency,
+            repeatMethod: phase.repeatMethod,
+            times: phase.times,
+            targetStitches: phase.targetStitches
         };
 
         const sequence = {
             id: Date.now().toString(),
-            name: 'Marker Shaping Phase',
-            phases: [shapingPhase]
+            name: 'Marker Phase',
+            phases: [markerPhase]
         };
 
-        IntelliKnitLogger.success('Marker shaping phase created', sequence);
+        IntelliKnitLogger.success('Row-by-row marker phase created', sequence);
         onComplete(sequence);
     };
 
@@ -278,7 +344,7 @@ const ModalBasedPhaseCreator = ({
         </button>
     );
 
-    // ===== MAIN RENDER =====
+    // ===== RENDER =====
     return (
         <div>
             <ShapingHeader
@@ -289,7 +355,7 @@ const ModalBasedPhaseCreator = ({
             />
 
             <div className="p-6 space-y-6">
-                {/* Current State & Context */}
+                {/* Current State */}
                 <div className="card bg-yarn-50 border-yarn-200">
                     <div className="flex items-center justify-between mb-4">
                         <h3 className="text-lg font-semibold text-sage-800">Current State</h3>
@@ -307,45 +373,44 @@ const ModalBasedPhaseCreator = ({
                     )}
                 </div>
 
-                {/* Actions List */}
+                {/* Phase Rounds */}
                 <div className="card">
                     <div className="flex items-center justify-between mb-4">
-                        <h3 className="text-lg font-semibold text-sage-800">Shaping Actions</h3>
-                        <button
-                            onClick={() => openActionModal()}
-                            className="btn-primary btn-sm"
-                        >
-                            + Add Action
-                        </button>
+                        <h3 className="text-lg font-semibold text-sage-800">Round Sequence</h3>
+                        <div className="flex gap-2">
+                            <button
+                                onClick={addPatternRound}
+                                className="btn-secondary btn-sm"
+                            >
+                                + Pattern Round
+                            </button>
+                        </div>
                     </div>
 
-                    {actions.length === 0 ? (
-                        <div className="text-center py-8 text-wool-500">
-                            <p className="text-sm">No actions defined yet</p>
-                            <p className="text-xs mt-1">Click "Add Action" to get started</p>
-                        </div>
-                    ) : (
-                        <div className="space-y-3">
-                            {actions.map((action, index) => (
-                                <div key={index} className="p-4 bg-yarn-50 rounded-lg border border-yarn-200">
+                    {phase.rounds.length > 0 && (
+                        <div className="space-y-3 mb-4">
+                            {phase.rounds.map((round, index) => (
+                                <div key={index} className="p-3 bg-yarn-50 rounded-lg border border-yarn-200">
                                     <div className="flex items-start justify-between">
                                         <div className="flex-1">
                                             <div className="text-sm font-medium text-yarn-800 mb-1">
-                                                Action {index + 1}
+                                                {terms.Row} {index + 1}
                                             </div>
                                             <div className="text-sm text-yarn-600">
-                                                {getActionDescription(action)}
+                                                {getRoundDescription(round)}
                                             </div>
                                         </div>
                                         <div className="flex gap-2 ml-4">
+                                            {round.type === 'actions' && (
+                                                <button
+                                                    onClick={() => editRound(index)}
+                                                    className="text-sage-600 hover:text-sage-700 text-sm"
+                                                >
+                                                    Edit
+                                                </button>
+                                            )}
                                             <button
-                                                onClick={() => openActionModal(index)}
-                                                className="text-sage-600 hover:text-sage-700 text-sm"
-                                            >
-                                                Edit
-                                            </button>
-                                            <button
-                                                onClick={() => removeAction(index)}
+                                                onClick={() => deleteRound(index)}
                                                 className="text-red-600 hover:text-red-700 text-sm"
                                             >
                                                 Remove
@@ -358,6 +423,258 @@ const ModalBasedPhaseCreator = ({
                     )}
                 </div>
 
+                {/* Current Round Builder */}
+                <div className="card">
+                    <h3 className="text-lg font-semibold text-sage-800 mb-4">
+                        {editingRoundIndex !== null ? `Edit ${terms.Row} ${editingRoundIndex + 1}` : `Add ${terms.Row} ${phase.rounds.length + 1}`}
+                    </h3>
+
+                    {/* Round Type */}
+                    <div className="mb-4">
+                        <SegmentedControl
+                            label="Round Type"
+                            value={currentRound.type}
+                            onChange={(value) => setCurrentRound(prev => ({ ...prev, type: value, actions: [] }))}
+                            options={[
+                                { value: 'actions', label: 'Shaping Actions' },
+                                { value: 'pattern', label: 'In Pattern' }
+                            ]}
+                        />
+                    </div>
+
+                    {/* Actions in Current Round */}
+                    {currentRound.type === 'actions' && (
+                        <>
+                            {currentRound.actions.length > 0 && (
+                                <div className="mb-4">
+                                    <h4 className="text-base font-semibold text-yarn-800 mb-3">Actions in this Round</h4>
+                                    <div className="space-y-2">
+                                        {currentRound.actions.map((action, index) => (
+                                            <div key={index} className="p-2 bg-sage-50 rounded border border-sage-200">
+                                                <div className="flex items-center justify-between">
+                                                    <div className="text-sm text-sage-700">
+                                                        {getActionDescription(action)}
+                                                    </div>
+                                                    <button
+                                                        onClick={() => removeActionFromCurrentRound(index)}
+                                                        className="text-red-600 hover:text-red-700 text-sm"
+                                                    >
+                                                        Remove
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Add Action Interface */}
+                            <div className="space-y-4 p-4 bg-wool-50 rounded-lg border border-wool-200">
+                                <h4 className="text-base font-semibold text-sage-800">Add Action</h4>
+
+                                {/* Target Selection */}
+                                <div>
+                                    <div className="flex items-center justify-between mb-2">
+                                        <label className="form-label">Select Targets</label>
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={selectAllMarkers}
+                                                className="text-xs text-sage-600 hover:text-sage-700"
+                                            >
+                                                All Markers
+                                            </button>
+                                            <button
+                                                onClick={clearAllTargets}
+                                                className="text-xs text-sage-600 hover:text-sage-700"
+                                            >
+                                                Clear
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div className="flex flex-wrap gap-2">
+                                        {availableMarkers.map(marker => (
+                                            <Bubble
+                                                key={marker}
+                                                active={currentAction.targets.markers.includes(marker)}
+                                                onClick={() => toggleMarkerTarget(marker)}
+                                            >
+                                                {marker}
+                                            </Bubble>
+                                        ))}
+
+                                        {hasEdges && (
+                                            <>
+                                                <Bubble
+                                                    active={currentAction.targets.edges.includes('beginning')}
+                                                    onClick={() => toggleEdgeTarget('beginning')}
+                                                >
+                                                    Beginning
+                                                </Bubble>
+                                                <Bubble
+                                                    active={currentAction.targets.edges.includes('end')}
+                                                    onClick={() => toggleEdgeTarget('end')}
+                                                >
+                                                    End
+                                                </Bubble>
+                                            </>
+                                        )}
+
+                                        {hasBOR && (
+                                            <Bubble
+                                                active={currentAction.targets.bor}
+                                                onClick={toggleBORTarget}
+                                            >
+                                                BOR
+                                            </Bubble>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Action Configuration */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    <div>
+                                        <SegmentedControl
+                                            label="Action Type"
+                                            value={currentAction.actionType}
+                                            onChange={(value) => updateCurrentAction('actionType', value)}
+                                            options={[
+                                                { value: 'increase', label: 'Increase' },
+                                                { value: 'decrease', label: 'Decrease' },
+                                                { value: 'bind_off', label: 'Bind Off' }
+                                            ]}
+                                        />
+                                    </div>
+
+                                    {getSpecificActionTypes(currentAction.actionType).length > 0 && (
+                                        <div>
+                                            <label className="form-label">Technique</label>
+                                            <div className="flex flex-wrap gap-2">
+                                                {getSpecificActionTypes(currentAction.actionType).map(actionType => (
+                                                    <Bubble
+                                                        key={actionType.value}
+                                                        active={currentAction.specificAction === actionType.value}
+                                                        onClick={() => updateCurrentAction('specificAction', actionType.value)}
+                                                    >
+                                                        {actionType.label}
+                                                    </Bubble>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+
+                                {/* Position & Amount */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                    {currentAction.actionType !== 'bind_off' && (
+                                        <div>
+                                            <SegmentedControl
+                                                label="Position"
+                                                value={currentAction.position}
+                                                onChange={(value) => updateCurrentAction('position', value)}
+                                                options={[
+                                                    { value: 'before', label: 'Before' },
+                                                    { value: 'after', label: 'After' },
+                                                    { value: 'at', label: 'At' }
+                                                ]}
+                                            />
+                                        </div>
+                                    )}
+
+                                    {(currentAction.actionType === 'bind_off' || currentAction.amount > 1) && (
+                                        <div>
+                                            <IncrementInput
+                                                label={currentAction.actionType === 'bind_off' ? 'Stitches to Bind Off' : 'Stitches'}
+                                                value={currentAction.amount}
+                                                onChange={(value) => updateCurrentAction('amount', value)}
+                                                min={1}
+                                                max={20}
+                                                unit="stitches"
+                                            />
+                                        </div>
+                                    )}
+                                </div>
+
+                                <div className="flex justify-end">
+                                    <button
+                                        onClick={addActionToCurrentRound}
+                                        disabled={!isCurrentActionValid}
+                                        className="btn-secondary"
+                                    >
+                                        Add Action
+                                    </button>
+                                </div>
+                            </div>
+                        </>
+                    )}
+
+                    {/* Save Round */}
+                    <div className="flex justify-end mt-4">
+                        <button
+                            onClick={saveCurrentRound}
+                            disabled={!isCurrentRoundValid}
+                            className="btn-primary"
+                        >
+                            {editingRoundIndex !== null ? 'Update Round' : 'Add Round'}
+                        </button>
+                    </div>
+                </div>
+
+                {/* Timing Configuration */}
+                {phase.rounds.length > 0 && (
+                    <div className="card">
+                        <h3 className="text-lg font-semibold text-sage-800 mb-4">Timing & Repetition</h3>
+
+                        <div className="space-y-4">
+                            <div>
+                                <SegmentedControl
+                                    label="Repeat Method"
+                                    value={phase.repeatMethod}
+                                    onChange={(value) => setPhase(prev => ({ ...prev, repeatMethod: value }))}
+                                    options={[
+                                        { value: 'times', label: 'Fixed Times' },
+                                        { value: 'target', label: 'Until Target' }
+                                    ]}
+                                />
+                            </div>
+
+                            {phase.repeatMethod === 'times' ? (
+                                <div>
+                                    <IncrementInput
+                                        label="Times to Repeat"
+                                        value={phase.times}
+                                        onChange={(value) => setPhase(prev => ({ ...prev, times: value }))}
+                                        min={1}
+                                        max={50}
+                                        unit="repetitions"
+                                    />
+                                </div>
+                            ) : (
+                                <div>
+                                    <IncrementInput
+                                        label="Target Stitches"
+                                        value={phase.targetStitches}
+                                        onChange={(value) => setPhase(prev => ({ ...prev, targetStitches: value }))}
+                                        min={1}
+                                        max={currentStitches * 3}
+                                        unit="stitches"
+                                    />
+                                </div>
+                            )}
+                        </div>
+                    </div>
+                )}
+
+                {/* Phase Preview */}
+                {phase.rounds.length > 0 && (
+                    <div className="card bg-sage-50 border-sage-200">
+                        <h4 className="text-base font-semibold text-sage-700 mb-2">Phase Preview</h4>
+                        <pre className="text-sm text-sage-600 whitespace-pre-wrap">
+                            {getPhasePreview()}
+                        </pre>
+                    </div>
+                )}
+
                 {/* Actions */}
                 <div className="flex gap-3">
                     <button onClick={onBack} className="btn-tertiary flex-1">
@@ -365,230 +682,15 @@ const ModalBasedPhaseCreator = ({
                     </button>
                     <button
                         onClick={handleCreatePhase}
-                        disabled={!isMainValid}
+                        disabled={!isPhaseValid}
                         className="btn-primary flex-1"
                     >
                         Create Phase
                     </button>
                 </div>
             </div>
-
-            {/* Action Configuration Modal */}
-            <StandardModal
-                isOpen={showActionModal}
-                onClose={closeActionModal}
-                title={editingActionIndex !== null ? 'Edit Action' : 'Add Action'}
-                size="lg"
-            >
-                <div className="space-y-6">
-                    {/* Target Selection */}
-                    <div>
-                        <label className="form-label">Select Targets</label>
-
-                        {/* Markers */}
-                        {availableMarkers.length > 0 && (
-                            <div className="mb-4">
-                                <div className="text-sm font-medium text-wool-700 mb-2">Markers</div>
-                                <div className="flex flex-wrap gap-2">
-                                    {availableMarkers.map(marker => (
-                                        <Bubble
-                                            key={marker}
-                                            active={modalAction.targets.markers.includes(marker)}
-                                            onClick={() => toggleMarkerTarget(marker)}
-                                        >
-                                            {marker}
-                                        </Bubble>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Edges (flat only) */}
-                        {hasEdges && (
-                            <div className="mb-4">
-                                <div className="text-sm font-medium text-wool-700 mb-2">Edges</div>
-                                <div className="flex gap-2">
-                                    <Bubble
-                                        active={modalAction.targets.edges.includes('beginning')}
-                                        onClick={() => toggleEdgeTarget('beginning')}
-                                    >
-                                        Beginning
-                                    </Bubble>
-                                    <Bubble
-                                        active={modalAction.targets.edges.includes('end')}
-                                        onClick={() => toggleEdgeTarget('end')}
-                                    >
-                                        End
-                                    </Bubble>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* BOR (round only) */}
-                        {hasBOR && (
-                            <div className="mb-4">
-                                <div className="text-sm font-medium text-wool-700 mb-2">Special</div>
-                                <Bubble
-                                    active={modalAction.targets.bor}
-                                    onClick={toggleBORTarget}
-                                >
-                                    Beginning of Round
-                                </Bubble>
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Action Configuration */}
-                    <div>
-                        <SegmentedControl
-                            label="Action Type"
-                            value={modalAction.actionType}
-                            onChange={(value) => updateModalAction('actionType', value)}
-                            options={[
-                                { value: 'increase', label: 'Increase' },
-                                { value: 'decrease', label: 'Decrease' },
-                                { value: 'bind_off', label: 'Bind Off' }
-                            ]}
-                        />
-                    </div>
-
-                    {/* Specific Action */}
-                    {getSpecificActionTypes(modalAction.actionType).length > 0 && (
-                        <div>
-                            <label className="form-label">Specific Technique</label>
-                            <div className="flex flex-wrap gap-2">
-                                {getSpecificActionTypes(modalAction.actionType).map(actionType => (
-                                    <Bubble
-                                        key={actionType.value}
-                                        active={modalAction.specificAction === actionType.value}
-                                        onClick={() => updateModalAction('specificAction', actionType.value)}
-                                    >
-                                        {actionType.label}
-                                    </Bubble>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Position (not for bind-off) */}
-                    {modalAction.actionType !== 'bind_off' && (
-                        <div>
-                            <SegmentedControl
-                                label="Position"
-                                value={modalAction.position}
-                                onChange={(value) => updateModalAction('position', value)}
-                                options={[
-                                    { value: 'before', label: 'Before' },
-                                    { value: 'after', label: 'After' },
-                                    { value: 'at', label: 'At' }
-                                ]}
-                            />
-                        </div>
-                    )}
-
-                    {/* Distance (advanced) */}
-                    {modalAction.actionType !== 'bind_off' && modalAction.distance > 1 && (
-                        <div>
-                            <IncrementInput
-                                label="Distance"
-                                value={modalAction.distance}
-                                onChange={(value) => updateModalAction('distance', value)}
-                                min={0}
-                                max={5}
-                                unit="stitches away"
-                            />
-                        </div>
-                    )}
-
-                    {/* Bind Off Amount */}
-                    {modalAction.actionType === 'bind_off' && (
-                        <div>
-                            <IncrementInput
-                                label="Bind Off Amount"
-                                value={modalAction.bindOffAmount}
-                                onChange={(value) => updateModalAction('bindOffAmount', value)}
-                                min={1}
-                                max={50}
-                                unit="stitches"
-                            />
-                        </div>
-                    )}
-
-                    {/* Timing */}
-                    <div className="space-y-4">
-                        <div>
-                            <IncrementInput
-                                label={`Frequency (Every N ${terms.Rows})`}
-                                value={modalAction.frequency}
-                                onChange={(value) => updateModalAction('frequency', value)}
-                                min={1}
-                                max={10}
-                                unit={terms.rows}
-                            />
-                        </div>
-
-                        <div>
-                            <SegmentedControl
-                                label="Repeat Method"
-                                value={modalAction.repeatMethod}
-                                onChange={(value) => updateModalAction('repeatMethod', value)}
-                                options={[
-                                    { value: 'times', label: 'Fixed Times' },
-                                    { value: 'target', label: 'Until Target' }
-                                ]}
-                            />
-                        </div>
-
-                        {modalAction.repeatMethod === 'times' ? (
-                            <div>
-                                <IncrementInput
-                                    label="Times"
-                                    value={modalAction.times}
-                                    onChange={(value) => updateModalAction('times', value)}
-                                    min={1}
-                                    max={50}
-                                    unit="repetitions"
-                                />
-                            </div>
-                        ) : (
-                            <div>
-                                <IncrementInput
-                                    label="Target Stitches"
-                                    value={modalAction.targetStitches || currentStitches}
-                                    onChange={(value) => updateModalAction('targetStitches', value)}
-                                    min={1}
-                                    max={currentStitches}
-                                    unit="stitches remaining"
-                                />
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Preview */}
-                    <div className="p-4 bg-sage-50 rounded-lg border border-sage-200">
-                        <div className="text-sm font-medium text-sage-700 mb-1">Preview</div>
-                        <div className="text-sm text-sage-600">
-                            {getActionDescription(modalAction)}
-                        </div>
-                    </div>
-
-                    {/* Modal Actions */}
-                    <div className="flex gap-3 pt-4 border-t border-wool-200">
-                        <button onClick={closeActionModal} className="btn-tertiary flex-1">
-                            Cancel
-                        </button>
-                        <button
-                            onClick={saveAction}
-                            disabled={!isModalValid}
-                            className="btn-primary flex-1"
-                        >
-                            {editingActionIndex !== null ? 'Update Action' : 'Add Action'}
-                        </button>
-                    </div>
-                </div>
-            </StandardModal>
         </div>
     );
 };
 
-export default ModalBasedPhaseCreator;
+export default RowByRowMarkerPhaseCreator;
