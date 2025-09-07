@@ -10,54 +10,34 @@ import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { MarkerSequenceCalculator } from '../../../../shared/utils/MarkerSequenceCalculator';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
-import { getMarkerStyle, generateSmartMarkerNames } from '../../../../shared/utils/markerColors';
 
-// ===== MARKER CONFIGURATION CONSTANTS =====
-const MARKER_CATEGORIES = {
-    'R': { label: 'Raglan', color: 'sage', textColor: 'text-sage-700', bgColor: 'bg-sage-100', borderColor: 'border-sage-400' },
-    'M': { label: 'Marker', color: 'sky', textColor: 'text-sky-700', bgColor: 'bg-sky-100', borderColor: 'border-sky-400' },
-    'S': { label: 'Side', color: 'amber', textColor: 'text-amber-700', bgColor: 'bg-amber-100', borderColor: 'border-amber-400' },
-    'W': { label: 'Waist', color: 'rose', textColor: 'text-rose-700', bgColor: 'bg-rose-100', borderColor: 'border-rose-400' },
-    'U': { label: 'Underarm', color: 'violet', textColor: 'text-violet-700', bgColor: 'bg-violet-100', borderColor: 'border-violet-400' },
-    'P': { label: 'Panel', color: 'emerald', textColor: 'text-emerald-700', bgColor: 'bg-emerald-100', borderColor: 'border-emerald-400' },
-    'BOR': { label: 'Beginning', color: 'sage', special: true, textColor: 'text-sage-700', bgColor: 'bg-sage-200', borderColor: 'border-sage-500' }
+// ===== NEW: IMPROVED MARKER COLOR SYSTEM =====
+const getMarkerPrefix = (markerName) => {
+    if (markerName === 'BOR') return 'BOR';
+
+    // Extract letters before the last number: "RA2" → "RA", "M12" → "M", "ABC" → "ABC"
+    const match = markerName.match(/^([A-Z]+)(\d*)$/);
+    return match ? match[1] : markerName;
 };
 
-// Helper to get marker category and number
-const parseMarkerName = (name) => {
-    if (name === 'BOR') return { category: 'BOR', number: null };
-    const match = name.match(/^([A-Z])(\d+)$/);
-    if (match) {
-        return { category: match[1], number: parseInt(match[2]) };
+const getMarkerColorFromPrefix = (prefix) => {
+    const colors = [
+        { bgColor: 'bg-sky-100', borderColor: 'border-sky-400', textColor: 'text-sky-700' },
+        { bgColor: 'bg-emerald-100', borderColor: 'border-emerald-400', textColor: 'text-emerald-700' },
+        { bgColor: 'bg-amber-100', borderColor: 'border-amber-400', textColor: 'text-amber-700' },
+        { bgColor: 'bg-rose-100', borderColor: 'border-rose-400', textColor: 'text-rose-700' },
+        { bgColor: 'bg-violet-100', borderColor: 'border-violet-400', textColor: 'text-violet-700' },
+        { bgColor: 'bg-indigo-100', borderColor: 'border-indigo-400', textColor: 'text-indigo-700' }
+    ];
+
+    if (prefix === 'BOR') {
+        return { bgColor: 'bg-sage-200', borderColor: 'border-sage-500', textColor: 'text-sage-700' };
     }
-    return { category: null, number: null };
+
+    // Simple hash to get consistent color for prefix
+    const hash = prefix.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+    return colors[hash % colors.length];
 };
-
-// Helper to get marker color styling
-{/* const getMarkerStyle = (markerName) => {
-    const { category } = parseMarkerName(markerName);
-    return MARKER_CATEGORIES[category] || {
-        color: 'wool',
-        textColor: 'text-wool-700',
-        bgColor: 'bg-wool-100',
-        borderColor: 'border-wool-400'
-    };
-};  
-
-// Smart marker name generator
-const generateSmartMarkerNames = (count, construction) => {
-    // Common patterns
-    if (construction === 'round' && count === 4) {
-        return ['R1', 'R2', 'R3', 'R4']; // Raglan
-    } else if (construction === 'flat' && count === 2) {
-        return ['S1', 'S2']; // Sides
-    } else if (construction === 'flat' && count === 4) {
-        return ['M1', 'M2', 'M3', 'M4']; // Generic markers
-    } else {
-        // Default: M1, M2, M3...
-        return Array.from({ length: count }, (_, i) => `M${i + 1}`);
-    }
-};  */}
 
 const MarkerPhasesConfig = ({
     shapingData,
@@ -87,7 +67,6 @@ const MarkerPhasesConfig = ({
     const [markerCount, setMarkerCount] = useState(2);
     const [segments, setSegments] = useState([]);
     const [showSegments, setShowSegments] = useState(false);
-    const [markerCategory, setMarkerCategory] = useState('M'); // New: category selector
 
     // ===== GET TERMINOLOGY =====
     const terms = getConstructionTerms(construction);
@@ -161,6 +140,13 @@ const MarkerPhasesConfig = ({
 
         if (hasInvalidStitches) return false;
 
+        // Check that all markers have valid names
+        const hasInvalidMarkers = segments
+            .filter(s => s.type === 'marker' && !s.readonly)
+            .some(s => !s.name || s.name.trim() === '');
+
+        if (hasInvalidMarkers) return false;
+
         // Validate array structure
         const errors = markerArrayUtils.validateArray(currentArray);
         return errors.length === 0;
@@ -168,7 +154,8 @@ const MarkerPhasesConfig = ({
 
     // ===== CREATE MARKER SEGMENTS =====
     const handleCreateMarkerSegments = () => {
-        const smartNames = generateSmartMarkerNames(markerCount, construction);
+        // Use simple M1, M2, M3... naming instead of smart names
+        const defaultNames = Array.from({ length: markerCount }, (_, i) => `M${i + 1}`);
         const newSegments = [];
 
         // Calculate even distribution
@@ -198,8 +185,8 @@ const MarkerPhasesConfig = ({
             // Add marker
             newSegments.push({
                 type: 'marker',
-                name: smartNames[i],
-                id: `marker_${smartNames[i]}_${i}`,
+                name: defaultNames[i],
+                id: `marker_${defaultNames[i]}_${i}`,
                 readonly: false
             });
         }
@@ -231,8 +218,11 @@ const MarkerPhasesConfig = ({
                     const numValue = parseInt(value) || 0;
                     return { ...segment, count: Math.max(0, numValue) };
                 } else if (field === 'name') {
-                    // For marker name
-                    return { ...segment, name: value };
+                    // For marker name - uppercase and limit to 3 characters
+                    const upperValue = value.toUpperCase();
+                    if (upperValue.length <= 3) {
+                        return { ...segment, name: upperValue };
+                    }
                 }
             }
             return segment;
@@ -241,8 +231,8 @@ const MarkerPhasesConfig = ({
 
     // ===== RENDER MARKER BUBBLE =====
     const renderMarkerBubble = (segment, index) => {
-        const style = getMarkerStyle(segment.name);
-        const { category, number } = parseMarkerName(segment.name);
+        const prefix = getMarkerPrefix(segment.name);
+        const style = getMarkerColorFromPrefix(prefix);
 
         return (
             <div className="flex items-center gap-2">
@@ -250,8 +240,42 @@ const MarkerPhasesConfig = ({
                     {segment.name}
                 </div>
                 <div className="text-xs text-wool-500">
-                    {style.label || 'Marker'}
+                    Group: {prefix}
                 </div>
+            </div>
+        );
+    };
+
+    // ===== RENDER COLOR GROUPS PREVIEW =====
+    const renderColorGroupsPreview = () => {
+        if (!showSegments || segments.length === 0) return null;
+
+        const markerSegments = segments.filter(s => s.type === 'marker');
+        const groups = {};
+
+        markerSegments.forEach(segment => {
+            const prefix = getMarkerPrefix(segment.name);
+            if (!groups[prefix]) groups[prefix] = [];
+            groups[prefix].push(segment.name);
+        });
+
+        return (
+            <div className="mt-3 p-3 bg-wool-50 rounded-lg">
+                <p className="text-xs font-medium text-wool-600 mb-2">Color Groups:</p>
+                <div className="flex flex-wrap gap-2">
+                    {Object.entries(groups).map(([prefix, markers]) => {
+                        const style = getMarkerColorFromPrefix(prefix);
+                        return (
+                            <div key={prefix} className="flex items-center gap-1">
+                                <div className={`w-4 h-4 rounded-full ${style.bgColor} ${style.borderColor} border`}></div>
+                                <span className="text-xs text-wool-600">{markers.join(', ')}</span>
+                            </div>
+                        );
+                    })}
+                </div>
+                <p className="text-xs text-wool-500 mt-1">
+                    Markers with same letters get same color (M1, M2 = blue; R1, R2 = green)
+                </p>
             </div>
         );
     };
@@ -394,57 +418,6 @@ const MarkerPhasesConfig = ({
                                     size="default"
                                 />
 
-                                {/* Smart suggestions based on marker count */}
-                                <div className="mt-4">
-                                    <p className="text-xs text-wool-500 mb-2">Common patterns:</p>
-                                    <div className="flex flex-wrap gap-2">
-                                        {construction === 'round' && (
-                                            <>
-                                                <button
-                                                    onClick={() => setMarkerCount(4)}
-                                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${markerCount === 4
-                                                        ? 'bg-sage-500 text-white'
-                                                        : 'bg-wool-100 text-wool-600 hover:bg-wool-200'
-                                                        }`}
-                                                >
-                                                    4 - Raglan
-                                                </button>
-                                                <button
-                                                    onClick={() => setMarkerCount(2)}
-                                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${markerCount === 2
-                                                        ? 'bg-sage-500 text-white'
-                                                        : 'bg-wool-100 text-wool-600 hover:bg-wool-200'
-                                                        }`}
-                                                >
-                                                    2 - Waist
-                                                </button>
-                                            </>
-                                        )}
-                                        {construction === 'flat' && (
-                                            <>
-                                                <button
-                                                    onClick={() => setMarkerCount(2)}
-                                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${markerCount === 2
-                                                        ? 'bg-sage-500 text-white'
-                                                        : 'bg-wool-100 text-wool-600 hover:bg-wool-200'
-                                                        }`}
-                                                >
-                                                    2 - Sides
-                                                </button>
-                                                <button
-                                                    onClick={() => setMarkerCount(4)}
-                                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${markerCount === 4
-                                                        ? 'bg-sage-500 text-white'
-                                                        : 'bg-wool-100 text-wool-600 hover:bg-wool-200'
-                                                        }`}
-                                                >
-                                                    4 - Armholes
-                                                </button>
-                                            </>
-                                        )}
-                                    </div>
-                                </div>
-
                                 <button
                                     onClick={handleCreateMarkerSegments}
                                     className="btn-primary mt-4"
@@ -471,9 +444,15 @@ const MarkerPhasesConfig = ({
                                                     <input
                                                         type="text"
                                                         value={segment.name}
-                                                        onChange={(e) => updateSegment(segment.id, 'name', e.target.value)}
+                                                        onChange={(e) => {
+                                                            const value = e.target.value.toUpperCase();
+                                                            if (value.length <= 3) {
+                                                                updateSegment(segment.id, 'name', value);
+                                                            }
+                                                        }}
                                                         className="w-16 text-center border-2 border-wool-200 rounded-lg px-2 py-1 text-sm focus:border-sage-500"
                                                         placeholder="M1"
+                                                        maxLength={3}
                                                     />
                                                 )}
                                             </>
@@ -502,6 +481,9 @@ const MarkerPhasesConfig = ({
                                 ))}
                             </div>
 
+                            {/* Color Groups Preview */}
+                            {renderColorGroupsPreview()}
+
                             {/* Total stitch validation */}
                             <div className={`mt-4 p-3 rounded-lg text-sm ${markerArrayUtils.sumArrayStitches(currentArray) === currentStitches
                                 ? 'bg-green-50 text-green-700 border border-green-200'
@@ -516,12 +498,20 @@ const MarkerPhasesConfig = ({
                                 )}
                             </div>
 
-                            <button
-                                onClick={() => setShowSegments(false)}
-                                className="btn-tertiary btn-sm mt-4"
-                            >
-                                ← Change Marker Count
-                            </button>
+                            <div className="flex gap-3 mt-4">
+                                <button
+                                    onClick={() => setShowSegments(false)}
+                                    className="btn-tertiary btn-sm"
+                                >
+                                    ← Change Marker Count
+                                </button>
+                                <button
+                                    onClick={handleCreateMarkerSegments}
+                                    className="btn-secondary btn-sm"
+                                >
+                                    Update Distribution
+                                </button>
+                            </div>
                         </div>
                     )}
 
