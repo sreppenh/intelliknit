@@ -24,7 +24,12 @@ const MarkerPhasesConfig = ({
     onCancel,
     mode
 }) => {
-    // ===== STATE MANAGEMENT =====
+    // ===== MULTI-SCREEN STATE MANAGEMENT =====
+    const [currentScreen, setCurrentScreen] = useState('marker-setup');
+    const [markerArray, setMarkerArray] = useState([]);
+    const [sequences, setSequences] = useState([]);
+
+    // ===== SCREEN 1: MARKER SETUP STATE =====
     const [markerCount, setMarkerCount] = useState(2);
     const [segments, setSegments] = useState([]);
     const [showSegments, setShowSegments] = useState(false);
@@ -177,12 +182,32 @@ const MarkerPhasesConfig = ({
     const isValid = hasAllStitches && totalStitches === currentStitches;
     const stitchDifference = totalStitches - currentStitches;
 
-    // ===== COMPLETE SETUP =====
-    const handleComplete = () => {
+    // ===== COMPLETE MARKER SETUP (ADVANCE TO SCREEN 2) =====
+    const handleCompleteMarkerSetup = () => {
         if (!isValid) return;
 
-        console.log("MarkerPhasesConfig.handleComplete called");
+        console.log("MarkerPhasesConfig.handleCompleteMarkerSetup - advancing to screen 2");
 
+        // Save marker array and advance to sequence management
+        setMarkerArray(currentArray);
+        setCurrentScreen('sequence-management');
+
+        IntelliKnitLogger.success('Marker Setup Complete - Advancing to Sequence Management', {
+            markerArray: currentArray
+        });
+    };
+
+    // ===== HANDLE BACK NAVIGATION =====
+    const handleBackNavigation = () => {
+        if (currentScreen === 'marker-setup') {
+            onBack();
+        } else if (currentScreen === 'sequence-management') {
+            setCurrentScreen('marker-setup');
+        }
+    };
+
+    // ===== FINAL COMPLETION (ONLY FROM LAST SCREEN) =====
+    const handleFinalComplete = () => {
         const basicSequence = {
             id: 'marker_setup',
             name: 'Marker Setup',
@@ -195,199 +220,261 @@ const MarkerPhasesConfig = ({
         };
 
         const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
-            [basicSequence],
-            currentArray,
+            sequences.length > 0 ? sequences : [basicSequence],
+            markerArray,
             construction
         );
 
-        // Format to match what Sequential Phases provides
         const shapingConfigData = {
             markerSetup: hasExistingMarkers ? 'existing' : 'new',
-            stitchArray: currentArray,
+            stitchArray: markerArray,
             markerCount: markerCount,
-            sequences: [basicSequence],
+            sequences: sequences.length > 0 ? sequences : [basicSequence],
             calculation: calculation
         };
 
-        console.log("Calling onComplete with shaping config:", shapingConfigData);
-        IntelliKnitLogger.success('Marker Setup Complete', shapingConfigData);
-
-        // Call onComplete with just the config data, not wrapped in type/config
+        console.log("Final onComplete with shaping config:", shapingConfigData);
+        IntelliKnitLogger.success('Marker Phases Complete', shapingConfigData);
         onComplete(shapingConfigData);
     };
 
-    // ===== RENDER =====
-    return (
-        <div>
-            <ShapingHeader
-                onBack={onBack}
-                onGoToLanding={onGoToLanding}
-                wizard={wizard}
-                onCancel={onCancel}
-            />
+    // ===== RENDER SCREEN 1: MARKER SETUP =====
+    if (currentScreen === 'marker-setup') {
+        return (
+            <div>
+                <ShapingHeader
+                    onBack={handleBackNavigation}
+                    onGoToLanding={onGoToLanding}
+                    wizard={wizard}
+                    onCancel={onCancel}
+                />
 
-            <div className="p-6 stack-lg">
-                <div>
-                    <h2 className="content-header-primary">Marker Setup</h2>
-                    <p className="content-subheader">
-                        {currentStitches} stitches • {construction} construction
-                    </p>
-                </div>
-
-                {hasExistingMarkers && !showSegments && (
-                    <div className="card-info">
-                        <h4 className="text-sm font-semibold text-sage-700 mb-3">Existing Markers Detected</h4>
-                        <p className="text-sm text-sage-600 mb-3">
-                            This component already has {existingMarkers.length} markers placed.
+                <div className="p-6 stack-lg">
+                    <div>
+                        <h2 className="content-header-primary">Marker Setup</h2>
+                        <p className="content-subheader">
+                            {currentStitches} stitches • {construction} construction
                         </p>
-                        <button
-                            onClick={() => setShowSegments(true)}
-                            className="btn-secondary btn-sm"
-                        >
-                            Edit Existing Markers
-                        </button>
                     </div>
-                )}
 
-                {/* Marker Count Input */}
-                {!showSegments && (
-                    <div className="card-info">
-                        <div className="flex items-center justify-between mb-4">
-                            <label className="text-sm font-semibold text-sage-700">
-                                How many markers do you need?
-                            </label>
-                            <div className="flex items-center gap-3">
-                                <IncrementInput
-                                    value={markerCount}
-                                    onChange={setMarkerCount}
-                                    min={1}
-                                    max={12}
-                                    step={1}
-                                />
-                                <button
-                                    onClick={handleUpdate}
-                                    className="btn-primary btn-sm"
-                                >
-                                    Update
-                                </button>
-                            </div>
+                    {hasExistingMarkers && !showSegments && (
+                        <div className="card-info">
+                            <h4 className="text-sm font-semibold text-sage-700 mb-3">Existing Markers Detected</h4>
+                            <p className="text-sm text-sage-600 mb-3">
+                                This component already has {existingMarkers.length} markers placed.
+                            </p>
+                            <button
+                                onClick={() => setShowSegments(true)}
+                                className="btn-secondary btn-sm"
+                            >
+                                Edit Existing Markers
+                            </button>
                         </div>
+                    )}
 
-                        {construction === 'round' && (
-                            <div className="text-xs text-sage-600">
-                                BOR marker will be included automatically for round construction
-                            </div>
-                        )}
-                    </div>
-                )}
-
-                {/* Segment Configuration */}
-                {showSegments && (
-                    <div className="stack-md">
-                        <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-semibold text-wool-700">Position & Name Markers</h4>
-                            <div className={`text-xs px-2 py-1 rounded ${isValid
-                                ? 'bg-sage-100 text-sage-700'
-                                : hasAllStitches
-                                    ? 'bg-red-100 text-red-700'
-                                    : 'bg-wool-100 text-wool-600'
-                                }`}>
-                                {!hasAllStitches
-                                    ? 'Fill in all stitch counts'
-                                    : isValid
-                                        ? `${totalStitches} stitches ✓`
-                                        : `${totalStitches} stitches (${stitchDifference > 0 ? '+' : ''}${stitchDifference})`
-                                }
-                            </div>
-                        </div>
-
-                        <div className="stack-sm">
-                            {segments.map((segment, index) => (
-                                <div key={segment.id} className="flex items-center gap-3 p-3 border border-wool-200 rounded-lg">
-                                    {segment.type === 'marker' ? (
-                                        // Marker row
-                                        <div className="flex items-center gap-3 flex-1">
-                                            <div className="w-12 h-8 bg-sage-200 border border-sage-400 rounded-full flex items-center justify-center text-xs font-bold text-sage-700">
-                                                {segment.name}
-                                            </div>
-                                            <div className="flex items-center gap-2 flex-1">
-                                                <span className="text-sm text-wool-600">Marker:</span>
-                                                <input
-                                                    type="text"
-                                                    value={segment.name}
-                                                    onChange={(e) => updateSegment(segment.id, 'name', e.target.value)}
-                                                    disabled={segment.readonly}
-                                                    className="flex-1 border border-wool-300 rounded px-2 py-1 text-sm disabled:bg-wool-50 disabled:text-wool-500"
-                                                    placeholder="Marker name"
-                                                />
-                                            </div>
-                                        </div>
-                                    ) : (
-                                        // Stitches row  
-                                        <div className="flex items-center gap-3 flex-1">
-                                            <div className="w-12 h-8 bg-wool-100 border border-wool-300 rounded flex items-center justify-center text-xs font-medium">
-                                                {segment.count || '?'}
-                                            </div>
-                                            <div className="flex items-center gap-2 flex-1">
-                                                <span className="text-sm text-wool-600">Stitches:</span>
-                                                <input
-                                                    type="number"
-                                                    min="1"
-                                                    value={segment.count}
-                                                    onChange={(e) => updateSegment(segment.id, 'count', e.target.value)}
-                                                    className="w-20 border border-wool-300 rounded px-2 py-1 text-sm text-center"
-                                                    placeholder="0"
-                                                />
-                                                <span className="text-xs text-wool-500">
-                                                    {index === segments.length - 1
-                                                        ? (construction === 'round' ? 'back to BOR' : 'to end')
-                                                        : 'to next marker'
-                                                    }
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
+                    {/* Marker Count Input */}
+                    {!showSegments && (
+                        <div className="card-info">
+                            <div className="flex items-center justify-between mb-4">
+                                <label className="text-sm font-semibold text-sage-700">
+                                    How many markers do you need?
+                                </label>
+                                <div className="flex items-center gap-3">
+                                    <IncrementInput
+                                        value={markerCount}
+                                        onChange={setMarkerCount}
+                                        min={1}
+                                        max={12}
+                                        step={1}
+                                    />
+                                    <button
+                                        onClick={handleUpdate}
+                                        className="btn-primary btn-sm"
+                                    >
+                                        Update
+                                    </button>
                                 </div>
-                            ))}
-                        </div>
+                            </div>
 
+                            {construction === 'round' && (
+                                <div className="text-xs text-sage-600">
+                                    BOR marker will be included automatically for round construction
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Segment Configuration */}
+                    {showSegments && (
+                        <div className="stack-md">
+                            <div className="flex items-center justify-between">
+                                <h4 className="text-sm font-semibold text-wool-700">Position & Name Markers</h4>
+                                <div className={`text-xs px-2 py-1 rounded ${isValid
+                                    ? 'bg-sage-100 text-sage-700'
+                                    : hasAllStitches
+                                        ? 'bg-red-100 text-red-700'
+                                        : 'bg-wool-100 text-wool-600'
+                                    }`}>
+                                    {!hasAllStitches
+                                        ? 'Fill in all stitch counts'
+                                        : isValid
+                                            ? `${totalStitches} stitches ✓`
+                                            : `${totalStitches} stitches (${stitchDifference > 0 ? '+' : ''}${stitchDifference})`
+                                    }
+                                </div>
+                            </div>
+
+                            <div className="stack-sm">
+                                {segments.map((segment, index) => (
+                                    <div key={segment.id} className="flex items-center gap-3 p-3 border border-wool-200 rounded-lg">
+                                        {segment.type === 'marker' ? (
+                                            // Marker row
+                                            <div className="flex items-center gap-3 flex-1">
+                                                <div className="w-12 h-8 bg-sage-200 border border-sage-400 rounded-full flex items-center justify-center text-xs font-bold text-sage-700">
+                                                    {segment.name}
+                                                </div>
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <span className="text-sm text-wool-600">Marker:</span>
+                                                    <input
+                                                        type="text"
+                                                        value={segment.name}
+                                                        onChange={(e) => updateSegment(segment.id, 'name', e.target.value)}
+                                                        disabled={segment.readonly}
+                                                        className="flex-1 border border-wool-300 rounded px-2 py-1 text-sm disabled:bg-wool-50 disabled:text-wool-500"
+                                                        placeholder="Marker name"
+                                                    />
+                                                </div>
+                                            </div>
+                                        ) : (
+                                            // Stitches row  
+                                            <div className="flex items-center gap-3 flex-1">
+                                                <div className="w-12 h-8 bg-wool-100 border border-wool-300 rounded flex items-center justify-center text-xs font-medium">
+                                                    {segment.count || '?'}
+                                                </div>
+                                                <div className="flex items-center gap-2 flex-1">
+                                                    <span className="text-sm text-wool-600">Stitches:</span>
+                                                    <input
+                                                        type="number"
+                                                        min="1"
+                                                        value={segment.count}
+                                                        onChange={(e) => updateSegment(segment.id, 'count', e.target.value)}
+                                                        className="w-20 border border-wool-300 rounded px-2 py-1 text-sm text-center"
+                                                        placeholder="0"
+                                                    />
+                                                    <span className="text-xs text-wool-500">
+                                                        {index === segments.length - 1
+                                                            ? (construction === 'round' ? 'back to BOR' : 'to end')
+                                                            : 'to next marker'
+                                                        }
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+
+                            <button
+                                onClick={() => setShowSegments(false)}
+                                className="btn-tertiary btn-sm self-start"
+                            >
+                                ← Change Marker Count
+                            </button>
+                        </div>
+                    )}
+
+                    {/* Live Preview */}
+                    {showSegments && currentArray.length > 0 && (
+                        <div className="card-info">
+                            <h4 className="text-sm font-semibold text-sage-700 mb-3">Live Preview</h4>
+                            <MarkerArrayVisualization
+                                stitchArray={currentArray}
+                                construction={construction}
+                                showActions={false}
+                            />
+                        </div>
+                    )}
+
+                    {/* Actions */}
+                    <div className="flex gap-3">
+                        <button onClick={handleBackNavigation} className="btn-tertiary flex-1">
+                            ← Back
+                        </button>
                         <button
-                            onClick={() => setShowSegments(false)}
-                            className="btn-tertiary btn-sm self-start"
+                            onClick={handleCompleteMarkerSetup}
+                            disabled={!showSegments || !isValid}
+                            className="btn-primary flex-1"
                         >
-                            ← Change Marker Count
+                            Continue to Sequences →
                         </button>
                     </div>
-                )}
+                </div>
+            </div>
+        );
+    }
 
-                {/* Live Preview */}
-                {showSegments && currentArray.length > 0 && (
+    // ===== RENDER SCREEN 2: SEQUENCE MANAGEMENT =====
+    if (currentScreen === 'sequence-management') {
+        return (
+            <div>
+                <ShapingHeader
+                    onBack={handleBackNavigation}
+                    onGoToLanding={onGoToLanding}
+                    wizard={wizard}
+                    onCancel={onCancel}
+                />
+
+                <div className="p-6 stack-lg">
+                    <div>
+                        <h2 className="content-header-primary">Sequence Configuration</h2>
+                        <p className="content-subheader">
+                            Configure marker-based shaping sequences
+                        </p>
+                    </div>
+
+                    {/* Show marker array */}
                     <div className="card-info">
-                        <h4 className="text-sm font-semibold text-sage-700 mb-3">Live Preview</h4>
+                        <h4 className="text-sm font-semibold text-sage-700 mb-3">Your Markers</h4>
                         <MarkerArrayVisualization
-                            stitchArray={currentArray}
+                            stitchArray={markerArray}
                             construction={construction}
                             showActions={false}
                         />
                     </div>
-                )}
 
-                {/* Actions */}
-                <div className="flex gap-3">
-                    <button onClick={onBack} className="btn-tertiary flex-1">
-                        ← Back
-                    </button>
-                    <button
-                        onClick={handleComplete}
-                        disabled={!showSegments || !isValid}
-                        className="btn-primary flex-1"
-                    >
-                        Complete Setup
-                    </button>
+                    {/* Placeholder for sequence management UI */}
+                    <div className="card-info">
+                        <h4 className="text-sm font-semibold text-wool-700 mb-3">Sequences</h4>
+                        <p className="text-sm text-wool-600 mb-4">
+                            Add shaping sequences that use your markers. This is where the sequence configuration UI will go.
+                        </p>
+
+                        <button
+                            onClick={() => console.log('Add sequence - TODO')}
+                            className="btn-primary btn-sm"
+                        >
+                            + Add Sequence
+                        </button>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="flex gap-3">
+                        <button onClick={handleBackNavigation} className="btn-tertiary flex-1">
+                            ← Back to Markers
+                        </button>
+                        <button
+                            onClick={handleFinalComplete}
+                            className="btn-primary flex-1"
+                        >
+                            Complete Step
+                        </button>
+                    </div>
                 </div>
             </div>
-        </div>
-    );
+        );
+    }
+
+    return null;
 };
 
 export default MarkerPhasesConfig;

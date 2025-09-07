@@ -202,9 +202,20 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
         onBack={() => {
           setShowShapingWizard(false);
 
+          console.log("=== VALIDATION DEBUG ===");
+          console.log("wizard.wizardData.shapingConfig:", wizard.wizardData.shapingConfig);
+          console.log("shapingConfig?.type:", wizard.wizardData.shapingConfig?.type);
+          console.log("shapingConfig?.config:", wizard.wizardData.shapingConfig?.config);
+          console.log("shapingConfig?.config?.calculation:", wizard.wizardData.shapingConfig?.config?.calculation);
+
+
           // Check if shaping was actually completed
           const hasCompletedShaping = wizard.wizardData.shapingConfig?.type &&
             wizard.wizardData.shapingConfig?.config?.calculation;
+
+          console.log("hasCompletedShaping result:", hasCompletedShaping);
+          console.log("========================");
+
 
           IntelliKnitLogger.debug('ShapingWizard onBack', {
             hasCompletedShaping,
