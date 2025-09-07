@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ShapingHeader from './ShapingHeader';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
+import MarkerSequenceSummary from './MarkerSequenceSummary';
+import MarkerSequenceWizard from './MarkerSequenceWizard';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
@@ -28,6 +30,8 @@ const MarkerPhasesConfig = ({
     const [currentScreen, setCurrentScreen] = useState('marker-setup');
     const [markerArray, setMarkerArray] = useState([]);
     const [sequences, setSequences] = useState([]);
+    const [editingSequence, setEditingSequence] = useState(null);
+    const [sequenceCalculation, setSequenceCalculation] = useState(null);
 
     // ===== SCREEN 1: MARKER SETUP STATE =====
     const [markerCount, setMarkerCount] = useState(2);
@@ -76,6 +80,71 @@ const MarkerPhasesConfig = ({
             setShowSegments(true);
         }
     }, [hasExistingMarkers, component?.stitchArray]);
+
+    // ===== SEQUENCE MANAGEMENT =====
+    const handleAddSequence = () => {
+        setEditingSequence(null);
+        setCurrentScreen('sequence-wizard');
+    };
+
+    const handleEditSequence = (sequenceId) => {
+        setEditingSequence(sequenceId);
+        setCurrentScreen('sequence-wizard');
+    };
+
+    const handleDeleteSequence = (sequenceId) => {
+        setSequences(prev => prev.filter((seq, index) =>
+            seq.id !== sequenceId && index !== sequenceId
+        ));
+        IntelliKnitLogger.debug('Sequence deleted', { sequenceId });
+    };
+
+    const handleSequenceComplete = (newSequence) => {
+        if (editingSequence !== null) {
+            // Editing existing sequence
+            setSequences(prev => prev.map((seq, index) =>
+                seq.id === editingSequence || index === editingSequence
+                    ? newSequence
+                    : seq
+            ));
+        } else {
+            // Adding new sequence
+            setSequences(prev => [...prev, newSequence]);
+        }
+
+        setEditingSequence(null);
+        setCurrentScreen('sequence-management');
+        IntelliKnitLogger.success('Sequence saved', newSequence);
+    };
+
+    // ===== CALCULATE SEQUENCES =====
+    useEffect(() => {
+        if (sequences.length === 0 || markerArray.length === 0) {
+            setSequenceCalculation(null);
+            return;
+        }
+
+        try {
+            const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
+                sequences,
+                markerArray,
+                construction
+            );
+
+            setSequenceCalculation(calculation);
+            IntelliKnitLogger.debug('Sequence calculation updated', calculation);
+        } catch (error) {
+            IntelliKnitLogger.error('Sequence calculation failed', error);
+            setSequenceCalculation({
+                error: 'Calculation failed: ' + error.message,
+                instruction: '',
+                startingStitches: markerArrayUtils.sumArrayStitches(markerArray),
+                endingStitches: markerArrayUtils.sumArrayStitches(markerArray),
+                totalRows: 0,
+                finalArray: markerArray
+            });
+        }
+    }, [sequences, markerArray, construction]);
 
     // ===== CREATE SEGMENTS FROM MARKER COUNT =====
     const createSegments = (count) => {
@@ -203,24 +272,22 @@ const MarkerPhasesConfig = ({
             onBack();
         } else if (currentScreen === 'sequence-management') {
             setCurrentScreen('marker-setup');
+        } else if (currentScreen === 'sequence-wizard') {
+            setCurrentScreen('sequence-management');
         }
     };
 
     // ===== FINAL COMPLETION (ONLY FROM LAST SCREEN) =====
     const handleFinalComplete = () => {
-        const basicSequence = {
-            id: 'marker_setup',
-            name: 'Marker Setup',
-            startCondition: { type: 'immediate' },
-            phases: [{
-                type: 'setup',
-                config: { rows: 1 }
+        // Use sequence calculation if available, otherwise basic setup
+        const calculation = sequenceCalculation || MarkerSequenceCalculator.calculateMarkerPhases(
+            sequences.length > 0 ? sequences : [{
+                id: 'marker_setup',
+                name: 'Marker Setup',
+                startCondition: { type: 'immediate' },
+                phases: [{ type: 'setup', config: { rows: 1 } }],
+                actions: []
             }],
-            actions: []
-        };
-
-        const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
-            sequences.length > 0 ? sequences : [basicSequence],
             markerArray,
             construction
         );
@@ -229,7 +296,11 @@ const MarkerPhasesConfig = ({
             markerSetup: hasExistingMarkers ? 'existing' : 'new',
             stitchArray: markerArray,
             markerCount: markerCount,
-            sequences: sequences.length > 0 ? sequences : [basicSequence],
+            sequences: sequences.length > 0 ? sequences : [{
+                id: 'marker_setup',
+                name: 'Marker Setup',
+                phases: [{ type: 'setup', config: { rows: 1 } }]
+            }],
             calculation: calculation
         };
 
@@ -416,61 +487,36 @@ const MarkerPhasesConfig = ({
     // ===== RENDER SCREEN 2: SEQUENCE MANAGEMENT =====
     if (currentScreen === 'sequence-management') {
         return (
-            <div>
-                <ShapingHeader
-                    onBack={handleBackNavigation}
-                    onGoToLanding={onGoToLanding}
-                    wizard={wizard}
-                    onCancel={onCancel}
-                />
+            <MarkerSequenceSummary
+                markerArray={markerArray}
+                sequences={sequences}
+                construction={construction}
+                onAddSequence={handleAddSequence}
+                onEditSequence={handleEditSequence}
+                onDeleteSequence={handleDeleteSequence}
+                onComplete={handleFinalComplete}
+                onBack={handleBackNavigation}
+                wizard={wizard}
+                onGoToLanding={onGoToLanding}
+                onCancel={onCancel}
+                calculation={sequenceCalculation}
+            />
+        );
+    }
 
-                <div className="p-6 stack-lg">
-                    <div>
-                        <h2 className="content-header-primary">Sequence Configuration</h2>
-                        <p className="content-subheader">
-                            Configure marker-based shaping sequences
-                        </p>
-                    </div>
-
-                    {/* Show marker array */}
-                    <div className="card-info">
-                        <h4 className="text-sm font-semibold text-sage-700 mb-3">Your Markers</h4>
-                        <MarkerArrayVisualization
-                            stitchArray={markerArray}
-                            construction={construction}
-                            showActions={false}
-                        />
-                    </div>
-
-                    {/* Placeholder for sequence management UI */}
-                    <div className="card-info">
-                        <h4 className="text-sm font-semibold text-wool-700 mb-3">Sequences</h4>
-                        <p className="text-sm text-wool-600 mb-4">
-                            Add shaping sequences that use your markers. This is where the sequence configuration UI will go.
-                        </p>
-
-                        <button
-                            onClick={() => console.log('Add sequence - TODO')}
-                            className="btn-primary btn-sm"
-                        >
-                            + Add Sequence
-                        </button>
-                    </div>
-
-                    {/* Actions */}
-                    <div className="flex gap-3">
-                        <button onClick={handleBackNavigation} className="btn-tertiary flex-1">
-                            ← Back to Markers
-                        </button>
-                        <button
-                            onClick={handleFinalComplete}
-                            className="btn-primary flex-1"
-                        >
-                            Complete Step
-                        </button>
-                    </div>
-                </div>
-            </div>
+    // ===== RENDER SCREEN 3: SEQUENCE WIZARD =====
+    if (currentScreen === 'sequence-wizard') {
+        return (
+            <MarkerSequenceWizard
+                markerArray={markerArray}
+                construction={construction}
+                onComplete={handleSequenceComplete}
+                onCancel={() => setCurrentScreen('sequence-management')}
+                onBack={() => setCurrentScreen('sequence-management')}
+                wizard={wizard}
+                onGoToLanding={onGoToLanding}
+                editingSequence={editingSequence}
+            />
         );
     }
 
