@@ -239,9 +239,6 @@ const MarkerPhasesConfig = ({
                 <div className={`w-10 h-10 rounded-full ${style.bgColor} ${style.borderColor} border-2 flex items-center justify-center ${style.textColor} font-bold text-sm`}>
                     {segment.name}
                 </div>
-                <div className="text-xs text-wool-500">
-                    Group: {prefix}
-                </div>
             </div>
         );
     };
