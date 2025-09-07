@@ -157,7 +157,7 @@ const MarkerPhasesConfig = ({
             if (segment.type === 'marker') {
                 array.push(segment.name);
             } else if (segment.count !== '' && segment.count > 0) {
-                array.push(segment.count);
+                array.push(parseInt(segment.count)); // Convert to number
             }
         });
         return array;

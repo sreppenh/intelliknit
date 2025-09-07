@@ -18,6 +18,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
 import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../shared/utils/stepDisplayUtils';
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
+import StepPreview from './wizard-steps/StepPreview';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
@@ -402,9 +403,19 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
         );
 
       case 5:
-        // Preview step (has custom buttons, no nav needed)
+      // Preview step (has custom buttons, no nav needed)
+      case 5:
         return (
-          <div>Preview Step - Implementation needed</div>
+          <StepPreview
+            wizardData={wizard.wizardData}
+            currentStitches={wizard.currentStitches}
+            construction={wizard.construction}
+            component={wizard.component}
+            onAddStep={handleAddStep}
+            onAddStepAndContinue={handleAddStepAndContinue}
+            onBack={navigation.previousStep}
+            mode={mode}
+          />
         );
 
       default:
