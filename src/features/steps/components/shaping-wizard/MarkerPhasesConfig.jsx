@@ -6,8 +6,58 @@ import MarkerSequenceSummary from './MarkerSequenceSummary';
 import MarkerSequenceWizard from './MarkerSequenceWizard';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
+import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { MarkerSequenceCalculator } from '../../../../shared/utils/MarkerSequenceCalculator';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import { getMarkerStyle, generateSmartMarkerNames } from '../../../../shared/utils/markerColors';
+
+// ===== MARKER CONFIGURATION CONSTANTS =====
+const MARKER_CATEGORIES = {
+    'R': { label: 'Raglan', color: 'sage', textColor: 'text-sage-700', bgColor: 'bg-sage-100', borderColor: 'border-sage-400' },
+    'M': { label: 'Marker', color: 'sky', textColor: 'text-sky-700', bgColor: 'bg-sky-100', borderColor: 'border-sky-400' },
+    'S': { label: 'Side', color: 'amber', textColor: 'text-amber-700', bgColor: 'bg-amber-100', borderColor: 'border-amber-400' },
+    'W': { label: 'Waist', color: 'rose', textColor: 'text-rose-700', bgColor: 'bg-rose-100', borderColor: 'border-rose-400' },
+    'U': { label: 'Underarm', color: 'violet', textColor: 'text-violet-700', bgColor: 'bg-violet-100', borderColor: 'border-violet-400' },
+    'P': { label: 'Panel', color: 'emerald', textColor: 'text-emerald-700', bgColor: 'bg-emerald-100', borderColor: 'border-emerald-400' },
+    'BOR': { label: 'Beginning', color: 'sage', special: true, textColor: 'text-sage-700', bgColor: 'bg-sage-200', borderColor: 'border-sage-500' }
+};
+
+// Helper to get marker category and number
+const parseMarkerName = (name) => {
+    if (name === 'BOR') return { category: 'BOR', number: null };
+    const match = name.match(/^([A-Z])(\d+)$/);
+    if (match) {
+        return { category: match[1], number: parseInt(match[2]) };
+    }
+    return { category: null, number: null };
+};
+
+// Helper to get marker color styling
+{/* const getMarkerStyle = (markerName) => {
+    const { category } = parseMarkerName(markerName);
+    return MARKER_CATEGORIES[category] || {
+        color: 'wool',
+        textColor: 'text-wool-700',
+        bgColor: 'bg-wool-100',
+        borderColor: 'border-wool-400'
+    };
+};  
+
+// Smart marker name generator
+const generateSmartMarkerNames = (count, construction) => {
+    // Common patterns
+    if (construction === 'round' && count === 4) {
+        return ['R1', 'R2', 'R3', 'R4']; // Raglan
+    } else if (construction === 'flat' && count === 2) {
+        return ['S1', 'S2']; // Sides
+    } else if (construction === 'flat' && count === 4) {
+        return ['M1', 'M2', 'M3', 'M4']; // Generic markers
+    } else {
+        // Default: M1, M2, M3...
+        return Array.from({ length: count }, (_, i) => `M${i + 1}`);
+    }
+};  */}
 
 const MarkerPhasesConfig = ({
     shapingData,
@@ -37,6 +87,10 @@ const MarkerPhasesConfig = ({
     const [markerCount, setMarkerCount] = useState(2);
     const [segments, setSegments] = useState([]);
     const [showSegments, setShowSegments] = useState(false);
+    const [markerCategory, setMarkerCategory] = useState('M'); // New: category selector
+
+    // ===== GET TERMINOLOGY =====
+    const terms = getConstructionTerms(construction);
 
     // ===== EXISTING MARKER DETECTION =====
     const hasExistingMarkers = useMemo(() => {
@@ -75,154 +129,12 @@ const MarkerPhasesConfig = ({
             });
 
             setSegments(loadedSegments);
-            const markerCount = loadedSegments.filter(s => s.type === 'marker' && s.name !== 'BOR').length;
-            setMarkerCount(markerCount);
             setShowSegments(true);
+            setMarkerArray(existing);
         }
     }, [hasExistingMarkers, component?.stitchArray]);
 
-    // ===== SEQUENCE MANAGEMENT =====
-    const handleAddSequence = () => {
-        setEditingSequence(null);
-        setCurrentScreen('sequence-wizard');
-    };
-
-    const handleEditSequence = (sequenceId) => {
-        setEditingSequence(sequenceId);
-        setCurrentScreen('sequence-wizard');
-    };
-
-    const handleDeleteSequence = (sequenceId) => {
-        setSequences(prev => prev.filter((seq, index) =>
-            seq.id !== sequenceId && index !== sequenceId
-        ));
-        IntelliKnitLogger.debug('Sequence deleted', { sequenceId });
-    };
-
-    const handleSequenceComplete = (newSequence) => {
-        if (editingSequence !== null) {
-            // Editing existing sequence
-            setSequences(prev => prev.map((seq, index) =>
-                seq.id === editingSequence || index === editingSequence
-                    ? newSequence
-                    : seq
-            ));
-        } else {
-            // Adding new sequence
-            setSequences(prev => [...prev, newSequence]);
-        }
-
-        setEditingSequence(null);
-        setCurrentScreen('sequence-management');
-        IntelliKnitLogger.success('Sequence saved', newSequence);
-    };
-
-    // ===== CALCULATE SEQUENCES =====
-    useEffect(() => {
-        if (sequences.length === 0 || markerArray.length === 0) {
-            setSequenceCalculation(null);
-            return;
-        }
-
-        try {
-            const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
-                sequences,
-                markerArray,
-                construction
-            );
-
-            setSequenceCalculation(calculation);
-            IntelliKnitLogger.debug('Sequence calculation updated', calculation);
-        } catch (error) {
-            IntelliKnitLogger.error('Sequence calculation failed', error);
-            setSequenceCalculation({
-                error: 'Calculation failed: ' + error.message,
-                instruction: '',
-                startingStitches: markerArrayUtils.sumArrayStitches(markerArray),
-                endingStitches: markerArrayUtils.sumArrayStitches(markerArray),
-                totalRows: 0,
-                finalArray: markerArray
-            });
-        }
-    }, [sequences, markerArray, construction]);
-
-    // ===== CREATE SEGMENTS FROM MARKER COUNT =====
-    const createSegments = (count) => {
-        const isRound = construction === 'round';
-        const segments = [];
-
-        if (isRound) {
-            // Round: BOR + segments
-            segments.push({
-                type: 'marker',
-                name: 'BOR',
-                id: 'marker_bor',
-                readonly: true
-            });
-
-            // Add stitch segments and markers
-            for (let i = 1; i <= count; i++) {
-                segments.push({
-                    type: 'stitches',
-                    count: '', // Leave blank for user to fill
-                    id: `stitches_${i}`
-                });
-
-                if (i < count) {
-                    segments.push({
-                        type: 'marker',
-                        name: `M${i}`,
-                        id: `marker_${i}`
-                    });
-                }
-            }
-
-            // Final marker
-            segments.push({
-                type: 'marker',
-                name: `M${count}`,
-                id: `marker_${count}`
-            });
-
-        } else {
-            // Flat: starts with stitches
-            for (let i = 1; i <= count + 1; i++) {
-                segments.push({
-                    type: 'stitches',
-                    count: '', // Leave blank
-                    id: `stitches_${i}`
-                });
-
-                if (i <= count) {
-                    segments.push({
-                        type: 'marker',
-                        name: `M${i}`,
-                        id: `marker_${i}`
-                    });
-                }
-            }
-        }
-
-        return segments;
-    };
-
-    // ===== HANDLE UPDATE BUTTON =====
-    const handleUpdate = () => {
-        const newSegments = createSegments(markerCount);
-        setSegments(newSegments);
-        setShowSegments(true);
-    };
-
-    // ===== UPDATE INDIVIDUAL SEGMENTS =====
-    const updateSegment = (segmentId, field, value) => {
-        setSegments(prev => prev.map(segment =>
-            segment.id === segmentId
-                ? { ...segment, [field]: value }
-                : segment
-        ));
-    };
-
-    // ===== CALCULATE CURRENT ARRAY =====
+    // ===== COMPUTE CURRENT ARRAY FROM SEGMENTS =====
     const currentArray = useMemo(() => {
         if (!showSegments || segments.length === 0) return [];
 
@@ -230,43 +142,121 @@ const MarkerPhasesConfig = ({
         segments.forEach(segment => {
             if (segment.type === 'marker') {
                 array.push(segment.name);
-            } else if (segment.count !== '' && segment.count > 0) {
-                array.push(parseInt(segment.count)); // Convert to number
+            } else {
+                array.push(parseInt(segment.count) || 0);
             }
         });
         return array;
     }, [segments, showSegments]);
 
     // ===== VALIDATION =====
-    const totalStitches = useMemo(() => {
-        return segments
+    const isValid = useMemo(() => {
+        if (!showSegments) return false;
+        if (segments.length === 0) return false;
+
+        // Check that all stitch segments have valid counts
+        const hasInvalidStitches = segments
             .filter(s => s.type === 'stitches')
-            .reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
-    }, [segments]);
+            .some(s => !s.count || parseInt(s.count) <= 0);
 
-    const hasAllStitches = segments
-        .filter(s => s.type === 'stitches')
-        .every(s => s.count !== '' && parseInt(s.count) > 0);
+        if (hasInvalidStitches) return false;
 
-    const isValid = hasAllStitches && totalStitches === currentStitches;
-    const stitchDifference = totalStitches - currentStitches;
+        // Validate array structure
+        const errors = markerArrayUtils.validateArray(currentArray);
+        return errors.length === 0;
+    }, [segments, showSegments, currentArray]);
 
-    // ===== COMPLETE MARKER SETUP (ADVANCE TO SCREEN 2) =====
-    const handleCompleteMarkerSetup = () => {
-        if (!isValid) return;
+    // ===== CREATE MARKER SEGMENTS =====
+    const handleCreateMarkerSegments = () => {
+        const smartNames = generateSmartMarkerNames(markerCount, construction);
+        const newSegments = [];
 
-        console.log("MarkerPhasesConfig.handleCompleteMarkerSetup - advancing to screen 2");
+        // Calculate even distribution
+        const baseStitches = Math.floor(currentStitches / (markerCount + 1));
+        const remainder = currentStitches % (markerCount + 1);
 
-        // Save marker array and advance to sequence management
-        setMarkerArray(currentArray);
-        setCurrentScreen('sequence-management');
+        // For round construction, add BOR marker first
+        if (construction === 'round') {
+            newSegments.push({
+                type: 'marker',
+                name: 'BOR',
+                id: 'marker_BOR',
+                readonly: true
+            });
+        }
 
-        IntelliKnitLogger.success('Marker Setup Complete - Advancing to Sequence Management', {
-            markerArray: currentArray
+        // Add alternating stitches and markers
+        for (let i = 0; i < markerCount; i++) {
+            // Add stitches segment with even distribution
+            const stitchCount = baseStitches + (i < remainder ? 1 : 0);
+            newSegments.push({
+                type: 'stitches',
+                count: stitchCount,
+                id: `stitches_${i}`
+            });
+
+            // Add marker
+            newSegments.push({
+                type: 'marker',
+                name: smartNames[i],
+                id: `marker_${smartNames[i]}_${i}`,
+                readonly: false
+            });
+        }
+
+        // Add final stitches segment
+        const finalStitchCount = baseStitches + (markerCount < remainder ? 1 : 0);
+        newSegments.push({
+            type: 'stitches',
+            count: finalStitchCount,
+            id: `stitches_final`
+        });
+
+        setSegments(newSegments);
+        setShowSegments(true);
+
+        IntelliKnitLogger.info('Created marker segments', {
+            markerCount,
+            segments: newSegments,
+            totalStitches: currentStitches
         });
     };
 
-    // ===== HANDLE BACK NAVIGATION =====
+    // ===== UPDATE SEGMENT =====
+    const updateSegment = (segmentId, field, value) => {
+        setSegments(prev => prev.map(segment => {
+            if (segment.id === segmentId) {
+                if (field === 'count') {
+                    // For stitch count, ensure it's a valid number
+                    const numValue = parseInt(value) || 0;
+                    return { ...segment, count: Math.max(0, numValue) };
+                } else if (field === 'name') {
+                    // For marker name
+                    return { ...segment, name: value };
+                }
+            }
+            return segment;
+        }));
+    };
+
+    // ===== RENDER MARKER BUBBLE =====
+    const renderMarkerBubble = (segment, index) => {
+        const style = getMarkerStyle(segment.name);
+        const { category, number } = parseMarkerName(segment.name);
+
+        return (
+            <div className="flex items-center gap-2">
+                <div className={`w-10 h-10 rounded-full ${style.bgColor} ${style.borderColor} border-2 flex items-center justify-center ${style.textColor} font-bold text-sm`}>
+                    {segment.name}
+                </div>
+                <div className="text-xs text-wool-500">
+                    {style.label || 'Marker'}
+                </div>
+            </div>
+        );
+    };
+
+    // ===== NAVIGATION =====
     const handleBackNavigation = () => {
         if (currentScreen === 'marker-setup') {
             onBack();
@@ -277,10 +267,53 @@ const MarkerPhasesConfig = ({
         }
     };
 
-    // ===== FINAL COMPLETION (ONLY FROM LAST SCREEN) =====
+    const handleCompleteMarkerSetup = () => {
+        setMarkerArray(currentArray);
+        setCurrentScreen('sequence-management');
+        IntelliKnitLogger.success('Marker setup complete', currentArray);
+    };
+
+    const handleAddSequence = () => {
+        setEditingSequence(null);
+        setCurrentScreen('sequence-wizard');
+    };
+
+    const handleEditSequence = (sequenceId) => {
+        const sequence = sequences.find(s => s.id === sequenceId);
+        setEditingSequence(sequence);
+        setCurrentScreen('sequence-wizard');
+    };
+
+    const handleDeleteSequence = (sequenceId) => {
+        setSequences(prev => prev.filter(s => s.id !== sequenceId));
+        IntelliKnitLogger.info('Sequence deleted', sequenceId);
+    };
+
+    const handleSequenceComplete = (sequenceData) => {
+        if (editingSequence) {
+            setSequences(prev => prev.map(s =>
+                s.id === editingSequence.id ? sequenceData : s
+            ));
+        } else {
+            setSequences(prev => [...prev, sequenceData]);
+        }
+        setCurrentScreen('sequence-management');
+
+        // Recalculate after sequence change
+        const updatedSequences = editingSequence
+            ? sequences.map(s => s.id === editingSequence.id ? sequenceData : s)
+            : [...sequences, sequenceData];
+
+        const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
+            updatedSequences,
+            markerArray,
+            construction
+        );
+        setSequenceCalculation(calculation);
+    };
+
     const handleFinalComplete = () => {
-        // Use sequence calculation if available, otherwise basic setup
-        const calculation = sequenceCalculation || MarkerSequenceCalculator.calculateMarkerPhases(
+        const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
             sequences.length > 0 ? sequences : [{
                 id: 'marker_setup',
                 name: 'Marker Setup',
@@ -345,109 +378,147 @@ const MarkerPhasesConfig = ({
 
                     {/* Marker Count Input */}
                     {!showSegments && (
-                        <div className="card-info">
-                            <div className="flex items-center justify-between mb-4">
+                        <div className="card">
+                            <div className="stack-md">
                                 <label className="text-sm font-semibold text-sage-700">
                                     How many markers do you need?
                                 </label>
-                                <div className="flex items-center gap-3">
-                                    <IncrementInput
-                                        value={markerCount}
-                                        onChange={setMarkerCount}
-                                        min={1}
-                                        max={12}
-                                        step={1}
-                                    />
-                                    <button
-                                        onClick={handleUpdate}
-                                        className="btn-primary btn-sm"
-                                    >
-                                        Update
-                                    </button>
-                                </div>
-                            </div>
 
-                            {construction === 'round' && (
-                                <div className="text-xs text-sage-600">
-                                    BOR marker will be included automatically for round construction
+                                <IncrementInput
+                                    value={markerCount}
+                                    onChange={setMarkerCount}
+                                    min={1}
+                                    max={10}
+                                    label="markers"
+                                    unit="markers"
+                                    size="default"
+                                />
+
+                                {/* Smart suggestions based on marker count */}
+                                <div className="mt-4">
+                                    <p className="text-xs text-wool-500 mb-2">Common patterns:</p>
+                                    <div className="flex flex-wrap gap-2">
+                                        {construction === 'round' && (
+                                            <>
+                                                <button
+                                                    onClick={() => setMarkerCount(4)}
+                                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${markerCount === 4
+                                                        ? 'bg-sage-500 text-white'
+                                                        : 'bg-wool-100 text-wool-600 hover:bg-wool-200'
+                                                        }`}
+                                                >
+                                                    4 - Raglan
+                                                </button>
+                                                <button
+                                                    onClick={() => setMarkerCount(2)}
+                                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${markerCount === 2
+                                                        ? 'bg-sage-500 text-white'
+                                                        : 'bg-wool-100 text-wool-600 hover:bg-wool-200'
+                                                        }`}
+                                                >
+                                                    2 - Waist
+                                                </button>
+                                            </>
+                                        )}
+                                        {construction === 'flat' && (
+                                            <>
+                                                <button
+                                                    onClick={() => setMarkerCount(2)}
+                                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${markerCount === 2
+                                                        ? 'bg-sage-500 text-white'
+                                                        : 'bg-wool-100 text-wool-600 hover:bg-wool-200'
+                                                        }`}
+                                                >
+                                                    2 - Sides
+                                                </button>
+                                                <button
+                                                    onClick={() => setMarkerCount(4)}
+                                                    className={`px-3 py-1 rounded-full text-xs font-medium transition-colors ${markerCount === 4
+                                                        ? 'bg-sage-500 text-white'
+                                                        : 'bg-wool-100 text-wool-600 hover:bg-wool-200'
+                                                        }`}
+                                                >
+                                                    4 - Armholes
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
                                 </div>
-                            )}
+
+                                <button
+                                    onClick={handleCreateMarkerSegments}
+                                    className="btn-primary mt-4"
+                                >
+                                    Place Markers →
+                                </button>
+                            </div>
                         </div>
                     )}
 
                     {/* Segment Configuration */}
-                    {showSegments && (
-                        <div className="stack-md">
-                            <div className="flex items-center justify-between">
-                                <h4 className="text-sm font-semibold text-wool-700">Position & Name Markers</h4>
-                                <div className={`text-xs px-2 py-1 rounded ${isValid
-                                    ? 'bg-sage-100 text-sage-700'
-                                    : hasAllStitches
-                                        ? 'bg-red-100 text-red-700'
-                                        : 'bg-wool-100 text-wool-600'
-                                    }`}>
-                                    {!hasAllStitches
-                                        ? 'Fill in all stitch counts'
-                                        : isValid
-                                            ? `${totalStitches} stitches ✓`
-                                            : `${totalStitches} stitches (${stitchDifference > 0 ? '+' : ''}${stitchDifference})`
-                                    }
-                                </div>
-                            </div>
+                    {showSegments && segments.length > 0 && (
+                        <div className="card">
+                            <h4 className="text-sm font-semibold text-sage-700 mb-4">Configure Your Markers</h4>
 
-                            <div className="stack-sm">
+                            {/* Visual builder with live preview */}
+                            <div className="space-y-3">
                                 {segments.map((segment, index) => (
-                                    <div key={segment.id} className="flex items-center gap-3 p-3 border border-wool-200 rounded-lg">
+                                    <div key={segment.id} className="flex items-center gap-3">
                                         {segment.type === 'marker' ? (
-                                            // Marker row
-                                            <div className="flex items-center gap-3 flex-1">
-                                                <div className="w-12 h-8 bg-sage-200 border border-sage-400 rounded-full flex items-center justify-center text-xs font-bold text-sage-700">
-                                                    {segment.name}
-                                                </div>
-                                                <div className="flex items-center gap-2 flex-1">
-                                                    <span className="text-sm text-wool-600">Marker:</span>
+                                            <>
+                                                {renderMarkerBubble(segment, index)}
+                                                {!segment.readonly && (
                                                     <input
                                                         type="text"
                                                         value={segment.name}
                                                         onChange={(e) => updateSegment(segment.id, 'name', e.target.value)}
-                                                        disabled={segment.readonly}
-                                                        className="flex-1 border border-wool-300 rounded px-2 py-1 text-sm disabled:bg-wool-50 disabled:text-wool-500"
-                                                        placeholder="Marker name"
+                                                        className="w-16 text-center border-2 border-wool-200 rounded-lg px-2 py-1 text-sm focus:border-sage-500"
+                                                        placeholder="M1"
                                                     />
-                                                </div>
-                                            </div>
+                                                )}
+                                            </>
                                         ) : (
-                                            // Stitches row  
-                                            <div className="flex items-center gap-3 flex-1">
-                                                <div className="w-12 h-8 bg-wool-100 border border-wool-300 rounded flex items-center justify-center text-xs font-medium">
-                                                    {segment.count || '?'}
-                                                </div>
-                                                <div className="flex items-center gap-2 flex-1">
-                                                    <span className="text-sm text-wool-600">Stitches:</span>
-                                                    <input
-                                                        type="number"
-                                                        min="1"
-                                                        value={segment.count}
-                                                        onChange={(e) => updateSegment(segment.id, 'count', e.target.value)}
-                                                        className="w-20 border border-wool-300 rounded px-2 py-1 text-sm text-center"
-                                                        placeholder="0"
-                                                    />
-                                                    <span className="text-xs text-wool-500">
-                                                        {index === segments.length - 1
-                                                            ? (construction === 'round' ? 'back to BOR' : 'to end')
-                                                            : 'to next marker'
-                                                        }
-                                                    </span>
-                                                </div>
+                                            <div className="flex items-center gap-2 flex-1">
+                                                <span className="text-sm text-wool-600 font-medium min-w-[80px]">
+                                                    Stitches:
+                                                </span>
+                                                <IncrementInput
+                                                    value={segment.count}
+                                                    onChange={(value) => updateSegment(segment.id, 'count', value)}
+                                                    min={0}
+                                                    max={currentStitches}
+                                                    label="stitches"
+                                                    size="sm"
+                                                />
+                                                <span className="text-xs text-wool-500 ml-2">
+                                                    {index === segments.length - 1
+                                                        ? (construction === 'round' ? 'back to BOR' : 'to end')
+                                                        : 'to next marker'
+                                                    }
+                                                </span>
                                             </div>
                                         )}
                                     </div>
                                 ))}
                             </div>
 
+                            {/* Total stitch validation */}
+                            <div className={`mt-4 p-3 rounded-lg text-sm ${markerArrayUtils.sumArrayStitches(currentArray) === currentStitches
+                                ? 'bg-green-50 text-green-700 border border-green-200'
+                                : 'bg-red-50 text-red-700 border border-red-200'
+                                }`}>
+                                Total: {markerArrayUtils.sumArrayStitches(currentArray)} / {currentStitches} stitches
+                                {markerArrayUtils.sumArrayStitches(currentArray) !== currentStitches && (
+                                    <span className="ml-2 font-medium">
+                                        ({Math.abs(currentStitches - markerArrayUtils.sumArrayStitches(currentArray))}
+                                        {markerArrayUtils.sumArrayStitches(currentArray) < currentStitches ? ' short' : ' over'})
+                                    </span>
+                                )}
+                            </div>
+
                             <button
                                 onClick={() => setShowSegments(false)}
-                                className="btn-tertiary btn-sm self-start"
+                                className="btn-tertiary btn-sm mt-4"
                             >
                                 ← Change Marker Count
                             </button>
@@ -456,13 +527,16 @@ const MarkerPhasesConfig = ({
 
                     {/* Live Preview */}
                     {showSegments && currentArray.length > 0 && (
-                        <div className="card-info">
+                        <div className="card">
                             <h4 className="text-sm font-semibold text-sage-700 mb-3">Live Preview</h4>
                             <MarkerArrayVisualization
                                 stitchArray={currentArray}
                                 construction={construction}
                                 showActions={false}
                             />
+                            <p className="text-xs text-wool-500 text-center mt-3">
+                                This shows how your markers will appear in the pattern
+                            </p>
                         </div>
                     )}
 

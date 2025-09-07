@@ -1,6 +1,32 @@
 // src/shared/components/MarkerArrayVisualization.jsx
 import React from 'react';
 import markerArrayUtils from '../utils/markerArrayUtils';
+import { getMarkerStyle, generateSmartMarkerNames } from '../utils/markerColors';
+
+// ===== MARKER COLOR CONFIGURATION =====
+const MARKER_STYLES = {
+    'R': { bgColor: 'bg-sage-100', borderColor: 'border-sage-400', textColor: 'text-sage-700' },
+    'M': { bgColor: 'bg-sky-100', borderColor: 'border-sky-400', textColor: 'text-sky-700' },
+    'S': { bgColor: 'bg-amber-100', borderColor: 'border-amber-400', textColor: 'text-amber-700' },
+    'W': { bgColor: 'bg-rose-100', borderColor: 'border-rose-400', textColor: 'text-rose-700' },
+    'U': { bgColor: 'bg-violet-100', borderColor: 'border-violet-400', textColor: 'text-violet-700' },
+    'P': { bgColor: 'bg-emerald-100', borderColor: 'border-emerald-400', textColor: 'text-emerald-700' },
+    'BOR': { bgColor: 'bg-sage-200', borderColor: 'border-sage-500', textColor: 'text-sage-700', special: true }
+};
+
+// Helper to get marker styling
+{/* const getMarkerStyle = (markerName) => {
+    if (markerName === 'BOR') return MARKER_STYLES.BOR;
+
+    // Parse first letter for category
+    const category = markerName.match(/^([A-Z])/)?.[1];
+
+    return MARKER_STYLES[category] || {
+        bgColor: 'bg-wool-200',
+        borderColor: 'border-wool-400',
+        textColor: 'text-wool-700'
+    };
+};  */}
 
 const MarkerArrayVisualization = ({
     stitchArray,
@@ -41,9 +67,9 @@ const MarkerArrayVisualization = ({
                 // Stitch segment
                 elements.push(
                     <div key={index} className="flex items-center">
-                        <div className="bg-wool-100 border border-wool-300 rounded px-3 py-2 min-w-[60px] text-center">
-                            <div className="text-sm font-medium">{item}</div>
-                            <div className="text-xs text-wool-600">
+                        <div className="bg-white border-2 border-wool-300 rounded-lg px-3 py-2 min-w-[60px] text-center shadow-sm">
+                            <div className="text-sm font-semibold text-wool-700">{item}</div>
+                            <div className="text-xs text-wool-500">
                                 {item === 1 ? 'stitch' : 'stitches'}
                             </div>
                         </div>
@@ -51,14 +77,11 @@ const MarkerArrayVisualization = ({
                 );
             } else {
                 // Marker
-                const isSpecialMarker = item === 'BOR';
+                const style = getMarkerStyle(item);
                 elements.push(
                     <div key={index} className="flex items-center">
-                        <div className={`border-2 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold ${isSpecialMarker
-                                ? 'bg-sage-200 border-sage-400 text-sage-700'
-                                : 'bg-lavender-200 border-lavender-400 text-lavender-700'
-                            }`}>
-                            {isSpecialMarker ? '●' : item}
+                        <div className={`border-2 rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold shadow-sm ${style.bgColor} ${style.borderColor} ${style.textColor}`}>
+                            {style.special ? '●' : item}
                         </div>
                     </div>
                 );
@@ -81,9 +104,9 @@ const MarkerArrayVisualization = ({
                 // Stitch segment
                 elements.push(
                     <div key={index} className="flex items-center">
-                        <div className="bg-wool-100 border border-wool-300 rounded px-3 py-2 min-w-[60px] text-center">
-                            <div className="text-sm font-medium">{item}</div>
-                            <div className="text-xs text-wool-600">
+                        <div className="bg-white border-2 border-wool-300 rounded-lg px-3 py-2 min-w-[60px] text-center shadow-sm">
+                            <div className="text-sm font-semibold text-wool-700">{item}</div>
+                            <div className="text-xs text-wool-500">
                                 {item === 1 ? 'stitch' : 'stitches'}
                             </div>
                         </div>
@@ -91,14 +114,11 @@ const MarkerArrayVisualization = ({
                 );
             } else {
                 // Marker
-                const isSpecialMarker = item === 'BOR';
+                const style = getMarkerStyle(item);
                 elements.push(
                     <div key={index} className="flex items-center">
-                        <div className={`border-2 rounded-full w-8 h-8 flex items-center justify-center text-xs font-bold ${isSpecialMarker
-                                ? 'bg-sage-200 border-sage-400 text-sage-700'
-                                : 'bg-lavender-200 border-lavender-400 text-lavender-700'
-                            }`}>
-                            {isSpecialMarker ? '●' : item}
+                        <div className={`border-2 rounded-full w-10 h-10 flex items-center justify-center text-sm font-bold shadow-sm ${style.bgColor} ${style.borderColor} ${style.textColor}`}>
+                            {style.special ? '●' : item}
                         </div>
                     </div>
                 );
@@ -108,7 +128,7 @@ const MarkerArrayVisualization = ({
         return (
             <div className="flex items-center gap-2 justify-center flex-wrap">
                 {elements}
-                <div className="text-sage-600 text-lg ml-2">↻</div>
+                <div className="text-sage-600 text-2xl ml-2">↻</div>
             </div>
         );
     };
@@ -138,7 +158,7 @@ const MarkerArrayVisualization = ({
     return (
         <div className={`${className}`}>
             {/* Main visualization */}
-            <div className="bg-white border border-wool-200 rounded-lg p-4">
+            <div className="bg-white border-2 border-wool-200 rounded-xl p-4 shadow-sm">
                 {construction === 'round' ? renderRound() : renderFlat()}
 
                 {/* Summary info */}
