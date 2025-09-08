@@ -13,37 +13,12 @@ import { getConstructionTerms } from '../../../../shared/utils/ConstructionTermi
 
 
 // ===== SIMPLIFIED MARKER TYPES - 4 colors max =====
-const MARKER_TYPES = [
-    { letter: 'M', bgColor: 'bg-sage-100', borderColor: 'border-sage-400', textColor: 'text-sage-700' },
-    { letter: 'L', bgColor: 'bg-emerald-100', borderColor: 'border-emerald-400', textColor: 'text-emerald-700' },
-    { letter: 'R', bgColor: 'bg-yarn-100', borderColor: 'border-yarn-400', textColor: 'text-yarn-700' },
-    { letter: 'S', bgColor: 'bg-wool-200', borderColor: 'border-wool-400', textColor: 'text-wool-700' }
+const MARKER_COLOR_OPTIONS = [
+    { bgColor: 'bg-sage-100', borderColor: 'border-sage-400', textColor: 'text-sage-700' },
+    { bgColor: 'bg-yarn-200', borderColor: 'border-yarn-500', textColor: 'text-yarn-800' }, // Darker yarn
+    { bgColor: 'bg-yarn-100', borderColor: 'border-yarn-400', textColor: 'text-yarn-700' }, // Lighter yarn  
+    { bgColor: 'bg-wool-200', borderColor: 'border-wool-400', textColor: 'text-wool-700' }
 ];
-
-const getMarkerTypeByLetter = (letter) => {
-    return MARKER_TYPES.find(type => type.letter === letter) || MARKER_TYPES[0]; // Default to 'M'
-};
-
-const getMarkerPrefix = (markerName) => {
-    if (markerName === 'BOR') return 'BOR';
-
-    // Extract letters before the number: "R2" → "R", "ABC" → "ABC"
-    const match = markerName.match(/^([A-Z]+)(\d*)$/);
-    return match ? match[1] : markerName;
-};
-
-const getMarkerColorFromPrefix = (prefix) => {
-    if (prefix === 'BOR') {
-        return { bgColor: 'bg-lavender-200', borderColor: 'border-lavender-500', textColor: 'text-lavender-700' };
-    }
-
-    const markerType = getMarkerTypeByLetter(prefix);
-    return {
-        bgColor: markerType.bgColor,
-        borderColor: markerType.borderColor,
-        textColor: markerType.textColor
-    };
-};
 
 // ===== HELPER FUNCTION - CREATE ARRAY ON DEMAND =====
 const createMarkerArray = (count, totalStitches, construction) => {
@@ -94,7 +69,28 @@ const MarkerPhasesConfig = ({
     // ===== SCREEN 1: MARKER SETUP STATE =====
     const [markerCount, setMarkerCount] = useState(2);
     const [segments, setSegments] = useState([]);
+
+    // ===== MARKER COLOR STATE =====
+    const [markerColors, setMarkerColors] = useState({}); // markerName -> colorIndex
     const [showSegments, setShowSegments] = useState(false);
+
+    // ===== MARKER COLOR FUNCTIONS =====
+    const getMarkerColor = (markerName) => {
+        if (markerName === 'BOR') {
+            return { bgColor: 'bg-lavender-200', borderColor: 'border-lavender-500', textColor: 'text-lavender-700' };
+        }
+
+        const colorIndex = markerColors[markerName] || 0;
+        return MARKER_COLOR_OPTIONS[colorIndex];
+    };
+
+    const cycleMarkerColor = (markerName) => {
+        setMarkerColors(prev => {
+            const currentIndex = prev[markerName] || 0;
+            const nextIndex = (currentIndex + 1) % MARKER_COLOR_OPTIONS.length;
+            return { ...prev, [markerName]: nextIndex };
+        });
+    };
 
     // ===== GET TERMINOLOGY =====
     const terms = getConstructionTerms(construction);
@@ -247,126 +243,6 @@ const MarkerPhasesConfig = ({
             }
             return segment;
         }));
-    };
-
-    // ===== AUTO-RENUMBER MARKERS =====
-    const changeMarkerType = (segmentId, newLetter) => {
-        setSegments(prev => {
-            const newSegments = [...prev];
-
-            // Find the marker being changed
-            const markerIndex = newSegments.findIndex(s => s.id === segmentId);
-            if (markerIndex === -1) return prev;
-
-
-            // Skip readonly markers like BOR
-            if (newSegments[markerIndex].readonly) return prev;
-
-            // Update the marker with new letter
-            const oldMarker = newSegments[markerIndex];
-            newSegments[markerIndex] = {
-                ...oldMarker,
-                name: newLetter // Will get numbered below
-            };
-
-            // Renumber ALL markers of this letter type by their position
-            const markersOfThisType = [];
-            newSegments.forEach((segment, index) => {
-                if (segment.type === 'marker' && !segment.readonly) {
-                    const prefix = getMarkerPrefix(segment.name);
-                    if (prefix === newLetter) {
-                        markersOfThisType.push({ segment, index, position: index });
-                    }
-                }
-            });
-
-            // Sort by position and renumber
-            markersOfThisType.sort((a, b) => a.position - b.position);
-            markersOfThisType.forEach((item, idx) => {
-                newSegments[item.index] = {
-                    ...item.segment,
-                    name: `${newLetter}${idx + 1}`,
-                    id: `marker_${newLetter}${idx + 1}_${item.index}`
-                };
-            });
-
-            return newSegments;
-        });
-    };
-
-    // ===== RENDER MARKER TYPE CHIPS =====
-    const renderMarkerTypeChips = (currentMarker, segmentId) => {
-        const currentPrefix = getMarkerPrefix(currentMarker.name);
-
-        return (
-            <div className="flex flex-wrap gap-1">
-                {MARKER_TYPES.map((type) => {
-                    const isSelected = currentPrefix === type.letter;
-                    return (
-                        <button
-                            key={type.letter}
-                            type="button"
-                            onClick={() => changeMarkerType(segmentId, type.letter)}
-                            className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all duration-200 ${isSelected
-                                ? `${type.borderColor} ${type.bgColor} ${type.textColor} shadow-sm ring-2 ring-sage-500 ring-opacity-30`
-                                : `${type.borderColor} ${type.bgColor} ${type.textColor} hover:shadow-sm hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
-                                }`}
-                            title={type.label}
-                        >
-                            {type.letter}
-                        </button>
-                    );
-                })}
-            </div>
-        );
-    };
-
-    // ===== RENDER MARKER BUBBLE =====
-    const renderMarkerBubble = (segment, index) => {
-        const prefix = getMarkerPrefix(segment.name);
-        const style = getMarkerColorFromPrefix(prefix);
-
-        return (
-            <div className="flex items-center gap-2">
-                <div className={`w-10 h-10 rounded-full ${style.bgColor} ${style.borderColor} border-2 flex items-center justify-center ${style.textColor} font-bold text-sm`}>
-                    {segment.name}
-                </div>
-            </div>
-        );
-    };
-
-    // ===== RENDER COLOR GROUPS PREVIEW =====
-    const renderColorGroupsPreview = () => {
-        if (!showSegments || segments.length === 0) return null;
-
-        const markerSegments = segments.filter(s => s.type === 'marker');
-        const groups = {};
-
-        markerSegments.forEach(segment => {
-            const prefix = getMarkerPrefix(segment.name);
-            if (!groups[prefix]) groups[prefix] = [];
-            groups[prefix].push(segment.name);
-        });
-
-        return (
-            <div className="mt-3 p-3 bg-wool-50 rounded-lg">
-                <p className="text-xs font-medium text-wool-600 mb-2">Color Groups:</p>
-                <div className="flex flex-wrap gap-2">
-                    {Object.entries(groups).map(([prefix, markers]) => {
-                        const style = getMarkerColorFromPrefix(prefix);
-                        return (
-                            <div key={prefix} className="flex items-center gap-1">
-                                <div className={`w-4 h-4 rounded-full ${style.bgColor} ${style.borderColor} border`}></div>
-                                <span className="text-xs text-wool-600">{markers.join(', ')}</span>
-                            </div>
-                        );
-                    })}
-                </div>
-                <p className="text-xs text-wool-500 mt-1">
-                    Markers with same letters get same color (M1, M2 = blue; R1, R2 = green)
-                </p>
-            </div>
-        );
     };
 
     // ===== NAVIGATION =====
@@ -601,9 +477,8 @@ const MarkerPhasesConfig = ({
                     {/* Marker Count Section */}
                     <div className="card">
                         <div className="stack-md">
-                            <label className="text-sm font-semibold text-sage-700">
-                                How many markers do you need?
-                            </label>
+                            <h4 className="text-sm font-semibold text-wool-700 mb-3">How many markers do you need?</h4>
+
 
                             <div className="flex items-center gap-3">
                                 <IncrementInput
@@ -627,7 +502,7 @@ const MarkerPhasesConfig = ({
                     {/* Marker Configuration Section */}
                     {showSegments && segments.length > 0 && (
                         <div className="card">
-                            <h4 className="text-sm font-semibold text-sage-700 mb-4">Configure Your Markers</h4>
+                            <h4 className="text-sm font-semibold text-wool-700 mb-3">Configure Your Markers</h4>
 
                             <div className="space-y-4">
                                 {segments.map((segment, index) => {
@@ -652,8 +527,7 @@ const MarkerPhasesConfig = ({
                                         );
                                     } else {
                                         // Marker row
-                                        const currentPrefix = getMarkerPrefix(segment.name);
-                                        const currentStyle = getMarkerColorFromPrefix(currentPrefix);
+                                        const currentStyle = getMarkerColor(segment.name);
 
                                         return (
                                             <div key={segment.id} className="flex items-center justify-between">
@@ -662,36 +536,20 @@ const MarkerPhasesConfig = ({
                                                     {segment.name}
                                                 </div>
 
-                                                {/* Color type buttons */}
+                                                {/* Subtle color dot */}
                                                 {!segment.readonly && (
-                                                    <div className="flex gap-2">
-                                                        {MARKER_TYPES.map((type) => {
-                                                            const isSelected = currentPrefix === type.letter;
-                                                            return (
-                                                                <button
-                                                                    key={type.letter}
-                                                                    type="button"
-                                                                    onClick={() => changeMarkerType(segment.id, type.letter)}
-                                                                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${isSelected
-                                                                        ? `${type.bgColor} ${type.borderColor} ${type.textColor} ring-2 ring-sage-500 ring-opacity-30`
-                                                                        : `${type.bgColor} ${type.borderColor} ${type.textColor} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
-                                                                        }`}
-                                                                    title={type.label}
-                                                                >
-                                                                    {type.letter}
-                                                                </button>
-                                                            );
-                                                        })}
-                                                    </div>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => cycleMarkerColor(segment.name)}
+                                                        className={`w-4 h-4 rounded-full border transition-colors hover:scale-110 ${getMarkerColor(segment.name).bgColor} ${getMarkerColor(segment.name).borderColor}`}
+                                                        title="Click to change color"
+                                                    />
                                                 )}
                                             </div>
                                         );
                                     }
                                 })}
                             </div>
-
-                            {/* Color Groups Preview */}
-                            {renderColorGroupsPreview()}
 
                             {/* Simple stitch counter - neutral display */}
                             <div className="mt-4 p-3 bg-wool-50 rounded-lg text-sm text-center text-wool-600">
@@ -716,9 +574,6 @@ const MarkerPhasesConfig = ({
                                 construction={construction}
                                 showActions={false}
                             />
-                            <p className="text-xs text-wool-500 text-center mt-3">
-                                This shows how your markers will appear in the pattern
-                            </p>
                         </div>
                     )}
 
