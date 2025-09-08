@@ -34,7 +34,7 @@ const getMarkerPrefix = (markerName) => {
 
 const getMarkerColorFromPrefix = (prefix) => {
     if (prefix === 'BOR') {
-        return { bgColor: 'bg-sage-200', borderColor: 'border-sage-500', textColor: 'text-sage-700' };
+        return { bgColor: 'bg-lavender-200', borderColor: 'border-lavender-500', textColor: 'text-lavender-700' };
     }
 
     const markerType = getMarkerTypeByLetter(prefix);
@@ -593,23 +593,17 @@ const MarkerPhasesConfig = ({
                             </label>
 
                             <div className="flex items-center gap-3">
-                                <input
-                                    type="number"
-                                    inputMode="numeric"
+                                <IncrementInput
                                     value={markerCount}
-                                    onChange={(e) => setMarkerCount(parseInt(e.target.value) || 1)}
-                                    min="1"
-                                    max="20"
-                                    className="input-numeric"
-                                    style={{
-                                        MozAppearance: 'textfield'
-                                    }}
-                                    onWheel={(e) => e.target.blur()}
+                                    onChange={setMarkerCount}
+                                    min={0}
+                                    max={20}
+                                    size="sm"
                                 />
                                 <span className="text-sm text-wool-600">markers</span>
                                 <button
                                     onClick={handleUpdateMarkers}
-                                    className="btn-secondary"
+                                    className="btn-secondary btn-sm"
                                 >
                                     Update
                                 </button>
@@ -625,16 +619,20 @@ const MarkerPhasesConfig = ({
                             <div className="space-y-4">
                                 {segments.map((segment, index) => {
                                     if (segment.type === 'stitches') {
+                                        // Calculate remaining stitches for this specific field
+                                        const otherStitchesUsed = segments
+                                            .filter((s, i) => s.type === 'stitches' && i !== index)
+                                            .reduce((sum, s) => sum + (parseInt(s.count) || 0), 0);
+                                        const maxForThisField = currentStitches - otherStitchesUsed;
+
                                         return (
                                             <div key={segment.id} className="flex items-center gap-3">
-                                                <input
-                                                    type="number"
-                                                    inputMode="numeric"
+                                                <IncrementInput
                                                     value={segment.count}
-                                                    onChange={(e) => updateSegment(segment.id, 'count', parseInt(e.target.value) || 0)}
-                                                    min="0"
-                                                    max={currentStitches}
-                                                    className="input-numeric-sm"
+                                                    onChange={(value) => updateSegment(segment.id, 'count', value)}
+                                                    min={0}
+                                                    max={maxForThisField}
+                                                    size="sm"
                                                 />
                                                 <span className="text-sm text-wool-600">stitches</span>
                                             </div>
@@ -680,16 +678,14 @@ const MarkerPhasesConfig = ({
                             {/* Color Groups Preview */}
                             {renderColorGroupsPreview()}
 
-                            {/* Total stitch validation */}
-                            <div className={`mt-4 p-3 rounded-lg text-sm ${markerArrayUtils.sumArrayStitches(currentArray) === currentStitches
-                                ? 'bg-green-50 text-green-700 border border-green-200'
-                                : 'bg-red-50 text-red-700 border border-red-200'
-                                }`}>
-                                Total: {markerArrayUtils.sumArrayStitches(currentArray)} / {currentStitches} stitches
-                                {markerArrayUtils.sumArrayStitches(currentArray) !== currentStitches && (
-                                    <span className="ml-2 font-medium">
-                                        ({Math.abs(currentStitches - markerArrayUtils.sumArrayStitches(currentArray))}
-                                        {markerArrayUtils.sumArrayStitches(currentArray) < currentStitches ? ' short' : ' over'})
+                            {/* Simple stitch counter - neutral display */}
+                            <div className="mt-4 p-3 bg-wool-50 rounded-lg text-sm text-center text-wool-600">
+                                {markerArrayUtils.sumArrayStitches(currentArray) === currentStitches ? (
+                                    <span>Total: {currentStitches} stitches placed</span>
+                                ) : (
+                                    <span>
+                                        Remaining: {Math.abs(currentStitches - markerArrayUtils.sumArrayStitches(currentArray))} stitches
+                                        {markerArrayUtils.sumArrayStitches(currentArray) > currentStitches ? ' over' : ' to place'}
                                     </span>
                                 )}
                             </div>

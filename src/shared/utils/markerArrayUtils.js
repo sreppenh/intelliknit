@@ -263,13 +263,7 @@ export const validateArray = (stitchArray) => {
         }
     }
 
-    // Check for empty segments
-    for (let i = 0; i < stitchArray.length; i++) {
-        const item = stitchArray[i];
-        if (typeof item === 'number' && item === 0) {
-            errors.push(`Zero stitch count at position ${i}`);
-        }
-    }
+
 
     return errors;
 };
