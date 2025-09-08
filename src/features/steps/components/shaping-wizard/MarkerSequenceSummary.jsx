@@ -7,6 +7,7 @@ import { getConstructionTerms } from '../../../../shared/utils/ConstructionTermi
 
 const MarkerSequenceSummary = ({
     markerArray = [],
+    markerColors = {}, // Add this line
     sequences = [],
     construction = 'flat',
     onAddSequence,
@@ -131,6 +132,7 @@ const MarkerSequenceSummary = ({
                         stitchArray={markerArray}
                         construction={construction}
                         showActions={false}
+                        markerColors={markerColors}
                     />
                 </div>
 

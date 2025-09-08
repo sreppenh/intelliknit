@@ -25,6 +25,7 @@ const getMarkerStyle = (markerName) => {
 
 const MarkerInstructionBuilder = ({
     markerArray = [],
+    markerColors = {}, // Add this line
     construction = 'flat',
     onComplete,
     onCancel
@@ -202,6 +203,7 @@ const MarkerInstructionBuilder = ({
                     stitchArray={markerArray}
                     construction={construction}
                     showActions={false}
+                    markerColors={markerColors}
                 />
             </div>
 

@@ -371,6 +371,7 @@ const MarkerPhasesConfig = ({
         const shapingConfigData = {
             markerSetup: hasExistingMarkers ? 'existing' : 'new',
             stitchArray: markerArray,
+            markerColors: markerColors, // Add this line
             markerCount: markerCount,
             sequences: sequences.length > 0 ? sequences : [{
                 id: 'marker_setup',
@@ -502,6 +503,7 @@ const MarkerPhasesConfig = ({
                     {showSegments && segments.length > 0 && (
                         <div className="card">
                             <h4 className="text-sm font-semibold text-wool-700 mb-3">Configure Your Markers</h4>
+                            <p className="text-xs text-wool-500 mb-4">Tap marker to change color</p>
 
                             <div className="space-y-4">
                                 {segments.map((segment, index) => {
@@ -531,19 +533,16 @@ const MarkerPhasesConfig = ({
                                         return (
                                             <div key={segment.id} className="flex items-center justify-between">
                                                 {/* Marker bubble */}
-                                                <div className={`w-10 h-10 rounded-full ${currentStyle.bgColor} ${currentStyle.borderColor} border-2 flex items-center justify-center ${currentStyle.textColor} font-bold ${segment.name === 'BOR' ? 'text-xs' : 'text-sm'}`}>
+                                                {/* Marker bubble - clickable to change color */}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => !segment.readonly && cycleMarkerColor(segment.name)}
+                                                    disabled={segment.readonly}
+                                                    className={`w-10 h-10 rounded-full ${currentStyle.bgColor} ${currentStyle.borderColor} border-2 flex items-center justify-center ${currentStyle.textColor} font-bold ${segment.name === 'BOR' ? 'text-xs' : 'text-sm'} ${!segment.readonly ? 'hover:scale-105 transition-transform cursor-pointer' : ''}`}
+                                                >
                                                     {segment.name}
-                                                </div>
+                                                </button>
 
-                                                {/* Subtle color dot */}
-                                                {!segment.readonly && (
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => cycleMarkerColor(segment.name)}
-                                                        className={`w-4 h-4 rounded-full border transition-colors hover:scale-110 ${getMarkerColor(segment.name).bgColor} ${getMarkerColor(segment.name).borderColor}`}
-                                                        title="Click to change color"
-                                                    />
-                                                )}
                                             </div>
                                         );
                                     }
@@ -572,6 +571,7 @@ const MarkerPhasesConfig = ({
                                 stitchArray={currentArray}
                                 construction={construction}
                                 showActions={false}
+                                markerColors={markerColors}
                             />
                         </div>
                     )}
@@ -599,6 +599,7 @@ const MarkerPhasesConfig = ({
         return (
             <MarkerSequenceSummary
                 markerArray={markerArray}
+                markerColors={markerColors}
                 sequences={sequences}
                 construction={construction}
                 onAddSequence={handleAddSequence}
@@ -635,6 +636,7 @@ const MarkerPhasesConfig = ({
 
                     <MarkerInstructionBuilder
                         markerArray={markerArray}
+                        markerColors={markerColors}
                         construction={construction}
                         onComplete={handleInstructionComplete}
                         onCancel={handleInstructionCancel}

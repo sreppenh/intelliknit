@@ -15,12 +15,22 @@ const MARKER_STYLES = {
 };
 
 // Helper to get marker styling
-const getMarkerStyle = (markerName) => {
+const getMarkerStyle = (markerName, customColors = {}) => {
     if (markerName === 'BOR') return MARKER_STYLES.BOR;
 
-    // Parse first letter for category
-    const category = markerName.match(/^([A-Z])/)?.[1];
+    // If custom colors provided, use those first
+    if (customColors[markerName] !== undefined) {
+        const MARKER_COLOR_OPTIONS = [
+            { bgColor: 'bg-sage-100', borderColor: 'border-sage-400', textColor: 'text-sage-700' },
+            { bgColor: 'bg-yarn-200', borderColor: 'border-yarn-500', textColor: 'text-yarn-800' },
+            { bgColor: 'bg-yarn-100', borderColor: 'border-yarn-400', textColor: 'text-yarn-700' },
+            { bgColor: 'bg-wool-200', borderColor: 'border-wool-400', textColor: 'text-wool-700' }
+        ];
+        return MARKER_COLOR_OPTIONS[customColors[markerName]] || MARKER_COLOR_OPTIONS[0];
+    }
 
+    // Fallback to old logic
+    const category = markerName.match(/^([A-Z])/)?.[1];
     return MARKER_STYLES[category] || {
         bgColor: 'bg-wool-200',
         borderColor: 'border-wool-400',
@@ -33,7 +43,8 @@ const MarkerArrayVisualization = ({
     construction = 'flat',
     showActions = false,
     actionIndicators = [],
-    className = ''
+    className = '',
+    markerColors = {} // Add this prop
 }) => {
     // Handle empty or invalid arrays
     if (!stitchArray || stitchArray.length === 0) {
@@ -86,7 +97,7 @@ const MarkerArrayVisualization = ({
                 }
 
                 // Marker with current styling
-                const style = getMarkerStyle(item);
+                const style = getMarkerStyle(item, markerColors);
                 elements.push(
                     <div key={index} className={`border-2 rounded-full w-7 h-7 flex items-center justify-center text-xs font-bold shadow-sm ${style.bgColor} ${style.borderColor} ${style.textColor}`}>
                         {style.special ? '●' : item}
