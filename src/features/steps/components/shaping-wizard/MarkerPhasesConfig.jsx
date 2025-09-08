@@ -258,6 +258,10 @@ const MarkerPhasesConfig = ({
             const markerIndex = newSegments.findIndex(s => s.id === segmentId);
             if (markerIndex === -1) return prev;
 
+
+            // Skip readonly markers like BOR
+            if (newSegments[markerIndex].readonly) return prev;
+
             // Update the marker with new letter
             const oldMarker = newSegments[markerIndex];
             newSegments[markerIndex] = {
@@ -654,30 +658,32 @@ const MarkerPhasesConfig = ({
                                         return (
                                             <div key={segment.id} className="flex items-center justify-between">
                                                 {/* Marker bubble */}
-                                                <div className={`w-10 h-10 rounded-full ${currentStyle.bgColor} ${currentStyle.borderColor} border-2 flex items-center justify-center ${currentStyle.textColor} font-bold text-sm`}>
+                                                <div className={`w-10 h-10 rounded-full ${currentStyle.bgColor} ${currentStyle.borderColor} border-2 flex items-center justify-center ${currentStyle.textColor} font-bold ${segment.name === 'BOR' ? 'text-xs' : 'text-sm'}`}>
                                                     {segment.name}
                                                 </div>
 
                                                 {/* Color type buttons */}
-                                                <div className="flex gap-2">
-                                                    {MARKER_TYPES.map((type) => {
-                                                        const isSelected = currentPrefix === type.letter;
-                                                        return (
-                                                            <button
-                                                                key={type.letter}
-                                                                type="button"
-                                                                onClick={() => changeMarkerType(segment.id, type.letter)}
-                                                                className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${isSelected
-                                                                    ? `${type.bgColor} ${type.borderColor} ${type.textColor} ring-2 ring-sage-500 ring-opacity-30`
-                                                                    : `${type.bgColor} ${type.borderColor} ${type.textColor} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
-                                                                    }`}
-                                                                title={type.label}
-                                                            >
-                                                                {type.letter}
-                                                            </button>
-                                                        );
-                                                    })}
-                                                </div>
+                                                {!segment.readonly && (
+                                                    <div className="flex gap-2">
+                                                        {MARKER_TYPES.map((type) => {
+                                                            const isSelected = currentPrefix === type.letter;
+                                                            return (
+                                                                <button
+                                                                    key={type.letter}
+                                                                    type="button"
+                                                                    onClick={() => changeMarkerType(segment.id, type.letter)}
+                                                                    className={`w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-colors ${isSelected
+                                                                        ? `${type.bgColor} ${type.borderColor} ${type.textColor} ring-2 ring-sage-500 ring-opacity-30`
+                                                                        : `${type.bgColor} ${type.borderColor} ${type.textColor} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
+                                                                        }`}
+                                                                    title={type.label}
+                                                                >
+                                                                    {type.letter}
+                                                                </button>
+                                                            );
+                                                        })}
+                                                    </div>
+                                                )}
                                             </div>
                                         );
                                     }
