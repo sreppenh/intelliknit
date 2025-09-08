@@ -1,9 +1,10 @@
 // src/features/steps/components/shaping-wizard/MarkerInstructionBuilder.jsx
 import React, { useState, useMemo } from 'react';
-import SegmentedControl from '../../../../shared/components/SegmentedControl';
+import IncrementInput from '../../../../shared/components/IncrementInput';
+import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
-// Action definitions from stitchCalculatorUtils.js
+// Action type definitions
 const ACTION_TYPES = {
     increase: [
         { value: 'M1L', label: 'M1L' },
@@ -14,20 +15,30 @@ const ACTION_TYPES = {
         { value: 'SSK', label: 'SSK' },
         { value: 'K2tog', label: 'K2tog' },
         { value: 'CDD', label: 'CDD' }
+    ],
+    bind_off: [
+        { value: 'standard', label: 'Standard' }
     ]
 };
 
-// Position definitions relative to markers
-const POSITION_TYPES = [
-    { value: 'before', label: 'Before', distance: 0 },
-    { value: '1_before', label: '1 st before', distance: 1 },
-    { value: '2_before', label: '2 st before', distance: 2 },
-    { value: '3_before', label: '3 st before', distance: 3 },
-    { value: 'after', label: 'After', distance: 0 },
-    { value: '1_after', label: '1 st after', distance: 1 },
-    { value: '2_after', label: '2 st after', distance: 2 },
-    { value: '3_after', label: '3 st after', distance: 3 }
-];
+// Get marker color styling (reuse from existing system)
+const getMarkerStyle = (markerName) => {
+    const prefix = markerName === 'BOR' ? 'BOR' : markerName.match(/^([A-Z]+)/)?.[1] || 'M';
+
+    const colorMap = {
+        'BOR': { bg: 'bg-sage-200', border: 'border-sage-500', text: 'text-sage-700' },
+        'M': { bg: 'bg-sky-100', border: 'border-sky-400', text: 'text-sky-700' },
+        'L': { bg: 'bg-emerald-100', border: 'border-emerald-400', text: 'text-emerald-700' },
+        'R': { bg: 'bg-amber-100', border: 'border-amber-400', text: 'text-amber-700' },
+        'S': { bg: 'bg-rose-100', border: 'border-rose-400', text: 'text-rose-700' },
+        'V': { bg: 'bg-violet-100', border: 'border-violet-400', text: 'text-violet-700' },
+        'W': { bg: 'bg-indigo-100', border: 'border-indigo-400', text: 'text-indigo-700' },
+        'A': { bg: 'bg-purple-100', border: 'border-purple-400', text: 'text-purple-700' },
+        'B': { bg: 'bg-teal-100', border: 'border-teal-400', text: 'text-teal-700' }
+    };
+
+    return colorMap[prefix] || colorMap['M'];
+};
 
 const MarkerInstructionBuilder = ({
     markerArray = [],
@@ -35,34 +46,58 @@ const MarkerInstructionBuilder = ({
     onComplete,
     onCancel
 }) => {
-    // State for building instruction groups
-    const [actionGroups, setActionGroups] = useState([]);
-    const [currentGroup, setCurrentGroup] = useState({
-        markers: [],
-        edges: [],
-        actions: []
-    });
+    // Progressive disclosure state
+    const [currentStep, setCurrentStep] = useState('action-type');
+
+    // Current action being built
     const [currentAction, setCurrentAction] = useState({
-        position: 'before',
-        actionType: 'increase',
-        specificAction: 'M1L'
+        actionType: '',
+        technique: '',
+        position: '',
+        distance: '',
+        targets: []
     });
 
-    // Available targets
-    const availableMarkers = useMemo(() => {
-        return markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
-    }, [markerArray]);
+    // Completed actions for this instruction
+    const [completedActions, setCompletedActions] = useState([]);
 
-    const hasEdges = construction === 'flat';
-    const hasBOR = construction === 'round' && markerArray.includes('BOR');
+    // Timing configuration
+    const [timing, setTiming] = useState({
+        frequency: 2,
+        times: 10
+    });
 
-    // Bubble component for selections
-    const Bubble = ({ children, active = false, onClick, disabled = false, small = false }) => (
+    // Available targets based on construction
+    const availableTargets = useMemo(() => {
+        const targets = [];
+
+        // Add markers
+        const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
+        markers.forEach(marker => {
+            targets.push({ value: marker, label: marker, type: 'marker' });
+        });
+
+        // Add construction-specific targets
+        if (construction === 'round') {
+            if (markerArray.includes('BOR')) {
+                targets.push({ value: 'BOR', label: 'BOR', type: 'bor' });
+            }
+        } else {
+            // Flat construction
+            targets.push({ value: 'beginning', label: 'Beginning', type: 'edge' });
+            targets.push({ value: 'end', label: 'End', type: 'edge' });
+        }
+
+        return targets;
+    }, [markerArray, construction]);
+
+    // Chip component
+    const Chip = ({ children, active = false, onClick, disabled = false, large = false }) => (
         <button
             type="button"
             onClick={onClick}
             disabled={disabled}
-            className={`${small ? 'px-2 py-1 text-xs' : 'px-3 py-2 text-sm'} rounded-full font-medium transition-colors border-2 ${active
+            className={`${large ? 'px-4 py-3 text-base' : 'px-3 py-2 text-sm'} rounded-full font-medium transition-colors border-2 ${active
                 ? 'bg-sage-500 text-white border-sage-500'
                 : 'bg-white text-wool-700 border-wool-300 hover:border-sage-300'
                 } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
@@ -71,339 +106,357 @@ const MarkerInstructionBuilder = ({
         </button>
     );
 
-    // Toggle marker selection
-    const toggleMarker = (marker) => {
-        setCurrentGroup(prev => ({
-            ...prev,
-            markers: prev.markers.includes(marker)
-                ? prev.markers.filter(m => m !== marker)
-                : [...prev.markers, marker]
-        }));
-    };
-
-    // Toggle edge selection
-    const toggleEdge = (edge) => {
-        setCurrentGroup(prev => ({
-            ...prev,
-            edges: prev.edges.includes(edge)
-                ? prev.edges.filter(e => e !== edge)
-                : [...prev.edges, edge]
-        }));
-    };
-
-    // Add action to current group
-    const addActionToGroup = () => {
-        setCurrentGroup(prev => ({
-            ...prev,
-            actions: [...prev.actions, { ...currentAction }]
-        }));
-
-        // Reset action but keep some smart defaults
-        setCurrentAction(prev => ({
-            position: prev.position,
-            actionType: prev.actionType,
-            specificAction: prev.specificAction
-        }));
-    };
-
-    // Remove action from group
-    const removeActionFromGroup = (index) => {
-        setCurrentGroup(prev => ({
-            ...prev,
-            actions: prev.actions.filter((_, i) => i !== index)
-        }));
-    };
-
-    // Save current group and start new one
-    const saveGroup = () => {
-        setActionGroups(prev => [...prev, { ...currentGroup }]);
-        setCurrentGroup({
-            markers: [],
-            edges: [],
-            actions: []
-        });
-        IntelliKnitLogger.debug('Action group saved', currentGroup);
-    };
-
-    // Remove a saved group
-    const removeGroup = (index) => {
-        setActionGroups(prev => prev.filter((_, i) => i !== index));
+    // Marker chip with color coding
+    const MarkerChip = ({ marker, active, onClick }) => {
+        const style = getMarkerStyle(marker);
+        return (
+            <button
+                type="button"
+                onClick={onClick}
+                className={`px-3 py-2 rounded-full font-medium transition-colors border-2 ${active
+                    ? `${style.bg} ${style.border} ${style.text} ring-2 ring-sage-500 ring-opacity-30`
+                    : `${style.bg} ${style.border} ${style.text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
+                    }`}
+            >
+                {marker}
+            </button>
+        );
     };
 
     // Update current action
     const updateAction = (field, value) => {
-        setCurrentAction(prev => {
-            const newAction = { ...prev, [field]: value };
+        setCurrentAction(prev => ({ ...prev, [field]: value }));
+    };
 
-            // Auto-update specific action when action type changes
-            if (field === 'actionType') {
-                const availableActions = ACTION_TYPES[value] || [];
-                if (availableActions.length > 0) {
-                    newAction.specificAction = availableActions[0].value;
-                }
-            }
+    // Toggle target selection
+    const toggleTarget = (target) => {
+        setCurrentAction(prev => ({
+            ...prev,
+            targets: prev.targets.includes(target)
+                ? prev.targets.filter(t => t !== target)
+                : [...prev.targets, target]
+        }));
+    };
 
-            return newAction;
+    // Add current action to completed list
+    const addAction = () => {
+        setCompletedActions(prev => [...prev, { ...currentAction }]);
+        setCurrentAction({
+            actionType: '',
+            technique: '',
+            position: '',
+            distance: '',
+            targets: []
         });
+        setCurrentStep('action-type');
+    };
+
+    // Continue to timing
+    const continueToTiming = () => {
+        if (currentAction.actionType && currentAction.targets.length > 0) {
+            addAction();
+        }
+        setCurrentStep('timing');
     };
 
     // Generate instruction preview
-    const generateInstructionPreview = () => {
-        if (actionGroups.length === 0) {
-            return "No instruction defined yet";
-        }
+    const generatePreview = () => {
+        if (completedActions.length === 0) return "No actions defined yet";
 
-        const groupDescriptions = actionGroups.map(group => {
-            const targets = [...group.markers, ...group.edges];
-            const targetText = targets.length > 0 ? targets.join(', ') : 'No targets';
+        const actionDescriptions = completedActions.map(action => {
+            const targetLabels = action.targets.join(', ');
+            let positionText = '';
 
-            const actionTexts = group.actions.map(action => {
-                const position = POSITION_TYPES.find(p => p.value === action.position);
-                const positionText = position ? position.label.toLowerCase() : action.position;
-                return `${action.specificAction} ${positionText}`;
-            });
+            if (action.position === 'before' && action.distance) {
+                positionText = action.distance === 'at' ? 'before' : `${action.distance} before`;
+            } else if (action.position === 'after' && action.distance) {
+                positionText = action.distance === 'at' ? 'after' : `${action.distance} after`;
+            } else if (action.position) {
+                positionText = action.position;
+            }
 
-            return `For ${targetText}: ${actionTexts.join(', ')}`;
+            return `${action.technique} ${positionText} ${targetLabels}`;
         });
 
-        return groupDescriptions.join('\n');
+        return actionDescriptions.join(', ');
     };
 
-    // Validation
-    const canAddAction = currentAction.position && currentAction.actionType && currentAction.specificAction;
-    const canSaveGroup = currentGroup.actions.length > 0 &&
-        (currentGroup.markers.length > 0 || currentGroup.edges.length > 0);
-    const canComplete = actionGroups.length > 0;
-
-    // Get current targets for display
-    const currentTargets = [...currentGroup.markers, ...currentGroup.edges];
-
+    // Complete instruction
     const handleComplete = () => {
+        // Add current action if it's valid
+        const finalActions = [...completedActions];
+        if (currentAction.actionType && currentAction.targets.length > 0) {
+            finalActions.push(currentAction);
+        }
+
         const instructionData = {
-            actionGroups: actionGroups,
-            preview: generateInstructionPreview()
+            actions: finalActions,
+            timing: timing,
+            preview: generatePreview(),
+            construction: construction
         };
 
-        IntelliKnitLogger.success('Marker instruction built', instructionData);
+        IntelliKnitLogger.success('Marker instruction completed', instructionData);
         onComplete(instructionData);
     };
 
     return (
         <div className="space-y-6">
-            {/* Saved Groups */}
-            {actionGroups.length > 0 && (
-                <div className="card">
-                    <h3 className="text-lg font-semibold text-sage-800 mb-4">Your Instruction</h3>
-                    <div className="space-y-3">
-                        {actionGroups.map((group, index) => (
-                            <div key={index} className="p-3 bg-sage-50 rounded-lg border border-sage-200">
-                                <div className="flex items-start justify-between">
-                                    <div className="flex-1">
-                                        <div className="text-sm font-medium text-sage-700 mb-1">
-                                            Group {index + 1}: {[...group.markers, ...group.edges].join(', ')}
-                                        </div>
-                                        <div className="text-sm text-sage-600">
-                                            {group.actions.map((action, actionIndex) => {
-                                                const position = POSITION_TYPES.find(p => p.value === action.position);
-                                                const positionText = position ? position.label.toLowerCase() : action.position;
-                                                return `${action.specificAction} ${positionText}`;
-                                            }).join(', ')}
-                                        </div>
-                                    </div>
-                                    <button
-                                        onClick={() => removeGroup(index)}
-                                        className="text-red-500 hover:text-red-700 text-sm ml-3"
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            </div>
-                        ))}
-                    </div>
+            {/* Marker Reference */}
+            <div className="card bg-yarn-50 border-yarn-200">
+                <h4 className="text-sm font-semibold text-yarn-700 mb-3">Your Marker Layout</h4>
+                <MarkerArrayVisualization
+                    stitchArray={markerArray}
+                    construction={construction}
+                    showActions={false}
+                />
+            </div>
+
+            {/* Completed Actions Summary */}
+            {completedActions.length > 0 && (
+                <div className="card bg-sage-50 border-sage-200">
+                    <h4 className="text-sm font-semibold text-sage-700 mb-2">Current Instruction</h4>
+                    <p className="text-sm text-sage-600">{generatePreview()}</p>
                 </div>
             )}
 
-            {/* Current Group Builder */}
+            {/* Progressive Disclosure Steps */}
             <div className="card">
-                <h3 className="text-lg font-semibold text-sage-800 mb-4">
-                    {actionGroups.length === 0 ? 'Build Your Instruction' : `Add Group ${actionGroups.length + 1}`}
-                </h3>
+                <div className="space-y-6">
 
-                {/* Target Selection */}
-                <div className="space-y-4">
+                    {/* Step 1: Action Type */}
                     <div>
-                        <label className="text-sm font-semibold text-sage-700 mb-2 block">
-                            1. Select Targets
-                        </label>
-
-                        {/* Markers */}
-                        {availableMarkers.length > 0 && (
-                            <div className="mb-3">
-                                <div className="text-xs text-wool-600 mb-2">Markers:</div>
-                                <div className="flex flex-wrap gap-2">
-                                    {availableMarkers.map(marker => (
-                                        <Bubble
-                                            key={marker}
-                                            active={currentGroup.markers.includes(marker)}
-                                            onClick={() => toggleMarker(marker)}
-                                        >
-                                            {marker}
-                                        </Bubble>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Edges */}
-                        {hasEdges && (
-                            <div className="mb-3">
-                                <div className="text-xs text-wool-600 mb-2">Edges:</div>
-                                <div className="flex gap-2">
-                                    <Bubble
-                                        active={currentGroup.edges.includes('beginning')}
-                                        onClick={() => toggleEdge('beginning')}
-                                    >
-                                        Beginning
-                                    </Bubble>
-                                    <Bubble
-                                        active={currentGroup.edges.includes('end')}
-                                        onClick={() => toggleEdge('end')}
-                                    >
-                                        End
-                                    </Bubble>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* BOR */}
-                        {hasBOR && (
-                            <div className="mb-3">
-                                <div className="text-xs text-wool-600 mb-2">Beginning of Round:</div>
-                                <Bubble
-                                    active={currentGroup.edges.includes('BOR')}
-                                    onClick={() => toggleEdge('BOR')}
-                                >
-                                    BOR
-                                </Bubble>
-                            </div>
-                        )}
-
-                        {currentTargets.length > 0 && (
-                            <div className="text-sm text-sage-600 mt-2">
-                                Selected: {currentTargets.join(', ')}
-                            </div>
-                        )}
-                    </div>
-
-                    {/* Action Definition */}
-                    <div>
-                        <label className="text-sm font-semibold text-sage-700 mb-2 block">
-                            2. Define Action
-                        </label>
-
-                        <div className="space-y-3">
-                            {/* Position */}
-                            <div>
-                                <div className="text-xs text-wool-600 mb-2">Position:</div>
-                                <div className="grid grid-cols-2 gap-2">
-                                    {POSITION_TYPES.map(position => (
-                                        <Bubble
-                                            key={position.value}
-                                            active={currentAction.position === position.value}
-                                            onClick={() => updateAction('position', position.value)}
-                                            small
-                                        >
-                                            {position.label}
-                                        </Bubble>
-                                    ))}
-                                </div>
-                            </div>
-
-                            {/* Action Type */}
-                            <div>
-                                <SegmentedControl
-                                    label="Action Type"
-                                    value={currentAction.actionType}
-                                    onChange={(value) => updateAction('actionType', value)}
-                                    options={[
-                                        { value: 'increase', label: 'Increase' },
-                                        { value: 'decrease', label: 'Decrease' }
-                                    ]}
-                                />
-                            </div>
-
-                            {/* Specific Action */}
-                            <div>
-                                <div className="text-xs text-wool-600 mb-2">Technique:</div>
-                                <div className="flex flex-wrap gap-2">
-                                    {ACTION_TYPES[currentAction.actionType]?.map(action => (
-                                        <Bubble
-                                            key={action.value}
-                                            active={currentAction.specificAction === action.value}
-                                            onClick={() => updateAction('specificAction', action.value)}
-                                        >
-                                            {action.label}
-                                        </Bubble>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end mt-4">
-                            <button
-                                onClick={addActionToGroup}
-                                disabled={!canAddAction}
-                                className="btn-secondary btn-sm"
+                        <h4 className="text-base font-semibold text-sage-800 mb-3">What happens?</h4>
+                        <div className="flex flex-wrap gap-3">
+                            <Chip
+                                large
+                                active={currentAction.actionType === 'continue'}
+                                onClick={() => updateAction('actionType', 'continue')}
                             >
-                                Add Action
-                            </button>
+                                Continue in Pattern
+                            </Chip>
+                            <Chip
+                                large
+                                active={currentAction.actionType === 'increase'}
+                                onClick={() => updateAction('actionType', 'increase')}
+                            >
+                                Increase
+                            </Chip>
+                            <Chip
+                                large
+                                active={currentAction.actionType === 'decrease'}
+                                onClick={() => updateAction('actionType', 'decrease')}
+                            >
+                                Decrease
+                            </Chip>
+                            <Chip
+                                large
+                                active={currentAction.actionType === 'bind_off'}
+                                onClick={() => updateAction('actionType', 'bind_off')}
+                            >
+                                Bind Off
+                            </Chip>
                         </div>
                     </div>
 
-                    {/* Current Group Actions */}
-                    {currentGroup.actions.length > 0 && (
+                    {/* Step 2: Duration (for continue in pattern) */}
+                    {currentAction.actionType === 'continue' && (
                         <div>
-                            <label className="text-sm font-semibold text-sage-700 mb-2 block">
-                                Actions for {currentTargets.join(', ') || 'Selected Targets'}:
-                            </label>
-                            <div className="space-y-2">
-                                {currentGroup.actions.map((action, index) => (
-                                    <div key={index} className="flex items-center justify-between p-2 bg-yarn-50 rounded border">
-                                        <span className="text-sm text-yarn-700">
-                                            {action.specificAction} {POSITION_TYPES.find(p => p.value === action.position)?.label.toLowerCase()}
-                                        </span>
-                                        <button
-                                            onClick={() => removeActionFromGroup(index)}
-                                            className="text-red-500 hover:text-red-700 text-sm"
-                                        >
-                                            ✕
-                                        </button>
-                                    </div>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">Duration</h4>
+                            <IncrementInput
+                                label="Rows"
+                                value={timing.rows || 1}
+                                onChange={(value) => setTiming(prev => ({ ...prev, rows: value }))}
+                                min={1}
+                                max={50}
+                                unit={construction === 'round' ? 'rounds' : 'rows'}
+                            />
+                        </div>
+                    )}
+
+                    {/* Step 2: Technique (if not continue or bind off) */}
+                    {currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' && (
+                        <div>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">How?</h4>
+                            <div className="flex flex-wrap gap-3">
+                                {ACTION_TYPES[currentAction.actionType]?.map(technique => (
+                                    <Chip
+                                        key={technique.value}
+                                        active={currentAction.technique === technique.value}
+                                        onClick={() => updateAction('technique', technique.value)}
+                                    >
+                                        {technique.label}
+                                    </Chip>
                                 ))}
                             </div>
                         </div>
                     )}
 
-                    {/* Save Group Button */}
-                    <div className="pt-4 border-t">
-                        <button
-                            onClick={saveGroup}
-                            disabled={!canSaveGroup}
-                            className="btn-primary btn-sm"
-                        >
-                            Save This Group
-                        </button>
-                    </div>
+                    {/* Bind Off Amount */}
+                    {currentAction.actionType === 'bind_off' && (
+                        <div>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">How many stitches?</h4>
+                            <div className="space-y-3">
+                                <Chip
+                                    active={currentAction.bindOffAmount === 'all'}
+                                    onClick={() => updateAction('bindOffAmount', 'all')}
+                                >
+                                    All remaining stitches
+                                </Chip>
+                                <div className="flex items-center gap-3">
+                                    <Chip
+                                        active={currentAction.bindOffAmount === 'specific'}
+                                        onClick={() => updateAction('bindOffAmount', 'specific')}
+                                    >
+                                        Specific amount:
+                                    </Chip>
+                                    {currentAction.bindOffAmount === 'specific' && (
+                                        <IncrementInput
+                                            value={currentAction.stitchCount || 1}
+                                            onChange={(value) => updateAction('stitchCount', value)}
+                                            min={1}
+                                            max={50}
+                                            unit="stitches"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 3: Position (if not continue or bind_off) */}
+                    {currentAction.technique && currentAction.actionType !== 'bind_off' && (
+                        <div>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">Where relative to marker?</h4>
+                            <div className="flex gap-3">
+                                <Chip
+                                    active={currentAction.position === 'before'}
+                                    onClick={() => updateAction('position', 'before')}
+                                >
+                                    Before
+                                </Chip>
+                                <Chip
+                                    active={currentAction.position === 'after'}
+                                    onClick={() => updateAction('position', 'after')}
+                                >
+                                    After
+                                </Chip>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 4: Distance (if position selected) */}
+                    {currentAction.position && (
+                        <div>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">How far?</h4>
+                            <div className="flex gap-3">
+                                <Chip
+                                    active={currentAction.distance === 'at'}
+                                    onClick={() => updateAction('distance', 'at')}
+                                >
+                                    At marker
+                                </Chip>
+                                <Chip
+                                    active={currentAction.distance === '1'}
+                                    onClick={() => updateAction('distance', '1')}
+                                >
+                                    1 st
+                                </Chip>
+                                <Chip
+                                    active={currentAction.distance === '2'}
+                                    onClick={() => updateAction('distance', '2')}
+                                >
+                                    2 st
+                                </Chip>
+                                <Chip
+                                    active={currentAction.distance === '3'}
+                                    onClick={() => updateAction('distance', '3')}
+                                >
+                                    3 st
+                                </Chip>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Step 5: Targets */}
+                    {(currentAction.distance || currentAction.actionType === 'bind_off' || currentAction.actionType === 'continue') && (
+                        <div>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">Which markers/positions?</h4>
+                            <div className="flex flex-wrap gap-3">
+                                {(currentAction.actionType === 'bind_off'
+                                    ? availableTargets.filter(t => t.value !== 'end')
+                                    : availableTargets
+                                ).map(target => (
+                                    target.type === 'marker' ? (
+                                        <MarkerChip
+                                            key={target.value}
+                                            marker={target.value}
+                                            active={currentAction.targets.includes(target.value)}
+                                            onClick={() => toggleTarget(target.value)}
+                                        />
+                                    ) : (
+                                        <Chip
+                                            key={target.value}
+                                            active={currentAction.targets.includes(target.value)}
+                                            onClick={() => toggleTarget(target.value)}
+                                        >
+                                            {target.label}
+                                        </Chip>
+                                    )
+                                ))}
+                            </div>
+                            {currentAction.targets.length > 0 && (
+                                <p className="text-sm text-sage-600 mt-2">
+                                    Selected: {currentAction.targets.join(', ')}
+                                </p>
+                            )}
+                        </div>
+                    )}
+
+                    {/* Step 6: Add Action or Continue */}
+                    {currentAction.targets.length > 0 && (
+                        <div className="flex gap-3 pt-4 border-t">
+                            <button
+                                onClick={addAction}
+                                className="btn-secondary"
+                            >
+                                AND (add another action)
+                            </button>
+                            <button
+                                onClick={continueToTiming}
+                                className="btn-primary"
+                            >
+                                Set Frequency & Times →
+                            </button>
+                        </div>
+                    )}
                 </div>
             </div>
 
-            {/* Preview */}
-            {actionGroups.length > 0 && (
-                <div className="card bg-sage-50 border-sage-200">
-                    <h4 className="text-sm font-semibold text-sage-700 mb-2">Instruction Preview</h4>
-                    <pre className="text-sm text-sage-600 whitespace-pre-wrap">
-                        {generateInstructionPreview()}
-                    </pre>
+            {/* Timing Configuration */}
+            {currentStep === 'timing' && (
+                <div className="card">
+                    <h3 className="text-lg font-semibold text-sage-800 mb-4">Timing</h3>
+                    <div className="space-y-4">
+                        <IncrementInput
+                            label="Frequency"
+                            value={timing.frequency}
+                            onChange={(value) => setTiming(prev => ({ ...prev, frequency: value }))}
+                            min={1}
+                            max={30}
+                            unit={`every ${timing.frequency === 1 ? 'round' : `${timing.frequency} rounds`}`}
+                            construction={construction}
+                        />
+
+                        <IncrementInput
+                            label="Times"
+                            value={timing.times}
+                            onChange={(value) => setTiming(prev => ({ ...prev, times: value }))}
+                            min={1}
+                            max={50}
+                            unit="times"
+                        />
+                    </div>
                 </div>
             )}
 
@@ -412,13 +465,14 @@ const MarkerInstructionBuilder = ({
                 <button onClick={onCancel} className="btn-tertiary flex-1">
                     Cancel
                 </button>
-                <button
-                    onClick={handleComplete}
-                    disabled={!canComplete}
-                    className="btn-primary flex-1"
-                >
-                    Use This Instruction
-                </button>
+                {currentStep === 'timing' && (
+                    <button
+                        onClick={handleComplete}
+                        className="btn-primary flex-1"
+                    >
+                        Create Instruction
+                    </button>
+                )}
             </div>
         </div>
     );
