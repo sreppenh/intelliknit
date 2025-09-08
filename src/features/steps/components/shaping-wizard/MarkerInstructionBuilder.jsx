@@ -84,8 +84,8 @@ const MarkerInstructionBuilder = ({
             onClick={onClick}
             disabled={disabled}
             className={`${large ? 'px-4 py-3 text-base' : 'px-3 py-2 text-sm'} rounded-full font-medium transition-colors border-2 ${active
-                    ? 'bg-sage-500 text-white border-sage-500'
-                    : 'bg-white text-wool-700 border-wool-300 hover:border-sage-300'
+                ? 'bg-sage-500 text-white border-sage-500'
+                : 'bg-white text-wool-700 border-wool-300 hover:border-sage-300'
                 } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
             {children}
@@ -100,8 +100,8 @@ const MarkerInstructionBuilder = ({
                 type="button"
                 onClick={onClick}
                 className={`px-3 py-2 rounded-full font-medium transition-colors border-2 ${active
-                        ? `${style.bg} ${style.border} ${style.text} ring-2 ring-sage-500 ring-opacity-30`
-                        : `${style.bg} ${style.border} ${style.text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
+                    ? `${style.bg} ${style.border} ${style.text} ring-2 ring-sage-500 ring-opacity-30`
+                    : `${style.bg} ${style.border} ${style.text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
                     }`}
             >
                 {marker}
@@ -196,8 +196,8 @@ const MarkerInstructionBuilder = ({
     return (
         <div className="space-y-6">
             {/* Marker Reference */}
-            <div className="card bg-yarn-50 border-yarn-200">
-                <h4 className="text-sm font-semibold text-yarn-700 mb-3">Your Marker Layout</h4>
+            <div className="card bg-sage-50 border-sage-200">
+                <h4 className="section-header-secondary">Your Marker Layout</h4>
                 <MarkerArrayVisualization
                     stitchArray={markerArray}
                     construction={construction}
@@ -208,7 +208,7 @@ const MarkerInstructionBuilder = ({
             {/* Completed Actions Summary */}
             {completedActions.length > 0 && (
                 <div className="card bg-sage-50 border-sage-200">
-                    <h4 className="text-sm font-semibold text-sage-700 mb-2">Current Instruction</h4>
+                    <h4 className="section-header-secondary">Current Instruction</h4>
                     <p className="text-sm text-sage-600">{generatePreview()}</p>
                 </div>
             )}
@@ -219,7 +219,7 @@ const MarkerInstructionBuilder = ({
 
                     {/* Step 1: Action Type */}
                     <div>
-                        <h4 className="text-base font-semibold text-sage-800 mb-3">What happens?</h4>
+                        <h4 className="section-header-secondary">What happens?</h4>
                         <div className="flex flex-wrap gap-3">
                             <Chip
                                 large
@@ -255,7 +255,7 @@ const MarkerInstructionBuilder = ({
                     {/* Step 2: Duration (for continue in pattern) */}
                     {currentAction.actionType === 'continue' && (
                         <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">Duration</h4>
+                            <h4 className="section-header-secondary">Duration</h4>
                             <IncrementInput
                                 label="Rows"
                                 value={timing.rows}
@@ -270,7 +270,7 @@ const MarkerInstructionBuilder = ({
                     {/* Step 2: Position for Increase/Decrease */}
                     {(currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
                         <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">
+                            <h4 className="section-header-secondary">
                                 {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}...
                             </h4>
                             <div className="flex gap-3">
@@ -310,7 +310,7 @@ const MarkerInstructionBuilder = ({
                     {/* Step 3: Distance */}
                     {currentAction.position && (
                         <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">How far from marker?</h4>
+                            <h4 className="section-header-secondary">How far from marker?</h4>
                             <div className="flex gap-3">
                                 <Chip
                                     active={currentAction.distance === 'at'}
@@ -343,7 +343,7 @@ const MarkerInstructionBuilder = ({
                     {/* Step 4: Technique */}
                     {currentAction.distance && (
                         <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">Using:</h4>
+                            <h4 className="section-header-secondary">Using:</h4>
                             <div className="flex gap-3">
                                 {/* Before markers */}
                                 {currentAction.position === 'before' && currentAction.actionType === 'increase' && (
@@ -413,7 +413,7 @@ const MarkerInstructionBuilder = ({
                     {/* Bind Off Amount */}
                     {currentAction.actionType === 'bind_off' && (
                         <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">How many stitches?</h4>
+                            <h4 className="section-header-secondary">How many stitches?</h4>
                             <div className="space-y-3">
                                 <Chip
                                     active={currentAction.bindOffAmount === 'all'}
@@ -445,7 +445,7 @@ const MarkerInstructionBuilder = ({
                     {/* Step 5: Targets */}
                     {(currentAction.technique || currentAction.bindOffAmount || currentAction.actionType === 'continue') && (
                         <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">Which markers/positions?</h4>
+                            <h4 className="section-header-secondary">Which markers/positions?</h4>
                             <div className="flex flex-wrap gap-3">
                                 {(currentAction.actionType === 'bind_off'
                                     ? availableTargets.filter(t => t.value !== 'end')
@@ -500,7 +500,7 @@ const MarkerInstructionBuilder = ({
             {/* Timing Configuration */}
             {currentStep === 'timing' && (
                 <div className="card">
-                    <h3 className="text-lg font-semibold text-sage-800 mb-4">Timing</h3>
+                    <h3 className="section-header-primary">Timing</h3>
                     <div className="space-y-4">
                         <IncrementInput
                             label="Frequency"
