@@ -3,13 +3,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import ShapingHeader from './ShapingHeader';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import MarkerSequenceSummary from './MarkerSequenceSummary';
+import MarkerInstructionBuilder from './MarkerInstructionBuilder';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { MarkerSequenceCalculator } from '../../../../shared/utils/MarkerSequenceCalculator';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
-import SimplifiedPhaseCreator from './SimplifiedPhaseCreator';
 
 
 // ===== NEW: MARKER TYPE SYSTEM =====
@@ -72,6 +72,9 @@ const MarkerPhasesConfig = ({
     const [sequences, setSequences] = useState([]);
     const [editingSequence, setEditingSequence] = useState(null);
     const [sequenceCalculation, setSequenceCalculation] = useState(null);
+
+    // ===== NEW: INSTRUCTION BUILDER STATE =====
+    const [currentSequenceData, setCurrentSequenceData] = useState(null);
 
     // ===== SCREEN 1: MARKER SETUP STATE =====
     const [markerCount, setMarkerCount] = useState(2);
@@ -353,6 +356,8 @@ const MarkerPhasesConfig = ({
             onBack();
         } else if (currentScreen === 'sequence-management') {
             setCurrentScreen('marker-setup');
+        } else if (currentScreen === 'instruction-builder') {
+            setCurrentScreen('sequence-management');
         } else if (currentScreen === 'sequence-wizard') {
             setCurrentScreen('sequence-management');
         }
@@ -366,13 +371,15 @@ const MarkerPhasesConfig = ({
 
     const handleAddSequence = () => {
         setEditingSequence(null);
-        setCurrentScreen('sequence-wizard');
+        setCurrentSequenceData(null);
+        setCurrentScreen('instruction-builder');
     };
 
     const handleEditSequence = (sequenceId) => {
         const sequence = sequences.find(s => s.id === sequenceId);
         setEditingSequence(sequence);
-        setCurrentScreen('sequence-wizard');
+        setCurrentSequenceData(sequence);
+        setCurrentScreen('instruction-builder');
     };
 
     const handleDeleteSequence = (sequenceId) => {
@@ -380,7 +387,38 @@ const MarkerPhasesConfig = ({
         IntelliKnitLogger.info('Sequence deleted', sequenceId);
     };
 
-    const handleSequenceComplete = (sequenceData) => {
+    // ===== NEW: INSTRUCTION BUILDER HANDLERS =====
+    const handleInstructionComplete = (instructionData) => {
+        // Store the instruction data for the next step
+        setCurrentSequenceData({
+            id: editingSequence?.id || Date.now().toString(),
+            name: editingSequence?.name || 'Custom Sequence',
+            instructionData: instructionData,
+            // Add any other sequence properties needed
+        });
+
+        // For now, go back to sequence management with the instruction
+        // In the future, this could go to timing/frequency configuration
+        handleSimpleSequenceComplete({
+            id: editingSequence?.id || Date.now().toString(),
+            name: editingSequence?.name || 'Marker Sequence',
+            instructionData: instructionData,
+            phases: [{
+                type: 'marker_instruction',
+                instructionData: instructionData,
+                frequency: 2, // Default frequency
+                times: 10     // Default times
+            }]
+        });
+    };
+
+    const handleInstructionCancel = () => {
+        setCurrentScreen('sequence-management');
+        setCurrentSequenceData(null);
+    };
+
+    // ===== SIMPLIFIED SEQUENCE COMPLETION =====
+    const handleSimpleSequenceComplete = (sequenceData) => {
         if (editingSequence) {
             setSequences(prev => prev.map(s =>
                 s.id === editingSequence.id ? sequenceData : s
@@ -631,19 +669,56 @@ const MarkerPhasesConfig = ({
         );
     }
 
-    // ===== RENDER SCREEN 3: SEQUENCE WIZARD =====
-    if (currentScreen === 'sequence-wizard') {
+    // ===== NEW: RENDER SCREEN 3: INSTRUCTION BUILDER =====
+    if (currentScreen === 'instruction-builder') {
         return (
-            <SimplifiedPhaseCreator
-                markerArray={markerArray}
-                construction={construction}
-                onComplete={handleSequenceComplete}
-                onCancel={() => setCurrentScreen('sequence-management')}
-                onBack={() => setCurrentScreen('sequence-management')}
-                wizard={wizard}
-                onGoToLanding={onGoToLanding}
-                editingSequence={editingSequence}
-            />
+            <div>
+                <ShapingHeader
+                    onBack={handleBackNavigation}
+                    onGoToLanding={onGoToLanding}
+                    wizard={wizard}
+                    onCancel={onCancel}
+                />
+
+                <div className="p-6">
+                    <div className="mb-6">
+                        <h2 className="content-header-primary">Build Row Instruction</h2>
+                        <p className="content-subheader">
+                            Define what happens in each shaping row
+                        </p>
+                    </div>
+
+                    <MarkerInstructionBuilder
+                        markerArray={markerArray}
+                        construction={construction}
+                        onComplete={handleInstructionComplete}
+                        onCancel={handleInstructionCancel}
+                    />
+                </div>
+            </div>
+        );
+    }
+
+    // ===== FALLBACK: KEEP EXISTING SEQUENCE WIZARD FOR COMPATIBILITY =====
+    if (currentScreen === 'sequence-wizard') {
+        // This can be removed once instruction builder is fully integrated
+        return (
+            <div>
+                <ShapingHeader
+                    onBack={handleBackNavigation}
+                    onGoToLanding={onGoToLanding}
+                    wizard={wizard}
+                    onCancel={onCancel}
+                />
+                <div className="p-6">
+                    <div className="text-center text-wool-600">
+                        <p>Old sequence wizard - this should not be reached</p>
+                        <button onClick={() => setCurrentScreen('sequence-management')} className="btn-primary mt-4">
+                            Back to Sequences
+                        </button>
+                    </div>
+                </div>
+            </div>
         );
     }
 
