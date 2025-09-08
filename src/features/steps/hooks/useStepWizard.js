@@ -20,6 +20,13 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
 
   const shouldSkipConfiguration = shouldSkipPatternConfiguration;
 
+  // Add this useEffect after the component declaration
+  useEffect(() => {
+    if (component?.construction) {
+      setConstruction(component.construction);
+    }
+  }, [component?.construction]);
+
   // Helper function to determine starting step based on edit mode and saved stack
   const getStartingStep = () => {
     if (!editMode || !isEditing || !editingStep) {
