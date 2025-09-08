@@ -200,7 +200,7 @@ const EvenDistributionForm = ({
 
             <div>
                 <h2 className="content-header-primary">⚖️ Even Distribution</h2>
-                const terms = getConstructionTerms(construction);
+
                 <p className="content-subheader">Spread increases or decreases evenly across the {terms.row}</p>
             </div>
 
