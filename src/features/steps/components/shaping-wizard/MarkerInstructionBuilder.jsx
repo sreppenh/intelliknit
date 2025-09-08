@@ -4,23 +4,6 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
-// Action type definitions
-const ACTION_TYPES = {
-    increase: [
-        { value: 'M1L', label: 'M1L' },
-        { value: 'M1R', label: 'M1R' },
-        { value: 'KFB', label: 'KFB' }
-    ],
-    decrease: [
-        { value: 'SSK', label: 'SSK' },
-        { value: 'K2tog', label: 'K2tog' },
-        { value: 'CDD', label: 'CDD' }
-    ],
-    bind_off: [
-        { value: 'standard', label: 'Standard' }
-    ]
-};
-
 // Get marker color styling (reuse from existing system)
 const getMarkerStyle = (markerName) => {
     const prefix = markerName === 'BOR' ? 'BOR' : markerName.match(/^([A-Z]+)/)?.[1] || 'M';
@@ -55,6 +38,8 @@ const MarkerInstructionBuilder = ({
         technique: '',
         position: '',
         distance: '',
+        bindOffAmount: '',
+        stitchCount: 1,
         targets: []
     });
 
@@ -64,7 +49,8 @@ const MarkerInstructionBuilder = ({
     // Timing configuration
     const [timing, setTiming] = useState({
         frequency: 2,
-        times: 10
+        times: 10,
+        rows: 1
     });
 
     // Available targets based on construction
@@ -98,8 +84,8 @@ const MarkerInstructionBuilder = ({
             onClick={onClick}
             disabled={disabled}
             className={`${large ? 'px-4 py-3 text-base' : 'px-3 py-2 text-sm'} rounded-full font-medium transition-colors border-2 ${active
-                ? 'bg-sage-500 text-white border-sage-500'
-                : 'bg-white text-wool-700 border-wool-300 hover:border-sage-300'
+                    ? 'bg-sage-500 text-white border-sage-500'
+                    : 'bg-white text-wool-700 border-wool-300 hover:border-sage-300'
                 } ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
         >
             {children}
@@ -114,8 +100,8 @@ const MarkerInstructionBuilder = ({
                 type="button"
                 onClick={onClick}
                 className={`px-3 py-2 rounded-full font-medium transition-colors border-2 ${active
-                    ? `${style.bg} ${style.border} ${style.text} ring-2 ring-sage-500 ring-opacity-30`
-                    : `${style.bg} ${style.border} ${style.text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
+                        ? `${style.bg} ${style.border} ${style.text} ring-2 ring-sage-500 ring-opacity-30`
+                        : `${style.bg} ${style.border} ${style.text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
                     }`}
             >
                 {marker}
@@ -146,6 +132,8 @@ const MarkerInstructionBuilder = ({
             technique: '',
             position: '',
             distance: '',
+            bindOffAmount: '',
+            stitchCount: 1,
             targets: []
         });
         setCurrentStep('action-type');
@@ -165,14 +153,19 @@ const MarkerInstructionBuilder = ({
 
         const actionDescriptions = completedActions.map(action => {
             const targetLabels = action.targets.join(', ');
-            let positionText = '';
 
-            if (action.position === 'before' && action.distance) {
-                positionText = action.distance === 'at' ? 'before' : `${action.distance} before`;
-            } else if (action.position === 'after' && action.distance) {
-                positionText = action.distance === 'at' ? 'after' : `${action.distance} after`;
-            } else if (action.position) {
-                positionText = action.position;
+            if (action.actionType === 'continue') {
+                return `Continue in pattern for ${timing.rows} ${construction === 'round' ? 'rounds' : 'rows'}`;
+            }
+
+            if (action.actionType === 'bind_off') {
+                const amount = action.bindOffAmount === 'all' ? 'all stitches' : `${action.stitchCount} stitches`;
+                return `Bind off ${amount} at ${targetLabels}`;
+            }
+
+            let positionText = action.position;
+            if (action.distance && action.distance !== 'at') {
+                positionText = `${action.distance} ${action.position}`;
             }
 
             return `${action.technique} ${positionText} ${targetLabels}`;
@@ -185,7 +178,7 @@ const MarkerInstructionBuilder = ({
     const handleComplete = () => {
         // Add current action if it's valid
         const finalActions = [...completedActions];
-        if (currentAction.actionType && currentAction.targets.length > 0) {
+        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue')) {
             finalActions.push(currentAction);
         }
 
@@ -265,7 +258,7 @@ const MarkerInstructionBuilder = ({
                             <h4 className="text-base font-semibold text-sage-800 mb-3">Duration</h4>
                             <IncrementInput
                                 label="Rows"
-                                value={timing.rows || 1}
+                                value={timing.rows}
                                 onChange={(value) => setTiming(prev => ({ ...prev, rows: value }))}
                                 min={1}
                                 max={50}
@@ -274,81 +267,50 @@ const MarkerInstructionBuilder = ({
                         </div>
                     )}
 
-                    {/* Step 2: Technique (if not continue or bind off) */}
-                    {currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' && (
+                    {/* Step 2: Position for Increase/Decrease */}
+                    {(currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
                         <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">How?</h4>
-                            <div className="flex flex-wrap gap-3">
-                                {ACTION_TYPES[currentAction.actionType]?.map(technique => (
-                                    <Chip
-                                        key={technique.value}
-                                        active={currentAction.technique === technique.value}
-                                        onClick={() => updateAction('technique', technique.value)}
-                                    >
-                                        {technique.label}
-                                    </Chip>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Bind Off Amount */}
-                    {currentAction.actionType === 'bind_off' && (
-                        <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">How many stitches?</h4>
-                            <div className="space-y-3">
-                                <Chip
-                                    active={currentAction.bindOffAmount === 'all'}
-                                    onClick={() => updateAction('bindOffAmount', 'all')}
-                                >
-                                    All remaining stitches
-                                </Chip>
-                                <div className="flex items-center gap-3">
-                                    <Chip
-                                        active={currentAction.bindOffAmount === 'specific'}
-                                        onClick={() => updateAction('bindOffAmount', 'specific')}
-                                    >
-                                        Specific amount:
-                                    </Chip>
-                                    {currentAction.bindOffAmount === 'specific' && (
-                                        <IncrementInput
-                                            value={currentAction.stitchCount || 1}
-                                            onChange={(value) => updateAction('stitchCount', value)}
-                                            min={1}
-                                            max={50}
-                                            unit="stitches"
-                                        />
-                                    )}
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
-                    {/* Step 3: Position (if not continue or bind_off) */}
-                    {currentAction.technique && currentAction.actionType !== 'bind_off' && (
-                        <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">Where relative to marker?</h4>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">
+                                {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}...
+                            </h4>
                             <div className="flex gap-3">
                                 <Chip
                                     active={currentAction.position === 'before'}
-                                    onClick={() => updateAction('position', 'before')}
+                                    onClick={() => {
+                                        updateAction('position', 'before');
+                                        updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
+                                    }}
                                 >
-                                    Before
+                                    before markers
                                 </Chip>
                                 <Chip
                                     active={currentAction.position === 'after'}
-                                    onClick={() => updateAction('position', 'after')}
+                                    onClick={() => {
+                                        updateAction('position', 'after');
+                                        updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
+                                    }}
                                 >
-                                    After
+                                    after markers
                                 </Chip>
+                                {currentAction.actionType === 'decrease' && (
+                                    <Chip
+                                        active={currentAction.position === 'at'}
+                                        onClick={() => {
+                                            updateAction('position', 'at');
+                                            updateAction('technique', 'CDD');
+                                        }}
+                                    >
+                                        at markers
+                                    </Chip>
+                                )}
                             </div>
                         </div>
                     )}
 
-                    {/* Step 4: Distance (if position selected) */}
+                    {/* Step 3: Distance */}
                     {currentAction.position && (
                         <div>
-                            <h4 className="text-base font-semibold text-sage-800 mb-3">How far?</h4>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">How far from marker?</h4>
                             <div className="flex gap-3">
                                 <Chip
                                     active={currentAction.distance === 'at'}
@@ -378,8 +340,110 @@ const MarkerInstructionBuilder = ({
                         </div>
                     )}
 
+                    {/* Step 4: Technique */}
+                    {currentAction.distance && (
+                        <div>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">Using:</h4>
+                            <div className="flex gap-3">
+                                {/* Before markers */}
+                                {currentAction.position === 'before' && currentAction.actionType === 'increase' && (
+                                    <>
+                                        <Chip
+                                            active={currentAction.technique === 'M1L'}
+                                            onClick={() => updateAction('technique', 'M1L')}
+                                        >
+                                            M1L
+                                        </Chip>
+                                        <Chip
+                                            active={currentAction.technique === 'KFB'}
+                                            onClick={() => updateAction('technique', 'KFB')}
+                                        >
+                                            KFB
+                                        </Chip>
+                                    </>
+                                )}
+                                {currentAction.position === 'before' && currentAction.actionType === 'decrease' && (
+                                    <Chip
+                                        active={currentAction.technique === 'SSK'}
+                                        onClick={() => updateAction('technique', 'SSK')}
+                                    >
+                                        SSK
+                                    </Chip>
+                                )}
+
+                                {/* After markers */}
+                                {currentAction.position === 'after' && currentAction.actionType === 'increase' && (
+                                    <>
+                                        <Chip
+                                            active={currentAction.technique === 'M1R'}
+                                            onClick={() => updateAction('technique', 'M1R')}
+                                        >
+                                            M1R
+                                        </Chip>
+                                        <Chip
+                                            active={currentAction.technique === 'KFB'}
+                                            onClick={() => updateAction('technique', 'KFB')}
+                                        >
+                                            KFB
+                                        </Chip>
+                                    </>
+                                )}
+                                {currentAction.position === 'after' && currentAction.actionType === 'decrease' && (
+                                    <Chip
+                                        active={currentAction.technique === 'K2tog'}
+                                        onClick={() => updateAction('technique', 'K2tog')}
+                                    >
+                                        K2tog
+                                    </Chip>
+                                )}
+
+                                {/* At markers */}
+                                {currentAction.position === 'at' && currentAction.actionType === 'decrease' && (
+                                    <Chip
+                                        active={currentAction.technique === 'CDD'}
+                                        onClick={() => updateAction('technique', 'CDD')}
+                                    >
+                                        CDD
+                                    </Chip>
+                                )}
+                            </div>
+                        </div>
+                    )}
+
+                    {/* Bind Off Amount */}
+                    {currentAction.actionType === 'bind_off' && (
+                        <div>
+                            <h4 className="text-base font-semibold text-sage-800 mb-3">How many stitches?</h4>
+                            <div className="space-y-3">
+                                <Chip
+                                    active={currentAction.bindOffAmount === 'all'}
+                                    onClick={() => updateAction('bindOffAmount', 'all')}
+                                >
+                                    All remaining stitches
+                                </Chip>
+                                <div className="flex items-center gap-3">
+                                    <Chip
+                                        active={currentAction.bindOffAmount === 'specific'}
+                                        onClick={() => updateAction('bindOffAmount', 'specific')}
+                                    >
+                                        Specific amount:
+                                    </Chip>
+                                    {currentAction.bindOffAmount === 'specific' && (
+                                        <IncrementInput
+                                            value={currentAction.stitchCount}
+                                            onChange={(value) => updateAction('stitchCount', value)}
+                                            min={1}
+                                            max={50}
+                                            unit="stitches"
+                                        />
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
                     {/* Step 5: Targets */}
-                    {(currentAction.distance || currentAction.actionType === 'bind_off' || currentAction.actionType === 'continue') && (
+                    {(currentAction.technique || currentAction.bindOffAmount || currentAction.actionType === 'continue') && (
                         <div>
                             <h4 className="text-base font-semibold text-sage-800 mb-3">Which markers/positions?</h4>
                             <div className="flex flex-wrap gap-3">
