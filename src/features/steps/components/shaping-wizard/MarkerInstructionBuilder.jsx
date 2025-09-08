@@ -220,48 +220,53 @@ const MarkerInstructionBuilder = ({
 
                     {/* Step 1: Action Type */}
                     <div>
+
                         <label className="form-label">What happens?</label>
                         <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                            <div className="grid grid-cols-2 gap-2">
-                                <button
-                                    onClick={() => updateAction('actionType', 'continue')}
-                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.actionType === 'continue'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                        : 'border-wool-200 hover:border-sage-300'
-                                        }`}
-                                >
-                                    Continue in Pattern
-                                </button>
-                                <button
+
+                            <div className="grid grid-cols-2 gap-3">
+
+                                <div
                                     onClick={() => updateAction('actionType', 'increase')}
-                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.actionType === 'increase'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${currentAction.actionType === 'increase'
+                                        ? 'border-sage-500 bg-sage-100'
                                         : 'border-wool-200 hover:border-sage-300'
                                         }`}
                                 >
-                                    Increase
-                                </button>
-                                <button
+                                    <div className="font-medium text-sm">Add Increases</div>
+                                </div>
+                                <div
                                     onClick={() => updateAction('actionType', 'decrease')}
-                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.actionType === 'decrease'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${currentAction.actionType === 'decrease'
+                                        ? 'border-sage-500 bg-sage-100'
                                         : 'border-wool-200 hover:border-sage-300'
                                         }`}
                                 >
-                                    Decrease
-                                </button>
-                                <button
+                                    <div className="font-medium text-sm">Add Decrease</div>
+                                </div>
+                                <div
                                     onClick={() => updateAction('actionType', 'bind_off')}
-                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.actionType === 'bind_off'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${currentAction.actionType === 'bind_off'
+                                        ? 'border-sage-500 bg-sage-100'
                                         : 'border-wool-200 hover:border-sage-300'
                                         }`}
                                 >
-                                    Bind Off
-                                </button>
+                                    <div className="font-medium text-sm">Bind Off</div>
+                                </div>
+
+                                <div
+                                    onClick={() => updateAction('actionType', 'continue')}
+                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${currentAction.actionType === 'continue'
+                                        ? 'border-sage-500 bg-sage-100'
+                                        : 'border-wool-200 hover:border-sage-300'
+                                        }`}
+                                >
+                                    <div className="font-medium text-sm">Work Pattern</div>
+                                </div>
                             </div>
                         </div>
                     </div>
+
                     {/* Auto-advance Continue in Pattern to timing */}
                     {currentAction.actionType === 'continue' && (() => {
                         // Auto-set targets and advance to timing
@@ -280,10 +285,10 @@ const MarkerInstructionBuilder = ({
                             {(currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
                                 <div>
                                     <label className="form-label">
-                                        {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}...
+                                        {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}
                                     </label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                        <div className="grid grid-cols-3 gap-2">
+                                        <div className="grid grid-cols-2 gap-2">
                                             <button
                                                 onClick={() => {
                                                     updateAction('position', 'before');
@@ -294,7 +299,7 @@ const MarkerInstructionBuilder = ({
                                                     : 'border-wool-200 hover:border-sage-300'
                                                     }`}
                                             >
-                                                before marker
+                                                Before marker
                                             </button>
                                             <button
                                                 onClick={() => {
@@ -306,22 +311,10 @@ const MarkerInstructionBuilder = ({
                                                     : 'border-wool-200 hover:border-sage-300'
                                                     }`}
                                             >
-                                                after marker
+                                                After marker
                                             </button>
-                                            {currentAction.actionType === 'decrease' && (
-                                                <button
-                                                    onClick={() => {
-                                                        updateAction('position', 'at');
-                                                        updateAction('technique', 'CDD');
-                                                    }}
-                                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.position === 'at'
-                                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                        : 'border-wool-200 hover:border-sage-300'
-                                                        }`}
-                                                >
-                                                    at markers
-                                                </button>
-                                            )}
+
+
                                         </div>
                                     </div>
                                 </div>
@@ -376,7 +369,8 @@ const MarkerInstructionBuilder = ({
 
                             {/* Step 4: Technique */}
                             {currentAction.distance && (
-                                <div>                                    <div className="flex gap-3">
+
+                                <div className="flex gap-3">
                                     {/* Before markers */}
                                     {currentAction.position === 'before' && currentAction.actionType === 'increase' && (
                                         <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
@@ -471,7 +465,7 @@ const MarkerInstructionBuilder = ({
                                         </div>
                                     )}
                                 </div>
-                                </div>
+
                             )}
 
                             {/* Bind Off Amount */}
@@ -615,64 +609,46 @@ const MarkerInstructionBuilder = ({
                         {/* Mode Toggle */}
                         <div>
                             <label className="form-label">Number of Times vs Target Stitch Count</label>
-                            <div className="flex gap-2 mb-4">
-                                <button
-                                    onClick={() => setTiming(prev => ({ ...prev, amountMode: 'times' }))}
-                                    className={`flex-1 p-2 text-sm border-2 rounded-lg transition-colors ${(timing.amountMode || 'times') === 'times'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                        : 'border-wool-200 hover:border-sage-300'
-                                        }`}
-                                >
-                                    Number of Times
-                                </button>
-                                <button
-                                    onClick={() => setTiming(prev => ({ ...prev, amountMode: 'target' }))}
-                                    className={`flex-1 p-2 text-sm border-2 rounded-lg transition-colors ${timing.amountMode === 'target'
-                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                        : 'border-wool-200 hover:border-sage-300'
-                                        }`}
-                                >
-                                    Target Stitch Count
-                                </button>
-                            </div>
-
-                            {/* Dynamic section based on selection */}
                             <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                {completedActions.some(action => action.actionType === 'continue') || currentAction.actionType === 'continue' ? (
-                                    // Simple times input for Continue in Pattern
+                                <div className="grid grid-cols-2 gap-2 mb-4">
+                                    <div
+                                        onClick={() => setTiming(prev => ({ ...prev, amountMode: 'times' }))}
+                                        className={`p-3 text-sm border-2 rounded-lg cursor-pointer transition-colors ${(timing.amountMode || 'times') === 'times'
+                                            ? 'border-sage-500 bg-sage-100 text-sage-700'
+                                            : 'border-wool-200 hover:border-sage-300'
+                                            }`}
+                                    >
+                                        Number of Times
+                                    </div>
+                                    <div
+                                        onClick={() => setTiming(prev => ({ ...prev, amountMode: 'target' }))}
+                                        className={`p-3 text-sm border-2 rounded-lg cursor-pointer transition-colors ${timing.amountMode === 'target'
+                                            ? 'border-sage-500 bg-sage-100 text-sage-700'
+                                            : 'border-wool-200 hover:border-sage-300'
+                                            }`}
+                                    >
+                                        Target Stitch Count
+                                    </div>
+                                </div>
+
+                                {/* Input directly below toggle in same card */}
+                                {(timing.amountMode || 'times') === 'times' ? (
                                     <IncrementInput
                                         value={timing.times}
                                         onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
-                                        label="times"
                                         unit="times"
                                         min={1}
                                         max={50}
                                         size="sm"
                                     />
                                 ) : (
-                                    // Full toggle for other actions
-                                    <>
-                                        {(timing.amountMode || 'times') === 'times' ? (
-                                            <IncrementInput
-                                                value={timing.times}
-                                                onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
-                                                label="times"
-                                                unit="times"
-                                                min={1}
-                                                max={50}
-                                                size="sm"
-                                            />
-                                        ) : (
-                                            <IncrementInput
-                                                value={timing.targetStitches || 0}
-                                                onChange={(value) => setTiming(prev => ({ ...prev, targetStitches: value }))}
-                                                label="target stitch count"
-                                                unit="stitches"
-                                                min={0}
-                                                size="sm"
-                                            />
-                                        )}
-                                    </>
+                                    <IncrementInput
+                                        value={timing.targetStitches || 0}
+                                        onChange={(value) => setTiming(prev => ({ ...prev, targetStitches: value }))}
+                                        unit="stitches"
+                                        min={0}
+                                        size="sm"
+                                    />
                                 )}
                             </div>
                         </div>
