@@ -282,36 +282,47 @@ const MarkerInstructionBuilder = ({
                                     <label className="form-label">
                                         {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}...
                                     </label>
-                                    <div className="flex gap-3">
-                                        <Chip
-                                            active={currentAction.position === 'before'}
-                                            onClick={() => {
-                                                updateAction('position', 'before');
-                                                updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
-                                            }}
-                                        >
-                                            before markers
-                                        </Chip>
-                                        <Chip
-                                            active={currentAction.position === 'after'}
-                                            onClick={() => {
-                                                updateAction('position', 'after');
-                                                updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
-                                            }}
-                                        >
-                                            after markers
-                                        </Chip>
-                                        {currentAction.actionType === 'decrease' && (
-                                            <Chip
-                                                active={currentAction.position === 'at'}
+                                    <div className="bg-sage-50 border-2 border-wool-200 rounded-xl p-4">
+                                        <div className="grid grid-cols-3 gap-2">
+                                            <button
                                                 onClick={() => {
-                                                    updateAction('position', 'at');
-                                                    updateAction('technique', 'CDD');
+                                                    updateAction('position', 'before');
+                                                    updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
                                                 }}
+                                                className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.position === 'before'
+                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
+                                                    : 'border-wool-200 hover:border-sage-300'
+                                                    }`}
                                             >
-                                                at markers
-                                            </Chip>
-                                        )}
+                                                before marker
+                                            </button>
+                                            <button
+                                                onClick={() => {
+                                                    updateAction('position', 'after');
+                                                    updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
+                                                }}
+                                                className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.position === 'after'
+                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
+                                                    : 'border-wool-200 hover:border-sage-300'
+                                                    }`}
+                                            >
+                                                after marker
+                                            </button>
+                                            {currentAction.actionType === 'decrease' && (
+                                                <button
+                                                    onClick={() => {
+                                                        updateAction('position', 'at');
+                                                        updateAction('technique', 'CDD');
+                                                    }}
+                                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.position === 'at'
+                                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
+                                                        : 'border-wool-200 hover:border-sage-300'
+                                                        }`}
+                                                >
+                                                    at markers
+                                                </button>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
@@ -435,29 +446,33 @@ const MarkerInstructionBuilder = ({
                             {currentAction.actionType === 'bind_off' && (
                                 <div>
                                     <label className="form-label">How many stitches?</label>
-                                    <div className="space-y-3">
-                                        <Chip
-                                            active={currentAction.bindOffAmount === 'all'}
-                                            onClick={() => updateAction('bindOffAmount', 'all')}
-                                        >
-                                            All remaining stitches
-                                        </Chip>
+                                    <div className="bg-sage-50 border-2 border-wool-200 rounded-xl p-4">
                                         <div className="flex items-center gap-3">
-                                            <Chip
-                                                active={currentAction.bindOffAmount === 'specific'}
-                                                onClick={() => updateAction('bindOffAmount', 'specific')}
+                                            <IncrementInput
+                                                value={currentAction.stitchCount}
+                                                onChange={(value) => {
+                                                    updateAction('stitchCount', value);
+                                                    updateAction('bindOffAmount', 'specific');
+                                                }}
+                                                min={1}
+                                                max={50}
+                                                size="sm"
+                                            />
+
+                                            <button
+                                                onClick={() => {
+                                                    // Calculate total available stitches from marker array
+                                                    const totalStitches = markerArray
+                                                        .filter(item => typeof item === 'number')
+                                                        .reduce((sum, stitches) => sum + stitches, 0);
+
+                                                    updateAction('stitchCount', totalStitches);
+                                                    updateAction('bindOffAmount', 'specific'); // Keep as specific, just with max value
+                                                }}
+                                                className="px-4 py-2 text-sm border-2 rounded-lg transition-colors border-wool-200 hover:border-sage-300"
                                             >
-                                                Specific amount:
-                                            </Chip>
-                                            {currentAction.bindOffAmount === 'specific' && (
-                                                <IncrementInput
-                                                    value={currentAction.stitchCount}
-                                                    onChange={(value) => updateAction('stitchCount', value)}
-                                                    min={1}
-                                                    max={50}
-                                                    unit="stitches"
-                                                />
-                                            )}
+                                                Bind Off All
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
