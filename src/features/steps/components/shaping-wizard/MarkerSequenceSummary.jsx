@@ -7,7 +7,7 @@ import { getConstructionTerms } from '../../../../shared/utils/ConstructionTermi
 
 const MarkerSequenceSummary = ({
     markerArray = [],
-    markerColors = {}, // Add this line
+    markerColors = {},
     sequences = [],
     construction = 'flat',
     onAddSequence,
