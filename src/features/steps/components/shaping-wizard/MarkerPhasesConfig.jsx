@@ -488,7 +488,6 @@ const MarkerPhasesConfig = ({
                                     max={20}
                                     size="sm"
                                 />
-                                <span className="text-sm text-wool-600">markers</span>
                                 <button
                                     onClick={handleUpdateMarkers}
                                     className="btn-secondary btn-sm"
@@ -587,7 +586,7 @@ const MarkerPhasesConfig = ({
                             disabled={!showSegments || !isValid}
                             className="btn-primary flex-1"
                         >
-                            Continue to Sequences →
+                            Continue →
                         </button>
                     </div>
                 </div>
