@@ -518,6 +518,12 @@ const MarkerPhasesConfig = ({
 
             if (construction === 'round') {
                 newArray.push('BOR');
+                newSegments.push({
+                    type: 'marker',
+                    name: 'BOR',
+                    id: 'marker_BOR',
+                    readonly: true
+                });
             }
 
             for (let i = 0; i < markerCount; i++) {
@@ -548,6 +554,7 @@ const MarkerPhasesConfig = ({
             });
 
             setSegments(newSegments);
+            console.log('Created segments:', newSegments);
             setMarkerArray(newArray);
             setShowSegments(true);
         };
