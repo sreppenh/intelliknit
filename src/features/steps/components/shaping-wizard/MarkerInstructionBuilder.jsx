@@ -111,7 +111,28 @@ const MarkerInstructionBuilder = ({
 
     // Update current action
     const updateAction = (field, value) => {
-        setCurrentAction(prev => ({ ...prev, [field]: value }));
+        setCurrentAction(prev => {
+            const updated = { ...prev, [field]: value };
+
+            // Clear invalid targets when action type changes
+            if (field === 'actionType') {
+                const newAvailableTargets = getAvailableTargetsForAction(value);
+                const validTargets = updated.targets.filter(target =>
+                    newAvailableTargets.some(availableTarget => availableTarget.value === target)
+                );
+                updated.targets = validTargets;
+            }
+
+            return updated;
+        });
+    };
+
+    // Helper function to get available targets for an action type
+    const getAvailableTargetsForAction = (actionType) => {
+        if (actionType === 'bind_off') {
+            return availableTargets.filter(t => t.value !== 'end');
+        }
+        return availableTargets;
     };
 
     // Toggle target selection
@@ -203,7 +224,7 @@ const MarkerInstructionBuilder = ({
         <div className="space-y-6">
             {/* Marker Reference */}
             <div className="card bg-sage-50 border-sage-200">
-                <h4 className="section-header-secondary">Your Marker Layout</h4>
+                <h4 className="section-header-secondary">Marker Positioning</h4>
                 <MarkerArrayVisualization
                     stitchArray={markerArray}
                     construction={construction}
@@ -228,38 +249,26 @@ const MarkerInstructionBuilder = ({
 
                                 <div
                                     onClick={() => updateAction('actionType', 'increase')}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${currentAction.actionType === 'increase'
-                                        ? 'border-sage-500 bg-sage-100'
-                                        : 'border-wool-200 hover:border-sage-300'
-                                        }`}
+                                    className={`card-marker-select ${currentAction.actionType === 'increase' ? 'card-marker-select-selected' : ''}`}
                                 >
                                     <div className="font-medium text-sm">Add Increases</div>
                                 </div>
                                 <div
                                     onClick={() => updateAction('actionType', 'decrease')}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${currentAction.actionType === 'decrease'
-                                        ? 'border-sage-500 bg-sage-100'
-                                        : 'border-wool-200 hover:border-sage-300'
-                                        }`}
+                                    className={`card-marker-select ${currentAction.actionType === 'decrease' ? 'card-marker-select-selected' : ''}`}
                                 >
-                                    <div className="font-medium text-sm">Add Decrease</div>
+                                    <div className="font-medium text-sm">Add Decreases</div>
                                 </div>
                                 <div
                                     onClick={() => updateAction('actionType', 'bind_off')}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${currentAction.actionType === 'bind_off'
-                                        ? 'border-sage-500 bg-sage-100'
-                                        : 'border-wool-200 hover:border-sage-300'
-                                        }`}
+                                    className={`card-marker-select ${currentAction.actionType === 'bind_off' ? 'card-marker-select-selected' : ''}`}
                                 >
                                     <div className="font-medium text-sm">Bind Off</div>
                                 </div>
 
                                 <div
                                     onClick={() => updateAction('actionType', 'continue')}
-                                    className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${currentAction.actionType === 'continue'
-                                        ? 'border-sage-500 bg-sage-100'
-                                        : 'border-wool-200 hover:border-sage-300'
-                                        }`}
+                                    className={`card-marker-select ${currentAction.actionType === 'continue' ? 'card-marker-select-selected' : ''}`}
                                 >
                                     <div className="font-medium text-sm">Work Pattern</div>
                                 </div>
@@ -289,32 +298,24 @@ const MarkerInstructionBuilder = ({
                                     </label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                                         <div className="grid grid-cols-2 gap-2">
-                                            <button
+                                            <div
                                                 onClick={() => {
                                                     updateAction('position', 'before');
                                                     updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
                                                 }}
-                                                className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.position === 'before'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
+                                                className={`card-marker-select-compact ${currentAction.position === 'before' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
                                                 Before marker
-                                            </button>
-                                            <button
+                                            </div>
+                                            <div
                                                 onClick={() => {
                                                     updateAction('position', 'after');
                                                     updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
                                                 }}
-                                                className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.position === 'after'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
+                                                className={`card-marker-select-compact ${currentAction.position === 'after' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
                                                 After marker
-                                            </button>
-
-
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -328,37 +329,25 @@ const MarkerInstructionBuilder = ({
                                         <div className="grid grid-cols-4 gap-2">
                                             <button
                                                 onClick={() => updateAction('distance', 'at')}
-                                                className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.distance === 'at'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
+                                                className={`card-marker-select-compact ${currentAction.distance === 'at' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
                                                 0 st
                                             </button>
                                             <button
                                                 onClick={() => updateAction('distance', '1')}
-                                                className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.distance === '1'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
+                                                className={`card-marker-select-compact ${currentAction.distance === '1' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
                                                 1 st
                                             </button>
                                             <button
                                                 onClick={() => updateAction('distance', '2')}
-                                                className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.distance === '2'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
+                                                className={`card-marker-select-compact ${currentAction.distance === '2' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
                                                 2 sts
                                             </button>
                                             <button
                                                 onClick={() => updateAction('distance', '3')}
-                                                className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.distance === '3'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
+                                                className={`card-marker-select-compact ${currentAction.distance === '3' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
                                                 3 sts
                                             </button>
@@ -368,104 +357,109 @@ const MarkerInstructionBuilder = ({
                             )}
 
                             {/* Step 4: Technique */}
-                            {currentAction.distance && (
+                            {currentAction.distance && currentAction.actionType !== 'bind_off' && (
+                                <div className="form-field">
+                                    <label className="form-label">Technique</label>
+                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
 
-                                <div className="flex gap-3">
-                                    {/* Before markers */}
-                                    {currentAction.position === 'before' && currentAction.actionType === 'increase' && (
-                                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <button
+                                        {/* Before marker increases */}
+                                        {currentAction.position === 'before' && currentAction.actionType === 'increase' && (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div
                                                     onClick={() => updateAction('technique', 'M1L')}
-                                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.technique === 'M1L'
-                                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                        : 'border-wool-200 hover:border-sage-300'
-                                                        }`}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'M1L' ? 'card-marker-select-compact-selected' : ''}`}
                                                 >
                                                     M1L
-                                                </button>
-                                                <button
+                                                </div>
+                                                <div
+                                                    onClick={() => updateAction('technique', 'YO')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    YO
+                                                </div>
+                                                <div
                                                     onClick={() => updateAction('technique', 'KFB')}
-                                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.technique === 'KFB'
-                                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                        : 'border-wool-200 hover:border-sage-300'
-                                                        }`}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'KFB' ? 'card-marker-select-compact-selected' : ''}`}
                                                 >
                                                     KFB
-                                                </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {currentAction.position === 'before' && currentAction.actionType === 'decrease' && (
-                                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                            <button
-                                                onClick={() => updateAction('technique', 'SSK')}
-                                                className={`w-full p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.technique === 'SSK'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
-                                            >
-                                                SSK
-                                            </button>
-                                        </div>
-                                    )}
+                                        {/* Before marker decreases */}
+                                        {currentAction.position === 'before' && currentAction.actionType === 'decrease' && (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div
+                                                    onClick={() => updateAction('technique', 'SSK')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'SSK' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    SSK
+                                                </div>
+                                                <div
+                                                    onClick={() => updateAction('technique', 'K3tog')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'K3tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    K3tog
+                                                </div>
+                                                <div
+                                                    onClick={() => updateAction('technique', 'CDD')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    CDD
+                                                </div>
+                                            </div>
+                                        )}
 
-                                    {/* After markers */}
-                                    {currentAction.position === 'after' && currentAction.actionType === 'increase' && (
-                                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <button
+                                        {/* After marker increases */}
+                                        {currentAction.position === 'after' && currentAction.actionType === 'increase' && (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div
                                                     onClick={() => updateAction('technique', 'M1R')}
-                                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.technique === 'M1R'
-                                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                        : 'border-wool-200 hover:border-sage-300'
-                                                        }`}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'M1R' ? 'card-marker-select-compact-selected' : ''}`}
                                                 >
                                                     M1R
-                                                </button>
-                                                <button
+                                                </div>
+                                                <div
+                                                    onClick={() => updateAction('technique', 'YO')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    YO
+                                                </div>
+                                                <div
                                                     onClick={() => updateAction('technique', 'KFB')}
-                                                    className={`p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.technique === 'KFB'
-                                                        ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                        : 'border-wool-200 hover:border-sage-300'
-                                                        }`}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'KFB' ? 'card-marker-select-compact-selected' : ''}`}
                                                 >
                                                     KFB
-                                                </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    )}
+                                        )}
 
-                                    {currentAction.position === 'after' && currentAction.actionType === 'decrease' && (
-                                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                            <button
-                                                onClick={() => updateAction('technique', 'K2tog')}
-                                                className={`w-full p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.technique === 'K2tog'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
-                                            >
-                                                K2tog
-                                            </button>
-                                        </div>
-                                    )}
+                                        {/* After marker decreases */}
+                                        {currentAction.position === 'after' && currentAction.actionType === 'decrease' && (
+                                            <div className="grid grid-cols-3 gap-2">
+                                                <div
+                                                    onClick={() => updateAction('technique', 'K2tog')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'K2tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    K2tog
+                                                </div>
+                                                <div
+                                                    onClick={() => updateAction('technique', 'K3tog')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'K3tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    K3tog
+                                                </div>
+                                                <div
+                                                    onClick={() => updateAction('technique', 'CDD')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    CDD
+                                                </div>
+                                            </div>
+                                        )}
 
-                                    {currentAction.position === 'at' && currentAction.actionType === 'decrease' && (
-                                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                            <button
-                                                onClick={() => updateAction('technique', 'CDD')}
-                                                className={`w-full p-3 text-sm border-2 rounded-lg transition-colors ${currentAction.technique === 'CDD'
-                                                    ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                    : 'border-wool-200 hover:border-sage-300'
-                                                    }`}
-                                            >
-                                                CDD
-                                            </button>
-                                        </div>
-                                    )}
+                                    </div>
                                 </div>
-
                             )}
 
                             {/* Bind Off Amount */}
@@ -484,7 +478,6 @@ const MarkerInstructionBuilder = ({
                                                 max={50}
                                                 size="sm"
                                             />
-
                                             <button
                                                 onClick={() => {
                                                     // Calculate total available stitches from marker array
@@ -495,7 +488,7 @@ const MarkerInstructionBuilder = ({
                                                     updateAction('stitchCount', totalStitches);
                                                     updateAction('bindOffAmount', 'specific'); // Keep as specific, just with max value
                                                 }}
-                                                className="px-4 py-2 text-sm border-2 rounded-lg transition-colors border-wool-200 hover:border-sage-300"
+                                                className="btn-secondary btn-sm"
                                             >
                                                 Bind Off All
                                             </button>
@@ -518,24 +511,21 @@ const MarkerInstructionBuilder = ({
                                                     <button
                                                         key={target.value}
                                                         onClick={() => toggleTarget(target.value)}
-                                                        className={`px-3 py-2 rounded-full font-medium border-2 transition-colors ${currentAction.targets.includes(target.value)
-                                                            ? `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text} ring-2 ring-sage-500 ring-opacity-30`
-                                                            : `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
+                                                        className={`px-3 py-2 rounded-full font-medium transition-colors border-4 ${currentAction.targets.includes(target.value)
+                                                            ? `${getMarkerColor(target.value, markerColors).bg} border-black ${getMarkerColor(target.value, markerColors).text} font-bold`
+                                                            : `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
                                                             }`}
                                                     >
                                                         {target.value}
                                                     </button>
                                                 ) : (
-                                                    <button
+                                                    <div
                                                         key={target.value}
                                                         onClick={() => toggleTarget(target.value)}
-                                                        className={`px-3 py-2 border-2 rounded-lg font-medium transition-colors ${currentAction.targets.includes(target.value)
-                                                            ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                                            : 'border-wool-200 hover:border-sage-300'
-                                                            }`}
+                                                        className={`card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
                                                     >
                                                         {target.label}
-                                                    </button>
+                                                    </div>
                                                 )
                                             ))}
                                         </div>
@@ -572,6 +562,21 @@ const MarkerInstructionBuilder = ({
                     )}
                 </div>
             </div>
+
+            {/* Current Instruction Preview */}
+            {(completedActions.length > 0 || (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue'))) && (
+                <div className="card-info">
+                    <h4 className="section-header-secondary">Current Instruction Preview</h4>
+                    <div className="bg-white rounded-lg p-3 border border-lavender-200">
+                        <p className="text-sm text-lavender-700 font-medium">{generatePreview()}</p>
+                    </div>
+                    <p className="text-xs text-lavender-600 mt-2">
+                        This is what your knitting instruction will look like. Add frequency and timing next.
+                    </p>
+                </div>
+            )}
+
+
             {/* Completed Actions Summary */}
             {completedActions.length > 0 && (
                 <div className="card bg-sage-50 border-sage-200">
@@ -608,26 +613,20 @@ const MarkerInstructionBuilder = ({
 
                         {/* Mode Toggle */}
                         <div>
-                            <label className="form-label">Number of Times vs Target Stitch Count</label>
+                            <label className="form-label">Number of Times vs Target Stitches</label>
                             <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                                 <div className="grid grid-cols-2 gap-2 mb-4">
                                     <div
                                         onClick={() => setTiming(prev => ({ ...prev, amountMode: 'times' }))}
-                                        className={`p-3 text-sm border-2 rounded-lg cursor-pointer transition-colors ${(timing.amountMode || 'times') === 'times'
-                                            ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                            : 'border-wool-200 hover:border-sage-300'
-                                            }`}
+                                        className={`card-marker-select-compact ${(timing.amountMode || 'times') === 'times' ? 'card-marker-select-compact-selected' : ''}`}
                                     >
                                         Number of Times
                                     </div>
                                     <div
                                         onClick={() => setTiming(prev => ({ ...prev, amountMode: 'target' }))}
-                                        className={`p-3 text-sm border-2 rounded-lg cursor-pointer transition-colors ${timing.amountMode === 'target'
-                                            ? 'border-sage-500 bg-sage-100 text-sage-700'
-                                            : 'border-wool-200 hover:border-sage-300'
-                                            }`}
+                                        className={`card-marker-select-compact ${timing.amountMode === 'target' ? 'card-marker-select-compact-selected' : ''}`}
                                     >
-                                        Target Stitch Count
+                                        Target Stitches
                                     </div>
                                 </div>
 

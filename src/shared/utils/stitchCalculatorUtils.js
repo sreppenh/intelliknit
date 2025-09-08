@@ -16,6 +16,7 @@ const STITCH_VALUES = {
     'K2tog': { consumes: 2, produces: 1 },
     'SSK': { consumes: 2, produces: 1 },
     'K3tog': { consumes: 3, produces: 1 },
+    'SSSK': { consumes: 2, produces: 1 },
     'CDD': { consumes: 3, produces: 1 }, // Central Double Decrease
     'S2KP': { consumes: 3, produces: 1 }, // Slip 2, K1, Pass over
     'SK2P': { consumes: 3, produces: 1 },
