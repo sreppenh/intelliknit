@@ -55,7 +55,6 @@ const MarkerPhasesConfig = ({
     mode
 }) => {
 
-    console.log('MarkerPhasesConfig construction prop:', construction);
     // ===== MULTI-SCREEN STATE MANAGEMENT =====
     const [currentScreen, setCurrentScreen] = useState('marker-setup');
     const [markerArray, setMarkerArray] = useState([]);

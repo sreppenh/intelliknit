@@ -4,6 +4,7 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import { getStitchConsumption } from '../../../../shared/utils/stitchCalculatorUtils';
 
 // Use the passed markerColors instead of hardcoded colorMap
 const getMarkerColor = (markerName, markerColors) => {
@@ -110,10 +111,75 @@ const MarkerInstructionBuilder = ({
         );
     };
 
-    // Update current action
+    // NEW: Get valid distance options based on technique consumption (ONLY for BEFORE marker)
+    const getValidDistanceOptions = (technique, position) => {
+        if (!technique) return ['at', '1', '2', '3'];
+
+        // Only apply consumption constraints for BEFORE marker positions
+        if (position !== 'before' && position !== 'before_and_after') {
+            return ['at', '1', '2', '3']; // All options for after marker
+        }
+
+        const consumption = getStitchConsumption(technique);
+
+        if (consumption === 0) {
+            // Non-consuming techniques (YO, M1L, M1R) can work anywhere
+            return ['at', '1', '2', '3'];
+        }
+
+        if (consumption === 1) {
+            // Single-consumption techniques need at least 1 stitch before marker
+            return ['1', '2', '3'];
+        }
+
+        if (consumption === 2) {
+            // Double-consumption techniques (SSK) need at least 2 stitches before marker
+            return ['2', '3'];
+        }
+
+        if (consumption >= 3) {
+            // Triple+ consumption techniques need at least 3 stitches before marker
+            return ['3'];
+        }
+
+        return ['1', '2', '3']; // Fallback
+    };
+
+    // NEW: Get valid targets for current action configuration
+    const getValidTargets = () => {
+        let validTargets = [...availableTargets];
+
+        // Filter out conflicting edge targets based on position
+        if (currentAction.position === 'before') {
+            validTargets = validTargets.filter(t => t.value !== 'beginning');
+        } else if (currentAction.position === 'after') {
+            validTargets = validTargets.filter(t => t.value !== 'end');
+        }
+
+        // Filter out 'end' for bind_off actions
+        if (currentAction.actionType === 'bind_off') {
+            validTargets = validTargets.filter(t => t.value !== 'end');
+        }
+
+        return validTargets;
+    };
+
+    // Update current action with NEW validation
     const updateAction = (field, value) => {
         setCurrentAction(prev => {
             const updated = { ...prev, [field]: value };
+
+            // NEW: Handle position changes - clear conflicting edge targets
+            if (field === 'position') {
+                const validTargets = getValidTargets();
+                const validTargetValues = validTargets.map(t => t.value);
+                updated.targets = updated.targets.filter(target => validTargetValues.includes(target));
+            }
+
+            // NEW: Handle technique changes - no longer need distance validation
+            if (field === 'technique') {
+                // Technique changed - no additional validation needed since all distances are valid
+            }
 
             // Clear invalid targets when action type changes
             if (field === 'actionType') {
@@ -436,43 +502,8 @@ const MarkerInstructionBuilder = ({
                                 </div>
                             )}
 
-                            {/* Step 3: Distance */}
-                            {currentAction.position && (
-                                <div>
-                                    <label className="form-label">How far from marker?</label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                        <div className="grid grid-cols-4 gap-2">
-                                            <button
-                                                onClick={() => updateAction('distance', 'at')}
-                                                className={`card-marker-select-compact ${currentAction.distance === 'at' ? 'card-marker-select-compact-selected' : ''}`}
-                                            >
-                                                0 st
-                                            </button>
-                                            <button
-                                                onClick={() => updateAction('distance', '1')}
-                                                className={`card-marker-select-compact ${currentAction.distance === '1' ? 'card-marker-select-compact-selected' : ''}`}
-                                            >
-                                                1 st
-                                            </button>
-                                            <button
-                                                onClick={() => updateAction('distance', '2')}
-                                                className={`card-marker-select-compact ${currentAction.distance === '2' ? 'card-marker-select-compact-selected' : ''}`}
-                                            >
-                                                2 sts
-                                            </button>
-                                            <button
-                                                onClick={() => updateAction('distance', '3')}
-                                                className={`card-marker-select-compact ${currentAction.distance === '3' ? 'card-marker-select-compact-selected' : ''}`}
-                                            >
-                                                3 sts
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Step 4: Technique */}
-                            {currentAction.distance && currentAction.actionType !== 'bind_off' && (
+                            {/* Step 3: Technique - MOVED UP before Distance */}
+                            {currentAction.position && currentAction.actionType !== 'bind_off' && (
                                 <div className="form-field">
                                     <label className="form-label">Technique</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
@@ -613,6 +644,26 @@ const MarkerInstructionBuilder = ({
                                 </div>
                             )}
 
+                            {/* Step 4: Distance - Now AFTER technique with NEW validation */}
+                            {currentAction.technique && (
+                                <div>
+                                    <label className="form-label">Distance from marker?</label>
+                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                        <div className="grid grid-cols-4 gap-2">
+                                            {getValidDistanceOptions(currentAction.technique, currentAction.position).map(distance => (
+                                                <button
+                                                    key={distance}
+                                                    onClick={() => updateAction('distance', distance)}
+                                                    className={`card-marker-select-compact ${currentAction.distance === distance ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    {distance === 'at' ? '0 st' : `${distance} st${distance === '1' ? '' : 's'}`}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Bind Off Amount */}
                             {currentAction.actionType === 'bind_off' && (
                                 <div>
@@ -648,16 +699,13 @@ const MarkerInstructionBuilder = ({
                                 </div>
                             )}
 
-                            {/* Step 5: Targets */}
+                            {/* Step 5: Targets - UPDATED to use NEW getValidTargets */}
                             {(currentAction.technique || currentAction.bindOffAmount) && currentAction.actionType !== 'continue' && (
                                 <div>
                                     <label className="form-label">Which markers/positions?</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                                         <div className="flex flex-wrap gap-2">
-                                            {(currentAction.actionType === 'bind_off'
-                                                ? availableTargets.filter(t => t.value !== 'end')
-                                                : availableTargets
-                                            ).map(target => (
+                                            {getValidTargets().map(target => (
                                                 target.type === 'marker' ? (
                                                     <button
                                                         key={target.value}
@@ -688,10 +736,7 @@ const MarkerInstructionBuilder = ({
                                                 </p>
                                                 <button
                                                     onClick={() => {
-                                                        const allTargets = (currentAction.actionType === 'bind_off'
-                                                            ? availableTargets.filter(t => t.value !== 'end')
-                                                            : availableTargets
-                                                        ).map(t => t.value);
+                                                        const allTargets = getValidTargets().map(t => t.value);
                                                         updateAction('targets', allTargets);
                                                     }}
                                                     className="btn-secondary btn-sm"
@@ -739,7 +784,6 @@ const MarkerInstructionBuilder = ({
                 </div>
             )}
 
-
             {/* Completed Actions Summary */}
             {completedActions.length > 0 && (
                 <div className="card bg-sage-50 border-sage-200">
@@ -747,9 +791,6 @@ const MarkerInstructionBuilder = ({
                     <p className="text-sm text-sage-600">{generatePreview()}</p>
                 </div>
             )}
-
-
-
 
             {/* Section 3: Set Frequency and Times */}
             {currentStep === 'timing' && (
@@ -817,7 +858,6 @@ const MarkerInstructionBuilder = ({
                     </div>
                 </div>
             )}
-
 
             {/* Actions */}
             <div className="flex gap-3">

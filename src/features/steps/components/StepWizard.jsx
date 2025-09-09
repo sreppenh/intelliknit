@@ -32,9 +32,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
 
   const wizardState = useWizardState(wizard, onBack, mode);
 
-  console.log('wizard.construction:', wizard.construction);
-  console.log('wizard.component.construction:', wizard.component.construction);
-
   // Add this function inside StepWizard component:
   const handleConfirmIntrinsicStep = () => {
     if (pendingShapingInfo) {
