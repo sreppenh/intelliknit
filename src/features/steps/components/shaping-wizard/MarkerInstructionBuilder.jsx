@@ -627,26 +627,39 @@ const MarkerInstructionBuilder = ({
                                 <div>
                                     <label className="form-label">Which markers/positions?</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+
                                         <div className="flex flex-wrap gap-2">
                                             {getValidTargets().map(target => (
                                                 target.type === 'marker' ? (
                                                     <button
                                                         key={target.value}
                                                         onClick={() => toggleTarget(target.value)}
-                                                        className={`px-3 py-2 rounded-full font-medium transition-colors border-4 ${currentAction.targets.includes(target.value)
+                                                        className={`relative px-3 py-2 rounded-full font-medium transition-colors border-4 ${currentAction.targets.includes(target.value)
                                                             ? `${getMarkerColor(target.value, markerColors).bg} border-black ${getMarkerColor(target.value, markerColors).text} font-bold`
                                                             : `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
                                                             }`}
                                                     >
                                                         {target.value}
+                                                        {/* Checkmark overlay for selected markers */}
+                                                        {currentAction.targets.includes(target.value) && (
+                                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                                <span className="text-white text-xs font-bold">✓</span>
+                                                            </div>
+                                                        )}
                                                     </button>
                                                 ) : (
                                                     <div
                                                         key={target.value}
                                                         onClick={() => toggleTarget(target.value)}
-                                                        className={`card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
+                                                        className={`relative card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
                                                     >
                                                         {target.label}
+                                                        {/* Checkmark overlay for selected edges */}
+                                                        {currentAction.targets.includes(target.value) && (
+                                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                                <span className="text-white text-xs font-bold">✓</span>
+                                                            </div>
+                                                        )}
                                                     </div>
                                                 )
                                             ))}
