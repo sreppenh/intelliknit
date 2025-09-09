@@ -3,6 +3,7 @@ import React, { useState, useMemo } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
+import { generateMarkerFlowInstruction } from '../../../../shared/utils/markerInstructionUtils';
 
 // Use the passed markerColors instead of hardcoded colorMap
 const getMarkerColor = (markerName, markerColors) => {
@@ -26,7 +27,8 @@ const MarkerInstructionBuilder = ({
     markerColors = {}, // Add this line
     construction = 'flat',
     onComplete,
-    onCancel
+    onCancel,
+    wizard
 }) => {
     // Progressive disclosure state
     const [currentStep, setCurrentStep] = useState('action-type');
@@ -214,131 +216,73 @@ const MarkerInstructionBuilder = ({
 
 
     // Generate instruction preview - REPLACEMENT FOR CURRENT generatePreview()
-    const generatePreview = () => {
-        // Simple preview that doesn't include timing until timing step
-        const allActions = [...completedActions];
+    // REPLACE the existing generatePreview function (around line 259) with this new version:
 
+    const generatePreview = () => {
+        const allActions = [...completedActions];
         if (currentAction.actionType && currentAction.targets.length > 0) {
             allActions.push(currentAction);
         }
 
         if (allActions.length === 0) return "No actions defined yet";
 
-        // Generate pattern-style instruction
-        return allActions.map(action => {
-            if (action.actionType === 'continue') return "Continue in pattern";
+        // Get base pattern name from wizard data
+        const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
 
-            if (action.actionType === 'bind_off') {
-                const amount = action.stitchCount ? `${action.stitchCount} stitches` : 'all stitches';
-                return `Bind off ${amount}`;
-            }
-
-            // Handle paired techniques with proper pattern language
-            if (action.technique && action.technique.includes('_')) {
-                const [tech1, tech2] = action.technique.split('_');
-                const distance = action.distance === 'at' ? '' : `${action.distance} st `;
-                return `${distance}before marker, ${tech1}, sm, ${tech2}`;
-            }
-
-            // Single technique
-            const distance = action.distance === 'at' ? '' : `${action.distance} st `;
-            const position = action.position === 'before' ? 'before marker' :
-                action.position === 'after' ? 'after marker' : action.position;
-            return `${distance}${position}, ${action.technique}`;
-
-        }).join(', ');
-    };
-
-    // Helper function to generate marker-based instruction
-    const generateMarkerInstruction = (actions, markers, terms) => {
-        // Find all targeted markers across actions
-        const targetedMarkers = [...new Set(
-            actions.flatMap(action => action.targets.filter(target => markers.includes(target)))
-        )];
-
-        if (targetedMarkers.length === 0) return null;
-
-        // Build instruction for first marker, then add repeat clause
-        const firstMarker = targetedMarkers[0];
-        const markerSequence = [];
-
-        // Process actions in logical order for this marker
-        actions.forEach(action => {
-            if (!action.targets.includes(firstMarker)) return;
-
-            if (action.position === 'before_and_after') {
-                // Handle paired techniques
-                const [beforeTech, afterTech] = action.technique.split('_');
-                const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
-
-                if (distance > 0) {
-                    markerSequence.push(`knit to ${distance} st before marker`);
-                    markerSequence.push(beforeTech);
-                    markerSequence.push('slip marker');
-                    markerSequence.push(afterTech);
-                } else {
-                    markerSequence.push(beforeTech);
-                    markerSequence.push('slip marker');
-                    markerSequence.push(afterTech);
-                }
-            } else if (action.position === 'before') {
-                const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
-                if (distance > 0) {
-                    markerSequence.push(`knit to ${distance} st before marker`);
-                }
-                markerSequence.push(action.technique);
-            } else if (action.position === 'after') {
-                markerSequence.push('slip marker');
-                markerSequence.push(action.technique);
-            }
-        });
-
-        // Build the complete instruction
-        let instruction = markerSequence.join(', ');
-
-        // Add repeat clause if multiple markers
-        if (targetedMarkers.length > 1) {
-            const remainingMarkers = targetedMarkers.slice(1);
-            instruction += `, repeat for markers ${remainingMarkers.join(', ')}`;
+        // Handle "continue in pattern" case
+        if (allActions.length === 1 && allActions[0].actionType === 'continue') {
+            return `Continue in ${basePattern}`;
         }
 
-        return instruction;
-    };
-
-    // Helper function to generate edge-based instruction
-    const generateEdgeInstruction = (actions, terms) => {
-        const parts = [];
-
-        actions.forEach(action => {
-            action.targets.forEach(target => {
-                if (target === 'beginning') {
-                    parts.push(`${action.technique} at beginning of ${terms.row}`);
-                } else if (target === 'end') {
-                    parts.push(`${action.technique} at end of ${terms.row}`);
+        // Handle bind off actions
+        const bindOffActions = allActions.filter(action => action.actionType === 'bind_off');
+        if (bindOffActions.length > 0) {
+            return bindOffActions.map(action => {
+                const amount = action.stitchCount ? `${action.stitchCount} stitches` : 'all stitches';
+                if (action.targets.length > 0) {
+                    return `Bind off ${amount} at ${action.targets.join(', ')}`;
                 }
+                return `Bind off ${amount}`;
+            }).join(', ');
+        }
+
+        // Get markers from array for flow generation
+        const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
+
+        // Separate marker actions from edge actions
+        const markerActions = allActions.filter(action =>
+            action.targets.some(target => markers.includes(target) || target === 'BOR')
+        );
+        const edgeActions = allActions.filter(action =>
+            action.targets.some(target => ['beginning', 'end'].includes(target))
+        );
+
+        // Generate instruction parts
+        const instructionParts = [];
+
+        // Add edge actions first (if any)
+        if (edgeActions.length > 0) {
+            edgeActions.forEach(action => {
+                action.targets.forEach(target => {
+                    const technique = action.technique;
+                    if (target === 'beginning') {
+                        instructionParts.push(`${technique} at beginning`);
+                    } else if (target === 'end') {
+                        instructionParts.push(`${technique} at end`);
+                    }
+                });
             });
-        });
+        }
 
-        return parts.join(', ');
-    };
-
-    // Helper function to generate bind off instruction
-    const generateBindOffInstruction = (actions) => {
-        const parts = [];
-
-        actions.forEach(action => {
-            const amount = action.stitchCount && action.stitchCount !== 'all' ?
-                `${action.stitchCount} stitches` : 'all stitches';
-
-            if (action.targets.length > 0) {
-                const locations = action.targets.join(', ');
-                parts.push(`bind off ${amount} at ${locations}`);
-            } else {
-                parts.push(`bind off ${amount}`);
+        // Generate marker-based flow instruction
+        if (markerActions.length > 0) {
+            const markerInstruction = generateMarkerFlowInstruction(markerActions, markers, basePattern);
+            if (markerInstruction) {
+                instructionParts.push(markerInstruction);
             }
-        });
+        }
 
-        return parts.join(', ');
+        return instructionParts.join(', ');
     };
 
     // Complete instruction

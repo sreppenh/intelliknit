@@ -644,6 +644,7 @@ const MarkerPhasesConfig = ({
                         construction={construction}
                         onComplete={handleInstructionComplete}
                         onCancel={handleInstructionCancel}
+                        wizard={wizard}
                     />
                 </div>
             </div>
