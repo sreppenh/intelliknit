@@ -3,8 +3,6 @@ import React, { useState, useMemo } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
-import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
-import { getStitchConsumption } from '../../../../shared/utils/stitchCalculatorUtils';
 
 // Use the passed markerColors instead of hardcoded colorMap
 const getMarkerColor = (markerName, markerColors) => {
@@ -113,36 +111,9 @@ const MarkerInstructionBuilder = ({
 
     // NEW: Get valid distance options based on technique consumption (ONLY for BEFORE marker)
     const getValidDistanceOptions = (technique, position) => {
-        if (!technique) return ['at', '1', '2', '3'];
-
-        // Only apply consumption constraints for BEFORE marker positions
-        if (position !== 'before' && position !== 'before_and_after') {
-            return ['at', '1', '2', '3']; // All options for after marker
-        }
-
-        const consumption = getStitchConsumption(technique);
-
-        if (consumption === 0) {
-            // Non-consuming techniques (YO, M1L, M1R) can work anywhere
-            return ['at', '1', '2', '3'];
-        }
-
-        if (consumption === 1) {
-            // Single-consumption techniques need at least 1 stitch before marker
-            return ['1', '2', '3'];
-        }
-
-        if (consumption === 2) {
-            // Double-consumption techniques (SSK) need at least 2 stitches before marker
-            return ['2', '3'];
-        }
-
-        if (consumption >= 3) {
-            // Triple+ consumption techniques need at least 3 stitches before marker
-            return ['3'];
-        }
-
-        return ['1', '2', '3']; // Fallback
+        // All distances are valid - validation happens at instruction generation time
+        // when we know the actual stitch counts between markers
+        return ['at', '1', '2', '3'];
     };
 
     // NEW: Get valid targets for current action configuration
