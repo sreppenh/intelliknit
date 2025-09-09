@@ -302,19 +302,21 @@ const MarkerInstructionBuilder = ({
                                                 onClick={() => {
                                                     updateAction('position', 'before');
                                                     updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
+                                                    updateAction('distance', '1'); // Add smart default
                                                 }}
                                                 className={`card-marker-select-compact ${currentAction.position === 'before' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
-                                                Before marker
+                                                Before
                                             </div>
                                             <div
                                                 onClick={() => {
                                                     updateAction('position', 'after');
                                                     updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
+                                                    updateAction('distance', '1'); // Add smart default
                                                 }}
                                                 className={`card-marker-select-compact ${currentAction.position === 'after' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
-                                                After marker
+                                                After
                                             </div>
                                         </div>
                                     </div>
@@ -530,13 +532,25 @@ const MarkerInstructionBuilder = ({
                                             ))}
                                         </div>
 
-                                        {currentAction.targets.length > 0 && (
-                                            <div className="mt-3 pt-3 border-t border-wool-100">
+                                        <div className="mt-3 pt-3 border-t border-wool-100 space-y-2">
+                                            <div className="flex items-center justify-between">
                                                 <p className="text-sm text-sage-600">
                                                     Selected: {currentAction.targets.filter(target => target !== 'continue').join(', ')}
                                                 </p>
+                                                <button
+                                                    onClick={() => {
+                                                        const allTargets = (currentAction.actionType === 'bind_off'
+                                                            ? availableTargets.filter(t => t.value !== 'end')
+                                                            : availableTargets
+                                                        ).map(t => t.value);
+                                                        updateAction('targets', allTargets);
+                                                    }}
+                                                    className="btn-secondary btn-sm"
+                                                >
+                                                    Select All
+                                                </button>
                                             </div>
-                                        )}
+                                        </div>
                                     </div>
                                 </div>
                             )}
