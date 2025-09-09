@@ -629,39 +629,57 @@ const MarkerInstructionBuilder = ({
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
 
                                         <div className="flex flex-wrap gap-2">
-                                            {getValidTargets().map(target => (
-                                                target.type === 'marker' ? (
-                                                    <button
-                                                        key={target.value}
-                                                        onClick={() => toggleTarget(target.value)}
-                                                        className={`relative px-3 py-2 rounded-full font-medium transition-colors border-4 ${currentAction.targets.includes(target.value)
-                                                            ? `${getMarkerColor(target.value, markerColors).bg} border-black ${getMarkerColor(target.value, markerColors).text} font-bold`
-                                                            : `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
-                                                            }`}
-                                                    >
-                                                        {target.value}
-                                                        {/* Checkmark overlay for selected markers */}
-                                                        {currentAction.targets.includes(target.value) && (
-                                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
-                                                                <span className="text-white text-xs font-bold">✓</span>
-                                                            </div>
-                                                        )}
-                                                    </button>
-                                                ) : (
-                                                    <div
-                                                        key={target.value}
-                                                        onClick={() => toggleTarget(target.value)}
-                                                        className={`relative card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
-                                                    >
-                                                        {target.label}
-                                                        {/* Checkmark overlay for selected edges */}
-                                                        {currentAction.targets.includes(target.value) && (
-                                                            <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
-                                                                <span className="text-white text-xs font-bold">✓</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                )
+                                            {/* Render marker targets first */}
+                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
+                                                <button
+                                                    key={target.value}
+                                                    onClick={() => toggleTarget(target.value)}
+                                                    className={`relative px-3 py-2 rounded-full font-medium transition-colors border-4 ${currentAction.targets.includes(target.value)
+                                                        ? `${getMarkerColor(target.value, markerColors).bg} border-black ${getMarkerColor(target.value, markerColors).text} font-bold`
+                                                        : `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
+                                                        }`}
+                                                >
+                                                    {target.value}
+                                                    {/* Checkmark overlay for selected markers */}
+                                                    {currentAction.targets.includes(target.value) && (
+                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                            <span className="text-white text-xs font-bold">✓</span>
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
+
+                                            {/* Add Select All Markers button inline */}
+                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
+                                                <button
+                                                    onClick={() => {
+                                                        const markerTargets = getValidTargets()
+                                                            .filter(t => t.type === 'marker' || t.type === 'bor')
+                                                            .map(t => t.value);
+                                                        updateAction('targets', [...currentAction.targets.filter(target =>
+                                                            ['beginning', 'end'].includes(target)), ...markerTargets]);
+                                                    }}
+                                                    className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
+                                                >
+                                                    + All Markers
+                                                </button>
+                                            )}
+
+                                            {/* Render edge targets after */}
+                                            {getValidTargets().filter(t => t.type === 'edge').map(target => (
+                                                <div
+                                                    key={target.value}
+                                                    onClick={() => toggleTarget(target.value)}
+                                                    className={`relative card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    {target.label}
+                                                    {/* Checkmark overlay for selected edges */}
+                                                    {currentAction.targets.includes(target.value) && (
+                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                            <span className="text-white text-xs font-bold">✓</span>
+                                                        </div>
+                                                    )}
+                                                </div>
                                             ))}
                                         </div>
 
@@ -670,15 +688,6 @@ const MarkerInstructionBuilder = ({
                                                 <p className="text-sm text-sage-600">
                                                     Selected: {currentAction.targets.filter(target => target !== 'continue').join(', ')}
                                                 </p>
-                                                <button
-                                                    onClick={() => {
-                                                        const allTargets = getValidTargets().map(t => t.value);
-                                                        updateAction('targets', allTargets);
-                                                    }}
-                                                    className="btn-secondary btn-sm"
-                                                >
-                                                    Select All
-                                                </button>
                                             </div>
                                         </div>
                                     </div>
