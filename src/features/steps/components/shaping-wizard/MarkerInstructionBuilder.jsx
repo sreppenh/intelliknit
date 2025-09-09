@@ -175,66 +175,41 @@ const MarkerInstructionBuilder = ({
         setCurrentStep('timing');
     };
 
-    // Generate instruction preview
+
     // Generate instruction preview - REPLACEMENT FOR CURRENT generatePreview()
     const generatePreview = () => {
-        if (completedActions.length === 0) return "No actions defined yet";
-
-        const terms = getConstructionTerms(construction);
+        // Simple preview that doesn't include timing until timing step
         const allActions = [...completedActions];
 
-        // Add current action if it's valid
-        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue')) {
+        if (currentAction.actionType && currentAction.targets.length > 0) {
             allActions.push(currentAction);
         }
 
-        // Handle continue in pattern
-        if (allActions.length === 1 && allActions[0].actionType === 'continue') {
-            return `Continue in pattern for ${timing.rows} ${terms.rows}`;
-        }
+        if (allActions.length === 0) return "No actions defined yet";
 
-        // Build knitting instruction from actions
-        const instructionParts = [];
-        const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
-        const hasMarkers = markers.length > 0;
+        // Generate pattern-style instruction
+        return allActions.map(action => {
+            if (action.actionType === 'continue') return "Continue in pattern";
 
-        // Group actions by marker targets for efficient instruction building
-        const markerActions = allActions.filter(action =>
-            action.targets.some(target => markers.includes(target))
-        );
+            if (action.actionType === 'bind_off') {
+                const amount = action.stitchCount ? `${action.stitchCount} stitches` : 'all stitches';
+                return `Bind off ${amount}`;
+            }
 
-        const edgeActions = allActions.filter(action =>
-            action.targets.some(target => ['beginning', 'end'].includes(target))
-        );
+            // Handle paired techniques with proper pattern language
+            if (action.technique && action.technique.includes('_')) {
+                const [tech1, tech2] = action.technique.split('_');
+                const distance = action.distance === 'at' ? '' : `${action.distance} st `;
+                return `${distance}before marker, ${tech1}, sm, ${tech2}`;
+            }
 
-        const bindOffActions = allActions.filter(action => action.actionType === 'bind_off');
+            // Single technique
+            const distance = action.distance === 'at' ? '' : `${action.distance} st `;
+            const position = action.position === 'before' ? 'before marker' :
+                action.position === 'after' ? 'after marker' : action.position;
+            return `${distance}${position}, ${action.technique}`;
 
-        // Generate marker-based instructions
-        if (markerActions.length > 0) {
-            const markerInstruction = generateMarkerInstruction(markerActions, markers, terms);
-            if (markerInstruction) instructionParts.push(markerInstruction);
-        }
-
-        // Generate edge-based instructions  
-        if (edgeActions.length > 0) {
-            const edgeInstruction = generateEdgeInstruction(edgeActions, terms);
-            if (edgeInstruction) instructionParts.push(edgeInstruction);
-        }
-
-        // Generate bind off instructions
-        if (bindOffActions.length > 0) {
-            const bindOffInstruction = generateBindOffInstruction(bindOffActions);
-            if (bindOffInstruction) instructionParts.push(bindOffInstruction);
-        }
-
-        // Combine instructions with frequency
-        const baseInstruction = instructionParts.join(', ');
-
-        if (timing.frequency && timing.times) {
-            return `${baseInstruction} ${terms.everyNthRow(timing.frequency)} ${timing.times} times`;
-        }
-
-        return baseInstruction;
+        }).join(', ');
     };
 
     // Helper function to generate marker-based instruction
