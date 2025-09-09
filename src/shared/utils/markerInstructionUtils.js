@@ -111,6 +111,9 @@ export const generateUniformMarkerInstruction = (actions, markers, basePattern) 
 
             if (workingStitchesNeeded > 0) {
                 actionSequence.push(`work in ${basePattern} until ${workingStitchesNeeded} stitches before marker`);
+            } else {
+                // For at-marker actions, still need to work to the marker
+                actionSequence.push(`work in ${basePattern} until marker`);
             }
 
             actionSequence.push(action.technique);
