@@ -275,12 +275,20 @@ const MarkerInstructionBuilder = ({
         }
 
         // Generate marker-based flow instruction
+        let totalStitchChange = 0;
         if (markerActions.length > 0) {
-            const markerInstruction = generateMarkerFlowInstruction(markerActions, markers, basePattern);
-            if (markerInstruction) {
-                instructionParts.push(markerInstruction);
+            const result = generateMarkerFlowInstruction(markerActions, markers, basePattern);
+            if (result.instruction) {
+                instructionParts.push(result.instruction);
+                totalStitchChange += result.stitchChange;
             }
         }
+
+        const instruction = instructionParts.join(', ');
+        const stitchChangeText = totalStitchChange !== 0 ?
+            ` (${totalStitchChange > 0 ? '+' : ''}${totalStitchChange} sts)` : '';
+
+        return instruction + stitchChangeText;
 
         return instructionParts.join(', ');
     };
@@ -562,7 +570,7 @@ const MarkerInstructionBuilder = ({
                             {/* Step 4: Distance - Now AFTER technique with NEW validation */}
                             {currentAction.technique && (
                                 <div>
-                                    <label className="form-label">Distance from marker?</label>
+                                    <label className="form-label">Stitches between technique marker?</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                                         <div className="grid grid-cols-4 gap-2">
                                             {getValidDistanceOptions(currentAction.technique, currentAction.position).map(distance => (
