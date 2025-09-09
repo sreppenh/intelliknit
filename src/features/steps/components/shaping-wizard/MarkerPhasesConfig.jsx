@@ -249,10 +249,12 @@ const MarkerPhasesConfig = ({
     const handleBackNavigation = () => {
         if (currentScreen === 'marker-setup') {
             onBack();
-        } else if (currentScreen === 'sequence-management') {
-            setCurrentScreen('marker-setup');
         } else if (currentScreen === 'instruction-builder') {
-            setCurrentScreen('sequence-management');
+            setCurrentScreen('marker-setup');
+        } else if (currentScreen === 'completion') {
+            setCurrentScreen('instruction-builder');
+        } else if (currentScreen === 'sequence-management') {
+            setCurrentScreen('completion');
         } else if (currentScreen === 'sequence-wizard') {
             setCurrentScreen('sequence-management');
         }
@@ -260,7 +262,7 @@ const MarkerPhasesConfig = ({
 
     const handleCompleteMarkerSetup = () => {
         setMarkerArray(currentArray);
-        setCurrentScreen('sequence-management');
+        setCurrentScreen('instruction-builder'); // ✅ Go straight to instruction building
         IntelliKnitLogger.success('Marker setup complete', currentArray);
     };
 
@@ -324,6 +326,9 @@ const MarkerPhasesConfig = ({
                 times: 10     // Default times
             }]
         });
+
+        // ONLY CHANGE: Go to completion instead of sequence-management
+        setCurrentScreen('completion');
     };
 
     const handleInstructionCancel = () => {
@@ -641,6 +646,46 @@ const MarkerPhasesConfig = ({
                         onComplete={handleInstructionComplete}
                         onCancel={handleInstructionCancel}
                     />
+                </div>
+            </div>
+        );
+    }
+
+    // ===== RENDER SCREEN 3: COMPLETION =====
+    if (currentScreen === 'completion') {
+        return (
+            <div>
+                <ShapingHeader
+                    onBack={handleBackNavigation}
+                    onGoToLanding={onGoToLanding}
+                    wizard={wizard}
+                    onCancel={onCancel}
+                />
+                <div className="p-6">
+                    <h2 className="content-header-primary">Instruction Complete</h2>
+                    <p className="content-subheader">Your marker-based shaping instruction is ready</p>
+
+                    {sequences.length > 0 && sequences[0].instructionData && (
+                        <div className="card">
+                            <h4 className="section-header-secondary">Your Instruction</h4>
+                            <p className="text-sm text-wool-700">{sequences[0].instructionData.preview}</p>
+                        </div>
+                    )}
+
+                    <div className="flex gap-3">
+                        <button onClick={handleBackNavigation} className="btn-tertiary">
+                            ← Edit Instruction
+                        </button>
+                        <button onClick={handleFinalComplete} className="btn-primary flex-1">
+                            Complete Step
+                        </button>
+                        <button
+                            onClick={() => setCurrentScreen('sequence-management')}
+                            className="btn-secondary"
+                        >
+                            Add Another
+                        </button>
+                    </div>
                 </div>
             </div>
         );

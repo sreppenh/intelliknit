@@ -302,7 +302,7 @@ const MarkerInstructionBuilder = ({
                                                 onClick={() => {
                                                     updateAction('position', 'before');
                                                     updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
-                                                    updateAction('distance', '1'); // Add smart default
+                                                    updateAction('distance', '1');
                                                 }}
                                                 className={`card-marker-select-compact ${currentAction.position === 'before' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
@@ -312,11 +312,21 @@ const MarkerInstructionBuilder = ({
                                                 onClick={() => {
                                                     updateAction('position', 'after');
                                                     updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
-                                                    updateAction('distance', '1'); // Add smart default
+                                                    updateAction('distance', '1');
                                                 }}
                                                 className={`card-marker-select-compact ${currentAction.position === 'after' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
                                                 After
+                                            </div>
+                                            <div
+                                                onClick={() => {
+                                                    updateAction('position', 'before_and_after');
+                                                    updateAction('technique', currentAction.actionType === 'increase' ? 'M1L_M1R' : 'SSK_K2tog');
+                                                    updateAction('distance', '1');
+                                                }}
+                                                className={`card-marker-select-compact ${currentAction.position === 'before_and_after' ? 'card-marker-select-compact-selected' : ''} col-span-2`}
+                                            >
+                                                Before & After
                                             </div>
                                         </div>
                                     </div>
@@ -456,6 +466,42 @@ const MarkerInstructionBuilder = ({
                                                     className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}
                                                 >
                                                     CDD
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Before & After paired increases */}
+                                        {currentAction.position === 'before_and_after' && currentAction.actionType === 'increase' && (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div
+                                                    onClick={() => updateAction('technique', 'M1L_M1R')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'M1L_M1R' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    M1L & M1R
+                                                </div>
+                                                <div
+                                                    onClick={() => updateAction('technique', 'YO_YO')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'YO_YO' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    YO & YO
+                                                </div>
+                                            </div>
+                                        )}
+
+                                        {/* Before & After paired decreases */}
+                                        {currentAction.position === 'before_and_after' && currentAction.actionType === 'decrease' && (
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div
+                                                    onClick={() => updateAction('technique', 'SSK_K2tog')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'SSK_K2tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    SSK & K2tog
+                                                </div>
+                                                <div
+                                                    onClick={() => updateAction('technique', 'K3tog_K3tog')}
+                                                    className={`card-marker-select-compact ${currentAction.technique === 'K3tog_K3tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    K3tog & K3tog
                                                 </div>
                                             </div>
                                         )}
