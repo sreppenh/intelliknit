@@ -400,7 +400,7 @@ const MarkerInstructionBuilder = ({
                                         {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}
                                     </label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                        <div className="grid grid-cols-2 gap-2">
+                                        <div className="grid grid-cols-3 gap-2">
                                             <div
                                                 onClick={() => {
                                                     updateAction('position', 'before');
@@ -427,9 +427,9 @@ const MarkerInstructionBuilder = ({
                                                     updateAction('technique', currentAction.actionType === 'increase' ? 'M1L_M1R' : 'SSK_K2tog');
                                                     updateAction('distance', '1');
                                                 }}
-                                                className={`card-marker-select-compact ${currentAction.position === 'before_and_after' ? 'card-marker-select-compact-selected' : ''} col-span-2`}
+                                                className={`card-marker-select-compact ${currentAction.position === 'before_and_after' ? 'card-marker-select-compact-selected' : ''}`}
                                             >
-                                                Before & After
+                                                Both
                                             </div>
                                         </div>
                                     </div>
