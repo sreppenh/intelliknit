@@ -464,7 +464,7 @@ const MarkerInstructionBuilder = ({
                             )}
 
                             {/* Step 5: Targets - UPDATED to use NEW getValidTargets */}
-                            {(currentAction.technique || currentAction.bindOffAmount) && currentAction.actionType !== 'continue' && (
+                            {(construction === 'round' || currentAction.whereType) && currentAction.actionType !== 'continue' && (
                                 <div>
                                     <label className="form-label">Which markers/positions?</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
