@@ -463,7 +463,76 @@ const MarkerInstructionBuilder = ({
                                 </div>
                             )}
 
+                            {/* Step 5: Targets - UPDATED to use NEW getValidTargets */}
+                            {(currentAction.technique || currentAction.bindOffAmount) && currentAction.actionType !== 'continue' && (
+                                <div>
+                                    <label className="form-label">Which markers/positions?</label>
+                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
 
+                                        <div className="flex flex-wrap gap-2">
+                                            {/* Render marker targets first */}
+                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
+                                                <button
+                                                    key={target.value}
+                                                    onClick={() => toggleTarget(target.value)}
+                                                    className={`relative px-3 py-2 rounded-full font-medium transition-colors border-2 ${currentAction.targets.includes(target.value)
+                                                        ? `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
+                                                        : `${getMarkerColor(target.value, markerColors).bg} border-transparent ${getMarkerColor(target.value, markerColors).text}`
+                                                        }`}
+                                                >
+                                                    {target.value}
+                                                    {currentAction.targets.includes(target.value) && (
+                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                            <span className="text-white text-xs font-bold">✓</span>
+                                                        </div>
+                                                    )}
+                                                </button>
+                                            ))}
+
+                                            {/* Add Select All Markers button inline */}
+                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
+                                                <button
+                                                    onClick={() => {
+                                                        const markerTargets = getValidTargets()
+                                                            .filter(t => t.type === 'marker' || t.type === 'bor')
+                                                            .map(t => t.value);
+                                                        updateAction('targets', [...currentAction.targets.filter(target =>
+                                                            ['beginning', 'end'].includes(target)), ...markerTargets]);
+                                                    }}
+                                                    className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
+                                                >
+                                                    + All Markers
+                                                </button>
+                                            )}
+
+                                            {/* Render edge targets after */}
+                                            {getValidTargets().filter(t => t.type === 'edge').map(target => (
+                                                <div
+                                                    key={target.value}
+                                                    onClick={() => toggleTarget(target.value)}
+                                                    className={`relative card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    {target.label}
+                                                    {/* Checkmark overlay for selected edges */}
+                                                    {currentAction.targets.includes(target.value) && (
+                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                            <span className="text-white text-xs font-bold">✓</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            ))}
+                                        </div>
+
+                                        <div className="mt-3 pt-3 border-t border-wool-100 space-y-2">
+                                            <div className="flex items-center justify-between">
+                                                <p className="text-sm text-sage-600">
+                                                    Selected: {currentAction.targets.filter(target => target !== 'continue').join(', ')}
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
 
                             {/* Step 3: Position for Increase/Decrease */}
                             {(currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') &&
@@ -738,77 +807,6 @@ const MarkerInstructionBuilder = ({
                                             >
                                                 Bind Off All
                                             </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Step 5: Targets - UPDATED to use NEW getValidTargets */}
-                            {(currentAction.technique || currentAction.bindOffAmount) && currentAction.actionType !== 'continue' && (
-                                <div>
-                                    <label className="form-label">Which markers/positions?</label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-
-                                        <div className="flex flex-wrap gap-2">
-                                            {/* Render marker targets first */}
-                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
-                                                <button
-                                                    key={target.value}
-                                                    onClick={() => toggleTarget(target.value)}
-                                                    className={`relative px-3 py-2 rounded-full font-medium transition-colors border-2 ${currentAction.targets.includes(target.value)
-                                                        ? `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
-                                                        : `${getMarkerColor(target.value, markerColors).bg} border-transparent ${getMarkerColor(target.value, markerColors).text}`
-                                                        }`}
-                                                >
-                                                    {target.value}
-                                                    {currentAction.targets.includes(target.value) && (
-                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
-                                                            <span className="text-white text-xs font-bold">✓</span>
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            ))}
-
-                                            {/* Add Select All Markers button inline */}
-                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
-                                                <button
-                                                    onClick={() => {
-                                                        const markerTargets = getValidTargets()
-                                                            .filter(t => t.type === 'marker' || t.type === 'bor')
-                                                            .map(t => t.value);
-                                                        updateAction('targets', [...currentAction.targets.filter(target =>
-                                                            ['beginning', 'end'].includes(target)), ...markerTargets]);
-                                                    }}
-                                                    className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
-                                                >
-                                                    + All Markers
-                                                </button>
-                                            )}
-
-                                            {/* Render edge targets after */}
-                                            {getValidTargets().filter(t => t.type === 'edge').map(target => (
-                                                <div
-                                                    key={target.value}
-                                                    onClick={() => toggleTarget(target.value)}
-                                                    className={`relative card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    {target.label}
-                                                    {/* Checkmark overlay for selected edges */}
-                                                    {currentAction.targets.includes(target.value) && (
-                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
-                                                            <span className="text-white text-xs font-bold">✓</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
-                                        </div>
-
-                                        <div className="mt-3 pt-3 border-t border-wool-100 space-y-2">
-                                            <div className="flex items-center justify-between">
-                                                <p className="text-sm text-sage-600">
-                                                    Selected: {currentAction.targets.filter(target => target !== 'continue').join(', ')}
-                                                </p>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
