@@ -581,16 +581,17 @@ const MarkerInstructionBuilder = ({
                                 </div>
                             )}
 
-                            {/* Step 3: Position for Increase/Decrease */}
-                            {(currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') &&
-                                (construction === 'round' || currentAction.whereType) && (
-                                    <div>
-                                        <label className="form-label">
-                                            {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}
-                                        </label>
-                                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                            {/* Step 3: Position & Technique */}
+                            {currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
+                                <div>
+                                    <label className="form-label">
+                                        {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'} where and how?
+                                    </label>
+                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
+                                        {/* Position selection */}
+                                        <div>
+                                            <label className="form-label text-sm">Position</label>
                                             {currentAction.whereType === 'edges' ? (
-                                                // Edge positions
                                                 <div className="grid grid-cols-3 gap-2">
                                                     <div
                                                         onClick={() => {
@@ -624,7 +625,6 @@ const MarkerInstructionBuilder = ({
                                                     </div>
                                                 </div>
                                             ) : (
-                                                // Marker positions (default for round, or when markers selected in flat)
                                                 <div className="grid grid-cols-3 gap-2">
                                                     <div
                                                         onClick={() => {
@@ -659,147 +659,152 @@ const MarkerInstructionBuilder = ({
                                                 </div>
                                             )}
                                         </div>
-                                    </div>
-                                )}
 
-                            {/* Step 4: Technique - MOVED UP before Distance */}
-                            {currentAction.position && currentAction.actionType !== 'bind_off' && (
-                                <div className="form-field">
-                                    <label className="form-label">Technique</label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                        {/* Technique selection - appears when position is selected */}
+                                        {currentAction.position && (
+                                            <div>
+                                                <label className="form-label text-sm">Technique</label>
 
-                                        {/* Before marker increases */}
-                                        {currentAction.position === 'before' && currentAction.actionType === 'increase' && (
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <div
-                                                    onClick={() => updateAction('technique', 'M1L')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'M1L' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    M1L
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'YO')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    YO
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'KFB')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'KFB' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    KFB
-                                                </div>
+                                                {/* Before marker increases */}
+                                                {currentAction.position === 'before' && currentAction.actionType === 'increase' && (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'M1L')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'M1L' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            M1L
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'YO')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            YO
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'KFB')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'KFB' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            KFB
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Before marker decreases */}
+                                                {currentAction.position === 'before' && currentAction.actionType === 'decrease' && (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'SSK')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'SSK' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            SSK
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'K3tog')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'K3tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            K3tog
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'CDD')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            CDD
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* After marker increases */}
+                                                {currentAction.position === 'after' && currentAction.actionType === 'increase' && (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'M1R')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'M1R' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            M1R
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'YO')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            YO
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'KFB')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'KFB' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            KFB
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* After marker decreases */}
+                                                {currentAction.position === 'after' && currentAction.actionType === 'decrease' && (
+                                                    <div className="grid grid-cols-3 gap-2">
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'K2tog')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'K2tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            K2tog
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'K3tog')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'K3tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            K3tog
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'CDD')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            CDD
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Before & After paired increases */}
+                                                {currentAction.position === 'before_and_after' && currentAction.actionType === 'increase' && (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'M1L_M1R')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'M1L_M1R' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            M1L & M1R
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'YO_YO')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'YO_YO' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            YO & YO
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Before & After paired decreases */}
+                                                {currentAction.position === 'before_and_after' && currentAction.actionType === 'decrease' && (
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'SSK_K2tog')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'SSK_K2tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            SSK & K2tog
+                                                        </div>
+                                                        <div
+                                                            onClick={() => updateAction('technique', 'K3tog_K3tog')}
+                                                            className={`card-marker-select-compact ${currentAction.technique === 'K3tog_K3tog' ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            K3tog & K3tog
+                                                        </div>
+                                                    </div>
+                                                )}
+
+                                                {/* Edge position techniques */}
+                                                {(currentAction.position === 'at_beginning' || currentAction.position === 'at_end' || currentAction.position === 'both_ends') && (
+                                                    <div className="text-sm text-sage-600">
+                                                        Technique auto-selected based on position choice.
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
-
-                                        {/* Before marker decreases */}
-                                        {currentAction.position === 'before' && currentAction.actionType === 'decrease' && (
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <div
-                                                    onClick={() => updateAction('technique', 'SSK')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'SSK' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    SSK
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'K3tog')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'K3tog' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    K3tog
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'CDD')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    CDD
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* After marker increases */}
-                                        {currentAction.position === 'after' && currentAction.actionType === 'increase' && (
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <div
-                                                    onClick={() => updateAction('technique', 'M1R')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'M1R' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    M1R
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'YO')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    YO
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'KFB')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'KFB' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    KFB
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* After marker decreases */}
-                                        {currentAction.position === 'after' && currentAction.actionType === 'decrease' && (
-                                            <div className="grid grid-cols-3 gap-2">
-                                                <div
-                                                    onClick={() => updateAction('technique', 'K2tog')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'K2tog' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    K2tog
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'K3tog')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'K3tog' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    K3tog
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'CDD')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    CDD
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Before & After paired increases */}
-                                        {currentAction.position === 'before_and_after' && currentAction.actionType === 'increase' && (
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div
-                                                    onClick={() => updateAction('technique', 'M1L_M1R')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'M1L_M1R' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    M1L & M1R
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'YO_YO')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'YO_YO' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    YO & YO
-                                                </div>
-                                            </div>
-                                        )}
-
-                                        {/* Before & After paired decreases */}
-                                        {currentAction.position === 'before_and_after' && currentAction.actionType === 'decrease' && (
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div
-                                                    onClick={() => updateAction('technique', 'SSK_K2tog')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'SSK_K2tog' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    SSK & K2tog
-                                                </div>
-                                                <div
-                                                    onClick={() => updateAction('technique', 'K3tog_K3tog')}
-                                                    className={`card-marker-select-compact ${currentAction.technique === 'K3tog_K3tog' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    K3tog & K3tog
-                                                </div>
-                                            </div>
-                                        )}
-
                                     </div>
                                 </div>
                             )}
