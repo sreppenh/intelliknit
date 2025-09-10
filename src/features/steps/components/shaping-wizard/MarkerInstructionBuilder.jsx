@@ -158,29 +158,70 @@ const MarkerInstructionBuilder = ({
         setCurrentAction(prev => {
             const updated = { ...prev, [field]: value };
 
-            // NEW: Handle position changes - clear conflicting edge targets
+            // Handle cascading clears when whereType changes
+            if (field === 'whereType') {
+                updated.position = '';
+                updated.technique = '';
+                updated.distance = '';
+                updated.targets = [];
+            }
+
+            // Handle position changes - clear technique and downstream
             if (field === 'position') {
-                const validTargets = getValidTargets();
+                updated.technique = '';
+                updated.distance = '';
+                // Keep targets if they were already selected, but filter them
+                const validTargets = getValidTargetsForNewState(updated);
                 const validTargetValues = validTargets.map(t => t.value);
                 updated.targets = updated.targets.filter(target => validTargetValues.includes(target));
             }
 
-            // NEW: Handle technique changes - no longer need distance validation
+            // Handle technique changes - clear distance
             if (field === 'technique') {
-                // Technique changed - no additional validation needed since all distances are valid
+                updated.distance = '';
             }
 
-            // Clear invalid targets when action type changes
+            // Handle action type changes - clear everything downstream
             if (field === 'actionType') {
-                const newAvailableTargets = getAvailableTargetsForAction(value);
-                const validTargets = updated.targets.filter(target =>
-                    newAvailableTargets.some(availableTarget => availableTarget.value === target)
-                );
-                updated.targets = validTargets;
+                updated.whereType = '';
+                updated.position = '';
+                updated.technique = '';
+                updated.distance = '';
+                updated.targets = [];
+                updated.bindOffAmount = '';
             }
 
             return updated;
         });
+    };
+
+    // Helper function to get valid targets for a given state
+    const getValidTargetsForNewState = (actionState) => {
+        let validTargets = [...availableTargets];
+
+        if (construction === 'flat') {
+            if (actionState.whereType === 'markers') {
+                validTargets = validTargets.filter(t => t.type === 'marker' || t.type === 'bor');
+            } else if (actionState.whereType === 'edges') {
+                validTargets = validTargets.filter(t => t.type === 'edge');
+            } else {
+                return [];
+            }
+        }
+
+        // Filter out conflicting edge targets based on position
+        if (actionState.position === 'before') {
+            validTargets = validTargets.filter(t => t.value !== 'beginning');
+        } else if (actionState.position === 'after') {
+            validTargets = validTargets.filter(t => t.value !== 'end');
+        }
+
+        // Filter out 'end' for bind_off actions
+        if (actionState.actionType === 'bind_off') {
+            validTargets = validTargets.filter(t => t.value !== 'end');
+        }
+
+        return validTargets;
     };
 
     // Helper function to get available targets for an action type
@@ -443,7 +484,7 @@ const MarkerInstructionBuilder = ({
                                                         }}
                                                         className={`card-marker-select-compact ${currentAction.position === 'at_beginning' ? 'card-marker-select-compact-selected' : ''}`}
                                                     >
-                                                        At Beginning
+                                                        Beginning
                                                     </div>
                                                     <div
                                                         onClick={() => {
@@ -453,7 +494,7 @@ const MarkerInstructionBuilder = ({
                                                         }}
                                                         className={`card-marker-select-compact ${currentAction.position === 'at_end' ? 'card-marker-select-compact-selected' : ''}`}
                                                     >
-                                                        At End
+                                                        End
                                                     </div>
                                                     <div
                                                         onClick={() => {
@@ -463,7 +504,7 @@ const MarkerInstructionBuilder = ({
                                                         }}
                                                         className={`card-marker-select-compact ${currentAction.position === 'both_ends' ? 'card-marker-select-compact-selected' : ''}`}
                                                     >
-                                                        Both Ends
+                                                        Both
                                                     </div>
                                                 </div>
                                             ) : (
