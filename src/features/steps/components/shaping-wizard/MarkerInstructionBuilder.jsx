@@ -184,6 +184,7 @@ const MarkerInstructionBuilder = ({
             // Handle action type changes - clear everything downstream
             if (field === 'actionType') {
                 updated.whereType = construction === 'flat' ? 'markers' : '';
+                updated.position = value === 'bind_off' ? 'at_beginning' : '';
                 updated.position = '';
                 updated.technique = '';
                 updated.distance = '';
@@ -829,37 +830,87 @@ const MarkerInstructionBuilder = ({
                                 </div>
                             )}
 
-                            {/* Bind Off Amount */}
+                            {/* Bind Off - Special handling */}
                             {currentAction.actionType === 'bind_off' && (
                                 <div>
-                                    <label className="form-label">How many stitches?</label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                        <div className="flex items-center gap-3">
-                                            <IncrementInput
-                                                value={currentAction.stitchCount}
-                                                onChange={(value) => {
-                                                    updateAction('stitchCount', value);
-                                                    updateAction('bindOffAmount', 'specific');
-                                                }}
-                                                min={1}
-                                                max={50}
-                                                size="sm"
-                                            />
-                                            <button
-                                                onClick={() => {
-                                                    // Calculate total available stitches from marker array
-                                                    const totalStitches = markerArray
-                                                        .filter(item => typeof item === 'number')
-                                                        .reduce((sum, stitches) => sum + stitches, 0);
-
-                                                    updateAction('stitchCount', totalStitches);
-                                                    updateAction('bindOffAmount', 'specific'); // Keep as specific, just with max value
-                                                }}
-                                                className="btn-secondary btn-sm"
-                                            >
-                                                Bind Off All
-                                            </button>
+                                    <label className="form-label">Bind off where and how many?</label>
+                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
+                                        {/* Position selection for bind-off */}
+                                        <div>
+                                            <label className="form-label text-sm">Position</label>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                <div
+                                                    onClick={() => {
+                                                        updateAction('position', 'at_beginning');
+                                                        updateAction('targets', ['beginning']);
+                                                    }}
+                                                    className={`card-marker-select-compact ${currentAction.position === 'at_beginning' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    Beginning of Row
+                                                </div>
+                                                <div
+                                                    onClick={() => {
+                                                        updateAction('position', 'at_end');
+                                                        updateAction('targets', ['end']);
+                                                    }}
+                                                    className={`card-marker-select-compact ${currentAction.position === 'at_end' ? 'card-marker-select-compact-selected' : ''}`}
+                                                >
+                                                    End of Row
+                                                </div>
+                                            </div>
                                         </div>
+
+                                        {/* Amount selection - appears when position is selected */}
+                                        {currentAction.position && (
+                                            <div>
+                                                <label className="form-label text-sm">How many stitches?</label>
+                                                <div className="flex items-center gap-3">
+                                                    <IncrementInput
+                                                        value={currentAction.stitchCount}
+                                                        onChange={(value) => {
+                                                            // Calculate max available stitches
+                                                            const totalStitches = markerArray
+                                                                .filter(item => typeof item === 'number')
+                                                                .reduce((sum, stitches) => sum + stitches, 0);
+
+                                                            // Limit to max available
+                                                            const limitedValue = Math.min(value, totalStitches);
+                                                            updateAction('stitchCount', limitedValue);
+                                                            updateAction('bindOffAmount', 'specific');
+                                                        }}
+                                                        min={1}
+                                                        max={markerArray
+                                                            .filter(item => typeof item === 'number')
+                                                            .reduce((sum, stitches) => sum + stitches, 0)}
+                                                        size="sm"
+                                                    />
+
+                                                    {/* Bind Off All - only show for beginning position */}
+                                                    {currentAction.position === 'at_beginning' && (
+                                                        <button
+                                                            onClick={() => {
+                                                                const totalStitches = markerArray
+                                                                    .filter(item => typeof item === 'number')
+                                                                    .reduce((sum, stitches) => sum + stitches, 0);
+
+                                                                updateAction('stitchCount', totalStitches);
+                                                                updateAction('bindOffAmount', 'all');
+                                                            }}
+                                                            className="btn-secondary btn-sm"
+                                                        >
+                                                            Bind Off All
+                                                        </button>
+                                                    )}
+                                                </div>
+
+                                                <p className="text-xs text-sage-600 mt-2">
+                                                    {currentAction.position === 'at_beginning'
+                                                        ? 'Beginning: Can bind off specific amount or all stitches'
+                                                        : 'End: Can only bind off specific amount'
+                                                    }
+                                                </p>
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
