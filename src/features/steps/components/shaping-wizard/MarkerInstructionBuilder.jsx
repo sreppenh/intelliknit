@@ -41,7 +41,8 @@ const MarkerInstructionBuilder = ({
         distance: '',
         bindOffAmount: '',
         stitchCount: 1,
-        targets: []
+        targets: [],
+        whereType: ''
     });
 
     // Completed actions for this instruction
@@ -382,9 +383,35 @@ const MarkerInstructionBuilder = ({
                     {/* Only show progressive disclosure for non-continue actions */}
                     {currentAction.actionType !== 'continue' && (
                         <>
-                            {/* Step 2: Position for Increase/Decrease */}
-                            {(currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
+
+                            {/* Step 2: Where (flat construction only) */}
+                            {currentAction.actionType && currentAction.actionType !== 'continue' && construction === 'flat' && (
                                 <div>
+                                    <label className="form-label">Where?</label>
+                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                        <div className="grid grid-cols-2 gap-3">
+                                            <div
+                                                onClick={() => updateAction('whereType', 'markers')}
+                                                className={`card-marker-select ${currentAction.whereType === 'markers' ? 'card-marker-select-selected' : ''}`}
+                                            >
+                                                <div className="font-medium text-sm">At Markers</div>
+                                            </div>
+                                            <div
+                                                onClick={() => updateAction('whereType', 'edges')}
+                                                className={`card-marker-select ${currentAction.whereType === 'edges' ? 'card-marker-select-selected' : ''}`}
+                                            >
+                                                <div className="font-medium text-sm">At Row Edges</div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+
+
+                            {/* Step 3: Position for Increase/Decrease */}
+                            {(currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') &&
+                                (construction === 'round' || currentAction.whereType) && (<div>
                                     <label className="form-label">
                                         {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}
                                     </label>
@@ -423,7 +450,7 @@ const MarkerInstructionBuilder = ({
                                         </div>
                                     </div>
                                 </div>
-                            )}
+                                )}
 
                             {/* Step 3: Technique - MOVED UP before Distance */}
                             {currentAction.position && currentAction.actionType !== 'bind_off' && (
@@ -570,7 +597,7 @@ const MarkerInstructionBuilder = ({
                             {/* Step 4: Distance - Now AFTER technique with NEW validation */}
                             {currentAction.technique && (
                                 <div>
-                                    <label className="form-label">Stitches between technique marker?</label>
+                                    <label className="form-label">Stitches between technique and marker?</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                                         <div className="grid grid-cols-4 gap-2">
                                             {getValidDistanceOptions(currentAction.technique, currentAction.position).map(distance => (
