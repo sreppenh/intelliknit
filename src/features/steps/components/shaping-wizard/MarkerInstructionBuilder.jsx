@@ -42,7 +42,7 @@ const MarkerInstructionBuilder = ({
         bindOffAmount: '',
         stitchCount: 1,
         targets: [],
-        whereType: ''
+        whereType: 'markers'
     });
 
     // Completed actions for this instruction
@@ -183,7 +183,7 @@ const MarkerInstructionBuilder = ({
 
             // Handle action type changes - clear everything downstream
             if (field === 'actionType') {
-                updated.whereType = '';
+                updated.whereType = construction === 'flat' ? 'markers' : '';
                 updated.position = '';
                 updated.technique = '';
                 updated.distance = '';
@@ -440,11 +440,12 @@ const MarkerInstructionBuilder = ({
                     {currentAction.actionType !== 'continue' && (
                         <>
 
-                            {/* Step 2: Where (flat construction only) */}
+                            {/* Step 2: Where & Which (flat construction only) */}
                             {currentAction.actionType && currentAction.actionType !== 'continue' && construction === 'flat' && (
                                 <div>
                                     <label className="form-label">Where?</label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
+                                        {/* Where selection */}
                                         <div className="grid grid-cols-2 gap-3">
                                             <div
                                                 onClick={() => updateAction('whereType', 'markers')}
@@ -459,18 +460,83 @@ const MarkerInstructionBuilder = ({
                                                 <div className="font-medium text-sm">At Row Edges</div>
                                             </div>
                                         </div>
+
+                                        {/* Target selection - appears immediately when whereType is selected */}
+                                        {currentAction.whereType && (
+                                            <div>
+                                                <label className="form-label text-sm">Which {currentAction.whereType === 'markers' ? 'markers' : 'edges'}?</label>
+                                                <div className="flex flex-wrap gap-2">
+                                                    {/* Render marker targets */}
+                                                    {currentAction.whereType === 'markers' && getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
+                                                        <button
+                                                            key={target.value}
+                                                            onClick={() => toggleTarget(target.value)}
+                                                            className={`relative px-3 py-2 rounded-full font-medium transition-colors border-2 ${currentAction.targets.includes(target.value)
+                                                                ? `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
+                                                                : `${getMarkerColor(target.value, markerColors).bg} border-transparent ${getMarkerColor(target.value, markerColors).text}`
+                                                                }`}
+                                                        >
+                                                            {target.value}
+                                                            {currentAction.targets.includes(target.value) && (
+                                                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                                    <span className="text-white text-xs font-bold">✓</span>
+                                                                </div>
+                                                            )}
+                                                        </button>
+                                                    ))}
+
+                                                    {/* Add Select All Markers button */}
+                                                    {currentAction.whereType === 'markers' && getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
+                                                        <button
+                                                            onClick={() => {
+                                                                const markerTargets = getValidTargets()
+                                                                    .filter(t => t.type === 'marker' || t.type === 'bor')
+                                                                    .map(t => t.value);
+                                                                updateAction('targets', [...currentAction.targets.filter(target =>
+                                                                    ['beginning', 'end'].includes(target)), ...markerTargets]);
+                                                            }}
+                                                            className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
+                                                        >
+                                                            + All Markers
+                                                        </button>
+                                                    )}
+
+                                                    {/* Render edge targets */}
+                                                    {currentAction.whereType === 'edges' && getValidTargets().filter(t => t.type === 'edge').map(target => (
+                                                        <div
+                                                            key={target.value}
+                                                            onClick={() => toggleTarget(target.value)}
+                                                            className={`relative card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
+                                                        >
+                                                            {target.label}
+                                                            {currentAction.targets.includes(target.value) && (
+                                                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                                    <span className="text-white text-xs font-bold">✓</span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    ))}
+                                                </div>
+
+                                                {currentAction.targets.length > 0 && (
+                                                    <div className="mt-3 pt-3 border-t border-wool-100">
+                                                        <p className="text-sm text-sage-600">
+                                                            Selected: {currentAction.targets.filter(target => target !== 'continue').join(', ')}
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
 
-                            {/* Step 5: Targets - UPDATED to use NEW getValidTargets */}
-                            {(construction === 'round' || currentAction.whereType) && currentAction.actionType !== 'continue' && (
+                            {/* Round construction target selection - simpler since no "where" choice needed */}
+                            {currentAction.actionType && currentAction.actionType !== 'continue' && construction === 'round' && (
                                 <div>
-                                    <label className="form-label">Which markers/positions?</label>
+                                    <label className="form-label">Which markers?</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-
                                         <div className="flex flex-wrap gap-2">
-                                            {/* Render marker targets first */}
                                             {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
                                                 <button
                                                     key={target.value}
@@ -489,47 +555,28 @@ const MarkerInstructionBuilder = ({
                                                 </button>
                                             ))}
 
-                                            {/* Add Select All Markers button inline */}
                                             {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
                                                 <button
                                                     onClick={() => {
                                                         const markerTargets = getValidTargets()
                                                             .filter(t => t.type === 'marker' || t.type === 'bor')
                                                             .map(t => t.value);
-                                                        updateAction('targets', [...currentAction.targets.filter(target =>
-                                                            ['beginning', 'end'].includes(target)), ...markerTargets]);
+                                                        updateAction('targets', markerTargets);
                                                     }}
                                                     className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
                                                 >
                                                     + All Markers
                                                 </button>
                                             )}
-
-                                            {/* Render edge targets after */}
-                                            {getValidTargets().filter(t => t.type === 'edge').map(target => (
-                                                <div
-                                                    key={target.value}
-                                                    onClick={() => toggleTarget(target.value)}
-                                                    className={`relative card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    {target.label}
-                                                    {/* Checkmark overlay for selected edges */}
-                                                    {currentAction.targets.includes(target.value) && (
-                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
-                                                            <span className="text-white text-xs font-bold">✓</span>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            ))}
                                         </div>
 
-                                        <div className="mt-3 pt-3 border-t border-wool-100 space-y-2">
-                                            <div className="flex items-center justify-between">
+                                        {currentAction.targets.length > 0 && (
+                                            <div className="mt-3 pt-3 border-t border-wool-100">
                                                 <p className="text-sm text-sage-600">
-                                                    Selected: {currentAction.targets.filter(target => target !== 'continue').join(', ')}
+                                                    Selected: {currentAction.targets.join(', ')}
                                                 </p>
                                             </div>
-                                        </div>
+                                        )}
                                     </div>
                                 </div>
                             )}
