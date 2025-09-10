@@ -102,12 +102,17 @@ const MarkerInstructionBuilder = ({
             <button
                 type="button"
                 onClick={onClick}
-                className={`px-3 py-2 rounded-full font-medium transition-colors border-2 ${active
-                    ? `${style.bg} ${style.border} ${style.text} ring-2 ring-sage-500 ring-opacity-30`
-                    : `${style.bg} ${style.border} ${style.text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
+                className={`relative px-3 py-2 rounded-full font-medium transition-colors ${active
+                    ? `${style.bg} ${style.text} card-marker-select-compact-selected`
+                    : `${style.bg} ${style.text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`
                     }`}
             >
                 {marker}
+                {active && (
+                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                        <span className="text-white text-xs font-bold">✓</span>
+                    </div>
+                )}
             </button>
         );
     };
@@ -123,6 +128,17 @@ const MarkerInstructionBuilder = ({
     const getValidTargets = () => {
         let validTargets = [...availableTargets];
 
+        // For flat construction, filter by whereType
+        if (construction === 'flat') {
+            if (currentAction.whereType === 'markers') {
+                validTargets = validTargets.filter(t => t.type === 'marker' || t.type === 'bor');
+            } else if (currentAction.whereType === 'edges') {
+                validTargets = validTargets.filter(t => t.type === 'edge');
+            } else {
+                return [];
+            }
+        }
+
         // Filter out conflicting edge targets based on position
         if (currentAction.position === 'before') {
             validTargets = validTargets.filter(t => t.value !== 'beginning');
@@ -137,7 +153,6 @@ const MarkerInstructionBuilder = ({
 
         return validTargets;
     };
-
     // Update current action with NEW validation
     const updateAction = (field, value) => {
         setCurrentAction(prev => {
@@ -411,48 +426,86 @@ const MarkerInstructionBuilder = ({
 
                             {/* Step 3: Position for Increase/Decrease */}
                             {(currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') &&
-                                (construction === 'round' || currentAction.whereType) && (<div>
-                                    <label className="form-label">
-                                        {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}
-                                    </label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                        <div className="grid grid-cols-3 gap-2">
-                                            <div
-                                                onClick={() => {
-                                                    updateAction('position', 'before');
-                                                    updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
-                                                    updateAction('distance', '1');
-                                                }}
-                                                className={`card-marker-select-compact ${currentAction.position === 'before' ? 'card-marker-select-compact-selected' : ''}`}
-                                            >
-                                                Before
-                                            </div>
-                                            <div
-                                                onClick={() => {
-                                                    updateAction('position', 'after');
-                                                    updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
-                                                    updateAction('distance', '1');
-                                                }}
-                                                className={`card-marker-select-compact ${currentAction.position === 'after' ? 'card-marker-select-compact-selected' : ''}`}
-                                            >
-                                                After
-                                            </div>
-                                            <div
-                                                onClick={() => {
-                                                    updateAction('position', 'before_and_after');
-                                                    updateAction('technique', currentAction.actionType === 'increase' ? 'M1L_M1R' : 'SSK_K2tog');
-                                                    updateAction('distance', '1');
-                                                }}
-                                                className={`card-marker-select-compact ${currentAction.position === 'before_and_after' ? 'card-marker-select-compact-selected' : ''}`}
-                                            >
-                                                Both
-                                            </div>
+                                (construction === 'round' || currentAction.whereType) && (
+                                    <div>
+                                        <label className="form-label">
+                                            {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'}
+                                        </label>
+                                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                            {currentAction.whereType === 'edges' ? (
+                                                // Edge positions
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <div
+                                                        onClick={() => {
+                                                            updateAction('position', 'at_beginning');
+                                                            updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
+                                                            updateAction('distance', '1');
+                                                        }}
+                                                        className={`card-marker-select-compact ${currentAction.position === 'at_beginning' ? 'card-marker-select-compact-selected' : ''}`}
+                                                    >
+                                                        At Beginning
+                                                    </div>
+                                                    <div
+                                                        onClick={() => {
+                                                            updateAction('position', 'at_end');
+                                                            updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
+                                                            updateAction('distance', '1');
+                                                        }}
+                                                        className={`card-marker-select-compact ${currentAction.position === 'at_end' ? 'card-marker-select-compact-selected' : ''}`}
+                                                    >
+                                                        At End
+                                                    </div>
+                                                    <div
+                                                        onClick={() => {
+                                                            updateAction('position', 'both_ends');
+                                                            updateAction('technique', currentAction.actionType === 'increase' ? 'M1L_M1R' : 'SSK_K2tog');
+                                                            updateAction('distance', '1');
+                                                        }}
+                                                        className={`card-marker-select-compact ${currentAction.position === 'both_ends' ? 'card-marker-select-compact-selected' : ''}`}
+                                                    >
+                                                        Both Ends
+                                                    </div>
+                                                </div>
+                                            ) : (
+                                                // Marker positions (default for round, or when markers selected in flat)
+                                                <div className="grid grid-cols-3 gap-2">
+                                                    <div
+                                                        onClick={() => {
+                                                            updateAction('position', 'before');
+                                                            updateAction('technique', currentAction.actionType === 'increase' ? 'M1L' : 'SSK');
+                                                            updateAction('distance', '1');
+                                                        }}
+                                                        className={`card-marker-select-compact ${currentAction.position === 'before' ? 'card-marker-select-compact-selected' : ''}`}
+                                                    >
+                                                        Before
+                                                    </div>
+                                                    <div
+                                                        onClick={() => {
+                                                            updateAction('position', 'after');
+                                                            updateAction('technique', currentAction.actionType === 'increase' ? 'M1R' : 'K2tog');
+                                                            updateAction('distance', '1');
+                                                        }}
+                                                        className={`card-marker-select-compact ${currentAction.position === 'after' ? 'card-marker-select-compact-selected' : ''}`}
+                                                    >
+                                                        After
+                                                    </div>
+                                                    <div
+                                                        onClick={() => {
+                                                            updateAction('position', 'before_and_after');
+                                                            updateAction('technique', currentAction.actionType === 'increase' ? 'M1L_M1R' : 'SSK_K2tog');
+                                                            updateAction('distance', '1');
+                                                        }}
+                                                        className={`card-marker-select-compact ${currentAction.position === 'before_and_after' ? 'card-marker-select-compact-selected' : ''}`}
+                                                    >
+                                                        Both
+                                                    </div>
+                                                </div>
+                                            )}
                                         </div>
                                     </div>
-                                </div>
                                 )}
 
-                            {/* Step 3: Technique - MOVED UP before Distance */}
+                            {/* Step 4: Technique - MOVED UP before Distance */}
                             {currentAction.position && currentAction.actionType !== 'bind_off' && (
                                 <div className="form-field">
                                     <label className="form-label">Technique</label>
@@ -661,13 +714,12 @@ const MarkerInstructionBuilder = ({
                                                 <button
                                                     key={target.value}
                                                     onClick={() => toggleTarget(target.value)}
-                                                    className={`relative px-3 py-2 rounded-full font-medium transition-colors border-4 ${currentAction.targets.includes(target.value)
-                                                        ? `${getMarkerColor(target.value, markerColors).bg} border-black ${getMarkerColor(target.value, markerColors).text} font-bold`
-                                                        : `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
+                                                    className={`relative px-3 py-2 rounded-full font-medium transition-colors border-2 ${currentAction.targets.includes(target.value)
+                                                        ? `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
+                                                        : `${getMarkerColor(target.value, markerColors).bg} border-transparent ${getMarkerColor(target.value, markerColors).text}`
                                                         }`}
                                                 >
                                                     {target.value}
-                                                    {/* Checkmark overlay for selected markers */}
                                                     {currentAction.targets.includes(target.value) && (
                                                         <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
                                                             <span className="text-white text-xs font-bold">✓</span>
