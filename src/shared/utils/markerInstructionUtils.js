@@ -26,9 +26,128 @@ export const generateMarkerFlowInstruction = (actions, markerArray, basePattern)
 
     const instructionParts = [];
     let totalStitchChange = 0;
+
+    // Check if this is round construction (has BOR)
+    const isRound = markerArray.includes('BOR');
+
+    if (isRound) {
+        // Handle round construction with special BOR logic
+        return generateRoundInstruction(actionsByMarker, markerArray, basePattern);
+    } else {
+        // Handle flat construction (existing logic)
+        return generateFlatInstruction(actionsByMarker, markerArray, basePattern);
+    }
+};
+
+// New function for round construction
+const generateRoundInstruction = (actionsByMarker, markerArray, basePattern) => {
+    const instructionParts = [];
+    let totalStitchChange = 0;
+
+    // Step 1: Handle "after BOR" actions (happens at round start)
+    const borActions = actionsByMarker['BOR'] || [];
+    const afterBorActions = borActions.filter(action => action.position === 'after');
+
+    if (afterBorActions.length > 0) {
+        afterBorActions.forEach(action => {
+            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+            if (distance > 0) {
+                instructionParts.push(`k${distance}`);
+            }
+            instructionParts.push(action.technique);
+            totalStitchChange += getStitchChange(action.technique);
+        });
+        instructionParts.push(`work in ${basePattern} to marker`);
+    } else {
+        instructionParts.push(`work in ${basePattern} to marker`);
+    }
+
+    // Step 2: Process regular markers (exclude BOR)
+    const regularMarkers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
+
+    // Step 2: Check for uniform actions first
+    const targetedMarkers = regularMarkers.filter(marker => actionsByMarker[marker]?.length > 0);
+    const allIdentical = targetedMarkers.length > 1 &&
+        targetedMarkers.every(marker =>
+            JSON.stringify(actionsByMarker[marker]) === JSON.stringify(actionsByMarker[targetedMarkers[0]])
+        );
+
+    if (allIdentical) {
+        // For uniform actions, we need special handling to avoid redundant "work to marker"
+        const actions = actionsByMarker[targetedMarkers[0]];
+        const beforeActions = actions.filter(action => action.position === 'before');
+
+        if (beforeActions.length > 0) {
+            const action = beforeActions[0];
+            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+            const consumption = getStitchConsumption(action.technique);
+            const totalStitchesNeeded = consumption + distance;
+
+            // Replace the generic "to marker" with specific consumption-based instruction
+            instructionParts[instructionParts.length - 1] = `work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`;
+
+            instructionParts.push(action.technique);
+            if (distance > 0) {
+                instructionParts.push(`k${distance}`);
+            }
+            instructionParts.push('slip marker');
+            totalStitchChange += getStitchChange(action.technique) * targetedMarkers.length;
+        }
+
+        const repeatCount = targetedMarkers.length - 1;
+        instructionParts.push(`repeat ${repeatCount} ${repeatCount === 1 ? 'time' : 'times'}`);
+
+    } else {
+        // Process each marker individually
+        for (let i = 0; i < regularMarkers.length; i++) {
+            const marker = regularMarkers[i];
+            const markerActions = actionsByMarker[marker] || [];
+
+            if (markerActions.length === 0) {
+                instructionParts.push('slip marker');
+            } else {
+                const result = processMarkerActions(markerActions);
+                instructionParts.push(...result.parts);
+                totalStitchChange += result.stitchChange;
+            }
+
+            if (i < regularMarkers.length - 1) {
+                instructionParts.push('work to marker');
+            }
+        }
+    }
+
+    // Step 3: Handle "before BOR" actions (happens at round end)
+    const beforeBorActions = borActions.filter(action => action.position === 'before');
+
+    if (beforeBorActions.length > 0) {
+        beforeBorActions.forEach(action => {
+            instructionParts.push(action.technique);
+            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+            if (distance > 0) {
+                instructionParts.push(`k${distance}`);
+            }
+            totalStitchChange += getStitchChange(action.technique);
+        });
+    } else {
+        // No before BOR actions, just work to end of round
+        instructionParts.push('work to end');
+    }
+
+    const instruction = instructionParts.join(', ');
+    return {
+        instruction: instruction,
+        stitchChange: totalStitchChange
+    };
+};
+
+// New function for flat construction (cleaner separation)
+const generateFlatInstruction = (actionsByMarker, markerArray, basePattern) => {
+    const instructionParts = [];
+    let totalStitchChange = 0;
     let needsBasePattern = true;
 
-    // Walk through the complete marker array
+    // Walk through the complete marker array (flat construction)
     for (let i = 0; i < markerArray.length; i++) {
         const item = markerArray[i];
 
@@ -65,40 +184,71 @@ export const generateMarkerFlowInstruction = (actions, markerArray, basePattern)
 
     instructionParts.push('work to end');
 
+    const instruction = instructionParts.join(', ');
     return {
-        instruction: instructionParts.join(', '),
+        instruction: instruction,
         stitchChange: totalStitchChange
     };
 };
 
-// Helper function for processing marker actions
+// Helper function for processing marker actions (works for both round and flat)
 const processMarkerActions = (markerActions) => {
     const parts = [];
     let stitchChange = 0;
 
-    markerActions.forEach(action => {
-        if (action.position === 'before') {
-            parts.push(action.technique);
-            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
-            if (distance > 0) {
-                parts.push(`k${distance}`);
-            }
-            stitchChange += getStitchChange(action.technique);
-        } else if (action.position === 'after') {
-            parts.push('slip marker');
-            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
-            if (distance > 0) {
-                parts.push(`k${distance}`);
-            }
-            parts.push(action.technique);
-            stitchChange += getStitchChange(action.technique);
-            return { parts, stitchChange }; // Exit early since slip marker is handled
+    // Handle before_and_after actions first
+    const bothActions = markerActions.filter(action => action.position === 'before_and_after');
+    if (bothActions.length > 0) {
+        const action = bothActions[0];
+        const [beforeTech, afterTech] = action.technique.split('_');
+        const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+
+        // Before technique
+        parts.push(beforeTech);
+        if (distance > 0) {
+            parts.push(`k${distance}`);
         }
+        parts.push('slip marker');
+        if (distance > 0) {
+            parts.push(`k${distance}`);
+        }
+        parts.push(afterTech);
+
+        stitchChange += getStitchChange(beforeTech) + getStitchChange(afterTech);
+        return { parts, stitchChange };
+    }
+
+    // Handle separate before and after actions
+    const beforeActions = markerActions.filter(action => action.position === 'before');
+    const afterActions = markerActions.filter(action => action.position === 'after');
+
+    beforeActions.forEach(action => {
+        const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+        const consumption = getStitchConsumption(action.technique);
+        const totalStitchesNeeded = consumption + distance;
+
+        // Add working instruction if stitches needed
+        if (totalStitchesNeeded > 0) {
+            parts.push(`work until ${totalStitchesNeeded} stitches before marker`);
+        }
+
+        parts.push(action.technique);
+        if (distance > 0) {
+            parts.push(`k${distance}`);
+        }
+        stitchChange += getStitchChange(action.technique);
     });
 
-    if (!markerActions.some(a => a.position === 'after')) {
-        parts.push('slip marker');
-    }
+    parts.push('slip marker');
+
+    afterActions.forEach(action => {
+        const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+        if (distance > 0) {
+            parts.push(`k${distance}`);
+        }
+        parts.push(action.technique);
+        stitchChange += getStitchChange(action.technique);
+    });
 
     return { parts, stitchChange };
 };
