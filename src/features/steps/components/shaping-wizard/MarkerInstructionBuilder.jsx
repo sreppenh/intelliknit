@@ -369,6 +369,53 @@ const MarkerInstructionBuilder = ({
         onComplete(instructionData);
     };
 
+    // Add these helper functions before the return statement in MarkerInstructionBuilder.jsx
+
+    const shouldShowPreview = () => {
+        return completedActions.length > 0 ||
+            (currentAction.actionType && currentAction.actionType !== '') ||
+            currentStep === 'timing';
+    };
+
+    const getPreviewTitle = () => {
+        if (currentStep === 'timing') {
+            return "Phase Instruction";
+        }
+
+        if (completedActions.length > 0 && (!currentAction.actionType || currentAction.targets.length === 0)) {
+            return "Phase Preview";
+        }
+
+        return "Building Phase...";
+    };
+
+    const getPreviewSubtext = () => {
+        if (currentStep === 'timing') {
+            if (!timing.frequency || !timing.times) {
+                return "Set frequency and repetitions to complete this phase.";
+            }
+            return "Phase is ready to create. Click 'Create Instruction' to proceed.";
+        }
+
+        if (completedActions.length > 0 && (!currentAction.actionType || currentAction.targets.length === 0)) {
+            return "Add another action with 'AND' or set timing to complete this phase.";
+        }
+
+        if (currentAction.actionType === 'continue') {
+            return "Continue in pattern selected. Set frequency and timing next.";
+        }
+
+        if (currentAction.actionType && currentAction.targets.length === 0) {
+            return "Select targets to see instruction preview.";
+        }
+
+        if (currentAction.actionType && currentAction.targets.length > 0 && !currentAction.technique) {
+            return "Choose technique to complete this action.";
+        }
+
+        return "This preview updates as you build your phase instruction.";
+    };
+
     return (
         <div className="space-y-6">
             {/* Marker Reference */}
@@ -898,24 +945,53 @@ const MarkerInstructionBuilder = ({
                 </div>
             </div>
 
-            {/* Current Instruction Preview */}
-            {(completedActions.length > 0 || (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue'))) && (
+            {shouldShowPreview() && (
                 <div className="card-info">
-                    <h4 className="section-header-secondary">Current Instruction Preview</h4>
-                    <div className="bg-white rounded-lg p-3 border border-lavender-200">
-                        <p className="text-sm text-lavender-700 font-medium">{generatePreview()}</p>
-                    </div>
-                    <p className="text-xs text-lavender-600 mt-2">
-                        This is what your knitting instruction will look like. Add frequency and timing next.
-                    </p>
-                </div>
-            )}
+                    <h4 className="section-header-secondary flex items-center justify-between">
+                        {getPreviewTitle()}
+                        {/* Action count indicator for multiple actions */}
+                        {(completedActions.length > 0 || (currentAction.actionType && currentAction.targets.length > 0)) && (
+                            <span className="text-xs bg-lavender-600 text-white px-2 py-1 rounded-full"> {completedActions.length + (currentAction.actionType && currentAction.targets.length > 0 ? 1 : 0)}
+                                {completedActions.length + (currentAction.actionType && currentAction.targets.length > 0 ? 1 : 0) === 1 ? ' action' : ' actions'}
+                            </span>
+                        )}
+                    </h4>
 
-            {/* Completed Actions Summary */}
-            {completedActions.length > 0 && (
-                <div className="card bg-sage-50 border-sage-200">
-                    <h4 className="section-header-secondary">Current Instruction</h4>
-                    <p className="text-sm text-sage-600">{generatePreview()}</p>
+                    <div className="bg-white rounded-lg p-3 border border-lavender-200">
+                        <p className="text-sm text-lavender-700 font-medium text-left">
+                            {generatePreview()?.charAt(0).toUpperCase() + generatePreview()?.slice(1)}
+                        </p>
+
+                        {/* Show action breakdown for complex phases */}
+                        {completedActions.length > 0 && currentStep !== 'timing' && (
+                            <div className="mt-3 pt-3 border-t border-lavender-100">
+                                <div className="text-xs text-lavender-600 space-y-1">
+                                    <div className="font-medium">Configuration:</div>
+                                    {completedActions.map((action, index) => (
+                                        <div key={index} className="flex items-center gap-2">
+                                            <span className="w-1 h-1 bg-lavender-400 rounded-full"></span>
+                                            <span>
+                                                {action.actionType === 'continue' ? 'Continue in pattern' :
+                                                    `${action.technique || action.actionType} ${action.position || ''} ${action.targets.join(', ')}`}
+                                            </span>
+                                        </div>
+                                    ))}
+                                    {currentAction.actionType && currentAction.targets.length > 0 && (
+                                        <div className="flex items-center gap-2 text-sage-600">
+                                            <span className="w-1 h-1 bg-sage-400 rounded-full"></span>
+                                            <span className="italic">
+                                                + {currentAction.technique || currentAction.actionType} {currentAction.position || ''} {currentAction.targets.join(', ')} (building...)
+                                            </span>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+
+                    <p className="text-xs text-lavender-600 mt-2">
+                        {getPreviewSubtext()}
+                    </p>
                 </div>
             )}
 
