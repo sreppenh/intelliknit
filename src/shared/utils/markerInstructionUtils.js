@@ -14,36 +14,93 @@ import { getStitchConsumption } from './stitchCalculatorUtils';
  * @param {string} basePattern - Base pattern name (e.g., "stockinette")
  * @returns {Object} - { instruction, stitchChange }
  */
-export const generateMarkerFlowInstruction = (actions, markers, basePattern) => {
-    // Group actions by their targets to detect patterns
-    const actionsByTarget = {};
+export const generateMarkerFlowInstruction = (actions, markerArray, basePattern) => {
+    // Group actions by target marker for lookup
+    const actionsByMarker = {};
     actions.forEach(action => {
         action.targets.forEach(target => {
-            if (!actionsByTarget[target]) actionsByTarget[target] = [];
-            actionsByTarget[target].push(action);
+            if (!actionsByMarker[target]) actionsByMarker[target] = [];
+            actionsByMarker[target].push(action);
         });
     });
 
-    // Get all targeted markers
-    const targetedMarkers = Object.keys(actionsByTarget).filter(target =>
-        markers.includes(target) || target === 'BOR'
-    );
+    const instructionParts = [];
+    let totalStitchChange = 0;
+    let needsBasePattern = true;
 
-    if (targetedMarkers.length === 0) return { instruction: null, stitchChange: 0 };
+    // Walk through the complete marker array
+    for (let i = 0; i < markerArray.length; i++) {
+        const item = markerArray[i];
 
-    // Check if all markers have identical actions (uniform treatment)
-    const firstMarkerActions = actionsByTarget[targetedMarkers[0]];
-    const isUniform = targetedMarkers.every(marker =>
-        JSON.stringify(actionsByTarget[marker]) === JSON.stringify(firstMarkerActions)
-    );
+        // Skip stitch segments
+        if (typeof item === 'number') continue;
 
-    if (isUniform) {
-        // Generate uniform instruction with stitch change calculation
-        return generateUniformMarkerInstruction(firstMarkerActions, targetedMarkers, basePattern);
-    } else {
-        // Generate individual marker instructions
-        return generateIndividualMarkerInstructions(actionsByTarget, targetedMarkers, basePattern);
+        // Handle markers
+        if (typeof item === 'string') {
+            const markerActions = actionsByMarker[item] || [];
+
+            // Add base pattern work before first marker
+            if (needsBasePattern) {
+                instructionParts.push(`work in ${basePattern} to marker`);
+                needsBasePattern = false;
+            }
+
+            if (markerActions.length === 0) {
+                // No actions - just slip marker
+                instructionParts.push('slip marker');
+            } else {
+                // Process actions for this marker
+                const result = processMarkerActions(markerActions);
+                instructionParts.push(...result.parts);
+                totalStitchChange += result.stitchChange;
+            }
+
+            // Add work to next marker (except for last marker)
+            const nextMarkerIndex = markerArray.findIndex((item, idx) => idx > i && typeof item === 'string');
+            if (nextMarkerIndex !== -1) {
+                instructionParts.push('work to marker');
+            }
+        }
     }
+
+    instructionParts.push('work to end');
+
+    return {
+        instruction: instructionParts.join(', '),
+        stitchChange: totalStitchChange
+    };
+};
+
+// Helper function for processing marker actions
+const processMarkerActions = (markerActions) => {
+    const parts = [];
+    let stitchChange = 0;
+
+    markerActions.forEach(action => {
+        if (action.position === 'before') {
+            parts.push(action.technique);
+            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+            if (distance > 0) {
+                parts.push(`k${distance}`);
+            }
+            stitchChange += getStitchChange(action.technique);
+        } else if (action.position === 'after') {
+            parts.push('slip marker');
+            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+            if (distance > 0) {
+                parts.push(`k${distance}`);
+            }
+            parts.push(action.technique);
+            stitchChange += getStitchChange(action.technique);
+            return { parts, stitchChange }; // Exit early since slip marker is handled
+        }
+    });
+
+    if (!markerActions.some(a => a.position === 'after')) {
+        parts.push('slip marker');
+    }
+
+    return { parts, stitchChange };
 };
 
 /**
