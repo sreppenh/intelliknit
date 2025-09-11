@@ -52,15 +52,69 @@ const generateRoundInstruction = (actionsByMarker, markerArray, basePattern) => 
     const hasRegularMarkerActions = regularMarkers.some(marker => actionsByMarker[marker]?.length > 0);
 
     // Check for edge-only actions exception
-    const hasAfterBorActions = afterBorActions.length > 0;
-    const hasBeforeBorActions = borActions.filter(action => action.position === 'before').length > 0;
+    const hasAfterBorActions = afterBorActions.length > 0 ||
+        borActions.some(action => action.position === 'before_and_after');
+    const hasBeforeBorActions = borActions.filter(action => action.position === 'before').length > 0 ||
+        borActions.some(action => action.position === 'before_and_after');
     const isEdgeOnlyPattern = (hasAfterBorActions || hasBeforeBorActions) && !hasRegularMarkerActions;
     const hasBothEdgeActions = hasAfterBorActions && hasBeforeBorActions;
 
-    if (isEdgeOnlyPattern && hasBothEdgeActions) {
-        // Special case: actions only at beginning and end - create condensed instruction
+    // DEBUG: Add these console.log statements
+    console.log('DEBUG - hasAfterBorActions:', hasAfterBorActions);
+    console.log('DEBUG - hasBeforeBorActions:', hasBeforeBorActions);
+    console.log('DEBUG - hasRegularMarkerActions:', hasRegularMarkerActions);
+    console.log('DEBUG - isEdgeOnlyPattern:', isEdgeOnlyPattern);
+    console.log('DEBUG - hasBothEdgeActions:', hasBothEdgeActions);
+    console.log('DEBUG - borActions:', borActions);
 
-        // Process after BOR actions
+    if (isEdgeOnlyPattern && hasBothEdgeActions) {
+        // Handle before_and_after actions for BOR
+        const beforeAndAfterActions = borActions.filter(action => action.position === 'before_and_after');
+
+        if (beforeAndAfterActions.length > 0) {
+            const action = beforeAndAfterActions[0];
+            const [beforeTech, afterTech] = action.technique.split('_');
+
+            // After BOR part (beginning of round)
+            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+            if (distance > 0) {
+                instructionParts.push(`k${distance}`);
+            }
+            instructionParts.push(afterTech);
+
+            // Middle section
+            instructionParts.push(`work in ${basePattern} until 1 stitch before end of round`);
+
+            // Before BOR part (end of round)
+            instructionParts.push(beforeTech);
+
+            totalStitchChange += getStitchChange(beforeTech) + getStitchChange(afterTech);
+        } else {
+            // Handle separate after BOR and before BOR actions (your existing Case 3 logic)
+            afterBorActions.forEach(action => {
+                const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+                if (distance > 0) {
+                    instructionParts.push(`k${distance}`);
+                }
+                instructionParts.push(action.technique);
+                totalStitchChange += getStitchChange(action.technique);
+            });
+
+            instructionParts.push(`work in ${basePattern} until 1 stitch before end of round`);
+
+            const beforeBorActions = borActions.filter(action => action.position === 'before');
+            beforeBorActions.forEach(action => {
+                instructionParts.push(action.technique);
+                const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+                if (distance > 0) {
+                    instructionParts.push(`k${distance}`);
+                }
+                totalStitchChange += getStitchChange(action.technique);
+            });
+        }
+
+    } else if (isEdgeOnlyPattern && hasAfterBorActions && !hasBeforeBorActions) {
+        // Case 1: Only after BOR actions
         afterBorActions.forEach(action => {
             const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
             if (distance > 0) {
@@ -70,14 +124,22 @@ const generateRoundInstruction = (actionsByMarker, markerArray, basePattern) => 
             totalStitchChange += getStitchChange(action.technique);
         });
 
-        // Add condensed middle section
-        instructionParts.push(`work in ${basePattern} until 1 stitch before BOR`);
+        instructionParts.push(`work in ${basePattern} until end of round`);
 
-        // Process before BOR actions
+    } else if (isEdgeOnlyPattern && hasBeforeBorActions && !hasAfterBorActions) {
+        // Case 2: Only before BOR actions
         const beforeBorActions = borActions.filter(action => action.position === 'before');
         beforeBorActions.forEach(action => {
-            instructionParts.push(action.technique);
             const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+            const consumption = getStitchConsumption(action.technique);
+            const totalStitchesNeeded = consumption + distance;
+
+            if (totalStitchesNeeded > 0) {
+                const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before end of round`);
+            }
+
+            instructionParts.push(action.technique);
             if (distance > 0) {
                 instructionParts.push(`k${distance}`);
             }
@@ -187,12 +249,13 @@ const generateRoundInstruction = (actionsByMarker, markerArray, basePattern) => 
             // Only add "work to end" if we processed regular markers
             instructionParts.push('work to end');
         }
-        const instruction = instructionParts.join(', ');
-        return {
-            instruction: instruction,
-            stitchChange: totalStitchChange
-        };
+
     }
+    const instruction = instructionParts.join(', ');
+    return {
+        instruction: instruction,
+        stitchChange: totalStitchChange
+    };
 };
 
 // New function for flat construction (cleaner separation)
