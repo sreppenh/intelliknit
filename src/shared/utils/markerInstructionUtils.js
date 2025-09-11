@@ -248,8 +248,11 @@ export const generateSingleMarkerInstruction = (actions, marker, basePattern, is
 
         } else if (action.position === 'after') {
             parts.push('slip marker');
+            const distance = action.distance === 'at' ? 0 : parseInt(action.distance);
+            if (distance > 0) {
+                parts.push(`k${distance}`);
+            }
             parts.push(action.technique);
-
             stitchChange += getStitchChange(action.technique);
         }
     });

@@ -334,7 +334,7 @@ const MarkerInstructionBuilder = ({
         // Generate marker-based flow instruction
         let totalStitchChange = 0;
         if (markerActions.length > 0) {
-            const result = generateMarkerFlowInstruction(markerActions, markers, basePattern);
+            const result = generateMarkerFlowInstruction(markerActions, markerArray, basePattern);
             if (result.instruction) {
                 instructionParts.push(result.instruction);
                 totalStitchChange += result.stitchChange;
