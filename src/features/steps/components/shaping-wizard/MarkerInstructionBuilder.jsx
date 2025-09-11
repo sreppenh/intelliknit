@@ -185,7 +185,6 @@ const MarkerInstructionBuilder = ({
             if (field === 'actionType') {
                 updated.whereType = construction === 'flat' ? 'markers' : '';
                 updated.position = value === 'bind_off' ? 'at_beginning' : '';
-                updated.position = '';
                 updated.technique = '';
                 updated.distance = '';
                 updated.targets = [];
@@ -442,7 +441,7 @@ const MarkerInstructionBuilder = ({
                         <>
 
                             {/* Step 2: Where & Which (flat construction only) */}
-                            {currentAction.actionType && currentAction.actionType !== 'continue' && construction === 'flat' && (
+                            {currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' && construction === 'flat' && (
                                 <div>
                                     <label className="form-label">Where?</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
@@ -533,53 +532,52 @@ const MarkerInstructionBuilder = ({
                             )}
 
                             {/* Round construction target selection - simpler since no "where" choice needed */}
-                            {currentAction.actionType && currentAction.actionType !== 'continue' && construction === 'round' && (
-                                <div>
-                                    <label className="form-label">Which markers?</label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                        <div className="flex flex-wrap gap-2">
-                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
-                                                <button
-                                                    key={target.value}
-                                                    onClick={() => toggleTarget(target.value)}
-                                                    className={`relative px-3 py-2 rounded-full font-medium transition-colors border-2 ${currentAction.targets.includes(target.value)
-                                                        ? `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
-                                                        : `${getMarkerColor(target.value, markerColors).bg} border-transparent ${getMarkerColor(target.value, markerColors).text}`
-                                                        }`}
-                                                >
-                                                    {target.value}
-                                                    {currentAction.targets.includes(target.value) && (
-                                                        <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
-                                                            <span className="text-white text-xs font-bold">✓</span>
-                                                        </div>
-                                                    )}
-                                                </button>
-                                            ))}
+                            {currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' && construction === 'round' && (<div>
+                                <label className="form-label">Which markers?</label>
+                                <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                    <div className="flex flex-wrap gap-2">
+                                        {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
+                                            <button
+                                                key={target.value}
+                                                onClick={() => toggleTarget(target.value)}
+                                                className={`relative px-3 py-2 rounded-full font-medium transition-colors border-2 ${currentAction.targets.includes(target.value)
+                                                    ? `${getMarkerColor(target.value, markerColors).bg} ${getMarkerColor(target.value, markerColors).border} ${getMarkerColor(target.value, markerColors).text}`
+                                                    : `${getMarkerColor(target.value, markerColors).bg} border-transparent ${getMarkerColor(target.value, markerColors).text}`
+                                                    }`}
+                                            >
+                                                {target.value}
+                                                {currentAction.targets.includes(target.value) && (
+                                                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
+                                                        <span className="text-white text-xs font-bold">✓</span>
+                                                    </div>
+                                                )}
+                                            </button>
+                                        ))}
 
-                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
-                                                <button
-                                                    onClick={() => {
-                                                        const markerTargets = getValidTargets()
-                                                            .filter(t => t.type === 'marker' || t.type === 'bor')
-                                                            .map(t => t.value);
-                                                        updateAction('targets', markerTargets);
-                                                    }}
-                                                    className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
-                                                >
-                                                    + All Markers
-                                                </button>
-                                            )}
-                                        </div>
-
-                                        {currentAction.targets.length > 0 && (
-                                            <div className="mt-3 pt-3 border-t border-wool-100">
-                                                <p className="text-sm text-sage-600">
-                                                    Selected: {currentAction.targets.join(', ')}
-                                                </p>
-                                            </div>
+                                        {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
+                                            <button
+                                                onClick={() => {
+                                                    const markerTargets = getValidTargets()
+                                                        .filter(t => t.type === 'marker' || t.type === 'bor')
+                                                        .map(t => t.value);
+                                                    updateAction('targets', markerTargets);
+                                                }}
+                                                className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
+                                            >
+                                                + All Markers
+                                            </button>
                                         )}
                                     </div>
+
+                                    {currentAction.targets.length > 0 && (
+                                        <div className="mt-3 pt-3 border-t border-wool-100">
+                                            <p className="text-sm text-sage-600">
+                                                Selected: {currentAction.targets.join(', ')}
+                                            </p>
+                                        </div>
+                                    )}
                                 </div>
+                            </div>
                             )}
 
                             {/* Step 3: Position & Technique */}
@@ -830,87 +828,50 @@ const MarkerInstructionBuilder = ({
                                 </div>
                             )}
 
-                            {/* Bind Off - Special handling */}
+                            {/* Bind Off - Simple beginning-of-row only */}
                             {currentAction.actionType === 'bind_off' && (
                                 <div>
-                                    <label className="form-label">Bind off where and how many?</label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
-                                        {/* Position selection for bind-off */}
-                                        <div>
-                                            <label className="form-label text-sm">Position</label>
-                                            <div className="grid grid-cols-2 gap-2">
-                                                <div
-                                                    onClick={() => {
-                                                        updateAction('position', 'at_beginning');
-                                                        updateAction('targets', ['beginning']);
-                                                    }}
-                                                    className={`card-marker-select-compact ${currentAction.position === 'at_beginning' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    Beginning of Row
-                                                </div>
-                                                <div
-                                                    onClick={() => {
-                                                        updateAction('position', 'at_end');
-                                                        updateAction('targets', ['end']);
-                                                    }}
-                                                    className={`card-marker-select-compact ${currentAction.position === 'at_end' ? 'card-marker-select-compact-selected' : ''}`}
-                                                >
-                                                    End of Row
-                                                </div>
-                                            </div>
+                                    <label className="form-label">How many stitches to bind off?</label>
+                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                        <div className="flex items-center gap-3">
+                                            <IncrementInput
+                                                value={currentAction.stitchCount}
+                                                onChange={(value) => {
+                                                    const totalStitches = markerArray
+                                                        .filter(item => typeof item === 'number')
+                                                        .reduce((sum, stitches) => sum + stitches, 0);
+
+                                                    const limitedValue = Math.min(value, totalStitches);
+                                                    updateAction('stitchCount', limitedValue);
+                                                    updateAction('position', 'at_beginning');
+                                                    updateAction('targets', ['beginning']);
+                                                    updateAction('bindOffAmount', 'specific');
+                                                }}
+                                                min={1}
+                                                max={markerArray
+                                                    .filter(item => typeof item === 'number')
+                                                    .reduce((sum, stitches) => sum + stitches, 0)}
+                                                size="sm"
+                                            />
+
+                                            <button
+                                                onClick={() => {
+                                                    const totalStitches = markerArray
+                                                        .filter(item => typeof item === 'number')
+                                                        .reduce((sum, stitches) => sum + stitches, 0);
+
+                                                    updateAction('stitchCount', totalStitches);
+                                                    updateAction('position', 'at_beginning');
+                                                    updateAction('targets', ['beginning']);
+                                                    updateAction('bindOffAmount', 'all');
+                                                }}
+                                                className="btn-secondary btn-sm"
+                                            >
+                                                Bind Off All
+                                            </button>
                                         </div>
 
-                                        {/* Amount selection - appears when position is selected */}
-                                        {currentAction.position && (
-                                            <div>
-                                                <label className="form-label text-sm">How many stitches?</label>
-                                                <div className="flex items-center gap-3">
-                                                    <IncrementInput
-                                                        value={currentAction.stitchCount}
-                                                        onChange={(value) => {
-                                                            // Calculate max available stitches
-                                                            const totalStitches = markerArray
-                                                                .filter(item => typeof item === 'number')
-                                                                .reduce((sum, stitches) => sum + stitches, 0);
 
-                                                            // Limit to max available
-                                                            const limitedValue = Math.min(value, totalStitches);
-                                                            updateAction('stitchCount', limitedValue);
-                                                            updateAction('bindOffAmount', 'specific');
-                                                        }}
-                                                        min={1}
-                                                        max={markerArray
-                                                            .filter(item => typeof item === 'number')
-                                                            .reduce((sum, stitches) => sum + stitches, 0)}
-                                                        size="sm"
-                                                    />
-
-                                                    {/* Bind Off All - only show for beginning position */}
-                                                    {currentAction.position === 'at_beginning' && (
-                                                        <button
-                                                            onClick={() => {
-                                                                const totalStitches = markerArray
-                                                                    .filter(item => typeof item === 'number')
-                                                                    .reduce((sum, stitches) => sum + stitches, 0);
-
-                                                                updateAction('stitchCount', totalStitches);
-                                                                updateAction('bindOffAmount', 'all');
-                                                            }}
-                                                            className="btn-secondary btn-sm"
-                                                        >
-                                                            Bind Off All
-                                                        </button>
-                                                    )}
-                                                </div>
-
-                                                <p className="text-xs text-sage-600 mt-2">
-                                                    {currentAction.position === 'at_beginning'
-                                                        ? 'Beginning: Can bind off specific amount or all stitches'
-                                                        : 'End: Can only bind off specific amount'
-                                                    }
-                                                </p>
-                                            </div>
-                                        )}
                                     </div>
                                 </div>
                             )}
