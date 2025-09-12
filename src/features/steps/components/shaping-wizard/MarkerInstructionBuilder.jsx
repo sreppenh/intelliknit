@@ -572,6 +572,8 @@ const MarkerInstructionBuilder = ({
                                                         </p>
                                                     </div>
                                                 )}
+
+
                                             </div>
                                         )}
                                     </div>
@@ -626,11 +628,6 @@ const MarkerInstructionBuilder = ({
                                 </div>
                             </div>
                             )}
-
-
-
-
-
 
                             {/* Step 3: Position & Technique */}
                             {currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && currentAction.whereType !== 'edges' && (
