@@ -607,3 +607,132 @@ const getStitchChange = (technique) => {
 
     return techniqueMap[technique] || 0;
 };
+
+/**
+ * Generate marker-based instruction preview from actions and timing
+ * Extracted from MarkerInstructionBuilder.generatePreview() for reuse across components
+ * @param {Array} allActions - All completed actions
+ * @param {Object} timing - Timing configuration { frequency, times, amountMode, targetStitches }
+ * @param {Array} markerArray - Marker array structure
+ * @param {string} construction - 'flat' or 'round'
+ * @param {string} basePattern - Base pattern name (e.g., 'stockinette')
+ * @returns {string} - Human-readable instruction text
+ */
+export const generateMarkerInstructionPreview = (allActions, timing, markerArray, construction, basePattern = 'pattern') => {
+    if (allActions.length === 0) return "No actions defined yet";
+
+    // Handle 'continue' only actions
+    if (allActions.length === 1 && allActions[0].actionType === 'continue') {
+        const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
+            ? ` until ${timing.targetStitches} stitches remain`
+            : timing.times ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+        const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+        return `Continue in ${basePattern}${frequencyText}${repeatText}`;
+    }
+
+    // Handle bind off actions
+    const bindOffActions = allActions.filter(action => action.actionType === 'bind_off');
+    if (bindOffActions.length > 0) {
+        const instructions = bindOffActions.map(action => {
+            const amount = action.bindOffAmount === 'all' ? 'all stitches' : `${action.stitchCount} stitch${action.stitchCount === 1 ? '' : 'es'}`;
+            const location = action.targets.length > 0 ? ` at ${action.targets.join(' and ')}` : '';
+            return `Bind off ${amount}${location}`;
+        });
+        const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
+            ? ` until ${timing.targetStitches} stitches remain`
+            : timing.times ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+        const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+        return `${instructions.join(' and ')}${frequencyText}${repeatText}`;
+    }
+
+    // Process regular marker and edge actions
+    const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
+    const markerActions = allActions.filter(action =>
+        action.targets.some(target => markers.includes(target) || target === 'BOR'));
+    const edgeActions = allActions.filter(action =>
+        action.targets.some(target => ['beginning', 'end'].includes(target)));
+
+    const instructionParts = [];
+    let totalStitchChange = 0;
+
+    // Handle edge actions first
+    if (edgeActions.length > 0) {
+        edgeActions.forEach(action => {
+            const stitchCount = action.stitchCount || 1;
+            action.targets.forEach(target => {
+                let displayTechnique = action.technique || (action.actionType === 'increase' ? 'inc' : 'dec');
+                if (action.technique && action.technique.includes('_') && action.position === 'both_ends') {
+                    const parts = action.technique.split('_');
+                    if (target === 'beginning') {
+                        displayTechnique = parts[0];
+                    } else if (target === 'end') {
+                        displayTechnique = parts[1] || parts[0];
+                    }
+                }
+                const location = target === 'beginning' ? 'beginning' : 'end';
+                const countText = stitchCount > 1 ? `${stitchCount} ` : '';
+                instructionParts.push(`${displayTechnique} ${countText}at ${location}`);
+                totalStitchChange += (action.actionType === 'increase' ? 1 : -1) * stitchCount * (action.position === 'both_ends' ? 2 : 1);
+            });
+        });
+    }
+
+    // Handle marker actions
+    if (markerActions.length > 0) {
+        // Group marker actions by technique, position, and distance to detect repeats
+        const groupedActions = {};
+        markerActions.forEach(action => {
+            const key = `${action.technique}_${action.position}_${action.distance}`;
+            if (!groupedActions[key]) {
+                groupedActions[key] = {
+                    technique: action.technique || (action.actionType === 'increase' ? 'inc' : 'dec'),
+                    position: action.position,
+                    distance: action.distance,
+                    stitchCount: action.stitchCount || 1,
+                    actionType: action.actionType,
+                    targets: [],
+                    count: 0
+                };
+            }
+            groupedActions[key].targets.push(...action.targets);
+            groupedActions[key].count += action.targets.length;
+        });
+
+        const markerInstructionParts = [];
+        Object.values(groupedActions).forEach(group => {
+            const stitchCountText = group.stitchCount > 1 ? `${group.stitchCount} ` : '';
+            const techniqueText = `${stitchCountText}${group.technique}`;
+            const positionText = group.position ? ` ${group.position}` : '';
+            const distanceText = group.distance && group.distance !== 'at' ? ` ${group.distance} st from marker` : '';
+            const actionText = `${techniqueText}${positionText}${distanceText}, slip marker`;
+
+            if (group.count > 1) {
+                // Handle in-row repeat
+                markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}, repeat ${group.count - 1} time${group.count - 1 === 1 ? '' : 's'}`);
+                totalStitchChange += (group.actionType === 'increase' ? 1 : -1) * group.stitchCount * group.count;
+            } else {
+                // Single action, no repeat
+                markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}`);
+                totalStitchChange += (group.actionType === 'increase' ? 1 : -1) * group.stitchCount;
+            }
+        });
+
+        // Add final "work to end" if there are remaining stitches
+        const lastMarkerIndex = markerArray.lastIndexOf(markers[markers.length - 1]);
+        if (lastMarkerIndex < markerArray.length - 1) {
+            markerInstructionParts.push(`work to end`);
+        }
+
+        instructionParts.push(markerInstructionParts.join(', '));
+    }
+
+    // Build final instruction
+    const instruction = instructionParts.join(' and ');
+    const stitchChangeText = totalStitchChange !== 0 ? ` (${totalStitchChange > 0 ? '+' : ''}${totalStitchChange} sts)` : '';
+    const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
+        ? ` until ${timing.targetStitches} stitches remain`
+        : timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+    const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+
+    return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
+};

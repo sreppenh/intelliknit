@@ -419,10 +419,15 @@ const getShapingStepDescription = (step) => {
         if (phases > 0) {
             shapingText = ` with ${phases} shaping phases`;
         }
+
     } else if (shapingConfig?.type === 'marker_phases') {
-        const markerCount = shapingConfig.config?.markerCount || 0;
-        if (markerCount > 0) {
-            shapingText = ` with marker-based shaping at ${markerCount} markers`;
+        const config = shapingConfig.config;
+        if (config?.calculation?.instruction) {
+            // Use the pre-calculated instruction from the config
+            shapingText = ` with ${config.calculation.instruction}`;
+        } else {
+            // Fallback for preview mode
+            shapingText = ` with marker-based shaping`;
         }
 
     } else if (shapingConfig?.type === 'intrinsic_pattern') {
