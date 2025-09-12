@@ -548,21 +548,38 @@ const MarkerInstructionBuilder = ({
                                                         </button>
                                                     )}
 
-                                                    {/* Render edge targets */}
-                                                    {currentAction.whereType === 'edges' && getValidTargets().filter(t => t.type === 'edge').map(target => (
-                                                        <div
-                                                            key={target.value}
-                                                            onClick={() => toggleTarget(target.value)}
-                                                            className={`relative card-marker-select-compact ${currentAction.targets.includes(target.value) ? 'card-marker-select-compact-selected' : ''}`}
-                                                        >
-                                                            {target.label}
-                                                            {currentAction.targets.includes(target.value) && (
-                                                                <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
-                                                                    <span className="text-white text-xs font-bold">✓</span>
-                                                                </div>
-                                                            )}
+                                                    {/* Edge position selection */}
+                                                    {currentAction.whereType === 'edges' && (
+                                                        <div className="grid grid-cols-3 gap-2">
+                                                            <div
+                                                                onClick={() => {
+                                                                    updateAction('position', 'at_beginning');
+                                                                    updateAction('targets', ['beginning']);
+                                                                }}
+                                                                className={`card-marker-select-compact ${currentAction.position === 'at_beginning' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                Beginning
+                                                            </div>
+                                                            <div
+                                                                onClick={() => {
+                                                                    updateAction('position', 'at_end');
+                                                                    updateAction('targets', ['end']);
+                                                                }}
+                                                                className={`card-marker-select-compact ${currentAction.position === 'at_end' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                End
+                                                            </div>
+                                                            <div
+                                                                onClick={() => {
+                                                                    updateAction('position', 'both_ends');
+                                                                    updateAction('targets', ['beginning', 'end']);
+                                                                }}
+                                                                className={`card-marker-select-compact ${currentAction.position === 'both_ends' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                Both
+                                                            </div>
                                                         </div>
-                                                    ))}
+                                                    )}
                                                 </div>
 
                                                 {currentAction.targets.length > 0 && (
