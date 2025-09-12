@@ -633,7 +633,7 @@ const MarkerInstructionBuilder = ({
 
 
                             {/* Step 3: Position & Technique */}
-                            {currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
+                            {currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && currentAction.whereType !== 'edges' && (
                                 <div>
                                     <label className="form-label">
                                         {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'} where and how?
