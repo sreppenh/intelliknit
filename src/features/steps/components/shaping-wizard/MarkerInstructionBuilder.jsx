@@ -572,6 +572,40 @@ const MarkerInstructionBuilder = ({
                                                         </p>
                                                     </div>
                                                 )}
+
+                                                {/* Distance selection for edges */}
+                                                {currentAction.whereType === 'edges' && currentAction.targets.length > 0 && (
+                                                    <div className="mt-3">
+                                                        <label className="form-label text-sm">Distance from edge</label>
+                                                        <div className="grid grid-cols-4 gap-2">
+                                                            <div
+                                                                onClick={() => updateAction('distance', 'at')}
+                                                                className={`card-marker-select-compact ${currentAction.distance === 'at' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                At edge
+                                                            </div>
+                                                            <div
+                                                                onClick={() => updateAction('distance', '1')}
+                                                                className={`card-marker-select-compact ${currentAction.distance === '1' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                1 st from edge
+                                                            </div>
+                                                            <div
+                                                                onClick={() => updateAction('distance', '2')}
+                                                                className={`card-marker-select-compact ${currentAction.distance === '2' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                2 st from edge
+                                                            </div>
+                                                            <div
+                                                                onClick={() => updateAction('distance', '3')}
+                                                                className={`card-marker-select-compact ${currentAction.distance === '3' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                3 st from edge
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                )}
+
                                                 {/* Cast-on support for edge increases at distance 0 */}
                                                 {currentAction.whereType === 'edges' && currentAction.distance === 'at' && currentAction.actionType === 'increase' && (
                                                     <div>
