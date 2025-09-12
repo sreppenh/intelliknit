@@ -177,7 +177,7 @@ const MarkerInstructionBuilder = ({
             }
 
             // Handle technique changes - clear distance
-            if (field === 'technique') {
+            if (field === 'technique' && updated.whereType === 'markers') {
                 updated.distance = '';
             }
 
@@ -1014,7 +1014,7 @@ const MarkerInstructionBuilder = ({
                             )}
 
                             {/* Step 4: Distance - Now AFTER technique with NEW validation */}
-                            {currentAction.technique && (
+                            {currentAction.technique && currentAction.whereType === 'markers' && (
                                 <div>
                                     <label className="form-label">Stitches between technique and marker?</label>
                                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
