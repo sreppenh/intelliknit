@@ -582,7 +582,7 @@ const MarkerInstructionBuilder = ({
                                                     )}
                                                 </div>
 
-                                                {currentAction.targets.length > 0 && (
+                                                {currentAction.targets.length > 0 && currentAction.whereType === 'markers' && (
                                                     <div className="mt-3 pt-3 border-t border-wool-100">
                                                         <p className="text-sm text-sage-600">
                                                             Selected: {currentAction.targets.filter(target => target !== 'continue').join(', ')}
@@ -592,7 +592,7 @@ const MarkerInstructionBuilder = ({
 
                                                 {/* Distance selection for edges */}
                                                 {currentAction.whereType === 'edges' && currentAction.targets.length > 0 && (
-                                                    <div className="mt-3">
+                                                    <div className="mt-4">
                                                         <label className="form-label text-sm">Distance from edge</label>
                                                         <div className="grid grid-cols-4 gap-2">
                                                             <div
@@ -661,7 +661,7 @@ const MarkerInstructionBuilder = ({
 
                                                 {/* Regular edge techniques for distances 1-3 */}
                                                 {currentAction.whereType === 'edges' && currentAction.distance && currentAction.distance !== 'at' && (
-                                                    <div>
+                                                    <div className="mt-4">
                                                         <label className="form-label text-sm">Technique</label>
 
                                                         {/* Beginning techniques */}
