@@ -599,25 +599,25 @@ const MarkerInstructionBuilder = ({
                                                                 onClick={() => updateAction('distance', 'at')}
                                                                 className={`card-marker-select-compact ${currentAction.distance === 'at' ? 'card-marker-select-compact-selected' : ''}`}
                                                             >
-                                                                At edge
+                                                                0 st
                                                             </div>
                                                             <div
                                                                 onClick={() => updateAction('distance', '1')}
                                                                 className={`card-marker-select-compact ${currentAction.distance === '1' ? 'card-marker-select-compact-selected' : ''}`}
                                                             >
-                                                                1 st from edge
+                                                                1 st
                                                             </div>
                                                             <div
                                                                 onClick={() => updateAction('distance', '2')}
                                                                 className={`card-marker-select-compact ${currentAction.distance === '2' ? 'card-marker-select-compact-selected' : ''}`}
                                                             >
-                                                                2 st from edge
+                                                                2 st
                                                             </div>
                                                             <div
                                                                 onClick={() => updateAction('distance', '3')}
                                                                 className={`card-marker-select-compact ${currentAction.distance === '3' ? 'card-marker-select-compact-selected' : ''}`}
                                                             >
-                                                                3 st from edge
+                                                                3 st
                                                             </div>
                                                         </div>
                                                     </div>
@@ -625,7 +625,7 @@ const MarkerInstructionBuilder = ({
 
                                                 {/* Cast-on support for edge increases at distance 0 */}
                                                 {currentAction.whereType === 'edges' && currentAction.distance === 'at' && currentAction.actionType === 'increase' && (
-                                                    <div>
+                                                    <div className="mt-4">
                                                         <label className="form-label text-sm">Cast-on technique</label>
                                                         <div className="grid grid-cols-2 gap-2">
                                                             <div
