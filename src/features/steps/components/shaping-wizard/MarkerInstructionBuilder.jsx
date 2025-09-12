@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo, useEffect } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
@@ -196,13 +195,13 @@ const MarkerInstructionBuilder = ({
         if (position === 'both_ends') {
             switch (technique) {
                 case 'M1L_M1R':
-                    return 'M1L at beginning, M1R at end';
+                    return 'M1L & M1R';
                 case 'YO_YO':
-                    return 'YO at beginning, YO at end';
+                    return 'YO & YO';
                 case 'SSK_K2tog':
-                    return 'SSK at beginning, K2tog at end';
+                    return 'SSK & K2tog';
                 case 'K3tog_K3tog':
-                    return 'K3tog at beginning, K3tog at end';
+                    return 'K3tog & K3tog';
                 default:
                     return technique;
             }
@@ -213,22 +212,32 @@ const MarkerInstructionBuilder = ({
     // Generate preview
     const generatePreview = () => {
         const allActions = [...completedActions];
-        if (currentAction.actionType && currentAction.targets.length > 0) {
+        if (currentAction.actionType && currentAction.targets.length > 0 && currentAction.actionType !== 'continue') {
             allActions.push(currentAction);
         }
         if (allActions.length === 0) return "No actions defined yet";
 
         const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
         if (allActions.length === 1 && allActions[0].actionType === 'continue') {
-            return `Continue in ${basePattern}`;
+            const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
+                ? ` until ${timing.targetStitches} stitches remain`
+                : timing.times ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+            const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+            return `Continue in ${basePattern}${frequencyText}${repeatText}`;
         }
 
         const bindOffActions = allActions.filter(action => action.actionType === 'bind_off');
         if (bindOffActions.length > 0) {
-            return bindOffActions.map(action => {
-                const amount = action.stitchCount ? `${action.stitchCount} stitches` : 'all stitches';
-                return action.targets.length > 0 ? `Bind off ${amount} at ${action.targets.join(', ')}` : `Bind off ${amount}`;
-            }).join(', ');
+            const instructions = bindOffActions.map(action => {
+                const amount = action.bindOffAmount === 'all' ? 'all stitches' : `${action.stitchCount} stitch${action.stitchCount === 1 ? '' : 'es'}`;
+                const location = action.targets.length > 0 ? ` at ${action.targets.join(' and ')}` : '';
+                return `Bind off ${amount}${location}`;
+            });
+            const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
+                ? ` until ${timing.targetStitches} stitches remain`
+                : timing.times ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+            const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+            return `${instructions.join(' and ')}${frequencyText}${repeatText}`;
         }
 
         const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
@@ -238,36 +247,84 @@ const MarkerInstructionBuilder = ({
             action.targets.some(target => ['beginning', 'end'].includes(target)));
 
         const instructionParts = [];
+        let totalStitchChange = 0;
+
         if (edgeActions.length > 0) {
             edgeActions.forEach(action => {
+                const stitchCount = action.stitchCount || 1;
                 action.targets.forEach(target => {
-                    let displayTechnique = action.technique;
-                    if (action.technique.includes('_')) {
+                    let displayTechnique = action.technique || (action.actionType === 'increase' ? 'inc' : 'dec');
+                    if (action.technique && action.technique.includes('_') && action.position === 'both_ends') {
                         const parts = action.technique.split('_');
                         if (target === 'beginning') {
                             displayTechnique = parts[0];
                         } else if (target === 'end') {
-                            displayTechnique = parts[1] || parts[0]; // For same on both like K3tog_K3tog
+                            displayTechnique = parts[1] || parts[0];
                         }
                     }
                     const location = target === 'beginning' ? 'beginning' : 'end';
-                    instructionParts.push(`${displayTechnique} at ${location}`);
+                    const countText = stitchCount > 1 ? `${stitchCount} ` : '';
+                    instructionParts.push(`${displayTechnique} ${countText}at ${location}`);
+                    totalStitchChange += (action.actionType === 'increase' ? 1 : -1) * stitchCount * (action.position === 'both_ends' ? 2 : 1);
                 });
             });
         }
 
-        let totalStitchChange = 0;
         if (markerActions.length > 0) {
-            const result = generateMarkerFlowInstruction(markerActions, markerArray, basePattern);
-            if (result.instruction) {
-                instructionParts.push(result.instruction);
-                totalStitchChange += result.stitchChange;
+            // Group marker actions by technique, position, and distance to detect repeats
+            const groupedActions = {};
+            markerActions.forEach(action => {
+                const key = `${action.technique}_${action.position}_${action.distance}`;
+                if (!groupedActions[key]) {
+                    groupedActions[key] = {
+                        technique: action.technique || (action.actionType === 'increase' ? 'inc' : 'dec'),
+                        position: action.position,
+                        distance: action.distance,
+                        stitchCount: action.stitchCount || 1,
+                        actionType: action.actionType,
+                        targets: [],
+                        count: 0
+                    };
+                }
+                groupedActions[key].targets.push(...action.targets);
+                groupedActions[key].count += action.targets.length;
+            });
+
+            const markerInstructionParts = [];
+            Object.values(groupedActions).forEach(group => {
+                const stitchCountText = group.stitchCount > 1 ? `${group.stitchCount} ` : '';
+                const techniqueText = `${stitchCountText}${group.technique}`;
+                const positionText = group.position ? ` ${group.position}` : '';
+                const distanceText = group.distance && group.distance !== 'at' ? ` ${group.distance} st from marker` : '';
+                const actionText = `${techniqueText}${positionText}${distanceText}, slip marker`;
+
+                if (group.count > 1) {
+                    // Handle in-row repeat
+                    markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}, repeat ${group.count - 1} time${group.count - 1 === 1 ? '' : 's'}`);
+                    totalStitchChange += (group.actionType === 'increase' ? 1 : -1) * group.stitchCount * group.count;
+                } else {
+                    // Single action, no repeat
+                    markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}`);
+                    totalStitchChange += (group.actionType === 'increase' ? 1 : -1) * group.stitchCount;
+                }
+            });
+
+            // Add final "work to end" if there are remaining stitches
+            const lastMarkerIndex = markerArray.lastIndexOf(markers[markers.length - 1]);
+            if (lastMarkerIndex < markerArray.length - 1) {
+                markerInstructionParts.push(`work to end`);
             }
+
+            instructionParts.push(markerInstructionParts.join(', '));
         }
 
-        const instruction = instructionParts.join(', ');
+        const instruction = instructionParts.join(' and ');
         const stitchChangeText = totalStitchChange !== 0 ? ` (${totalStitchChange > 0 ? '+' : ''}${totalStitchChange} sts)` : '';
-        return instruction + stitchChangeText;
+        const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
+            ? ` until ${timing.targetStitches} stitches remain`
+            : timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+        const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+        return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
     };
 
     // Complete instruction
@@ -681,7 +738,7 @@ const MarkerInstructionBuilder = ({
             </h4>
             <div className="bg-white rounded-lg p-3 border border-lavender-200">
                 <p className="text-sm text-lavender-700 font-medium text-left">
-                    {generatePreview()?.charAt(0).toUpperCase() + generatePreview()?.slice(1)}
+                    {generatePreview()}
                 </p>
                 {completedActions.length > 0 && currentStep !== 'timing' && (
                     <div className="mt-3 pt-3 border-t border-lavender-100">
@@ -780,8 +837,13 @@ const MarkerInstructionBuilder = ({
                     )}
                 </div>
             </div>
-            <PreviewSection />
-            {currentStep === 'timing' && <FrequencyTimingSelector />}
+            {currentStep === 'timing' && (
+                <>
+                    <FrequencyTimingSelector />
+                    <PreviewSection />
+                </>
+            )}
+            {currentStep !== 'timing' && <PreviewSection />}
             <div className="flex gap-3">
                 <button onClick={onCancel} className="btn-tertiary flex-1">Cancel</button>
                 {currentStep === 'timing' && (
