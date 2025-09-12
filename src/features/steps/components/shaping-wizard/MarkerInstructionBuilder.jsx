@@ -572,6 +572,111 @@ const MarkerInstructionBuilder = ({
                                                         </p>
                                                     </div>
                                                 )}
+                                                {/* Cast-on support for edge increases at distance 0 */}
+                                                {currentAction.whereType === 'edges' && currentAction.distance === 'at' && currentAction.actionType === 'increase' && (
+                                                    <div>
+                                                        <label className="form-label text-sm">Cast-on technique</label>
+                                                        <div className="grid grid-cols-2 gap-2">
+                                                            <div
+                                                                onClick={() => updateAction('technique', 'Cable Cast On')}
+                                                                className={`card-marker-select-compact ${currentAction.technique === 'Cable Cast On' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                Cable Cast On
+                                                            </div>
+                                                            <div
+                                                                onClick={() => updateAction('technique', 'Backwards Loop')}
+                                                                className={`card-marker-select-compact ${currentAction.technique === 'Backwards Loop' ? 'card-marker-select-compact-selected' : ''}`}
+                                                            >
+                                                                Backwards Loop
+                                                            </div>
+                                                        </div>
+
+                                                        {currentAction.technique && (
+                                                            <div className="mt-3">
+                                                                <label className="form-label text-sm">
+                                                                    {currentAction.position === 'both_ends' ? 'How many stitches to cast on each end?' : 'How many stitches to cast on?'}
+                                                                </label>
+                                                                <IncrementInput
+                                                                    value={currentAction.stitchCount}
+                                                                    onChange={(value) => updateAction('stitchCount', Math.max(value, 1))}
+                                                                    min={1}
+                                                                    max={100}
+                                                                    size="sm"
+                                                                />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
+
+                                                {/* Regular edge techniques for distances 1-3 */}
+                                                {currentAction.whereType === 'edges' && currentAction.distance && currentAction.distance !== 'at' && (
+                                                    <div>
+                                                        <label className="form-label text-sm">Technique</label>
+
+                                                        {/* Beginning techniques */}
+                                                        {currentAction.position === 'at_beginning' && (
+                                                            <div className="grid grid-cols-3 gap-2">
+                                                                {currentAction.actionType === 'increase' ? (
+                                                                    <>
+                                                                        <div onClick={() => updateAction('technique', 'M1L')} className={`card-marker-select-compact ${currentAction.technique === 'M1L' ? 'card-marker-select-compact-selected' : ''}`}>M1L</div>
+                                                                        <div onClick={() => updateAction('technique', 'YO')} className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}>YO</div>
+                                                                        <div onClick={() => updateAction('technique', 'KFB')} className={`card-marker-select-compact ${currentAction.technique === 'KFB' ? 'card-marker-select-compact-selected' : ''}`}>KFB</div>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <div onClick={() => updateAction('technique', 'SSK')} className={`card-marker-select-compact ${currentAction.technique === 'SSK' ? 'card-marker-select-compact-selected' : ''}`}>SSK</div>
+                                                                        <div onClick={() => updateAction('technique', 'K2tog')} className={`card-marker-select-compact ${currentAction.technique === 'K2tog' ? 'card-marker-select-compact-selected' : ''}`}>K2tog</div>
+                                                                        <div onClick={() => updateAction('technique', 'CDD')} className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}>CDD</div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* End techniques */}
+                                                        {currentAction.position === 'at_end' && (
+                                                            <div className="grid grid-cols-3 gap-2">
+                                                                {currentAction.actionType === 'increase' ? (
+                                                                    <>
+                                                                        <div onClick={() => updateAction('technique', 'M1R')} className={`card-marker-select-compact ${currentAction.technique === 'M1R' ? 'card-marker-select-compact-selected' : ''}`}>M1R</div>
+                                                                        <div onClick={() => updateAction('technique', 'YO')} className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}>YO</div>
+                                                                        <div onClick={() => updateAction('technique', 'KFB')} className={`card-marker-select-compact ${currentAction.technique === 'KFB' ? 'card-marker-select-compact-selected' : ''}`}>KFB</div>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <div onClick={() => updateAction('technique', 'SSK')} className={`card-marker-select-compact ${currentAction.technique === 'SSK' ? 'card-marker-select-compact-selected' : ''}`}>SSK</div>
+                                                                        <div onClick={() => updateAction('technique', 'K2tog')} className={`card-marker-select-compact ${currentAction.technique === 'K2tog' ? 'card-marker-select-compact-selected' : ''}`}>K2tog</div>
+                                                                        <div onClick={() => updateAction('technique', 'CDD')} className={`card-marker-select-compact ${currentAction.technique === 'CDD' ? 'card-marker-select-compact-selected' : ''}`}>CDD</div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        )}
+
+                                                        {/* Both ends */}
+                                                        {currentAction.position === 'both_ends' && (
+                                                            <div className="space-y-3">
+                                                                {currentAction.actionType === 'increase' ? (
+                                                                    <>
+                                                                        <div onClick={() => updateAction('technique', 'M1L_M1R')} className={`card-marker-select-compact ${currentAction.technique === 'M1L_M1R' ? 'card-marker-select-compact-selected' : ''}`}>
+                                                                            <div className="font-medium">M1L at beginning, M1R at end</div>
+                                                                        </div>
+                                                                        <div onClick={() => updateAction('technique', 'YO_YO')} className={`card-marker-select-compact ${currentAction.technique === 'YO_YO' ? 'card-marker-select-compact-selected' : ''}`}>
+                                                                            <div className="font-medium">YO at beginning, YO at end</div>
+                                                                        </div>
+                                                                    </>
+                                                                ) : (
+                                                                    <>
+                                                                        <div onClick={() => updateAction('technique', 'SSK_K2tog')} className={`card-marker-select-compact ${currentAction.technique === 'SSK_K2tog' ? 'card-marker-select-compact-selected' : ''}`}>
+                                                                            <div className="font-medium">SSK at beginning, K2tog at end</div>
+                                                                        </div>
+                                                                        <div onClick={() => updateAction('technique', 'K3tog_K3tog')} className={`card-marker-select-compact ${currentAction.technique === 'K3tog_K3tog' ? 'card-marker-select-compact-selected' : ''}`}>
+                                                                            <div className="font-medium">K3tog at beginning, K3tog at end</div>
+                                                                        </div>
+                                                                    </>
+                                                                )}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                )}
 
 
                                             </div>
