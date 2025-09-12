@@ -627,74 +627,13 @@ const MarkerInstructionBuilder = ({
                             </div>
                             )}
 
-                            {/* Step 3a: Edge-specific technique selection */}
-                            {currentAction.whereType === 'edges' && currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
-                                <div>
-                                    <label className="form-label">
-                                        {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'} technique and distance
-                                    </label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
-                                        {/* Technique selection for edges */}
-                                        <div>
-                                            <label className="form-label text-sm">Technique</label>
-                                            <div className="grid grid-cols-3 gap-2">
-                                                {currentAction.actionType === 'increase' ? (
-                                                    <>
-                                                        <div onClick={() => updateAction('technique', 'M1L')}
-                                                            className={`card-marker-select-compact ${currentAction.technique === 'M1L' ? 'card-marker-select-compact-selected' : ''}`}>
-                                                            M1L
-                                                        </div>
-                                                        <div onClick={() => updateAction('technique', 'M1R')}
-                                                            className={`card-marker-select-compact ${currentAction.technique === 'M1R' ? 'card-marker-select-compact-selected' : ''}`}>
-                                                            M1R
-                                                        </div>
-                                                        <div onClick={() => updateAction('technique', 'YO')}
-                                                            className={`card-marker-select-compact ${currentAction.technique === 'YO' ? 'card-marker-select-compact-selected' : ''}`}>
-                                                            YO
-                                                        </div>
-                                                    </>
-                                                ) : (
-                                                    <>
-                                                        <div onClick={() => updateAction('technique', 'SSK')}
-                                                            className={`card-marker-select-compact ${currentAction.technique === 'SSK' ? 'card-marker-select-compact-selected' : ''}`}>
-                                                            SSK
-                                                        </div>
-                                                        <div onClick={() => updateAction('technique', 'K2tog')}
-                                                            className={`card-marker-select-compact ${currentAction.technique === 'K2tog' ? 'card-marker-select-compact-selected' : ''}`}>
-                                                            K2tog
-                                                        </div>
-                                                        <div onClick={() => updateAction('technique', 'K3tog')}
-                                                            className={`card-marker-select-compact ${currentAction.technique === 'K3tog' ? 'card-marker-select-compact-selected' : ''}`}>
-                                                            K3tog
-                                                        </div>
-                                                    </>
-                                                )}
-                                            </div>
-                                        </div>
 
-                                        {/* Distance from edge */}
-                                        {currentAction.technique && (
-                                            <div>
-                                                <label className="form-label text-sm">Distance from row edge</label>
-                                                <div className="grid grid-cols-4 gap-2">
-                                                    {['1', '2', '3', '4'].map(distance => (
-                                                        <button key={distance} onClick={() => updateAction('distance', distance)}
-                                                            className={`card-marker-select-compact ${currentAction.distance === distance ? 'card-marker-select-compact-selected' : ''}`}>
-                                                            {distance} st{distance === '1' ? '' : 's'}
-                                                        </button>
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            )}
 
 
 
 
                             {/* Step 3: Position & Technique */}
-                            {currentAction.whereType !== 'edges' && currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
+                            {currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && (
                                 <div>
                                     <label className="form-label">
                                         {currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'} where and how?
