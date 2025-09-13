@@ -733,7 +733,7 @@ const MarkerInstructionBuilder = ({
                             {currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && currentAction.whereType !== 'edges' && (
                                 <PositionTechniqueSelector />
                             )}
-                            {currentAction.technique && currentAction.whereType === 'markers' && (
+                            {currentAction.technique && (currentAction.whereType === 'markers' || construction === 'round') && (
                                 <DistanceSelector />
                             )}
                             {currentAction.actionType === 'bind_off' && (
