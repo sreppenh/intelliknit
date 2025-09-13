@@ -403,9 +403,13 @@ const MarkerInstructionBuilder = ({
             {currentAction.distance === 'at' && currentAction.actionType === 'increase' && (
                 <CastOnSelector />
             )}
+            {currentAction.distance === 'at' && currentAction.actionType === 'decrease' && (
+                <EdgeTechniqueSelector />
+            )}
             {currentAction.distance && currentAction.distance !== 'at' && (
                 <EdgeTechniqueSelector />
             )}
+
         </div>
     );
 
