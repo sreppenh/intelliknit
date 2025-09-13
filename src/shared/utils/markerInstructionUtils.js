@@ -623,11 +623,12 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
 
     // Handle 'continue' only actions
     if (allActions.length === 1 && allActions[0].actionType === 'continue') {
+        const rowTerm = construction === 'round' ? 'round' : 'row';
         const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
             ? ` until ${timing.targetStitches} stitches remain`
             : timing.times ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
         const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
-        return `Continue in ${basePattern}${frequencyText}${repeatText}`;
+        return `Work in ${basePattern} until end of ${rowTerm}${frequencyText}${repeatText}`;
     }
 
     // Handle bind off actions
@@ -636,7 +637,12 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
         const instructions = bindOffActions.map(action => {
             const amount = action.bindOffAmount === 'all' ? 'all stitches' : `${action.stitchCount} stitch${action.stitchCount === 1 ? '' : 'es'}`;
             const location = action.targets.length > 0 ? ` at ${action.targets.join(' and ')}` : '';
-            return `Bind off ${amount}${location}`;
+            if (action.bindOffAmount === 'all') {
+                return `Bind off all stitches`;
+            } else {
+                const rowTerm = construction === 'round' ? 'round' : 'row';
+                return `Bind off ${amount}${location} then work in ${basePattern} until end of ${rowTerm}`;
+            }
         });
         const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
             ? ` until ${timing.targetStitches} stitches remain`

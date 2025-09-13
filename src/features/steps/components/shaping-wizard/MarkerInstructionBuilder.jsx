@@ -214,9 +214,17 @@ const MarkerInstructionBuilder = ({
     // Generate preview - now uses centralized utility
     const generatePreview = () => {
         const allActions = [...completedActions];
-        if (currentAction.actionType && currentAction.targets.length > 0 && currentAction.actionType !== 'continue') {
+        if (currentAction.actionType && currentAction.targets.length > 0) {
             allActions.push(currentAction);
         }
+
+        // DEBUG: Log the data being passed
+        console.log('generatePreview DEBUG:', {
+            currentAction,
+            allActions,
+            'allActions.length': allActions.length
+        });
+
 
         const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
 
