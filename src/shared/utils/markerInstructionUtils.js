@@ -637,7 +637,9 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
         const instructions = bindOffActions.map(action => {
             const amount = action.bindOffAmount === 'all' ? 'all stitches' : `${action.stitchCount} stitch${action.stitchCount === 1 ? '' : 'es'}`;
             const location = action.targets.length > 0 ? ` at ${action.targets.join(' and ')}` : '';
-            if (action.bindOffAmount === 'all') {
+            const totalStitches = markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0);
+
+            if (action.bindOffAmount === 'all' || action.stitchCount >= totalStitches) {
                 return `Bind off all stitches`;
             } else {
                 const rowTerm = construction === 'round' ? 'round' : 'row';
@@ -735,10 +737,14 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
     // Build final instruction
     const instruction = instructionParts.join(' and ');
     const stitchChangeText = totalStitchChange !== 0 ? ` (${totalStitchChange > 0 ? '+' : ''}${totalStitchChange} sts)` : '';
-    const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
-        ? ` until ${timing.targetStitches} stitches remain`
-        : timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
-    const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+    // Only show timing if values are actually set by user (not defaults)
+    const hasRealTiming = (timing.frequency && timing.frequency > 1) ||
+        (timing.times && timing.times > 1) ||
+        (timing.amountMode === 'target' && timing.targetStitches && timing.targetStitches > 0);
 
+    const repeatText = hasRealTiming && timing.amountMode === 'target' && timing.targetStitches !== null && timing.targetStitches > 0
+        ? ` until ${timing.targetStitches} stitches remain`
+        : hasRealTiming && timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
     return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
 };

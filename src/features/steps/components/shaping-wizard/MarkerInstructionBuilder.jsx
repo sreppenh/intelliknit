@@ -214,7 +214,7 @@ const MarkerInstructionBuilder = ({
     // Generate preview - now uses centralized utility
     const generatePreview = () => {
         const allActions = [...completedActions];
-        if (currentAction.actionType && currentAction.targets.length > 0) {
+        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'bind_off')) {
             allActions.push(currentAction);
         }
 
