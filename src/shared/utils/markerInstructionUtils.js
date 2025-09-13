@@ -709,15 +709,34 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
         const markerInstructionParts = [];
         Object.values(groupedActions).forEach(group => {
             const stitchCountText = group.stitchCount > 1 ? `${group.stitchCount} ` : '';
-            const techniqueText = `${stitchCountText}${group.technique}`;
-            const positionText = group.position ? ` ${group.position}` : '';
-            const distanceText = group.distance && group.distance !== 'at' ? ` ${group.distance} st from marker` : '';
-            const actionText = `${techniqueText}${positionText}${distanceText}, slip marker`;
+            const distance = group.distance && group.distance !== 'at' ? parseInt(group.distance) : 0;
 
+            let actionText;
+            if (group.position === 'before') {
+                if (distance > 0) {
+                    actionText = `until ${distance} st before marker, ${group.technique}, K${distance}, slip marker`;
+                } else {
+                    actionText = `${group.technique}, slip marker`;
+                }
+            } else if (group.position === 'after') {
+                if (distance > 0) {
+                    actionText = `slip marker, K${distance}, ${group.technique}`;
+                } else {
+                    actionText = `slip marker, ${group.technique}`;
+                }
+            } else {
+                actionText = `${group.technique}, slip marker`;
+            }
             if (group.count > 1) {
-                // Handle in-row repeat
-                markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}, repeat ${group.count - 1} time${group.count - 1 === 1 ? '' : 's'}`);
+                // Handle in-row repeat  
+                if (group.position === 'before' && distance > 0) {
+                    markerInstructionParts.push(`Work in ${basePattern} ${actionText}, repeat ${group.count - 1} time${group.count - 1 === 1 ? '' : 's'}`);
+                } else {
+                    markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}, repeat ${group.count - 1} time${group.count - 1 === 1 ? '' : 's'}`);
+                }
+
                 totalStitchChange += (group.actionType === 'increase' ? 1 : -1) * group.stitchCount * group.count;
+
             } else {
                 // Single action, no repeat
                 markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}`);
