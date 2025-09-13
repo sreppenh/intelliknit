@@ -685,71 +685,65 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
         });
     }
 
-    // Handle marker actions
+    // Handle marker actions - process each marker in sequence
     if (markerActions.length > 0) {
-        // Group marker actions by technique, position, and distance to detect repeats
-        const groupedActions = {};
+        const actionsByMarker = {};
         markerActions.forEach(action => {
-            const key = `${action.technique}_${action.position}_${action.distance}`;
-            if (!groupedActions[key]) {
-                groupedActions[key] = {
-                    technique: action.technique || (action.actionType === 'increase' ? 'inc' : 'dec'),
-                    position: action.position,
-                    distance: action.distance,
-                    stitchCount: action.stitchCount || 1,
-                    actionType: action.actionType,
-                    targets: [],
-                    count: 0
-                };
-            }
-            groupedActions[key].targets.push(...action.targets);
-            groupedActions[key].count += action.targets.length;
+            action.targets.forEach(target => {
+                if (!actionsByMarker[target]) actionsByMarker[target] = [];
+                actionsByMarker[target].push(action);
+            });
         });
 
         const markerInstructionParts = [];
-        Object.values(groupedActions).forEach(group => {
-            const stitchCountText = group.stitchCount > 1 ? `${group.stitchCount} ` : '';
-            const distance = group.distance && group.distance !== 'at' ? parseInt(group.distance) : 0;
+        let lastActionMarkerIndex = -1;
 
-            let actionText;
-            if (group.position === 'before') {
-                if (distance > 0) {
-                    actionText = `until ${distance} st before marker, ${group.technique}, K${distance}, slip marker`;
-                } else {
-                    actionText = `${group.technique}, slip marker`;
-                }
-            } else if (group.position === 'after') {
-                if (distance > 0) {
-                    actionText = `slip marker, K${distance}, ${group.technique}`;
-                } else {
-                    actionText = `slip marker, ${group.technique}`;
-                }
-            } else {
-                actionText = `${group.technique}, slip marker`;
+        // Find the last marker that has actions
+        for (let i = markers.length - 1; i >= 0; i--) {
+            if (actionsByMarker[markers[i]]) {
+                lastActionMarkerIndex = i;
+                break;
             }
-            if (group.count > 1) {
-                // Handle in-row repeat  
-                if (group.position === 'before' && distance > 0) {
-                    markerInstructionParts.push(`Work in ${basePattern} ${actionText}, repeat ${group.count - 1} time${group.count - 1 === 1 ? '' : 's'}`);
-                } else {
-                    markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}, repeat ${group.count - 1} time${group.count - 1 === 1 ? '' : 's'}`);
-                }
-
-                totalStitchChange += (group.actionType === 'increase' ? 1 : -1) * group.stitchCount * group.count;
-
-            } else {
-                // Single action, no repeat
-                markerInstructionParts.push(`Work in ${basePattern} to marker, ${actionText}`);
-                totalStitchChange += (group.actionType === 'increase' ? 1 : -1) * group.stitchCount;
-            }
-        });
-
-        // Add final "work to end" if there are remaining stitches
-        const lastMarkerIndex = markerArray.lastIndexOf(markers[markers.length - 1]);
-        if (lastMarkerIndex < markerArray.length - 1) {
-            markerInstructionParts.push(`work to end`);
         }
 
+        // Process each marker up to the last action marker
+        for (let i = 0; i <= lastActionMarkerIndex; i++) {
+            const marker = markers[i];
+            const markerActionsForThis = actionsByMarker[marker];
+
+            if (i === 0) {
+                // First marker - add work to marker
+                if (markerActionsForThis) {
+                    const action = markerActionsForThis[0];
+                    const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                    if (action.position === 'before' && distance > 0) {
+                        markerInstructionParts.push(`Work in ${basePattern} until ${distance} st before marker, ${action.technique}, K${distance}, slip marker`);
+                    } else {
+                        markerInstructionParts.push(`Work in ${basePattern} to marker, ${action.technique}, slip marker`);
+                    }
+                    totalStitchChange += (action.actionType === 'increase' ? 1 : -1);
+                } else {
+                    markerInstructionParts.push(`Work in ${basePattern} to marker, slip marker`);
+                }
+            } else {
+                // Subsequent markers
+                if (markerActionsForThis) {
+                    const action = markerActionsForThis[0];
+                    const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                    if (action.position === 'before' && distance > 0) {
+                        markerInstructionParts.push(`work until ${distance} st before marker, ${action.technique}, K${distance}, slip marker`);
+                    } else {
+                        markerInstructionParts.push(`work to marker, ${action.technique}, slip marker`);
+                    }
+                    totalStitchChange += (action.actionType === 'increase' ? 1 : -1);
+                } else {
+                    markerInstructionParts.push(`work to marker, slip marker`);
+                }
+            }
+        }
+
+        // Add final work to end
+        markerInstructionParts.push('work to end');
         instructionParts.push(markerInstructionParts.join(', '));
     }
 
