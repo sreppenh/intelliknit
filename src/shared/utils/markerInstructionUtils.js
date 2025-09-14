@@ -147,8 +147,11 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                 const consumption = getStitchConsumption(beforeTech);
                 const totalStitchesNeeded = consumption + distance;
 
-                markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`);
-                markerInstructionParts.push(beforeTech);
+                if (totalStitchesNeeded > 0) {
+                    markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`);
+                } else {
+                    markerInstructionParts.push(`Work in ${basePattern} until marker`);
+                } markerInstructionParts.push(beforeTech);
                 if (distance > 0) {
                     markerInstructionParts.push(`k${distance}`);
                 }
@@ -165,8 +168,11 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                 const consumption = getStitchConsumption(action.technique);
                 const totalStitchesNeeded = consumption + distance;
 
-                markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`);
-                markerInstructionParts.push(action.technique);
+                if (totalStitchesNeeded > 0) {
+                    markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`);
+                } else {
+                    markerInstructionParts.push(`Work in ${basePattern} until marker`);
+                } markerInstructionParts.push(action.technique);
                 if (distance > 0) {
                     markerInstructionParts.push(`k${distance}`);
                 }
