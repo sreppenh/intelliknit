@@ -90,13 +90,6 @@ const MarkerInstructionBuilder = ({
         whereType: 'markers'
     });
     const [completedActions, setCompletedActions] = useState([]);
-    const [timing, setTiming] = useState({
-        frequency: 2,
-        times: 10,
-        rows: 1,
-        amountMode: 'times',
-        targetStitches: null
-    });
 
     // Available targets based on construction
     const availableTargets = useMemo(() => {
@@ -232,7 +225,6 @@ const MarkerInstructionBuilder = ({
         return technique;
     };
 
-    // Generate preview
     // Generate preview - now uses centralized utility
     const generatePreview = () => {
         const allActions = [...completedActions];
@@ -240,47 +232,21 @@ const MarkerInstructionBuilder = ({
             allActions.push(currentAction);
         }
 
-        // DEBUG: Log the data being passed
-        console.log('generatePreview DEBUG:', {
-            currentAction,
-            allActions,
-            'allActions.length': allActions.length
-        });
-
-
         const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
 
-        // Use centralized function that preserves all existing logic
-        return generateMarkerInstructionPreview(allActions, timing, markerArray, construction, basePattern);
-    };
+        // Use default timing for preview (no timing applied yet)
+        const defaultTiming = { frequency: 1, times: 1, amountMode: 'times', targetStitches: null };
 
-    // Complete instruction
-    const handleComplete = () => {
-        const finalActions = [...completedActions];
-        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue')) {
-            finalActions.push(currentAction);
-        }
-        const instructionData = {
-            actions: finalActions,
-            timing,
-            preview: generatePreview(),
-            construction
-        };
-        IntelliKnitLogger.success('Marker instruction completed', instructionData);
-        onComplete(instructionData);
+        return generateMarkerInstructionPreview(allActions, defaultTiming, markerArray, construction, basePattern);
     };
 
     // Preview helpers
     const shouldShowPreview = () => (
         completedActions.length > 0 ||
-        (currentAction.actionType && currentAction.actionType !== '') ||
-        currentStep === 'timing'
+        (currentAction.actionType && currentAction.actionType !== '')
     );
 
     const getPreviewTitle = () => {
-        if (currentStep === 'timing') {
-            return "Phase Instruction";
-        }
         if (completedActions.length > 0 && (!currentAction.actionType || currentAction.targets.length === 0)) {
             return "Phase Preview";
         }
@@ -288,12 +254,7 @@ const MarkerInstructionBuilder = ({
     };
 
     const getPreviewSubtext = () => {
-        if (currentStep === 'timing') {
-            if (!timing.frequency || (!timing.times && !timing.targetStitches)) {
-                return "Set frequency and repetitions to complete this phase.";
-            }
-            return "Phase is ready to create. Click 'Create Instruction' to proceed.";
-        }
+
         if (completedActions.length > 0 && (!currentAction.actionType || currentAction.targets.length === 0)) {
             return "Add another action with 'AND' or set timing to complete this phase.";
         }
@@ -308,13 +269,6 @@ const MarkerInstructionBuilder = ({
         }
         return "This preview updates as you build your phase instruction.";
     };
-
-    // Auto-advance for 'continue' action
-    useEffect(() => {
-        if (currentAction.actionType === 'continue') {
-            setCurrentStep('timing');
-        }
-    }, [currentAction.actionType]);
 
     // Subcomponents
     const ActionTypeSelector = () => (
@@ -674,64 +628,6 @@ const MarkerInstructionBuilder = ({
         </div>
     );
 
-    const FrequencyTimingSelector = () => (
-        <div className="card">
-            <h4 className="section-header-secondary">Frequency & Times</h4>
-            <div className="space-y-6">
-                <div>
-                    <label className="form-label">How often?</label>
-                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-wool-600">Every</span>
-                            <IncrementInput
-                                value={timing.frequency}
-                                onChange={(value) => setTiming(prev => ({ ...prev, frequency: Math.max(value, 1) }))}
-                                min={1}
-                                size="sm"
-                            />
-                            <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
-                        </div>
-                    </div>
-                </div>
-                <div>
-                    <label className="form-label">Number of Times vs Target Stitches</label>
-                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                        <SelectionGrid
-                            options={[
-                                { value: 'times', label: 'Number of Times' },
-                                { value: 'target', label: 'Target Stitches' }
-                            ]}
-                            selected={timing.amountMode || 'times'}
-                            onSelect={(value) => setTiming(prev => ({ ...prev, amountMode: value }))}
-                            columns={2}
-                            compact
-                        />
-                        <div className="mt-4">
-                            {timing.amountMode === 'target' ? (
-                                <IncrementInput
-                                    value={timing.targetStitches || 0}
-                                    onChange={(value) => setTiming(prev => ({ ...prev, targetStitches: value }))}
-                                    unit="stitches"
-                                    min={0}
-                                    size="sm"
-                                />
-                            ) : (
-                                <IncrementInput
-                                    value={timing.times}
-                                    onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
-                                    unit="times"
-                                    min={1}
-                                    max={50}
-                                    size="sm"
-                                />
-                            )}
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    );
-
     const PreviewSection = () => shouldShowPreview() ? (
         <div className="card-info">
             <h4 className="section-header-secondary flex items-center justify-between">
@@ -841,18 +737,9 @@ const MarkerInstructionBuilder = ({
                     )}
                 </div>
             </div>
-            {currentStep === 'timing' && (
-                <>
-                    <FrequencyTimingSelector />
-                    <PreviewSection />
-                </>
-            )}
             {currentStep !== 'timing' && <PreviewSection />}
             <div className="flex gap-3">
                 <button onClick={onCancel} className="btn-tertiary flex-1">Cancel</button>
-                {currentStep === 'timing' && (
-                    <button onClick={handleComplete} className="btn-primary flex-1">Create Instruction</button>
-                )}
             </div>
         </div>
     );
