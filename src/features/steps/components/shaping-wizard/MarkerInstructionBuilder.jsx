@@ -150,8 +150,8 @@ const MarkerInstructionBuilder = ({
                 updated.distance = '';
                 // Note: Target validation happens in UI render, not here
             }
-            if (updates.technique && updated.whereType === 'markers') {
-                updated.distance = '';
+            if (updates.distance && updated.whereType === 'markers') {
+                updated.technique = '';
             }
             if (updates.actionType) {
                 updated.whereType = '';
@@ -558,6 +558,62 @@ const MarkerInstructionBuilder = ({
         </div>
     );
 
+    const MarkerPositionDistanceTechnique = () => (
+        <div>
+            <label className="form-label">{currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'} where and how?</label>
+            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
+                <div>
+                    <label className="form-label text-sm">Position</label>
+                    <SelectionGrid
+                        options={[
+                            { value: 'before', label: 'Before' },
+                            { value: 'after', label: 'After' },
+                            { value: 'before_and_after', label: 'Both' }
+                        ]}
+                        selected={currentAction.position}
+                        onSelect={(value) => updateAction({ position: value })}
+                        columns={3}
+                        compact
+                    />
+                </div>
+                {currentAction.position && (
+                    <div>
+                        <label className="form-label text-sm">Stitches between technique and marker?</label>
+                        <SelectionGrid
+                            options={getValidDistanceOptions().map(d => ({ value: d, label: d === 'at' ? '0 st' : `${d} st${d === '1' ? '' : 's'}` }))}
+                            selected={currentAction.distance}
+                            onSelect={(value) => updateAction({ distance: value })}
+                            columns={4}
+                            compact
+                        />
+                    </div>
+                )}
+                {currentAction.distance && (
+                    <div>
+                        <label className="form-label text-sm">Technique</label>
+                        <SelectionGrid
+                            options={(currentAction.position === 'before' && currentAction.actionType === 'increase') ?
+                                [{ value: 'M1L', label: 'M1L' }, { value: 'YO', label: 'YO' }, { value: 'KFB', label: 'KFB' }] :
+                                (currentAction.position === 'before' && currentAction.actionType === 'decrease') ?
+                                    [{ value: 'SSK', label: 'SSK' }, { value: 'K3tog', label: 'K3tog' }, { value: 'CDD', label: 'CDD' }] :
+                                    (currentAction.position === 'after' && currentAction.actionType === 'increase') ?
+                                        [{ value: 'M1R', label: 'M1R' }, { value: 'YO', label: 'YO' }, { value: 'KFB', label: 'KFB' }] :
+                                        (currentAction.position === 'after' && currentAction.actionType === 'decrease') ?
+                                            [{ value: 'K2tog', label: 'K2tog' }, { value: 'K3tog', label: 'K3tog' }, { value: 'CDD', label: 'CDD' }] :
+                                            (currentAction.position === 'before_and_after' && currentAction.actionType === 'increase') ?
+                                                [{ value: 'M1L_M1R', label: 'M1L & M1R' }, { value: 'YO_YO', label: 'YO & YO' }] :
+                                                [{ value: 'SSK_K2tog', label: 'SSK & K2tog' }, { value: 'K3tog_K3tog', label: 'K3tog & K3tog' }]}
+                            selected={currentAction.technique}
+                            onSelect={(value) => updateAction({ technique: value })}
+                            columns={currentAction.position === 'before_and_after' ? 2 : 3}
+                            compact
+                        />
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+
     const BindOffSelector = () => (
         <div>
             <label className="form-label">How many stitches to bind off?</label>
@@ -759,10 +815,7 @@ const MarkerInstructionBuilder = ({
                                 <WhereSelector />
                             ))}
                             {currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && currentAction.whereType !== 'edges' && (
-                                <PositionTechniqueSelector />
-                            )}
-                            {currentAction.technique && currentAction.whereType === 'markers' && (
-                                <DistanceSelector />
+                                <MarkerPositionDistanceTechnique />
                             )}
                             {currentAction.actionType === 'bind_off' && (
                                 <BindOffSelector />
