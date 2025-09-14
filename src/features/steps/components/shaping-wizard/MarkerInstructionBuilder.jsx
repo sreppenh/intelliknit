@@ -192,6 +192,7 @@ const MarkerInstructionBuilder = ({
     // Continue to timing
     const continueToTiming = () => {
         if (currentAction.actionType === 'continue') {
+            addAction();
             setCurrentStep('timing');
             return;
         }
@@ -299,8 +300,7 @@ const MarkerInstructionBuilder = ({
 
     // Auto-advance for 'continue' action
     useEffect(() => {
-        if (currentAction.actionType === 'continue' && currentAction.targets.length === 0) {
-            updateAction({ targets: ['continue'] });
+        if (currentAction.actionType === 'continue') {
             setCurrentStep('timing');
         }
     }, [currentAction.actionType]);
