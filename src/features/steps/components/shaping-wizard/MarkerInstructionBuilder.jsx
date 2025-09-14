@@ -148,9 +148,7 @@ const MarkerInstructionBuilder = ({
             if (updates.position) {
                 updated.technique = '';
                 updated.distance = '';
-                const validTargets = getValidTargets();
-                const validTargetValues = validTargets.map(t => t.value);
-                updated.targets = updated.targets.filter(target => validTargetValues.includes(target));
+                // Note: Target validation happens in UI render, not here
             }
             if (updates.technique && updated.whereType === 'markers') {
                 updated.distance = '';
