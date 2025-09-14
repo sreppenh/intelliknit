@@ -251,15 +251,14 @@ const MarkerInstructionBuilder = ({
     // Generate preview - now uses centralized utility
     const generatePreview = () => {
         const allActions = [...completedActions];
-        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'bind_off')) {
+        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'bind_off' || currentAction.actionType === 'continue')) {
             allActions.push(currentAction);
         }
 
         const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
 
-        // Use default timing for preview (no timing applied yet)
-        const defaultTiming = { frequency: 1, times: 1, amountMode: 'times', targetStitches: null };
-
+        // Use empty timing for preview (no timing applied yet)
+        const defaultTiming = { frequency: 1, times: 0, amountMode: 'times', targetStitches: null };
         return generateMarkerInstructionPreview(allActions, defaultTiming, markerArray, construction, basePattern);
     };
 
