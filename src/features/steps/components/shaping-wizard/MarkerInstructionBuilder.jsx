@@ -226,6 +226,28 @@ const MarkerInstructionBuilder = ({
         return technique;
     };
 
+    const isActionComplete = () => {
+        if (!currentAction.actionType) return false;
+
+        if (currentAction.actionType === 'continue') {
+            return true;
+        }
+
+        if (currentAction.actionType === 'bind_off') {
+            return currentAction.stitchCount > 0;
+        }
+
+        // For increase/decrease actions
+        if (currentAction.targets.length === 0) return false;
+
+        if (currentAction.whereType === 'edges') {
+            return currentAction.position && currentAction.distance && currentAction.technique;
+        }
+
+        // For marker-based actions
+        return currentAction.position && currentAction.distance && currentAction.technique;
+    };
+
     // Generate preview - now uses centralized utility
     const generatePreview = () => {
         const allActions = [...completedActions];
@@ -738,7 +760,13 @@ const MarkerInstructionBuilder = ({
             {currentStep !== 'timing' && <PreviewSection />}
             <div className="flex gap-3">
                 <button onClick={onBack} className="btn-tertiary">← Back</button>
-                <button onClick={handleCompleteActions} className="btn-primary flex-1">Set Timing →</button>
+                <button
+                    onClick={handleCompleteActions}
+                    disabled={!isActionComplete()}
+                    className="btn-primary flex-1"
+                >
+                    Set Timing →
+                </button>
             </div>
         </div>
     );

@@ -20,23 +20,6 @@ const MARKER_COLOR_OPTIONS = [
     { bgColor: 'bg-wool-200', borderColor: 'border-wool-400', textColor: 'text-wool-700' }
 ];
 
-// ===== HELPER FUNCTION - CREATE ARRAY ON DEMAND =====
-const createMarkerArray = (count, totalStitches, construction) => {
-    const baseStitches = Math.floor(totalStitches / (count + 1));
-    const remainder = totalStitches % (count + 1);
-
-    const array = [];
-    if (construction === 'round') array.push('BOR');
-
-    for (let i = 0; i < count; i++) {
-        array.push(baseStitches + (i < remainder ? 1 : 0));
-        array.push(`M${i + 1}`);
-    }
-
-    array.push(baseStitches + (count < remainder ? 1 : 0));
-    return array;
-};
-
 const MarkerPhasesConfig = ({
     shapingData,
     setShapingData,
@@ -174,63 +157,6 @@ const MarkerPhasesConfig = ({
         const errors = markerArrayUtils.validateArray(currentArray);
         return errors.length === 0;
     }, [segments, showSegments, currentArray]);
-
-    // ===== CREATE MARKER SEGMENTS =====
-    const handleCreateMarkerSegments = () => {
-        // Use simple M1, M2, M3... naming instead of smart names
-        const defaultNames = Array.from({ length: markerCount }, (_, i) => `M${i + 1}`);
-        const newSegments = [];
-
-        // Calculate even distribution
-        const baseStitches = Math.floor(currentStitches / (markerCount + 1));
-        const remainder = currentStitches % (markerCount + 1);
-
-        // For round construction, add BOR marker first
-        if (construction === 'round') {
-            newSegments.push({
-                type: 'marker',
-                name: 'BOR',
-                id: 'marker_BOR',
-                readonly: true
-            });
-        }
-
-        // Add alternating stitches and markers
-        for (let i = 0; i < markerCount; i++) {
-            // Add stitches segment with even distribution
-            const stitchCount = baseStitches + (i < remainder ? 1 : 0);
-            newSegments.push({
-                type: 'stitches',
-                count: stitchCount,
-                id: `stitches_${i}`
-            });
-
-            // Add marker
-            newSegments.push({
-                type: 'marker',
-                name: defaultNames[i],
-                id: `marker_${defaultNames[i]}_${i}`,
-                readonly: false
-            });
-        }
-
-        // Add final stitches segment
-        const finalStitchCount = baseStitches + (markerCount < remainder ? 1 : 0);
-        newSegments.push({
-            type: 'stitches',
-            count: finalStitchCount,
-            id: `stitches_final`
-        });
-
-        setSegments(newSegments);
-        setShowSegments(true);
-
-        IntelliKnitLogger.info('Created marker segments', {
-            markerCount,
-            segments: newSegments,
-            totalStitches: currentStitches
-        });
-    };
 
     // ===== UPDATE SEGMENT (STITCH COUNTS ONLY) =====
     const updateSegment = (segmentId, field, value) => {
@@ -653,9 +579,9 @@ const MarkerPhasesConfig = ({
 
                 <div className="p-6">
                     <div className="mb-6">
-                        <h2 className="content-header-primary">Build Row Instruction</h2>
+                        <h2 className="content-header-primary">Build {construction === 'round' ? 'Round' : 'Row'} Instruction</h2>
                         <p className="content-subheader">
-                            Define what happens in each shaping row
+                            Define what happens in each shaping {construction === 'round' ? 'round' : 'row'}
                         </p>
                     </div>
 
