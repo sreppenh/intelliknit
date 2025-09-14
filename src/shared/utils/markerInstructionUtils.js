@@ -151,6 +151,11 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
         instructionParts.push(edgeInstructionParts.join(', '));
     }
 
+    // Handle round construction separately
+    if (construction === 'round' && markerArray.includes('BOR') && markerActions.length > 0) {
+        return generateRoundInstructions(allActions, timing, markerArray, basePattern);
+    }
+
     // Handle marker actions - FIX THE before_and_after LOGIC HERE
     if (markerActions.length > 0) {
         const actionsByMarker = {};
@@ -356,3 +361,17 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
 
     return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
 };
+
+/**
+ * Generate round construction instructions with BOR handling
+ * @param {Array} allActions - All completed actions  
+ * @param {Object} timing - Timing configuration
+ * @param {Array} markerArray - Marker array with BOR
+ * @param {string} basePattern - Base pattern name
+ * @returns {string} - Round instruction text
+ */
+const generateRoundInstructions = (allActions, timing, markerArray, basePattern) => {
+    // TODO: Implement 4-case round logic
+    return "Round construction - not implemented yet";
+};
+
