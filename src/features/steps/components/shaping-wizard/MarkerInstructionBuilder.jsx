@@ -415,6 +415,9 @@ const MarkerInstructionBuilder = ({
             {currentAction.distance === 'at' && currentAction.actionType === 'increase' && (
                 <CastOnSelector />
             )}
+            {currentAction.distance === 'at' && currentAction.actionType === 'decrease' && (
+                <EdgeDecreaseAtSelector />
+            )}
             {currentAction.distance && currentAction.distance !== 'at' && (
                 <EdgeTechniqueSelector />
             )}
@@ -459,6 +462,24 @@ const MarkerInstructionBuilder = ({
             (currentAction.position === 'at_beginning' ? ['SSK', 'K2tog', 'CDD'] :
                 currentAction.position === 'at_end' ? ['SSK', 'K2tog', 'CDD'] :
                     ['SSK_K2tog', 'K3tog_K3tog']);
+        return (
+            <div className="mt-4">
+                <label className="form-label text-sm">Technique</label>
+                <SelectionGrid
+                    options={techniques.map(t => ({ value: t, label: getTechniqueLabel(t, currentAction.position) }))}
+                    selected={currentAction.technique}
+                    onSelect={(value) => updateAction({ technique: value })}
+                    columns={currentAction.position === 'both_ends' ? 2 : 3}
+                    compact
+                />
+            </div>
+        );
+    };
+
+    const EdgeDecreaseAtSelector = () => {
+        const techniques = currentAction.position === 'at_beginning' ? ['SSK', 'K2tog', 'CDD'] :
+            currentAction.position === 'at_end' ? ['SSK', 'K2tog', 'CDD'] :
+                ['SSK_K2tog', 'K3tog_K3tog'];
         return (
             <div className="mt-4">
                 <label className="form-label text-sm">Technique</label>
