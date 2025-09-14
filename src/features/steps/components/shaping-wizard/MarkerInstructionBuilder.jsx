@@ -76,6 +76,7 @@ const MarkerInstructionBuilder = ({
     construction = 'flat',
     onComplete,
     onCancel,
+    onBack,
     wizard
 }) => {
     const [currentStep, setCurrentStep] = useState('action-type');
@@ -621,12 +622,7 @@ const MarkerInstructionBuilder = ({
         </div>
     );
 
-    const ActionButtons = () => (
-        <div className="flex gap-3 pt-4 border-t">
-            <button onClick={addAction} className="btn-secondary">AND (add another action)</button>
-            <button onClick={handleCompleteActions} className="btn-primary">Complete Actions →</button>
-        </div>
-    );
+
 
     const PreviewSection = () => shouldShowPreview() ? (
         <div className="card-info">
@@ -731,7 +727,9 @@ const MarkerInstructionBuilder = ({
                                 <BindOffSelector />
                             )}
                             {currentAction.targets.length > 0 && (
-                                <ActionButtons />
+                                <div className="flex gap-3 pt-4 border-t">
+                                    <button onClick={addAction} className="btn-secondary">AND (add another action)</button>
+                                </div>
                             )}
                         </>
                     )}
@@ -739,7 +737,8 @@ const MarkerInstructionBuilder = ({
             </div>
             {currentStep !== 'timing' && <PreviewSection />}
             <div className="flex gap-3">
-                <button onClick={onCancel} className="btn-tertiary flex-1">Cancel</button>
+                <button onClick={onBack} className="btn-tertiary">← Back</button>
+                <button onClick={handleCompleteActions} className="btn-primary flex-1">Set Timing →</button>
             </div>
         </div>
     );
