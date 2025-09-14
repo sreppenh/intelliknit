@@ -46,62 +46,87 @@ const MarkerTimingConfig = ({
         onComplete(finalInstructionData);
     };
 
-    const FrequencyTimingSelector = () => (
-        <div className="card">
-            <h4 className="section-header-secondary">Frequency & Times</h4>
-            <div className="space-y-6">
-                <div>
-                    <label className="form-label">How often?</label>
+    const FrequencyTimingSelector = () => {
+        // Check if this is a continue/plain rows case
+        const isContinueAction = instructionData?.actions?.length === 1 &&
+            instructionData.actions[0].actionType === 'continue';
+
+        if (isContinueAction) {
+            // Simplified interface for plain rows
+            return (
+                <div className="card">
+                    <h4 className="section-header-secondary">Number of {construction === 'round' ? 'Rounds' : 'Rows'}</h4>
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                        <div className="flex items-center gap-2">
-                            <span className="text-sm text-wool-600">Every</span>
-                            <IncrementInput
-                                value={timing.frequency}
-                                onChange={(value) => setTiming(prev => ({ ...prev, frequency: Math.max(value, 1) }))}
-                                min={1}
-                                size="sm"
-                            />
-                            <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
-                        </div>
+                        <IncrementInput
+                            value={timing.times}
+                            onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1), frequency: 1 }))}
+                            unit={construction === 'round' ? 'rounds' : 'rows'}
+                            min={1}
+                            max={50}
+                            size="sm"
+                        />
                     </div>
                 </div>
-                <div>
-                    <label className="form-label">Number of Times vs Target Stitches</label>
-                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                        <SegmentedControl
-                            options={[
-                                { value: 'times', label: 'Number of Times' },
-                                { value: 'target', label: 'Target Stitches' }
-                            ]}
-                            value={timing.amountMode || 'times'}
-                            onChange={(value) => setTiming(prev => ({ ...prev, amountMode: value }))}
-                        />
-                        <div className="mt-4">
-                            {timing.amountMode === 'target' ? (
+            );
+        }
+
+        // Original full timing interface for shaping actions
+        return (
+            <div className="card">
+                <h4 className="section-header-secondary">Frequency & Times</h4>
+                <div className="space-y-6">
+                    <div>
+                        <label className="form-label">How often?</label>
+                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                            <div className="flex items-center gap-2">
+                                <span className="text-sm text-wool-600">Every</span>
                                 <IncrementInput
-                                    value={timing.targetStitches || 0}
-                                    onChange={(value) => setTiming(prev => ({ ...prev, targetStitches: value }))}
-                                    unit="stitches"
-                                    min={0}
-                                    size="sm"
-                                />
-                            ) : (
-                                <IncrementInput
-                                    value={timing.times}
-                                    onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
-                                    unit="times"
+                                    value={timing.frequency}
+                                    onChange={(value) => setTiming(prev => ({ ...prev, frequency: Math.max(value, 1) }))}
                                     min={1}
-                                    max={50}
                                     size="sm"
                                 />
-                            )}
+                                <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <label className="form-label">Number of Times vs Target Stitches</label>
+                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                            <SegmentedControl
+                                options={[
+                                    { value: 'times', label: 'Number of Times' },
+                                    { value: 'target', label: 'Target Stitches' }
+                                ]}
+                                value={timing.amountMode || 'times'}
+                                onChange={(value) => setTiming(prev => ({ ...prev, amountMode: value }))}
+                            />
+                            <div className="mt-4">
+                                {timing.amountMode === 'target' ? (
+                                    <IncrementInput
+                                        value={timing.targetStitches || 0}
+                                        onChange={(value) => setTiming(prev => ({ ...prev, targetStitches: value }))}
+                                        unit="stitches"
+                                        min={0}
+                                        size="sm"
+                                    />
+                                ) : (
+                                    <IncrementInput
+                                        value={timing.times}
+                                        onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
+                                        unit="times"
+                                        min={1}
+                                        max={50}
+                                        size="sm"
+                                    />
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    );
-
+        );
+    };
     return (
         <div>
             <ShapingHeader
