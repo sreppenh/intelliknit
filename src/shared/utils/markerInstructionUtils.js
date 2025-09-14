@@ -280,8 +280,15 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                             const totalStitchesNeeded = beforeConsumption + distance;
                             markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} st before marker, ${action.technique}, K${distance}, slip marker`);
                             totalStitchChange += (action.actionType === 'increase' ? 1 : -1);
-                        } else {
+                        } else if (action.position === 'before') {
                             markerInstructionParts.push(`Work in ${basePattern} to marker, ${action.technique}, slip marker`);
+                            totalStitchChange += (action.actionType === 'increase' ? 1 : -1);
+                        } else if (action.position === 'after') {
+                            markerInstructionParts.push(`Work in ${basePattern} to marker, slip marker`);
+                            if (distance > 0) {
+                                markerInstructionParts.push(`k${distance}`);
+                            }
+                            markerInstructionParts.push(action.technique);
                             totalStitchChange += (action.actionType === 'increase' ? 1 : -1);
                         }
                     } else {
@@ -309,8 +316,15 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                             markerInstructionParts.push(`work until ${totalStitchesNeeded} st before marker, ${action.technique}, K${distance}, slip marker`);
                             totalStitchChange += (action.actionType === 'increase' ? 1 : -1);
 
-                        } else {
-                            markerInstructionParts.push(`Work in ${basePattern} to marker, ${action.technique}, slip marker`);
+                        } else if (action.position === 'before') {
+                            markerInstructionParts.push(`work to marker, ${action.technique}, slip marker`);
+                            totalStitchChange += (action.actionType === 'increase' ? 1 : -1);
+                        } else if (action.position === 'after') {
+                            markerInstructionParts.push(`work to marker, slip marker`);
+                            if (distance > 0) {
+                                markerInstructionParts.push(`k${distance}`);
+                            }
+                            markerInstructionParts.push(action.technique);
                             totalStitchChange += (action.actionType === 'increase' ? 1 : -1);
                         }
 
