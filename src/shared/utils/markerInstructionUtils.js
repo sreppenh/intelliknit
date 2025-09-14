@@ -83,26 +83,70 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
     const instructionParts = [];
     let totalStitchChange = 0;
 
-    // Handle edge actions first
+    // Handle edge actions with proper instruction flow
     if (edgeActions.length > 0) {
+        const edgeInstructionParts = [];
+
         edgeActions.forEach(action => {
-            const stitchCount = action.stitchCount || 1;
-            action.targets.forEach(target => {
-                let displayTechnique = action.technique || (action.actionType === 'increase' ? 'inc' : 'dec');
-                if (action.technique && action.technique.includes('_') && action.position === 'both_ends') {
-                    const parts = action.technique.split('_');
-                    if (target === 'beginning') {
-                        displayTechnique = parts[0];
-                    } else if (target === 'end') {
-                        displayTechnique = parts[1] || parts[0];
-                    }
+            if (action.position === 'both_ends' || (action.targets.includes('beginning') && action.targets.includes('end'))) {
+                // Handle both ends case
+                const [beginTech, endTech] = action.technique.split('_');
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                // Beginning technique
+                if (distance > 0) {
+                    edgeInstructionParts.push(`k${distance}`);
                 }
-                const location = target === 'beginning' ? 'beginning' : 'end';
-                const countText = stitchCount > 1 ? `${stitchCount} ` : '';
-                instructionParts.push(`${displayTechnique} ${countText}at ${location}`);
-                totalStitchChange += (action.actionType === 'increase' ? 1 : -1) * stitchCount * (action.position === 'both_ends' ? 2 : 1);
-            });
+                edgeInstructionParts.push(beginTech);
+
+                // Middle section - work in pattern
+                if (distance > 0) {
+                    const consumption = getStitchConsumption(endTech);
+                    const totalStitchesNeeded = consumption + distance;
+                    edgeInstructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} stitches before end`);
+                } else {
+                    edgeInstructionParts.push(`work in ${basePattern} until end`);
+                }
+
+                // End technique
+                edgeInstructionParts.push(endTech);
+                if (distance > 0) {
+                    edgeInstructionParts.push(`k${distance}`);
+                }
+
+                totalStitchChange += getStitchChange(beginTech) + getStitchChange(endTech);
+
+            } else {
+                // Handle single edge case
+                action.targets.forEach(target => {
+                    const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                    if (target === 'beginning') {
+                        if (distance > 0) {
+                            edgeInstructionParts.push(`k${distance}`);
+                        }
+                        edgeInstructionParts.push(action.technique);
+                        edgeInstructionParts.push(`work in ${basePattern} to end`);
+                    } else if (target === 'end') {
+                        if (distance > 0) {
+                            const consumption = getStitchConsumption(action.technique);
+                            const totalStitchesNeeded = consumption + distance;
+                            edgeInstructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} stitches before end`);
+                        } else {
+                            edgeInstructionParts.push(`work in ${basePattern} until end`);
+                        }
+                        edgeInstructionParts.push(action.technique);
+                        if (distance > 0) {
+                            edgeInstructionParts.push(`k${distance}`);
+                        }
+                    }
+
+                    totalStitchChange += getStitchChange(action.technique);
+                });
+            }
         });
+
+        instructionParts.push(edgeInstructionParts.join(', '));
     }
 
     // Handle marker actions - FIX THE before_and_after LOGIC HERE
@@ -147,11 +191,8 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                 const consumption = getStitchConsumption(beforeTech);
                 const totalStitchesNeeded = consumption + distance;
 
-                if (totalStitchesNeeded > 0) {
-                    markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`);
-                } else {
-                    markerInstructionParts.push(`Work in ${basePattern} until marker`);
-                } markerInstructionParts.push(beforeTech);
+                markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`);
+                markerInstructionParts.push(beforeTech);
                 if (distance > 0) {
                     markerInstructionParts.push(`k${distance}`);
                 }
@@ -168,11 +209,8 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                 const consumption = getStitchConsumption(action.technique);
                 const totalStitchesNeeded = consumption + distance;
 
-                if (totalStitchesNeeded > 0) {
-                    markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`);
-                } else {
-                    markerInstructionParts.push(`Work in ${basePattern} until marker`);
-                } markerInstructionParts.push(action.technique);
+                markerInstructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} stitches before marker`);
+                markerInstructionParts.push(action.technique);
                 if (distance > 0) {
                     markerInstructionParts.push(`k${distance}`);
                 }
