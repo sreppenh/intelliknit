@@ -255,7 +255,7 @@ const MarkerPhasesConfig = ({
         } else if (currentScreen === 'completion') {
             setCurrentScreen('instruction-builder');
         } else if (currentScreen === 'sequence-management') {
-            setCurrentScreen('completion');
+            setCurrentScreen('timing');
         } else if (currentScreen === 'sequence-wizard') {
             setCurrentScreen('sequence-management');
         }
@@ -687,46 +687,6 @@ const MarkerPhasesConfig = ({
                 onGoToLanding={onGoToLanding}
                 onCancel={onCancel}
             />
-        );
-    }
-
-    // ===== RENDER SCREEN 3: COMPLETION =====
-    if (currentScreen === 'completion') {
-        return (
-            <div>
-                <ShapingHeader
-                    onBack={handleBackNavigation}
-                    onGoToLanding={onGoToLanding}
-                    wizard={wizard}
-                    onCancel={onCancel}
-                />
-                <div className="p-6">
-                    <h2 className="content-header-primary">Instruction Complete</h2>
-                    <p className="content-subheader">Your marker-based shaping instruction is ready</p>
-
-                    {sequences.length > 0 && sequences[0].instructionData && (
-                        <div className="card">
-                            <h4 className="section-header-secondary">Your Instruction</h4>
-                            <p className="text-sm text-wool-700">{sequences[0].instructionData.preview}</p>
-                        </div>
-                    )}
-
-                    <div className="flex gap-3">
-                        <button onClick={handleBackNavigation} className="btn-tertiary">
-                            ← Edit Instruction
-                        </button>
-                        <button onClick={handleFinalComplete} className="btn-primary flex-1">
-                            Complete Step
-                        </button>
-                        <button
-                            onClick={() => setCurrentScreen('sequence-management')}
-                            className="btn-secondary"
-                        >
-                            Add Another
-                        </button>
-                    </div>
-                </div>
-            </div>
         );
     }
 
