@@ -42,20 +42,32 @@ const MarkerChip = ({ marker, active, onClick, markerColors }) => {
 };
 
 // Reusable SelectionGrid component
-const SelectionGrid = ({ options, selected, onSelect, columns = 3, compact = false }) => (
-    <div className={`grid grid-cols-${columns} gap-2`}>
-        {options.map(option => (
-            <div
-                key={option.value}
-                onClick={() => onSelect(option.value)}
-                className={`card-marker-select${compact ? '-compact' : ''} 
+const SelectionGrid = ({ options, selected, onSelect, columns = 3, compact = false }) => {
+    const getGridClass = () => {
+        switch (columns) {
+            case 2: return 'grid-cols-2';
+            case 3: return 'grid-cols-3';
+            case 4: return 'grid-cols-4';
+            default: return 'grid-cols-3';
+        }
+    };
+
+    return (
+        <div className={`grid ${getGridClass()} gap-2`}>
+
+            {options.map(option => (
+                <div
+                    key={option.value}
+                    onClick={() => onSelect(option.value)}
+                    className={`card-marker-select${compact ? '-compact' : ''} 
                     ${selected === option.value ? `${compact ? 'card-marker-select-compact-selected' : 'card-marker-select-selected'}` : ''}`}
-            >
-                <div className="font-medium text-sm">{option.label}</div>
-            </div>
-        ))}
-    </div>
-);
+                >
+                    <div className="font-medium text-sm">{option.label}</div>
+                </div>
+            ))}
+        </div>
+    );
+};
 
 // Main component
 const MarkerInstructionBuilder = ({
