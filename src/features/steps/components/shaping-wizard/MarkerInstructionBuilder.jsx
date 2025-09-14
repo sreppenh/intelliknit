@@ -154,12 +154,13 @@ const MarkerInstructionBuilder = ({
                 updated.distance = '';
             }
             if (updates.actionType) {
-                updated.whereType = construction === 'flat' ? 'markers' : '';
-                updated.position = updates.actionType === 'bind_off' ? 'at_beginning' : '';
+                updated.whereType = '';
+                updated.position = '';
                 updated.technique = '';
                 updated.distance = '';
                 updated.targets = [];
                 updated.bindOffAmount = '';
+                updated.stitchCount = 1;
             }
             return updated;
         });
