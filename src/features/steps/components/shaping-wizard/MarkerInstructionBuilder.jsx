@@ -312,7 +312,11 @@ const MarkerInstructionBuilder = ({
             <label className="form-label">What happens?</label>
             <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                 <SelectionGrid
-                    options={[
+                    options={construction === 'round' ? [
+                        { value: 'increase', label: 'Add Increases' },
+                        { value: 'decrease', label: 'Add Decreases' },
+                        { value: 'continue', label: 'Work Pattern' }
+                    ] : [
                         { value: 'increase', label: 'Add Increases' },
                         { value: 'decrease', label: 'Add Decreases' },
                         { value: 'bind_off', label: 'Bind Off' },
@@ -320,7 +324,7 @@ const MarkerInstructionBuilder = ({
                     ]}
                     selected={currentAction.actionType}
                     onSelect={(value) => updateAction({ actionType: value })}
-                    columns={2}
+                    columns={construction === 'round' ? 3 : 2}
                 />
             </div>
         </div>
