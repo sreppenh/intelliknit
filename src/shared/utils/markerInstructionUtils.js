@@ -161,25 +161,25 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
             });
         });
 
-        // Check for uniform actions (all markers have identical actions)
+        // Check if ALL markers have identical actions (flat marker simplification)
         const targetedMarkers = markers.filter(marker => actionsByMarker[marker]?.length > 0);
-        const allIdentical = targetedMarkers.length > 1 &&
-            targetedMarkers.every(marker => {
-                const firstActions = actionsByMarker[targetedMarkers[0]];
-                const currentActions = actionsByMarker[marker];
+        const allMarkersHaveActions = markers.every(marker => actionsByMarker[marker]?.length > 0);
+        const allMarkersHaveIdenticalActions = allMarkersHaveActions && markers.every(marker => {
+            const firstActions = actionsByMarker[markers[0]];
+            const currentActions = actionsByMarker[marker];
 
-                if (firstActions.length !== currentActions.length) return false;
+            if (firstActions.length !== currentActions.length) return false;
 
-                return firstActions.every((action, index) => {
-                    const current = currentActions[index];
-                    return action.actionType === current.actionType &&
-                        action.technique === current.technique &&
-                        action.position === current.position &&
-                        action.distance === current.distance;
-                });
+            return firstActions.every((action, index) => {
+                const current = currentActions[index];
+                return action.actionType === current.actionType &&
+                    action.technique === current.technique &&
+                    action.position === current.position &&
+                    action.distance === current.distance;
             });
+        });
 
-        if (allIdentical) {
+        if (allMarkersHaveIdenticalActions) {
             // Uniform actions - generate with repeat
             const action = actionsByMarker[targetedMarkers[0]][0];
             const markerInstructionParts = [];
