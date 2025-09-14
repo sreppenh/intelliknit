@@ -10,7 +10,7 @@ import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { MarkerSequenceCalculator } from '../../../../shared/utils/MarkerSequenceCalculator';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
-
+import MarkerTimingConfig from './MarkerTimingConfig';
 
 // ===== SIMPLIFIED MARKER TYPES - 4 colors max =====
 const MARKER_COLOR_OPTIONS = [
@@ -250,6 +250,8 @@ const MarkerPhasesConfig = ({
             onBack();
         } else if (currentScreen === 'instruction-builder') {
             setCurrentScreen('marker-setup');
+        } else if (currentScreen === 'timing') {
+            setCurrentScreen('instruction-builder');
         } else if (currentScreen === 'completion') {
             setCurrentScreen('instruction-builder');
         } else if (currentScreen === 'sequence-management') {
@@ -327,7 +329,26 @@ const MarkerPhasesConfig = ({
         });
 
         // ONLY CHANGE: Go to completion instead of sequence-management
-        setCurrentScreen('completion');
+        // setCurrentScreen('completion');
+        setCurrentScreen('timing');
+    };
+
+    const handleTimingComplete = (finalInstructionData) => {
+        // Create sequence data with timing included
+        const sequenceData = {
+            id: editingSequence?.id || Date.now().toString(),
+            name: editingSequence?.name || 'Marker Sequence',
+            instructionData: finalInstructionData,
+            phases: [{
+                type: 'marker_instruction',
+                instructionData: finalInstructionData,
+                frequency: finalInstructionData.timing.frequency,
+                times: finalInstructionData.timing.times
+            }]
+        };
+
+        // Use existing sequence completion logic
+        handleSimpleSequenceComplete(sequenceData);
     };
 
     const handleInstructionCancel = () => {
@@ -648,6 +669,23 @@ const MarkerPhasesConfig = ({
                     />
                 </div>
             </div>
+        );
+    }
+
+    // ===== RENDER SCREEN: TIMING CONFIGURATION =====
+    if (currentScreen === 'timing') {
+        return (
+            <MarkerTimingConfig
+                instructionData={currentSequenceData?.instructionData || currentSequenceData}
+                markerArray={markerArray}
+                markerColors={markerColors}
+                construction={construction}
+                onComplete={handleTimingComplete}
+                onBack={handleBackNavigation}
+                wizard={wizard}
+                onGoToLanding={onGoToLanding}
+                onCancel={onCancel}
+            />
         );
     }
 

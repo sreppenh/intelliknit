@@ -191,16 +191,26 @@ const MarkerInstructionBuilder = ({
     };
 
     // Continue to timing
-    const continueToTiming = () => {
+    const handleCompleteActions = () => {
         if (currentAction.actionType === 'continue') {
             addAction();
-            setCurrentStep('timing');
-            return;
         }
         if (currentAction.actionType && currentAction.targets.length > 0) {
             addAction();
         }
-        setCurrentStep('timing');
+
+        // Return just the actions (no timing)
+        const finalActions = [...completedActions];
+        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue')) {
+            finalActions.push(currentAction);
+        }
+
+        const actionsData = {
+            actions: finalActions,
+            construction
+        };
+
+        onComplete(actionsData);
     };
 
     // Helper to get descriptive label for techniques
@@ -660,7 +670,7 @@ const MarkerInstructionBuilder = ({
     const ActionButtons = () => (
         <div className="flex gap-3 pt-4 border-t">
             <button onClick={addAction} className="btn-secondary">AND (add another action)</button>
-            <button onClick={continueToTiming} className="btn-primary">Set Frequency & Times →</button>
+            <button onClick={handleCompleteActions} className="btn-primary">Complete Actions →</button>
         </div>
     );
 
