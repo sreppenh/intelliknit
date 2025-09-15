@@ -90,34 +90,37 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
         edgeActions.forEach(action => {
             if (action.position === 'both_ends' || (action.targets.includes('beginning') && action.targets.includes('end'))) {
                 // Handle both ends case
-                const [beginTech, endTech] = action.technique.split('_');
                 const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                const stitchCount = action.stitchCount || 1;
 
-                // Beginning technique
-                if (distance > 0) {
+                if (distance === 0) {
+                    // Cast on at both ends - use same technique for both
+                    edgeInstructionParts.push(`Using ${action.technique}, cast on ${stitchCount} stitches`);
+                    edgeInstructionParts.push(`work in ${basePattern} until end`);
+                    edgeInstructionParts.push(`using ${action.technique}, cast on ${stitchCount} stitches`);
+                    totalStitchChange += stitchCount * 2; // Cast on at both ends
+                } else {
+                    // Regular increase case - split technique
+                    const [beginTech, endTech] = action.technique.split('_');
+
+                    // Beginning technique
                     edgeInstructionParts.push(`k${distance}`);
-                }
-                edgeInstructionParts.push(beginTech);
+                    edgeInstructionParts.push(beginTech);
 
-                // Middle section - work in pattern
-                if (distance > 0) {
+                    // Middle section - work in pattern
                     const consumption = getStitchConsumption(endTech);
                     const totalStitchesNeeded = consumption + distance;
                     const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
                     edgeInstructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before end`);
-                } else {
-                    edgeInstructionParts.push(`work in ${basePattern} until end`);
-                }
 
-                // End technique
-                edgeInstructionParts.push(endTech);
-                if (distance > 0) {
+                    // End technique
+                    edgeInstructionParts.push(endTech);
                     edgeInstructionParts.push(`k${distance}`);
+
+                    totalStitchChange += getStitchChange(beginTech) + getStitchChange(endTech);
                 }
-
-                totalStitchChange += getStitchChange(beginTech) + getStitchChange(endTech);
-
-            } else {
+            }
+            else {
                 // Handle single edge case
                 action.targets.forEach(target => {
                     const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
