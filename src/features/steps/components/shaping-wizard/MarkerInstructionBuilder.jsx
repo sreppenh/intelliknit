@@ -747,9 +747,9 @@ const MarkerInstructionBuilder = ({
                             {currentAction.actionType === 'bind_off' && (
                                 <BindOffSelector />
                             )}
-                            {currentAction.targets.length > 0 && (
+                            {isActionComplete() && (
                                 <div className="flex gap-3 pt-4 border-t">
-                                    <button onClick={addAction} className="btn-secondary">AND (add another action)</button>
+                                    <button onClick={addAction} className="btn-secondary">Add Another Action</button>
                                 </div>
                             )}
                         </>
