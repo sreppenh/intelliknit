@@ -12,9 +12,9 @@ const getMarkerColor = (markerName, markerColors) => {
     }
     const MARKER_COLOR_OPTIONS = [
         { bg: 'bg-sage-100', border: 'border-sage-400', text: 'text-sage-700' },
-        { bg: 'bg-yarn-200', border: 'border-yarn-500', text: 'text-yarn-800' },
+        { bg: 'bg-yarn-600', border: 'border-yarn-700', text: 'text-yarn-50' },
         { bg: 'bg-yarn-100', border: 'border-yarn-400', text: 'text-yarn-700' },
-        { bg: 'bg-wool-200', border: 'border-wool-400', text: 'text-wool-700' }
+        { bg: 'bg-orange-200', border: 'border-orange-500', text: 'text-orange-800' }
     ];
     const colorIndex = markerColors[markerName] || 0;
     return MARKER_COLOR_OPTIONS[colorIndex];

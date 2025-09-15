@@ -22,9 +22,9 @@ const getMarkerStyle = (markerName, customColors = {}) => {
     if (customColors[markerName] !== undefined) {
         const MARKER_COLOR_OPTIONS = [
             { bgColor: 'bg-sage-100', borderColor: 'border-sage-400', textColor: 'text-sage-700' },
-            { bgColor: 'bg-yarn-200', borderColor: 'border-yarn-500', textColor: 'text-yarn-800' },
+            { bgColor: 'bg-yarn-600', borderColor: 'border-yarn-700', textColor: 'text-yarn-50' },
             { bgColor: 'bg-yarn-100', borderColor: 'border-yarn-400', textColor: 'text-yarn-700' },
-            { bgColor: 'bg-wool-200', borderColor: 'border-wool-400', textColor: 'text-wool-700' }
+            { bgColor: 'bg-orange-200', borderColor: 'border-orange-500', textColor: 'text-orange-800' }
         ];
         return MARKER_COLOR_OPTIONS[customColors[markerName]] || MARKER_COLOR_OPTIONS[0];
     }

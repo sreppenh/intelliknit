@@ -14,10 +14,10 @@ import MarkerTimingConfig from './MarkerTimingConfig';
 
 // ===== SIMPLIFIED MARKER TYPES - 4 colors max =====
 const MARKER_COLOR_OPTIONS = [
-    { bgColor: 'bg-sage-100', borderColor: 'border-sage-400', textColor: 'text-sage-700' },
-    { bgColor: 'bg-yarn-200', borderColor: 'border-yarn-500', textColor: 'text-yarn-800' }, // Darker yarn
-    { bgColor: 'bg-yarn-100', borderColor: 'border-yarn-400', textColor: 'text-yarn-700' }, // Lighter yarn  
-    { bgColor: 'bg-wool-200', borderColor: 'border-wool-400', textColor: 'text-wool-700' }
+    { bg: 'bg-sage-100', border: 'border-sage-400', text: 'text-sage-700' },
+    { bg: 'bg-yarn-600', border: 'border-yarn-700', text: 'text-yarn-50' },
+    { bg: 'bg-yarn-100', border: 'border-yarn-400', text: 'text-yarn-700' },
+    { bg: 'bg-orange-200', border: 'border-orange-500', text: 'text-orange-800' }
 ];
 
 const MarkerPhasesConfig = ({
@@ -63,7 +63,8 @@ const MarkerPhasesConfig = ({
         }
 
         const colorIndex = markerColors[markerName] || 0;
-        return MARKER_COLOR_OPTIONS[colorIndex];
+        const option = MARKER_COLOR_OPTIONS[colorIndex];
+        return { bgColor: option.bg, borderColor: option.border, textColor: option.text };
     };
 
     const cycleMarkerColor = (markerName) => {
