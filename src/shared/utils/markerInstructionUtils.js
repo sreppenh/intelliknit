@@ -139,29 +139,37 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                 // Handle single edge case
                 action.targets.forEach(target => {
                     const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                    const stitchCount = action.stitchCount || 1;
 
                     if (target === 'beginning') {
-                        if (distance > 0) {
+                        if (distance === 0) {
+                            // This is cast on at beginning
+                            edgeInstructionParts.push(`Using ${action.technique}, cast on ${stitchCount} stitches`);
+                            totalStitchChange += stitchCount;
+                        } else {
                             edgeInstructionParts.push(`k${distance}`);
+                            edgeInstructionParts.push(action.technique);
+                            totalStitchChange += getStitchChange(action.technique);
                         }
-                        edgeInstructionParts.push(action.technique);
                         edgeInstructionParts.push(`work in ${basePattern} to end`);
                     } else if (target === 'end') {
-                        if (distance > 0) {
+                        if (distance === 0) {
+                            // This is cast on at end
+                            edgeInstructionParts.push(`work in ${basePattern} until end`);
+                            edgeInstructionParts.push(`using ${action.technique}, cast on ${stitchCount} stitches`);
+                            totalStitchChange += stitchCount;
+                        } else {
                             const consumption = getStitchConsumption(action.technique);
                             const totalStitchesNeeded = consumption + distance;
                             const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
                             edgeInstructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before end`);
-                        } else {
-                            edgeInstructionParts.push(`work in ${basePattern} until end`);
-                        }
-                        edgeInstructionParts.push(action.technique);
-                        if (distance > 0) {
-                            edgeInstructionParts.push(`k${distance}`);
+                            edgeInstructionParts.push(action.technique);
+                            if (distance > 0) {
+                                edgeInstructionParts.push(`k${distance}`);
+                            }
+                            totalStitchChange += getStitchChange(action.technique);
                         }
                     }
-
-                    totalStitchChange += getStitchChange(action.technique);
                 });
             }
         });
