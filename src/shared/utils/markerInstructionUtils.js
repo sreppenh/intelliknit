@@ -29,6 +29,21 @@ const getStitchChange = (technique) => {
 };
 
 /**
+ * Find the index of the last marker in the array that has actions
+ * @param {Array} markers - Array of marker names
+ * @param {Object} actionsByMarker - Object mapping marker names to their actions
+ * @returns {number} - Index of last marker with actions, or -1 if none
+ */
+const findLastActionMarkerIndex = (markers, actionsByMarker) => {
+    for (let i = markers.length - 1; i >= 0; i--) {
+        if (actionsByMarker[markers[i]] && actionsByMarker[markers[i]].length > 0) {
+            return i;
+        }
+    }
+    return -1;
+};
+
+/**
  * Generate marker-based instruction preview from actions and timing
  * SINGLE SOURCE OF TRUTH for all marker instruction generation
  * @param {Array} allActions - All completed actions
@@ -713,8 +728,189 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
                     instructionParts.push('work to end of round');
                 }
             } else {
-                // Case 4: Individual processing
-                return "Case 4 - individual processing - not implemented yet";
+                // Case 4: Individual processing - different markers have different actions
+                const instructionParts = [];
+                let totalStitchChange = 0;
+
+                // Part 1: After BOR actions (round start)
+                const afterBorActions = borActions.filter(action => action.position === 'after' || action.position === 'before_and_after');
+                afterBorActions.forEach(action => {
+                    const borDistance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                    if (action.position === 'before_and_after') {
+                        // Handle after part of before_and_after
+                        const [beforeTech, afterTech] = action.technique.split('_');
+                        if (borDistance > 0) {
+                            instructionParts.push(`k${borDistance}`);
+                        }
+                        instructionParts.push(afterTech);
+                        totalStitchChange += getStitchChange(afterTech);
+                    } else {
+                        // Handle regular after action
+                        if (borDistance > 0) {
+                            instructionParts.push(`k${borDistance}`);
+                        }
+                        instructionParts.push(action.technique);
+                        totalStitchChange += getStitchChange(action.technique);
+                    }
+                });
+
+                // Part 2: Process each marker individually until last action marker
+                const lastActionMarkerIndex = findLastActionMarkerIndex(markers, actionsByMarker);
+
+                for (let i = 0; i <= lastActionMarkerIndex; i++) {
+                    const marker = markers[i];
+                    const markerActions = actionsByMarker[marker];
+
+                    if (markerActions && markerActions.length > 0) {
+                        const action = markerActions[0];
+                        const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                        if (action.position === 'before') {
+                            // Handle before action - technique goes before slip marker
+                            const consumption = getStitchConsumption(action.technique);
+                            const totalStitchesNeeded = consumption + distance;
+
+                            if (i === 0) {
+                                if (totalStitchesNeeded > 0) {
+                                    const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                                    instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before marker`);
+                                } else {
+                                    instructionParts.push(`work in ${basePattern} to marker`);
+                                }
+                            } else {
+                                if (totalStitchesNeeded > 0) {
+                                    const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                                    instructionParts.push(`work until ${totalStitchesNeeded} ${stitchText} before marker`);
+                                } else {
+                                    instructionParts.push(`work to marker`);
+                                }
+                            }
+                            instructionParts.push(action.technique);
+                            if (distance > 0) {
+                                instructionParts.push(`k${distance}`);
+                            }
+                            instructionParts.push('slip marker');
+                            totalStitchChange += getStitchChange(action.technique);
+
+                        } else if (action.position === 'after') {
+                            // Handle after action - slip marker first, then technique
+                            if (i === 0) {
+                                instructionParts.push(`work in ${basePattern} to marker`);
+                            } else {
+                                instructionParts.push(`work to marker`);
+                            }
+                            instructionParts.push('slip marker');
+                            if (distance > 0) {
+                                instructionParts.push(`k${distance}`);
+                            }
+                            instructionParts.push(action.technique);
+                            totalStitchChange += getStitchChange(action.technique);
+
+                        } else if (action.position === 'before_and_after') {
+                            const [beforeTech, afterTech] = action.technique.split('_');
+                            // Before part
+                            const consumption = getStitchConsumption(beforeTech);
+                            const totalStitchesNeeded = consumption + distance;
+
+                            if (i === 0) {
+                                if (totalStitchesNeeded > 0) {
+                                    const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                                    instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before marker`);
+                                } else {
+                                    instructionParts.push(`work in ${basePattern} to marker`);
+                                }
+                            } else {
+                                if (totalStitchesNeeded > 0) {
+                                    const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                                    instructionParts.push(`work until ${totalStitchesNeeded} ${stitchText} before marker`);
+                                } else {
+                                    instructionParts.push(`work to marker`);
+                                }
+                            }
+                            instructionParts.push(beforeTech);
+                            if (distance > 0) {
+                                instructionParts.push(`k${distance}`);
+                            }
+                            instructionParts.push('slip marker');
+                            if (distance > 0) {
+                                instructionParts.push(`k${distance}`);
+                            }
+                            instructionParts.push(afterTech);
+                            totalStitchChange += getStitchChange(beforeTech) + getStitchChange(afterTech);
+                        }
+                    } else {
+                        // No action for this marker - just acknowledge it
+                        if (i === 0) {
+                            instructionParts.push(`work in ${basePattern} to marker`);
+                        } else {
+                            instructionParts.push(`work to marker`);
+                        }
+                        instructionParts.push('slip marker');
+                    }
+                }
+
+                // Part 3: Before BOR actions (round end) OR work to end
+                const beforeBorActions = borActions.filter(action => action.position === 'before' || action.position === 'before_and_after');
+                if (beforeBorActions.length > 0) {
+                    beforeBorActions.forEach(action => {
+                        const borDistance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                        if (action.position === 'before_and_after') {
+                            // Handle before part of before_and_after
+                            const [beforeTech, afterTech] = action.technique.split('_');
+                            const consumption = getStitchConsumption(beforeTech);
+                            const totalStitchesNeeded = consumption + borDistance;
+
+                            if (totalStitchesNeeded > 0) {
+                                const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                                instructionParts.push(`work until ${totalStitchesNeeded} ${stitchText} before end of round`);
+                            } else {
+                                instructionParts.push(`work until end of round`);
+                            }
+
+                            instructionParts.push(beforeTech);
+                            if (borDistance > 0) {
+                                instructionParts.push(`k${borDistance}`);
+                            }
+                            totalStitchChange += getStitchChange(beforeTech);
+                        } else {
+                            // Handle regular before action
+                            const consumption = getStitchConsumption(action.technique);
+                            const totalStitchesNeeded = consumption + borDistance;
+
+                            if (totalStitchesNeeded > 0) {
+                                const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                                instructionParts.push(`work until ${totalStitchesNeeded} ${stitchText} before end of round`);
+                            } else {
+                                instructionParts.push(`work until end of round`);
+                            }
+
+                            instructionParts.push(action.technique);
+                            if (borDistance > 0) {
+                                instructionParts.push(`k${borDistance}`);
+                            }
+                            totalStitchChange += getStitchChange(action.technique);
+                        }
+                    });
+                } else {
+                    instructionParts.push('work to end of round');
+                }
+
+                // Build final instruction with timing
+                const instruction = instructionParts.join(', ');
+                const stitchChangeText = totalStitchChange !== 0 ? ` (${totalStitchChange > 0 ? '+' : ''}${totalStitchChange} sts)` : '';
+
+                const hasRealTiming = (timing.frequency && timing.frequency > 1) ||
+                    (timing.times && timing.times > 1) ||
+                    (timing.amountMode === 'target' && timing.targetStitches && timing.targetStitches > 0);
+
+                const repeatText = hasRealTiming && timing.amountMode === 'target' && timing.targetStitches !== null && timing.targetStitches > 0
+                    ? ` until ${timing.targetStitches} stitches remain`
+                    : hasRealTiming && timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+                const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} rounds` : '';
+
+                return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
             }
         }
     }
