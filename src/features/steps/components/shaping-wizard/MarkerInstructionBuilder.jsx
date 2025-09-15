@@ -248,14 +248,14 @@ const MarkerInstructionBuilder = ({
         return currentAction.position && currentAction.distance && currentAction.technique;
     };
 
+    const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
+
     // Generate preview - now uses centralized utility
     const generatePreview = () => {
         const allActions = [...completedActions];
         if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'bind_off' || currentAction.actionType === 'continue')) {
             allActions.push(currentAction);
         }
-
-        const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
 
         // Use empty timing for preview (no timing applied yet)
         const defaultTiming = { frequency: 1, times: 0, amountMode: 'times', targetStitches: null };
@@ -643,7 +643,75 @@ const MarkerInstructionBuilder = ({
         </div>
     );
 
+    // Helper to format action configuration display in technical terms
+    const getActionConfigDisplay = (action) => {
+        const parts = [];
 
+        // Action Type and Technique
+        if (action.actionType === 'continue') {
+            return 'Continue in pattern';
+        } else if (action.actionType === 'bind_off') {
+            const amount = action.bindOffAmount === 'all' ? 'all stitches' : `${action.stitchCount} stitches`;
+            parts.push(`Bind Off (standard) ${amount}`);
+            return parts.join(' ');
+        } else if (action.actionType === 'increase') {
+            const technique = action.technique || '...';
+            parts.push(`Increase (${technique})`);
+        } else if (action.actionType === 'decrease') {
+            const technique = action.technique || '...';
+            parts.push(`Decrease (${technique})`);
+        } else {
+            parts.push(action.actionType || '...');
+        }
+
+        // Distance
+        if (action.distance) {
+            if (action.distance === 'at') {
+                parts.push('at');
+            } else {
+                const stText = action.distance === '1' ? 'st' : 'sts';
+                parts.push(`${action.distance} ${stText}`);
+            }
+        } else if (action.actionType && action.actionType !== 'bind_off') {
+            parts.push('...');
+        }
+
+        // Position
+        if (action.position) {
+            if (action.position === 'before_and_after') {
+                parts.push('before and after');
+            } else if (action.position === 'at_beginning') {
+                parts.push('at beginning');
+            } else if (action.position === 'at_end') {
+                parts.push('at end');
+            } else if (action.position === 'both_ends') {
+                parts.push('at both ends');
+            } else {
+                parts.push(action.position);
+            }
+        } else if (action.actionType && action.actionType !== 'bind_off' && action.actionType !== 'continue') {
+            parts.push('...');
+        }
+
+        // Targets
+        if (action.targets && action.targets.length > 0) {
+            if (action.whereType === 'edges') {
+                parts.push('row edges');
+            } else {
+                const markerList = action.targets.join(', ');
+                const markerText = action.targets.length === 1 ? 'marker' : 'markers';
+                parts.push(`${markerText} ${markerList}`);
+            }
+        } else if (action.actionType && action.actionType !== 'bind_off' && action.actionType !== 'continue') {
+            if (action.whereType === 'edges') {
+                parts.push('row edges');
+            } else {
+                parts.push('...');
+            }
+        }
+
+        return parts.join(' ');
+    };
 
     const PreviewSection = () => shouldShowPreview() ? (
         <div className="card-info">
@@ -663,21 +731,21 @@ const MarkerInstructionBuilder = ({
                 {completedActions.length > 0 && currentStep !== 'timing' && (
                     <div className="mt-3 pt-3 border-t border-lavender-100">
                         <div className="text-xs text-lavender-600 space-y-1">
-                            <div className="font-medium">Configuration:</div>
+                            <div className="font-medium">While working in {basePattern}:</div>
                             {completedActions.map((action, index) => (
                                 <div key={index} className="flex items-center gap-2">
                                     <span className="w-1 h-1 bg-lavender-400 rounded-full"></span>
                                     <span>
-                                        {action.actionType === 'continue' ? 'Continue in pattern' :
-                                            `${action.technique || action.actionType} ${action.position || ''} ${action.targets.join(', ')}`}
+                                        {getActionConfigDisplay(action)}
                                     </span>
                                 </div>
                             ))}
-                            {currentAction.actionType && currentAction.targets.length > 0 && (
+                            {/* Current action being built */}
+                            {currentAction.actionType && (
                                 <div className="flex items-center gap-2 text-sage-600">
                                     <span className="w-1 h-1 bg-sage-400 rounded-full"></span>
-                                    <span className="italic">
-                                        + {currentAction.technique || currentAction.actionType} {currentAction.position || ''} {currentAction.targets.join(', ')} (building...)
+                                    <span className="italic text-left">
+                                        {getActionConfigDisplay(currentAction)} {currentAction.targets.length === 0 && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' ? '(building...)' : '(building...)'}
                                     </span>
                                 </div>
                             )}
