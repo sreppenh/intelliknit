@@ -459,7 +459,104 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
             }
         }
     } else {
-        return "Round construction - cases 2-4 not implemented yet";
+        // Case 2: All markers identical including BOR (uniform with BOR)
+        const allMarkersIncludingBor = [...markers, 'BOR'];
+        const allMarkersHaveActions = allMarkersIncludingBor.every(marker => actionsByMarker[marker]?.length > 0);
+        const allMarkersHaveIdenticalActions = allMarkersHaveActions && allMarkersIncludingBor.every(marker => {
+            const firstActions = actionsByMarker[allMarkersIncludingBor[0]];
+            const currentActions = actionsByMarker[marker];
+
+            if (firstActions.length !== currentActions.length) return false;
+
+            return firstActions.every((action, index) => {
+                const current = currentActions[index];
+                return action.actionType === current.actionType &&
+                    action.technique === current.technique &&
+                    action.position === current.position &&
+                    action.distance === current.distance;
+            });
+        });
+
+        if (allMarkersHaveIdenticalActions) {
+            // Generate uniform instruction with BOR included in repeat
+            const action = actionsByMarker[allMarkersIncludingBor[0]][0];
+
+            if (action.position === 'before') {
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                const consumption = getStitchConsumption(action.technique);
+                const totalStitchesNeeded = consumption + distance;
+
+                if (totalStitchesNeeded > 0) {
+                    const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                    instructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before marker`);
+                } else {
+                    instructionParts.push(`Work in ${basePattern} until marker`);
+                }
+
+                instructionParts.push(action.technique);
+                if (distance > 0) {
+                    instructionParts.push(`k${distance}`);
+                }
+                instructionParts.push('slip marker');
+
+                const repeatCount = allMarkersIncludingBor.length - 1;
+                if (repeatCount > 0) {
+                    instructionParts.push(`repeat ${repeatCount} ${repeatCount === 1 ? 'time' : 'times'}`);
+                }
+
+                totalStitchChange += getStitchChange(action.technique) * allMarkersIncludingBor.length;
+
+            } else if (action.position === 'after') {
+                instructionParts.push(`Work in ${basePattern} to marker`);
+                instructionParts.push('slip marker');
+
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                if (distance > 0) {
+                    instructionParts.push(`k${distance}`);
+                }
+                instructionParts.push(action.technique);
+
+                const repeatCount = allMarkersIncludingBor.length - 1;
+                if (repeatCount > 0) {
+                    instructionParts.push(`repeat ${repeatCount} ${repeatCount === 1 ? 'time' : 'times'}`);
+                }
+
+                totalStitchChange += getStitchChange(action.technique) * allMarkersIncludingBor.length;
+
+            } else if (action.position === 'before_and_after') {
+                const [beforeTech, afterTech] = action.technique.split('_');
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                const consumption = getStitchConsumption(beforeTech);
+                const totalStitchesNeeded = consumption + distance;
+
+                if (totalStitchesNeeded > 0) {
+                    const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                    instructionParts.push(`Work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before marker`);
+                } else {
+                    instructionParts.push(`Work in ${basePattern} until marker`);
+                }
+
+                instructionParts.push(beforeTech);
+                if (distance > 0) {
+                    instructionParts.push(`k${distance}`);
+                }
+                instructionParts.push('slip marker');
+                if (distance > 0) {
+                    instructionParts.push(`k${distance}`);
+                }
+                instructionParts.push(afterTech);
+
+                const repeatCount = allMarkersIncludingBor.length - 1;
+                if (repeatCount > 0) {
+                    instructionParts.push(`repeat ${repeatCount} ${repeatCount === 1 ? 'time' : 'times'}`);
+                }
+
+                totalStitchChange += (getStitchChange(beforeTech) + getStitchChange(afterTech)) * allMarkersIncludingBor.length;
+            }
+        } else {
+            return "Round construction - cases 3-4 not implemented yet";
+        }
     }
 
     // Build final instruction with timing
