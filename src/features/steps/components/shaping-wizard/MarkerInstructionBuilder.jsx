@@ -54,7 +54,6 @@ const SelectionGrid = ({ options, selected, onSelect, columns = 3, compact = fal
 
     return (
         <div className={`grid ${getGridClass()} gap-2`}>
-
             {options.map(option => (
                 <div
                     key={option.value}
@@ -336,7 +335,7 @@ const MarkerInstructionBuilder = ({
         return "This preview updates as you build your phase instruction.";
     };
 
-    const ActionTypeSelector = () => {
+    const ActionTypeCard = () => {
         const getActionTypeOptions = () => {
             const baseOptions = [
                 { value: 'increase', label: 'Add Increases' },
@@ -359,68 +358,64 @@ const MarkerInstructionBuilder = ({
         const columns = options.length === 4 ? 2 : options.length;
 
         return (
-            <div>
+            <>
                 <label className="form-label">What happens?</label>
-                <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                    <SelectionGrid
-                        options={options}
-                        selected={currentAction.actionType}
-                        onSelect={(value) => updateAction({ actionType: value })}
-                        columns={columns}
-                    />
-                </div>
-            </div>
+                <SelectionGrid
+                    options={options}
+                    selected={currentAction.actionType}
+                    onSelect={(value) => updateAction({ actionType: value })}
+                    columns={columns}
+                />
+            </>
         );
     };
 
-    const WhereSelector = () => construction === 'flat' && currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' ? (
-        <div>
+    const WhereCard = () => construction === 'flat' && currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' ? (
+        <>
             <label className="form-label">Where?</label>
-            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
-                <SelectionGrid
-                    options={[
-                        { value: 'markers', label: 'At Markers' },
-                        { value: 'edges', label: 'At Row Edges' }
-                    ]}
-                    selected={currentAction.whereType}
-                    onSelect={(value) => updateAction({ whereType: value })}
-                    columns={2}
-                />
-                {currentAction.whereType && (
-                    <TargetSelector />
-                )}
-            </div>
-        </div>
+            <SelectionGrid
+                options={[
+                    { value: 'markers', label: 'At Markers' },
+                    { value: 'edges', label: 'At Row Edges' }
+                ]}
+                selected={currentAction.whereType}
+                onSelect={(value) => updateAction({ whereType: value })}
+                columns={2}
+            />
+        </>
     ) : null;
 
-    const TargetSelector = () => (
-        <div>
-            <label className="form-label text-sm">Which {currentAction.whereType === 'markers' ? 'markers' : 'edges'}?</label>
-            <div className="flex flex-wrap gap-2">
-                {currentAction.whereType === 'markers' ? (
-                    <>
-                        {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
-                            <MarkerChip
-                                key={target.value}
-                                marker={target.value}
-                                active={currentAction.targets.includes(target.value)}
-                                onClick={() => toggleTarget(target.value)}
-                                markerColors={markerColors}
-                            />
-                        ))}
-                        {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
-                            <button
-                                onClick={() => updateAction({
-                                    targets: [...currentAction.targets.filter(t => ['beginning', 'end'].includes(t)),
-                                    ...getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(t => t.value)]
-                                })}
-                                className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
-                            >
-                                + All Markers
-                            </button>
-                        )}
-                    </>
-                ) : (
+    const PositionCard = () => (currentAction.whereType === 'markers' || construction === 'round') && currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' ? (
+        <>
+            <label className="form-label">Position</label>
+            <SelectionGrid
+                options={[
+                    { value: 'before', label: 'Before' },
+                    { value: 'after', label: 'After' },
+                    { value: 'before_and_after', label: 'Both' }
+                ]}
+                selected={currentAction.position}
+                onSelect={(value) => updateAction({ position: value })}
+                columns={3}
+                compact
+            />
+        </>
+    ) : null;
+
+    const TargetCard = () => {
+        // Show targets if we have position (for markers) OR we're doing edges
+        const shouldShow = (currentAction.position && (currentAction.whereType === 'markers' || construction === 'round')) ||
+            (currentAction.whereType === 'edges');
+
+        if (!shouldShow || !currentAction.actionType || currentAction.actionType === 'continue' || currentAction.actionType === 'bind_off') {
+            return null;
+        }
+
+        // For flat construction with edges, show edge selection
+        if (construction === 'flat' && currentAction.whereType === 'edges') {
+            return (
+                <>
+                    <label className="form-label">Which edges?</label>
                     <SelectionGrid
                         options={[
                             { value: 'at_beginning', label: 'Beginning' },
@@ -435,22 +430,47 @@ const MarkerInstructionBuilder = ({
                         columns={3}
                         compact
                     />
-                )}
-            </div>
-            {currentAction.targets.length > 0 && currentAction.whereType === 'markers' && (
-                <div className="mt-3 pt-3 border-t border-wool-100">
-                    <p className="text-sm text-sage-600">Selected: {currentAction.targets.filter(t => t !== 'continue').join(', ')}</p>
-                </div>
-            )}
-            {currentAction.whereType === 'edges' && currentAction.targets.length > 0 && (
-                <EdgeDistanceSelector />
-            )}
-        </div>
-    );
+                </>
+            );
+        }
 
-    const EdgeDistanceSelector = () => (
-        <div className="mt-4">
-            <label className="form-label text-sm">Distance from edge</label>
+        // For markers (both flat and round construction)
+        return (
+            <>
+                <label className="form-label">Which markers?</label>
+                <div className="flex flex-wrap gap-2">
+                    {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
+                        <MarkerChip
+                            key={target.value}
+                            marker={target.value}
+                            active={currentAction.targets.includes(target.value)}
+                            onClick={() => toggleTarget(target.value)}
+                            markerColors={markerColors}
+                        />
+                    ))}
+                    {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
+                        <button
+                            onClick={() => updateAction({
+                                targets: getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(t => t.value)
+                            })}
+                            className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
+                        >
+                            + All Markers
+                        </button>
+                    )}
+                </div>
+                {currentAction.targets.length > 0 && (
+                    <div className="mt-3 pt-3 border-t border-wool-100">
+                        <p className="text-sm text-sage-600">Selected: {currentAction.targets.join(', ')}</p>
+                    </div>
+                )}
+            </>
+        );
+    };
+
+    const DistanceCard = () => currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') ? (
+        <>
+            <label className="form-label">{currentAction.whereType === 'edges' ? 'Distance from edge' : 'Stitches between technique and marker?'}</label>
             <SelectionGrid
                 options={getValidDistanceOptions().map(d => ({ value: d, label: d === 'at' ? '0 st' : `${d} st${d === '1' ? '' : 's'}` }))}
                 selected={currentAction.distance}
@@ -458,247 +478,120 @@ const MarkerInstructionBuilder = ({
                 columns={4}
                 compact
             />
-            {currentAction.distance === 'at' && currentAction.actionType === 'increase' && (
-                <CastOnSelector />
-            )}
-            {currentAction.distance === 'at' && currentAction.actionType === 'decrease' && (
-                <EdgeDecreaseAtSelector />
-            )}
-            {currentAction.distance && currentAction.distance !== 'at' && (
-                <EdgeTechniqueSelector />
-            )}
-        </div>
-    );
+        </>
+    ) : null;
 
-    const CastOnSelector = () => (
-        <div className="mt-4">
-            <label className="form-label text-sm">Cast-on technique</label>
-            <SelectionGrid
-                options={[
-                    { value: 'Cable Cast On', label: 'Cable Cast On' },
-                    { value: 'Backwards Loop', label: 'Backwards Loop' }
-                ]}
-                selected={currentAction.technique}
-                onSelect={(value) => updateAction({ technique: value })}
-                columns={2}
-                compact
-            />
-            {currentAction.technique && (
-                <div className="mt-3">
-                    <label className="form-label text-sm">
-                        {currentAction.position === 'both_ends' ? 'How many stitches to cast on each end?' : 'How many stitches to cast on?'}
-                    </label>
-                    <IncrementInput
-                        value={currentAction.stitchCount}
-                        onChange={(value) => updateAction({ stitchCount: Math.max(value, 1) })}
-                        min={1}
-                        max={100}
-                        size="sm"
-                    />
-                </div>
-            )}
-        </div>
-    );
+    const TechniqueCard = () => {
+        if (!currentAction.distance || (currentAction.actionType !== 'increase' && currentAction.actionType !== 'decrease')) {
+            return null;
+        }
 
-    const EdgeTechniqueSelector = () => {
-        const techniques = currentAction.actionType === 'increase' ?
-            (currentAction.position === 'at_beginning' ? ['M1L', 'YO', 'KFB'] :
-                currentAction.position === 'at_end' ? ['M1R', 'YO', 'KFB'] :
-                    ['M1L_M1R', 'YO_YO']) :
-            (currentAction.position === 'at_beginning' ? ['SSK', 'K2tog', 'CDD'] :
-                currentAction.position === 'at_end' ? ['SSK', 'K2tog', 'CDD'] :
-                    ['SSK_K2tog', 'K3tog_K3tog']);
+        const getTechniqueOptions = () => {
+            console.log('TechniqueCard debug:', {
+                actionType: currentAction.actionType,
+                whereType: currentAction.whereType,
+                distance: currentAction.distance,
+                position: currentAction.position
+            });
+            // Handle edge techniques
+            if (currentAction.whereType === 'edges') {
+                if (currentAction.distance === 'at' && currentAction.actionType === 'increase') {
+                    return [
+                        { value: 'Cable Cast On', label: 'Cable Cast On' },
+                        { value: 'Backwards Loop', label: 'Backwards Loop' }
+                    ];
+                }
+
+                // Regular edge techniques
+                const techniques = currentAction.actionType === 'increase' ?
+                    (currentAction.position === 'at_beginning' ? ['M1L', 'YO', 'KFB'] :
+                        currentAction.position === 'at_end' ? ['M1R', 'YO', 'KFB'] :
+                            ['M1L_M1R', 'YO_YO']) :
+                    (currentAction.position === 'at_beginning' ? ['SSK', 'K2tog', 'CDD'] :
+                        currentAction.position === 'at_end' ? ['SSK', 'K2tog', 'CDD'] :
+                            ['SSK_K2tog', 'K3tog_K3tog']);
+
+                return techniques.map(t => ({ value: t, label: getTechniqueLabel(t, currentAction.position) }));
+            }
+
+            // Handle marker techniques
+            return (currentAction.position === 'before' && currentAction.actionType === 'increase') ?
+                [{ value: 'M1L', label: 'M1L' }, { value: 'YO', label: 'YO' }, { value: 'KFB', label: 'KFB' }] :
+                (currentAction.position === 'before' && currentAction.actionType === 'decrease') ?
+                    [{ value: 'SSK', label: 'SSK' }, { value: 'K3tog', label: 'K3tog' }, { value: 'CDD', label: 'CDD' }] :
+                    (currentAction.position === 'after' && currentAction.actionType === 'increase') ?
+                        [{ value: 'M1R', label: 'M1R' }, { value: 'YO', label: 'YO' }, { value: 'KFB', label: 'KFB' }] :
+                        (currentAction.position === 'after' && currentAction.actionType === 'decrease') ?
+                            [{ value: 'K2tog', label: 'K2tog' }, { value: 'K3tog', label: 'K3tog' }, { value: 'CDD', label: 'CDD' }] :
+                            (currentAction.position === 'before_and_after' && currentAction.actionType === 'increase') ?
+                                [{ value: 'M1L_M1R', label: 'M1L & M1R' }, { value: 'YO_YO', label: 'YO & YO' }] :
+                                [{ value: 'SSK_K2tog', label: 'SSK & K2tog' }, { value: 'K3tog_K3tog', label: 'K3tog & K3tog' }];
+        };
+
         return (
-            <div className="mt-4">
-                <label className="form-label text-sm">Technique</label>
+            <>
+                <label className="form-label">Technique</label>
                 <SelectionGrid
-                    options={techniques.map(t => ({ value: t, label: getTechniqueLabel(t, currentAction.position) }))}
+                    options={getTechniqueOptions()}
                     selected={currentAction.technique}
                     onSelect={(value) => updateAction({ technique: value })}
-                    columns={currentAction.position === 'both_ends' ? 2 : 3}
+                    columns={currentAction.position === 'before_and_after' || currentAction.position === 'both_ends' ? 2 : 3}
                     compact
                 />
-            </div>
+                {currentAction.technique && currentAction.whereType === 'edges' && currentAction.distance === 'at' && currentAction.actionType === 'increase' && (
+                    <div className="mt-3">
+                        <label className="form-label text-sm">
+                            {currentAction.position === 'both_ends' ? 'How many stitches to cast on each end?' : 'How many stitches to cast on?'}
+                        </label>
+                        <IncrementInput
+                            value={currentAction.stitchCount}
+                            onChange={(value) => updateAction({ stitchCount: Math.max(value, 1) })}
+                            min={1}
+                            max={100}
+                            size="sm"
+                        />
+                    </div>
+                )}
+            </>
         );
     };
 
-    const EdgeDecreaseAtSelector = () => {
-        const techniques = currentAction.position === 'at_beginning' ? ['SSK', 'K2tog', 'CDD'] :
-            currentAction.position === 'at_end' ? ['SSK', 'K2tog', 'CDD'] :
-                ['SSK_K2tog', 'K3tog_K3tog'];
-        return (
-            <div className="mt-4">
-                <label className="form-label text-sm">Technique</label>
-                <SelectionGrid
-                    options={techniques.map(t => ({ value: t, label: getTechniqueLabel(t, currentAction.position) }))}
-                    selected={currentAction.technique}
-                    onSelect={(value) => updateAction({ technique: value })}
-                    columns={currentAction.position === 'both_ends' ? 2 : 3}
-                    compact
-                />
-            </div>
-        );
-    };
-
-    const PositionTechniqueSelector = () => (
-        <div>
-            <label className="form-label">{currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'} where and how?</label>
-            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
-                <div>
-                    <label className="form-label text-sm">Position</label>
-                    <SelectionGrid
-                        options={[
-                            { value: 'before', label: 'Before' },
-                            { value: 'after', label: 'After' },
-                            { value: 'before_and_after', label: 'Both' }
-                        ]}
-                        selected={currentAction.position}
-                        onSelect={(value) => updateAction({
-                            position: value,
-                            technique: currentAction.actionType === 'increase' ?
-                                (value === 'before' ? 'M1L' : value === 'after' ? 'M1R' : 'M1L_M1R') :
-                                (value === 'before' ? 'SSK' : value === 'after' ? 'K2tog' : 'SSK_K2tog'),
-                            distance: '1'
-                        })}
-                        columns={3}
-                        compact
-                    />
-                </div>
-                {currentAction.position && (
-                    <div>
-                        <label className="form-label text-sm">Technique</label>
-                        <SelectionGrid
-                            options={(currentAction.position === 'before' && currentAction.actionType === 'increase') ?
-                                [{ value: 'M1L', label: 'M1L' }, { value: 'YO', label: 'YO' }, { value: 'KFB', label: 'KFB' }] :
-                                (currentAction.position === 'before' && currentAction.actionType === 'decrease') ?
-                                    [{ value: 'SSK', label: 'SSK' }, { value: 'K3tog', label: 'K3tog' }, { value: 'CDD', label: 'CDD' }] :
-                                    (currentAction.position === 'after' && currentAction.actionType === 'increase') ?
-                                        [{ value: 'M1R', label: 'M1R' }, { value: 'YO', label: 'YO' }, { value: 'KFB', label: 'KFB' }] :
-                                        (currentAction.position === 'after' && currentAction.actionType === 'decrease') ?
-                                            [{ value: 'K2tog', label: 'K2tog' }, { value: 'K3tog', label: 'K3tog' }, { value: 'CDD', label: 'CDD' }] :
-                                            (currentAction.position === 'before_and_after' && currentAction.actionType === 'increase') ?
-                                                [{ value: 'M1L_M1R', label: 'M1L & M1R' }, { value: 'YO_YO', label: 'YO & YO' }] :
-                                                [{ value: 'SSK_K2tog', label: 'SSK & K2tog' }, { value: 'K3tog_K3tog', label: 'K3tog & K3tog' }]}
-                            selected={currentAction.technique}
-                            onSelect={(value) => updateAction({ technique: value })}
-                            columns={currentAction.position === 'before_and_after' ? 2 : 3}
-                            compact
-                        />
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-
-    const DistanceSelector = () => (
-        <div>
-            <label className="form-label">Stitches between technique and marker?</label>
-            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                <SelectionGrid
-                    options={getValidDistanceOptions().map(d => ({ value: d, label: d === 'at' ? '0 st' : `${d} st${d === '1' ? '' : 's'}` }))}
-                    selected={currentAction.distance}
-                    onSelect={(value) => updateAction({ distance: value })}
-                    columns={4}
-                    compact
-                />
-            </div>
-        </div>
-    );
-
-    const MarkerPositionDistanceTechnique = () => (
-        <div>
-            <label className="form-label">{currentAction.actionType === 'increase' ? 'Increase' : 'Decrease'} where and how?</label>
-            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4 space-y-4">
-                <div>
-                    <label className="form-label text-sm">Position</label>
-                    <SelectionGrid
-                        options={[
-                            { value: 'before', label: 'Before' },
-                            { value: 'after', label: 'After' },
-                            { value: 'before_and_after', label: 'Both' }
-                        ]}
-                        selected={currentAction.position}
-                        onSelect={(value) => updateAction({ position: value })}
-                        columns={3}
-                        compact
-                    />
-                </div>
-                {currentAction.position && (
-                    <div>
-                        <label className="form-label text-sm">Stitches between technique and marker?</label>
-                        <SelectionGrid
-                            options={getValidDistanceOptions().map(d => ({ value: d, label: d === 'at' ? '0 st' : `${d} st${d === '1' ? '' : 's'}` }))}
-                            selected={currentAction.distance}
-                            onSelect={(value) => updateAction({ distance: value })}
-                            columns={4}
-                            compact
-                        />
-                    </div>
-                )}
-                {currentAction.distance && (
-                    <div>
-                        <label className="form-label text-sm">Technique</label>
-                        <SelectionGrid
-                            options={(currentAction.position === 'before' && currentAction.actionType === 'increase') ?
-                                [{ value: 'M1L', label: 'M1L' }, { value: 'YO', label: 'YO' }, { value: 'KFB', label: 'KFB' }] :
-                                (currentAction.position === 'before' && currentAction.actionType === 'decrease') ?
-                                    [{ value: 'SSK', label: 'SSK' }, { value: 'K3tog', label: 'K3tog' }, { value: 'CDD', label: 'CDD' }] :
-                                    (currentAction.position === 'after' && currentAction.actionType === 'increase') ?
-                                        [{ value: 'M1R', label: 'M1R' }, { value: 'YO', label: 'YO' }, { value: 'KFB', label: 'KFB' }] :
-                                        (currentAction.position === 'after' && currentAction.actionType === 'decrease') ?
-                                            [{ value: 'K2tog', label: 'K2tog' }, { value: 'K3tog', label: 'K3tog' }, { value: 'CDD', label: 'CDD' }] :
-                                            (currentAction.position === 'before_and_after' && currentAction.actionType === 'increase') ?
-                                                [{ value: 'M1L_M1R', label: 'M1L & M1R' }, { value: 'YO_YO', label: 'YO & YO' }] :
-                                                [{ value: 'SSK_K2tog', label: 'SSK & K2tog' }, { value: 'K3tog_K3tog', label: 'K3tog & K3tog' }]}
-                            selected={currentAction.technique}
-                            onSelect={(value) => updateAction({ technique: value })}
-                            columns={currentAction.position === 'before_and_after' ? 2 : 3}
-                            compact
-                        />
-                    </div>
-                )}
-            </div>
-        </div>
-    );
-
-    const BindOffSelector = () => (
-        <div>
+    const BindOffCard = () => currentAction.actionType === 'bind_off' ? (
+        <>
             <label className="form-label">How many stitches to bind off?</label>
-            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                <div className="flex items-center gap-3">
-                    <IncrementInput
-                        value={currentAction.stitchCount}
-                        onChange={(value) => {
-                            const totalStitches = markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0);
-                            updateAction({
-                                stitchCount: Math.min(value, totalStitches),
-                                position: 'at_beginning',
-                                targets: ['beginning'],
-                                bindOffAmount: 'specific'
-                            });
-                        }}
-                        min={1}
-                        max={markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0)}
-                        size="sm"
-                    />
-                    <button
-                        onClick={() => {
-                            const totalStitches = markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0);
-                            updateAction({
-                                stitchCount: totalStitches,
-                                position: 'at_beginning',
-                                targets: ['beginning'],
-                                bindOffAmount: 'all'
-                            });
-                        }}
-                        className="btn-secondary btn-sm"
-                    >
-                        Bind Off All
-                    </button>
-                </div>
+            <div className="flex items-center gap-3">
+                <IncrementInput
+                    value={currentAction.stitchCount}
+                    onChange={(value) => {
+                        const totalStitches = markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0);
+                        updateAction({
+                            stitchCount: Math.min(value, totalStitches),
+                            position: 'at_beginning',
+                            targets: ['beginning'],
+                            bindOffAmount: 'specific'
+                        });
+                    }}
+                    min={1}
+                    max={markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0)}
+                    size="sm"
+                />
+                <button
+                    onClick={() => {
+                        const totalStitches = markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0);
+                        updateAction({
+                            stitchCount: totalStitches,
+                            position: 'at_beginning',
+                            targets: ['beginning'],
+                            bindOffAmount: 'all'
+                        });
+                    }}
+                    className="btn-secondary btn-sm"
+                >
+                    Bind Off All
+                </button>
             </div>
-        </div>
-    );
+        </>
+    ) : null;
 
     // Helper to format action configuration display in technical terms
     const getActionConfigDisplay = (action) => {
@@ -829,50 +722,15 @@ const MarkerInstructionBuilder = ({
             <div className="card">
                 <h4 className="section-header-secondary">Define Row Actions</h4>
                 <div className="space-y-6">
-                    <ActionTypeSelector />
+                    <ActionTypeCard />
                     {currentAction.actionType !== 'continue' && (
                         <>
-                            {currentAction.actionType !== 'bind_off' && (construction === 'round' ? (
-                                <div>
-                                    <label className="form-label">Which markers?</label>
-                                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                                        <div className="flex flex-wrap gap-2">
-                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
-                                                <MarkerChip
-                                                    key={target.value}
-                                                    marker={target.value}
-                                                    active={currentAction.targets.includes(target.value)}
-                                                    onClick={() => toggleTarget(target.value)}
-                                                    markerColors={markerColors}
-                                                />
-                                            ))}
-                                            {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
-                                                <button
-                                                    onClick={() => updateAction({
-                                                        targets: getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(t => t.value)
-                                                    })}
-                                                    className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
-                                                >
-                                                    + All Markers
-                                                </button>
-                                            )}
-                                        </div>
-                                        {currentAction.targets.length > 0 && (
-                                            <div className="mt-3 pt-3 border-t border-wool-100">
-                                                <p className="text-sm text-sage-600">Selected: {currentAction.targets.join(', ')}</p>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                            ) : (
-                                <WhereSelector />
-                            ))}
-                            {currentAction.targets.length > 0 && (currentAction.actionType === 'increase' || currentAction.actionType === 'decrease') && currentAction.whereType !== 'edges' && (
-                                <MarkerPositionDistanceTechnique />
-                            )}
-                            {currentAction.actionType === 'bind_off' && (
-                                <BindOffSelector />
-                            )}
+                            <WhereCard />
+                            <PositionCard />
+                            <TargetCard />
+                            <DistanceCard />
+                            <TechniqueCard />
+                            <BindOffCard />
                             {isActionComplete() && (
                                 <div className="flex gap-3 pt-4 border-t">
                                     <button onClick={addAction} className="btn-secondary">Add Another Action</button>
@@ -882,7 +740,7 @@ const MarkerInstructionBuilder = ({
                     )}
                 </div>
             </div>
-            {currentStep !== 'timing' && <PreviewSection />}
+            <PreviewSection />
             <div className="flex gap-3">
                 <button onClick={onBack} className="btn-tertiary">← Back</button>
                 <button
