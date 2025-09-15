@@ -584,6 +584,135 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
             } else {
                 totalStitchChange += getStitchChange(action.technique) * allMarkersIncludingBor.length;
             }
+        } else {
+            // Case 3: Regular markers uniform, BOR excluded (or Case 4: Individual processing)
+            const regularMarkersHaveActions = markers.filter(marker => actionsByMarker[marker]?.length > 0);
+            const allRegularMarkersHaveActions = markers.every(marker => actionsByMarker[marker]?.length > 0);
+            const allRegularMarkersHaveIdenticalActions = allRegularMarkersHaveActions && markers.every(marker => {
+                const firstActions = actionsByMarker[markers[0]];
+                const currentActions = actionsByMarker[marker];
+
+                if (firstActions.length !== currentActions.length) return false;
+
+                return firstActions.every((action, index) => {
+                    const current = currentActions[index];
+                    return action.actionType === current.actionType &&
+                        action.technique === current.technique &&
+                        action.position === current.position &&
+                        action.distance === current.distance;
+                });
+            });
+
+            if (allRegularMarkersHaveIdenticalActions && regularMarkersHaveActions.length > 0) {
+                // Case 3: Uniform regular markers, BOR separate
+                // Case 3: Uniform regular markers, BOR separate - three-part flow
+                const action = actionsByMarker[regularMarkersHaveActions[0]][0];
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                // Part 1: After BOR actions (round start)
+                const afterBorActions = borActions.filter(action => action.position === 'after');
+                afterBorActions.forEach(action => {
+                    const borDistance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                    if (borDistance > 0) {
+                        instructionParts.push(`k${borDistance}`);
+                    }
+                    instructionParts.push(action.technique);
+                    totalStitchChange += getStitchChange(action.technique);
+                });
+
+                // Part 2: Regular markers with uniform repeat
+                if (action.position === 'before') {
+                    const consumption = getStitchConsumption(action.technique);
+                    const totalStitchesNeeded = consumption + distance;
+
+                    if (totalStitchesNeeded > 0) {
+                        const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                        instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before marker`);
+                    } else {
+                        instructionParts.push(`work in ${basePattern} until marker`);
+                    }
+                    instructionParts.push(action.technique);
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push('slip marker');
+
+                    if (regularMarkersHaveActions.length > 1) {
+                        instructionParts.push(`repeat ${regularMarkersHaveActions.length - 1} ${regularMarkersHaveActions.length - 1 === 1 ? 'time' : 'times'}`);
+                    }
+
+                    totalStitchChange += getStitchChange(action.technique) * regularMarkersHaveActions.length;
+
+                } else if (action.position === 'after') {
+                    instructionParts.push(`work in ${basePattern} to marker`);
+                    instructionParts.push('slip marker');
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push(action.technique);
+
+                    if (regularMarkersHaveActions.length > 1) {
+                        instructionParts.push(`repeat ${regularMarkersHaveActions.length - 1} ${regularMarkersHaveActions.length - 1 === 1 ? 'time' : 'times'}`);
+                    }
+
+                    totalStitchChange += getStitchChange(action.technique) * regularMarkersHaveActions.length;
+
+                } else if (action.position === 'before_and_after') {
+                    const [beforeTech, afterTech] = action.technique.split('_');
+                    const consumption = getStitchConsumption(beforeTech);
+                    const totalStitchesNeeded = consumption + distance;
+
+                    if (totalStitchesNeeded > 0) {
+                        const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                        instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before marker`);
+                    } else {
+                        instructionParts.push(`work in ${basePattern} until marker`);
+                    }
+                    instructionParts.push(beforeTech);
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push('slip marker');
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push(afterTech);
+
+                    if (regularMarkersHaveActions.length > 1) {
+                        instructionParts.push(`repeat ${regularMarkersHaveActions.length - 1} ${regularMarkersHaveActions.length - 1 === 1 ? 'time' : 'times'}`);
+                    }
+
+                    totalStitchChange += (getStitchChange(beforeTech) + getStitchChange(afterTech)) * regularMarkersHaveActions.length;
+                }
+
+                // Part 3: Before BOR actions (round end)
+                const beforeBorActions = borActions.filter(action => action.position === 'before');
+                if (beforeBorActions.length > 0) {
+                    beforeBorActions.forEach(action => {
+                        const borDistance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                        const consumption = getStitchConsumption(action.technique);
+                        const totalStitchesNeeded = consumption + borDistance;
+
+                        if (totalStitchesNeeded > 0) {
+                            const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                            instructionParts.push(`work until ${totalStitchesNeeded} ${stitchText} before end of round`);
+                        } else {
+                            instructionParts.push(`work until end of round`);
+                        }
+
+                        instructionParts.push(action.technique);
+                        if (borDistance > 0) {
+                            instructionParts.push(`k${borDistance}`);
+                        }
+                        totalStitchChange += getStitchChange(action.technique);
+                    });
+                } else {
+                    instructionParts.push('work to end of round');
+                }
+            } else {
+                // Case 4: Individual processing
+                return "Case 4 - individual processing - not implemented yet";
+            }
         }
     }
 
