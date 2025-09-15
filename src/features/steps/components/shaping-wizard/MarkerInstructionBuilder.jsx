@@ -69,6 +69,50 @@ const SelectionGrid = ({ options, selected, onSelect, columns = 3, compact = fal
     );
 };
 
+// Conflict detection for markers and edges
+const getPositionConflicts = (completedActions) => {
+    const conflicts = new Map(); // target -> Set of conflicting positions
+
+    completedActions.forEach(action => {
+        if (action.actionType === 'continue') return; // Skip continue actions
+
+        action.targets.forEach(target => {
+            if (!conflicts.has(target)) {
+                conflicts.set(target, new Set());
+            }
+
+            // Add position conflicts based on before_and_after rules
+            if (action.position === 'before_and_after') {
+                conflicts.get(target).add('before');
+                conflicts.get(target).add('after');
+                conflicts.get(target).add('before_and_after');
+            } else {
+                conflicts.get(target).add(action.position);
+                conflicts.get(target).add('before_and_after'); // Both conflicts with any single
+            }
+        });
+    });
+
+    return conflicts;
+};
+
+// Check if a position conflicts with existing actions for given targets
+const hasPositionConflict = (position, targets, completedActions) => {
+    const conflicts = getPositionConflicts(completedActions);
+
+    return targets.some(target =>
+        conflicts.has(target) && conflicts.get(target).has(position)
+    );
+};
+
+// Get available positions (not conflicting)
+const getAvailablePositions = (targets, completedActions) => {
+    const allPositions = ['before', 'after', 'before_and_after'];
+    return allPositions.filter(position =>
+        !hasPositionConflict(position, targets, completedActions)
+    );
+};
+
 // Main component
 const MarkerInstructionBuilder = ({
     markerArray = [],
@@ -292,29 +336,42 @@ const MarkerInstructionBuilder = ({
         return "This preview updates as you build your phase instruction.";
     };
 
-    // Subcomponents
-    const ActionTypeSelector = () => (
-        <div>
-            <label className="form-label">What happens?</label>
-            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                <SelectionGrid
-                    options={construction === 'round' ? [
-                        { value: 'increase', label: 'Add Increases' },
-                        { value: 'decrease', label: 'Add Decreases' },
-                        { value: 'continue', label: 'Work Pattern' }
-                    ] : [
-                        { value: 'increase', label: 'Add Increases' },
-                        { value: 'decrease', label: 'Add Decreases' },
-                        { value: 'bind_off', label: 'Bind Off' },
-                        { value: 'continue', label: 'Work Pattern' }
-                    ]}
-                    selected={currentAction.actionType}
-                    onSelect={(value) => updateAction({ actionType: value })}
-                    columns={construction === 'round' ? 3 : 2}
-                />
+    const ActionTypeSelector = () => {
+        const getActionTypeOptions = () => {
+            const baseOptions = [
+                { value: 'increase', label: 'Add Increases' },
+                { value: 'decrease', label: 'Add Decreases' }
+            ];
+
+            if (construction === 'flat') {
+                baseOptions.push({ value: 'bind_off', label: 'Bind Off' });
+            }
+
+            // Only show continue if no completed actions
+            if (completedActions.length === 0) {
+                baseOptions.push({ value: 'continue', label: 'Work Pattern' });
+            }
+
+            return baseOptions;
+        };
+
+        const options = getActionTypeOptions();
+        const columns = options.length === 4 ? 2 : options.length;
+
+        return (
+            <div>
+                <label className="form-label">What happens?</label>
+                <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                    <SelectionGrid
+                        options={options}
+                        selected={currentAction.actionType}
+                        onSelect={(value) => updateAction({ actionType: value })}
+                        columns={columns}
+                    />
+                </div>
             </div>
-        </div>
-    );
+        );
+    };
 
     const WhereSelector = () => construction === 'flat' && currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' ? (
         <div>
@@ -664,14 +721,15 @@ const MarkerInstructionBuilder = ({
             parts.push(action.actionType || '...');
         }
 
-        // Distance
+        // Distance (skip 'at' for marker actions, only show for edge actions or numbered distances)
         if (action.distance) {
-            if (action.distance === 'at') {
+            if (action.distance === 'at' && action.whereType === 'edges') {
                 parts.push('at');
-            } else {
+            } else if (action.distance !== 'at') {
                 const stText = action.distance === '1' ? 'st' : 'sts';
                 parts.push(`${action.distance} ${stText}`);
             }
+            // If distance is 'at' and it's markers, we skip adding anything
         } else if (action.actionType && action.actionType !== 'bind_off') {
             parts.push('...');
         }
