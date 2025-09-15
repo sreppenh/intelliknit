@@ -371,7 +371,110 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
  * @returns {string} - Round instruction text
  */
 const generateRoundInstructions = (allActions, timing, markerArray, basePattern) => {
-    // TODO: Implement 4-case round logic
-    return "Round construction - not implemented yet";
+    const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
+    const actionsByMarker = {};
+    let totalStitchChange = 0;
+
+    // Group actions by target marker
+    allActions.forEach(action => {
+        action.targets.forEach(target => {
+            if (!actionsByMarker[target]) actionsByMarker[target] = [];
+            actionsByMarker[target].push(action);
+        });
+    });
+
+    const borActions = actionsByMarker['BOR'] || [];
+    const regularMarkerActions = markers.filter(marker => actionsByMarker[marker]?.length > 0);
+    const instructionParts = [];
+
+    // Case 1: Only BOR actions
+    if (borActions.length > 0 && regularMarkerActions.length === 0) {
+        // Handle before_and_after BOR actions first
+        const bothBorActions = borActions.filter(action => action.position === 'before_and_after');
+        if (bothBorActions.length > 0) {
+            const action = bothBorActions[0];
+            const [beforeTech, afterTech] = action.technique.split('_');
+            const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+            // After BOR part (round start)
+            if (distance > 0) {
+                instructionParts.push(`k${distance}`);
+            }
+            instructionParts.push(afterTech);
+
+            // Before BOR part (round end)
+            const consumption = getStitchConsumption(beforeTech);
+            const totalStitchesNeeded = consumption + distance;
+
+            if (totalStitchesNeeded > 0) {
+                const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before end of round`);
+            } else {
+                instructionParts.push(`work in ${basePattern} until end of round`);
+            }
+
+            instructionParts.push(beforeTech);
+            if (distance > 0) {
+                instructionParts.push(`k${distance}`);
+            }
+
+            totalStitchChange += getStitchChange(beforeTech) + getStitchChange(afterTech);
+        } else {
+            // Handle separate after and before BOR actions
+            const afterBorActions = borActions.filter(action => action.position === 'after');
+            const beforeBorActions = borActions.filter(action => action.position === 'before');
+
+            // After BOR actions (round start)
+            afterBorActions.forEach(action => {
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                if (distance > 0) {
+                    instructionParts.push(`k${distance}`);
+                }
+                instructionParts.push(action.technique);
+                totalStitchChange += getStitchChange(action.technique);
+            });
+
+            // Before BOR actions (round end)
+            if (beforeBorActions.length > 0) {
+                beforeBorActions.forEach(action => {
+                    const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                    const consumption = getStitchConsumption(action.technique);
+                    const totalStitchesNeeded = consumption + distance;
+
+                    if (totalStitchesNeeded > 0) {
+                        const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                        instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before end of round`);
+                    } else {
+                        instructionParts.push(`work in ${basePattern} until end of round`);
+                    }
+
+                    instructionParts.push(action.technique);
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    totalStitchChange += getStitchChange(action.technique);
+                });
+            } else {
+                instructionParts.push(`work in ${basePattern} until end of round`);
+            }
+        }
+    } else {
+        return "Round construction - cases 2-4 not implemented yet";
+    }
+
+    // Build final instruction with timing
+    const instruction = instructionParts.join(', ');
+    const stitchChangeText = totalStitchChange !== 0 ? ` (${totalStitchChange > 0 ? '+' : ''}${totalStitchChange} sts)` : '';
+
+    const hasRealTiming = (timing.frequency && timing.frequency > 1) ||
+        (timing.times && timing.times > 1) ||
+        (timing.amountMode === 'target' && timing.targetStitches && timing.targetStitches > 0);
+
+    const repeatText = hasRealTiming && timing.amountMode === 'target' && timing.targetStitches !== null && timing.targetStitches > 0
+        ? ` until ${timing.targetStitches} stitches remain`
+        : hasRealTiming && timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} rounds` : '';
+
+    return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
 };
 
