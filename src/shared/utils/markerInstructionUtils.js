@@ -88,6 +88,12 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
         return `${instructions.join(' and ')}${frequencyText}${repeatText}`;
     }
 
+    // NEW: Multi-action detection and routing
+    const meaningfulActions = allActions.filter(action => action.actionType !== 'continue');
+    if (meaningfulActions.length > 1) {
+        return generateSequentialInstructions(allActions, timing, markerArray, construction, basePattern);
+    }
+
     // Process regular marker and edge actions
     const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
     const markerActions = allActions.filter(action =>
@@ -938,6 +944,213 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
 
     return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
 };
+
+/**
+ * Generate sequential multi-action instructions (based on Case 4 pattern)
+ * @param {Array} allActions - All completed actions
+ * @param {Object} timing - Timing configuration
+ * @param {Array} markerArray - Marker array structure
+ * @param {string} construction - 'flat' or 'round'
+ * @param {string} basePattern - Base pattern name
+ * @returns {string} - Sequential instruction text
+ */
+const generateSequentialInstructions = (allActions, timing, markerArray, construction, basePattern) => {
+    const meaningfulActions = allActions.filter(action => action.actionType !== 'continue');
+    const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
+    let totalStitchChange = 0;
+
+    // Group actions by position (following Case 4 pattern)
+    const actionsByPosition = {};
+    meaningfulActions.forEach(action => {
+        action.targets.forEach(target => {
+            if (!actionsByPosition[target]) actionsByPosition[target] = [];
+            actionsByPosition[target].push(action);
+        });
+    });
+
+    // Build position sequence based on construction
+    const positions = [];
+    if (construction === 'flat') {
+        // Flat: beginning → before M1 → after M1 → before M2 → after M2 → ... → end
+        if (actionsByPosition['beginning']) positions.push({ type: 'edge', name: 'beginning' });
+
+        markers.forEach(marker => {
+            if (actionsByPosition[marker]) {
+                positions.push({ type: 'marker', name: marker });
+            }
+        });
+
+        if (actionsByPosition['end']) positions.push({ type: 'edge', name: 'end' });
+    } else {
+        // Round: after BOR → before M1 → after M1 → before M2 → after M2 → ... → before BOR
+        if (actionsByPosition['BOR']) positions.push({ type: 'bor', name: 'BOR' });
+
+        markers.forEach(marker => {
+            if (actionsByPosition[marker]) {
+                positions.push({ type: 'marker', name: marker });
+            }
+        });
+    }
+
+    const instructionParts = [];
+    const lastPositionIndex = positions.length - 1;
+
+    // Process each position sequentially (following Case 4 pattern)
+    for (let i = 0; i <= lastPositionIndex; i++) {
+        const position = positions[i];
+        const positionActions = actionsByPosition[position.name];
+        const isFirst = i === 0;
+        const isLast = i === lastPositionIndex;
+
+        if (position.type === 'edge' && position.name === 'beginning') {
+            // Handle beginning actions
+            positionActions.forEach(action => {
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                if (distance === 0 && action.actionType === 'increase') {
+                    // Cast on at beginning
+                    instructionParts.push(`using ${action.technique}, cast on ${action.stitchCount || 1} stitches`);
+                    totalStitchChange += (action.stitchCount || 1);
+                } else {
+                    // Regular beginning action
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push(action.technique);
+                    totalStitchChange += getStitchChange(action.technique);
+                }
+            });
+
+        } else if (position.type === 'edge' && position.name === 'end') {
+            // Handle end actions
+            positionActions.forEach(action => {
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                if (distance === 0 && action.actionType === 'increase') {
+                    // Cast on at end
+                    instructionParts.push(`work in ${basePattern} until end`);
+                    instructionParts.push(`using ${action.technique}, cast on ${action.stitchCount || 1} stitches`);
+                    totalStitchChange += (action.stitchCount || 1);
+                } else {
+                    // Regular end action
+                    const consumption = getStitchConsumption(action.technique);
+                    const totalStitchesNeeded = consumption + distance;
+                    const stitchText = totalStitchesNeeded === 1 ? 'stitch' : 'stitches';
+                    instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} ${stitchText} before end`);
+                    instructionParts.push(action.technique);
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    totalStitchChange += getStitchChange(action.technique);
+                }
+            });
+
+        } else if (position.type === 'marker') {
+            // Handle marker actions (following Case 4 pattern exactly)
+            positionActions.forEach(action => {
+                const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+
+                if (action.position === 'before_and_after') {
+                    const [beforeTech, afterTech] = action.technique.split('_');
+                    if (isFirst) {
+                        instructionParts.push(`work in ${basePattern} to marker ${position.name}`);
+                    } else {
+                        instructionParts.push(`work to marker ${position.name}`);
+                    }
+                    instructionParts.push(beforeTech);
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push('slip marker');
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push(afterTech);
+                    totalStitchChange += getStitchChange(beforeTech) + getStitchChange(afterTech);
+
+                } else if (action.position === 'before') {
+                    const consumption = getStitchConsumption(action.technique);
+                    const totalStitchesNeeded = consumption + distance;
+
+                    if (isFirst) {
+                        if (totalStitchesNeeded > 0) {
+                            instructionParts.push(`work in ${basePattern} until ${totalStitchesNeeded} st before marker ${position.name}`);
+                        } else {
+                            instructionParts.push(`work in ${basePattern} to marker ${position.name}`);
+                        }
+                    } else {
+                        if (totalStitchesNeeded > 0) {
+                            instructionParts.push(`work until ${totalStitchesNeeded} st before marker ${position.name}`);
+                        } else {
+                            instructionParts.push(`work to marker ${position.name}`);
+                        }
+                    }
+                    instructionParts.push(action.technique);
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push('slip marker');
+                    totalStitchChange += getStitchChange(action.technique);
+
+                } else if (action.position === 'after') {
+                    if (isFirst) {
+                        instructionParts.push(`work in ${basePattern} to marker ${position.name}`);
+                    } else {
+                        instructionParts.push(`work to marker ${position.name}`);
+                    }
+                    instructionParts.push('slip marker');
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push(action.technique);
+                    totalStitchChange += getStitchChange(action.technique);
+                }
+            });
+
+        } else if (position.type === 'bor') {
+            // Handle BOR actions (simplified for now)
+            positionActions.forEach(action => {
+                if (action.position === 'after') {
+                    const distance = action.distance && action.distance !== 'at' ? parseInt(action.distance) : 0;
+                    if (distance > 0) {
+                        instructionParts.push(`k${distance}`);
+                    }
+                    instructionParts.push(action.technique);
+                    totalStitchChange += getStitchChange(action.technique);
+                }
+                // Handle before BOR at the end
+            });
+        }
+    }
+
+    // Add final "work to end" if needed (following Case 4 pattern)
+    const lastPosition = positions[lastPositionIndex];
+    const needsWorkToEnd = lastPosition &&
+        !((lastPosition.type === 'edge' && lastPosition.name === 'end') ||
+            (lastPosition.type === 'bor' && actionsByPosition['BOR']?.some(a => a.position === 'before')));
+
+    if (needsWorkToEnd) {
+        const endTerm = construction === 'round' ? 'end of round' : 'end';
+        instructionParts.push(`work in ${basePattern} to ${endTerm}`);
+    }
+
+    // Build final instruction with timing (following existing pattern)
+    const instruction = instructionParts.join(', ');
+    const stitchChangeText = totalStitchChange !== 0 ? ` (${totalStitchChange > 0 ? '+' : ''}${totalStitchChange} sts)` : '';
+
+    const hasRealTiming = (timing.frequency && timing.frequency > 1) ||
+        (timing.times && timing.times > 1) ||
+        (timing.amountMode === 'target' && timing.targetStitches && timing.targetStitches > 0);
+
+    const repeatText = hasRealTiming && timing.amountMode === 'target' && timing.targetStitches !== null && timing.targetStitches > 0
+        ? ` until ${timing.targetStitches} stitches remain`
+        : hasRealTiming && timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
+    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+
+    return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
+};
+
+
 
 /**
  * Generate technical description for a single action
