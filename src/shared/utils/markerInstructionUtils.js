@@ -1131,7 +1131,7 @@ const generateSequentialInstructions = (allActions, timing, markerArray, constru
 
     if (needsWorkToEnd) {
         const endTerm = construction === 'round' ? 'end of round' : 'end';
-        instructionParts.push(`work in ${basePattern} to ${endTerm}`);
+        instructionParts.push(`work in pattern to ${endTerm}`);
     }
 
     // Build final instruction with timing (following existing pattern)
