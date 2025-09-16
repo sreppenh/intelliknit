@@ -407,7 +407,9 @@ const MarkerPhasesConfig = ({
                     <div>
                         <h2 className="content-header-primary">Marker Setup</h2>
                         <p className="content-subheader">
-                            {currentStitches} stitches • {construction} construction
+                            {/*}  {currentStitches} stitches • {construction} construction. */}
+                            <p className="content-subheader">Specify marker placement and spacing</p>
+
                         </p>
                     </div>
 

@@ -360,6 +360,12 @@ const MarkerInstructionBuilder = ({
                 onSelect={(value) => updateAction({ position: value })}
                 columns={3}
                 compact
+                disabled={getAvailablePositions(currentAction.targets, completedActions).length > 0
+                    ? ['before', 'after', 'before_and_after'].filter(pos =>
+                        !getAvailablePositions(currentAction.targets, completedActions).includes(pos)
+                    )
+                    : []
+                }
             />
         </>
     ) : null;
@@ -375,6 +381,18 @@ const MarkerInstructionBuilder = ({
 
         // For flat construction with edges, show edge selection
         if (construction === 'flat' && currentAction.whereType === 'edges') {
+            // Check which edges are conflicted
+            const conflictedEdges = [];
+            if (hasPositionConflict('at_beginning', ['beginning'], completedActions)) {
+                conflictedEdges.push('at_beginning');
+            }
+            if (hasPositionConflict('at_end', ['end'], completedActions)) {
+                conflictedEdges.push('at_end');
+            }
+            if (hasPositionConflict('both_ends', ['beginning', 'end'], completedActions)) {
+                conflictedEdges.push('both_ends');
+            }
+
             return (
                 <>
                     <label className="form-label">Which edges?</label>
@@ -391,6 +409,7 @@ const MarkerInstructionBuilder = ({
                         })}
                         columns={3}
                         compact
+                        disabled={conflictedEdges}
                     />
                 </>
             );
@@ -401,23 +420,36 @@ const MarkerInstructionBuilder = ({
             <>
                 <label className="form-label">Which markers?</label>
                 <div className="flex flex-wrap gap-2">
-                    {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => (
-                        <MarkerChip
-                            key={target.value}
-                            marker={target.value}
-                            active={currentAction.targets.includes(target.value)}
-                            onClick={() => toggleTarget(target.value)}
-                            markerColors={markerColors}
-                        />
-                    ))}
+                    {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(target => {
+                        const isConflicted = currentAction.position &&
+                            hasPositionConflict(currentAction.position, [target.value], completedActions);
+
+                        return (
+                            <MarkerChip
+                                key={target.value}
+                                marker={target.value}
+                                active={currentAction.targets.includes(target.value)}
+                                onClick={() => toggleTarget(target.value)}
+                                markerColors={markerColors}
+                                disabled={isConflicted}
+                            />
+                        );
+                    })}
                     {getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').length > 1 && (
                         <button
-                            onClick={() => updateAction({
-                                targets: getValidTargets().filter(t => t.type === 'marker' || t.type === 'bor').map(t => t.value)
-                            })}
+                            onClick={() => {
+                                const validTargets = getValidTargets()
+                                    .filter(t => t.type === 'marker' || t.type === 'bor')
+                                    .filter(t => !currentAction.position ||
+                                        !hasPositionConflict(currentAction.position, [t.value], completedActions)
+                                    );
+                                updateAction({
+                                    targets: validTargets.map(t => t.value)
+                                });
+                            }}
                             className="px-3 py-2 rounded-full font-medium transition-colors border-2 border-dashed border-sage-400 text-sage-600 hover:border-sage-500 hover:bg-sage-50"
                         >
-                            + All Markers
+                            + All Available Markers
                         </button>
                     )}
                 </div>
@@ -567,7 +599,7 @@ const MarkerInstructionBuilder = ({
                 )}
             </h4>
             <div className="bg-white rounded-lg p-3 border border-lavender-200">
-                <p className="text-sm text-lavender-700 font-medium text-left">
+                <p className="text-sm text-lavender-700 font-medium text-left" style={{ textAlign: 'left' }}>
                     {generatePreview()}
                 </p>
                 {(completedActions.length > 0 || currentAction.actionType) && currentStep !== 'timing' && (

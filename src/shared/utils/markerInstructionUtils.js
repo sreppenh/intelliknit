@@ -957,10 +957,12 @@ export const getActionConfigDisplay = (action) => {
         return parts.join(' ');
     } else if (action.actionType === 'increase') {
         const technique = action.technique || '...';
-        parts.push(`Increase (${technique})`);
+        const formattedTechnique = technique.includes('_') ? technique.replace('_', ' & ') : technique;
+        parts.push(`Increase (${formattedTechnique})`);
     } else if (action.actionType === 'decrease') {
         const technique = action.technique || '...';
-        parts.push(`Decrease (${technique})`);
+        const formattedTechnique = technique.includes('_') ? technique.replace('_', ' & ') : technique;
+        parts.push(`Decrease (${formattedTechnique})`);
     } else {
         parts.push(action.actionType || '...');
     }
