@@ -29,21 +29,43 @@ const getPositionConflicts = (completedActions) => {
     completedActions.forEach(action => {
         if (action.actionType === 'continue') return; // Skip continue actions
 
-        action.targets.forEach(target => {
-            if (!conflicts.has(target)) {
-                conflicts.set(target, new Set());
+        // Handle edge actions differently than marker actions
+        if (action.whereType === 'edges') {
+            // For edges, we track by the actual edge location being used
+            if (action.position === 'at_beginning') {
+                if (!conflicts.has('beginning')) conflicts.set('beginning', new Set());
+                conflicts.get('beginning').add('at_beginning');
+                conflicts.get('beginning').add('both_ends');
+            } else if (action.position === 'at_end') {
+                if (!conflicts.has('end')) conflicts.set('end', new Set());
+                conflicts.get('end').add('at_end');
+                conflicts.get('end').add('both_ends');
+            } else if (action.position === 'both_ends') {
+                if (!conflicts.has('beginning')) conflicts.set('beginning', new Set());
+                if (!conflicts.has('end')) conflicts.set('end', new Set());
+                conflicts.get('beginning').add('both_ends');
+                conflicts.get('beginning').add('at_beginning');
+                conflicts.get('end').add('both_ends');
+                conflicts.get('end').add('at_end');
             }
+        } else {
+            // Handle marker actions (existing logic)
+            action.targets.forEach(target => {
+                if (!conflicts.has(target)) {
+                    conflicts.set(target, new Set());
+                }
 
-            // Add position conflicts based on before_and_after rules
-            if (action.position === 'before_and_after') {
-                conflicts.get(target).add('before');
-                conflicts.get(target).add('after');
-                conflicts.get(target).add('before_and_after');
-            } else {
-                conflicts.get(target).add(action.position);
-                conflicts.get(target).add('before_and_after'); // Both conflicts with any single
-            }
-        });
+                // Add position conflicts based on before_and_after rules
+                if (action.position === 'before_and_after') {
+                    conflicts.get(target).add('before');
+                    conflicts.get(target).add('after');
+                    conflicts.get(target).add('before_and_after');
+                } else {
+                    conflicts.get(target).add(action.position);
+                    conflicts.get(target).add('before_and_after'); // Both conflicts with any single
+                }
+            });
+        }
     });
 
     return conflicts;
