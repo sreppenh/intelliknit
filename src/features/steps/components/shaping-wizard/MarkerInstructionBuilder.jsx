@@ -192,8 +192,8 @@ const MarkerInstructionBuilder = ({
                 updated.targets = [];
                 updated.distance = '';
                 updated.technique = '';
-            } else if (updates.position) {
-                // Position change clears targets and below
+            } else if (updates.position && !updates.targets) {
+                // Position change clears targets and below (unless targets are being set simultaneously)
                 updated.targets = [];
                 updated.distance = '';
                 updated.technique = '';
@@ -726,46 +726,27 @@ const MarkerInstructionBuilder = ({
                     markerColors={markerColors}
                 />
             </div>
-            {/* Pre-selection Group */}
             <div className="card">
                 <h4 className="section-header-secondary">Define Actions</h4>
                 <div className="space-y-6">
                     <ActionTypeCard />
-                    {currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' && (
+                    {currentAction.actionType !== 'continue' && (
                         <>
                             <WhereCard />
                             <PositionCard />
+                            <TargetCard />
+                            <DistanceCard />
+                            <TechniqueCard />
+                            <BindOffCard />
+                            {isActionComplete() && (
+                                <div className="flex gap-3 pt-4 border-t">
+                                    <button onClick={addAction} className="btn-secondary">Add Another Action</button>
+                                </div>
+                            )}
                         </>
                     )}
                 </div>
             </div>
-
-            {/* Target Selection Group */}
-            {currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' && (currentAction.position || currentAction.whereType === 'edges') && (
-                <div className="card">
-                    <h4 className="section-header-secondary">Select Targets</h4>
-                    <div className="space-y-6">
-                        <TargetCard />
-                    </div>
-                </div>
-            )}
-
-            {/* Configuration Group */}
-            {((currentAction.targets && currentAction.targets.length > 0) || currentAction.actionType === 'bind_off') && (
-                <div className="card">
-                    <h4 className="section-header-secondary">Action Configuration</h4>
-                    <div className="space-y-6">
-                        <DistanceCard />
-                        <TechniqueCard />
-                        <BindOffCard />
-                        {isActionComplete() && (
-                            <div className="flex gap-3 pt-4 border-t">
-                                <button onClick={addAction} className="btn-secondary">Add Another Action</button>
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
             <PreviewSection />
             <div className="flex gap-3">
                 <button onClick={onBack} className="btn-tertiary">← Back</button>

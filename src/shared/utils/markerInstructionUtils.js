@@ -142,7 +142,7 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                     const stitchCount = action.stitchCount || 1;
 
                     if (target === 'beginning') {
-                        if (distance === 0) {
+                        if (distance === 0 && action.actionType === 'increase') {
                             // This is cast on at beginning
                             edgeInstructionParts.push(`Using ${action.technique}, cast on ${stitchCount} stitches`);
                             totalStitchChange += stitchCount;
@@ -153,7 +153,7 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                         }
                         edgeInstructionParts.push(`work in ${basePattern} to end`);
                     } else if (target === 'end') {
-                        if (distance === 0) {
+                        if (distance === 0 && action.actionType === 'increase') {
                             // This is cast on at end
                             edgeInstructionParts.push(`work in ${basePattern} until end`);
                             edgeInstructionParts.push(`using ${action.technique}, cast on ${stitchCount} stitches`);
