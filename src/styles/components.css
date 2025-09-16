@@ -790,7 +790,7 @@ input[type="number"]:focus {
   @apply border-sage-500 bg-sage-100 text-sage-700 shadow-sm;
 }
 
-/* Selection buttons */
+/* Selection buttons 
 .selection-button {
   @apply p-4 border-2 rounded-xl transition-all duration-200 text-center cursor-pointer;
   @apply border-wool-200 bg-white text-wool-700;
@@ -799,7 +799,24 @@ input[type="number"]:focus {
 
 .selection-button-selected {
   @apply border-sage-500 bg-sage-100 text-sage-700;
+}. */
+
+/* Selection buttons */
+.selection-button {
+  @apply p-4 border-2 rounded-lg cursor-pointer transition-colors text-center;
+  @apply border-wool-200 bg-white text-wool-700;
 }
+
+.selection-button:not(.selection-button-selected):hover {
+  @apply border-sage-300;
+}
+
+.selection-button-selected {
+  @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
+}
+
+/* Updates made above */
+
 
 /* Component status cards */
 .card-component {

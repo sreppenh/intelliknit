@@ -295,10 +295,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                   <button
                     key={option.value}
                     onClick={() => setComponentData(prev => ({ ...prev, startType: option.value }))}
-                    className={`p-3 text-sm border-2 rounded-lg transition-colors text-center ${componentData.startType === option.value
-                      ? 'border-sage-500 bg-sage-100 text-sage-700'
-                      : 'border-wool-200 hover:border-sage-300'
-                      }`}
+                    className={`card-selectable-compact ${componentData.startType === option.value ? 'card-selectable-compact-selected' : ''}`}
                   >
                     <div className="text-xl mb-1">{option.icon}</div>
                     <div className="text-xs font-medium">{option.label}</div>
