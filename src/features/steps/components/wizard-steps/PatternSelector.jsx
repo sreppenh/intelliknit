@@ -310,7 +310,7 @@ export const PatternSelector = ({
                         ? 'card-selectable-selected'
                         : // Show expanded state for multi-pattern categories that are expanded but no pattern selected yet
                         expandedAdvancedCategory === key && !selectedPattern && category.patterns.length > 1
-                          ? 'border-sage-300 bg-sage-50 text-sage-700'
+                          ? 'card-selectable-compact'
                           : // Default state
                           'card-selectable'
                       }`}

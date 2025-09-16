@@ -317,7 +317,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                 <button
                   onClick={() => setScreen(2)}
                   disabled={!componentData.name.trim() || !componentData.construction || !componentData.startType}
-                  className="flex-2 bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm"
+                  className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
                 >
                   Continue
