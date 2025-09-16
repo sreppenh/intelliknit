@@ -671,7 +671,7 @@ const MarkerInstructionBuilder = ({
         return parts.join(' ');
     };
 
-    const PreviewSection = () => shouldShowPreview() ? (
+    const PreviewSection = () => (
         <div className="card-info">
             <h4 className="section-header-secondary flex items-center justify-between">
                 {getPreviewTitle()}
@@ -713,7 +713,7 @@ const MarkerInstructionBuilder = ({
             </div>
             <p className="text-xs text-lavender-600 mt-2">{getPreviewSubtext()}</p>
         </div>
-    ) : null;
+    )
 
     return (
         <div className="space-y-6">
