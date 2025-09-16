@@ -3,6 +3,10 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { generateMarkerFlowInstruction, generateMarkerInstructionPreview, getActionConfigDisplay } from '../../../../shared/utils/markerInstructionUtils';
+import MarkerChip from '../../../../shared/components/MarkerChip';
+import SelectionGrid from '../../../../shared/components/SelectionGrid';
+
+
 // Utility to get marker color based on markerName and markerColors
 const getMarkerColor = (markerName, markerColors) => {
     if (markerName === 'BOR') {
@@ -16,54 +20,6 @@ const getMarkerColor = (markerName, markerColors) => {
     ];
     const colorIndex = markerColors[markerName] || 0;
     return MARKER_COLOR_OPTIONS[colorIndex];
-};
-
-// Reusable MarkerChip component
-const MarkerChip = ({ marker, active, onClick, markerColors }) => {
-    const style = getMarkerColor(marker, markerColors);
-    return (
-        <button
-            type="button"
-            onClick={onClick}
-            className={`relative px-3 py-2 rounded-full font-medium transition-colors 
-                ${active ? `${style.bg} ${style.text} card-marker-select-compact-selected` :
-                    `${style.bg} ${style.text} hover:ring-2 hover:ring-sage-300 hover:ring-opacity-50`}`}
-        >
-            {marker}
-            {active && (
-                <div className="absolute -top-1 -right-1 w-4 h-4 bg-sage-500 rounded-full flex items-center justify-center">
-                    <span className="text-white text-xs font-bold">✓</span>
-                </div>
-            )}
-        </button>
-    );
-};
-
-// Reusable SelectionGrid component
-const SelectionGrid = ({ options, selected, onSelect, columns = 3, compact = false }) => {
-    const getGridClass = () => {
-        switch (columns) {
-            case 2: return 'grid-cols-2';
-            case 3: return 'grid-cols-3';
-            case 4: return 'grid-cols-4';
-            default: return 'grid-cols-3';
-        }
-    };
-
-    return (
-        <div className={`grid ${getGridClass()} gap-2`}>
-            {options.map(option => (
-                <div
-                    key={option.value}
-                    onClick={() => onSelect(option.value)}
-                    className={`card-marker-select${compact ? '-compact' : ''} 
-                    ${selected === option.value ? `${compact ? 'card-marker-select-compact-selected' : 'card-marker-select-selected'}` : ''}`}
-                >
-                    <div className="font-medium text-sm">{option.label}</div>
-                </div>
-            ))}
-        </div>
-    );
 };
 
 // Conflict detection for markers and edges
