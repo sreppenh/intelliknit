@@ -3,7 +3,6 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { generateMarkerFlowInstruction, generateMarkerInstructionPreview } from '../../../../shared/utils/markerInstructionUtils';
-import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 // Utility to get marker color based on markerName and markerColors
 const getMarkerColor = (markerName, markerColors) => {
@@ -176,21 +175,10 @@ const MarkerInstructionBuilder = ({
     const updateAction = (updates) => {
         setCurrentAction(prev => {
             const updated = { ...prev, ...updates };
-            if (updates.whereType) {
-                updated.position = '';
-                updated.technique = '';
-                updated.distance = '';
-                updated.targets = [];
-            }
-            if (updates.position) {
-                updated.technique = '';
-                updated.distance = '';
-                // Note: Target validation happens in UI render, not here
-            }
-            if (updates.distance && updated.whereType === 'markers') {
-                updated.technique = '';
-            }
+
+            // Complete cascade clearing logic
             if (updates.actionType) {
+                // ActionType change clears everything
                 updated.whereType = '';
                 updated.position = '';
                 updated.technique = '';
@@ -198,7 +186,26 @@ const MarkerInstructionBuilder = ({
                 updated.targets = [];
                 updated.bindOffAmount = '';
                 updated.stitchCount = 1;
+            } else if (updates.whereType) {
+                // WhereType change clears position and below
+                updated.position = '';
+                updated.targets = [];
+                updated.distance = '';
+                updated.technique = '';
+            } else if (updates.position) {
+                // Position change clears targets and below
+                updated.targets = [];
+                updated.distance = '';
+                updated.technique = '';
+            } else if (updates.targets) {
+                // Targets change clears distance and below
+                updated.distance = '';
+                updated.technique = '';
+            } else if (updates.distance) {
+                // Distance change clears technique
+                updated.technique = '';
             }
+
             return updated;
         });
     };
