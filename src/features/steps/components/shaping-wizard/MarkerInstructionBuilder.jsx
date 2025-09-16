@@ -621,50 +621,54 @@ const MarkerInstructionBuilder = ({
             parts.push(action.actionType || '...');
         }
 
-        // Distance (skip 'at' for marker actions, only show for edge actions or numbered distances)
-        if (action.distance) {
-            if (action.distance === 'at' && action.whereType === 'edges') {
-                parts.push('at');
-            } else if (action.distance !== 'at') {
+        // For edge actions, combine distance + position + "of row" into one phrase
+        if (action.whereType === 'edges' && action.position && action.distance) {
+            const positionText = action.position === 'at_beginning' ? 'beginning' :
+                action.position === 'at_end' ? 'end' :
+                    action.position === 'both_ends' ? 'both ends' : action.position;
+
+            if (action.distance === 'at') {
+                parts.push(`at ${positionText} of row`);
+            } else {
+                const stText = action.distance === '1' ? 'st' : 'sts';
+                parts.push(`${action.distance} ${stText} from ${positionText} of row`);
+            }
+        } else {
+            // Original logic for marker actions
+            // Distance (skip 'at' for marker actions, only show for numbered distances)
+            if (action.distance && action.distance !== 'at') {
                 const stText = action.distance === '1' ? 'st' : 'sts';
                 parts.push(`${action.distance} ${stText}`);
-            }
-            // If distance is 'at' and it's markers, we skip adding anything
-        } else if (action.actionType && action.actionType !== 'bind_off') {
-            parts.push('...');
-        }
-
-        // Position
-        if (action.position) {
-            if (action.position === 'before_and_after') {
-                parts.push('before and after');
-            } else if (action.position === 'at_beginning') {
-                parts.push('at beginning');
-            } else if (action.position === 'at_end') {
-                parts.push('at end');
-            } else if (action.position === 'both_ends') {
-                parts.push('at both ends');
-            } else {
-                parts.push(action.position);
-            }
-        } else if (action.actionType && action.actionType !== 'bind_off' && action.actionType !== 'continue') {
-            parts.push('...');
-        }
-
-        // Targets
-        if (action.targets && action.targets.length > 0) {
-            if (action.whereType === 'edges') {
-                parts.push('row edges');
-            } else {
-                const markerList = action.targets.join(', ');
-                const markerText = action.targets.length === 1 ? 'marker' : 'markers';
-                parts.push(`${markerText} ${markerList}`);
-            }
-        } else if (action.actionType && action.actionType !== 'bind_off' && action.actionType !== 'continue') {
-            if (action.whereType === 'edges') {
-                parts.push('row edges');
-            } else {
+            } else if (action.actionType && action.actionType !== 'bind_off' && !action.distance) {
                 parts.push('...');
+            }
+
+            // Position
+            if (action.position) {
+                if (action.position === 'before_and_after') {
+                    parts.push('before and after');
+                } else if (action.position === 'at_beginning') {
+                    parts.push('at beginning');
+                } else if (action.position === 'at_end') {
+                    parts.push('at end');
+                } else if (action.position === 'both_ends') {
+                    parts.push('at both ends');
+                } else {
+                    parts.push(action.position);
+                }
+            } else if (action.actionType && action.actionType !== 'bind_off' && action.actionType !== 'continue') {
+                parts.push('...');
+            }
+
+            // Targets
+            if (action.targets && action.targets.length > 0) {
+                if (action.whereType === 'edges') {
+                    // This case is now handled above
+                } else {
+                    const markerList = action.targets.join(', ');
+                    const markerText = action.targets.length === 1 ? 'marker' : 'markers';
+                    parts.push(`${markerText} ${markerList}`);
+                }
             }
         }
 
