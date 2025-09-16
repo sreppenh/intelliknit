@@ -484,7 +484,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                   <button
                     onClick={handleCreateComponent}
                     disabled={!canCreateComponent()}
-                    className="flex-2 bg-yarn-600 text-white py-4 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
+                    className="flex-2 btn-primary"
                     style={{ flexGrow: 2 }}
                   >
                     <span className="text-lg">🧶</span>
