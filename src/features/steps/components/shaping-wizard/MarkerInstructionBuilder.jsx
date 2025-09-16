@@ -2,8 +2,7 @@ import React, { useState, useMemo, useEffect } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
-import { generateMarkerFlowInstruction, generateMarkerInstructionPreview } from '../../../../shared/utils/markerInstructionUtils';
-
+import { generateMarkerFlowInstruction, generateMarkerInstructionPreview, getActionConfigDisplay } from '../../../../shared/utils/markerInstructionUtils';
 // Utility to get marker color based on markerName and markerColors
 const getMarkerColor = (markerName, markerColors) => {
     if (markerName === 'BOR') {
@@ -600,81 +599,6 @@ const MarkerInstructionBuilder = ({
         </>
     ) : null;
 
-    // Helper to format action configuration display in technical terms
-    const getActionConfigDisplay = (action) => {
-        const parts = [];
-
-        // Action Type and Technique
-        if (action.actionType === 'continue') {
-            return 'Continue in pattern';
-        } else if (action.actionType === 'bind_off') {
-            const amount = action.bindOffAmount === 'all' ? 'all stitches' : `${action.stitchCount} stitches`;
-            parts.push(`Bind Off (standard) ${amount}`);
-            return parts.join(' ');
-        } else if (action.actionType === 'increase') {
-            const technique = action.technique || '...';
-            parts.push(`Increase (${technique})`);
-        } else if (action.actionType === 'decrease') {
-            const technique = action.technique || '...';
-            parts.push(`Decrease (${technique})`);
-        } else {
-            parts.push(action.actionType || '...');
-        }
-
-        // For edge actions, combine distance + position + "of row" into one phrase
-        if (action.whereType === 'edges' && action.position && action.distance) {
-            const positionText = action.position === 'at_beginning' ? 'beginning' :
-                action.position === 'at_end' ? 'end' :
-                    action.position === 'both_ends' ? 'both ends' : action.position;
-
-            if (action.distance === 'at') {
-                parts.push(`at ${positionText} of row`);
-            } else {
-                const stText = action.distance === '1' ? 'st' : 'sts';
-                parts.push(`${action.distance} ${stText} from ${positionText} of row`);
-            }
-        } else {
-            // Original logic for marker actions
-            // Distance (skip 'at' for marker actions, only show for numbered distances)
-            if (action.distance && action.distance !== 'at') {
-                const stText = action.distance === '1' ? 'st' : 'sts';
-                parts.push(`${action.distance} ${stText}`);
-            } else if (action.actionType && action.actionType !== 'bind_off' && !action.distance) {
-                parts.push('...');
-            }
-
-            // Position
-            if (action.position) {
-                if (action.position === 'before_and_after') {
-                    parts.push('before and after');
-                } else if (action.position === 'at_beginning') {
-                    parts.push('at beginning');
-                } else if (action.position === 'at_end') {
-                    parts.push('at end');
-                } else if (action.position === 'both_ends') {
-                    parts.push('at both ends');
-                } else {
-                    parts.push(action.position);
-                }
-            } else if (action.actionType && action.actionType !== 'bind_off' && action.actionType !== 'continue') {
-                parts.push('...');
-            }
-
-            // Targets
-            if (action.targets && action.targets.length > 0) {
-                if (action.whereType === 'edges') {
-                    // This case is now handled above
-                } else {
-                    const markerList = action.targets.join(', ');
-                    const markerText = action.targets.length === 1 ? 'marker' : 'markers';
-                    parts.push(`${markerText} ${markerList}`);
-                }
-            }
-        }
-
-        return parts.join(' ');
-    };
-
     const PreviewSection = () => (
         <div className="card-info">
             <h4 className="section-header-secondary flex items-center justify-between">
@@ -690,7 +614,7 @@ const MarkerInstructionBuilder = ({
                 <p className="text-sm text-lavender-700 font-medium text-left">
                     {generatePreview()}
                 </p>
-                {completedActions.length > 0 && currentStep !== 'timing' && (
+                {(completedActions.length > 0 || currentAction.actionType) && currentStep !== 'timing' && (
                     <div className="mt-3 pt-3 border-t border-lavender-100">
                         <div className="text-xs text-lavender-600 space-y-1">
                             <div className="font-medium">While working in {basePattern}:</div>

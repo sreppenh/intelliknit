@@ -939,3 +939,83 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
     return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
 };
 
+/**
+ * Generate technical description for a single action
+ * Used for displaying action breakdowns in UI components
+ * @param {Object} action - Action object with actionType, technique, position, etc.
+ * @returns {string} - Technical description like "Decrease (SSK) 1 st from end of row"
+ */
+export const getActionConfigDisplay = (action) => {
+    const parts = [];
+
+    // Action Type and Technique
+    if (action.actionType === 'continue') {
+        return 'Continue in pattern';
+    } else if (action.actionType === 'bind_off') {
+        const amount = action.bindOffAmount === 'all' ? 'all stitches' : `${action.stitchCount} stitches`;
+        parts.push(`Bind Off (standard) ${amount}`);
+        return parts.join(' ');
+    } else if (action.actionType === 'increase') {
+        const technique = action.technique || '...';
+        parts.push(`Increase (${technique})`);
+    } else if (action.actionType === 'decrease') {
+        const technique = action.technique || '...';
+        parts.push(`Decrease (${technique})`);
+    } else {
+        parts.push(action.actionType || '...');
+    }
+
+    // For edge actions, combine distance + position + "of row" into one phrase
+    if (action.whereType === 'edges' && action.position && action.distance) {
+        const positionText = action.position === 'at_beginning' ? 'beginning' :
+            action.position === 'at_end' ? 'end' :
+                action.position === 'both_ends' ? 'both ends' : action.position;
+
+        if (action.distance === 'at') {
+            parts.push(`at ${positionText} of row`);
+        } else {
+            const stText = action.distance === '1' ? 'st' : 'sts';
+            parts.push(`${action.distance} ${stText} from ${positionText} of row`);
+        }
+    } else {
+        // Original logic for marker actions
+        // Distance (skip 'at' for marker actions, only show for numbered distances)
+        if (action.distance && action.distance !== 'at') {
+            const stText = action.distance === '1' ? 'st' : 'sts';
+            parts.push(`${action.distance} ${stText}`);
+        } else if (action.actionType && action.actionType !== 'bind_off' && !action.distance) {
+            parts.push('...');
+        }
+
+        // Position
+        if (action.position) {
+            if (action.position === 'before_and_after') {
+                parts.push('before and after');
+            } else if (action.position === 'at_beginning') {
+                parts.push('at beginning');
+            } else if (action.position === 'at_end') {
+                parts.push('at end');
+            } else if (action.position === 'both_ends') {
+                parts.push('at both ends');
+            } else {
+                parts.push(action.position);
+            }
+        } else if (action.actionType && action.actionType !== 'bind_off' && action.actionType !== 'continue') {
+            parts.push('...');
+        }
+
+        // Targets
+        if (action.targets && action.targets.length > 0) {
+            if (action.whereType === 'edges') {
+                // This case is now handled above
+            } else {
+                const markerList = action.targets.join(', ');
+                const markerText = action.targets.length === 1 ? 'marker' : 'markers';
+                parts.push(`${markerText} ${markerList}`);
+            }
+        }
+    }
+
+    return parts.join(' ');
+};
+
