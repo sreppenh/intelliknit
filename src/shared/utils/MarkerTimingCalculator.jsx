@@ -3,6 +3,7 @@ import { getStitchConsumption } from './stitchCalculatorUtils';
 import markerArrayUtils from './markerArrayUtils';
 import IntelliKnitLogger from './ConsoleLogging';
 
+
 /**
  * Marker Timing Calculator
  * Handles stitch calculations and validation for marker-based timing

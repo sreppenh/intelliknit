@@ -3,9 +3,12 @@ import ShapingHeader from './ShapingHeader';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import { generateMarkerInstructionPreview } from '../../../../shared/utils/markerInstructionUtils';
+import { MarkerTimingCalculator } from '../../../../shared/utils/MarkerTimingCalculator';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 const MarkerTimingConfig = ({
     instructionData,
+    currentStitches,
     markerArray,
     markerColors,
     construction,
@@ -45,6 +48,29 @@ const MarkerTimingConfig = ({
         };
         onComplete(finalInstructionData);
     };
+
+    // Calculate stitch context for validation and display
+    const getStitchContext = () => {
+        if (!instructionData?.actions || !currentStitches) {
+            return {
+                startingStitches: currentStitches || 0,
+                endingStitches: currentStitches || 0,
+                stitchChangePerIteration: 0,
+                maxIterations: 1,
+                totalRows: 1,
+                errors: [],
+                isValid: true
+            };
+        }
+
+        return MarkerTimingCalculator.calculateMarkerStitchContext(
+            instructionData.actions,
+            currentStitches,
+            timing
+        );
+    };
+
+    const stitchContext = getStitchContext();
 
     const FrequencyTimingSelector = () => {
         // Check if this is a continue/plain rows case
@@ -155,6 +181,42 @@ const MarkerTimingConfig = ({
                 </div>
 
                 <FrequencyTimingSelector />
+
+                {/* Stitch Context Display - moved after inputs for better context */}
+                <div className="card-info">
+                    <h4 className="section-header-secondary">Stitch Context</h4>
+                    <div className="bg-white rounded-lg p-3 border border-lavender-200">
+                        <div className="space-y-2 text-sm text-left">
+                            <div className="flex justify-between">
+                                <span className="text-lavender-700">Starting stitches:</span>
+                                <span className="font-medium">{stitchContext.startingStitches}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-lavender-700">Ending stitches:</span>
+                                <span className="font-medium">{stitchContext.endingStitches}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-lavender-700">Change per iteration:</span>
+                                <span className="font-medium">
+                                    {stitchContext.stitchChangePerIteration > 0 ? '+' : ''}{stitchContext.stitchChangePerIteration} sts
+                                </span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span className="text-lavender-700">Total {getConstructionTerms(construction).rows}:</span>
+                                <span className="font-medium">{stitchContext.totalRows}</span>
+                            </div>
+                        </div>
+                        {stitchContext.errors.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-lavender-200">
+                                <div className="text-red-600 text-sm">
+                                    {stitchContext.errors.map((error, index) => (
+                                        <div key={index}>{error}</div>
+                                    ))}
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                </div>
 
                 <div className="flex gap-3">
                     <button onClick={onBack} className="btn-tertiary flex-1">
