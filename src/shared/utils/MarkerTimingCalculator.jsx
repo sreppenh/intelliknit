@@ -49,41 +49,41 @@ export class MarkerTimingCalculator {
      * Similar to PhaseCalculationService.calculateStitchContext
      */
     static calculateMarkerStitchContext(actions, currentStitches, timing) {
-        {
-            const stitchChangePerIteration = this.calculateStitchChangePerIteration(actions);
 
-            // Calculate ending stitches based on timing
-            let endingStitches = currentStitches;
-            let maxIterations = 1;
+        const stitchChangePerIteration = this.calculateStitchChangePerIteration(actions);
 
-            if (timing.amountMode === 'target' && timing.targetStitches !== null) {
-                // Calculate iterations needed to reach target
-                if (stitchChangePerIteration !== 0) {
-                    const iterationsNeeded = Math.abs((timing.targetStitches - currentStitches) / stitchChangePerIteration);
-                    maxIterations = Math.ceil(iterationsNeeded);
-                    endingStitches = timing.targetStitches;
-                }
-            } else if (timing.times) {
-                maxIterations = timing.times;
-                endingStitches = currentStitches + (stitchChangePerIteration * timing.times);
+        // Calculate ending stitches based on timing
+        let endingStitches = currentStitches;
+        let maxIterations = 1;
+
+        if (timing.amountMode === 'target' && timing.targetStitches !== null) {
+            // Calculate iterations needed to reach target
+            if (stitchChangePerIteration !== 0) {
+                const iterationsNeeded = Math.abs((timing.targetStitches - currentStitches) / stitchChangePerIteration);
+                maxIterations = Math.ceil(iterationsNeeded);
+                endingStitches = timing.targetStitches;
             }
-
-            // Validate constraints
-            const errors = [];
-            if (endingStitches < 0) {
-                errors.push(`Cannot reduce to ${endingStitches} stitches`);
-            }
-
-            return {
-                startingStitches: currentStitches,
-                endingStitches: Math.max(0, endingStitches),
-                stitchChangePerIteration,
-                maxIterations,
-                totalRows: maxIterations * (timing.frequency || 1),
-                errors,
-                isValid: errors.length === 0
-            };
+        } else if (timing.times) {
+            maxIterations = timing.times;
+            endingStitches = currentStitches + (stitchChangePerIteration * timing.times);
         }
+
+        // Validate constraints
+        const errors = [];
+        if (endingStitches < 0) {
+            errors.push(`Cannot reduce to ${endingStitches} stitches`);
+        }
+
+        return {
+            startingStitches: currentStitches,
+            endingStitches: Math.max(0, endingStitches),
+            stitchChangePerIteration,
+            maxIterations,
+            totalRows: maxIterations * (timing.frequency || 1),
+            errors,
+            isValid: errors.length === 0
+        };
+    }
 
     /**
      * Calculate maximum safe iterations
