@@ -1,3 +1,5 @@
+// MarkerInstructionBuilder.jsx
+
 import React, { useState, useMemo, useEffect } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
@@ -268,6 +270,9 @@ const MarkerInstructionBuilder = ({
     };
 
     const isActionComplete = () => {
+        // If there are completed actions, button should be enabled
+        if (completedActions.length > 0) return true;
+
         if (!currentAction.actionType) return false;
 
         if (currentAction.actionType === 'continue') {
