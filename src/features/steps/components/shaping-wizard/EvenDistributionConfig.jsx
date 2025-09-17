@@ -35,14 +35,14 @@ const EvenDistributionConfig = ({
   const getInitialConfig = () => {
     if (shapingData.config && Object.keys(shapingData.config).length > 0) {
       return {
-        action: shapingData.config.action || 'decrease',
+        action: shapingData.config.action || 'increase',
         amount: shapingData.config.amount || 1,
         description: shapingData.config.description || ''
       };
     }
 
     return {
-      action: 'decrease',
+      action: 'increase',
       amount: 1,
       description: ''
     };

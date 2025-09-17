@@ -56,11 +56,7 @@ const DurationShapingChoice = (props) => {
         {/* Set Duration Button */}
         <button
           onClick={handleDurationChoice}
-          className={`card-selectable p-6 text-left ${isDurationSelected()
-            ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-lg transform scale-[1.02]'
-            : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.01]'
-            }`}
-        >
+          className={`card-clickable p-6 text-left ${isDurationSelected() ? 'border-sage-500 bg-sage-100' : ''}`} >
           <div className="flex items-start gap-4">
             <div className="text-4xl flex-shrink-0">⏱️</div>
             <div className="flex-1">
@@ -80,11 +76,7 @@ const DurationShapingChoice = (props) => {
         {/* Add Shaping Button */}
         <button
           onClick={handleShapingChoice}
-          className={`card-selectable p-6 text-left relative ${isShapingSelected()
-            ? '!border-yarn-500 !bg-yarn-100 text-yarn-700 shadow-lg transform scale-[1.02]'
-            : 'border-wool-200 bg-white text-wool-700 hover:border-yarn-300 hover:bg-yarn-50 hover:shadow-md hover:transform hover:scale-[1.01]'
-            }`}
-        >
+          className={`card-clickable p-6 text-left relative ${isShapingSelected() ? 'border-yarn-500 bg-yarn-100' : ''}`} >
           <div className="flex items-start gap-4">
             <div className="text-4xl flex-shrink-0">📐</div>
             <div className="flex-1">

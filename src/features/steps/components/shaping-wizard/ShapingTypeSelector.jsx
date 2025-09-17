@@ -61,10 +61,7 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
               key={type.id}
               onClick={() => !type.comingSoon && onTypeSelect(type.id)}
               disabled={type.comingSoon}
-              className={`w-full p-4 border-2 rounded-xl transition-all duration-200 text-left ${type.comingSoon
-                ? 'border-wool-200 bg-wool-100 text-wool-400 cursor-not-allowed'
-                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50 hover:shadow-md hover:transform hover:scale-[1.02] cursor-pointer'
-                }`}
+              className={`card-selectable w-full text-left ${type.comingSoon ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <div className="flex items-start gap-4">
                 <div className="text-3xl flex-shrink-0">{type.icon}</div>

@@ -32,7 +32,7 @@ const EvenDistributionForm = ({
         }
 
         return {
-            action: 'decrease',
+            action: 'increase',
             amount: 1,
             description: ''
         };
