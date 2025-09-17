@@ -183,11 +183,26 @@ const MarkerTimingConfig = ({
                             <div className="mt-4">
                                 {timing.amountMode === 'target' ? (
                                     <IncrementInput
-                                        value={timing.targetStitches || 0}
+                                        value={timing.targetStitches || (() => {
+                                            const increment = Math.abs(stitchContext.stitchChangePerIteration);
+                                            return stitchContext.stitchChangePerIteration < 0 ?
+                                                currentStitches - increment :
+                                                currentStitches + increment;
+                                        })()}
                                         onChange={(value) => setTiming(prev => ({ ...prev, targetStitches: value }))}
                                         unit="stitches"
-                                        min={stitchContext.stitchChangePerIteration < 0 ? 0 : currentStitches}
+                                        min={(() => {
+                                            const increment = Math.abs(stitchContext.stitchChangePerIteration);
+                                            if (stitchContext.stitchChangePerIteration < 0) {
+                                                // Decreasing: only allow values that result in whole number of iterations
+                                                return increment > currentStitches ? 0 : currentStitches % increment;
+                                            } else {
+                                                // Increasing: start from current + one increment
+                                                return currentStitches + increment;
+                                            }
+                                        })()}
                                         max={stitchContext.stitchChangePerIteration < 0 ? currentStitches : currentStitches + 200}
+                                        step={Math.abs(stitchContext.stitchChangePerIteration)}
                                         size="sm"
                                     />
                                 ) : (
