@@ -640,18 +640,18 @@ const MarkerInstructionBuilder = ({
                 </p>
                 {(completedActions.length > 0 || currentAction.actionType) && currentStep !== 'timing' && (
                     <div className="mt-3 pt-3 border-t border-lavender-100">
-                        <div className="text-xs text-lavender-600 space-y-1">
-                            <div className="font-medium">While working in {basePattern}:</div>
+                        <div className="text-xs text-lavender-600 space-y-1 text-left">
+                            <div className="font-medium text-left">While working in {basePattern}:</div>
                             {completedActions.map((action, index) => (
-                                <div key={index} className="flex items-center gap-2">
+                                <div key={index} className="flex items-center gap-2 text-left">
                                     <span className="w-1 h-1 bg-lavender-400 rounded-full"></span>
-                                    <span className="flex-1">
+                                    <span className="flex-1 text-left">
                                         {getActionConfigDisplay(action)}
                                     </span>
                                     <button
                                         onClick={() => handleDeleteAction(index)}
-                                        className="text-red-500 hover:text-red-700 text-sm px-1 py-0.5 rounded hover:bg-red-50 transition-colors"
-                                        aria-label="Delete action"
+                                        className="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                        aria-label={`Delete action: ${getActionConfigDisplay(action)}`}
                                     >
                                         ×
                                     </button>
