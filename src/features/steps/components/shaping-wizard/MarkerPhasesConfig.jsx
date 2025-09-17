@@ -596,6 +596,8 @@ const MarkerPhasesConfig = ({
                         onCancel={handleInstructionCancel}
                         onBack={handleBackNavigation}
                         wizard={wizard}
+                        existingInstructionData={currentSequenceData?.instructionData}
+
                     />
                 </div>
             </div>

@@ -96,7 +96,8 @@ const MarkerInstructionBuilder = ({
     onComplete,
     onCancel,
     onBack,
-    wizard
+    wizard,
+    existingInstructionData
 }) => {
     const [currentStep, setCurrentStep] = useState('action-type');
     const [currentAction, setCurrentAction] = useState({
@@ -109,7 +110,9 @@ const MarkerInstructionBuilder = ({
         targets: [],
         whereType: 'markers'
     });
-    const [completedActions, setCompletedActions] = useState([]);
+    const [completedActions, setCompletedActions] = useState(() => {
+        return existingInstructionData?.actions || [];
+    });
 
     // Available targets based on construction
     const availableTargets = useMemo(() => {
@@ -213,16 +216,11 @@ const MarkerInstructionBuilder = ({
 
     // Continue to timing
     const handleCompleteActions = () => {
-        if (currentAction.actionType === 'continue') {
-            addAction();
-        }
-        if (currentAction.actionType && currentAction.targets.length > 0) {
-            addAction();
-        }
-
-        // Return just the actions (no timing)
+        // Build final actions before modifying state
         const finalActions = [...completedActions];
-        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue')) {
+
+        // Add current action if it's complete
+        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue' || currentAction.actionType === 'bind_off')) {
             finalActions.push(currentAction);
         }
 

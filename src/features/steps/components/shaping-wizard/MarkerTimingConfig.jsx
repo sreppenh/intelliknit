@@ -49,6 +49,16 @@ const MarkerTimingConfig = ({
         onComplete(finalInstructionData);
     };
 
+    const handleBack = () => {
+        // Preserve instructionData with timing structure expected by parent
+        const dataWithTiming = {
+            ...instructionData,
+            timing: timing || { frequency: 1, times: 1, amountMode: 'times' }
+        };
+        onComplete(dataWithTiming);
+        onBack();
+    };
+
     // Calculate stitch context for validation and display
     const getStitchContext = () => {
         if (!instructionData?.actions || !currentStitches) {
@@ -156,7 +166,7 @@ const MarkerTimingConfig = ({
     return (
         <div>
             <ShapingHeader
-                onBack={onBack}
+                onBack={handleBack}
                 onGoToLanding={onGoToLanding}
                 wizard={wizard}
                 onCancel={onCancel}
@@ -219,7 +229,7 @@ const MarkerTimingConfig = ({
                 </div>
 
                 <div className="flex gap-3">
-                    <button onClick={onBack} className="btn-tertiary flex-1">
+                    <button onClick={handleBack} className="btn-tertiary flex-1">
                         ← Back to Actions
                     </button>
                     <button onClick={handleComplete} className="btn-primary flex-1">
