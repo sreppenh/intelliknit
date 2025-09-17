@@ -176,10 +176,10 @@ const MarkerPhasesConfig = ({
         if (currentScreen === 'marker-setup') {
             onBack();
         } else if (currentScreen === 'instruction-builder') {
+            // Clear instruction builder state when going back to marker setup
+            setCurrentSequenceData(null);
             setCurrentScreen('marker-setup');
         } else if (currentScreen === 'timing') {
-            setCurrentScreen('instruction-builder');
-        } else if (currentScreen === 'completion') {
             setCurrentScreen('instruction-builder');
         } else if (currentScreen === 'sequence-management') {
             setCurrentScreen('timing');
@@ -255,8 +255,6 @@ const MarkerPhasesConfig = ({
             }]
         });
 
-        // ONLY CHANGE: Go to completion instead of sequence-management
-        // setCurrentScreen('completion');
         setCurrentScreen('timing');
     };
 
