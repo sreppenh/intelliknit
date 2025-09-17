@@ -5,7 +5,7 @@ import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { generateMarkerFlowInstruction, generateMarkerInstructionPreview, getActionConfigDisplay } from '../../../../shared/utils/markerInstructionUtils';
 import MarkerChip from '../../../../shared/components/MarkerChip';
 import SelectionGrid from '../../../../shared/components/SelectionGrid';
-
+import { DangerModal } from '../../../../shared/components/modals/StandardModal';
 
 // Utility to get marker color based on markerName and markerColors
 const getMarkerColor = (markerName, markerColors) => {
@@ -113,6 +113,22 @@ const MarkerInstructionBuilder = ({
     const [completedActions, setCompletedActions] = useState(() => {
         return existingInstructionData?.actions || [];
     });
+
+    const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+    const [actionToDelete, setActionToDelete] = useState(null);
+
+    const handleDeleteAction = (index) => {
+        setActionToDelete(index);
+        setDeleteModalOpen(true);
+    };
+
+    const confirmDelete = () => {
+        if (actionToDelete !== null) {
+            setCompletedActions(prev => prev.filter((_, i) => i !== actionToDelete));
+            setActionToDelete(null);
+        }
+        setDeleteModalOpen(false);
+    };
 
     // Available targets based on construction
     const availableTargets = useMemo(() => {
@@ -629,9 +645,16 @@ const MarkerInstructionBuilder = ({
                             {completedActions.map((action, index) => (
                                 <div key={index} className="flex items-center gap-2">
                                     <span className="w-1 h-1 bg-lavender-400 rounded-full"></span>
-                                    <span>
+                                    <span className="flex-1">
                                         {getActionConfigDisplay(action)}
                                     </span>
+                                    <button
+                                        onClick={() => handleDeleteAction(index)}
+                                        className="text-red-500 hover:text-red-700 text-sm px-1 py-0.5 rounded hover:bg-red-50 transition-colors"
+                                        aria-label="Delete action"
+                                    >
+                                        ×
+                                    </button>
                                 </div>
                             ))}
                             {/* Current action being built */}
@@ -694,6 +717,15 @@ const MarkerInstructionBuilder = ({
                     Set Timing →
                 </button>
             </div>
+
+            <DangerModal
+                isOpen={deleteModalOpen}
+                onClose={() => setDeleteModalOpen(false)}
+                onConfirm={confirmDelete}
+                title="Delete Action"
+                subtitle="Are you sure you want to remove this action? This cannot be undone."
+                primaryButtonText="Delete"
+            />
         </div>
     );
 };
