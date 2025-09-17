@@ -107,6 +107,49 @@ const MarkerTimingConfig = ({
         }
 
         // Original full timing interface for shaping actions
+        // Check if net stitch change is 0 (no shaping)
+        const hasNetStitchChange = stitchContext.stitchChangePerIteration !== 0;
+
+        // Simplified interface for net-zero stitch changes
+        if (!hasNetStitchChange) {
+            return (
+                <div className="card">
+                    <h4 className="section-header-secondary">Frequency & Times</h4>
+                    <div className="space-y-6">
+                        <div>
+                            <label className="form-label">How often?</label>
+                            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm text-wool-600">Every</span>
+                                    <IncrementInput
+                                        value={timing.frequency}
+                                        onChange={(value) => setTiming(prev => ({ ...prev, frequency: Math.max(value, 1) }))}
+                                        min={1}
+                                        size="sm"
+                                    />
+                                    <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div>
+                            <label className="form-label">Number of Times</label>
+                            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                                <IncrementInput
+                                    value={timing.times}
+                                    onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
+                                    unit="times"
+                                    min={1}
+                                    max={50}
+                                    size="sm"
+                                />
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Original full timing interface for shaping actions
         return (
             <div className="card">
                 <h4 className="section-header-secondary">Frequency & Times</h4>
