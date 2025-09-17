@@ -186,7 +186,8 @@ const MarkerTimingConfig = ({
                                         value={timing.targetStitches || 0}
                                         onChange={(value) => setTiming(prev => ({ ...prev, targetStitches: value }))}
                                         unit="stitches"
-                                        min={0}
+                                        min={stitchContext.stitchChangePerIteration < 0 ? 0 : currentStitches}
+                                        max={stitchContext.stitchChangePerIteration < 0 ? currentStitches : currentStitches + 200}
                                         size="sm"
                                     />
                                 ) : (
@@ -195,7 +196,10 @@ const MarkerTimingConfig = ({
                                         onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
                                         unit="times"
                                         min={1}
-                                        max={50}
+                                        max={stitchContext.stitchChangePerIteration < 0 ?
+                                            Math.floor(currentStitches / Math.abs(stitchContext.stitchChangePerIteration)) :
+                                            50
+                                        }
                                         size="sm"
                                     />
                                 )}
