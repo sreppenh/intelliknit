@@ -615,6 +615,7 @@ const MarkerPhasesConfig = ({
                 wizard={wizard}
                 onGoToLanding={onGoToLanding}
                 onCancel={onCancel}
+                currentStitches={currentStitches}
             />
         );
     }

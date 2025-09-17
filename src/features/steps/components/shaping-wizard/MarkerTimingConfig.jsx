@@ -16,8 +16,8 @@ const MarkerTimingConfig = ({
     onCancel
 }) => {
     const [timing, setTiming] = useState({
-        frequency: 2,
-        times: 10,
+        //  frequency: 2,
+        //  times: 10,
         rows: 1,
         amountMode: 'times',
         targetStitches: null
