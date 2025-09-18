@@ -162,7 +162,7 @@ const MarkerTimingConfig = ({
                 <div className="space-y-4">
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                         <div className="text-sm font-medium text-wool-700 text-left">
-                            <span className="font-bold">Phase 1:</span>
+                            <span className="font-bold">Phase 1: </span>
                             {(() => {
                                 if (!instructionData?.actions) return "No instruction data";
                                 const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
@@ -180,7 +180,7 @@ const MarkerTimingConfig = ({
 
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                         <div className="text-sm font-medium text-wool-700 mb-4">
-                            Phase 2: Repeating Pattern
+                            Define Timing Phase
                         </div>
                         <div className="space-y-4">
                             <div>
@@ -215,6 +215,15 @@ const MarkerTimingConfig = ({
                                 />
                             </div>
                         </div>
+                        <div className="flex gap-3 mt-6">
+                            <button className="btn-secondary flex-1">
+                                Add Another Phase
+                            </button>
+                            <button className="btn-primary flex-1">
+                                Finish Sequence
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>
