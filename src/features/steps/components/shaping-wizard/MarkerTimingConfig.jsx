@@ -209,12 +209,7 @@ const MarkerTimingConfig = ({
                                 );
 
                                 // Calculate stitch change for Phase 1
-                                console.log('instructionData.actions:', instructionData.actions);
-                                console.log('Full instructionData:', JSON.stringify(instructionData, null, 2));
                                 const stitchChange = MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions);
-                                console.log('stitchChange after calculation:', stitchChange);
-                                console.log('calculated stitchChange:', stitchChange);
-                                console.log('currentStitches:', currentStitches);
                                 const endingStitches = currentStitches + stitchChange;
 
                                 return `${instruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')} (${currentStitches} → ${endingStitches} sts)`;
@@ -225,19 +220,19 @@ const MarkerTimingConfig = ({
                         {completedPhases.length > 0 && (
                             <div className="mt-4 space-y-2">
                                 {completedPhases.map((phase, index) => {
-                                    // Calculate running stitch total
+                                    // Calculate running stitch total up to this phase
                                     const stitchChangePerIteration = MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions);
-                                    const phase1EndingStitches = currentStitches + stitchChangePerIteration;
 
-                                    // Calculate stitches for this phase
-                                    let phaseStartStitches = phase1EndingStitches;
+                                    // Start with Phase 1 ending stitches
+                                    let runningStitches = currentStitches + stitchChangePerIteration;
+
+                                    // Add stitch changes from all previous completed phases
                                     for (let i = 0; i < index; i++) {
-                                        const prevPhase = completedPhases[i];
-                                        phaseStartStitches += (stitchChangePerIteration * prevPhase.times);
+                                        runningStitches += (stitchChangePerIteration * completedPhases[i].times);
                                     }
-                                    const phaseEndingStitches = phaseStartStitches + (stitchChangePerIteration * phase.times);
 
-                                    console.log(`Phase ${index + 2}: start=${phaseStartStitches}, change=${stitchChangePerIteration}, times=${phase.times}, end=${phaseEndingStitches}`);
+                                    // This phase's ending stitches
+                                    const phaseEndingStitches = runningStitches + (stitchChangePerIteration * phase.times);
 
                                     return (
                                         <div key={phase.id} className="text-sm text-wool-600 text-left">
@@ -271,19 +266,103 @@ const MarkerTimingConfig = ({
                                 </div>
                             </div>
                             <div>
-                                <label className="form-label">Number of Times</label>
-                                <IncrementInput
-                                    value={phases.find(p => p.type === 'repeat')?.times || 1}
-                                    onChange={(value) => {
-                                        setPhases(prev => prev.map(phase =>
-                                            phase.type === 'repeat' ? { ...phase, times: Math.max(1, value) } : phase
-                                        ));
-                                    }}
-                                    unit="times"
-                                    min={1}
-                                    max={20}
-                                    size="sm"
-                                />
+                                {(() => {
+                                    // Check if there's net stitch change to show toggle
+                                    const stitchChangePerIteration = instructionData?.actions ?
+                                        MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions) : 0;
+                                    const hasNetStitchChange = stitchChangePerIteration !== 0;
+                                    const currentPhase = phases.find(p => p.type === 'repeat');
+
+                                    if (!hasNetStitchChange) {
+                                        // Simple times input when no net stitch change
+                                        return (
+                                            <>
+                                                <label className="form-label">Number of Times</label>
+                                                <IncrementInput
+                                                    value={currentPhase?.times || 1}
+                                                    onChange={(value) => {
+                                                        setPhases(prev => prev.map(phase =>
+                                                            phase.type === 'repeat' ? { ...phase, times: Math.max(1, value) } : phase
+                                                        ));
+                                                    }}
+                                                    unit="times"
+                                                    min={1}
+                                                    max={1000}
+                                                    size="sm"
+                                                />
+                                            </>
+                                        );
+                                    }
+
+                                    // Show toggle when there is net stitch change
+                                    return (
+                                        <>
+                                            <label className="form-label">Repeat Method</label>
+                                            <SegmentedControl
+                                                options={[
+                                                    { value: 'times', label: 'Fixed Times' },
+                                                    { value: 'target', label: 'To Target Stitches' }
+                                                ]}
+                                                value={currentPhase?.amountMode || 'times'}
+                                                onChange={(value) => {
+                                                    setPhases(prev => prev.map(phase =>
+                                                        phase.type === 'repeat' ? { ...phase, amountMode: value } : phase
+                                                    ));
+                                                }}
+                                            />
+                                            <div className="mt-4">
+                                                {currentPhase?.amountMode === 'target' ? (
+                                                    <IncrementInput
+                                                        value={currentPhase?.targetStitches || (currentStitches + Math.abs(stitchChangePerIteration))}
+                                                        onChange={(value) => {
+                                                            // Calculate required times to reach target
+
+                                                            // Calculate where this phase should start (after all completed phases)
+                                                            let phaseStartStitches = currentStitches + stitchChangePerIteration; // Phase 1 ending
+                                                            completedPhases.forEach(completedPhase => {
+                                                                phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                            });
+
+                                                            const requiredTimes = Math.max(1, Math.round(Math.abs((value - phaseStartStitches) / stitchChangePerIteration)));
+                                                            console.log('Target calculation:', {
+                                                                targetStitches: value,
+                                                                currentStitches: currentStitches,
+                                                                stitchChangePerIteration: stitchChangePerIteration,
+                                                                startingPoint: currentStitches + stitchChangePerIteration,
+                                                                difference: value - (currentStitches + stitchChangePerIteration),
+                                                                calculatedTimes: requiredTimes
+                                                            });
+                                                            setPhases(prev => prev.map(phase =>
+                                                                phase.type === 'repeat' ? {
+                                                                    ...phase,
+                                                                    targetStitches: value,
+                                                                    times: requiredTimes
+                                                                } : phase
+                                                            ));
+                                                        }}
+                                                        unit="stitches"
+                                                        min={stitchChangePerIteration > 0 ? currentStitches + stitchChangePerIteration : 4}
+                                                        max={stitchChangePerIteration > 0 ? currentStitches + 200 : currentStitches}
+                                                        size="sm"
+                                                    />
+                                                ) : (
+                                                    <IncrementInput
+                                                        value={currentPhase?.times || 1}
+                                                        onChange={(value) => {
+                                                            setPhases(prev => prev.map(phase =>
+                                                                phase.type === 'repeat' ? { ...phase, times: Math.max(1, value) } : phase
+                                                            ));
+                                                        }}
+                                                        unit="times"
+                                                        min={1}
+                                                        max={20}
+                                                        size="sm"
+                                                    />
+                                                )}
+                                            </div>
+                                        </>
+                                    );
+                                })()}
                             </div>
                         </div>
                         <div className="flex gap-3 mt-6">
