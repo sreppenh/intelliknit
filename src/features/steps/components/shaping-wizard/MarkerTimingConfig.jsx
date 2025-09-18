@@ -257,6 +257,7 @@ const MarkerTimingConfig = ({
                                             value={finishingRows}
                                             onChange={setFinishingRows}
                                             min={0}
+                                            max={999}
                                             size="sm"
                                         />
                                         <span className="text-sm text-wool-600">
@@ -488,7 +489,11 @@ const MarkerTimingConfig = ({
                     <button onClick={handleBack} className="btn-tertiary flex-1">
                         ← Back to Actions
                     </button>
-                    <button onClick={handleComplete} className="btn-primary flex-1">
+                    <button
+                        onClick={handleComplete}
+                        disabled={!isFinishing}
+                        className="btn-primary flex-1"
+                    >
                         Complete Step
                     </button>
                 </div>
