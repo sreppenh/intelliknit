@@ -6,6 +6,8 @@ import { generateMarkerInstructionPreview } from '../../../../shared/utils/marke
 import { MarkerTimingCalculator } from '../../../../shared/utils/MarkerTimingCalculator';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
+// const terms = getConstructionTerms(construction);
+
 const MarkerTimingConfig = ({
     instructionData,
     currentStitches,
@@ -18,66 +20,109 @@ const MarkerTimingConfig = ({
     onGoToLanding,
     onCancel
 }) => {
-    const [timing, setTiming] = useState({
-        frequency: 1,
-        times: 1,
-        rows: 1,
-        amountMode: 'times',
-        targetStitches: null
-    });
+    const [phases, setPhases] = useState([
+        { type: 'initial' }, // Always present - the kickoff special row
+        {
+            type: 'repeat',
+            regularRows: construction === 'flat' ? 2 : 1,
+            amountMode: 'times',
+            times: 5,
+            targetStitches: null
+        },
+        { type: 'finish', regularRows: construction === 'flat' ? 2 : 1 }
+    ]);
 
-    // Generate preview with current timing
+    // Generate preview with phases - for now, show simple format
     const generatePreview = () => {
         if (!instructionData?.actions) return "No instruction data";
 
         const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
-        return generateMarkerInstructionPreview(
+        const terms = getConstructionTerms(construction);
+
+        // For now, generate simple multi-line preview
+        const lines = [];
+
+        // First line: existing instruction format (use dummy timing for now)
+        const dummyTiming = { frequency: 1, times: 1, amountMode: 'times' };
+        const mainInstruction = generateMarkerInstructionPreview(
             instructionData.actions,
-            timing,
+            dummyTiming,
             markerArray,
             construction,
             basePattern
         );
+        lines.push(`${mainInstruction} (${currentStitches} stitches)`);
+
+        // Add repeat phases
+        const repeatPhases = phases.filter(p => p.type === 'repeat');
+        let runningStitches = currentStitches;
+
+        repeatPhases.forEach(phase => {
+            const cycleLength = (phase.regularRows || 1) + 1; // regular rows + 1 special row
+            const repetitions = phase.times || 1;
+
+            // Simple stitch calculation (will be properly calculated later)
+            runningStitches -= repetitions * 2; // Assume 2 stitch decrease per cycle for preview
+
+            if (phase.amountMode === 'target') {
+                lines.push(`Repeat every ${cycleLength} ${terms.rows} until ${phase.targetStitches} stitches remain (${runningStitches} stitches)`);
+            } else {
+                lines.push(`Repeat every ${cycleLength} ${terms.rows} ${repetitions} times (${runningStitches} stitches)`);
+            }
+        });
+
+        // Add finish phase
+        const finishPhase = phases.find(p => p.type === 'finish');
+        if (finishPhase && finishPhase.regularRows > 0) {
+            const finishRows = finishPhase.regularRows || 1;
+            lines.push(`Work ${finishRows} ${finishRows === 1 ? terms.row : terms.rows} in ${basePattern} (${runningStitches} stitches)`);
+        }
+
+        return lines.join('\n');
     };
 
     const handleComplete = () => {
+        // Convert phases to timing structure that parent expects
+        const repeatPhase = phases.find(p => p.type === 'repeat');
         const finalInstructionData = {
             ...instructionData,
-            timing,
+            timing: {
+                frequency: (repeatPhase?.regularRows || 1) + 1, // total cycle length
+                times: repeatPhase?.times || 1,
+                amountMode: repeatPhase?.amountMode || 'times',
+                targetStitches: repeatPhase?.targetStitches
+            },
+            phases,
             preview: generatePreview()
         };
         onComplete(finalInstructionData);
     };
 
     const handleBack = () => {
-        // Preserve instructionData with timing structure expected by parent
+        // Convert phases to timing structure that parent expects
+        const repeatPhase = phases.find(p => p.type === 'repeat');
         const dataWithTiming = {
             ...instructionData,
-            timing: timing || { frequency: 1, times: 1, amountMode: 'times' }
+            timing: {
+                frequency: (repeatPhase?.regularRows || 1) + 1, // total cycle length  
+                times: repeatPhase?.times || 1,
+                amountMode: repeatPhase?.amountMode || 'times',
+                targetStitches: repeatPhase?.targetStitches
+            },
+            phases
         };
         onComplete(dataWithTiming);
         onBack();
     };
 
-    // Calculate stitch context for validation and display
+    // Simple stitch context - will be properly calculated later
     const getStitchContext = () => {
-        if (!instructionData?.actions || !currentStitches) {
-            return {
-                startingStitches: currentStitches || 0,
-                endingStitches: currentStitches || 0,
-                stitchChangePerIteration: 0,
-                maxIterations: 1,
-                totalRows: 1,
-                errors: [],
-                isValid: true
-            };
-        }
-
-        return MarkerTimingCalculator.calculateMarkerStitchContext(
-            instructionData.actions,
-            currentStitches,
-            timing
-        );
+        return {
+            startingStitches: currentStitches || 0,
+            endingStitches: (currentStitches || 0) - 10, // Simple preview calculation
+            errors: [],
+            isValid: true
+        };
     };
 
     const stitchContext = getStitchContext();
@@ -94,8 +139,12 @@ const MarkerTimingConfig = ({
                     <h4 className="section-header-secondary">Number of {construction === 'round' ? 'Rounds' : 'Rows'}</h4>
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                         <IncrementInput
-                            value={timing.times}
-                            onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1), frequency: 1 }))}
+                            value={phases.find(p => p.type === 'repeat')?.times || 1}
+                            onChange={(value) => {
+                                setPhases(prev => prev.map(phase =>
+                                    phase.type === 'repeat' ? { ...phase, times: Math.max(value, 1) } : phase
+                                ));
+                            }}
                             unit={construction === 'round' ? 'rounds' : 'rows'}
                             min={1}
                             max={50}
@@ -106,118 +155,64 @@ const MarkerTimingConfig = ({
             );
         }
 
-        // Original full timing interface for shaping actions
-        // Check if net stitch change is 0 (no shaping)
-        const hasNetStitchChange = stitchContext.stitchChangePerIteration !== 0;
+        // Phase builder interface for shaping actions
+        return (
+            <div className="card">
+                <h4 className="section-header-secondary">Build Sequence</h4>
+                <div className="space-y-4">
+                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                        <div className="text-sm font-medium text-wool-700 text-left">
+                            <span className="font-bold">Phase 1:</span>
+                            {(() => {
+                                if (!instructionData?.actions) return "No instruction data";
+                                const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
+                                const dummyTiming = { frequency: 1, times: 1, amountMode: 'times' };
+                                return generateMarkerInstructionPreview(
+                                    instructionData.actions,
+                                    dummyTiming,
+                                    markerArray,
+                                    construction,
+                                    basePattern
+                                );
+                            })()}
+                        </div>
+                    </div>
 
-        // Simplified interface for net-zero stitch changes
-        if (!hasNetStitchChange) {
-            return (
-                <div className="card">
-                    <h4 className="section-header-secondary">Frequency & Times</h4>
-                    <div className="space-y-6">
-                        <div>
-                            <label className="form-label">How often?</label>
-                            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                        <div className="text-sm font-medium text-wool-700 mb-4">
+                            Phase 2: Repeating Pattern
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="form-label">Repeat every</label>
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm text-wool-600">Every</span>
                                     <IncrementInput
-                                        value={timing.frequency}
-                                        onChange={(value) => setTiming(prev => ({ ...prev, frequency: Math.max(value, 1) }))}
+                                        value={phases.find(p => p.type === 'repeat')?.regularRows || 1}
+                                        onChange={(value) => {
+                                            setPhases(prev => prev.map(phase =>
+                                                phase.type === 'repeat' ? { ...phase, regularRows: Math.max(1, value) } : phase
+                                            ));
+                                        }}
                                         min={1}
                                         size="sm"
                                     />
                                     <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
                                 </div>
                             </div>
-                        </div>
-                        <div>
-                            <label className="form-label">Number of Times</label>
-                            <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                            <div>
+                                <label className="form-label">Number of Times</label>
                                 <IncrementInput
-                                    value={timing.times}
-                                    onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
+                                    value={phases.find(p => p.type === 'repeat')?.times || 1}
+                                    onChange={(value) => {
+                                        setPhases(prev => prev.map(phase =>
+                                            phase.type === 'repeat' ? { ...phase, times: Math.max(1, value) } : phase
+                                        ));
+                                    }}
                                     unit="times"
                                     min={1}
-                                    max={50}
+                                    max={20}
                                     size="sm"
                                 />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            );
-        }
-
-        // Original full timing interface for shaping actions
-        return (
-            <div className="card">
-                <h4 className="section-header-secondary">Frequency & Times</h4>
-                <div className="space-y-6">
-                    <div>
-                        <label className="form-label">How often?</label>
-                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                            <div className="flex items-center gap-2">
-                                <span className="text-sm text-wool-600">Every</span>
-                                <IncrementInput
-                                    value={timing.frequency}
-                                    onChange={(value) => setTiming(prev => ({ ...prev, frequency: Math.max(value, 1) }))}
-                                    min={1}
-                                    size="sm"
-                                />
-                                <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
-                            </div>
-                        </div>
-                    </div>
-                    <div>
-                        <label className="form-label">Number of Times vs Target Stitches</label>
-                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                            <SegmentedControl
-                                options={[
-                                    { value: 'times', label: 'Number of Times' },
-                                    { value: 'target', label: 'Target Stitches' }
-                                ]}
-                                value={timing.amountMode || 'times'}
-                                onChange={(value) => setTiming(prev => ({ ...prev, amountMode: value }))}
-                            />
-                            <div className="mt-4">
-                                {timing.amountMode === 'target' ? (
-                                    <IncrementInput
-                                        value={timing.targetStitches || (() => {
-                                            const increment = Math.abs(stitchContext.stitchChangePerIteration);
-                                            return stitchContext.stitchChangePerIteration < 0 ?
-                                                currentStitches - increment :
-                                                currentStitches + increment;
-                                        })()}
-                                        onChange={(value) => setTiming(prev => ({ ...prev, targetStitches: value }))}
-                                        unit="stitches"
-                                        min={(() => {
-                                            const increment = Math.abs(stitchContext.stitchChangePerIteration);
-                                            if (stitchContext.stitchChangePerIteration < 0) {
-                                                // Decreasing: only allow values that result in whole number of iterations
-                                                return increment > currentStitches ? 0 : currentStitches % increment;
-                                            } else {
-                                                // Increasing: start from current + one increment
-                                                return currentStitches + increment;
-                                            }
-                                        })()}
-                                        max={stitchContext.stitchChangePerIteration < 0 ? currentStitches : currentStitches + 200}
-                                        step={Math.abs(stitchContext.stitchChangePerIteration)}
-                                        size="sm"
-                                    />
-                                ) : (
-                                    <IncrementInput
-                                        value={timing.times}
-                                        onChange={(value) => setTiming(prev => ({ ...prev, times: Math.max(value, 1) }))}
-                                        unit="times"
-                                        min={1}
-                                        max={stitchContext.stitchChangePerIteration < 0 ?
-                                            Math.floor(currentStitches / Math.abs(stitchContext.stitchChangePerIteration)) :
-                                            50
-                                        }
-                                        size="sm"
-                                    />
-                                )}
                             </div>
                         </div>
                     </div>
@@ -242,6 +237,8 @@ const MarkerTimingConfig = ({
                     </p>
                 </div>
 
+                <FrequencyTimingSelector />
+
                 {/* Show the instruction preview */}
                 <div className="card-info">
                     <h4 className="section-header-secondary">Your Instruction</h4>
@@ -251,8 +248,6 @@ const MarkerTimingConfig = ({
                         </p>
                     </div>
                 </div>
-
-                <FrequencyTimingSelector />
 
                 {/* Stitch Context Display - moved after inputs for better context */}
                 <div className="card-info">
