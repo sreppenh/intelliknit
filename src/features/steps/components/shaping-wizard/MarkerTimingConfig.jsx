@@ -106,9 +106,27 @@ const MarkerTimingConfig = ({
 
     // Simple stitch context - will be properly calculated later
     const getStitchContext = () => {
+        const startingStitches = currentStitches || 0;
+
+        // Calculate stitch change per iteration
+        const stitchChangePerIteration = instructionData?.actions ?
+            MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions) : 0;
+
+        // Calculate ending stitches: starting + phase1 change + all completed phase changes
+        const phase1Change = stitchChangePerIteration;
+        const completedPhasesChange = completedPhases.reduce((total, phase) =>
+            total + (stitchChangePerIteration * phase.times), 0);
+        const endingStitches = startingStitches + phase1Change + completedPhasesChange;
+
+        // Calculate total rows: 1 (phase1) + all completed phase rows
+        const totalRows = 1 + completedPhases.reduce((total, phase) =>
+            total + ((phase.regularRows + 1) * phase.times), 0);
+
         return {
-            startingStitches: currentStitches || 0,
-            endingStitches: (currentStitches || 0) - 10, // Simple preview calculation
+            startingStitches,
+            endingStitches,
+            stitchChangePerIteration,
+            totalRows,
             errors: [],
             isValid: true
         };
