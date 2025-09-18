@@ -34,17 +34,15 @@ const MarkerTimingConfig = ({
 
     const [completedPhases, setCompletedPhases] = useState([]);
 
-    // Generate preview with phases - for now, show simple format
+    // Generate preview with completed phases
     const generatePreview = () => {
         if (!instructionData?.actions) return "No instruction data";
 
         const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
         const terms = getConstructionTerms(construction);
-
-        // For now, generate simple multi-line preview
         const lines = [];
 
-        // First line: existing instruction format (use dummy timing for now)
+        // First line: base instruction
         const dummyTiming = { frequency: 1, times: 1, amountMode: 'times' };
         const mainInstruction = generateMarkerInstructionPreview(
             instructionData.actions,
@@ -53,32 +51,21 @@ const MarkerTimingConfig = ({
             construction,
             basePattern
         );
-        lines.push(`${mainInstruction} (${currentStitches} stitches)`);
+        // Calculate Phase 1 ending stitches
+        const phase1StitchChange = MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions);
+        const phase1EndingStitches = currentStitches + phase1StitchChange;
+        lines.push(`${mainInstruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')} (${currentStitches} → ${phase1EndingStitches} sts)`);
 
-        // Add repeat phases
-        const repeatPhases = phases.filter(p => p.type === 'repeat');
-        let runningStitches = currentStitches;
+        // Add completed timing phases
+        let runningStitches = phase1EndingStitches;
+        completedPhases.forEach(phase => {
+            const cycleLength = phase.regularRows + 1;
+            const repetitions = phase.times;
+            const phaseStitchChange = phase1StitchChange * repetitions;
 
-        repeatPhases.forEach(phase => {
-            const cycleLength = (phase.regularRows || 1) + 1; // regular rows + 1 special row
-            const repetitions = phase.times || 1;
-
-            // Simple stitch calculation (will be properly calculated later)
-            runningStitches -= repetitions * 2; // Assume 2 stitch decrease per cycle for preview
-
-            if (phase.amountMode === 'target') {
-                lines.push(`Repeat every ${cycleLength} ${terms.rows} until ${phase.targetStitches} stitches remain (${runningStitches} stitches)`);
-            } else {
-                lines.push(`Repeat every ${cycleLength} ${terms.rows} ${repetitions} times (${runningStitches} stitches)`);
-            }
+            runningStitches += phaseStitchChange;
+            lines.push(`Repeat every ${cycleLength} ${terms.rows} ${repetitions} times (${runningStitches} sts)`);
         });
-
-        // Add finish phase
-        const finishPhase = phases.find(p => p.type === 'finish');
-        if (finishPhase && finishPhase.regularRows > 0) {
-            const finishRows = finishPhase.regularRows || 1;
-            lines.push(`Work ${finishRows} ${finishRows === 1 ? terms.row : terms.rows} in ${basePattern} (${runningStitches} stitches)`);
-        }
 
         return lines.join('\n');
     };
@@ -190,20 +177,58 @@ const MarkerTimingConfig = ({
                 <div className="space-y-4">
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                         <div className="text-sm font-medium text-wool-700 text-left">
-                            <span className="font-bold">Phase 1: </span>
+                            <span className="font-bold">Phase 1:</span>
                             {(() => {
                                 if (!instructionData?.actions) return "No instruction data";
                                 const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
                                 const dummyTiming = { frequency: 1, times: 1, amountMode: 'times' };
-                                return generateMarkerInstructionPreview(
+                                const instruction = generateMarkerInstructionPreview(
                                     instructionData.actions,
                                     dummyTiming,
                                     markerArray,
                                     construction,
                                     basePattern
                                 );
+
+                                // Calculate stitch change for Phase 1
+                                console.log('instructionData.actions:', instructionData.actions);
+                                console.log('Full instructionData:', JSON.stringify(instructionData, null, 2));
+                                const stitchChange = MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions);
+                                console.log('stitchChange after calculation:', stitchChange);
+                                console.log('calculated stitchChange:', stitchChange);
+                                console.log('currentStitches:', currentStitches);
+                                const endingStitches = currentStitches + stitchChange;
+
+                                return `${instruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')} (${currentStitches} → ${endingStitches} sts)`;
                             })()}
                         </div>
+
+                        {/* Show completed timing phases */}
+                        {completedPhases.length > 0 && (
+                            <div className="mt-4 space-y-2">
+                                {completedPhases.map((phase, index) => {
+                                    // Calculate running stitch total
+                                    const stitchChangePerIteration = MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions);
+                                    const phase1EndingStitches = currentStitches + stitchChangePerIteration;
+
+                                    // Calculate stitches for this phase
+                                    let phaseStartStitches = phase1EndingStitches;
+                                    for (let i = 0; i < index; i++) {
+                                        const prevPhase = completedPhases[i];
+                                        phaseStartStitches += (stitchChangePerIteration * prevPhase.times);
+                                    }
+                                    const phaseEndingStitches = phaseStartStitches + (stitchChangePerIteration * phase.times);
+
+                                    console.log(`Phase ${index + 2}: start=${phaseStartStitches}, change=${stitchChangePerIteration}, times=${phase.times}, end=${phaseEndingStitches}`);
+
+                                    return (
+                                        <div key={phase.id} className="text-sm text-wool-600 text-left">
+                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.regularRows + 1} {construction === 'round' ? 'rounds' : 'rows'} {phase.times} times ({phaseEndingStitches} sts)
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
                     </div>
 
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">

@@ -32,14 +32,27 @@ export class MarkerTimingCalculator {
         actions.forEach(action => {
             if (action.actionType === 'continue') return;
 
-            action.targets.forEach(target => {
-                if (action.position === 'before_and_after') {
-                    const [beforeTech, afterTech] = action.technique.split('_');
-                    totalStitchChange += this.getStitchChange(beforeTech) + this.getStitchChange(afterTech);
+            if (action.position === 'both_ends') {
+                // For both_ends, each part of split technique goes to one end
+                if (action.technique.includes('_')) {
+                    const techniques = action.technique.split('_');
+                    techniques.forEach(tech => {
+                        totalStitchChange += this.getStitchChange(tech);
+                    });
                 } else {
-                    totalStitchChange += this.getStitchChange(action.technique);
+                    // Single technique applied to both ends
+                    totalStitchChange += this.getStitchChange(action.technique) * 2;
                 }
-            });
+            } else {
+                action.targets.forEach(target => {
+                    if (action.position === 'before_and_after') {
+                        const [beforeTech, afterTech] = action.technique.split('_');
+                        totalStitchChange += this.getStitchChange(beforeTech) + this.getStitchChange(afterTech);
+                    } else {
+                        totalStitchChange += this.getStitchChange(action.technique);
+                    }
+                });
+            }
         });
 
         return totalStitchChange;
