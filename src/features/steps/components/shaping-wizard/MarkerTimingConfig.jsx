@@ -346,23 +346,14 @@ const MarkerTimingConfig = ({
                                                                 return phaseStartStitches;
                                                             })()}
                                                             onChange={(value) => {
-                                                                // Calculate required times to reach target
-
                                                                 // Calculate where this phase should start (after all completed phases)
                                                                 let phaseStartStitches = currentStitches + stitchChangePerIteration; // Phase 1 ending
                                                                 completedPhases.forEach(completedPhase => {
                                                                     phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
                                                                 });
 
-                                                                const requiredTimes = Math.max(1, Math.round(Math.abs((value - phaseStartStitches) / stitchChangePerIteration)));
-                                                                console.log('Target calculation:', {
-                                                                    targetStitches: value,
-                                                                    currentStitches: currentStitches,
-                                                                    stitchChangePerIteration: stitchChangePerIteration,
-                                                                    startingPoint: currentStitches + stitchChangePerIteration,
-                                                                    difference: value - (currentStitches + stitchChangePerIteration),
-                                                                    calculatedTimes: requiredTimes
-                                                                });
+                                                                const requiredTimes = Math.max(1, Math.abs((value - phaseStartStitches) / stitchChangePerIteration));
+
                                                                 setPhases(prev => prev.map(phase =>
                                                                     phase.type === 'repeat' ? {
                                                                         ...phase,
@@ -372,8 +363,21 @@ const MarkerTimingConfig = ({
                                                                 ));
                                                             }}
                                                             unit="stitches"
-                                                            min={1}
-                                                            max={999}
+                                                            min={(() => {
+                                                                let phaseStartStitches = currentStitches + stitchChangePerIteration;
+                                                                completedPhases.forEach(completedPhase => {
+                                                                    phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                                });
+                                                                return stitchChangePerIteration > 0 ? phaseStartStitches + Math.abs(stitchChangePerIteration) : 1;
+                                                            })()}
+                                                            max={(() => {
+                                                                let phaseStartStitches = currentStitches + stitchChangePerIteration;
+                                                                completedPhases.forEach(completedPhase => {
+                                                                    phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                                });
+                                                                return stitchChangePerIteration > 0 ? 999 : phaseStartStitches - Math.abs(stitchChangePerIteration);
+                                                            })()}
+                                                            step={Math.abs(stitchChangePerIteration)}
                                                             size="sm"
                                                         />
                                                     ) : (
