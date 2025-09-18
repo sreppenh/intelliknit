@@ -371,8 +371,8 @@ const MarkerTimingConfig = ({
                                                                 ));
                                                             }}
                                                             unit="stitches"
-                                                            min={stitchChangePerIteration > 0 ? currentStitches + stitchChangePerIteration : 4}
-                                                            max={stitchChangePerIteration > 0 ? currentStitches + 200 : currentStitches}
+                                                            min={1}
+                                                            max={999}
                                                             size="sm"
                                                         />
                                                     ) : (
@@ -385,7 +385,17 @@ const MarkerTimingConfig = ({
                                                             }}
                                                             unit="times"
                                                             min={1}
-                                                            max={20}
+                                                            max={(() => {
+                                                                if (stitchChangePerIteration >= 0) return 999; // No limit for increases
+
+                                                                // Calculate max times for decreases to prevent negative stitches
+                                                                let phaseStartStitches = currentStitches + stitchChangePerIteration;
+                                                                completedPhases.forEach(completedPhase => {
+                                                                    phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                                });
+
+                                                                return Math.max(1, Math.floor(phaseStartStitches / Math.abs(stitchChangePerIteration)));
+                                                            })()}
                                                             size="sm"
                                                         />
                                                     )}
