@@ -32,6 +32,8 @@ const MarkerTimingConfig = ({
         { type: 'finish', regularRows: construction === 'flat' ? 2 : 1 }
     ]);
 
+    const [completedPhases, setCompletedPhases] = useState([]);
+
     // Generate preview with phases - for now, show simple format
     const generatePreview = () => {
         if (!instructionData?.actions) return "No instruction data";
@@ -127,6 +129,32 @@ const MarkerTimingConfig = ({
 
     const stitchContext = getStitchContext();
 
+    // Add phase to completed list
+    const handleAddPhase = () => {
+        const repeatPhase = phases.find(p => p.type === 'repeat');
+        const newPhase = {
+            id: Date.now(),
+            regularRows: repeatPhase?.regularRows || 1,
+            times: repeatPhase?.times || 1,
+            amountMode: repeatPhase?.amountMode || 'times',
+            targetStitches: repeatPhase?.targetStitches
+        };
+
+        setCompletedPhases(prev => [...prev, newPhase]);
+
+        // Clear the form
+        setPhases(prev => prev.map(phase =>
+            phase.type === 'repeat'
+                ? { type: 'repeat', regularRows: construction === 'flat' ? 2 : 1, amountMode: 'times', times: 5, targetStitches: null }
+                : phase
+        ));
+    };
+
+    const handleFinishSequence = () => {
+        // For now, just log - we'll define this behavior next
+        console.log('Finish sequence clicked');
+    };
+
     const FrequencyTimingSelector = () => {
         // Check if this is a continue/plain rows case
         const isContinueAction = instructionData?.actions?.length === 1 &&
@@ -216,10 +244,10 @@ const MarkerTimingConfig = ({
                             </div>
                         </div>
                         <div className="flex gap-3 mt-6">
-                            <button className="btn-secondary flex-1">
+                            <button onClick={handleAddPhase} className="btn-secondary flex-1">
                                 Add Another Phase
                             </button>
-                            <button className="btn-primary flex-1">
+                            <button onClick={handleFinishSequence} className="btn-primary flex-1">
                                 Finish Sequence
                             </button>
                         </div>
