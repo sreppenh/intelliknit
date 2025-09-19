@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import ShapingHeader from './ShapingHeader';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
-import MarkerSequenceSummary from './MarkerSequenceSummary';
+// import MarkerSequenceSummary from './MarkerSequenceSummary'; // Ready for simultaneous shaping
 import MarkerInstructionBuilder from './MarkerInstructionBuilder';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
@@ -38,15 +38,15 @@ const MarkerPhasesConfig = ({
     mode
 }) => {
 
-    // ===== MULTI-SCREEN STATE MANAGEMENT =====
+    // ===== SIMPLIFIED STATE MANAGEMENT - LINEAR FLOW =====
     const [currentScreen, setCurrentScreen] = useState('marker-setup');
     const [markerArray, setMarkerArray] = useState([]);
-    const [sequences, setSequences] = useState([]);
-    const [editingSequence, setEditingSequence] = useState(null);
-    const [sequenceCalculation, setSequenceCalculation] = useState(null);
-
-    // ===== NEW: INSTRUCTION BUILDER STATE =====
     const [currentSequenceData, setCurrentSequenceData] = useState(null);
+
+    // ===== SEQUENCE MANAGEMENT STATE (READY FOR SIMULTANEOUS SHAPING) =====
+    // const [sequences, setSequences] = useState([]);
+    // const [editingSequence, setEditingSequence] = useState(null);
+    // const [sequenceCalculation, setSequenceCalculation] = useState(null);
 
     // ===== SCREEN 1: MARKER SETUP STATE =====
     const [markerCount, setMarkerCount] = useState(2);
@@ -171,29 +171,27 @@ const MarkerPhasesConfig = ({
         }));
     };
 
-    // ===== NAVIGATION =====
+    // ===== SIMPLIFIED NAVIGATION - LINEAR FLOW =====
     const handleBackNavigation = () => {
         if (currentScreen === 'marker-setup') {
             onBack();
         } else if (currentScreen === 'instruction-builder') {
-            // Clear instruction builder state when going back to marker setup
             setCurrentSequenceData(null);
             setCurrentScreen('marker-setup');
         } else if (currentScreen === 'timing') {
             setCurrentScreen('instruction-builder');
-        } else if (currentScreen === 'sequence-management') {
-            setCurrentScreen('timing');
-        } else if (currentScreen === 'sequence-wizard') {
-            setCurrentScreen('sequence-management');
         }
+        // sequence-management and sequence-wizard removed from navigation
     };
 
     const handleCompleteMarkerSetup = () => {
         setMarkerArray(currentArray);
-        setCurrentScreen('instruction-builder'); // ✅ Go straight to instruction building
+        setCurrentScreen('instruction-builder');
         IntelliKnitLogger.success('Marker setup complete', currentArray);
     };
 
+    // ===== SEQUENCE MANAGEMENT HANDLERS (READY FOR SIMULTANEOUS SHAPING) =====
+    /*
     const handleAddSequence = () => {
         setEditingSequence(null);
         setCurrentSequenceData(null);
@@ -212,76 +210,6 @@ const MarkerPhasesConfig = ({
         IntelliKnitLogger.info('Sequence deleted', sequenceId);
     };
 
-
-    // ===== HELPER FUNCTION - CREATE SEGMENTS ON DEMAND =====
-    const createSegmentsForCount = (count) => {
-        // Just return the array directly, no complex segment state
-        const baseStitches = Math.floor(currentStitches / (count + 1));
-        const remainder = currentStitches % (count + 1);
-
-        const array = [];
-        if (construction === 'round') array.push('BOR');
-
-        for (let i = 0; i < count; i++) {
-            array.push(baseStitches + (i < remainder ? 1 : 0));
-            array.push(`M${i + 1}`);
-        }
-
-        array.push(baseStitches + (count < remainder ? 1 : 0));
-        return array;
-    };
-
-    // ===== NEW: INSTRUCTION BUILDER HANDLERS =====
-    const handleInstructionComplete = (instructionData) => {
-        // Store the instruction data for the next step
-        setCurrentSequenceData({
-            id: editingSequence?.id || Date.now().toString(),
-            name: editingSequence?.name || 'Custom Sequence',
-            instructionData: instructionData,
-            // Add any other sequence properties needed
-        });
-
-        // For now, go back to sequence management with the instruction
-        // In the future, this could go to timing/frequency configuration
-        handleSimpleSequenceComplete({
-            id: editingSequence?.id || Date.now().toString(),
-            name: editingSequence?.name || 'Marker Sequence',
-            instructionData: instructionData,
-            phases: [{
-                type: 'marker_instruction',
-                instructionData: instructionData,
-                frequency: 2, // Default frequency
-                times: 10     // Default times
-            }]
-        });
-
-        setCurrentScreen('timing');
-    };
-
-    const handleTimingComplete = (finalInstructionData) => {
-        // Create sequence data with timing included
-        const sequenceData = {
-            id: editingSequence?.id || Date.now().toString(),
-            name: editingSequence?.name || 'Marker Sequence',
-            instructionData: finalInstructionData,
-            phases: [{
-                type: 'marker_instruction',
-                instructionData: finalInstructionData,
-                frequency: finalInstructionData.timing.frequency,
-                times: finalInstructionData.timing.times
-            }]
-        };
-
-        // Use existing sequence completion logic
-        handleSimpleSequenceComplete(sequenceData);
-    };
-
-    const handleInstructionCancel = () => {
-        setCurrentScreen('sequence-management');
-        setCurrentSequenceData(null);
-    };
-
-    // ===== SIMPLIFIED SEQUENCE COMPLETION =====
     const handleSimpleSequenceComplete = (sequenceData) => {
         if (editingSequence) {
             setSequences(prev => prev.map(s =>
@@ -304,16 +232,37 @@ const MarkerPhasesConfig = ({
         );
         setSequenceCalculation(calculation);
     };
+    */
 
-    const handleFinalComplete = () => {
+    // ===== SIMPLIFIED INSTRUCTION HANDLERS =====
+    const handleInstructionComplete = (instructionData) => {
+        setCurrentSequenceData(instructionData);
+        setCurrentScreen('timing');
+    };
+
+    const handleInstructionCancel = () => {
+        setCurrentSequenceData(null);
+        setCurrentScreen('marker-setup');
+    };
+
+    // ===== SIMPLIFIED TIMING COMPLETION - BYPASSES SEQUENCES =====
+    const handleTimingComplete = (finalInstructionData) => {
+        // Create a single sequence internally (ready for simultaneous shaping later)
+        const singleSequence = {
+            id: 'main_sequence',
+            name: 'Marker Shaping',
+            instructionData: finalInstructionData,
+            phases: [{
+                type: 'marker_instruction',
+                instructionData: finalInstructionData,
+                frequency: finalInstructionData.timing.frequency,
+                times: finalInstructionData.timing.times
+            }]
+        };
+
+        // Use existing calculation logic (preserves simultaneous shaping capability)
         const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
-            sequences.length > 0 ? sequences : [{
-                id: 'marker_setup',
-                name: 'Marker Setup',
-                startCondition: { type: 'immediate' },
-                phases: [{ type: 'setup', config: { rows: 1 } }],
-                actions: []
-            }],
+            [singleSequence], // Single sequence for now, ready for multiple later
             markerArray,
             construction
         );
@@ -321,23 +270,34 @@ const MarkerPhasesConfig = ({
         const shapingConfigData = {
             markerSetup: hasExistingMarkers ? 'existing' : 'new',
             stitchArray: markerArray,
-            markerColors: markerColors, // Add this line
-            markerCount: markerCount,
-            sequences: sequences.length > 0 ? sequences : [{
-                id: 'marker_setup',
-                name: 'Marker Setup',
-                phases: [{ type: 'setup', config: { rows: 1 } }]
-            }],
+            markerColors: markerColors,
+            sequences: [singleSequence], // Keep sequence structure for future
             calculation: calculation
         };
 
-        console.log("Final onComplete with shaping config:", shapingConfigData);
         IntelliKnitLogger.success('Marker Phases Complete', shapingConfigData);
         onComplete(shapingConfigData);
     };
 
+    // ===== HELPER FUNCTION - CREATE SEGMENTS ON DEMAND =====
+    const createSegmentsForCount = (count) => {
+        // Just return the array directly, no complex segment state
+        const baseStitches = Math.floor(currentStitches / (count + 1));
+        const remainder = currentStitches % (count + 1);
+
+        const array = [];
+        if (construction === 'round') array.push('BOR');
+
+        for (let i = 0; i < count; i++) {
+            array.push(baseStitches + (i < remainder ? 1 : 0));
+            array.push(`M${i + 1}`);
+        }
+
+        array.push(baseStitches + (count < remainder ? 1 : 0));
+        return array;
+    };
+
     // ===== RENDER SCREEN 1: MARKER SETUP =====
-    // ===== RENDER MARKER SETUP =====
     if (currentScreen === 'marker-setup') {
         const handleUpdateMarkers = () => {
             const newSegments = [];
@@ -400,15 +360,9 @@ const MarkerPhasesConfig = ({
                 />
 
                 <div className="p-6 stack-lg">
-
-                    {/* Use proper header format */}
                     <div>
                         <h2 className="content-header-primary">Marker Setup</h2>
-                        <p className="content-subheader">
-                            {/*}  {currentStitches} stitches • {construction} construction. */}
-                            <p className="content-subheader">Specify marker placement and spacing</p>
-
-                        </p>
+                        <p className="content-subheader">Specify marker placement and spacing</p>
                     </div>
 
                     {/* Existing markers detection */}
@@ -431,7 +385,6 @@ const MarkerPhasesConfig = ({
                     <div className="card">
                         <div className="stack-md">
                             <h4 className="text-sm font-semibold text-wool-700 mb-3">How many markers do you need?</h4>
-
 
                             <div className="flex items-center gap-3">
                                 <IncrementInput
@@ -484,7 +437,6 @@ const MarkerPhasesConfig = ({
 
                                         return (
                                             <div key={segment.id} className="flex items-center justify-between">
-                                                {/* Marker bubble */}
                                                 {/* Marker bubble - clickable to change color */}
                                                 <button
                                                     type="button"
@@ -494,7 +446,6 @@ const MarkerPhasesConfig = ({
                                                 >
                                                     {segment.name}
                                                 </button>
-
                                             </div>
                                         );
                                     }
@@ -546,7 +497,8 @@ const MarkerPhasesConfig = ({
         );
     }
 
-    // ===== RENDER SCREEN 2: SEQUENCE MANAGEMENT =====
+    // ===== SEQUENCE MANAGEMENT SCREEN (READY FOR SIMULTANEOUS SHAPING) =====
+    /*
     if (currentScreen === 'sequence-management') {
         return (
             <MarkerSequenceSummary
@@ -566,8 +518,9 @@ const MarkerPhasesConfig = ({
             />
         );
     }
+    */
 
-    // ===== NEW: RENDER SCREEN 3: INSTRUCTION BUILDER =====
+    // ===== RENDER SCREEN 2: INSTRUCTION BUILDER =====
     if (currentScreen === 'instruction-builder') {
         return (
             <div>
@@ -595,14 +548,13 @@ const MarkerPhasesConfig = ({
                         onBack={handleBackNavigation}
                         wizard={wizard}
                         existingInstructionData={currentSequenceData?.instructionData}
-
                     />
                 </div>
             </div>
         );
     }
 
-    // ===== RENDER SCREEN: TIMING CONFIGURATION =====
+    // ===== RENDER SCREEN 3: TIMING CONFIGURATION =====
     if (currentScreen === 'timing') {
         return (
             <MarkerTimingConfig
@@ -617,29 +569,6 @@ const MarkerPhasesConfig = ({
                 onCancel={onCancel}
                 currentStitches={currentStitches}
             />
-        );
-    }
-
-    // ===== FALLBACK: KEEP EXISTING SEQUENCE WIZARD FOR COMPATIBILITY =====
-    if (currentScreen === 'sequence-wizard') {
-        // This can be removed once instruction builder is fully integrated
-        return (
-            <div>
-                <ShapingHeader
-                    onBack={handleBackNavigation}
-                    onGoToLanding={onGoToLanding}
-                    wizard={wizard}
-                    onCancel={onCancel}
-                />
-                <div className="p-6">
-                    <div className="text-center text-wool-600">
-                        <p>Old sequence wizard - this should not be reached</p>
-                        <button onClick={() => setCurrentScreen('sequence-management')} className="btn-primary mt-4">
-                            Back to Sequences
-                        </button>
-                    </div>
-                </div>
-            </div>
         );
     }
 
