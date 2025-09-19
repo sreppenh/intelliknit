@@ -83,27 +83,12 @@ const MarkerTimingConfig = ({
                 targetStitches: repeatPhase?.targetStitches
             },
             phases,
-            preview: generatePreview(),
-            finishingRows
+            preview: generatePreview()
         };
         onComplete(finalInstructionData);
     };
 
     const handleBack = () => {
-        // Convert phases to timing structure that parent expects
-        const repeatPhase = phases.find(p => p.type === 'repeat');
-        const dataWithTiming = {
-            ...instructionData,
-            timing: {
-                frequency: (repeatPhase?.regularRows || 1) + 1, // total cycle length  
-                times: repeatPhase?.times || 1,
-                amountMode: repeatPhase?.amountMode || 'times',
-                targetStitches: repeatPhase?.targetStitches
-            },
-            phases,
-            finishingRows
-        };
-        onComplete(dataWithTiming);
         onBack();
     };
 
