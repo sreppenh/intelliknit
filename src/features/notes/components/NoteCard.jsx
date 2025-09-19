@@ -77,11 +77,12 @@ const NoteCard = ({ note, onOpen, onDelete, onRename }) => {
                     {/* Three dot menu */}
                     <div className="relative flex-shrink-0">
                         <button
-                            className="p-1.5 rounded-full hover:bg-lavender-100 text-wool-400 hover:text-lavender-600 transition-colors"
+                            className="delete-icon-sm"
                             onClick={openDeleteModal}
                             title="Delete note"
+                            aria-label={`Delete note: ${note.name}`}
                         >
-                            🗑️
+                            ×
                         </button>
                     </div>
                 </div>

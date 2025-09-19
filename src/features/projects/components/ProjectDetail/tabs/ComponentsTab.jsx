@@ -312,9 +312,9 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, han
                                             onAction(component, 'delete');
                                             closeMenu();
                                         }}
-                                        className={`w-full px-4 py-3 text-left hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100 ${component.steps?.some(s => s.completed)
-                                                ? 'text-red-700 font-semibold' // Warning styling
-                                                : 'text-red-600'               // Normal styling
+                                        className={`delete-menu-item ${component.steps?.some(s => s.completed)
+                                            ? 'text-red-700 font-semibold' // Warning styling
+                                            : 'text-red-600'               // Normal styling
                                             }`}
                                     >
                                         🗑️ {component.steps?.some(s => s.completed) ? 'Delete (Has Progress)' : 'Delete'}

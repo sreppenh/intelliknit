@@ -391,10 +391,11 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteStripe(index)}
-                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
+                                                className="delete-icon"
                                                 title="Delete stripe"
+                                                aria-label={`Delete stripe ${index + 1}: ${colorInfo.displayName}`}
                                             >
-                                                <X size={16} />
+                                                ×
                                             </button>
                                         </div>
                                     </div>

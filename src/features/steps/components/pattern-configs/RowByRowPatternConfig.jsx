@@ -915,10 +915,11 @@ const RowByRowPatternConfig = ({
                                                 </button>
                                                 <button
                                                     onClick={() => handleDeleteRow(index)}
-                                                    className="p-1 text-red-500 hover:text-red-700 hover:bg-red-100 rounded transition-colors"
+                                                    className="delete-icon-sm"
                                                     title="Delete row"
+                                                    aria-label={`Delete row ${index + 1}`}
                                                 >
-                                                    🗑️
+                                                    ×
                                                 </button>
                                             </div>
                                         )}

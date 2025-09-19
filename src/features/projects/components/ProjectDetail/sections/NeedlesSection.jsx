@@ -300,10 +300,11 @@ const NeedlesSection = ({
                                             </button>
                                             <button
                                                 onClick={() => handleDeleteNeedle(index)}
-                                                className="p-2 text-red-400 hover:text-red-600 hover:bg-red-50 rounded"
+                                                className="delete-icon"
                                                 title="Delete needle"
+                                                aria-label={`Delete ${formatNeedleDisplay(needle)}`}
                                             >
-                                                <X size={16} />
+                                                ×
                                             </button>
                                         </div>
                                     </div>

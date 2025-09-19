@@ -90,7 +90,7 @@ const StepMenu = ({
 
                             <button
                                 onClick={(e) => onDeleteStep(stepIndex, e)}
-                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-b-lg text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
+                                className="delete-menu-item rounded-b-lg"
                             >
                                 🗑️ Delete Step
                             </button>
@@ -100,7 +100,7 @@ const StepMenu = ({
                     {isFinishingStep(step) && (
                         <button
                             onClick={(e) => onDeleteStep(stepIndex, e)}
-                            className="w-full px-3 py-2 text-left text-wool-600 hover:bg-red-50 rounded-lg text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
+                            className="delete-menu-item rounded-lg"
                         >
                             🗑️ Delete Step
                         </button>
