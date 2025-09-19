@@ -294,7 +294,7 @@ body.modal-open {
 
 /* Segmented controls */
 .segmented-control {
-  @apply bg-wool-100 border-2 border-wool-200 rounded-xl p-1;
+  @apply bg-white border-2 border-wool-200 rounded-xl p-1;
 }
 
 .segmented-option {
@@ -303,11 +303,11 @@ body.modal-open {
 }
 
 .segmented-option-active {
-  @apply bg-sage-500 text-white shadow-sm;
+  @apply bg-sage-100 text-sage-700 shadow-sm;
 }
 
 .segmented-option-active:hover {
-  @apply text-white;
+  @apply text-sage-700;
 }
 
 /* Number entry */
