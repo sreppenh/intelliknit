@@ -5,6 +5,8 @@ import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import { generateMarkerInstructionPreview } from '../../../../shared/utils/markerInstructionUtils';
 import { MarkerTimingCalculator } from '../../../../shared/utils/MarkerTimingCalculator';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
+import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 
 // const terms = getConstructionTerms(construction);
 
@@ -428,6 +430,52 @@ const MarkerTimingConfig = ({
                                     })()}
                                 </div>
                             </div>
+
+                            {/* Live Array Preview */}
+                            {(() => {
+                                const evolution = markerArrayUtils.calculateArrayEvolution(
+                                    instructionData,
+                                    markerArray,
+                                    completedPhases
+                                );
+
+                                const currentPhase = phases.find(p => p.type === 'repeat');
+                                if (currentPhase && evolution.current) {
+                                    // Simulate what the array would look like after adding the current phase
+                                    const simulatedPhases = [...completedPhases, {
+                                        id: 'preview',
+                                        times: currentPhase.times,
+                                        regularRows: currentPhase.regularRows
+                                    }];
+
+                                    console.log('Live preview debug:', {
+                                        currentPhase,
+                                        completedPhases,
+                                        simulatedPhases,
+                                        markerArray,
+                                        instructionData
+                                    });
+
+                                    const previewEvolution = markerArrayUtils.calculateArrayEvolution(
+                                        instructionData,
+                                        markerArray,
+                                        simulatedPhases
+                                    );
+
+                                    return (
+                                        <div className="mt-4">
+                                            <h5 className="text-xs font-medium text-wool-600 mb-2">Live Preview</h5>
+                                            <MarkerArrayVisualization
+                                                stitchArray={previewEvolution.current}
+                                                construction={construction}
+                                                markerColors={markerColors}
+                                            />
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            })()}
+
                             <div className="flex gap-3 mt-6">
                                 <button onClick={handleAddPhase} className="btn-secondary flex-1">
                                     Add Another Phase
@@ -457,6 +505,16 @@ const MarkerTimingConfig = ({
                     <p className="content-subheader">
                         Configure how often these actions repeat
                     </p>
+                </div>
+
+                {/* Starting Array Visualization */}
+                <div className="card">
+                    <h4 className="section-header-secondary">Starting Sequence</h4>
+                    <MarkerArrayVisualization
+                        stitchArray={markerArray}
+                        construction={construction}
+                        markerColors={markerColors}
+                    />
                 </div>
 
                 <FrequencyTimingSelector />
