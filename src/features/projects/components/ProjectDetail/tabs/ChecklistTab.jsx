@@ -487,10 +487,11 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                     <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
                                     <button
                                         onClick={() => toggleSuggestion(task)}
-                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
+                                        className="delete-icon-sm"
                                         title="Remove this task"
+                                        aria-label={`Remove task: ${task}`}
                                     >
-                                        ✕
+                                        ×
                                     </button>
                                 </div>
                             ))}
@@ -499,10 +500,11 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                     <span className="text-sm text-wool-700 flex-1 text-left">{task}</span>
                                     <button
                                         onClick={() => removeCustomTask(index)}
-                                        className="text-red-500 hover:text-red-700 hover:bg-red-50 rounded p-1 transition-colors ml-2"
+                                        className="delete-icon-sm"
                                         title="Remove this task"
+                                        aria-label={`Remove custom task: ${task}`}
                                     >
-                                        ✕
+                                        ×
                                     </button>
                                 </div>
                             ))}

@@ -202,7 +202,7 @@ const MarkerTimingConfig = ({
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
                         <div className="space-y-2">
                             <div className="text-sm font-medium text-wool-600 text-left">
-                                <span className="font-bold">Phase 1:</span>
+                                <span className="font-bold">Phase 1: </span>
                                 {(() => {
                                     if (!instructionData?.actions) return "No instruction data";
                                     const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
@@ -245,11 +245,9 @@ const MarkerTimingConfig = ({
                                         </span>
                                         <button
                                             onClick={() => handleDeletePhase(phase.id)}
-                                            className="delete-icon-sm"
-                                            aria-label={`Delete phase ${index + 2}`}
-                                            title="Delete phase"
+                                            className="p-1 text-red-500 hover:bg-red-100 rounded transition-colors ml-2"
                                         >
-                                            ×
+                                            ✕
                                         </button>
                                     </div>
                                 );

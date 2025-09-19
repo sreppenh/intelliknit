@@ -161,6 +161,8 @@ body.modal-open {
   /* Mobile-first: 44px minimum touch target */
   min-width: 44px;
   min-height: 44px;
+  font-size: 1.125rem;
+  /* Makes × character bigger */
 }
 
 .delete-icon-sm {
@@ -172,6 +174,8 @@ body.modal-open {
   /* Still maintains minimum touch target for mobile */
   min-width: 44px;
   min-height: 44px;
+  font-size: 1.125rem;
+  /* Makes × character bigger */
 }
 
 /* Delete menu items for dropdowns and substantial actions */

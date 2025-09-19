@@ -655,8 +655,9 @@ const MarkerInstructionBuilder = ({
                                     </span>
                                     <button
                                         onClick={() => handleDeleteAction(index)}
-                                        className="text-red-500 hover:text-red-700 p-2 rounded hover:bg-red-50 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
+                                        className="delete-icon"
                                         aria-label={`Delete action: ${getActionConfigDisplay(action)}`}
+                                        title="Delete action"
                                     >
                                         ×
                                     </button>

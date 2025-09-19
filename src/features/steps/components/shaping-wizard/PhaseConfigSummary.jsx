@@ -263,9 +263,11 @@ const PhaseConfigSummary = ({
                                 </button>
                                 <button
                                   onClick={() => onDeletePhase(phase.id)}
-                                  className="p-2 text-red-500 hover:bg-red-100 rounded-lg transition-colors"
+                                  className="delete-icon-sm"
+                                  aria-label={`Delete ${phaseType?.name || 'phase'}`}
+                                  title="Delete phase"
                                 >
-                                  ✕
+                                  ×
                                 </button>
                               </div>
                             )}
