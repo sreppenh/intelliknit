@@ -149,6 +149,50 @@ body.modal-open {
   @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
 }
 
+/* ===== STANDARDIZED DELETE BUTTON SYSTEM ===== */
+
+/* Icon-only delete buttons for inline deletion (phases, actions, tags) */
+.delete-icon {
+  @apply w-8 h-8 flex items-center justify-center rounded-lg text-base;
+  @apply text-wool-400 hover:text-red-600 hover:bg-red-50;
+  @apply transition-all duration-200 cursor-pointer;
+  @apply focus:ring-2 focus:ring-red-300 focus:ring-opacity-50 focus:outline-none;
+  @apply active:scale-95 active:bg-red-100;
+  /* Mobile-first: 44px minimum touch target */
+  min-width: 44px;
+  min-height: 44px;
+}
+
+.delete-icon-sm {
+  @apply w-7 h-7 flex items-center justify-center rounded-md text-sm;
+  @apply text-wool-400 hover:text-red-600 hover:bg-red-50;
+  @apply transition-all duration-200 cursor-pointer;
+  @apply focus:ring-2 focus:ring-red-300 focus:ring-opacity-50 focus:outline-none;
+  @apply active:scale-95;
+  /* Still maintains minimum touch target for mobile */
+  min-width: 44px;
+  min-height: 44px;
+}
+
+/* Delete menu items for dropdowns and substantial actions */
+.delete-menu-item {
+  @apply w-full px-4 py-3 text-left text-red-600 hover:bg-red-50;
+  @apply text-sm flex items-center gap-2 transition-colors font-medium;
+  @apply border-t border-wool-100;
+  @apply focus:bg-red-50 focus:outline-none;
+  /* Mobile-friendly touch target */
+  min-height: 48px;
+}
+
+/* Delete buttons in modals and forms - uses existing .btn-danger */
+.delete-button {
+  @apply btn-danger;
+}
+
+.delete-button-sm {
+  @apply btn-danger btn-sm;
+}
+
 /* ===== 3. FORM CONTROLS ===== */
 
 /* Input fields */
@@ -789,17 +833,6 @@ input[type="number"]:focus {
 .card-pattern-option-selected {
   @apply border-sage-500 bg-sage-100 text-sage-700 shadow-sm;
 }
-
-/* Selection buttons 
-.selection-button {
-  @apply p-4 border-2 rounded-xl transition-all duration-200 text-center cursor-pointer;
-  @apply border-wool-200 bg-white text-wool-700;
-  @apply hover:border-sage-300 hover:bg-sage-50;
-}
-
-.selection-button-selected {
-  @apply border-sage-500 bg-sage-100 text-sage-700;
-}. */
 
 /* Selection buttons */
 .selection-button {

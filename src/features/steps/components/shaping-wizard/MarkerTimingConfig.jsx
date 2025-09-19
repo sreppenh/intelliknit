@@ -245,9 +245,11 @@ const MarkerTimingConfig = ({
                                         </span>
                                         <button
                                             onClick={() => handleDeletePhase(phase.id)}
-                                            className="p-1 text-red-500 hover:bg-red-100 rounded transition-colors ml-2"
+                                            className="delete-icon-sm"
+                                            aria-label={`Delete phase ${index + 2}`}
+                                            title="Delete phase"
                                         >
-                                            ✕
+                                            ×
                                         </button>
                                     </div>
                                 );
