@@ -8,8 +8,6 @@ import { getConstructionTerms } from '../../../../shared/utils/ConstructionTermi
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 
-// const terms = getConstructionTerms(construction);
-
 const MarkerTimingConfig = ({
     instructionData,
     currentStitches,
@@ -36,7 +34,6 @@ const MarkerTimingConfig = ({
 
     const [completedPhases, setCompletedPhases] = useState([]);
     const [finishingRows, setFinishingRows] = useState(0);
-    const [isFinishing, setIsFinishing] = useState(false);
 
     // Generate preview with completed phases
     const generatePreview = () => {
@@ -86,7 +83,8 @@ const MarkerTimingConfig = ({
                 targetStitches: repeatPhase?.targetStitches
             },
             phases,
-            preview: generatePreview()
+            preview: generatePreview(),
+            finishingRows
         };
         onComplete(finalInstructionData);
     };
@@ -102,7 +100,8 @@ const MarkerTimingConfig = ({
                 amountMode: repeatPhase?.amountMode || 'times',
                 targetStitches: repeatPhase?.targetStitches
             },
-            phases
+            phases,
+            finishingRows
         };
         onComplete(dataWithTiming);
         onBack();
@@ -159,11 +158,7 @@ const MarkerTimingConfig = ({
         ));
     };
 
-    const handleFinishSequence = () => {
-        setIsFinishing(true);
-    };
-
-    // Add this function after handleFinishSequence
+    // Delete completed phase
     const handleDeletePhase = (phaseId) => {
         setCompletedPhases(prev => prev.filter(phase => phase.id !== phaseId));
     };
@@ -257,71 +252,128 @@ const MarkerTimingConfig = ({
                         </div>
                     </div>
 
-                    {isFinishing ? (
-                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                            <div className="text-sm font-medium text-wool-700 mb-4">
-                                Finishing Rows
-                            </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="form-label">Work in {wizard?.wizardData?.stitchPattern?.pattern || 'pattern'} for</label> <div className="flex items-center gap-2">
-                                        <IncrementInput
-                                            value={finishingRows}
-                                            onChange={setFinishingRows}
-                                            min={0}
-                                            max={999}
-                                            size="sm"
-                                        />
-                                        <span className="text-sm text-wool-600">
-                                            {finishingRows === 1 ? (construction === 'round' ? 'round' : 'row') : (construction === 'round' ? 'rounds' : 'rows')}
-                                        </span>
-                                    </div>
-                                </div>
-                            </div>
+                    {/* ALWAYS VISIBLE: Define Timing Phase */}
+                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                        <div className="text-sm font-medium text-wool-700 mb-4">
+                            Define Timing Phase
                         </div>
-                    ) : (
-                        <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                            <div className="text-sm font-medium text-wool-700 mb-4">
-                                Define Timing Phase
-                            </div>
-                            <div className="space-y-4">
-                                <div>
-                                    <label className="form-label">Repeat every</label>
-                                    <div className="flex items-center gap-2">
-                                        <IncrementInput
-                                            value={phases.find(p => p.type === 'repeat')?.regularRows || (construction === 'flat' ? 2 : 1)}
-                                            onChange={(value) => {
-                                                const validValue = construction === 'flat' ? Math.max(2, Math.ceil(value / 2) * 2) : Math.max(1, value);
-                                                setPhases(prev => prev.map(phase =>
-                                                    phase.type === 'repeat' ? { ...phase, regularRows: validValue } : phase
-                                                ));
-                                            }}
-                                            min={construction === 'flat' ? 2 : 1}
-                                            step={construction === 'flat' ? 2 : 1}
-                                            max={999}
-                                            size="sm"
-                                        />
-                                        <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
-                                    </div>
-                                    {construction === 'flat' && (
-                                        <p className="text-xs text-wool-500 mt-1">
-                                            Must be even number for flat knitting to avoid shaping on wrong side
-                                        </p>
-                                    )}
+                        <div className="space-y-4">
+                            <div>
+                                <label className="form-label">Repeat every</label>
+                                <div className="flex items-center gap-2">
+                                    <IncrementInput
+                                        value={phases.find(p => p.type === 'repeat')?.regularRows || (construction === 'flat' ? 2 : 1)}
+                                        onChange={(value) => {
+                                            const validValue = construction === 'flat' ? Math.max(2, Math.ceil(value / 2) * 2) : Math.max(1, value);
+                                            setPhases(prev => prev.map(phase =>
+                                                phase.type === 'repeat' ? { ...phase, regularRows: validValue } : phase
+                                            ));
+                                        }}
+                                        min={construction === 'flat' ? 2 : 1}
+                                        step={construction === 'flat' ? 2 : 1}
+                                        max={999}
+                                        size="sm"
+                                    />
+                                    <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
                                 </div>
-                                <div>
-                                    {(() => {
-                                        // Check if there's net stitch change to show toggle
-                                        const stitchChangePerIteration = instructionData?.actions ?
-                                            MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions) : 0;
-                                        const hasNetStitchChange = stitchChangePerIteration !== 0;
-                                        const currentPhase = phases.find(p => p.type === 'repeat');
+                                {construction === 'flat' && (
+                                    <p className="text-xs text-wool-500 mt-1">
+                                        Must be even number for flat knitting to avoid shaping on wrong side
+                                    </p>
+                                )}
+                            </div>
+                            <div>
+                                {(() => {
+                                    // Check if there's net stitch change to show toggle
+                                    const stitchChangePerIteration = instructionData?.actions ?
+                                        MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions) : 0;
+                                    const hasNetStitchChange = stitchChangePerIteration !== 0;
+                                    const currentPhase = phases.find(p => p.type === 'repeat');
 
-                                        if (!hasNetStitchChange) {
-                                            // Simple times input when no net stitch change
-                                            return (
-                                                <>
-                                                    <label className="form-label">Number of Times</label>
+                                    if (!hasNetStitchChange) {
+                                        // Simple times input when no net stitch change
+                                        return (
+                                            <>
+                                                <label className="form-label">Number of Times</label>
+                                                <IncrementInput
+                                                    value={currentPhase?.times || 1}
+                                                    onChange={(value) => {
+                                                        setPhases(prev => prev.map(phase =>
+                                                            phase.type === 'repeat' ? { ...phase, times: Math.max(1, value) } : phase
+                                                        ));
+                                                    }}
+                                                    unit="times"
+                                                    min={1}
+                                                    max={1000}
+                                                    size="sm"
+                                                />
+                                            </>
+                                        );
+                                    }
+
+                                    // Show toggle when there is net stitch change
+                                    return (
+                                        <>
+                                            <label className="form-label">Repeat Method</label>
+                                            <SegmentedControl
+                                                options={[
+                                                    { value: 'times', label: 'Fixed Times' },
+                                                    { value: 'target', label: 'To Target Stitches' }
+                                                ]}
+                                                value={currentPhase?.amountMode || 'times'}
+                                                onChange={(value) => {
+                                                    setPhases(prev => prev.map(phase =>
+                                                        phase.type === 'repeat' ? { ...phase, amountMode: value } : phase
+                                                    ));
+                                                }}
+                                            />
+                                            <div className="mt-4">
+                                                {currentPhase?.amountMode === 'target' ? (
+                                                    <IncrementInput
+                                                        value={currentPhase?.targetStitches || (() => {
+                                                            // Calculate where this phase starts (ending stitches from previous phase)
+                                                            let phaseStartStitches = currentStitches + stitchChangePerIteration; // Phase 1 ending
+                                                            completedPhases.forEach(completedPhase => {
+                                                                phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                            });
+                                                            return phaseStartStitches;
+                                                        })()}
+                                                        onChange={(value) => {
+                                                            // Calculate where this phase should start (after all completed phases)
+                                                            let phaseStartStitches = currentStitches + stitchChangePerIteration; // Phase 1 ending
+                                                            completedPhases.forEach(completedPhase => {
+                                                                phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                            });
+
+                                                            const requiredTimes = Math.max(1, Math.abs((value - phaseStartStitches) / stitchChangePerIteration));
+
+                                                            setPhases(prev => prev.map(phase =>
+                                                                phase.type === 'repeat' ? {
+                                                                    ...phase,
+                                                                    targetStitches: value,
+                                                                    times: requiredTimes
+                                                                } : phase
+                                                            ));
+                                                        }}
+                                                        unit="stitches"
+                                                        min={(() => {
+                                                            let phaseStartStitches = currentStitches + stitchChangePerIteration;
+                                                            completedPhases.forEach(completedPhase => {
+                                                                phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                            });
+                                                            return stitchChangePerIteration > 0 ? phaseStartStitches + Math.abs(stitchChangePerIteration) : 1;
+                                                        })()}
+                                                        max={(() => {
+                                                            let phaseStartStitches = currentStitches + stitchChangePerIteration;
+                                                            completedPhases.forEach(completedPhase => {
+                                                                phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                            });
+                                                            return stitchChangePerIteration > 0 ? 999 : phaseStartStitches - Math.abs(stitchChangePerIteration);
+                                                        })()}
+                                                        step={Math.abs(stitchChangePerIteration)}
+                                                        size="sm"
+                                                    />
+                                                ) : (
                                                     <IncrementInput
                                                         value={currentPhase?.times || 1}
                                                         onChange={(value) => {
@@ -331,165 +383,100 @@ const MarkerTimingConfig = ({
                                                         }}
                                                         unit="times"
                                                         min={1}
-                                                        max={1000}
+                                                        max={(() => {
+                                                            if (stitchChangePerIteration >= 0) return 999; // No limit for increases
+
+                                                            // Calculate max times for decreases to prevent negative stitches
+                                                            let phaseStartStitches = currentStitches + stitchChangePerIteration;
+                                                            completedPhases.forEach(completedPhase => {
+                                                                phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                            });
+
+                                                            return Math.max(1, Math.floor(phaseStartStitches / Math.abs(stitchChangePerIteration)));
+                                                        })()}
                                                         size="sm"
                                                     />
-                                                </>
-                                            );
-                                        }
-
-                                        // Show toggle when there is net stitch change
-                                        return (
-                                            <>
-                                                <label className="form-label">Repeat Method</label>
-                                                <SegmentedControl
-                                                    options={[
-                                                        { value: 'times', label: 'Fixed Times' },
-                                                        { value: 'target', label: 'To Target Stitches' }
-                                                    ]}
-                                                    value={currentPhase?.amountMode || 'times'}
-                                                    onChange={(value) => {
-                                                        setPhases(prev => prev.map(phase =>
-                                                            phase.type === 'repeat' ? { ...phase, amountMode: value } : phase
-                                                        ));
-                                                    }}
-                                                />
-                                                <div className="mt-4">
-                                                    {currentPhase?.amountMode === 'target' ? (
-                                                        <IncrementInput
-                                                            value={currentPhase?.targetStitches || (() => {
-                                                                // Calculate where this phase starts (ending stitches from previous phase)
-                                                                let phaseStartStitches = currentStitches + stitchChangePerIteration; // Phase 1 ending
-                                                                completedPhases.forEach(completedPhase => {
-                                                                    phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
-                                                                });
-                                                                return phaseStartStitches;
-                                                            })()}
-                                                            onChange={(value) => {
-                                                                // Calculate where this phase should start (after all completed phases)
-                                                                let phaseStartStitches = currentStitches + stitchChangePerIteration; // Phase 1 ending
-                                                                completedPhases.forEach(completedPhase => {
-                                                                    phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
-                                                                });
-
-                                                                const requiredTimes = Math.max(1, Math.abs((value - phaseStartStitches) / stitchChangePerIteration));
-
-                                                                setPhases(prev => prev.map(phase =>
-                                                                    phase.type === 'repeat' ? {
-                                                                        ...phase,
-                                                                        targetStitches: value,
-                                                                        times: requiredTimes
-                                                                    } : phase
-                                                                ));
-                                                            }}
-                                                            unit="stitches"
-                                                            min={(() => {
-                                                                let phaseStartStitches = currentStitches + stitchChangePerIteration;
-                                                                completedPhases.forEach(completedPhase => {
-                                                                    phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
-                                                                });
-                                                                return stitchChangePerIteration > 0 ? phaseStartStitches + Math.abs(stitchChangePerIteration) : 1;
-                                                            })()}
-                                                            max={(() => {
-                                                                let phaseStartStitches = currentStitches + stitchChangePerIteration;
-                                                                completedPhases.forEach(completedPhase => {
-                                                                    phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
-                                                                });
-                                                                return stitchChangePerIteration > 0 ? 999 : phaseStartStitches - Math.abs(stitchChangePerIteration);
-                                                            })()}
-                                                            step={Math.abs(stitchChangePerIteration)}
-                                                            size="sm"
-                                                        />
-                                                    ) : (
-                                                        <IncrementInput
-                                                            value={currentPhase?.times || 1}
-                                                            onChange={(value) => {
-                                                                setPhases(prev => prev.map(phase =>
-                                                                    phase.type === 'repeat' ? { ...phase, times: Math.max(1, value) } : phase
-                                                                ));
-                                                            }}
-                                                            unit="times"
-                                                            min={1}
-                                                            max={(() => {
-                                                                if (stitchChangePerIteration >= 0) return 999; // No limit for increases
-
-                                                                // Calculate max times for decreases to prevent negative stitches
-                                                                let phaseStartStitches = currentStitches + stitchChangePerIteration;
-                                                                completedPhases.forEach(completedPhase => {
-                                                                    phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
-                                                                });
-
-                                                                return Math.max(1, Math.floor(phaseStartStitches / Math.abs(stitchChangePerIteration)));
-                                                            })()}
-                                                            size="sm"
-                                                        />
-                                                    )}
-                                                </div>
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-                            </div>
-
-                            {/* Live Array Preview */}
-                            {(() => {
-                                const evolution = markerArrayUtils.calculateArrayEvolution(
-                                    instructionData,
-                                    markerArray,
-                                    completedPhases
-                                );
-
-                                const currentPhase = phases.find(p => p.type === 'repeat');
-                                if (currentPhase && evolution.current) {
-                                    // Simulate what the array would look like after adding the current phase
-                                    const simulatedPhases = [...completedPhases, {
-                                        id: 'preview',
-                                        times: currentPhase.times,
-                                        regularRows: currentPhase.regularRows
-                                    }];
-
-                                    console.log('Live preview debug:', {
-                                        currentPhase,
-                                        completedPhases,
-                                        simulatedPhases,
-                                        markerArray,
-                                        instructionData
-                                    });
-
-                                    const previewEvolution = markerArrayUtils.calculateArrayEvolution(
-                                        instructionData,
-                                        markerArray,
-                                        simulatedPhases
+                                                )}
+                                            </div>
+                                        </>
                                     );
-
-                                    return (
-                                        <div className="mt-4">
-                                            <h5 className="text-xs font-medium text-wool-600 mb-2">Live Preview</h5>
-                                            <MarkerArrayVisualization
-                                                stitchArray={previewEvolution.current}
-                                                construction={construction}
-                                                markerColors={markerColors}
-                                            />
-                                        </div>
-                                    );
-                                }
-                                return null;
-                            })()}
-
-                            <div className="flex gap-3 mt-6">
-                                <button onClick={handleAddPhase} className="btn-secondary flex-1">
-                                    Add Another Phase
-                                </button>
-                                <button onClick={handleFinishSequence} className="btn-primary flex-1">
-                                    Finish Sequence
-                                </button>
+                                })()}
                             </div>
                         </div>
-                    )}
+
+                        {/* Live Array Preview */}
+                        {(() => {
+                            const evolution = markerArrayUtils.calculateArrayEvolution(
+                                instructionData,
+                                markerArray,
+                                completedPhases
+                            );
+
+                            const currentPhase = phases.find(p => p.type === 'repeat');
+                            if (currentPhase && evolution.current) {
+                                // Simulate what the array would look like after adding the current phase
+                                const simulatedPhases = [...completedPhases, {
+                                    id: 'preview',
+                                    times: currentPhase.times,
+                                    regularRows: currentPhase.regularRows
+                                }];
+
+                                const previewEvolution = markerArrayUtils.calculateArrayEvolution(
+                                    instructionData,
+                                    markerArray,
+                                    simulatedPhases
+                                );
+
+                                return (
+                                    <div className="mt-4">
+                                        <h5 className="text-xs font-medium text-wool-600 mb-2">Live Preview</h5>
+                                        <MarkerArrayVisualization
+                                            stitchArray={previewEvolution.current}
+                                            construction={construction}
+                                            markerColors={markerColors}
+                                        />
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+                    </div>
+
+                    {/* ALWAYS VISIBLE: Finishing Rows */}
+                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
+                        <div className="text-sm font-medium text-wool-700 mb-4">
+                            Finishing Rows
+                        </div>
+                        <div className="space-y-4">
+                            <div>
+                                <label className="form-label">Work in {wizard?.wizardData?.stitchPattern?.pattern || 'pattern'} for</label>
+                                <div className="flex items-center gap-2">
+                                    <IncrementInput
+                                        value={finishingRows}
+                                        onChange={setFinishingRows}
+                                        min={0}
+                                        max={999}
+                                        size="sm"
+                                    />
+                                    <span className="text-sm text-wool-600">
+                                        {finishingRows === 1 ? (construction === 'round' ? 'round' : 'row') : (construction === 'round' ? 'rounds' : 'rows')}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* OPTIONAL: Add Another Phase */}
+                    <div className="flex gap-3">
+                        <button onClick={handleAddPhase} className="btn-secondary flex-1">
+                            Add Another Phase
+                        </button>
+                    </div>
                 </div>
             </div>
         );
     };
+
     return (
         <div>
             <ShapingHeader
@@ -571,7 +558,6 @@ const MarkerTimingConfig = ({
                     </button>
                     <button
                         onClick={handleComplete}
-                        disabled={!isFinishing}
                         className="btn-primary flex-1"
                     >
                         Complete Step
