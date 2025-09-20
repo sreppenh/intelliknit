@@ -7,6 +7,7 @@ import { MarkerTimingCalculator } from '../../../../shared/utils/MarkerTimingCal
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
+import SelectionGrid from '../../../../shared/components/SelectionGrid';
 
 const MarkerTimingConfig = ({
     instructionData,
@@ -18,7 +19,8 @@ const MarkerTimingConfig = ({
     onBack,
     wizard,
     onGoToLanding,
-    onCancel
+    onCancel,
+    project
 }) => {
     const [phases, setPhases] = useState([
         { type: 'initial' }, // Always present - the kickoff special row
@@ -27,7 +29,8 @@ const MarkerTimingConfig = ({
             regularRows: construction === 'flat' ? 2 : 1,
             amountMode: 'times',
             times: 5,
-            targetStitches: null
+            targetStitches: null,
+            intervalType: 'rows'
         },
         { type: 'finish', regularRows: construction === 'flat' ? 2 : 1 }
     ]);
@@ -65,7 +68,10 @@ const MarkerTimingConfig = ({
             const phaseStitchChange = phase1StitchChange * repetitions;
 
             runningStitches += phaseStitchChange;
-            lines.push(`Repeat every ${cycleLength} ${terms.rows} ${repetitions} times (${runningStitches} sts)`);
+            const intervalText = phase.intervalType === 'distance'
+                ? `${phase.regularRows} ${project?.defaultUnits || 'inches'}`
+                : `${cycleLength} ${terms.rows}`;
+            lines.push(`Repeat every ${intervalText} ${repetitions} times (${runningStitches} sts)`);
         });
 
         return lines.join('\n');
@@ -130,7 +136,8 @@ const MarkerTimingConfig = ({
             regularRows: repeatPhase?.regularRows || 1,
             times: repeatPhase?.times || 1,
             amountMode: repeatPhase?.amountMode || 'times',
-            targetStitches: repeatPhase?.targetStitches
+            targetStitches: repeatPhase?.targetStitches,
+            intervalType: repeatPhase?.intervalType || 'rows'
         };
 
         setCompletedPhases(prev => [...prev, newPhase]);
@@ -223,7 +230,7 @@ const MarkerTimingConfig = ({
                                 return (
                                     <div key={phase.id} className="text-sm text-wool-600 text-left flex items-center justify-between">
                                         <span>
-                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.regularRows + 1} {construction === 'round' ? 'rounds' : 'rows'} {phase.times} times ({phaseEndingStitches} sts)
+                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.intervalType === 'distance' ? `${phase.regularRows} ${project?.defaultUnits || 'inches'}` : `${phase.regularRows + 1} ${construction === 'round' ? 'rounds' : 'rows'}`} {phase.times} times ({phaseEndingStitches} sts)
                                         </span>
                                         <button
                                             onClick={() => handleDeletePhase(phase.id)}
@@ -245,7 +252,20 @@ const MarkerTimingConfig = ({
                         <div className="space-y-4">
                             <div>
                                 <label className="form-label">Repeat every</label>
-                                <div className="flex items-center gap-2">
+                                <SelectionGrid
+                                    options={[
+                                        { value: 'rows', label: construction === 'round' ? 'Rounds' : 'Rows' },
+                                        { value: 'distance', label: 'Distance' }
+                                    ]}
+                                    selected={phases.find(p => p.type === 'repeat')?.intervalType || 'rows'}
+                                    onSelect={(value) => {
+                                        setPhases(prev => prev.map(phase =>
+                                            phase.type === 'repeat' ? { ...phase, intervalType: value } : phase
+                                        ));
+                                    }}
+                                    columns={2}
+                                />
+                                <div className="flex items-center gap-2 mt-3">
                                     <IncrementInput
                                         value={phases.find(p => p.type === 'repeat')?.regularRows || (construction === 'flat' ? 2 : 1)}
                                         onChange={(value) => {
@@ -259,7 +279,12 @@ const MarkerTimingConfig = ({
                                         max={999}
                                         size="sm"
                                     />
-                                    <span className="text-sm text-wool-600">{construction === 'round' ? 'rounds' : 'rows'}</span>
+                                    <span className="text-sm text-wool-600">
+                                        {phases.find(p => p.type === 'repeat')?.intervalType === 'distance'
+                                            ? (project?.defaultUnits || 'inches')
+                                            : (construction === 'round' ? 'rounds' : 'rows')
+                                        }
+                                    </span>
                                 </div>
                                 {construction === 'flat' && (
                                     <p className="text-xs text-wool-500 mt-1">
@@ -300,17 +325,18 @@ const MarkerTimingConfig = ({
                                     return (
                                         <>
                                             <label className="form-label">Repeat Method</label>
-                                            <SegmentedControl
+                                            <SelectionGrid
                                                 options={[
                                                     { value: 'times', label: 'Fixed Times' },
                                                     { value: 'target', label: 'To Target Stitches' }
                                                 ]}
-                                                value={currentPhase?.amountMode || 'times'}
-                                                onChange={(value) => {
+                                                selected={currentPhase?.amountMode || 'times'}
+                                                onSelect={(value) => {
                                                     setPhases(prev => prev.map(phase =>
                                                         phase.type === 'repeat' ? { ...phase, amountMode: value } : phase
                                                     ));
                                                 }}
+                                                columns={2}
                                             />
                                             <div className="mt-4">
                                                 {currentPhase?.amountMode === 'target' ? (
@@ -389,6 +415,10 @@ const MarkerTimingConfig = ({
                             </div>
                         </div>
 
+                        <div className="pt-4 mt-4 border-t border-wool-200">
+                            <button onClick={handleAddPhase} className="suggestion-bubble">+ Add Another Phase</button>
+                        </div>
+
                         {/* Live Array Preview */}
                         {(() => {
                             const evolution = markerArrayUtils.calculateArrayEvolution(
@@ -448,13 +478,6 @@ const MarkerTimingConfig = ({
                                     </span>
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    {/* OPTIONAL: Add Another Phase */}
-                    <div className="flex gap-3">
-                        <div className="pt-4 border-t border-wool-200">
-                            <button onClick={handleAddPhase} className="suggestion-bubble">+ Add Another Phase</button>
                         </div>
                     </div>
                 </div>

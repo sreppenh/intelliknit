@@ -693,7 +693,7 @@ const MarkerInstructionBuilder = ({
             </div>
             <div className="card">
                 <h4 className="section-header-secondary">Define Actions</h4>
-                <div className="space-y-6">
+                <div className="space-y-4">
                     <ActionTypeCard />
                     {currentAction.actionType !== 'continue' && (
                         <>

@@ -35,7 +35,8 @@ const MarkerPhasesConfig = ({
     onGoToLanding,
     wizard,
     onCancel,
-    mode
+    mode,
+    project
 }) => {
 
     // ===== MULTI-SCREEN STATE MANAGEMENT =====
@@ -616,6 +617,7 @@ const MarkerPhasesConfig = ({
                 onGoToLanding={onGoToLanding}
                 onCancel={onCancel}
                 currentStitches={currentStitches}
+                project={project}
             />
         );
     }

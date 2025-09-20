@@ -24,7 +24,8 @@ const ShapingWizard = ({
   onExitToComponentSteps,
   onGoToLanding,
   editingStepIndex = null,
-  mode = 'project'
+  mode = 'project',
+  project
 }) => {
 
   // 🔧 FIX: Initialize step based on whether we have existing data
@@ -182,6 +183,7 @@ const ShapingWizard = ({
             wizard={shapingWizard}
             onCancel={handleCancel}
             mode={mode}
+            project={project}
           />
         );
 

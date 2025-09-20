@@ -198,17 +198,11 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
         setCurrentStitches={wizard.setCurrentStitches}
         component={wizard.component}
         componentIndex={wizard.componentIndex}
+        project={currentProject}
         editingStepIndex={wizard.editingStepIndex}
         onExitToComponentSteps={mode === 'notepad' ? () => { handleAddStep(); } : onBack}
         onBack={() => {
           setShowShapingWizard(false);
-
-          console.log("=== VALIDATION DEBUG ===");
-          console.log("wizard.wizardData.shapingConfig:", wizard.wizardData.shapingConfig);
-          console.log("shapingConfig?.type:", wizard.wizardData.shapingConfig?.type);
-          console.log("shapingConfig?.config:", wizard.wizardData.shapingConfig?.config);
-          console.log("shapingConfig?.config?.calculation:", wizard.wizardData.shapingConfig?.config?.calculation);
-
 
           // Check if shaping was actually completed
           const hasCompletedShaping = wizard.wizardData.shapingConfig?.type &&
@@ -414,8 +408,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
           />
         );
 
-      case 5:
-      // Preview step (has custom buttons, no nav needed)
       case 5:
         return (
           <StepPreview
