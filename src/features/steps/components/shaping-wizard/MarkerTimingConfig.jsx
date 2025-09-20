@@ -453,9 +453,9 @@ const MarkerTimingConfig = ({
 
                     {/* OPTIONAL: Add Another Phase */}
                     <div className="flex gap-3">
-                        <button onClick={handleAddPhase} className="btn-secondary flex-1">
-                            Add Another Phase
-                        </button>
+                        <div className="pt-4 border-t border-wool-200">
+                            <button onClick={handleAddPhase} className="suggestion-bubble">+ Add Another Phase</button>
+                        </div>
                     </div>
                 </div>
             </div>

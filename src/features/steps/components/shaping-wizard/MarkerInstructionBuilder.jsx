@@ -704,8 +704,8 @@ const MarkerInstructionBuilder = ({
                             <TechniqueCard />
                             <BindOffCard />
                             {isActionComplete() && (
-                                <div className="flex gap-3 pt-4 border-t">
-                                    <button onClick={addAction} className="btn-secondary">Add Another Action</button>
+                                <div className="pt-4 border-t border-wool-200">
+                                    <button onClick={addAction} className="suggestion-bubble">+ Add Another Action</button>
                                 </div>
                             )}
                         </>
