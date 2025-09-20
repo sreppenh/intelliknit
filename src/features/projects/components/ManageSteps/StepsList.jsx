@@ -1,3 +1,5 @@
+// ManageSteps Page
+
 import React from 'react';
 import StepCard from './StepCard';
 import { isConstructionStep, getComponentStatusWithDisplay, isFinishingStep } from '../../../../shared/utils/stepDisplayUtils';

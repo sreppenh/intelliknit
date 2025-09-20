@@ -71,7 +71,7 @@ const MarkerTimingConfig = ({
             const intervalText = phase.intervalType === 'distance'
                 ? `${phase.regularRows} ${project?.defaultUnits || 'inches'}`
                 : `${cycleLength} ${terms.rows}`;
-            lines.push(`Repeat every ${intervalText} ${repetitions} times (${runningStitches} sts)`);
+            lines.push(`Repeat every ${intervalText} ${repetitions} times (${runningStitches} sts).`);
         });
 
         return lines.join('\n');
@@ -246,9 +246,7 @@ const MarkerTimingConfig = ({
 
                     {/* ALWAYS VISIBLE: Define Timing Phase */}
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                        <div className="text-sm font-medium text-wool-700 mb-4">
-                            Define Timing Phase
-                        </div>
+                        <h4 className="section-header-secondary">Define Timing Phase</h4>
                         <div className="space-y-4">
                             <div>
                                 <label className="form-label">Repeat every</label>
@@ -459,9 +457,7 @@ const MarkerTimingConfig = ({
 
                     {/* ALWAYS VISIBLE: Finishing Rows */}
                     <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                        <div className="text-sm font-medium text-wool-700 mb-4">
-                            Finishing Rows
-                        </div>
+                        <h4 className="section-header-secondary">Finishing Rows</h4>
                         <div className="space-y-4">
                             <div>
                                 <label className="form-label">Work in {wizard?.wizardData?.stitchPattern?.pattern || 'pattern'} for</label>
