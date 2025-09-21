@@ -36,9 +36,9 @@ const MarkerTimingConfig = ({
     ]);
 
     const [completedPhases, setCompletedPhases] = useState([]);
-    const [finishingRows, setFinishingRows] = useState(0);
+    const [finishingRows, setFinishingRows] = useState(construction === 'flat' ? 1 : 0);
 
-    // Generate preview with completed phases
+    // Generate preview with completed phases AND current phase
     const generatePreview = () => {
         if (!instructionData?.actions) return "No instruction data";
 
@@ -46,35 +46,36 @@ const MarkerTimingConfig = ({
         const terms = getConstructionTerms(construction);
         const lines = [];
 
-        // First line: base instruction
-        const dummyTiming = { frequency: 1, times: 1, amountMode: 'times' };
+        // Get the current repeat phase configuration
+        const currentRepeatPhase = phases.find(p => p.type === 'repeat');
+
+        // Create timing object with current phase settings
+        const currentTiming = {
+            frequency: (currentRepeatPhase?.regularRows || 1) + 1,
+            times: currentRepeatPhase?.times || 1,
+            amountMode: currentRepeatPhase?.amountMode || 'times',
+            targetStitches: currentRepeatPhase?.targetStitches
+        };
+
+        // Generate the full instruction with current timing
         const mainInstruction = generateMarkerInstructionPreview(
             instructionData.actions,
-            dummyTiming,
+            currentTiming,
             markerArray,
             construction,
             basePattern
         );
-        // Calculate Phase 1 ending stitches
-        const phase1StitchChange = MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions);
-        const phase1EndingStitches = currentStitches + phase1StitchChange;
-        lines.push(`${mainInstruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')} (${currentStitches} → ${phase1EndingStitches} sts)`);
 
-        // Add completed timing phases
-        let runningStitches = phase1EndingStitches;
-        completedPhases.forEach(phase => {
-            const cycleLength = phase.regularRows + 1;
-            const repetitions = phase.times;
-            const phaseStitchChange = phase1StitchChange * repetitions;
+        lines.push(mainInstruction);
 
-            runningStitches += phaseStitchChange;
-            const intervalText = phase.intervalType === 'distance'
-                ? `${phase.regularRows} ${project?.defaultUnits || 'inches'}`
-                : `${cycleLength} ${terms.rows}`;
-            lines.push(`Repeat every ${intervalText} ${repetitions} times (${runningStitches} sts).`);
-        });
+        // Add finishing rows if any
+        if (finishingRows > 0) {
+            const rowTerm = finishingRows === 1 ? (construction === 'round' ? 'round' : 'row') : (construction === 'round' ? 'rounds' : 'rows');
+            lines.push(`Work in ${basePattern} for ${finishingRows} ${rowTerm}.`);
+        }
 
-        return lines.join('\n');
+        const result = lines.join(' ');
+        return result.endsWith('.') ? result : result + '.';
     };
 
     const handleComplete = () => {
@@ -98,7 +99,7 @@ const MarkerTimingConfig = ({
         onBack();
     };
 
-    // Simple stitch context - will be properly calculated later
+    // Calculate stitch context including current phase configuration
     const getStitchContext = () => {
         const startingStitches = currentStitches || 0;
 
@@ -106,15 +107,18 @@ const MarkerTimingConfig = ({
         const stitchChangePerIteration = instructionData?.actions ?
             MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions) : 0;
 
-        // Calculate ending stitches: starting + phase1 change + all completed phase changes
-        const phase1Change = stitchChangePerIteration;
-        const completedPhasesChange = completedPhases.reduce((total, phase) =>
-            total + (stitchChangePerIteration * phase.times), 0);
-        const endingStitches = startingStitches + phase1Change + completedPhasesChange;
+        // Get current repeat phase configuration
+        const currentRepeatPhase = phases.find(p => p.type === 'repeat');
+        const currentPhaseTimes = currentRepeatPhase?.times || 1;
+        const currentPhaseRegularRows = currentRepeatPhase?.regularRows || 1;
 
-        // Calculate total rows: 1 (phase1) + all completed phase rows + finishing rows
-        const totalRows = 1 + completedPhases.reduce((total, phase) =>
-            total + ((phase.regularRows + 1) * phase.times), 0) + finishingRows;
+        // Calculate ending stitches: starting + current phase change
+        const currentPhaseChange = stitchChangePerIteration * currentPhaseTimes;
+        const endingStitches = startingStitches + currentPhaseChange;
+
+        // Calculate total rows: (cycle length * times) + finishing rows
+        const cycleLength = currentPhaseRegularRows + 1; // +1 for the action row
+        const totalRows = (cycleLength * currentPhaseTimes) + finishingRows;
 
         return {
             startingStitches,
@@ -463,16 +467,32 @@ const MarkerTimingConfig = ({
                                 <label className="form-label">Work in {wizard?.wizardData?.stitchPattern?.pattern || 'pattern'} for</label>
                                 <div className="flex items-center gap-2">
                                     <IncrementInput
-                                        value={finishingRows}
-                                        onChange={setFinishingRows}
-                                        min={0}
+                                        value={finishingRows || (construction === 'flat' ? 1 : 0)}
+                                        onChange={(value) => {
+                                            let validValue;
+                                            if (construction === 'flat') {
+                                                // For flat: minimum 1, must be odd
+                                                validValue = Math.max(1, value % 2 === 0 ? value + 1 : value);
+                                            } else {
+                                                // For round: minimum 0, any value allowed
+                                                validValue = Math.max(0, value);
+                                            }
+                                            setFinishingRows(validValue);
+                                        }}
+                                        min={construction === 'flat' ? 1 : 0}
                                         max={999}
+                                        step={construction === 'flat' ? 2 : 1}
                                         size="sm"
                                     />
                                     <span className="text-sm text-wool-600">
                                         {finishingRows === 1 ? (construction === 'round' ? 'round' : 'row') : (construction === 'round' ? 'rounds' : 'rows')}
                                     </span>
                                 </div>
+                                {construction === 'flat' && (
+                                    <p className="text-xs text-wool-500 mt-1">
+                                        Must be odd number for flat knitting to end on right side
+                                    </p>
+                                )}
                             </div>
                         </div>
                     </div>

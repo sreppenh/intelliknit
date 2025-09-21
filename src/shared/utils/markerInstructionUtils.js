@@ -115,11 +115,28 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
                 const stitchCount = action.stitchCount || 1;
 
                 if (distance === 0) {
-                    // Cast on at both ends - use same technique for both
-                    edgeInstructionParts.push(`Using ${action.technique}, cast on ${stitchCount} stitches`);
-                    edgeInstructionParts.push(`work in ${basePattern} until end`);
-                    edgeInstructionParts.push(`using ${action.technique}, cast on ${stitchCount} stitches`);
-                    totalStitchChange += stitchCount * 2; // Cast on at both ends
+                    // Check if this is actually a cast-on (increase) or regular technique
+                    if (action.actionType === 'increase') {
+                        // Cast on at both ends - use same technique for both
+                        edgeInstructionParts.push(`Using ${action.technique}, cast on ${stitchCount} stitches`);
+                        edgeInstructionParts.push(`work in ${basePattern} until end`);
+                        edgeInstructionParts.push(`using ${action.technique}, cast on ${stitchCount} stitches`);
+                        totalStitchChange += stitchCount * 2; // Cast on at both ends
+                    } else {
+                        // Regular technique at both ends (like decreases)
+                        const [beginTech, endTech] = action.technique.split('_');
+
+                        // Beginning technique
+                        edgeInstructionParts.push(beginTech);
+
+                        // Middle section
+                        edgeInstructionParts.push(`work in ${basePattern} until end`);
+
+                        // End technique  
+                        edgeInstructionParts.push(endTech);
+
+                        totalStitchChange += getStitchChange(beginTech) + getStitchChange(endTech);
+                    }
                 } else {
                     // Regular increase case - split technique
                     const [beginTech, endTech] = action.technique.split('_');
