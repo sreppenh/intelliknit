@@ -502,5 +502,6 @@ export default {
     calculateArrayEvolution,
     repairArray,
     validateArray,
-    formatArrayForDisplay
+    formatArrayForDisplay,
+    convertInstructionToMarkerActions
 };

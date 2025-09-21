@@ -3,6 +3,7 @@ import { getStepPatternName } from './stepDisplayUtils';
 import { getAlgorithmicRowInstruction, isAlgorithmicPattern } from './AlgorithmicPatterns';
 import { calculateRowStitches } from './stitchCalculatorUtils';
 import { formatKnittingInstruction } from './../../shared/utils/knittingNotation'
+import { generateMarkerInstructionPreview } from './markerInstructionUtils';
 
 /**
  * Smart Instruction Generation - Phase 2 implementation
@@ -275,6 +276,11 @@ function getShapingInstruction(step, currentRow, currentStitchCount, constructio
     // For sequential phases shaping - multi row with intelligent phase detection
     if (shapingConfig.type === 'phases') {
         return getSequentialPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project);
+    }
+
+    // For marker phases shaping - row-by-row marker instructions
+    if (shapingConfig.type === 'marker_phases') {
+        return getMarkerPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project);
     }
 
     // Fallback for unknown shaping types
@@ -1181,5 +1187,91 @@ function getStitchChangeForRow(phase) {
     const amount = phase.amount || 1;
     const position = phase.position || 'both_ends';
     return position === 'both_ends' ? amount * 2 : amount;
+}
+
+/**
+ * Generate instruction for specific row in marker phases shaping
+ */
+function getMarkerPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project) {
+    const config = shapingConfig.config;
+    const sequences = config?.phases;
+
+    if (!sequences || sequences.length === 0) {
+        return getFallbackInstruction(step, currentRow, currentStitchCount);
+    }
+
+    const sequence = sequences[0]; // Use first sequence
+    const instructionData = sequence.instructionData;
+
+    if (!instructionData?.actions || !instructionData?.phases) {
+        return getFallbackInstruction(step, currentRow, currentStitchCount);
+    }
+
+    // Determine if this is a shaping row based on phases
+    const isShapingRow = isMarkerShapingRow(currentRow, instructionData.phases);
+
+    if (isShapingRow) {
+        // Generate marker shaping instruction
+        const basePattern = getStepPatternName(step);
+        const dummyTiming = { frequency: 1, times: 1, amountMode: 'times' };
+        const markerArray = config.markerSetup?.stitchArray || [];
+
+        const instruction = generateMarkerInstructionPreview(
+            instructionData.actions,
+            dummyTiming,
+            markerArray,
+            construction,
+            basePattern
+        );
+
+        // Clean up the instruction (remove stitch count)
+        const cleanInstruction = instruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '');
+
+        return {
+            instruction: cleanInstruction,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    } else {
+        // Non-shaping row - work in pattern
+        const basePattern = getStepPatternName(step);
+        const baseInstruction = getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project);
+
+        return {
+            instruction: baseInstruction,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    }
+}
+
+/**
+ * Determine if current row is a shaping row for marker phases
+ */
+function isMarkerShapingRow(currentRow, phases) {
+    let totalRows = 0;
+
+    for (const phase of phases) {
+        if (phase.type === 'initial') {
+            totalRows += 1;
+            if (currentRow === totalRows) return true;
+        } else if (phase.type === 'repeat') {
+            const frequency = phase.regularRows + 1; // +1 for action row
+            const times = phase.times || 1;
+
+            for (let i = 0; i < times; i++) {
+                totalRows += 1; // Action row
+                if (currentRow === totalRows) return true;
+
+                totalRows += phase.regularRows; // Regular rows
+            }
+        } else if (phase.type === 'finish') {
+            totalRows += phase.regularRows || 1;
+        }
+    }
+
+    return false;
 }
 

@@ -79,7 +79,7 @@ export class MarkerSequenceCalculator {
                 startRow: startRow,
                 endRow: startRow + sequenceCalculation.totalRows - 1,
                 calculation: sequenceCalculation,
-                actions: sequence.actions || [],
+                actions: sequence.instructionData?.actions || [],
                 activeRows: this.calculateActiveRows(startRow, sequenceCalculation)
             };
 
@@ -193,21 +193,19 @@ export class MarkerSequenceCalculator {
     }
 
     /**
-     * Get specific actions for a sequence on a specific row
-     * @param {Object} sequenceTimeline - Timeline for one sequence
-     * @param {number} row - Row number
-     * @returns {Array} - Array of action objects for this row
-     */
+    * Get specific actions for a sequence on a specific row
+    * @param {Object} sequenceTimeline - Timeline for one sequence
+    * @param {number} row - Row number
+    * @returns {Array} - Array of action objects for this row
+    */
     static getSequenceActionsForRow(sequenceTimeline, row) {
-        // For now, return placeholder actions
-        // This will be expanded when we build the action system
         if (sequenceTimeline.activeRows.includes(row)) {
             return [{
                 sequenceId: sequenceTimeline.sequenceId,
                 sequenceName: sequenceTimeline.sequenceName,
                 row: row,
                 description: `Apply ${sequenceTimeline.sequenceName} actions`,
-                // TODO: Add specific marker actions here
+                sequenceTimeline: sequenceTimeline
             }];
         }
 
@@ -215,18 +213,33 @@ export class MarkerSequenceCalculator {
     }
 
     /**
-     * Apply actions to marker array (simplified implementation)
+     * Apply actions to marker array
      * @param {Array} currentArray - Current marker array
-     * @param {Array} actions - Actions to apply
+     * @param {Array} actions - Actions to apply from sequences
      * @returns {Array} - Updated marker array
      */
     static applyActionsToArray(currentArray, actions) {
-        // For now, return unchanged array
-        // This will be expanded when we build the action application system
+        if (!actions || actions.length === 0) {
+            return currentArray;
+        }
 
-        // TODO: Use markerArrayUtils.applyMarkerActions() when action system is built
+        let updatedArray = [...currentArray];
 
-        return currentArray;
+        for (const action of actions) {
+            // Each action should have the sequence timeline with instructionData
+            if (action.sequenceTimeline?.actions) {
+                // Convert instruction actions to marker actions format
+                const markerActions = markerArrayUtils.convertInstructionToMarkerActions(
+                    action.sequenceTimeline.actions,
+                    updatedArray
+                );
+
+                // Apply the marker actions
+                updatedArray = markerArrayUtils.applyMarkerActions(updatedArray, markerActions);
+            }
+        }
+
+        return updatedArray;
     }
 
     /**
