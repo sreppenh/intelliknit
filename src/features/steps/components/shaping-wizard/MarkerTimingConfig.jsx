@@ -404,16 +404,18 @@ const MarkerTimingConfig = ({
                                                         }}
                                                         unit="times"
                                                         min={1}
+
                                                         max={(() => {
-                                                            if (stitchChangePerIteration >= 0) return 999; // No limit for increases
-
-                                                            // Calculate max times for decreases to prevent negative stitches
-                                                            let phaseStartStitches = currentStitches + stitchChangePerIteration;
-                                                            completedPhases.forEach(completedPhase => {
-                                                                phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
+                                                            console.log('DEBUG: Action data for max calculation:', {
+                                                                instructionData: instructionData,
+                                                                actions: instructionData?.actions,
+                                                                markerArray: markerArray
                                                             });
-
-                                                            return Math.max(1, Math.floor(phaseStartStitches / Math.abs(stitchChangePerIteration)));
+                                                            return MarkerTimingCalculator.getMaxSafeIterations(
+                                                                instructionData?.actions || [],
+                                                                markerArray,
+                                                                completedPhases
+                                                            );
                                                         })()}
                                                         size="sm"
                                                     />
