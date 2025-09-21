@@ -286,8 +286,6 @@ const MarkerPhasesConfig = ({
             construction
         );
 
-        console.log('CALCULATOR RESULT:', calculation);
-
         const markerConfig = {
             type: 'marker_phases',
             config: {
@@ -307,7 +305,7 @@ const MarkerPhasesConfig = ({
                 success: true,
                 endingStitches: calculation.endingStitches,
                 startingStitches: calculation.startingStitches,
-                totalRows: calculation.totalRows,
+                totalRows: finalInstructionData.timing.frequency * finalInstructionData.timing.times + 1, // timing rows + finish row
                 hasShaping: true
             },
             wizardData: {

@@ -255,7 +255,10 @@ export class MarkerSequenceCalculator {
             instruction: instruction,
             startingStitches: startingStitches,
             endingStitches: finalRowData.totalStitches,
-            totalRows: unifiedTimeline.length,
+            totalRows: sequences.length > 0 && sequences[0].instructionData?.timing ?
+                (sequences[0].instructionData.timing.frequency * sequences[0].instructionData.timing.times) +
+                (sequences[0].instructionData.phases?.filter(p => p.type === 'finish').length || 0) :
+                unifiedTimeline.length,
             netStitchChange: finalRowData.totalStitches - startingStitches,
             finalArray: finalRowData.array,
             arrayEvolution: unifiedTimeline,
