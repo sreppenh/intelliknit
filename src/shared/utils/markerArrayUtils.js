@@ -193,6 +193,25 @@ const applySingleMarkerAction = (stitchArray, action) => {
             continue;
         }
 
+        // Handle BOR special case for round construction
+        if (markerName === 'BOR') {
+            // For BOR, "before" means the last segment (wrap around)
+            if (before && before.count !== 0) {
+                const lastSegmentIndex = getLastStitchSegmentIndex(newArray);
+                if (lastSegmentIndex >= 0) {
+                    newArray[lastSegmentIndex] = Math.max(0, newArray[lastSegmentIndex] + before.count);
+                }
+            }
+            // For BOR, "after" means the first segment after BOR
+            if (after && after.count !== 0) {
+                const firstSegmentIndex = 1; // Should be the segment right after BOR
+                if (firstSegmentIndex < newArray.length && typeof newArray[firstSegmentIndex] === 'number') {
+                    newArray[firstSegmentIndex] = Math.max(0, newArray[firstSegmentIndex] + after.count);
+                }
+            }
+            continue;
+        }
+
         // Handle actual markers (existing logic)
         const context = getMarkerContext(newArray, markerName);
         if (!context) continue;

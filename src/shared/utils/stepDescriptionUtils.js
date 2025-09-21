@@ -9,6 +9,7 @@
 import { getStepPatternName, getStepMethodDisplay, getStepPrepNote, getStepType, hasShaping, requiresAdvancedPatternEdit } from './stepDisplayUtils'; import { formatKnittingInstruction } from './knittingNotation';
 import { PhaseCalculationService } from './PhaseCalculationService';
 import { getCorrectDurationDisplay, estimateRowsFromLength } from './gaugeUtils';
+import { generateMarkerInstructionPreview } from './markerInstructionUtils';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
@@ -302,7 +303,6 @@ export const getContextualConfigNotes = (step) => {
     // Check for shaping configuration notes
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
 
-    console.log('SHAPING CONFIG TYPE:', shapingConfig?.type);
     if (shapingConfig?.type) {
         if (shapingConfig.type === 'even_distribution') {
             // ✅ FIXED: Show beautifully formatted even distribution instruction
@@ -322,7 +322,6 @@ export const getContextualConfigNotes = (step) => {
                 notes.push(phaseDescriptions.join('\n'));
             }
         } else if (shapingConfig.type === 'marker_phases') {
-            // Show marker phase breakdown like sequential phases
             const config = shapingConfig.config;
             const sequences = config?.phases;
 
@@ -335,19 +334,25 @@ export const getContextualConfigNotes = (step) => {
 
                     phases.forEach((phase, index) => {
                         if (phase.type === 'initial') {
-                            const actions = sequence.instructionData?.actions || [];
-                            const pattern = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
+                            const instructionData = sequence.instructionData;
+                            if (instructionData?.actions) {
+                                const basePattern = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
+                                const dummyTiming = { frequency: 1, times: 1, amountMode: 'times' };
+                                const markerArray = config.markerSetup?.stitchArray || [];
+                                const construction = step.construction || 'flat';
 
-                            if (actions.length > 0) {
-                                // Generate instruction directly from action data like MarkerTiming does
-                                // This is the proper approach - build from source data, don't parse strings
-                                const action = actions[0];
-                                // Use the same logic as generateMarkerInstructionPreview but simplified
-                                phaseDescriptions.push(`Phase ${index + 1}: Work in ${pattern} with marker-based actions`);
+                                const instruction = generateMarkerInstructionPreview(
+                                    instructionData.actions,
+                                    dummyTiming,
+                                    markerArray,
+                                    construction,
+                                    basePattern
+                                );
+                                phaseDescriptions.push(`Phase ${index + 1}: ${instruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')}`);
                             } else {
+                                const pattern = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
                                 phaseDescriptions.push(`Phase ${index + 1}: Work in ${pattern} with marker actions`);
                             }
-
                         } else if (phase.type === 'repeat') {
                             const construction = step.construction || 'flat';
                             const rowTerm = construction === 'round' ? 'round' : 'row';
@@ -360,7 +365,6 @@ export const getContextualConfigNotes = (step) => {
                             phaseDescriptions.push(`Phase ${index + 1}: Work in ${pattern} for ${rows} row${rows === 1 ? '' : 's'}`);
                         }
                     });
-                    console.log('MARKER FINAL PHASE DESCRIPTIONS:', phaseDescriptions);
 
                     notes.push(phaseDescriptions.join('\n'));
                 }
