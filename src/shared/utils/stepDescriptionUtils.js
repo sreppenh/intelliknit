@@ -444,12 +444,10 @@ const getShapingStepDescription = (step) => {
         }
 
     } else if (shapingConfig?.type === 'marker_phases') {
-        const config = shapingConfig.config;
-        if (config?.calculation?.instruction) {
-            // Use the pre-calculated instruction from the config
-            shapingText = ` with ${config.calculation.instruction}`;
+        const phases = shapingConfig.config?.phases?.length || 0;
+        if (phases > 0) {
+            shapingText = ` with ${phases} marker ${phases === 1 ? 'sequence' : 'sequences'}`;
         } else {
-            // Fallback for preview mode
             shapingText = ` with marker-based shaping`;
         }
 
