@@ -51,7 +51,7 @@ const MarkerTimingConfig = ({
 
         // Create timing object with current phase settings
         const currentTiming = {
-            frequency: (currentRepeatPhase?.regularRows || 1) + 1,
+            frequency: (currentRepeatPhase?.regularRows || 1),
             times: currentRepeatPhase?.times || 1,
             amountMode: currentRepeatPhase?.amountMode || 'times',
             targetStitches: currentRepeatPhase?.targetStitches
@@ -79,17 +79,28 @@ const MarkerTimingConfig = ({
     };
 
     const handleComplete = () => {
-        // Convert phases to timing structure that parent expects
+
         const repeatPhase = phases.find(p => p.type === 'repeat');
+        console.log('HANDLE COMPLETE - repeatPhase:', repeatPhase);
+        console.log('HANDLE COMPLETE - completedPhases:', completedPhases);
+
+        // Build complete phases array: initial + all completed phases + current phase + finish
+        const allPhases = [
+            { type: 'initial' },
+            ...completedPhases.map(phase => ({ type: 'repeat', ...phase })),
+            { type: 'repeat', ...repeatPhase },
+            { type: 'finish', regularRows: finishingRows }
+        ];
+
         const finalInstructionData = {
             ...instructionData,
             timing: {
-                frequency: (repeatPhase?.regularRows || 1) + 1, // total cycle length
+                frequency: repeatPhase?.regularRows || 1,
                 times: repeatPhase?.times || 1,
                 amountMode: repeatPhase?.amountMode || 'times',
                 targetStitches: repeatPhase?.targetStitches
             },
-            phases,
+            phases: allPhases,
             preview: generatePreview()
         };
         onComplete(finalInstructionData);
@@ -135,6 +146,8 @@ const MarkerTimingConfig = ({
     // Add phase to completed list
     const handleAddPhase = () => {
         const repeatPhase = phases.find(p => p.type === 'repeat');
+        console.log('ADDING PHASE:', repeatPhase);
+        console.log('CURRENT COMPLETED PHASES:', completedPhases);
         const newPhase = {
             id: Date.now(),
             regularRows: repeatPhase?.regularRows || 1,

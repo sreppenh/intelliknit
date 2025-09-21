@@ -338,7 +338,7 @@ export const getContextualConfigNotes = (step) => {
                             const construction = step.construction || 'flat';
                             const rowTerm = construction === 'round' ? 'round' : 'row';
                             const times = phase.config?.times || phase.times || 1;
-                            const frequency = phase.config?.frequency || sequence.instructionData?.timing?.frequency || 3;
+                            const frequency = phase.config?.regularRows || phase.regularRows || 1;
                             return `Phase ${index + 1}: Repeat every ${frequency} ${rowTerm}s ${times} times`;
                         } else if (phase.type === 'finish') {
                             // Extract the finish instruction from the preview

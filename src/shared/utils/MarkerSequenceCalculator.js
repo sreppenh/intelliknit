@@ -251,14 +251,31 @@ export class MarkerSequenceCalculator {
             ? `${sequenceInstructions.join(', ')} at the same time`
             : sequenceInstructions[0] || 'Marker-based shaping';
 
+        console.log('CALCULATOR DEBUG:', {
+            sequencesLength: sequences.length,
+            hasInstructionData: sequences[0]?.instructionData !== undefined,
+            phases: sequences[0]?.instructionData?.phases
+        });
+
         return {
             instruction: instruction,
             startingStitches: startingStitches,
             endingStitches: finalRowData.totalStitches,
-            totalRows: sequences.length > 0 && sequences[0].instructionData?.timing ?
-                (sequences[0].instructionData.timing.frequency * sequences[0].instructionData.timing.times) +
-                (sequences[0].instructionData.phases?.filter(p => p.type === 'finish').length || 0) :
-                unifiedTimeline.length,
+            totalRows: (() => {
+                if (sequences.length > 0 && sequences[0].instructionData?.phases) {
+                    return sequences[0].instructionData.phases.reduce((total, phase) => {
+                        if (phase.type === 'repeat') {
+                            return total + (phase.regularRows * phase.times);
+                        } else if (phase.type === 'finish') {
+                            return total + (phase.regularRows || 1);
+                        } else if (phase.type === 'initial') {
+                            return total + 1;
+                        }
+                        return total;
+                    }, 0);
+                }
+                return unifiedTimeline.length;
+            })(),
             netStitchChange: finalRowData.totalStitches - startingStitches,
             finalArray: finalRowData.array,
             arrayEvolution: unifiedTimeline,
