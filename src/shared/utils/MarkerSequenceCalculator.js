@@ -251,13 +251,6 @@ export class MarkerSequenceCalculator {
             ? `${sequenceInstructions.join(', ')} at the same time`
             : sequenceInstructions[0] || 'Marker-based shaping';
 
-
-        console.log('STITCH CALC DEBUG:', {
-            hasActions: sequences[0]?.instructionData?.actions !== undefined,
-            actions: sequences[0]?.instructionData?.actions,
-            phases: sequences[0]?.instructionData?.phases
-        });
-
         return {
             instruction: instruction,
             startingStitches: startingStitches,

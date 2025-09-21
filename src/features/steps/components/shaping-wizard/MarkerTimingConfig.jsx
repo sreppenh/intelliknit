@@ -406,11 +406,7 @@ const MarkerTimingConfig = ({
                                                         min={1}
 
                                                         max={(() => {
-                                                            console.log('DEBUG: Action data for max calculation:', {
-                                                                instructionData: instructionData,
-                                                                actions: instructionData?.actions,
-                                                                markerArray: markerArray
-                                                            });
+
                                                             return MarkerTimingCalculator.getMaxSafeIterations(
                                                                 instructionData?.actions || [],
                                                                 markerArray,

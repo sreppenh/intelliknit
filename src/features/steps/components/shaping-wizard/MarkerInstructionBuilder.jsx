@@ -522,12 +522,7 @@ const MarkerInstructionBuilder = ({
         }
 
         const getTechniqueOptions = () => {
-            console.log('TechniqueCard debug:', {
-                actionType: currentAction.actionType,
-                whereType: currentAction.whereType,
-                distance: currentAction.distance,
-                position: currentAction.position
-            });
+
             // Handle edge techniques
             if (currentAction.whereType === 'edges') {
                 if (currentAction.distance === 'at' && currentAction.actionType === 'increase') {

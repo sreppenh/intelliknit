@@ -301,6 +301,8 @@ export const getContextualConfigNotes = (step) => {
 
     // Check for shaping configuration notes
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+
+    console.log('SHAPING CONFIG TYPE:', shapingConfig?.type);
     if (shapingConfig?.type) {
         if (shapingConfig.type === 'even_distribution') {
             // ✅ FIXED: Show beautifully formatted even distribution instruction
@@ -322,31 +324,44 @@ export const getContextualConfigNotes = (step) => {
         } else if (shapingConfig.type === 'marker_phases') {
             // Show marker phase breakdown like sequential phases
             const config = shapingConfig.config;
-            const sequences = config?.phases; // This is the sequences array
+            const sequences = config?.phases;
 
             if (sequences && sequences.length > 0) {
-                const sequence = sequences[0]; // Get first sequence
-                const phases = sequence.phases; // Get phases within the sequence
+                const sequence = sequences[0];
+                const phases = sequence.phases;
 
                 if (phases && phases.length > 0) {
-                    const phaseDescriptions = phases.map((phase, index) => {
+                    const phaseDescriptions = [];
+
+                    phases.forEach((phase, index) => {
                         if (phase.type === 'initial') {
-                            // Extract the base action instruction
-                            const baseInstruction = sequence.instructionData?.preview?.split(' every ')[0] || 'Initial work';
-                            return `Phase ${index + 1}: ${baseInstruction}`;
+                            const actions = sequence.instructionData?.actions || [];
+                            const pattern = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
+
+                            if (actions.length > 0) {
+                                // Generate instruction directly from action data like MarkerTiming does
+                                // This is the proper approach - build from source data, don't parse strings
+                                const action = actions[0];
+                                // Use the same logic as generateMarkerInstructionPreview but simplified
+                                phaseDescriptions.push(`Phase ${index + 1}: Work in ${pattern} with marker-based actions`);
+                            } else {
+                                phaseDescriptions.push(`Phase ${index + 1}: Work in ${pattern} with marker actions`);
+                            }
+
                         } else if (phase.type === 'repeat') {
                             const construction = step.construction || 'flat';
                             const rowTerm = construction === 'round' ? 'round' : 'row';
                             const times = phase.config?.times || phase.times || 1;
                             const frequency = phase.config?.regularRows || phase.regularRows || 1;
-                            return `Phase ${index + 1}: Repeat every ${frequency} ${rowTerm}s ${times} times`;
+                            phaseDescriptions.push(`Phase ${index + 1}: Repeat every ${frequency} ${rowTerm}s ${times} times`);
                         } else if (phase.type === 'finish') {
-                            // Extract the finish instruction from the preview
-                            const finishInstruction = sequence.instructionData?.preview?.split(') ')[1] || 'Finish work';
-                            return `Phase ${index + 1}: ${finishInstruction}`;
+                            const pattern = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
+                            const rows = phase.config?.regularRows || phase.regularRows || 1;
+                            phaseDescriptions.push(`Phase ${index + 1}: Work in ${pattern} for ${rows} row${rows === 1 ? '' : 's'}`);
                         }
-                        return `Phase ${index + 1}: ${phase.type}`;
                     });
+                    console.log('MARKER FINAL PHASE DESCRIPTIONS:', phaseDescriptions);
+
                     notes.push(phaseDescriptions.join('\n'));
                 }
             }
@@ -441,17 +456,6 @@ const getShapingStepDescription = (step) => {
 
     // Get shaping configuration details
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
-
-    // DEBUG: Log marker phases data structure
-    if (shapingConfig?.type === 'marker_phases') {
-        console.log('MARKER PHASES DEBUG:', {
-            pattern: getStepPatternName(step),
-            duration: getStepDurationDisplay(step),
-            wizardConfig: step.wizardConfig,
-            stitchPattern: step.wizardConfig?.stitchPattern
-        });
-    }
-
 
     let shapingText = '';
 
