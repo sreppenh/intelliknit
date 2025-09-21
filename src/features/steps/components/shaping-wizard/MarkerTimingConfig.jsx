@@ -43,39 +43,38 @@ const MarkerTimingConfig = ({
         if (!instructionData?.actions) return "No instruction data";
 
         const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
-        const terms = getConstructionTerms(construction);
+        const allPhases = [
+            { type: 'initial' },
+            ...completedPhases.map(phase => ({ type: 'repeat', ...phase })),
+            { type: 'repeat', ...phases.find(p => p.type === 'repeat') },
+            { type: 'finish', regularRows: finishingRows }
+        ];
+
+        // Generate StepCard-style description
         const lines = [];
 
-        // Get the current repeat phase configuration
-        const currentRepeatPhase = phases.find(p => p.type === 'repeat');
+        allPhases.forEach((phase, index) => {
+            if (phase.type === 'initial') {
+                const dummyTiming = { frequency: 1, times: 1, amountMode: 'times' };
+                const instruction = generateMarkerInstructionPreview(
+                    instructionData.actions,
+                    dummyTiming,
+                    markerArray,
+                    construction,
+                    basePattern
+                );
+                lines.push(`Phase ${index + 1}: ${instruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')}`);
+            } else if (phase.type === 'repeat') {
+                const construction_term = construction === 'round' ? 'round' : 'row';
+                const times = phase.times || 1;
+                const frequency = phase.regularRows || 1;
+                lines.push(`Phase ${index + 1}: Repeat every ${frequency} ${construction_term}s ${times} times`);
+            } else if (phase.type === 'finish') {
+                lines.push(`Phase ${index + 1}: Work in ${basePattern} for ${phase.regularRows || 1} ${construction === 'round' ? 'round' : 'row'}`);
+            }
+        });
 
-        // Create timing object with current phase settings
-        const currentTiming = {
-            frequency: (currentRepeatPhase?.regularRows || 1),
-            times: currentRepeatPhase?.times || 1,
-            amountMode: currentRepeatPhase?.amountMode || 'times',
-            targetStitches: currentRepeatPhase?.targetStitches
-        };
-
-        // Generate the full instruction with current timing
-        const mainInstruction = generateMarkerInstructionPreview(
-            instructionData.actions,
-            currentTiming,
-            markerArray,
-            construction,
-            basePattern
-        );
-
-        lines.push(mainInstruction);
-
-        // Add finishing rows if any
-        if (finishingRows > 0) {
-            const rowTerm = finishingRows === 1 ? (construction === 'round' ? 'round' : 'row') : (construction === 'round' ? 'rounds' : 'rows');
-            lines.push(`Work in ${basePattern} for ${finishingRows} ${rowTerm}.`);
-        }
-
-        const result = lines.join(' ');
-        return result.endsWith('.') ? result : result + '.';
+        return lines.join('\n');
     };
 
     const handleComplete = () => {
@@ -543,9 +542,9 @@ const MarkerTimingConfig = ({
                 <div className="card-info">
                     <h4 className="section-header-secondary">Your Instruction</h4>
                     <div className="bg-white rounded-lg p-3 border border-lavender-200">
-                        <p className="text-sm text-lavender-700 font-medium text-left">
+                        <div className="text-sm text-lavender-700 font-medium text-left whitespace-pre-line">
                             {generatePreview()}
-                        </p>
+                        </div>
                     </div>
                 </div>
 
