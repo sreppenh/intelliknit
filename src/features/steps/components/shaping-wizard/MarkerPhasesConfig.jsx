@@ -11,6 +11,8 @@ import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { MarkerSequenceCalculator } from '../../../../shared/utils/MarkerSequenceCalculator';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import MarkerTimingConfig from './MarkerTimingConfig';
+import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
+import { useActiveContext } from '../../../../shared/hooks/useActiveContext';
 
 // ===== SIMPLIFIED MARKER TYPES - 4 colors max =====
 const MARKER_COLOR_OPTIONS = [
@@ -38,6 +40,10 @@ const MarkerPhasesConfig = ({
     mode,
     project
 }) => {
+
+    // ===== NAVIGATION HOOKS =====
+    const { dispatch } = useActiveContext(mode);
+    const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
 
     // ===== MULTI-SCREEN STATE MANAGEMENT =====
     const [currentScreen, setCurrentScreen] = useState('marker-setup');
@@ -259,22 +265,54 @@ const MarkerPhasesConfig = ({
         setCurrentScreen('timing');
     };
 
-    const handleTimingComplete = (finalInstructionData) => {
-        // Create sequence data with timing included
-        const sequenceData = {
-            id: editingSequence?.id || Date.now().toString(),
-            name: editingSequence?.name || 'Marker Sequence',
-            instructionData: finalInstructionData,
-            phases: [{
-                type: 'marker_instruction',
-                instructionData: finalInstructionData,
-                frequency: finalInstructionData.timing.frequency,
-                times: finalInstructionData.timing.times
-            }]
+    const handleTimingComplete = async (finalInstructionData) => {
+        // Create the final marker config
+        const markerConfig = {
+            type: 'marker_phases',
+            config: {
+                markerSetup: {
+                    type: hasExistingMarkers ? 'existing' : 'new',
+                    stitchArray: markerArray
+                },
+                phases: [{
+                    id: 'phase_1',
+                    type: 'marker_instruction',
+                    instructionData: finalInstructionData,
+                    frequency: finalInstructionData.timing.frequency,
+                    times: finalInstructionData.timing.times
+                }],
+                calculation: {
+                    instruction: finalInstructionData.preview || 'Marker-based shaping',
+                    startingStitches: currentStitches,
+                    endingStitches: currentStitches, // Will be calculated properly later
+                    totalRows: 1, // Will be calculated properly later
+                    finalArray: markerArray
+                }
+            }
         };
 
-        // Use existing sequence completion logic
-        handleSimpleSequenceComplete(sequenceData);
+        // Save step and navigate to ManageSteps (same pattern as PhaseConfigSummary)
+        const saveResult = await saveStepAndNavigate({
+            instruction: markerConfig.config.calculation.instruction,
+            effect: {
+                success: true,
+                endingStitches: currentStitches,
+                startingStitches: currentStitches,
+                totalRows: 1,
+                hasShaping: true
+            },
+            wizardData: {
+                hasShaping: true,
+                shapingConfig: markerConfig
+            },
+            componentIndex,
+            dispatch,
+            skipNavigation: true
+        });
+
+        if (saveResult.success) {
+            onExitToComponentSteps();
+        }
     };
 
     const handleInstructionCancel = () => {
@@ -331,8 +369,6 @@ const MarkerPhasesConfig = ({
             }],
             calculation: calculation
         };
-
-        console.log("Final onComplete with shaping config:", shapingConfigData);
         IntelliKnitLogger.success('Marker Phases Complete', shapingConfigData);
         onComplete(shapingConfigData);
     };
@@ -386,7 +422,6 @@ const MarkerPhasesConfig = ({
             });
 
             setSegments(newSegments);
-            console.log('Created segments:', newSegments);
             setMarkerArray(newArray);
             setShowSegments(true);
         };
@@ -618,6 +653,9 @@ const MarkerPhasesConfig = ({
                 onCancel={onCancel}
                 currentStitches={currentStitches}
                 project={project}
+                componentIndex={componentIndex}
+                mode={mode}
+                onExitToComponentSteps={onExitToComponentSteps}
             />
         );
     }
@@ -645,7 +683,14 @@ const MarkerPhasesConfig = ({
         );
     }
 
-    return null;
+    return (
+        <StepSaveErrorModal
+            isOpen={!!error}
+            error={error}
+            onClose={clearError}
+            onRetry={() => handleTimingComplete(currentSequenceData?.instructionData)}
+        />
+    );
 };
 
 export default MarkerPhasesConfig;

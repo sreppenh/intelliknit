@@ -319,7 +319,14 @@ export const getContextualConfigNotes = (step) => {
                 });
                 notes.push(phaseDescriptions.join('\n'));
             }
+        } else if (shapingConfig.type === 'marker_phases') {
+            // Show marker instruction details in contextual notes
+            const config = shapingConfig.config;
+            if (config?.calculation?.instruction) {
+                notes.push(config.calculation.instruction);
+            }
         }
+
 
     }
 
@@ -347,6 +354,10 @@ export const getContextualConfigNotes = (step) => {
  * Returns object with description, notes, and technical data
  */
 export const getFormattedStepDisplay = (step, componentName = null, project = null) => {
+    if (step.wizardConfig?.shapingConfig?.type === 'marker_phases') {
+
+    }
+
     return {
         description: getHumanReadableDescription(step, componentName),
         contextualPatternNotes: getContextualPatternNotes(step, project),
@@ -405,6 +416,18 @@ const getShapingStepDescription = (step) => {
 
     // Get shaping configuration details
     const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+
+    // DEBUG: Log marker phases data structure
+    if (shapingConfig?.type === 'marker_phases') {
+        console.log('MARKER PHASES DEBUG:', {
+            pattern: getStepPatternName(step),
+            duration: getStepDurationDisplay(step),
+            wizardConfig: step.wizardConfig,
+            stitchPattern: step.wizardConfig?.stitchPattern
+        });
+    }
+
+
     let shapingText = '';
 
     if (shapingConfig?.type === 'even_distribution') {
