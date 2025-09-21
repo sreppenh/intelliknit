@@ -266,7 +266,6 @@ const MarkerPhasesConfig = ({
     };
 
     const handleTimingComplete = async (finalInstructionData) => {
-        console.log('FINAL INSTRUCTION DATA:', JSON.stringify(finalInstructionData, null, 2));
         // Create sequence from instruction data
         const sequence = {
             id: 'phase_1',
@@ -305,8 +304,7 @@ const MarkerPhasesConfig = ({
                 success: true,
                 endingStitches: calculation.endingStitches,
                 startingStitches: calculation.startingStitches,
-                totalRows: finalInstructionData.timing.frequency * finalInstructionData.timing.times + 1, // timing rows + finish row
-                hasShaping: true
+                totalRows: calculation.totalRows, hasShaping: true
             },
             wizardData: {
                 hasShaping: true,

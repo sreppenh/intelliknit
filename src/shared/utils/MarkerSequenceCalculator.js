@@ -251,16 +251,43 @@ export class MarkerSequenceCalculator {
             ? `${sequenceInstructions.join(', ')} at the same time`
             : sequenceInstructions[0] || 'Marker-based shaping';
 
-        console.log('CALCULATOR DEBUG:', {
-            sequencesLength: sequences.length,
-            hasInstructionData: sequences[0]?.instructionData !== undefined,
+
+        console.log('STITCH CALC DEBUG:', {
+            hasActions: sequences[0]?.instructionData?.actions !== undefined,
+            actions: sequences[0]?.instructionData?.actions,
             phases: sequences[0]?.instructionData?.phases
         });
 
         return {
             instruction: instruction,
             startingStitches: startingStitches,
-            endingStitches: finalRowData.totalStitches,
+            endingStitches: (() => {
+                if (sequences.length > 0 && sequences[0].instructionData?.actions && sequences[0].instructionData?.phases) {
+                    const actions = sequences[0].instructionData.actions;
+                    const phases = sequences[0].instructionData.phases;
+
+                    // Calculate stitch change per iteration from actions
+                    let stitchChangePerIteration = 0;
+                    actions.forEach(action => {
+                        if (action.actionType === 'increase') {
+                            stitchChangePerIteration += action.targets.length * (action.position === 'before_and_after' ? 2 : 1);
+                        } else if (action.actionType === 'decrease') {
+                            stitchChangePerIteration -= action.targets.length * (action.position === 'before_and_after' ? 2 : 1);
+                        }
+                    });
+
+                    // Calculate total stitch change from all repeat phases
+                    const totalStitchChange = phases.reduce((total, phase) => {
+                        if (phase.type === 'repeat') {
+                            return total + (stitchChangePerIteration * phase.times);
+                        }
+                        return total;
+                    }, 0);
+
+                    return startingStitches + totalStitchChange;
+                }
+                return finalRowData.totalStitches;
+            })(),
             totalRows: (() => {
                 if (sequences.length > 0 && sequences[0].instructionData?.phases) {
                     return sequences[0].instructionData.phases.reduce((total, phase) => {

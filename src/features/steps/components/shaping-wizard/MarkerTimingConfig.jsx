@@ -81,8 +81,6 @@ const MarkerTimingConfig = ({
     const handleComplete = () => {
 
         const repeatPhase = phases.find(p => p.type === 'repeat');
-        console.log('HANDLE COMPLETE - repeatPhase:', repeatPhase);
-        console.log('HANDLE COMPLETE - completedPhases:', completedPhases);
 
         // Build complete phases array: initial + all completed phases + current phase + finish
         const allPhases = [
@@ -146,8 +144,6 @@ const MarkerTimingConfig = ({
     // Add phase to completed list
     const handleAddPhase = () => {
         const repeatPhase = phases.find(p => p.type === 'repeat');
-        console.log('ADDING PHASE:', repeatPhase);
-        console.log('CURRENT COMPLETED PHASES:', completedPhases);
         const newPhase = {
             id: Date.now(),
             regularRows: repeatPhase?.regularRows || 1,
