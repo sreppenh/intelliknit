@@ -266,7 +266,28 @@ const MarkerPhasesConfig = ({
     };
 
     const handleTimingComplete = async (finalInstructionData) => {
-        // Create the final marker config
+        console.log('FINAL INSTRUCTION DATA:', JSON.stringify(finalInstructionData, null, 2));
+        // Create sequence from instruction data
+        const sequence = {
+            id: 'phase_1',
+            name: 'Marker Sequence',
+            instructionData: finalInstructionData,
+            phases: finalInstructionData.phases.map((phase, index) => ({
+                id: `phase_${index + 1}`,
+                type: phase.type,
+                config: phase
+            }))
+        };
+
+        // Use MarkerSequenceCalculator to generate proper calculation
+        const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
+            [sequence],
+            markerArray,
+            construction
+        );
+
+        console.log('CALCULATOR RESULT:', calculation);
+
         const markerConfig = {
             type: 'marker_phases',
             config: {
@@ -274,20 +295,8 @@ const MarkerPhasesConfig = ({
                     type: hasExistingMarkers ? 'existing' : 'new',
                     stitchArray: markerArray
                 },
-                phases: [{
-                    id: 'phase_1',
-                    type: 'marker_instruction',
-                    instructionData: finalInstructionData,
-                    frequency: finalInstructionData.timing.frequency,
-                    times: finalInstructionData.timing.times
-                }],
-                calculation: {
-                    instruction: finalInstructionData.preview || 'Marker-based shaping',
-                    startingStitches: currentStitches,
-                    endingStitches: currentStitches, // Will be calculated properly later
-                    totalRows: 1, // Will be calculated properly later
-                    finalArray: markerArray
-                }
+                phases: [sequence],
+                calculation: calculation
             }
         };
 
@@ -296,14 +305,15 @@ const MarkerPhasesConfig = ({
             instruction: markerConfig.config.calculation.instruction,
             effect: {
                 success: true,
-                endingStitches: currentStitches,
-                startingStitches: currentStitches,
-                totalRows: 1,
+                endingStitches: calculation.endingStitches,
+                startingStitches: calculation.startingStitches,
+                totalRows: calculation.totalRows,
                 hasShaping: true
             },
             wizardData: {
                 hasShaping: true,
-                shapingConfig: markerConfig
+                shapingConfig: markerConfig,
+                stitchPattern: wizard?.wizardData?.stitchPattern
             },
             componentIndex,
             dispatch,

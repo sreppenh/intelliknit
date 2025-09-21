@@ -320,10 +320,35 @@ export const getContextualConfigNotes = (step) => {
                 notes.push(phaseDescriptions.join('\n'));
             }
         } else if (shapingConfig.type === 'marker_phases') {
-            // Show marker instruction details in contextual notes
+            // Show marker phase breakdown like sequential phases
             const config = shapingConfig.config;
-            if (config?.calculation?.instruction) {
-                notes.push(config.calculation.instruction);
+            const sequences = config?.phases; // This is the sequences array
+
+            if (sequences && sequences.length > 0) {
+                const sequence = sequences[0]; // Get first sequence
+                const phases = sequence.phases; // Get phases within the sequence
+
+                if (phases && phases.length > 0) {
+                    const phaseDescriptions = phases.map((phase, index) => {
+                        if (phase.type === 'initial') {
+                            // Extract the base action instruction
+                            const baseInstruction = sequence.instructionData?.preview?.split(' every ')[0] || 'Initial work';
+                            return `Phase ${index + 1}: ${baseInstruction}`;
+                        } else if (phase.type === 'repeat') {
+                            const construction = step.construction || 'flat';
+                            const rowTerm = construction === 'round' ? 'round' : 'row';
+                            const times = phase.config?.times || phase.times || 1;
+                            const frequency = phase.config?.frequency || sequence.instructionData?.timing?.frequency || 3;
+                            return `Phase ${index + 1}: Repeat every ${frequency} ${rowTerm}s ${times} times`;
+                        } else if (phase.type === 'finish') {
+                            // Extract the finish instruction from the preview
+                            const finishInstruction = sequence.instructionData?.preview?.split(') ')[1] || 'Finish work';
+                            return `Phase ${index + 1}: ${finishInstruction}`;
+                        }
+                        return `Phase ${index + 1}: ${phase.type}`;
+                    });
+                    notes.push(phaseDescriptions.join('\n'));
+                }
             }
         }
 
@@ -444,12 +469,7 @@ const getShapingStepDescription = (step) => {
         }
 
     } else if (shapingConfig?.type === 'marker_phases') {
-        const phases = shapingConfig.config?.phases?.length || 0;
-        if (phases > 0) {
-            shapingText = ` with ${phases} marker ${phases === 1 ? 'sequence' : 'sequences'}`;
-        } else {
-            shapingText = ` with marker-based shaping`;
-        }
+        shapingText = ` with marker-based shaping`;
 
     } else if (shapingConfig?.type === 'intrinsic_pattern') {
         const action = shapingConfig.config?.action;
