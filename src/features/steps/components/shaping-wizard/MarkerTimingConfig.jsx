@@ -3,7 +3,6 @@ import ShapingHeader from './ShapingHeader';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import { generateMarkerInstructionPreview } from '../../../../shared/utils/markerInstructionUtils';
-import { MarkerTimingCalculator } from '../../../../shared/utils/MarkerTimingCalculator';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
@@ -114,7 +113,7 @@ const MarkerTimingConfig = ({
     // Calculate stitch context including current phase configuration
     const getStitchContext = () => {
         const stitchChangePerIteration = instructionData?.actions ?
-            MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions) : 0;
+            markerArrayUtils.calculateStitchChangePerIteration(instructionData.actions) : 0;
 
         const currentRepeatPhase = phases.find(p => p.type === 'repeat');
         const currentPhaseTimes = currentRepeatPhase?.times || 1;
@@ -224,7 +223,7 @@ const MarkerTimingConfig = ({
                                     );
 
                                     // Calculate stitch change for Phase 1
-                                    const stitchChange = MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions);
+                                    const stitchChange = markerArrayUtils.calculateStitchChangePerIteration(instructionData.actions);
                                     const endingStitches = currentStitches + stitchChange;
 
                                     return `${instruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')} (${currentStitches} → ${endingStitches} sts)`;
@@ -233,7 +232,7 @@ const MarkerTimingConfig = ({
 
                             {completedPhases.map((phase, index) => {
                                 // Calculate running stitch total up to this phase
-                                const stitchChangePerIteration = MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions);
+                                const stitchChangePerIteration = markerArrayUtils.calculateStitchChangePerIteration(instructionData.actions);
 
                                 // Start with Phase 1 ending stitches
                                 let runningStitches = currentStitches + stitchChangePerIteration;
@@ -313,7 +312,7 @@ const MarkerTimingConfig = ({
                                 {(() => {
                                     // Check if there's net stitch change to show toggle
                                     const stitchChangePerIteration = instructionData?.actions ?
-                                        MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions) : 0;
+                                        markerArrayUtils.calculateStitchChangePerIteration(instructionData.actions) : 0;
                                     const hasNetStitchChange = stitchChangePerIteration !== 0;
                                     const currentPhase = phases.find(p => p.type === 'repeat');
 
@@ -412,14 +411,11 @@ const MarkerTimingConfig = ({
                                                         unit="times"
                                                         min={1}
 
-                                                        max={(() => {
-
-                                                            return MarkerTimingCalculator.getMaxSafeIterations(
-                                                                instructionData?.actions || [],
-                                                                markerArray,
-                                                                completedPhases
-                                                            );
-                                                        })()}
+                                                        max={markerArrayUtils.getMaxSafeIterations(
+                                                            instructionData?.actions || [],
+                                                            markerArray,
+                                                            completedPhases
+                                                        )}
                                                         size="sm"
                                                     />
                                                 )}

@@ -61,7 +61,7 @@ const MarkerPhasesConfig = ({
 
     // ===== MARKER COLOR STATE =====
     const [markerColors, setMarkerColors] = useState({}); // markerName -> colorIndex
-    const [showSegments, setShowSegments] = useState(false);
+    const [showSegments, setShowSegments] = useState(true);
 
     // ===== MARKER COLOR FUNCTIONS =====
     const getMarkerColor = (markerName) => {
@@ -96,6 +96,66 @@ const MarkerPhasesConfig = ({
         if (!hasExistingMarkers) return [];
         return markerArrayUtils.getArrayMarkers(component.stitchArray);
     }, [hasExistingMarkers, component?.stitchArray]);
+
+
+
+    // ===== AUTO-INITIATLIZE ===== //
+    // Add this useEffect after the existing marker loading useEffect
+    useEffect(() => {
+        if (!hasExistingMarkers && showSegments && segments.length === 0) {
+            // Auto-initialize with default marker count when no existing markers
+            const newSegments = [];
+            const newArray = [];
+
+            // Calculate even distribution
+            const baseStitches = Math.floor(currentStitches / (markerCount + 1));
+            const remainder = currentStitches % (markerCount + 1);
+
+            if (construction === 'round') {
+                newArray.push('BOR');
+                newSegments.push({
+                    type: 'marker',
+                    name: 'BOR',
+                    id: 'marker_BOR',
+                    readonly: true
+                });
+            }
+
+            for (let i = 0; i < markerCount; i++) {
+                const stitches = baseStitches + (i < remainder ? 1 : 0);
+                newArray.push(stitches);
+                newArray.push(`M${i + 1}`);
+
+                newSegments.push({
+                    type: 'stitches',
+                    count: stitches,
+                    id: `stitches_${i}`
+                });
+                newSegments.push({
+                    type: 'marker',
+                    name: `M${i + 1}`,
+                    id: `marker_M${i + 1}_${i}`,
+                    readonly: false
+                });
+            }
+
+            // Final stitches
+            const finalStitches = baseStitches + (markerCount < remainder ? 1 : 0);
+            newArray.push(finalStitches);
+            newSegments.push({
+                type: 'stitches',
+                count: finalStitches,
+                id: 'stitches_final'
+            });
+
+            setSegments(newSegments);
+            setMarkerArray(newArray);
+        }
+    }, [hasExistingMarkers, showSegments, segments.length, currentStitches, markerCount, construction]);
+
+
+
+
 
     // ===== LOAD EXISTING MARKERS =====
     useEffect(() => {
