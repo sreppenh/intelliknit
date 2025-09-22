@@ -269,45 +269,32 @@ export class MarkerSequenceCalculator {
             startingStitches: startingStitches,
             endingStitches: (() => {
                 if (sequences.length > 0 && sequences[0].instructionData?.actions && sequences[0].instructionData?.phases) {
-                    const actions = sequences[0].instructionData.actions;
-                    const phases = sequences[0].instructionData.phases;
+                    const instructionData = sequences[0].instructionData;
 
-                    // ADD DEBUG LOGGING HERE:
-                    console.log('=== MarkerSequenceCalculator Debug ===');
-                    console.log('Actions:', JSON.stringify(actions, null, 2));
-                    console.log('Phases:', JSON.stringify(phases, null, 2));
-                    console.log('Starting stitches:', startingStitches);
+                    // Use the shared calculation function
+                    const result = markerArrayUtils.calculateMarkerPhaseProgression(
+                        instructionData.actions,
+                        instructionData.phases,
+                        startingStitches,
+                        0 // No finishing rows in this context
+                    );
 
-                    const stitchChangePerIteration = markerArrayUtils.calculateStitchChangePerIteration(actions);
-                    console.log('Stitch change per iteration:', stitchChangePerIteration);
-
-                    // Use EXACT same logic as getStitchContext()
-                    let runningStitches = startingStitches;
-                    runningStitches += stitchChangePerIteration; // Phase 1 (hardcoded +1 execution)
-
-                    // Add all repeat phases
-                    phases.forEach(phase => {
-                        if (phase.type === 'repeat') {
-                            runningStitches += (stitchChangePerIteration * (phase.times || 0));
-                        }
-                    });
-
-                    return runningStitches;
+                    return result.endingStitches;
                 }
                 return finalRowData.totalStitches;
             })(),
             totalRows: (() => {
                 if (sequences.length > 0 && sequences[0].instructionData?.phases) {
-                    return sequences[0].instructionData.phases.reduce((total, phase) => {
-                        if (phase.type === 'repeat') {
-                            return total + (phase.regularRows * phase.times);
-                        } else if (phase.type === 'finish') {
-                            return total + (phase.regularRows || 1);
-                        } else if (phase.type === 'initial') {
-                            return total + 1;
-                        }
-                        return total;
-                    }, 0);
+                    const instructionData = sequences[0].instructionData;
+
+                    const result = markerArrayUtils.calculateMarkerPhaseProgression(
+                        instructionData.actions || [],
+                        instructionData.phases,
+                        startingStitches,
+                        0
+                    );
+
+                    return result.totalRows;
                 }
                 return unifiedTimeline.length;
             })(),

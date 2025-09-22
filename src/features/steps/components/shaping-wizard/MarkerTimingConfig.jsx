@@ -112,38 +112,22 @@ const MarkerTimingConfig = ({
 
     // Calculate stitch context including current phase configuration
     const getStitchContext = () => {
-        console.log('=== getStitchContext Debug ===');
-        console.log('InstructionData actions:', JSON.stringify(instructionData?.actions, null, 2));
-        console.log('Current stitches:', currentStitches);
+        const repeatPhase = phases.find(p => p.type === 'repeat');
+        const allPhases = [
+            { type: 'initial' },
+            ...completedPhases.map(phase => ({ type: 'repeat', ...phase })),
+            { type: 'repeat', ...repeatPhase }
+        ];
 
-        const stitchChangePerIteration = instructionData?.actions ?
-            markerArrayUtils.calculateStitchChangePerIteration(instructionData.actions) : 0;
+        const result = markerArrayUtils.calculateMarkerPhaseProgression(
+            instructionData?.actions || [],
+            allPhases,
+            currentStitches,
+            finishingRows
+        );
 
-        console.log('Stitch change per iteration:', stitchChangePerIteration);
-        const currentRepeatPhase = phases.find(p => p.type === 'repeat');
-        const currentPhaseTimes = currentRepeatPhase?.times || 1;
-
-        // Calculate progression: starting -> Phase 1 -> completed phases -> current phase
-        let runningStitches = currentStitches; // Start with actual current
-        runningStitches += stitchChangePerIteration; // Phase 1
-
-        completedPhases.forEach(phase => {
-            runningStitches += (stitchChangePerIteration * phase.times);
-        });
-
-        const endingStitches = runningStitches + (stitchChangePerIteration * currentPhaseTimes);
-
-        // Calculate total rounds: Phase 1 + completed phases + current phase + finishing
-        const currentPhaseRegularRows = currentRepeatPhase?.regularRows || 1;
-        const totalRounds = 1 + // Phase 1
-            completedPhases.reduce((sum, phase) => sum + (phase.regularRows * phase.times), 0) + // Completed phases
-            (currentPhaseRegularRows * currentPhaseTimes) + // Current phase  
-            finishingRows; // Finishing
         return {
-            startingStitches: currentStitches,
-            endingStitches,
-            stitchChangePerIteration,
-            totalRows: totalRounds,
+            ...result,
             errors: [],
             isValid: true
         };

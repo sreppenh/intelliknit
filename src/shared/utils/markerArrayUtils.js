@@ -757,6 +757,40 @@ const convertInstructionToMarkerActions = (actions, currentArray) => {
     return markerActions;
 };
 
+/**
+ * Calculate marker phase stitch progression
+ * @param {Array} actions - Marker actions array
+ * @param {Array} phases - Phase configuration array  
+ * @param {number} startingStitches - Starting stitch count
+ * @param {number} finishingRows - Additional finishing rows
+ * @returns {Object} - Complete progression calculation
+ */
+export const calculateMarkerPhaseProgression = (actions, phases, startingStitches, finishingRows = 0) => {
+    const stitchChangePerIteration = calculateStitchChangePerIteration(actions);
+
+    // Count total executions and rows (matching getStitchContext logic exactly)
+    let runningStitches = startingStitches;
+    runningStitches += stitchChangePerIteration; // Phase 1
+
+    let totalRows = 1; // Phase 1
+
+    phases.forEach(phase => {
+        if (phase.type === 'repeat') {
+            runningStitches += (stitchChangePerIteration * (phase.times || 0));
+            totalRows += ((phase.regularRows || 1) * (phase.times || 0));
+        }
+    });
+
+    totalRows += finishingRows; // Add finishing rows
+
+    return {
+        startingStitches,
+        endingStitches: runningStitches,
+        totalRows,
+        stitchChangePerIteration
+    };
+};
+
 export default {
     createInitialArray,
     placeMarkers,
@@ -772,5 +806,6 @@ export default {
     convertInstructionToMarkerActions,
     // NEW: Validation functions
     getMaxSafeIterations,
-    calculateStitchChangePerIteration
+    calculateStitchChangePerIteration,
+    calculateMarkerPhaseProgression
 };
