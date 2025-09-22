@@ -306,8 +306,14 @@ export const calculateStitchChangePerIteration = (actions) => {
         const stitchChange = getStitchChangeForTechnique(action.technique);
 
         if (action.position === 'both_ends') {
-            // Both ends means the technique applies twice
-            totalChange += stitchChange * 2;
+            // Handle split techniques for both_ends
+            if (action.technique.includes('_')) {
+                const techniques = action.technique.split('_');
+                totalChange += techniques.reduce((sum, tech) => sum + getStitchChangeForTechnique(tech), 0);
+            } else {
+                // Single technique applied twice
+                totalChange += stitchChange * 2;
+            }
         } else if (action.position === 'before_and_after') {
             // before_and_after with split technique like 'SSK_K2tog'
             if (action.technique.includes('_')) {

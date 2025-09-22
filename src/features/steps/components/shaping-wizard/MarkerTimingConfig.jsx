@@ -112,6 +112,10 @@ const MarkerTimingConfig = ({
 
     // Calculate stitch context including current phase configuration
     const getStitchContext = () => {
+
+        console.log('=== Action Debug ===');
+        console.log('instructionData.actions:', JSON.stringify(instructionData?.actions, null, 2));
+        console.log('==================');
         const repeatPhase = phases.find(p => p.type === 'repeat');
         const allPhases = [
             { type: 'initial' },

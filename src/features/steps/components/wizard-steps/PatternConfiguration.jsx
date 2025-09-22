@@ -59,7 +59,6 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
       default:
         // ===== UPDATED: Use utility function to determine routing =====
         if (isAdvancedRowByRowPattern(pattern)) {
-          console.log('🔧 PatternConfiguration passing currentStitches:', currentStitches);
           return (
 
             <RowByRowPatternConfig

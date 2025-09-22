@@ -147,6 +147,8 @@ export const useStepSaveHelper = () => {
     };
 };
 
+
+
 /**
  * Error Modal Component for Step Save Failures
  * Follows IntelliKnit's modal design patterns
@@ -185,5 +187,7 @@ export const StepSaveErrorModal = ({ isOpen, error, onClose, onRetry }) => {
         </StandardModal>
     );
 };
+
+
 
 export default useStepSaveHelper;
