@@ -155,8 +155,6 @@ const MarkerPhasesConfig = ({
 
 
 
-
-
     // ===== LOAD EXISTING MARKERS =====
     useEffect(() => {
         if (hasExistingMarkers) {
