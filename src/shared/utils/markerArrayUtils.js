@@ -302,7 +302,6 @@ export const calculateStitchChangePerIteration = (actions) => {
     let totalChange = 0;
 
     for (const action of actions) {
-        if (action.actionType === 'continue') continue;
 
         const stitchChange = getStitchChangeForTechnique(action.technique);
 
@@ -364,7 +363,6 @@ const calculateSegmentAnalysis = (actions, testArray) => {
     const analysis = new Map();
 
     for (const action of actions) {
-        if (action.actionType === 'continue') continue;
 
         const actionConsumption = calculateActionConsumption(action);
         const actionNetChange = calculateActionNetChange(action);
@@ -690,7 +688,6 @@ const convertInstructionToMarkerActions = (actions, currentArray) => {
     const markerActions = [];
 
     for (const action of actions) {
-        if (action.actionType === 'continue') continue;
 
         // Handle edge targets directly (beginning/end as explicit targets)
         if (action.targets && (action.targets.includes('beginning') || action.targets.includes('end'))) {

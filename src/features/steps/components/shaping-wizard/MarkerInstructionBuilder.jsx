@@ -7,7 +7,8 @@ import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { generateMarkerFlowInstruction, generateMarkerInstructionPreview, getActionConfigDisplay } from '../../../../shared/utils/markerInstructionUtils';
 import MarkerChip from '../../../../shared/components/MarkerChip';
 import SelectionGrid from '../../../../shared/components/SelectionGrid';
-import { DangerModal } from '../../../../shared/components/modals/StandardModal';
+import { DangerModal, ConfirmationModal } from '../../../../shared/components/modals/StandardModal';
+
 
 // Utility to get marker color based on markerName and markerColors
 const getMarkerColor = (markerName, markerColors) => {
@@ -29,7 +30,6 @@ const getPositionConflicts = (completedActions) => {
     const conflicts = new Map(); // target -> Set of conflicting positions
 
     completedActions.forEach(action => {
-        if (action.actionType === 'continue') return; // Skip continue actions
 
         // Handle edge actions differently than marker actions
         if (action.whereType === 'edges') {
@@ -118,6 +118,7 @@ const MarkerInstructionBuilder = ({
 
     const [deleteModalOpen, setDeleteModalOpen] = useState(false);
     const [actionToDelete, setActionToDelete] = useState(null);
+    const [incompleteActionModalOpen, setIncompleteActionModalOpen] = useState(false);
 
     const handleDeleteAction = (index) => {
         setActionToDelete(index);
@@ -234,11 +235,34 @@ const MarkerInstructionBuilder = ({
 
     // Continue to timing
     const handleCompleteActions = () => {
+        // Check if there's an incomplete current action
+        const hasIncompleteCurrentAction = currentAction.actionType && (
+            (currentAction.actionType === 'bind_off' && currentAction.stitchCount <= 0) ||
+            (currentAction.actionType !== 'bind_off' && (
+                currentAction.targets.length === 0 ||
+                !currentAction.position ||
+                !currentAction.distance ||
+                !currentAction.technique
+            ))
+        );
+
+        if (hasIncompleteCurrentAction) {
+            setIncompleteActionModalOpen(true);
+            return;
+        }
+
+        proceedToTiming();
+    };
+
+    const proceedToTiming = () => {
         // Build final actions before modifying state
         const finalActions = [...completedActions];
 
         // Add current action if it's complete
-        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'continue' || currentAction.actionType === 'bind_off')) {
+        if (currentAction.actionType && (
+            currentAction.targets.length > 0 ||
+            currentAction.actionType === 'bind_off'
+        )) {
             finalActions.push(currentAction);
         }
 
@@ -248,6 +272,22 @@ const MarkerInstructionBuilder = ({
         };
 
         onComplete(actionsData);
+    };
+
+    const handleDiscardCurrentAction = () => {
+        // Clear the current action and proceed
+        setCurrentAction({
+            actionType: '',
+            technique: '',
+            position: '',
+            distance: '',
+            bindOffAmount: '',
+            stitchCount: 1,
+            targets: [],
+            whereType: 'markers'
+        });
+        setIncompleteActionModalOpen(false);
+        proceedToTiming();
     };
 
     // Helper to get descriptive label for techniques
@@ -270,28 +310,21 @@ const MarkerInstructionBuilder = ({
     };
 
     const isActionComplete = () => {
-        // If there are completed actions, button should be enabled
+        // Always allow proceeding if there are completed actions
         if (completedActions.length > 0) return true;
 
+        // If no completed actions, current action must be complete
         if (!currentAction.actionType) return false;
-
-        if (currentAction.actionType === 'continue') {
-            return true;
-        }
 
         if (currentAction.actionType === 'bind_off') {
             return currentAction.stitchCount > 0;
         }
 
         // For increase/decrease actions
-        if (currentAction.targets.length === 0) return false;
-
-        if (currentAction.whereType === 'edges') {
-            return currentAction.position && currentAction.distance && currentAction.technique;
-        }
-
-        // For marker-based actions
-        return currentAction.position && currentAction.distance && currentAction.technique;
+        return currentAction.targets.length > 0 &&
+            currentAction.position &&
+            currentAction.distance &&
+            currentAction.technique;
     };
 
     const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
@@ -299,7 +332,7 @@ const MarkerInstructionBuilder = ({
     // Generate preview - now uses centralized utility
     const generatePreview = () => {
         const allActions = [...completedActions];
-        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'bind_off' || currentAction.actionType === 'continue')) {
+        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'bind_off')) {
             allActions.push(currentAction);
         }
 
@@ -326,9 +359,6 @@ const MarkerInstructionBuilder = ({
         if (completedActions.length > 0 && (!currentAction.actionType || currentAction.targets.length === 0)) {
             return "Add another action with 'AND' or set timing to complete this phase.";
         }
-        if (currentAction.actionType === 'continue') {
-            return "Continue in pattern selected. Set frequency and timing next.";
-        }
         if (currentAction.actionType && currentAction.targets.length === 0) {
             return "Select targets to see instruction preview.";
         }
@@ -347,11 +377,6 @@ const MarkerInstructionBuilder = ({
 
             if (construction === 'flat') {
                 baseOptions.push({ value: 'bind_off', label: 'Bind Off' });
-            }
-
-            // Only show continue if no completed actions
-            if (completedActions.length === 0) {
-                baseOptions.push({ value: 'continue', label: 'Work Pattern' });
             }
 
             return baseOptions;
@@ -416,7 +441,7 @@ const MarkerInstructionBuilder = ({
         const shouldShow = (currentAction.position && (currentAction.whereType === 'markers' || construction === 'round')) ||
             (currentAction.whereType === 'edges');
 
-        if (!shouldShow || !currentAction.actionType || currentAction.actionType === 'continue' || currentAction.actionType === 'bind_off') {
+        if (!shouldShow || !currentAction.actionType || currentAction.actionType === 'bind_off') {
             return null;
         }
 
@@ -726,6 +751,16 @@ const MarkerInstructionBuilder = ({
                 title="Delete Action"
                 subtitle="Are you sure you want to remove this action? This cannot be undone."
                 primaryButtonText="Delete"
+            />
+
+            <ConfirmationModal
+                isOpen={incompleteActionModalOpen}
+                onClose={() => setIncompleteActionModalOpen(false)}
+                onConfirm={handleDiscardCurrentAction}
+                title="Incomplete Action"
+                subtitle="You have an incomplete action. Do you want to discard it and continue to timing?"
+                primaryButtonText="Discard & Continue"
+                secondaryButtonText="Keep Building"
             />
         </div>
     );

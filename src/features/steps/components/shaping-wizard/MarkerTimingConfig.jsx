@@ -112,9 +112,14 @@ const MarkerTimingConfig = ({
 
     // Calculate stitch context including current phase configuration
     const getStitchContext = () => {
+        console.log('=== getStitchContext Debug ===');
+        console.log('InstructionData actions:', JSON.stringify(instructionData?.actions, null, 2));
+        console.log('Current stitches:', currentStitches);
+
         const stitchChangePerIteration = instructionData?.actions ?
             markerArrayUtils.calculateStitchChangePerIteration(instructionData.actions) : 0;
 
+        console.log('Stitch change per iteration:', stitchChangePerIteration);
         const currentRepeatPhase = phases.find(p => p.type === 'repeat');
         const currentPhaseTimes = currentRepeatPhase?.times || 1;
 
@@ -174,32 +179,6 @@ const MarkerTimingConfig = ({
     };
 
     const FrequencyTimingSelector = () => {
-        // Check if this is a continue/plain rows case
-        const isContinueAction = instructionData?.actions?.length === 1 &&
-            instructionData.actions[0].actionType === 'continue';
-
-        if (isContinueAction) {
-            // Simplified interface for plain rows
-            return (
-                <div className="card">
-                    <h4 className="section-header-secondary">Number of {construction === 'round' ? 'Rounds' : 'Rows'}</h4>
-                    <div className="bg-yarn-50 border-2 border-wool-200 rounded-xl p-4">
-                        <IncrementInput
-                            value={phases.find(p => p.type === 'repeat')?.times || 1}
-                            onChange={(value) => {
-                                setPhases(prev => prev.map(phase =>
-                                    phase.type === 'repeat' ? { ...phase, times: Math.max(value, 1) } : phase
-                                ));
-                            }}
-                            unit={construction === 'round' ? 'rounds' : 'rows'}
-                            min={1}
-                            max={50}
-                            size="sm"
-                        />
-                    </div>
-                </div>
-            );
-        }
 
         // Phase builder interface for shaping actions
         return (

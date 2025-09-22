@@ -272,25 +272,27 @@ export class MarkerSequenceCalculator {
                     const actions = sequences[0].instructionData.actions;
                     const phases = sequences[0].instructionData.phases;
 
-                    // Calculate stitch change per iteration from actions
-                    let stitchChangePerIteration = 0;
-                    actions.forEach(action => {
-                        if (action.actionType === 'increase') {
-                            stitchChangePerIteration += action.targets.length * (action.position === 'before_and_after' ? 2 : 1);
-                        } else if (action.actionType === 'decrease') {
-                            stitchChangePerIteration -= action.targets.length * (action.position === 'before_and_after' ? 2 : 1);
+                    // ADD DEBUG LOGGING HERE:
+                    console.log('=== MarkerSequenceCalculator Debug ===');
+                    console.log('Actions:', JSON.stringify(actions, null, 2));
+                    console.log('Phases:', JSON.stringify(phases, null, 2));
+                    console.log('Starting stitches:', startingStitches);
+
+                    const stitchChangePerIteration = markerArrayUtils.calculateStitchChangePerIteration(actions);
+                    console.log('Stitch change per iteration:', stitchChangePerIteration);
+
+                    // Use EXACT same logic as getStitchContext()
+                    let runningStitches = startingStitches;
+                    runningStitches += stitchChangePerIteration; // Phase 1 (hardcoded +1 execution)
+
+                    // Add all repeat phases
+                    phases.forEach(phase => {
+                        if (phase.type === 'repeat') {
+                            runningStitches += (stitchChangePerIteration * (phase.times || 0));
                         }
                     });
 
-                    // Calculate total stitch change from all repeat phases
-                    const totalStitchChange = phases.reduce((total, phase) => {
-                        if (phase.type === 'repeat') {
-                            return total + (stitchChangePerIteration * phase.times);
-                        }
-                        return total;
-                    }, 0);
-
-                    return startingStitches + totalStitchChange;
+                    return runningStitches;
                 }
                 return finalRowData.totalStitches;
             })(),
