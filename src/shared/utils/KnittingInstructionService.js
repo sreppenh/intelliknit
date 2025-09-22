@@ -1249,6 +1249,7 @@ function getMarkerPhaseInstruction(step, currentRow, currentStitchCount, constru
 
 /**
  * Determine if current row is a shaping row for marker phases
+ * FIXED: Properly handles marker phase frequency calculation
  */
 function isMarkerShapingRow(currentRow, phases) {
     let totalRows = 0;
@@ -1258,17 +1259,18 @@ function isMarkerShapingRow(currentRow, phases) {
             totalRows += 1;
             if (currentRow === totalRows) return true;
         } else if (phase.type === 'repeat') {
-            const frequency = phase.regularRows + 1; // +1 for action row
+            // FIXED: Use regularRows directly as the frequency interval
+            const frequency = phase.regularRows; // No +1 needed - this IS the frequency
             const times = phase.times || 1;
 
             for (let i = 0; i < times; i++) {
-                totalRows += 1; // Action row
+                // The shaping row comes at the END of each frequency interval
+                totalRows += frequency;
                 if (currentRow === totalRows) return true;
-
-                totalRows += phase.regularRows; // Regular rows
             }
         } else if (phase.type === 'finish') {
             totalRows += phase.regularRows || 1;
+            // Finish rows are never shaping rows
         }
     }
 
