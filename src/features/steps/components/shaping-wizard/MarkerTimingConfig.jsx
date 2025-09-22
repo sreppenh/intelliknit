@@ -46,9 +46,13 @@ const MarkerTimingConfig = ({
         const allPhases = [
             { type: 'initial' },
             ...completedPhases.map(phase => ({ type: 'repeat', ...phase })),
-            { type: 'repeat', ...phases.find(p => p.type === 'repeat') },
-            { type: 'finish', regularRows: finishingRows }
+            { type: 'repeat', ...phases.find(p => p.type === 'repeat') }
         ];
+
+        // Only add finish phase if there are finishing rows
+        if (finishingRows > 0) {
+            allPhases.push({ type: 'finish', regularRows: finishingRows });
+        }
 
         // Generate StepCard-style description
         const lines = [];
@@ -80,6 +84,7 @@ const MarkerTimingConfig = ({
     const handleComplete = () => {
 
         const repeatPhase = phases.find(p => p.type === 'repeat');
+        console.log('handleComplete repeatPhase:', repeatPhase);
 
         // Build complete phases array: initial + all completed phases + current phase + finish
         const allPhases = [
@@ -109,30 +114,34 @@ const MarkerTimingConfig = ({
 
     // Calculate stitch context including current phase configuration
     const getStitchContext = () => {
-        const startingStitches = currentStitches || 0;
-
-        // Calculate stitch change per iteration
         const stitchChangePerIteration = instructionData?.actions ?
             MarkerTimingCalculator.calculateStitchChangePerIteration(instructionData.actions) : 0;
 
-        // Get current repeat phase configuration
         const currentRepeatPhase = phases.find(p => p.type === 'repeat');
         const currentPhaseTimes = currentRepeatPhase?.times || 1;
+
+        // Calculate progression: starting -> Phase 1 -> completed phases -> current phase
+        let runningStitches = currentStitches; // Start with actual current
+        runningStitches += stitchChangePerIteration; // Phase 1
+
+        completedPhases.forEach(phase => {
+            runningStitches += (stitchChangePerIteration * phase.times);
+        });
+
+        const endingStitches = runningStitches + (stitchChangePerIteration * currentPhaseTimes);
+
+        // Calculate total rounds: Phase 1 + completed phases + current phase + finishing
         const currentPhaseRegularRows = currentRepeatPhase?.regularRows || 1;
-
-        // Calculate ending stitches: starting + current phase change
-        const currentPhaseChange = stitchChangePerIteration * currentPhaseTimes;
-        const endingStitches = startingStitches + currentPhaseChange;
-
-        // Calculate total rows: (cycle length * times) + finishing rows
-        const cycleLength = currentPhaseRegularRows + 1; // +1 for the action row
-        const totalRows = (cycleLength * currentPhaseTimes) + finishingRows;
+        const totalRounds = 1 + // Phase 1
+            completedPhases.reduce((sum, phase) => sum + ((phase.regularRows + 1) * phase.times), 0) + // Completed phases
+            ((currentPhaseRegularRows + 1) * currentPhaseTimes) + // Current phase  
+            finishingRows; // Finishing
 
         return {
-            startingStitches,
+            startingStitches: currentStitches,
             endingStitches,
             stitchChangePerIteration,
-            totalRows,
+            totalRows: totalRounds,
             errors: [],
             isValid: true
         };
@@ -366,6 +375,7 @@ const MarkerTimingConfig = ({
                                                                 phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
                                                             });
 
+                                                            console.log('DEBUG:', { value, phaseStartStitches, stitchChangePerIteration, division: (value - phaseStartStitches) / stitchChangePerIteration });
                                                             const requiredTimes = Math.max(1, Math.abs((value - phaseStartStitches) / stitchChangePerIteration));
 
                                                             setPhases(prev => prev.map(phase =>
@@ -375,6 +385,7 @@ const MarkerTimingConfig = ({
                                                                     times: requiredTimes
                                                                 } : phase
                                                             ));
+                                                            console.log('Setting times to:', requiredTimes);
                                                         }}
                                                         unit="stitches"
                                                         min={(() => {
@@ -438,9 +449,12 @@ const MarkerTimingConfig = ({
                             const currentPhase = phases.find(p => p.type === 'repeat');
                             if (currentPhase && evolution.current) {
                                 // Simulate what the array would look like after adding the current phase
-                                const simulatedPhases = [...completedPhases, {
-                                    id: 'preview',
-                                    times: currentPhase.times,
+                                // Calculate total times needed to match stitch context calculation
+                                const totalTimes = 1 + completedPhases.reduce((sum, phase) => sum + phase.times, 0) + currentPhase.times;
+
+                                const simulatedPhases = [{
+                                    id: 'total_preview',
+                                    times: totalTimes,
                                     regularRows: currentPhase.regularRows
                                 }];
 
@@ -449,6 +463,13 @@ const MarkerTimingConfig = ({
                                     markerArray,
                                     simulatedPhases
                                 );
+
+                                console.log('Live Preview Debug:', {
+                                    startingArray: markerArray,
+                                    simulatedPhases: simulatedPhases,
+                                    resultArray: previewEvolution.current,
+                                    totalStitches: markerArrayUtils.sumArrayStitches(previewEvolution.current)
+                                });
 
                                 return (
                                     <div className="mt-4">
