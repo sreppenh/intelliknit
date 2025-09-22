@@ -84,7 +84,6 @@ const MarkerTimingConfig = ({
     const handleComplete = () => {
 
         const repeatPhase = phases.find(p => p.type === 'repeat');
-        console.log('handleComplete repeatPhase:', repeatPhase);
 
         // Build complete phases array: initial + all completed phases + current phase + finish
         const allPhases = [
@@ -133,10 +132,9 @@ const MarkerTimingConfig = ({
         // Calculate total rounds: Phase 1 + completed phases + current phase + finishing
         const currentPhaseRegularRows = currentRepeatPhase?.regularRows || 1;
         const totalRounds = 1 + // Phase 1
-            completedPhases.reduce((sum, phase) => sum + ((phase.regularRows + 1) * phase.times), 0) + // Completed phases
-            ((currentPhaseRegularRows + 1) * currentPhaseTimes) + // Current phase  
+            completedPhases.reduce((sum, phase) => sum + (phase.regularRows * phase.times), 0) + // Completed phases
+            (currentPhaseRegularRows * currentPhaseTimes) + // Current phase  
             finishingRows; // Finishing
-
         return {
             startingStitches: currentStitches,
             endingStitches,
@@ -375,7 +373,6 @@ const MarkerTimingConfig = ({
                                                                 phaseStartStitches += (stitchChangePerIteration * completedPhase.times);
                                                             });
 
-                                                            console.log('DEBUG:', { value, phaseStartStitches, stitchChangePerIteration, division: (value - phaseStartStitches) / stitchChangePerIteration });
                                                             const requiredTimes = Math.max(1, Math.abs((value - phaseStartStitches) / stitchChangePerIteration));
 
                                                             setPhases(prev => prev.map(phase =>
@@ -385,7 +382,6 @@ const MarkerTimingConfig = ({
                                                                     times: requiredTimes
                                                                 } : phase
                                                             ));
-                                                            console.log('Setting times to:', requiredTimes);
                                                         }}
                                                         unit="stitches"
                                                         min={(() => {
@@ -463,13 +459,6 @@ const MarkerTimingConfig = ({
                                     markerArray,
                                     simulatedPhases
                                 );
-
-                                console.log('Live Preview Debug:', {
-                                    startingArray: markerArray,
-                                    simulatedPhases: simulatedPhases,
-                                    resultArray: previewEvolution.current,
-                                    totalStitches: markerArrayUtils.sumArrayStitches(previewEvolution.current)
-                                });
 
                                 return (
                                     <div className="mt-4">

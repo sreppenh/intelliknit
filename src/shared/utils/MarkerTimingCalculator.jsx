@@ -123,8 +123,11 @@ export class MarkerTimingCalculator {
         const maxTestIterations = 100; // Safety limit
 
         for (let iteration = 0; iteration < maxTestIterations; iteration++) {
+
             // Check if this iteration would be valid
-            if (this.canPerformActions(actions, simulationArray)) {
+            const canPerform = this.canPerformActions(actions, simulationArray);
+
+            if (canPerform) {
                 maxIterations++;
 
                 // Apply the actions to continue simulation
@@ -156,6 +159,7 @@ export class MarkerTimingCalculator {
      * Check if a single action can be performed
      */
     static canPerformSingleAction(action, currentArray) {
+
         const stitchConsumption = this.getActionStitchConsumption(action);
 
         if (action.position === 'both_ends') {
@@ -181,9 +185,9 @@ export class MarkerTimingCalculator {
     * Get stitch consumption for an action sequence
     */
     static getActionStitchConsumption(action) {
+        console.log('Action distance:', action.distance, 'technique:', action.technique);
         const techniqueConsumption = getStitchConsumption(action.technique);
         const distance = parseInt(action.distance) || 0;
-
         return techniqueConsumption + distance;
     }
 
