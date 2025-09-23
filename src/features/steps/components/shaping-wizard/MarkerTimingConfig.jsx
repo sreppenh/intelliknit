@@ -81,7 +81,6 @@ const MarkerTimingConfig = ({
     };
 
     const handleComplete = () => {
-
         const repeatPhase = phases.find(p => p.type === 'repeat');
 
         // Build complete phases array: initial + all completed phases + current phase + finish
@@ -92,6 +91,7 @@ const MarkerTimingConfig = ({
             { type: 'finish', regularRows: finishingRows }
         ];
 
+        // Generate basic instruction data
         const finalInstructionData = {
             ...instructionData,
             timing: {
@@ -104,13 +104,117 @@ const MarkerTimingConfig = ({
             preview: generatePreview()
         };
 
-        console.log('=== MARKER STEP CALCULATION ===');
-        console.log('Final instruction data being saved:', JSON.stringify(finalInstructionData, null, 2));
-        console.log('Current stitchContext result:', JSON.stringify(stitchContext, null, 2));
-        console.log('================================');
+        // NEW: Generate row-by-row breakdown similar to PhaseCalculationService
+        const stitchChangePerIteration = markerArrayUtils.calculateStitchChangePerIteration(instructionData?.actions || []);
 
+        let currentStitchCount = currentStitches;
+        let currentRowPosition = 1;
+        let phaseDetails = [];
 
-        onComplete(finalInstructionData);
+        // Process each phase to generate row-by-row breakdown
+        for (let i = 0; i < allPhases.length; i++) {
+            const phase = allPhases[i];
+
+            if (phase.type === 'initial') {
+                // Initial phase: 1 row, applies stitch change
+                const startRow = currentRowPosition;
+                const endRow = currentRowPosition;
+                const phaseStartStitches = currentStitchCount;
+
+                currentStitchCount += stitchChangePerIteration;
+
+                phaseDetails.push({
+                    type: 'initial',
+                    description: `Initial shaping ${construction === 'round' ? 'round' : 'row'}`,
+                    rowRange: `${startRow}`,
+                    rows: 1,
+                    startingStitches: phaseStartStitches,
+                    endingStitches: currentStitchCount,
+                    stitchChange: stitchChangePerIteration,
+                    isShapingPhase: true
+                });
+
+                currentRowPosition += 1;
+
+            } else if (phase.type === 'repeat') {
+                // Repeat phase: multiple iterations of frequency + shaping
+                const phaseStartStitches = currentStitchCount;
+                const frequency = phase.regularRows || 1;
+                const times = phase.times || 1;
+                const phaseRows = frequency * times;
+                const totalStitchChange = stitchChangePerIteration * times;
+
+                const startRow = currentRowPosition;
+                const endRow = currentRowPosition + phaseRows - 1;
+
+                currentStitchCount += totalStitchChange;
+
+                phaseDetails.push({
+                    type: 'repeat',
+                    description: `Repeat every ${frequency} ${construction === 'round' ? 'round' : 'row'}${frequency === 1 ? '' : 's'} ${times} times`,
+                    rowRange: `${startRow}-${endRow}`,
+                    rows: phaseRows,
+                    startingStitches: phaseStartStitches,
+                    endingStitches: currentStitchCount,
+                    stitchChange: totalStitchChange,
+                    frequency: frequency,
+                    times: times,
+                    isShapingPhase: true
+                });
+
+                currentRowPosition += phaseRows;
+
+            } else if (phase.type === 'finish') {
+                // Finish phase: plain rows, no stitch change
+                const phaseRows = phase.regularRows || 0;
+
+                if (phaseRows > 0) {
+                    const startRow = currentRowPosition;
+                    const endRow = currentRowPosition + phaseRows - 1;
+
+                    phaseDetails.push({
+                        type: 'finish',
+                        description: `Work in pattern for ${phaseRows} ${construction === 'round' ? 'round' : 'row'}${phaseRows === 1 ? '' : 's'}`,
+                        rowRange: `${startRow}-${endRow}`,
+                        rows: phaseRows,
+                        startingStitches: currentStitchCount,
+                        endingStitches: currentStitchCount,
+                        stitchChange: 0,
+                        isShapingPhase: false
+                    });
+
+                    currentRowPosition += phaseRows;
+                }
+            }
+        }
+
+        // Create enhanced instruction data with row-by-row breakdown
+        const enhancedInstructionData = {
+            ...finalInstructionData,
+            // Add the detailed breakdown for knitting mode
+            calculation: {
+                instruction: generatePreview(),
+                startingStitches: currentStitches,
+                endingStitches: currentStitchCount,
+                totalRows: currentRowPosition - 1,
+                netStitchChange: currentStitchCount - currentStitches,
+                stitchChangePerIteration: stitchChangePerIteration,
+
+                // This is the key addition - row-by-row phase breakdown
+                phases: phaseDetails,
+
+                // Array evolution for advanced features (future use)
+                arrayEvolution: [], // Could be populated later if needed
+                finalArray: [], // Could be populated later if needed
+            }
+        };
+
+        console.log('=== ENHANCED MARKER CALCULATION ===');
+        console.log('Phase details generated:', JSON.stringify(phaseDetails, null, 2));
+        console.log('Full enhanced data:', JSON.stringify(enhancedInstructionData, null, 2));
+        console.log('===================================');
+
+        onComplete(enhancedInstructionData);
     };
 
     const handleBack = () => {
