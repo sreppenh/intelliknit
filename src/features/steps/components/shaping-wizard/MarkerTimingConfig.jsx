@@ -214,6 +214,11 @@ const MarkerTimingConfig = ({
         console.log('Full enhanced data:', JSON.stringify(enhancedInstructionData, null, 2));
         console.log('===================================');
 
+        console.log('=== FINISHING ROWS DEBUG ===');
+        console.log('finishingRows state:', finishingRows);
+        console.log('allPhases finish phase:', allPhases.find(p => p.type === 'finish'));
+        console.log('============================');
+
         onComplete(enhancedInstructionData);
     };
 
