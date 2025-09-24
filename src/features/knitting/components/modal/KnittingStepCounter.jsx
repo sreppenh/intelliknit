@@ -263,6 +263,34 @@ const KnittingStepCounter = ({
         return getStepType(step, totalRows, duration);
     })();
 
+    // ADD THE DEBUG CODE HERE
+    console.log('=== STEP OBJECT DEBUG ===');
+    console.log('step.shapingConfig.config.calculation:', step.wizardConfig?.shapingConfig?.config?.calculation);
+    console.log('========================');
+    console.log('=== STEP OBJECT DEBUG ===');
+    console.log('Full calculation object:', JSON.stringify(step.wizardConfig?.shapingConfig?.config?.calculation, null, 2));
+    console.log('========================');
+
+    console.log('Full step object:', step);
+    console.log('step.shapingConfig:', step.wizardConfig?.shapingConfig);
+    console.log('step.shapingConfig.config:', step.wizardConfig?.shapingConfig?.config);
+    console.log('step.calculation:', step.calculation);
+    console.log('========================');
+
+    // Detect distance-based marker phases steps
+    const isDistanceIterationStep = step.distanceIterations &&
+        step.distanceIterations.totalIterations > 1;
+
+    const hasActiveDistanceIteration = isDistanceIterationStep &&
+        step.distanceIterations.currentIteration <= step.distanceIterations.totalIterations;
+
+
+    console.log('=== DISTANCE DETECTION DEBUG ===');
+    console.log('step.distanceIterations:', step.distanceIterations);
+    console.log('isDistanceIterationStep:', isDistanceIterationStep);
+    console.log('hasActiveDistanceIteration:', hasActiveDistanceIteration);
+    console.log('================================');
+
     const isOnFinalRow = currentRow >= totalRows && totalRows > 1;
 
     // Length-based completion logic

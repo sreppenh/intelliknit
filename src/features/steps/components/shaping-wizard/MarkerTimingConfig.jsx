@@ -241,6 +241,30 @@ const MarkerTimingConfig = ({
             }
         };
 
+        // Check if this step has distance-based repeat phases
+        const hasDistancePhases = processedPhases.some(phase =>
+            phase.type === 'repeat' && phase.intervalType === 'distance'
+        );
+
+        if (hasDistancePhases) {
+            // Find the first distance-based repeat phase to get the target distance and total iterations
+            const firstDistancePhase = processedPhases.find(phase =>
+                phase.type === 'repeat' && phase.intervalType === 'distance'
+            );
+
+            if (firstDistancePhase) {
+                console.log('=== FOUND DISTANCE PHASE ===', firstDistancePhase);
+                // Add distance iterations to the calculation object (where it can be accessed in knitting mode)
+                enhancedInstructionData.calculation.distanceIterations = {
+                    currentIteration: 1,
+                    totalIterations: firstDistancePhase.times || 1,
+                    targetDistance: firstDistancePhase.originalDistance || firstDistancePhase.regularRows,
+                    savedRowsPerDistance: null,
+                    completedIterations: []
+                };
+            }
+        }
+        console.log('Enhanced instruction data:', enhancedInstructionData);
         onComplete(enhancedInstructionData);
     };
 
