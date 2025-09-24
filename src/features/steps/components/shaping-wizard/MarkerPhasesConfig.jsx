@@ -337,11 +337,30 @@ const MarkerPhasesConfig = ({
         };
 
         // Use MarkerSequenceCalculator to generate proper calculation
+        // Add this complete logging block in handleTimingComplete, right after line 239:
+
+        console.log('=== COMPLETE DATA FLOW DEBUG ===');
+        console.log('1. finalInstructionData received:', finalInstructionData);
+        console.log('2. finalInstructionData.calculation:', finalInstructionData.calculation);
+        console.log('3. finalInstructionData.calculation.distanceIterations:', finalInstructionData.calculation?.distanceIterations);
+
         const calculation = MarkerSequenceCalculator.calculateMarkerPhases(
             [sequence],
             markerArray,
             construction
         );
+
+        console.log('4. calculation from MarkerSequenceCalculator:', calculation);
+
+        // PRESERVE the distanceIterations from MarkerTimingConfig
+        if (finalInstructionData.calculation?.distanceIterations) {
+            calculation.distanceIterations = finalInstructionData.calculation.distanceIterations;
+            console.log('5. PRESERVED distanceIterations into calculation');
+        } else {
+            console.log('5. NO distanceIterations found in finalInstructionData');
+        }
+
+        console.log('6. Final calculation object:', calculation);
 
         const markerConfig = {
             type: 'marker_phases',
@@ -354,6 +373,10 @@ const MarkerPhasesConfig = ({
                 calculation: calculation
             }
         };
+
+        console.log('7. Final markerConfig being saved:', markerConfig);
+        console.log('8. markerConfig.config.calculation.distanceIterations:', markerConfig.config.calculation.distanceIterations);
+        console.log('=== END DATA FLOW DEBUG ===');
 
         // Save step and navigate to ManageSteps (same pattern as PhaseConfigSummary)
         const saveResult = await saveStepAndNavigate({
