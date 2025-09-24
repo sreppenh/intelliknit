@@ -10,6 +10,7 @@ import { getStepPatternName, getStepMethodDisplay, getStepPrepNote, getStepType,
 import { PhaseCalculationService } from './PhaseCalculationService';
 import { getCorrectDurationDisplay, estimateRowsFromLength } from './gaugeUtils';
 import { generateMarkerInstructionPreview } from './markerInstructionUtils';
+import { calculateRowsFromDistance } from './gaugeUtils';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
@@ -358,7 +359,31 @@ export const getContextualConfigNotes = (step) => {
                             const rowTerm = construction === 'round' ? 'round' : 'row';
                             const times = phase.config?.times || phase.times || 1;
                             const frequency = phase.config?.regularRows || phase.regularRows || 1;
-                            phaseDescriptions.push(`Phase ${index + 1}: Repeat every ${frequency} ${rowTerm}s ${times} times`);
+
+                            // DEBUG: Log the phase data
+                            console.log('=== PHASE DEBUG ===');
+                            console.log('phase:', phase);
+                            console.log('phase.intervalType:', phase.intervalType);
+                            console.log('phase.config?.intervalType:', phase.config?.intervalType);
+                            console.log('frequency:', frequency);
+                            console.log('==================');
+
+                            let frequencyDisplay;
+                            // Fix: Check both locations for intervalType
+                            const intervalType = phase.intervalType || phase.config?.intervalType;
+                            if (intervalType === 'distance') {
+                                console.log('Using distance display logic');
+                                const gaugeResult = calculateRowsFromDistance(frequency, null, construction);
+                                const units = 'inches';
+                                frequencyDisplay = gaugeResult.hasGauge
+                                    ? `${frequency} ${units} (~${gaugeResult.estimatedRows} ${rowTerm}s)`
+                                    : `${frequency} ${units}`;
+                            } else {
+                                console.log('Using regular row display logic');
+                                frequencyDisplay = `${frequency} ${rowTerm}s`;
+                            }
+
+                            phaseDescriptions.push(`Phase ${index + 1}: Repeat every ${frequencyDisplay} ${times} times`);
                         } else if (phase.type === 'finish') {
                             const pattern = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
                             const rows = phase.config?.regularRows || phase.regularRows || 1;
@@ -746,6 +771,10 @@ const getPatternStepDescription = (step) => {
  * ✅ ENHANCED: Calculate total rows for repeat-based patterns
  */
 const getTechnicalDataDisplay = (step, project = null) => {
+    console.log('=== TECHNICAL DATA DEBUG ===');
+    console.log('step:', step);
+    console.log('shapingConfig:', step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig);
+
     const parts = [];
 
     // Stitch counts
@@ -753,19 +782,104 @@ const getTechnicalDataDisplay = (step, project = null) => {
     const endingStitches = step.endingStitches || step.expectedStitches || 0;
     parts.push(`${startingStitches} → ${endingStitches} stitches`);
 
-    // ✅ ENHANCED: Duration with total row calculation
-    const duration = getEnhancedDurationDisplay(step, project);
-    if (duration) {
-        parts.push(duration);
+    // Check if this is a marker phases step with distance timing
+    const shapingConfig = step.wizardConfig?.shapingConfig || step.advancedWizardConfig?.shapingConfig;
+    console.log('shapingConfig.type:', shapingConfig?.type);
+
+    if (shapingConfig?.type === 'marker_phases') {
+        console.log('Processing marker phases step');
+        const sequences = shapingConfig?.config?.phases || [];
+        console.log('sequences:', sequences);
+
+        // Calculate total distance from all distance phases
+        let totalDistance = 0;
+        let hasDistancePhases = false;
+        let totalEstimatedRows = 0;
+
+        sequences.forEach(sequence => {
+            console.log('Processing sequence:', sequence);
+            const phases = sequence.phases || [];
+            console.log('phases in sequence:', phases);
+
+            phases.forEach(phase => {
+                console.log('Processing individual phase:', phase);
+                if (phase.type === 'repeat') {
+                    const intervalType = phase.intervalType || phase.config?.intervalType;
+                    console.log('intervalType:', intervalType);
+                    if (intervalType === 'distance') {
+                        console.log('Found distance phase');
+                        const distance = phase.config?.regularRows || phase.regularRows || 0;
+                        const times = phase.config?.times || phase.times || 1;
+                        const phaseDistance = distance * times;
+                        console.log('distance:', distance, 'times:', times, 'phaseDistance:', phaseDistance);
+                        totalDistance += phaseDistance;
+
+                        // Calculate estimated rows for this phase
+                        const gaugeResult = calculateRowsFromDistance(distance, project, step.construction || 'flat');
+                        console.log('gaugeResult:', gaugeResult);
+                        if (gaugeResult.hasGauge) {
+                            totalEstimatedRows += gaugeResult.estimatedRows * times;
+                        }
+
+                        hasDistancePhases = true;
+                    }
+                }
+                // Add other phase types (initial, finish) that contribute rows
+                else if (phase.type === 'initial') {
+                    totalEstimatedRows += 1;
+                }
+                else if (phase.type === 'finish') {
+                    const finishRows = phase.config?.regularRows || phase.regularRows || 0;
+                    totalEstimatedRows += finishRows;
+                }
+            });
+        });
+
+        console.log('hasDistancePhases:', hasDistancePhases);
+        console.log('totalDistance:', totalDistance);
+        console.log('totalEstimatedRows:', totalEstimatedRows);
+
+        // Show distance format if we have distance phases
+        if (hasDistancePhases && totalDistance > 0) {
+            const units = project?.defaultUnits || 'inches';
+            const construction = step.construction || 'flat';
+            const rowTerm = construction === 'round' ? 'rounds' : 'rows';
+
+            if (totalEstimatedRows > 0) {
+                const distanceDisplay = `${totalDistance} ${units} (~${Math.round(totalEstimatedRows)} ${rowTerm})`;
+                console.log('Adding distance display:', distanceDisplay);
+                parts.push(distanceDisplay);
+            } else {
+                const distanceDisplay = `${totalDistance} ${units}`;
+                console.log('Adding distance display (no rows):', distanceDisplay);
+                parts.push(distanceDisplay);
+            }
+        } else {
+            console.log('No distance phases found, using regular duration');
+            // Fallback to regular duration display
+            const duration = getEnhancedDurationDisplay(step, project);
+            if (duration) {
+                parts.push(duration);
+            }
+        }
+    } else {
+        console.log('Using regular duration display');
+        // Regular duration display for non-marker-phases steps
+        const duration = getEnhancedDurationDisplay(step, project);
+        if (duration) {
+            parts.push(duration);
+        }
     }
 
     // Construction
     const construction = step.construction || 'flat';
     parts.push(construction);
 
+    console.log('Final parts:', parts);
+    console.log('============================');
+
     return parts.join(' • ');
 };
-
 /**
  * ✅ NEW: Enhanced duration display that calculates total rows for repeats
  */

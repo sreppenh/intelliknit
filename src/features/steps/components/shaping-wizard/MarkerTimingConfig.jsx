@@ -241,16 +241,6 @@ const MarkerTimingConfig = ({
             }
         };
 
-        console.log('=== ENHANCED MARKER CALCULATION ===');
-        console.log('Phase details generated:', JSON.stringify(phaseDetails, null, 2));
-        console.log('Full enhanced data:', JSON.stringify(enhancedInstructionData, null, 2));
-        console.log('===================================');
-
-        console.log('=== FINISHING ROWS DEBUG ===');
-        console.log('finishingRows state:', finishingRows);
-        console.log('allPhases finish phase:', allPhases.find(p => p.type === 'finish'));
-        console.log('============================');
-
         onComplete(enhancedInstructionData);
     };
 
@@ -274,6 +264,33 @@ const MarkerTimingConfig = ({
             currentStitches,
             finishingRows
         );
+
+        // Override for distance-based timing display
+        if (repeatPhase?.intervalType === 'distance') {
+            // Calculate total distance from all distance phases
+            let totalDistance = 0;
+            allPhases.forEach(phase => {
+                if (phase.type === 'repeat' && phase.intervalType === 'distance') {
+                    totalDistance += (phase.regularRows || 0) * (phase.times || 1);
+                }
+            });
+
+            // Also add any completed distance phases
+            completedPhases.forEach(phase => {
+                if (phase.intervalType === 'distance') {
+                    totalDistance += (phase.regularRows || 0) * (phase.times || 1);
+                }
+            });
+
+            const units = project?.defaultUnits || 'inches';
+
+            return {
+                ...result,
+                totalRows: `${totalDistance} ${units}`, // Override the display
+                errors: [],
+                isValid: true
+            };
+        }
 
         return {
             ...result,
