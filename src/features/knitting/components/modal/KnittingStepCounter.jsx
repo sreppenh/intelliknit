@@ -13,6 +13,7 @@ import SimpleRowSettings from '../SimpleRowSettings';
 import { formatReadableInstruction } from '../../../../shared/utils/stepDescriptionUtils';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 
+
 // Gauge utilities
 import {
     isLengthBasedStep,
@@ -59,6 +60,9 @@ const KnittingStepCounter = ({
     // Gauge update state
     const [showGaugePrompt, setShowGaugePrompt] = useState(false);
     const [gaugePromptData, setGaugePromptData] = useState(null);
+
+    // New state for Distance Checker
+    const [showDistanceConfirmation, setShowDistanceConfirmation] = useState(false);
 
     const construction = step.construction || component.construction || 'flat';
 
@@ -277,6 +281,25 @@ const KnittingStepCounter = ({
     } else {
         console.log('❌ FAILED: distanceIterations still missing');
     }
+
+    const shouldCheckDistance = () => {
+        if (!distanceIterations) return false;
+
+        // For first iteration, check every 4 rows after row 2
+        if (distanceIterations.currentIteration === 1) {
+            return currentRow >= 2 && currentRow % 4 === 0;
+        }
+
+        // For subsequent iterations, use saved row count if available
+        if (distanceIterations.savedRowsPerDistance) {
+            const targetRows = Math.round(distanceIterations.targetDistance * distanceIterations.savedRowsPerDistance);
+            return currentRow >= targetRows - 1;
+        }
+
+        return false;
+    };
+
+
     const isDistanceIterationStep = distanceIterations &&
         distanceIterations.totalIterations > 1;
 
@@ -500,6 +523,11 @@ const KnittingStepCounter = ({
     };
 
     const handleRowIncrement = () => {
+        // Distance iteration checking
+        if (distanceIterations && shouldCheckDistance()) {
+            setShowDistanceConfirmation(true);
+            return; // Stop normal increment
+        }
 
         if (stepType === 'single_action') {
 
