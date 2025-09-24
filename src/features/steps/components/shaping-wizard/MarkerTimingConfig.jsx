@@ -28,7 +28,7 @@ const MarkerTimingConfig = ({
             type: 'repeat',
             regularRows: construction === 'flat' ? 2 : 1,
             amountMode: 'times',
-            times: 5,
+            times: 1,
             targetStitches: null,
             intervalType: 'rows'
         },
@@ -286,7 +286,7 @@ const MarkerTimingConfig = ({
 
             return {
                 ...result,
-                totalRows: `${totalDistance} ${units}`, // Override the display
+                totalDistance: `${totalDistance} ${units}`, // New field for distance
                 errors: [],
                 isValid: true
             };
@@ -752,8 +752,12 @@ const MarkerTimingConfig = ({
                                 </span>
                             </div>
                             <div className="flex justify-between">
-                                <span className="text-lavender-700">Total {getConstructionTerms(construction).rows}:</span>
-                                <span className="font-medium">{stitchContext.totalRows}</span>
+                                <span className="text-lavender-700">
+                                    {stitchContext.totalDistance ? 'Total distance:' : `Total ${getConstructionTerms(construction).rows}:`}
+                                </span>
+                                <span className="font-medium">
+                                    {stitchContext.totalDistance || stitchContext.totalRows}
+                                </span>
                             </div>
                         </div>
                         {stitchContext.errors.length > 0 && (
