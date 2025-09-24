@@ -265,6 +265,10 @@ const MarkerTimingConfig = ({
             }
         }
         console.log('Enhanced instruction data:', enhancedInstructionData);
+        console.log('=== FINAL CHECK BEFORE SAVE ===');
+        console.log('hasDistancePhases:', hasDistancePhases);
+        console.log('enhancedInstructionData.calculation.distanceIterations:', enhancedInstructionData.calculation.distanceIterations);
+        console.log('About to call onComplete with:', enhancedInstructionData);
         onComplete(enhancedInstructionData);
     };
 

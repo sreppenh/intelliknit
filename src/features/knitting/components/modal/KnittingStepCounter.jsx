@@ -264,36 +264,52 @@ const KnittingStepCounter = ({
     })();
 
     // ADD THE DEBUG CODE HERE
-    console.log('=== STEP OBJECT DEBUG ===');
-    console.log('step.shapingConfig.config.calculation:', step.wizardConfig?.shapingConfig?.config?.calculation);
-    console.log('========================');
-    console.log('=== STEP OBJECT DEBUG ===');
-    console.log('Full calculation object:', JSON.stringify(step.wizardConfig?.shapingConfig?.config?.calculation, null, 2));
-    console.log('========================');
-
-    console.log('Full step object:', step);
-    console.log('step.shapingConfig:', step.wizardConfig?.shapingConfig);
-    console.log('step.shapingConfig.config:', step.wizardConfig?.shapingConfig?.config);
-    console.log('step.calculation:', step.calculation);
-    console.log('========================');
 
     // Detect distance-based marker phases steps
-    const isDistanceIterationStep = step.distanceIterations &&
-        step.distanceIterations.totalIterations > 1;
+    // Detect distance-based marker phases steps (PHASE 1: TESTING)
+    const distanceIterations = step.wizardConfig?.shapingConfig?.config?.calculation?.distanceIterations;
+
+    console.log('🔍 DISTANCE DETECTION DEBUG:');
+    console.log('  distanceIterations found:', !!distanceIterations);
+    console.log('  distanceIterations data:', distanceIterations);
+    console.log('  step.wizardConfig?.shapingConfig?.type:', step.wizardConfig?.shapingConfig?.type);
+
+    console.log('🔧 FULL CALCULATION OBJECT:');
+    const calculation = step.wizardConfig?.shapingConfig?.config?.calculation;
+    if (calculation) {
+        console.log('  Object.keys(calculation):', Object.keys(calculation));
+        console.log('  Full calculation JSON:', JSON.stringify(calculation, null, 2));
+    } else {
+        console.log('  No calculation object found');
+    }
+
+    // NEW: Let's look inside that repeat phase config
+    console.log('🧪 REPEAT PHASE DETAILED:');
+    const phases = step.wizardConfig?.shapingConfig?.config?.phases;
+    if (phases && phases.length > 0) {
+        const sequence = phases[0];
+        if (sequence.phases) {
+            const repeatPhase = sequence.phases.find(p => p.type === 'repeat');
+            if (repeatPhase) {
+                console.log('  Repeat phase found:', repeatPhase);
+                console.log('  Repeat phase config:', repeatPhase.config);
+                if (repeatPhase.config) {
+                    console.log('  intervalType:', repeatPhase.config.intervalType);
+                    console.log('  times:', repeatPhase.config.times);
+                    console.log('  regularRows:', repeatPhase.config.regularRows);
+                }
+            }
+        }
+    }
+
+    const isDistanceIterationStep = distanceIterations &&
+        distanceIterations.totalIterations > 1;
 
     const hasActiveDistanceIteration = isDistanceIterationStep &&
-        step.distanceIterations.currentIteration <= step.distanceIterations.totalIterations;
+        distanceIterations.currentIteration <= distanceIterations.totalIterations;
 
-
-    console.log('=== DISTANCE DETECTION DEBUG ===');
-    console.log('step.distanceIterations:', step.distanceIterations);
-    console.log('isDistanceIterationStep:', isDistanceIterationStep);
-    console.log('hasActiveDistanceIteration:', hasActiveDistanceIteration);
-    console.log('================================');
-
-    const isOnFinalRow = currentRow >= totalRows && totalRows > 1;
-
-    // Length-based completion logic
+    console.log('  isDistanceIterationStep:', isDistanceIterationStep);
+    console.log('  hasActiveDistanceIteration:', hasActiveDistanceIteration); // Length-based completion logic
     const shouldShowCompletionSuggestion = isLengthStep && shouldSuggestCompletion(step, currentRow, project);
 
     // Get current instruction
