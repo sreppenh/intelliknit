@@ -7,6 +7,7 @@ import { getConstructionTerms } from '../../../../shared/utils/ConstructionTermi
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import SelectionGrid from '../../../../shared/components/SelectionGrid';
+import { calculateRowsFromDistance } from '../../../../shared/utils/gaugeUtils';
 
 const MarkerTimingConfig = ({
     instructionData,
@@ -91,6 +92,25 @@ const MarkerTimingConfig = ({
             { type: 'finish', regularRows: finishingRows }
         ];
 
+        const processedPhases = allPhases.map(phase => {
+            if (phase.type === 'repeat' && phase.intervalType === 'distance') {
+                const gaugeResult = calculateRowsFromDistance(
+                    phase.regularRows,
+                    project,
+                    construction
+                );
+
+                return {
+                    ...phase,
+                    regularRows: gaugeResult.estimatedRows || phase.regularRows,
+                    originalDistance: phase.regularRows,
+                    convertedFromDistance: true
+                };
+            }
+            return phase;
+        });
+
+
         // Generate basic instruction data
         const finalInstructionData = {
             ...instructionData,
@@ -112,8 +132,8 @@ const MarkerTimingConfig = ({
         let phaseDetails = [];
 
         // Process each phase to generate row-by-row breakdown
-        for (let i = 0; i < allPhases.length; i++) {
-            const phase = allPhases[i];
+        for (let i = 0; i < processedPhases.length; i++) {
+            const phase = processedPhases[i];
 
             if (phase.type === 'initial') {
                 // Initial phase: 1 row, applies stitch change
@@ -328,7 +348,12 @@ const MarkerTimingConfig = ({
                                 return (
                                     <div key={phase.id} className="text-sm text-wool-600 text-left flex items-center justify-between">
                                         <span>
-                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.intervalType === 'distance' ? `${phase.regularRows} ${project?.defaultUnits || 'inches'}` : `${phase.regularRows + 1} ${construction === 'round' ? 'rounds' : 'rows'}`} {phase.times} times ({phaseEndingStitches} sts)
+                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.intervalType === 'distance' ? (() => {
+                                                const gaugeResult = calculateRowsFromDistance(phase.regularRows, project, construction);
+                                                return gaugeResult.hasGauge
+                                                    ? `${phase.regularRows} ${project?.defaultUnits || 'inches'} (~${gaugeResult.estimatedRows} rows)`
+                                                    : `${phase.regularRows} ${project?.defaultUnits || 'inches'}`;
+                                            })() : `${phase.regularRows + 1} ${construction === 'round' ? 'rounds' : 'rows'}`} {phase.times} times ({phaseEndingStitches} sts)
                                         </span>
                                         <button
                                             onClick={() => handleDeletePhase(phase.id)}
@@ -365,13 +390,30 @@ const MarkerTimingConfig = ({
                                     <IncrementInput
                                         value={phases.find(p => p.type === 'repeat')?.regularRows || (construction === 'flat' ? 2 : 1)}
                                         onChange={(value) => {
-                                            const validValue = construction === 'flat' ? Math.max(2, Math.ceil(value / 2) * 2) : Math.max(1, value);
+                                            const currentPhase = phases.find(p => p.type === 'repeat');
+                                            let validValue;
+
+                                            if (currentPhase?.intervalType === 'distance') {
+                                                // Distance can be any decimal value
+                                                validValue = Math.max(0.25, value);
+                                            } else {
+                                                // Rows must follow construction rules
+                                                validValue = construction === 'flat' ? Math.max(2, Math.ceil(value / 2) * 2) : Math.max(1, value);
+                                            }
+
                                             setPhases(prev => prev.map(phase =>
                                                 phase.type === 'repeat' ? { ...phase, regularRows: validValue } : phase
                                             ));
                                         }}
-                                        min={construction === 'flat' ? 2 : 1}
-                                        step={construction === 'flat' ? 2 : 1}
+                                        min={(() => {
+                                            const currentPhase = phases.find(p => p.type === 'repeat');
+                                            return currentPhase?.intervalType === 'distance' ? 0.25 : (construction === 'flat' ? 2 : 1);
+                                        })()}
+                                        step={(() => {
+                                            const currentPhase = phases.find(p => p.type === 'repeat');
+                                            return currentPhase?.intervalType === 'distance' ? 0.25 : (construction === 'flat' ? 2 : 1);
+                                        })()}
+                                        useDecimals={phases.find(p => p.type === 'repeat')?.intervalType === 'distance'}
                                         max={999}
                                         size="sm"
                                     />
@@ -382,11 +424,40 @@ const MarkerTimingConfig = ({
                                         }
                                     </span>
                                 </div>
-                                {construction === 'flat' && (
+                                {construction === 'flat' && phases.find(p => p.type === 'repeat')?.intervalType === 'rows' && (
                                     <p className="text-xs text-wool-500 mt-1">
                                         Must be even number for flat knitting to avoid shaping on wrong side
                                     </p>
                                 )}
+
+                                {phases.find(p => p.type === 'repeat')?.intervalType === 'distance' && (
+                                    <div className="mt-3">
+                                        {(() => {
+                                            const currentPhase = phases.find(p => p.type === 'repeat');
+                                            const gaugeResult = calculateRowsFromDistance(
+                                                currentPhase?.regularRows || 1,
+                                                project,
+                                                construction
+                                            );
+
+                                            if (gaugeResult.hasGauge) {
+                                                return (
+                                                    <div className="bg-sage-50 border border-sage-200 rounded-lg p-3">
+                                                        <div className="text-sm text-sage-700">
+                                                            <span className="font-medium">Estimated rows:</span> {gaugeResult.estimatedRows}
+                                                            <div className="text-xs text-sage-600 mt-1">
+                                                                Using gauge: {project?.gauge?.rowGauge?.rows || '24'} rows = {project?.gauge?.rowGauge?.measurement || '4'} {project?.defaultUnits || 'inches'}
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                );
+                                            }
+                                            return null;
+                                        })()}
+                                    </div>
+                                )}
+
+
                             </div>
                             <div>
                                 {(() => {

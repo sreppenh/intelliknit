@@ -391,3 +391,31 @@ export const getCorrectDurationDisplay = (step, project) => {
             return null;
     }
 };
+
+/**
+ * Calculate rows from distance for marker timing with construction awareness
+ * @param {number} distance - Distance value
+ * @param {object} project - Project with gauge data
+ * @param {string} construction - 'flat' or 'round' 
+ * @returns {object} - { estimatedRows: number | null, hasGauge: boolean }
+ */
+export const calculateRowsFromDistance = (distance, project, construction = 'flat') => {
+    const estimatedRows = estimateRowsFromLength(
+        distance,
+        project?.defaultUnits || 'inches',
+        project
+    );
+
+    if (!estimatedRows) {
+        return { estimatedRows: null, hasGauge: false };
+    }
+
+    // For flat construction, ensure odd number (shaping ends on RS)
+    let adjustedRows = estimatedRows;
+    if (construction === 'flat' && estimatedRows % 2 === 0) {
+        // Round even numbers up to next odd for flat construction
+        adjustedRows = estimatedRows + 1;
+    }
+
+    return { estimatedRows: adjustedRows, hasGauge: true };
+};

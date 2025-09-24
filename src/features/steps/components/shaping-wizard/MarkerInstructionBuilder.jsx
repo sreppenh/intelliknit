@@ -107,7 +107,6 @@ const MarkerInstructionBuilder = ({
         technique: '',
         position: '',
         distance: '',
-        bindOffAmount: '',
         stitchCount: 1,
         targets: [],
         whereType: 'markers'
@@ -164,9 +163,6 @@ const MarkerInstructionBuilder = ({
         } else if (currentAction.position === 'after') {
             validTargets = validTargets.filter(t => t.value !== 'end');
         }
-        if (currentAction.actionType === 'bind_off') {
-            validTargets = validTargets.filter(t => t.value !== 'end');
-        }
         return validTargets;
     };
 
@@ -183,7 +179,6 @@ const MarkerInstructionBuilder = ({
                 updated.technique = '';
                 updated.distance = '';
                 updated.targets = [];
-                updated.bindOffAmount = '';
                 updated.stitchCount = 1;
             } else if (updates.whereType) {
                 // WhereType change clears position and below
@@ -225,7 +220,6 @@ const MarkerInstructionBuilder = ({
             technique: '',
             position: '',
             distance: '',
-            bindOffAmount: '',
             stitchCount: 1,
             targets: [],
             whereType: 'markers'
@@ -237,13 +231,10 @@ const MarkerInstructionBuilder = ({
     const handleCompleteActions = () => {
         // Check if there's an incomplete current action
         const hasIncompleteCurrentAction = currentAction.actionType && (
-            (currentAction.actionType === 'bind_off' && currentAction.stitchCount <= 0) ||
-            (currentAction.actionType !== 'bind_off' && (
-                currentAction.targets.length === 0 ||
-                !currentAction.position ||
-                !currentAction.distance ||
-                !currentAction.technique
-            ))
+            currentAction.targets.length === 0 ||
+            !currentAction.position ||
+            !currentAction.distance ||
+            !currentAction.technique
         );
 
         if (hasIncompleteCurrentAction) {
@@ -259,10 +250,7 @@ const MarkerInstructionBuilder = ({
         const finalActions = [...completedActions];
 
         // Add current action if it's complete
-        if (currentAction.actionType && (
-            currentAction.targets.length > 0 ||
-            currentAction.actionType === 'bind_off'
-        )) {
+        if (currentAction.actionType && currentAction.targets.length > 0) {
             finalActions.push(currentAction);
         }
 
@@ -281,7 +269,6 @@ const MarkerInstructionBuilder = ({
             technique: '',
             position: '',
             distance: '',
-            bindOffAmount: '',
             stitchCount: 1,
             targets: [],
             whereType: 'markers'
@@ -316,10 +303,6 @@ const MarkerInstructionBuilder = ({
         // If no completed actions, current action must be complete
         if (!currentAction.actionType) return false;
 
-        if (currentAction.actionType === 'bind_off') {
-            return currentAction.stitchCount > 0;
-        }
-
         // For increase/decrease actions
         return currentAction.targets.length > 0 &&
             currentAction.position &&
@@ -332,7 +315,7 @@ const MarkerInstructionBuilder = ({
     // Generate preview - now uses centralized utility
     const generatePreview = () => {
         const allActions = [...completedActions];
-        if (currentAction.actionType && (currentAction.targets.length > 0 || currentAction.actionType === 'bind_off')) {
+        if (currentAction.actionType && currentAction.targets.length > 0) {
             allActions.push(currentAction);
         }
 
@@ -375,10 +358,6 @@ const MarkerInstructionBuilder = ({
                 { value: 'decrease', label: 'Add Decreases' }
             ];
 
-            if (construction === 'flat') {
-                baseOptions.push({ value: 'bind_off', label: 'Bind Off' });
-            }
-
             return baseOptions;
         };
 
@@ -398,7 +377,7 @@ const MarkerInstructionBuilder = ({
         );
     };
 
-    const WhereCard = () => construction === 'flat' && currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' ? (
+    const WhereCard = () => construction === 'flat' && currentAction.actionType && currentAction.actionType !== 'continue' ? (
         <>
             <label className="form-label">Where?</label>
             <SelectionGrid
@@ -413,7 +392,7 @@ const MarkerInstructionBuilder = ({
         </>
     ) : null;
 
-    const PositionCard = () => (currentAction.whereType === 'markers' || construction === 'round') && currentAction.actionType && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' ? (
+    const PositionCard = () => (currentAction.whereType === 'markers' || construction === 'round') && currentAction.actionType && currentAction.actionType !== 'continue' ? (
         <>
             <label className="form-label">Position</label>
             <SelectionGrid
@@ -441,7 +420,7 @@ const MarkerInstructionBuilder = ({
         const shouldShow = (currentAction.position && (currentAction.whereType === 'markers' || construction === 'round')) ||
             (currentAction.whereType === 'edges');
 
-        if (!shouldShow || !currentAction.actionType || currentAction.actionType === 'bind_off') {
+        if (!shouldShow || !currentAction.actionType) {
             return null;
         }
 
@@ -611,43 +590,6 @@ const MarkerInstructionBuilder = ({
         );
     };
 
-    const BindOffCard = () => currentAction.actionType === 'bind_off' ? (
-        <>
-            <label className="form-label">How many stitches to bind off?</label>
-            <div className="flex items-center gap-3">
-                <IncrementInput
-                    value={currentAction.stitchCount}
-                    onChange={(value) => {
-                        const totalStitches = markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0);
-                        updateAction({
-                            stitchCount: Math.min(value, totalStitches),
-                            position: 'at_beginning',
-                            targets: ['beginning'],
-                            bindOffAmount: 'specific'
-                        });
-                    }}
-                    min={1}
-                    max={markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0)}
-                    size="sm"
-                />
-                <button
-                    onClick={() => {
-                        const totalStitches = markerArray.filter(item => typeof item === 'number').reduce((sum, stitches) => sum + stitches, 0);
-                        updateAction({
-                            stitchCount: totalStitches,
-                            position: 'at_beginning',
-                            targets: ['beginning'],
-                            bindOffAmount: 'all'
-                        });
-                    }}
-                    className="btn-secondary btn-sm"
-                >
-                    Bind Off All
-                </button>
-            </div>
-        </>
-    ) : null;
-
     const PreviewSection = () => (
         <div className="card-info">
             <h4 className="section-header-secondary flex items-center justify-between">
@@ -688,8 +630,7 @@ const MarkerInstructionBuilder = ({
                                 <div className="flex items-center gap-2 text-sage-600">
                                     <span className="w-1 h-1 bg-sage-400 rounded-full"></span>
                                     <span className="italic text-left">
-                                        {getActionConfigDisplay(currentAction)} {currentAction.targets.length === 0 && currentAction.actionType !== 'continue' && currentAction.actionType !== 'bind_off' ? '(building...)' : '(building...)'}
-                                    </span>
+                                        {getActionConfigDisplay(currentAction)} {currentAction.targets.length === 0 && currentAction.actionType !== 'continue' ? '(building...)' : '(building...)'} </span>
                                 </div>
                             )}
                         </div>
@@ -722,7 +663,6 @@ const MarkerInstructionBuilder = ({
                             <TargetCard />
                             <DistanceCard />
                             <TechniqueCard />
-                            <BindOffCard />
                             {isActionComplete() && (
                                 <div className="pt-4 border-t border-wool-200">
                                     <button onClick={addAction} className="suggestion-bubble">+ Add Another Action</button>
