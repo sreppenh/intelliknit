@@ -71,8 +71,20 @@ const MarkerTimingConfig = ({
             } else if (phase.type === 'repeat') {
                 const construction_term = construction === 'round' ? 'round' : 'row';
                 const times = phase.times || 1;
-                const frequency = phase.regularRows || 1;
-                lines.push(`Phase ${index + 1}: Repeat every ${frequency} ${construction_term}s ${times} times`);
+
+                let frequencyDisplay;
+                if (phase.intervalType === 'distance') {
+                    const gaugeResult = calculateRowsFromDistance(phase.regularRows, project, construction);
+                    const units = project?.defaultUnits || 'inches';
+                    frequencyDisplay = gaugeResult.hasGauge
+                        ? `${phase.regularRows} ${units} (~${gaugeResult.estimatedRows} ${construction_term}s)`
+                        : `${phase.regularRows} ${units}`;
+                } else {
+                    const frequency = phase.regularRows || 1;
+                    frequencyDisplay = `${frequency} ${construction_term}s`;
+                }
+
+                lines.push(`Phase ${index + 1}: Repeat every ${frequencyDisplay} ${times} times`);
             } else if (phase.type === 'finish') {
                 lines.push(`Phase ${index + 1}: Work in ${basePattern} for ${phase.regularRows || 1} ${construction === 'round' ? 'round' : 'row'}`);
             }
