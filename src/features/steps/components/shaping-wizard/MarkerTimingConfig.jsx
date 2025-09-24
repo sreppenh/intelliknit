@@ -430,55 +430,23 @@ const MarkerTimingConfig = ({
                         <div className="space-y-4">
                             <div>
                                 <label className="form-label">Repeat every</label>
-                                <SelectionGrid
-                                    options={[
-                                        { value: 'rows', label: construction === 'round' ? 'Rounds' : 'Rows' },
-                                        { value: 'distance', label: 'Distance' }
-                                    ]}
-                                    selected={phases.find(p => p.type === 'repeat')?.intervalType || 'rows'}
-                                    onSelect={(value) => {
-                                        setPhases(prev => prev.map(phase =>
-                                            phase.type === 'repeat' ? { ...phase, intervalType: value } : phase
-                                        ));
-                                    }}
-                                    columns={2}
-                                />
+
                                 <div className="flex items-center gap-2 mt-3">
                                     <IncrementInput
                                         value={phases.find(p => p.type === 'repeat')?.regularRows || (construction === 'flat' ? 2 : 1)}
                                         onChange={(value) => {
-                                            const currentPhase = phases.find(p => p.type === 'repeat');
-                                            let validValue;
-
-                                            if (currentPhase?.intervalType === 'distance') {
-                                                // Distance can be any decimal value
-                                                validValue = Math.max(0.25, value);
-                                            } else {
-                                                // Rows must follow construction rules
-                                                validValue = construction === 'flat' ? Math.max(2, Math.ceil(value / 2) * 2) : Math.max(1, value);
-                                            }
-
+                                            const validValue = construction === 'flat' ? Math.max(2, Math.ceil(value / 2) * 2) : Math.max(1, value);
                                             setPhases(prev => prev.map(phase =>
                                                 phase.type === 'repeat' ? { ...phase, regularRows: validValue } : phase
                                             ));
                                         }}
-                                        min={(() => {
-                                            const currentPhase = phases.find(p => p.type === 'repeat');
-                                            return currentPhase?.intervalType === 'distance' ? 0.25 : (construction === 'flat' ? 2 : 1);
-                                        })()}
-                                        step={(() => {
-                                            const currentPhase = phases.find(p => p.type === 'repeat');
-                                            return currentPhase?.intervalType === 'distance' ? 0.25 : (construction === 'flat' ? 2 : 1);
-                                        })()}
-                                        useDecimals={phases.find(p => p.type === 'repeat')?.intervalType === 'distance'}
+                                        min={construction === 'flat' ? 2 : 1}
+                                        step={construction === 'flat' ? 2 : 1}
                                         max={999}
                                         size="sm"
                                     />
                                     <span className="text-sm text-wool-600">
-                                        {phases.find(p => p.type === 'repeat')?.intervalType === 'distance'
-                                            ? (project?.defaultUnits || 'inches')
-                                            : (construction === 'round' ? 'rounds' : 'rows')
-                                        }
+                                        {construction === 'round' ? 'rounds' : 'rows'}
                                     </span>
                                 </div>
                                 {construction === 'flat' && phases.find(p => p.type === 'repeat')?.intervalType === 'rows' && (
@@ -486,34 +454,6 @@ const MarkerTimingConfig = ({
                                         Must be even number for flat knitting to avoid shaping on wrong side
                                     </p>
                                 )}
-
-                                {phases.find(p => p.type === 'repeat')?.intervalType === 'distance' && (
-                                    <div className="mt-3">
-                                        {(() => {
-                                            const currentPhase = phases.find(p => p.type === 'repeat');
-                                            const gaugeResult = calculateRowsFromDistance(
-                                                currentPhase?.regularRows || 1,
-                                                project,
-                                                construction
-                                            );
-
-                                            if (gaugeResult.hasGauge) {
-                                                return (
-                                                    <div className="bg-sage-50 border border-sage-200 rounded-lg p-3">
-                                                        <div className="text-sm text-sage-700">
-                                                            <span className="font-medium">Estimated rows:</span> {gaugeResult.estimatedRows}
-                                                            <div className="text-xs text-sage-600 mt-1">
-                                                                Using gauge: {project?.gauge?.rowGauge?.rows || '24'} rows = {project?.gauge?.rowGauge?.measurement || '4'} {project?.defaultUnits || 'inches'}
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                );
-                                            }
-                                            return null;
-                                        })()}
-                                    </div>
-                                )}
-
 
                             </div>
                             <div>

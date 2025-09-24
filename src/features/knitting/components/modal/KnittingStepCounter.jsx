@@ -52,17 +52,12 @@ const KnittingStepCounter = ({
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
 
 
-
-
     // Side tracking hook
     const sideTracking = useSideTracking(project?.id, component?.id, navigation.currentStep, step, component);
 
     // Gauge update state
     const [showGaugePrompt, setShowGaugePrompt] = useState(false);
     const [gaugePromptData, setGaugePromptData] = useState(null);
-
-    // New state for Distance Checker
-    const [showDistanceConfirmation, setShowDistanceConfirmation] = useState(false);
 
     const construction = step.construction || component.construction || 'flat';
 
@@ -266,47 +261,6 @@ const KnittingStepCounter = ({
         // Use original logic for everything else
         return getStepType(step, totalRows, duration);
     })();
-
-    // ADD THE DEBUG CODE HERE
-
-    // Detect distance-based marker phases steps
-    // Detect distance-based marker phases steps (PHASE 1: TESTING)
-    // Replace all your debug code with just this:
-    // Try these alternative paths:
-    // REPLACE the current detection with:
-    const distanceIterations = step.wizardConfig?.shapingConfig?.config?.phases?.[0]?.instructionData?.calculation?.distanceIterations;
-
-    if (distanceIterations) {
-        console.log('✅ SUCCESS: distanceIterations found:', distanceIterations);
-    } else {
-        console.log('❌ FAILED: distanceIterations still missing');
-    }
-
-    const shouldCheckDistance = () => {
-        if (!distanceIterations) return false;
-
-        // For first iteration, check every 4 rows after row 2
-        if (distanceIterations.currentIteration === 1) {
-            return currentRow >= 2 && currentRow % 4 === 0;
-        }
-
-        // For subsequent iterations, use saved row count if available
-        if (distanceIterations.savedRowsPerDistance) {
-            const targetRows = Math.round(distanceIterations.targetDistance * distanceIterations.savedRowsPerDistance);
-            return currentRow >= targetRows - 1;
-        }
-
-        return false;
-    };
-
-
-    const isDistanceIterationStep = distanceIterations &&
-        distanceIterations.totalIterations > 1;
-
-    const hasActiveDistanceIteration = isDistanceIterationStep &&
-        distanceIterations.currentIteration <= distanceIterations.totalIterations;
-
-    const shouldShowCompletionSuggestion = isLengthStep && shouldSuggestCompletion(step, currentRow, project);
 
     // Get current instruction
     // Replace the getCurrentInstruction function with this clean version:
@@ -523,12 +477,6 @@ const KnittingStepCounter = ({
     };
 
     const handleRowIncrement = () => {
-        // Distance iteration checking
-        if (distanceIterations && shouldCheckDistance()) {
-            setShowDistanceConfirmation(true);
-            return; // Stop normal increment
-        }
-
         if (stepType === 'single_action') {
 
             // For single action steps, complete and advance (don't toggle)
