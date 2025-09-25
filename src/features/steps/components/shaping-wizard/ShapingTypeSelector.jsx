@@ -22,6 +22,14 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
       isNew: true
     },
     {
+      id: 'bind_off_shaping',
+      name: 'Bind-Off Shaping',
+      icon: '✂️',
+      description: 'Graduated bind-offs for shoulders and necklines',
+      examples: 'Shoulder shaping, stepped necklines, armhole finishing',
+      comingSoon: false
+    },
+    {
       id: 'phases',
       name: 'Sequential Phases',
       icon: '📈',
