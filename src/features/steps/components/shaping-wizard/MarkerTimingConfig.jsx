@@ -41,6 +41,8 @@ const MarkerTimingConfig = ({
     const generatePreview = () => {
         if (!instructionData?.actions) return "No instruction data";
 
+        const terms = getConstructionTerms(construction);
+
         const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
         const allPhases = [
             { type: 'initial' },
@@ -68,7 +70,7 @@ const MarkerTimingConfig = ({
                 );
                 lines.push(`Phase ${index + 1}: ${instruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')}`);
             } else if (phase.type === 'repeat') {
-                const construction_term = construction === 'round' ? 'round' : 'row';
+                const construction_term = terms.row;
                 const times = phase.times || 1;
 
                 const frequency = phase.regularRows || 1;
@@ -76,7 +78,7 @@ const MarkerTimingConfig = ({
 
                 lines.push(`Phase ${index + 1}: Repeat every ${frequencyDisplay} ${times} times`);
             } else if (phase.type === 'finish') {
-                lines.push(`Phase ${index + 1}: Work in ${basePattern} for ${phase.regularRows || 1} ${construction === 'round' ? 'round' : 'row'}`);
+                lines.push(`Phase ${index + 1}: Work in ${basePattern} for ${phase.regularRows || 1} ${terms.row}`);
             }
         });
 
@@ -85,6 +87,7 @@ const MarkerTimingConfig = ({
 
     const handleComplete = () => {
         const repeatPhase = phases.find(p => p.type === 'repeat');
+        const terms = getConstructionTerms(construction);
 
         // Build complete phases array: initial + all completed phases + current phase + finish
         const allPhases = [
@@ -130,7 +133,7 @@ const MarkerTimingConfig = ({
 
                 phaseDetails.push({
                     type: 'initial',
-                    description: `Initial shaping ${construction === 'round' ? 'round' : 'row'}`,
+                    description: `Initial shaping ${terms.row}`,
                     rowRange: `${startRow}`,
                     rows: 1,
                     startingStitches: phaseStartStitches,
@@ -156,7 +159,7 @@ const MarkerTimingConfig = ({
 
                 phaseDetails.push({
                     type: 'repeat',
-                    description: `Repeat every ${frequency} ${construction === 'round' ? 'round' : 'row'}${frequency === 1 ? '' : 's'} ${times} times`,
+                    description: `Repeat every ${frequency} ${frequency === 1 ? terms.row : terms.rows} ${times} times`,
                     rowRange: `${startRow}-${endRow}`,
                     rows: phaseRows,
                     startingStitches: phaseStartStitches,
@@ -179,7 +182,7 @@ const MarkerTimingConfig = ({
 
                     phaseDetails.push({
                         type: 'finish',
-                        description: `Work in pattern for ${phaseRows} ${construction === 'round' ? 'round' : 'row'}${phaseRows === 1 ? '' : 's'}`,
+                        description: `Work in pattern for ${phaseRows} ${phaseRows === 1 ? terms.row : terms.rows}`,
                         rowRange: `${startRow}-${endRow}`,
                         rows: phaseRows,
                         startingStitches: currentStitchCount,
@@ -322,8 +325,7 @@ const MarkerTimingConfig = ({
                                 return (
                                     <div key={phase.id} className="text-sm text-wool-600 text-left flex items-center justify-between">
                                         <span>
-                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.regularRows + 1} {construction === 'round' ? 'rounds' : 'rows'} {phase.times} times ({phaseEndingStitches} sts)
-                                        </span>
+                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.regularRows + 1} {getConstructionTerms(construction).rows} {phase.times} times ({phaseEndingStitches} sts)</span>
                                         <button
                                             onClick={() => handleDeletePhase(phase.id)}
                                             className="p-1 text-red-500 hover:bg-red-100 rounded transition-colors ml-2"
@@ -358,7 +360,7 @@ const MarkerTimingConfig = ({
                                         size="sm"
                                     />
                                     <span className="text-sm text-wool-600">
-                                        {construction === 'round' ? 'rounds' : 'rows'}
+                                        {getConstructionTerms(construction).rows}
                                     </span>
                                 </div>
                                 {construction === 'flat' && (
@@ -557,7 +559,7 @@ const MarkerTimingConfig = ({
                                         size="sm"
                                     />
                                     <span className="text-sm text-wool-600">
-                                        {finishingRows === 1 ? (construction === 'round' ? 'round' : 'row') : (construction === 'round' ? 'rounds' : 'rows')}
+                                        {finishingRows === 1 ? getConstructionTerms(construction).row : getConstructionTerms(construction).rows}
                                     </span>
                                 </div>
                                 {construction === 'flat' && (
