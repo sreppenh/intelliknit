@@ -255,8 +255,7 @@ export class PhaseCalculationService {
         const decFreqText = config.frequency === 1 ? terms.everyRow :
           config.frequency === 2 ? terms.everyOtherRow :
             terms.everyNthRow(config.frequency);
-        const decPosText = config.position === 'both_ends' ?
-          (construction === 'round' ? 'at beginning and end of round' : 'at both ends') :
+        const decPosText = config.position === 'both_ends' ? terms.atBothEnds :
           config.position === 'beginning' ? 'at beginning' : 'at end';
         const decTotalRows = config.times * config.frequency;
         const stitchWord = config.amount === 1 ? 'stitch' : 'stitches';
@@ -266,8 +265,7 @@ export class PhaseCalculationService {
         const incFreqText = config.frequency === 1 ? terms.everyRow :
           config.frequency === 2 ? terms.everyOtherRow :
             terms.everyNthRow(config.frequency);
-        const incPosText = config.position === 'both_ends' ?
-          (construction === 'round' ? 'at beginning and end of round' : 'at both ends') :
+        const incPosText = config.position === 'both_ends' ? terms.atBothEnds :
           config.position === 'beginning' ? 'at beginning' : 'at end';
         const incTotalRows = config.times * config.frequency;
         const incStitchWord = config.amount === 1 ? 'stitch' : 'stitches';

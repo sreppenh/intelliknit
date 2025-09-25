@@ -11,6 +11,7 @@ import { PhaseCalculationService } from './PhaseCalculationService';
 import { getCorrectDurationDisplay, estimateRowsFromLength } from './gaugeUtils';
 import { generateMarkerInstructionPreview } from './markerInstructionUtils';
 import { calculateRowsFromDistance } from './gaugeUtils';
+import { getConstructionTerms } from './ConstructionTerminology';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
@@ -263,8 +264,9 @@ const getStripeSequenceDisplay = (step, project) => {
     }
 
     const construction = step.construction || 'flat';
-    const rowTerm = construction === 'round' ? 'rounds' : 'rows';
-    const rowTermSingle = construction === 'round' ? 'round' : 'row';
+    const terms = getConstructionTerms(construction);
+    const rowTerm = terms.rows;
+    const rowTermSingle = terms.row;
 
     // Get color mapping from project (if available)
     const getColorName = (letter) => {
@@ -356,7 +358,8 @@ export const getContextualConfigNotes = (step) => {
                             }
                         } else if (phase.type === 'repeat') {
                             const construction = step.construction || 'flat';
-                            const rowTerm = construction === 'round' ? 'round' : 'row';
+                            const terms = getConstructionTerms(construction);
+                            const rowTerm = terms.row;
                             const times = phase.config?.times || phase.times || 1;
                             const frequency = phase.config?.regularRows || phase.regularRows || 1;
 
@@ -555,7 +558,8 @@ const getNonShapingStepDescription = (step) => {
 
         if (rowsInPattern && parseInt(rowsInPattern) > 1) {
             const construction = step.construction || 'flat';
-            const rowTerm = construction === 'round' ? 'round' : 'row';
+            const terms = getConstructionTerms(construction);
+            const rowTerm = terms.row;
             enhancedPattern = `${rowsInPattern}-${rowTerm} ${pattern}`;
         }
     }
@@ -817,7 +821,8 @@ const getTechnicalDataDisplay = (step, project = null) => {
         if (hasDistancePhases && totalDistance > 0) {
             const units = project?.defaultUnits || 'inches';
             const construction = step.construction || 'flat';
-            const rowTerm = construction === 'round' ? 'rounds' : 'rows';
+            const terms = getConstructionTerms(construction);
+            const rowTerm = terms.rows;
 
             if (totalEstimatedRows > 0) {
                 const distanceDisplay = `${totalDistance} ${units} (~${Math.round(totalEstimatedRows)} ${rowTerm})`;

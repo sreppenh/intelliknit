@@ -105,7 +105,7 @@ const PhaseConfigForm = ({
             // Setup Rows Configuration
             <div>
               <label className="form-label">
-                How many plain {construction === 'round' ? 'rounds' : 'rows'}?
+                How many plain {terms.rows}?
               </label>
 
               {/* Quick Presets */}
@@ -120,7 +120,7 @@ const PhaseConfigForm = ({
                         : 'border-wool-200 hover:border-sage-300'
                         }`}
                     >
-                      {value} {construction === 'round' ? 'rounds' : 'rows'}
+                      {value} {terms.rows}
                     </button>
                   ))}
                 </div>
@@ -199,7 +199,7 @@ const PhaseConfigForm = ({
               <div>
                 <label className="form-label">
                   <label className="form-label">
-                    For how many {construction === 'round' ? 'rounds' : 'rows'}?
+                    For how many {terms.rows}?
                   </label>
                 </label>
 
@@ -209,9 +209,9 @@ const PhaseConfigForm = ({
                   <div className="grid grid-cols-3 gap-2">
 
                     {[
-                      { value: 1, label: `1 ${construction === 'round' ? 'Round' : 'Row'}` },
-                      { value: 2, label: `2 ${construction === 'round' ? 'Rounds' : 'Rows'}` },
-                      { value: 3, label: `3 ${construction === 'round' ? 'Rounds' : 'Rows'}` }
+                      { value: 1, label: `1 ${terms.Row}` },
+                      { value: 2, label: `2 ${terms.Rows}` },
+                      { value: 3, label: `3 ${terms.Rows}` }
                     ].map(option => {
                       const wouldBeValid = (tempPhaseConfig.amount || 1) * option.value <= getStitchContext().availableStitches;
 
@@ -358,8 +358,8 @@ const PhaseConfigForm = ({
                   {/* Preset Buttons - Simplified */}
                   <div className="grid grid-cols-2 gap-2 mb-4">
                     {[
-                      { value: 1, label: `Every ${terms.Row}` },
-                      { value: 2, label: `Every Other ${terms.Row}` }
+                      { value: 1, label: terms.everyRow },
+                      { value: 2, label: terms.everyOtherRow }
                     ].map(option => (
                       <button
                         key={option.value}
