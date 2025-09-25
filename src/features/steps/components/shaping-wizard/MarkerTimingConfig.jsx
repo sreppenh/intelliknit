@@ -30,7 +30,6 @@ const MarkerTimingConfig = ({
             amountMode: 'times',
             times: 1,
             targetStitches: null,
-            intervalType: 'rows'
         },
         { type: 'finish', regularRows: construction === 'flat' ? 2 : 1 }
     ]);
@@ -72,17 +71,8 @@ const MarkerTimingConfig = ({
                 const construction_term = construction === 'round' ? 'round' : 'row';
                 const times = phase.times || 1;
 
-                let frequencyDisplay;
-                if (phase.intervalType === 'distance') {
-                    const gaugeResult = calculateRowsFromDistance(phase.regularRows, project, construction);
-                    const units = project?.defaultUnits || 'inches';
-                    frequencyDisplay = gaugeResult.hasGauge
-                        ? `${phase.regularRows} ${units} (~${gaugeResult.estimatedRows} ${construction_term}s)`
-                        : `${phase.regularRows} ${units}`;
-                } else {
-                    const frequency = phase.regularRows || 1;
-                    frequencyDisplay = `${frequency} ${construction_term}s`;
-                }
+                const frequency = phase.regularRows || 1;
+                const frequencyDisplay = `${frequency} ${construction_term}s`;
 
                 lines.push(`Phase ${index + 1}: Repeat every ${frequencyDisplay} ${times} times`);
             } else if (phase.type === 'finish') {
@@ -104,24 +94,7 @@ const MarkerTimingConfig = ({
             { type: 'finish', regularRows: finishingRows }
         ];
 
-        const processedPhases = allPhases.map(phase => {
-            if (phase.type === 'repeat' && phase.intervalType === 'distance') {
-                const gaugeResult = calculateRowsFromDistance(
-                    phase.regularRows,
-                    project,
-                    construction
-                );
-
-                return {
-                    ...phase,
-                    regularRows: gaugeResult.estimatedRows || phase.regularRows,
-                    originalDistance: phase.regularRows,
-                    convertedFromDistance: true
-                };
-            }
-            return phase;
-        });
-
+        const processedPhases = allPhases;
 
         // Generate basic instruction data
         const finalInstructionData = {
@@ -241,34 +214,6 @@ const MarkerTimingConfig = ({
             }
         };
 
-        // Check if this step has distance-based repeat phases
-        const hasDistancePhases = processedPhases.some(phase =>
-            phase.type === 'repeat' && phase.intervalType === 'distance'
-        );
-
-        if (hasDistancePhases) {
-            // Find the first distance-based repeat phase to get the target distance and total iterations
-            const firstDistancePhase = processedPhases.find(phase =>
-                phase.type === 'repeat' && phase.intervalType === 'distance'
-            );
-
-            if (firstDistancePhase) {
-                console.log('=== FOUND DISTANCE PHASE ===', firstDistancePhase);
-                // Add distance iterations to the calculation object (where it can be accessed in knitting mode)
-                enhancedInstructionData.calculation.distanceIterations = {
-                    currentIteration: 1,
-                    totalIterations: firstDistancePhase.times || 1,
-                    targetDistance: firstDistancePhase.originalDistance || firstDistancePhase.regularRows,
-                    savedRowsPerDistance: null,
-                    completedIterations: []
-                };
-            }
-        }
-        console.log('Enhanced instruction data:', enhancedInstructionData);
-        console.log('=== FINAL CHECK BEFORE SAVE ===');
-        console.log('hasDistancePhases:', hasDistancePhases);
-        console.log('enhancedInstructionData.calculation.distanceIterations:', enhancedInstructionData.calculation.distanceIterations);
-        console.log('About to call onComplete with:', enhancedInstructionData);
         onComplete(enhancedInstructionData);
     };
 
@@ -293,33 +238,6 @@ const MarkerTimingConfig = ({
             finishingRows
         );
 
-        // Override for distance-based timing display
-        if (repeatPhase?.intervalType === 'distance') {
-            // Calculate total distance from all distance phases
-            let totalDistance = 0;
-            allPhases.forEach(phase => {
-                if (phase.type === 'repeat' && phase.intervalType === 'distance') {
-                    totalDistance += (phase.regularRows || 0) * (phase.times || 1);
-                }
-            });
-
-            // Also add any completed distance phases
-            completedPhases.forEach(phase => {
-                if (phase.intervalType === 'distance') {
-                    totalDistance += (phase.regularRows || 0) * (phase.times || 1);
-                }
-            });
-
-            const units = project?.defaultUnits || 'inches';
-
-            return {
-                ...result,
-                totalDistance: `${totalDistance} ${units}`, // New field for distance
-                errors: [],
-                isValid: true
-            };
-        }
-
         return {
             ...result,
             errors: [],
@@ -338,7 +256,6 @@ const MarkerTimingConfig = ({
             times: repeatPhase?.times || 1,
             amountMode: repeatPhase?.amountMode || 'times',
             targetStitches: repeatPhase?.targetStitches,
-            intervalType: repeatPhase?.intervalType || 'rows'
         };
 
         setCompletedPhases(prev => [...prev, newPhase]);
@@ -405,12 +322,7 @@ const MarkerTimingConfig = ({
                                 return (
                                     <div key={phase.id} className="text-sm text-wool-600 text-left flex items-center justify-between">
                                         <span>
-                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.intervalType === 'distance' ? (() => {
-                                                const gaugeResult = calculateRowsFromDistance(phase.regularRows, project, construction);
-                                                return gaugeResult.hasGauge
-                                                    ? `${phase.regularRows} ${project?.defaultUnits || 'inches'} (~${gaugeResult.estimatedRows} rows)`
-                                                    : `${phase.regularRows} ${project?.defaultUnits || 'inches'}`;
-                                            })() : `${phase.regularRows + 1} ${construction === 'round' ? 'rounds' : 'rows'}`} {phase.times} times ({phaseEndingStitches} sts)
+                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.regularRows + 1} {construction === 'round' ? 'rounds' : 'rows'} {phase.times} times ({phaseEndingStitches} sts)
                                         </span>
                                         <button
                                             onClick={() => handleDeletePhase(phase.id)}
@@ -449,7 +361,7 @@ const MarkerTimingConfig = ({
                                         {construction === 'round' ? 'rounds' : 'rows'}
                                     </span>
                                 </div>
-                                {construction === 'flat' && phases.find(p => p.type === 'repeat')?.intervalType === 'rows' && (
+                                {construction === 'flat' && (
                                     <p className="text-xs text-wool-500 mt-1">
                                         Must be even number for flat knitting to avoid shaping on wrong side
                                     </p>
