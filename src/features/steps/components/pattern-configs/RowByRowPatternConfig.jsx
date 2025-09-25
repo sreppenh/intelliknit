@@ -18,6 +18,8 @@ import {
 import { calculateRowStitchesLive, calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
 import PatternInputContainer from './Keyboards/PatternInputContainer';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+
 
 
 const RowByRowPatternConfig = ({
@@ -78,6 +80,9 @@ const RowByRowPatternConfig = ({
     const isEditMode = mode === 'edit';
     const isNotepadMode = mode === 'notepad';
     const isCreateMode = mode === 'create';
+
+    // Construction Awareness
+    const terms = getConstructionTerms(construction);
 
     // Check if a field is read-only
     const isReadOnly = (fieldName) => readOnlyFields.includes(fieldName);
@@ -828,8 +833,8 @@ const RowByRowPatternConfig = ({
                         />
                         <div className="text-center">
                             <div className="text-2xl mb-2">📋</div>
-                            <div className="font-semibold">Row-by-Row</div>
-                            <div className="text-sm opacity-75">Enter each row individually</div>
+                            <div className="font-semibold">{terms.Row}-by-{terms.Row}</div>
+                            <div className="text-sm opacity-75">Enter each {terms.row} individually</div>
                         </div>
                     </label>
 
@@ -899,7 +904,7 @@ const RowByRowPatternConfig = ({
                                 return (
                                     <div key={index} className="flex items-center gap-3 p-3 bg-white border-2 border-wool-200 rounded-lg">
                                         <div className="flex-shrink-0 text-sm font-medium text-wool-600 min-w-[80px]">
-                                            Row {rowNumber} ({rowSide}):
+                                            {terms.Row} {rowNumber} ({rowSide}):
                                         </div>
                                         <div className="flex-1 text-sm text-wool-700 font-mono">
                                             {instruction}
@@ -935,21 +940,21 @@ const RowByRowPatternConfig = ({
                             onClick={handleAddRow}
                             className="w-full py-3 px-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-500 hover:text-sage-700 hover:bg-sage-50 transition-colors font-medium"
                         >
-                            + Add Row {rowInstructions.length + 1}
+                            + Add {terms.Row} {rowInstructions.length + 1}
                         </button>
                     )}
 
                     {/* Pattern Summary */}
                     {rowInstructions.length > 0 && (
                         <div className="mt-3 text-sm text-wool-600 text-center">
-                            {rowInstructions.length} {rowInstructions.length === 1 ? 'row' : 'rows'} in pattern
+                            {rowInstructions.length} {rowInstructions.length === 1 ? terms.row : terms.rows} in pattern
                         </div>
                     )}
 
                     {/* Helper text for new users */}
                     {rowInstructions.length === 0 && !isReadOnly('rowInstructions') && (
                         <div className="mt-3 text-sm text-wool-500 text-center italic">
-                            Add your first row to get started
+                            Add your first {terms.row} to get started
                         </div>
                     )}
                 </div>
@@ -967,8 +972,7 @@ const RowByRowPatternConfig = ({
                         disabled={isReadOnly('rowsInPattern')}
                     />
                     <div className="form-help">
-                        Number of {construction === 'round' ? 'rounds' : 'rows'} in one complete pattern repeat
-                    </div>
+                        Number of {terms.rows} in one complete pattern repeat</div>
                     {isReadOnly('rowsInPattern') && (
                         <p className="text-xs text-yarn-600 mt-1">
                             Row count is locked to preserve calculations
@@ -1017,6 +1021,7 @@ const RowByRowPatternConfig = ({
                 wizardData={wizardData}
                 currentProject={currentProject}
                 onSave={handleSaveRow}
+                construction={construction}
                 keyboardComponent={
                     <PatternInputContainer
                         // Core state

@@ -8,6 +8,8 @@
 
 // ===== PATTERN MAPPINGS =====
 
+import { getConstructionTerms } from './ConstructionTerminology';
+
 const CAST_ON_METHODS = {
     'long_tail': 'Long Tail',
     'cable': 'Cable Cast On',
@@ -945,7 +947,9 @@ export const getComponentStatusWithDisplay = (component) => {
  * 🔄 UPDATED: Get user-friendly validation error message using centralized config
  * Replaces hardcoded arrays with getPatternConfig()
  */
-export const getPatternValidationError = (stitchPattern) => {
+export const getPatternValidationError = (stitchPattern, construction = 'flat') => {
+    const terms = getConstructionTerms(construction);
+
     if (!stitchPattern || !stitchPattern.pattern) {
         return 'No pattern selected';
     }
@@ -960,14 +964,14 @@ export const getPatternValidationError = (stitchPattern) => {
     if (config.requiresAdvancedRowByRow) {
         if (entryMode === 'row_by_row') {
             if (!rowInstructions || rowInstructions.length === 0) {
-                return 'Row-by-row mode requires at least one row instruction';
+                return `${terms.Row}-by-${terms.row} mode requires at least one ${terms.row} instruction`;
             }
         } else {
             if (!customText || customText.trim() === '') {
                 return 'Description mode requires pattern description';
             }
             if (!rowsInPattern || parseInt(rowsInPattern) <= 0) {
-                return 'Description mode requires number of rows in pattern';
+                return `Description mode requires number of ${terms.rows} in pattern`;
             }
         }
     }
@@ -984,7 +988,7 @@ export const getPatternValidationError = (stitchPattern) => {
     }
 
     if (config.requiresRowsInPattern && (!rowsInPattern || parseInt(rowsInPattern) <= 0)) {
-        return `${pattern} requires rows in pattern`;
+        return `${pattern} requires ${terms.rows} in pattern`;
     }
 
     if (pattern === 'Other' && (!customText || customText.trim() === '')) {

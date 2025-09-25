@@ -4,6 +4,7 @@ import { StandardModal } from '../../../../shared/components/modals/StandardModa
 import { formatRunningTotal, getPreviousRowStitches, calculateRowStitchesLive, calculateRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import { isRowComplete } from '../../../../shared/utils/stitchCalculatorUtils';
 import { getKeyboardPatternKey } from '../../../../shared/utils/stepDisplayUtils';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 const RowEntryModal = ({
     isOpen,
@@ -19,11 +20,14 @@ const RowEntryModal = ({
     getStitchCalculation,
     wizardData,
     currentProject,
+    construction,
     keyboardComponent,
     onSave
 }) => {
     // 🔧 CORRECTED renderRunningTotal function:
     // PHASE 2: In RowEntryModal.jsx - Update renderRunningTotal with validation
+
+    const terms = getConstructionTerms(construction);
 
     const renderRunningTotal = () => {
         const calculation = getStitchCalculation();
@@ -137,7 +141,10 @@ const RowEntryModal = ({
         return isRowComplete(tempRowText, calculation.previousStitches, customActionsLookup);
     };
 
-    const title = editingRowIndex === null ? `Row ${rowInstructions.length + 1}` : `Edit Row ${editingRowIndex + 1}`;
+    const title = editingRowIndex === null
+        ? `${terms.Row} ${rowInstructions.length + 1}`
+        : `Edit ${terms.Row} ${editingRowIndex + 1}`;
+
     const subtitle = `${getRowSide(currentRowNumber)}`;
 
     return (
@@ -202,7 +209,7 @@ const RowEntryModal = ({
                                     : undefined
                             }
                         >
-                            {editingRowIndex === null ? 'Add Row' : 'Save Row'}
+                            {editingRowIndex === null ? `Add ${terms.Row}` : `Save ${terms.Row}`}
                         </button>
                     </div>
                 )}
