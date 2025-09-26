@@ -118,6 +118,9 @@ export const useStepGeneration = (construction = 'flat') => {
       else if (type === 'marker_phases' && config?.calculation?.instruction) {
         instruction += ` with ${config.calculation.instruction}`;
       }
+      else if (type === 'bind_off_shaping' && config?.calculation?.instruction) {
+        instruction += ` with ${config.calculation.instruction}`;
+      }
       // Add this AFTER the existing phases case:
       else if (type === 'intrinsic_pattern' && config?.calculation?.instruction) {
         instruction += ` with ${config.calculation.instruction}`;

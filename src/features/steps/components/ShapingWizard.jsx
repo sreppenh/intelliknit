@@ -10,6 +10,7 @@ import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
+import BindOffShapingConfig from './shaping-wizard/BindOffShapingConfig';
 
 const ShapingWizard = ({
   wizardData,
@@ -203,6 +204,28 @@ const ShapingWizard = ({
             wizard={shapingWizard}
             onCancel={handleCancel}
             mode={mode}
+          />
+        );
+
+      case 'bind_off_shaping':
+        return (
+          <BindOffShapingConfig
+            shapingData={shapingData}
+            setShapingData={setShapingData}
+            currentStitches={currentStitches}
+            construction={construction}
+            component={component}
+            componentIndex={componentIndex}
+            editingStepIndex={editingStepIndex}
+            onExitToComponentSteps={onExitToComponentSteps}
+            onComplete={handleConfigComplete}
+            onBack={() => setStep(1)}
+            wizardData={wizardData}
+            onGoToLanding={onGoToLanding}
+            wizard={shapingWizard}
+            onCancel={handleCancel}
+            mode={mode}
+            project={project}
           />
         );
 

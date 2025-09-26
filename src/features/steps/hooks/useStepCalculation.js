@@ -87,6 +87,18 @@ export const useStepCalculation = () => {
           };
         }
 
+        else if (type === 'bind_off_shaping' && config?.calculation) {
+          return {
+            success: true,
+            totalRows: config.calculation.totalRows,
+            startingStitches: config.calculation.startingStitches,
+            endingStitches: config.calculation.endingStitches,
+            hasShaping: true,
+            shapingMode: 'bind_off_shaping',
+            netStitchChange: config.calculation.netStitchChange
+          };
+        }
+
         // Add this AFTER the existing phases case:
         else if (type === 'intrinsic_pattern' && config?.calculation) {
           return {
