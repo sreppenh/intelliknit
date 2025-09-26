@@ -324,6 +324,17 @@ export const getContextualConfigNotes = (step) => {
                 });
                 notes.push(phaseDescriptions.join('\n'));
             }
+        } else if (shapingConfig.type === 'bind_off_shaping') {
+            // Show phase breakdown for bind-off shaping
+            const phases = shapingConfig.config?.phases;
+            if (phases && phases.length > 0) {
+                const phaseDescriptions = phases.map((phase, index) => {
+                    const methodText = phase.method === 'sloped' ? ' using sloped bind-off' : '';
+                    const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
+                    return `Phase ${index + 1}: Bind off ${phase.stitches} stitches at beginning of the ${nextRows}${methodText}`;
+                });
+                notes.push(phaseDescriptions.join('\n'));
+            }
         } else if (shapingConfig.type === 'marker_phases') {
             const config = shapingConfig.config;
             const sequences = config?.phases;
@@ -388,6 +399,8 @@ export const getContextualConfigNotes = (step) => {
                 }
             }
         }
+
+
 
 
     }
@@ -496,6 +509,12 @@ const getShapingStepDescription = (step) => {
 
     } else if (shapingConfig?.type === 'marker_phases') {
         shapingText = ` with marker-based shaping`;
+
+    } else if (shapingConfig?.type === 'bind_off_shaping') {
+        const phases = shapingConfig.config?.phases?.length || 0;
+        if (phases > 0) {
+            shapingText = ` with ${phases} bind-off phases`;
+        }
 
     } else if (shapingConfig?.type === 'intrinsic_pattern') {
         const action = shapingConfig.config?.action;

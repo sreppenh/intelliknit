@@ -27,7 +27,8 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
       icon: '✂️',
       description: 'Graduated bind-offs for shoulders and necklines',
       examples: 'Shoulder shaping, stepped necklines, armhole finishing',
-      comingSoon: false
+      comingSoon: false,
+      disabledForRound: true  // Add this flag
     },
     {
       id: 'phases',
@@ -64,37 +65,46 @@ const ShapingTypeSelector = ({ onTypeSelect, onCancel, currentStitches, construc
 
         {/* Shaping Type Cards */}
         <div className="stack-sm">
-          {shapingTypes.map((type) => (
-            <button
-              key={type.id}
-              onClick={() => !type.comingSoon && onTypeSelect(type.id)}
-              disabled={type.comingSoon}
-              className={`card-selectable w-full text-left ${type.comingSoon ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              <div className="flex items-start gap-4">
-                <div className="text-3xl flex-shrink-0">{type.icon}</div>
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-semibold text-base">{type.name}</h3>
-                    {type.isNew && (
-                      <span className="text-xs bg-sage-200 text-sage-700 px-2 py-1 rounded-full">
-                        New
-                      </span>
-                    )}
-                    {type.comingSoon && (
-                      <span className="text-xs bg-wool-200 text-wool-600 px-2 py-1 rounded-full">
-                        Coming Soon
-                      </span>
-                    )}
-                  </div>
-                  <p className="text-sm opacity-75 mb-2">{type.description}</p>
-                  <div className="text-xs opacity-60">
-                    <span className="font-medium">Examples:</span> {type.examples}
+          {shapingTypes.map((type) => {
+            const isDisabled = type.comingSoon || (type.disabledForRound && construction === 'round');
+
+            return (
+              <button
+                key={type.id}
+                onClick={() => !isDisabled && onTypeSelect(type.id)}
+                disabled={isDisabled}
+                className={`card-selectable w-full text-left ${isDisabled ? 'opacity-50 cursor-not-allowed' : ''}`}
+              >
+                <div className="flex items-start gap-4">
+                  <div className="text-3xl flex-shrink-0">{type.icon}</div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="font-semibold text-base">{type.name}</h3>
+                      {type.isNew && (
+                        <span className="text-xs bg-sage-200 text-sage-700 px-2 py-1 rounded-full">
+                          New
+                        </span>
+                      )}
+                      {type.comingSoon && (
+                        <span className="text-xs bg-wool-200 text-wool-600 px-2 py-1 rounded-full">
+                          Coming Soon
+                        </span>
+                      )}
+                      {type.disabledForRound && construction === 'round' && (
+                        <span className="text-xs bg-wool-200 text-wool-600 px-2 py-1 rounded-full">
+                          Flat Only
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm opacity-75 mb-2">{type.description}</p>
+                    <div className="text-xs opacity-60">
+                      <span className="font-medium">Examples:</span> {type.examples}
+                    </div>
                   </div>
                 </div>
-              </div>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
 
         {/* Updated Helpful Context */}

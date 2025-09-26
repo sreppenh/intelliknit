@@ -469,8 +469,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
         <EditScreenHeader
           onBack={onBack}
           onGoToLanding={onGoToLanding}
-          title={`${component.name} - ${componentStatus.display.replace(/^[^\w\s]+\s*/, '')}`} // Strip leading emoji
-          subtitle={`Managing ${component.steps.length} steps`}
+          title={`${component.name} - ${componentStatus.display.replace(/^[^\w\s]+\s*/, '')}`}
+          subtitle={`${currentProject?.name} • Managing ${component.steps.length} steps`}
           statusClass={componentStatus.headerStyle}
           statusType={componentStatus.status}
         />

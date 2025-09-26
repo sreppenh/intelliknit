@@ -8,6 +8,7 @@ import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
 import { useActiveContext } from '../../../../shared/hooks/useActiveContext';
+import { InputModal } from '../../../../shared/components/modals/StandardModal';
 
 const BindOffShapingConfig = ({
     shapingData,
@@ -36,9 +37,14 @@ const BindOffShapingConfig = ({
     const [phases, setPhases] = useState([]);
     const [currentPhase, setCurrentPhase] = useState({
         method: 'standard',
-        stitches: 8,
-        rows: 2
+        stitches: 1,
+        rows: 1
     });
+
+    // Quick setup modal state
+    const [showQuickSetup, setShowQuickSetup] = useState(false);
+    const [quickSetupInput, setQuickSetupInput] = useState('');
+    const [quickSetupError, setQuickSetupError] = useState('');
 
     const terms = getConstructionTerms(construction);
     const basePattern = wizard?.wizardData?.stitchPattern?.pattern || 'pattern';
@@ -64,7 +70,7 @@ const BindOffShapingConfig = ({
         setCurrentPhase({
             method: 'standard',
             stitches: Math.min(8, maxStitchesForPhase),
-            rows: 2
+            rows: 1
         });
     };
 
@@ -73,22 +79,37 @@ const BindOffShapingConfig = ({
     };
 
     const handleQuickSetup = () => {
-        const sequence = prompt('Enter bind-off sequence (e.g., "8,6,4,2"):');
-        if (!sequence) return;
+        setQuickSetupInput('');
+        setQuickSetupError('');
+        setShowQuickSetup(true);
+    };
 
+    const handleQuickSetupConfirm = () => {
         try {
-            const amounts = sequence.split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n) && n > 0);
-            if (amounts.length === 0) return;
+            // Accept both comma and space-separated input
+            const amounts = quickSetupInput
+                .split(/[,\s]+/) // Split on comma OR whitespace
+                .map(n => parseInt(n.trim()))
+                .filter(n => !isNaN(n) && n > 0);
+
+            if (amounts.length === 0) {
+                setQuickSetupError('Please enter at least one number');
+                return;
+            }
 
             const newPhases = amounts.map((amount, index) => ({
                 id: Date.now() + index,
                 method: currentPhase.method,
                 stitches: amount,
-                rows: 2
+                rows: 1 // Default to 1 row per phase
             }));
 
             setPhases(newPhases);
+            setShowQuickSetup(false);
+            setQuickSetupInput('');
+            setQuickSetupError('');
         } catch (error) {
+            setQuickSetupError('Invalid input. Please try again.');
             IntelliKnitLogger.error('Quick setup parsing failed', error);
         }
     };
@@ -379,6 +400,52 @@ const BindOffShapingConfig = ({
                 onClose={clearError}
                 onRetry={handleComplete}
             />
+
+            {/* Quick Setup Modal */}
+            <InputModal
+                isOpen={showQuickSetup}
+                onClose={() => {
+                    setShowQuickSetup(false);
+                    setQuickSetupInput('');
+                    setQuickSetupError('');
+                }}
+                onConfirm={handleQuickSetupConfirm}
+                title="Quick Setup"
+                subtitle="Enter your bind-off sequence"
+                icon="✨"
+                primaryButtonText="Create Phases"
+                secondaryButtonText="Cancel"
+            >
+                <div className="space-y-4">
+                    <div>
+                        <label className="form-label">Stitch amounts</label>
+                        <input
+                            type="text"
+                            value={quickSetupInput}
+                            onChange={(e) => {
+                                setQuickSetupInput(e.target.value);
+                                setQuickSetupError('');
+                            }}
+                            placeholder="8 6 4 2"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
+                            data-modal-focus
+                        />
+                        {quickSetupError && (
+                            <p className="text-xs text-red-600 mt-1">{quickSetupError}</p>
+                        )}
+                    </div>
+
+                    <div className="help-block">
+                        <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 How to use</h4>
+                        <div className="text-sm text-sage-600 space-y-1">
+                            <div>• Enter numbers separated by spaces or commas</div>
+                            <div>• Example: "8 6 4 2" or "8,6,4,2"</div>
+                            <div>• Each number creates a phase with 1 row</div>
+                            <div>• You can adjust rows and method after creation</div>
+                        </div>
+                    </div>
+                </div>
+            </InputModal>
         </div>
     );
 };
