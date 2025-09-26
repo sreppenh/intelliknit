@@ -373,7 +373,7 @@ const ChecklistTab = ({ project, onProjectUpdate }) => {
                                 )}
                                 <button
                                     onClick={(e) => handleChecklistMenuAction('delete', categoryId, task.id, e)}
-                                    className="w-full px-4 py-3 text-left text-red-600 hover:bg-red-50 text-sm flex items-center gap-2 transition-colors font-medium border-t border-wool-100"
+                                    className="delete-menu-item"
                                 >
                                     🗑️ Delete
                                 </button>

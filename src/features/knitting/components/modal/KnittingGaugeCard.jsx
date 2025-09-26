@@ -14,13 +14,7 @@ const KnittingGaugeCard = ({
 
     return (
         <div className="flex-1 flex flex-col bg-gradient-to-br from-yarn-50 via-yarn-25 to-white relative overflow-hidden">
-            {/* Yarn ball texture overlay */}
-            <div className="absolute inset-0 opacity-8 pointer-events-none">
-                <div className="w-full h-full" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23f59e0b' fill-opacity='0.1'%3E%3Ccircle cx='20' cy='20' r='15'/%3E%3Ccircle cx='60' cy='20' r='12'/%3E%3Ccircle cx='40' cy='50' r='18'/%3E%3Ccircle cx='70' cy='65' r='10'/%3E%3Ccircle cx='15' cy='65' r='13'/%3E%3C/g%3E%3C/svg%3E")`,
-                    backgroundSize: '80px 80px'
-                }} />
-            </div>
+
 
             <div className="flex-1 flex flex-col items-center justify-center px-6 py-8 text-center relative z-10">
                 {/* Icon with measuring theme */}

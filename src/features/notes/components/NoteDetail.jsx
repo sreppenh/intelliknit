@@ -486,10 +486,10 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
                         </div>
                         <button
                             onClick={() => setShowDeleteModal(true)}
-                            className="btn-tertiary btn-sm text-red-600 hover:bg-red-50"
+                            className="btn-danger btn-sm"
                             title="Delete note"
                         >
-                            🗑️
+                            🗑️ Delete
                         </button>
                     </div>
                 </div>
@@ -505,10 +505,11 @@ const NoteDetail = ({ onBack, onGoToLanding, onEditSteps }) => {
                                 <h3 className="text-lg font-semibold text-wool-700">🧶 Instruction</h3>
                                 <button
                                     onClick={() => setShowDeleteInstructionModal(true)}
-                                    className="p-1.5 text-red-500 hover:bg-red-50 rounded-lg transition-colors text-sm"
-                                    title="Delete"
+                                    className="delete-icon-sm"
+                                    title="Delete instruction"
+                                    aria-label="Delete instruction"
                                 >
-                                    🗑️
+                                    ×
                                 </button>
                             </div>
 

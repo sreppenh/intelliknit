@@ -230,7 +230,7 @@ const EditProjectDetails = ({ onBack, onGoToLanding }) => {
               ))}
               <button
                 onClick={() => addArrayItem('yarns')}
-                className="w-full mt-2 py-2 px-4 border-2 border-dashed border-wool-300 rounded-lg text-wool-600 hover:border-sage-400 hover:text-sage-600 transition-colors text-sm font-medium"
+                className="suggestion-bubble"
               >
                 + Add Another Yarn
               </button>
@@ -262,7 +262,7 @@ const EditProjectDetails = ({ onBack, onGoToLanding }) => {
               ))}
               <button
                 onClick={() => addArrayItem('needles')}
-                className="w-full mt-2 py-2 px-4 border-2 border-dashed border-wool-300 rounded-lg text-wool-600 hover:border-sage-400 hover:text-sage-600 transition-colors text-sm font-medium"
+                className="suggestion-bubble"
               >
                 + Add Another Needle
               </button>
