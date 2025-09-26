@@ -196,11 +196,11 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                         <FileText size={14} />
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-lavender-700 mb-1">
+                        <div className="text-sm font-semibold text-lavender-700 mb-1 text-left">
                           Preparation Note
                         </div>
-                        <div className="text-sm text-lavender-600 italic">
-                          "{item.prepNote}"
+                        <div className="text-sm text-lavender-600 italic text-left">
+                          {item.prepNote}
                         </div>
                       </div>
                     </div>
@@ -218,11 +218,11 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                         🔧
                       </div>
                       <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-sage-700 mb-1">
+                        <div className="text-sm font-semibold text-sage-700 mb-1 text-left">
                           Assembly Notes
                         </div>
-                        <div className="text-sm text-sage-600 italic">
-                          "{item.afterNote}"
+                        <div className="text-sm text-sage-600 italic text-left">
+                          {item.afterNote}
                         </div>
                       </div>
                     </div>
@@ -240,11 +240,11 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                   <div
                     key={item.id}
                     onClick={() => handleStepClick(stepIndex)}
-                    className={`border-2 rounded-xl p-4 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md ${isCompleted
+                    className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md ${isCompleted
                       ? 'bg-sage-50 border-sage-300'
                       : isCurrentStep
-                        ? 'bg-yarn-25 border-yarn-400 shadow-md'
-                        : 'bg-white border-gray-200 hover:border-sage-300'
+                        ? 'bg-yarn-50 border-sage-400 shadow-md'
+                        : 'bg-white border-gray-200 hover:border-gray-300'
                       }`}
                   >
                     <div className="flex items-start gap-3">
@@ -265,71 +265,56 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
 
                       {/* Step Content */}
                       <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2 mb-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-sm font-medium text-gray-500">
-                              Step {stepIndex + 1}
+                        {/* Step number and badge */}
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-xs font-semibold text-gray-500">
+                            STEP {stepIndex + 1}
+                          </span>
+                          {isCurrentStep && !isCompleted && (
+                            <span className="text-xs bg-sage-500 text-white px-2 py-0.5 rounded-full font-semibold">
+                              CURRENT
                             </span>
-                            {isCurrentStep && !isCompleted && (
-                              <span className="text-xs bg-sage-200 text-sage-800 px-2 py-0.5 rounded-full font-medium">
-                                CURRENT
-                              </span>
-                            )}
-                          </div>
+                          )}
                         </div>
 
                         {/* Main Description */}
-                        <div className={`text-sm font-medium mb-1 ${isCompleted
+                        <div className={`text-base font-medium mb-2 text-left ${isCompleted
                           ? 'text-gray-500 line-through'
                           : isCurrentStep
-                            ? 'text-sage-800'
+                            ? 'text-gray-900'
                             : 'text-gray-800'
                           }`}>
                           {description}
                         </div>
 
-                        {/* Technical Data */}
-                        {technicalData && (
-                          <div className="text-xs text-gray-500">
-                            {technicalData}
-                          </div>
-                        )}
+                        {/* Technical Data + Row Progress Combined */}
+                        <div className="text-xs text-gray-500 text-left">
+                          {(() => {
+                            const storageKey = `row-counter-${currentProject.id}-${activeComponent.id}-${stepIndex}`;
+                            const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
+                            const currentRow = rowState.currentRow || 1;
+                            const totalRows = step.totalRows || 1;
+
+                            let rowInfo = null;
+                            if (isLengthBasedStep(step)) {
+                              rowInfo = `Row ${currentRow}`;
+                            } else if (totalRows > 1) {
+                              rowInfo = `Row ${currentRow} of ${totalRows}`;
+                            }
+
+                            // Combine technical data with row info
+                            if (technicalData && rowInfo) {
+                              return `${technicalData} • ${rowInfo}`;
+                            } else if (technicalData) {
+                              return technicalData;
+                            } else if (rowInfo) {
+                              return rowInfo;
+                            }
+                            return null;
+                          })()}
+                        </div>
                       </div>
 
-                      {/* Row Progress */}
-                      {(() => {
-                        const storageKey = `row-counter-${currentProject.id}-${activeComponent.id}-${stepIndex}`;
-                        const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
-                        const currentRow = rowState.currentRow || 1;
-
-                        // Check if this is a length-based step
-                        if (isLengthBasedStep(step)) {
-                          return (
-                            <div className="text-xs text-gray-500 mt-1">
-                              Row {currentRow}
-                            </div>
-                          );
-                        }
-
-                        // Traditional steps with fixed row counts
-                        const totalRows = step.totalRows || 1;
-                        if (totalRows === 1) {
-                          return null; // Don't show row progress for single-action steps
-                        }
-
-                        return (
-                          <div className="text-xs text-gray-500 mt-1">
-                            Row {currentRow} of {totalRows}
-                          </div>
-                        );
-                      })()}
-
-                      {/* Tap Indicator */}
-                      <div className="flex-shrink-0 text-gray-400 self-center">
-                        <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor">
-                          <path d="M6 4l4 4-4 4V4z" />
-                        </svg>
-                      </div>
                     </div>
                   </div>
                 );
