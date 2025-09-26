@@ -37,7 +37,7 @@ const BindOffShapingConfig = ({
     const [phases, setPhases] = useState([]);
     const [currentPhase, setCurrentPhase] = useState({
         method: 'standard',
-        stitches: 1,
+        stitches: 8,
         rows: 1
     });
 
@@ -70,6 +70,23 @@ const BindOffShapingConfig = ({
         setCurrentPhase({
             method: 'standard',
             stitches: Math.min(8, maxStitchesForPhase),
+            rows: 1
+        });
+    };
+
+    const handleBindOffAll = () => {
+        const newPhase = {
+            id: Date.now(),
+            method: currentPhase.method,
+            stitches: remainingStitches,
+            rows: 1
+        };
+        setPhases(prev => [...prev, newPhase]);
+
+        // Reset current phase
+        setCurrentPhase({
+            method: 'standard',
+            stitches: 0, // No more stitches available
             rows: 1
         });
     };
@@ -260,7 +277,7 @@ const BindOffShapingConfig = ({
                             {phases.length === 0 ? 'First Phase' : `Phase ${phases.length + 1}`}
                         </h4>
                         {phases.length === 0 && (
-                            <button onClick={handleQuickSetup} className="suggestion-bubble text-xs">
+                            <button onClick={handleQuickSetup} className="btn-secondary text-xs">
                                 Quick Setup
                             </button>
                         )}
@@ -333,6 +350,20 @@ const BindOffShapingConfig = ({
                                 + Add This Phase
                             </button>
                         </div>
+
+                        {/* Bind Off All Remaining - Special Action */}
+                        {remainingStitches > 0 && (
+                            <div className="pt-2">
+                                <button
+                                    onClick={handleBindOffAll}
+                                    className="btn-secondary w-full"
+                                >
+                                    Bind Off All {remainingStitches} Remaining Stitches
+                                </button>
+                            </div>
+                        )}
+
+
                     </div>
                 </div>
 
