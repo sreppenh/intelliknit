@@ -58,46 +58,67 @@ body.modal-open {
 
 /* ===== 2. BUTTON SYSTEM ===== */
 
+/* Base button properties - applied to all button variants */
+.btn-base {
+  @apply rounded-xl font-semibold shadow-sm transition-all duration-200;
+  @apply focus:ring-2 focus:ring-offset-2 focus:outline-none;
+  /* Consistent layout and sizing */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  min-height: 48px;
+}
+
 .btn-primary {
-  @apply bg-sage-500 hover:bg-sage-600 text-white py-4 px-6 rounded-xl font-semibold shadow-sm transition-colors;
-  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
-  @apply disabled:bg-wool-400 disabled:cursor-not-allowed;
+  @apply btn-base bg-sage-500 hover:bg-sage-600 text-white py-4 px-6;
+  @apply focus:ring-lavender-500;
+  @apply active:bg-sage-700 active:scale-[0.98];
+  @apply disabled:bg-wool-400 disabled:cursor-not-allowed disabled:opacity-60;
 }
 
 .btn-secondary {
-  @apply bg-sage-100 hover:bg-sage-200 text-sage-700 py-3 px-4 rounded-xl font-semibold border border-sage-200 transition-colors;
+  @apply btn-base bg-sage-100 hover:bg-sage-200 text-sage-700 py-3 px-4;
+  @apply border border-sage-200;
+  @apply focus:ring-sage-500;
+  @apply active:bg-sage-300 active:scale-[0.98];
+  @apply disabled:bg-wool-100 disabled:text-wool-400 disabled:cursor-not-allowed disabled:opacity-60;
 }
 
 .btn-tertiary {
-  @apply bg-wool-100 hover:bg-wool-200 text-wool-700 py-3 px-4 rounded-xl font-semibold border border-wool-200 transition-colors;
-  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
+  @apply btn-base bg-wool-100 hover:bg-wool-200 text-wool-700 py-3 px-4;
+  @apply border border-wool-200;
+  @apply focus:ring-lavender-500;
+  @apply active:bg-wool-300 active:scale-[0.98];
   @apply disabled:opacity-50 disabled:cursor-not-allowed;
 }
 
 .btn-info {
-  @apply bg-lavender-500 hover:bg-lavender-600 text-white py-3 px-4 rounded-xl font-semibold transition-colors;
-  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
-  @apply disabled:bg-lavender-300 disabled:cursor-not-allowed;
+  @apply btn-base bg-lavender-500 hover:bg-lavender-600 text-white py-3 px-4;
+  @apply focus:ring-lavender-500;
+  @apply active:bg-lavender-700 active:scale-[0.98];
+  @apply disabled:bg-lavender-300 disabled:cursor-not-allowed disabled:opacity-60;
 }
 
 .btn-danger {
-  @apply bg-red-50 hover:bg-red-100 text-red-700 py-3 px-4 rounded-xl font-semibold border border-red-200 transition-colors;
-  @apply focus:ring-2 focus:ring-red-500 focus:ring-offset-2;
-  /* Add these lines to prevent text wrapping */
-  white-space: nowrap;
-  min-height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  @apply btn-base bg-red-50 hover:bg-red-100 text-red-700 py-3 px-4;
+  @apply border border-red-200;
+  @apply focus:ring-red-500;
+  @apply active:bg-red-200 active:scale-[0.98];
+  @apply disabled:bg-red-50 disabled:text-red-400 disabled:cursor-not-allowed disabled:opacity-60;
 }
 
 /* Button size variants */
 .btn-sm {
   @apply py-2 px-3 text-sm;
+  min-height: 40px;
+  /* Slightly smaller but still touch-friendly */
 }
 
 .btn-lg {
   @apply py-4 px-6 text-lg;
+  min-height: 56px;
+  /* Larger for prominent actions */
 }
 
 /* Increment/decrement button system */
