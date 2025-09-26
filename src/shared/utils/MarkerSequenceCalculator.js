@@ -18,6 +18,11 @@ export class MarkerSequenceCalculator {
      * @returns {Object} - Complete calculation result
      */
     static calculateMarkerPhases(sequences, initialArray, construction) {
+        IntelliKnitLogger.debug('🚀 calculateMarkerPhases called', {
+            sequenceCount: sequences?.length,
+            hasInitialArray: !!initialArray,
+            construction
+        });
         if (!sequences || sequences.length === 0) {
             return {
                 error: 'Please add at least one sequence',
@@ -48,12 +53,12 @@ export class MarkerSequenceCalculator {
     }
 
     /**
-     * Calculate individual timeline for each sequence
-     * @param {Array} sequences - Array of sequence objects
-     * @param {string} construction - Construction type
-     * @param {number} startingStitches - Starting stitch count
-     * @returns {Array} - Array of sequence timeline objects
-     */
+  * Calculate individual timeline for each sequence
+  * @param {Array} sequences - Array of sequence objects
+  * @param {string} construction - Construction type
+  * @param {number} startingStitches - Starting stitch count
+  * @returns {Array} - Array of sequence timeline objects
+  */
     static calculateSequenceTimelines(sequences, construction, startingStitches) {
         const timelines = [];
 
@@ -61,32 +66,93 @@ export class MarkerSequenceCalculator {
             // Calculate when this sequence starts
             const startRow = this.calculateSequenceStartRow(sequence, timelines);
 
-            // Use PhaseCalculationService to calculate this sequence
-            const sequenceCalculation = PhaseCalculationService.calculateSequentialPhases(
-                sequence.phases,
+            // Marker sequences use instructionData, not traditional phases
+            const instructionData = sequence.instructionData;
+
+            if (!instructionData?.actions || !instructionData?.phases) {
+                IntelliKnitLogger.warn('Sequence missing instructionData, skipping', sequence);
+                continue;
+            }
+
+            IntelliKnitLogger.debug('Calculating timeline for sequence', {
+                sequenceName: sequence.name,
+                phases: instructionData.phases,
+                actions: instructionData.actions
+            });
+
+            // Use markerArrayUtils to calculate the progression
+            const progression = markerArrayUtils.calculateMarkerPhaseProgression(
+                instructionData.actions,
+                instructionData.phases,
                 startingStitches,
-                construction
+                0 // No finishing rows in this context
             );
 
-            if (sequenceCalculation.error) {
-                throw new Error(`Sequence "${sequence.name}": ${sequenceCalculation.error}`);
-            }
+            IntelliKnitLogger.debug('Progression calculated', progression);
+
+            // Calculate which rows have shaping actions
+            const activeRows = this.calculateMarkerActiveRows(startRow, instructionData.phases);
+
+            IntelliKnitLogger.debug('Active rows calculated', activeRows);
 
             // Create timeline for this sequence
             const timeline = {
                 sequenceId: sequence.id,
                 sequenceName: sequence.name,
                 startRow: startRow,
-                endRow: startRow + sequenceCalculation.totalRows - 1,
-                calculation: sequenceCalculation,
-                actions: sequence.instructionData?.actions || [],
-                activeRows: this.calculateActiveRows(startRow, sequenceCalculation)
+                endRow: startRow + progression.totalRows - 1,
+                totalRows: progression.totalRows,
+                stitchChangePerAction: progression.stitchChangePerAction,
+                instructionData: instructionData,
+                actions: instructionData.actions,
+                activeRows: activeRows
             };
 
             timelines.push(timeline);
         }
 
+        IntelliKnitLogger.success('All sequence timelines calculated', { count: timelines.length });
         return timelines;
+    }
+
+    /**
+     * Calculate which rows are active for marker-based shaping
+     * @param {number} startRow - Starting row number
+     * @param {Array} phases - instructionData.phases array
+     * @returns {Array} - Array of row numbers that have shaping actions
+     */
+    static calculateMarkerActiveRows(startRow, phases) {
+        const activeRows = [];
+        let currentRow = startRow;
+
+        IntelliKnitLogger.debug('Calculating active rows', { startRow, phaseCount: phases.length });
+
+        for (const phase of phases) {
+            IntelliKnitLogger.debug('Processing phase', phase);
+
+            if (phase.type === 'initial') {
+                // Initial phase has one shaping row
+                activeRows.push(currentRow);
+                currentRow++;
+            } else if (phase.type === 'repeat') {
+                const times = phase.times || 1;
+                const frequency = phase.regularRows; // This is the interval between shaping rows
+
+                for (let i = 0; i < times; i++) {
+                    // Regular rows (no shaping)
+                    currentRow += frequency - 1;
+                    // Shaping row at the end of each interval
+                    activeRows.push(currentRow);
+                    currentRow++;
+                }
+            } else if (phase.type === 'finish') {
+                // Finish phase has no shaping rows
+                currentRow += phase.regularRows || 1;
+            }
+        }
+
+        IntelliKnitLogger.debug('Active rows result', activeRows);
+        return activeRows;
     }
 
     /**
@@ -213,11 +279,11 @@ export class MarkerSequenceCalculator {
     }
 
     /**
-     * Apply actions to marker array
-     * @param {Array} currentArray - Current marker array
-     * @param {Array} actions - Actions to apply from sequences
-     * @returns {Array} - Updated marker array
-     */
+    * Apply actions to marker array
+    * @param {Array} currentArray - Current marker array
+    * @param {Array} actions - Actions to apply from sequences
+    * @returns {Array} - Updated marker array
+    */
     static applyActionsToArray(currentArray, actions) {
         if (!actions || actions.length === 0) {
             return currentArray;
@@ -227,10 +293,11 @@ export class MarkerSequenceCalculator {
 
         for (const action of actions) {
             // Each action should have the sequence timeline with instructionData
-            if (action.sequenceTimeline?.actions) {
+            const timeline = action.sequenceTimeline;
+            if (timeline?.instructionData?.actions) {
                 // Convert instruction actions to marker actions format
                 const markerActions = markerArrayUtils.convertInstructionToMarkerActions(
-                    action.sequenceTimeline.actions,
+                    timeline.instructionData.actions,
                     updatedArray
                 );
 

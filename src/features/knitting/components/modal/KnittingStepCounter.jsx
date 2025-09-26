@@ -12,6 +12,7 @@ import { useSideTracking } from '../../hooks/useSideTracking';
 import SimpleRowSettings from '../SimpleRowSettings';
 import { formatReadableInstruction } from '../../../../shared/utils/stepDescriptionUtils';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
+import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 
 
 // Gauge utilities
@@ -179,6 +180,14 @@ const KnittingStepCounter = ({
 
     // Calculate current stitch count based on step configuration
     const calculateCurrentStitchCount = (row) => {
+        console.log('🔍 calculateCurrentStitchCount called', {
+            row,
+            stepPattern: step.wizardConfig?.stitchPattern?.pattern,
+            hasShaping: step.wizardConfig?.hasShaping,
+            shapingType: step.wizardConfig?.shapingConfig?.type
+        });
+
+        // ... rest of function
         const patternName = step.wizardConfig?.stitchPattern?.pattern;
         if (patternName === 'Cast On') {
             return step.endingStitches || 0;
@@ -232,6 +241,134 @@ const KnittingStepCounter = ({
             if (calculation?.endingStitches) {
                 return calculation.endingStitches;
             }
+        }
+
+        // After the even_distribution block, add these two new blocks:
+
+        // Handle marker phases shaping
+        if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'marker_phases') {
+            const config = step.wizardConfig.shapingConfig.config;
+            const calculation = config?.calculation;
+
+            // Check if we have arrayEvolution data (ideal path)
+            if (calculation?.arrayEvolution && Array.isArray(calculation.arrayEvolution) && calculation.arrayEvolution.length > 0) {
+                const evolutionEntry = calculation.arrayEvolution
+                    .filter(entry => entry.row <= row)
+                    .sort((a, b) => b.row - a.row)[0];
+
+                if (evolutionEntry) {
+                    return evolutionEntry.totalStitches;
+                }
+            }
+
+            // Calculate on-the-fly using instructionData
+            const sequences = config?.phases;
+            if (sequences && sequences.length > 0) {
+                const sequence = sequences[0];
+                const instructionData = sequence.instructionData;
+
+                if (instructionData?.actions && instructionData?.phases) {
+                    const markerArray = config.markerSetup?.stitchArray || [];
+                    const startingStitches = markerArrayUtils.sumArrayStitches(markerArray);
+
+                    const stitchChangePerIteration = markerArrayUtils.calculateStitchChangePerIteration(instructionData.actions);
+
+                    // Walk through phases to find stitch count at this row
+                    let currentRow = 1;
+                    let currentStitches = startingStitches;
+
+                    for (const phase of instructionData.phases) {
+                        if (phase.type === 'initial') {
+                            if (row === currentRow) {
+                                return currentStitches + stitchChangePerIteration;
+                            }
+                            currentStitches += stitchChangePerIteration;
+                            currentRow++;
+                        } else if (phase.type === 'repeat') {
+                            const times = phase.times || 1;
+                            const frequency = phase.regularRows;
+
+                            for (let i = 0; i < times; i++) {
+                                // Regular rows (no change)
+                                for (let j = 0; j < frequency - 1; j++) {
+                                    if (row === currentRow) {
+                                        return currentStitches;
+                                    }
+                                    currentRow++;
+                                }
+                                // Shaping row (stitch change happens)
+                                if (row === currentRow) {
+                                    return currentStitches + stitchChangePerIteration;
+                                }
+                                currentStitches += stitchChangePerIteration;
+                                currentRow++;
+                            }
+                        } else if (phase.type === 'finish') {
+                            const finishRows = phase.regularRows || 1;
+                            for (let j = 0; j < finishRows; j++) {
+                                if (row === currentRow) {
+                                    return currentStitches;
+                                }
+                                currentRow++;
+                            }
+                        }
+                    }
+
+                    return currentStitches;
+                }
+            }
+
+            // Final fallback - but this should rarely be hit now
+            if (row === 1) {
+                return calculation?.startingStitches || step.startingStitches || 0;
+            }
+            return calculation?.endingStitches || step.endingStitches || 0;
+        }
+        // Handle bind-off shaping
+        if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'bind_off_shaping') {
+            console.log('📤 Bind-off shaping detected');
+            const calculation = step.wizardConfig.shapingConfig.config?.calculation;
+            console.log('Calculation phases:', calculation?.phases);
+
+            if (calculation?.phases) {
+                // Find which phase the current row is in
+                let currentStitchCount = calculation.startingStitches || step.startingStitches || 0;
+
+                for (const phase of calculation.phases) {
+                    const rowRange = phase.rowRange;
+                    let phaseStartRow, phaseEndRow;
+
+                    if (rowRange.includes('-')) {
+                        const [start, end] = rowRange.split('-').map(n => parseInt(n.trim()));
+                        phaseStartRow = start;
+                        phaseEndRow = end;
+                    } else {
+                        phaseStartRow = phaseEndRow = parseInt(rowRange);
+                    }
+
+                    if (row > phaseEndRow) {
+                        // We're past this phase - apply all its stitch changes
+                        currentStitchCount = phase.endingStitches;
+                    } else if (row >= phaseStartRow && row <= phaseEndRow) {
+                        // We're in this phase - show stitches AFTER completing this row
+                        const rowsCompleted = row - phaseStartRow + 1;
+                        const stitchesPerRow = phase.stitchChange / phase.rows;
+                        currentStitchCount = phase.startingStitches + (stitchesPerRow * rowsCompleted);
+                        break;
+                    } else {
+                        // We haven't reached this phase yet
+                        break;
+                    }
+                }
+
+                return Math.round(currentStitchCount);
+            }
+
+            // Fallback
+            if (row === 1) {
+                return calculation?.startingStitches || step.startingStitches || 0;
+            }
+            return calculation?.endingStitches || step.endingStitches || 0;
         }
 
         return step.startingStitches || 0;

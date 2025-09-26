@@ -37,7 +37,7 @@ const BindOffShapingConfig = ({
     const [phases, setPhases] = useState([]);
     const [currentPhase, setCurrentPhase] = useState({
         method: 'standard',
-        stitches: 8,
+        stitches: 1,
         rows: 1
     });
 

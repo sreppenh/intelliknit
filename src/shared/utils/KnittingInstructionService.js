@@ -283,6 +283,11 @@ function getShapingInstruction(step, currentRow, currentStitchCount, constructio
         return getMarkerPhaseInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project);
     }
 
+    // For bind-off shaping - multi-phase bind-off sequences
+    if (shapingConfig.type === 'bind_off_shaping') {
+        return getBindOffShapingInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project);
+    }
+
     // Fallback for unknown shaping types
     const patternName = getStepPatternName(step);
     return {
@@ -1277,3 +1282,107 @@ function isMarkerShapingRow(currentRow, phases) {
     return false;
 }
 
+/**
+ * Generate instruction for specific row in bind-off shaping
+ * Handles multi-phase bind-off sequences (e.g., shoulder shaping)
+ */
+function getBindOffShapingInstruction(step, currentRow, currentStitchCount, construction, shapingConfig, project) {
+    const calculation = shapingConfig.config?.calculation;
+
+    if (!calculation?.phases) {
+        return getFallbackInstruction(step, currentRow, currentStitchCount);
+    }
+
+    // Find which phase we're in using rowRange
+    for (const phase of calculation.phases) {
+        if (isRowInRange(currentRow, phase.rowRange)) {
+            return getBindOffPhaseRowInstruction(phase, currentRow, construction, step, project);
+        }
+    }
+
+    // Fallback if somehow no phase matches
+    return getFallbackInstruction(step, currentRow, currentStitchCount);
+}
+
+/**
+ * Helper: Check if current row falls within a phase's row range
+ * Handles both single rows ("5") and ranges ("5-8")
+ */
+function isRowInRange(currentRow, rowRange) {
+    if (!rowRange) return false;
+
+    if (rowRange.includes('-')) {
+        const [start, end] = rowRange.split('-').map(n => parseInt(n.trim()));
+        return currentRow >= start && currentRow <= end;
+    } else {
+        return currentRow === parseInt(rowRange);
+    }
+}
+
+/**
+ * Generate instruction for a specific row within a bind-off phase
+ * First row of phase = bind-off row, remaining rows = work in pattern
+ */
+function getBindOffPhaseRowInstruction(phase, currentRow, construction, step, project) {
+    const rowRange = phase.rowRange;
+    const startRow = rowRange.includes('-')
+        ? parseInt(rowRange.split('-')[0])
+        : parseInt(rowRange);
+
+    const isBindOffRow = currentRow === startRow;
+
+    if (isBindOffRow) {
+        // This is the bind-off row - extract the bind-off instruction with pattern
+        const bindOffInstruction = extractBindOffInstruction(phase.description, construction, step, project, currentRow);
+
+        return {
+            instruction: bindOffInstruction,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    } else {
+        // Work in pattern row between bind-offs
+        const baseInstruction = getBasePatternForCurrentRow(step, currentRow, currentRow, construction, project);
+
+        return {
+            instruction: baseInstruction,
+            isSupported: true,
+            needsHelp: false,
+            helpTopic: null
+        };
+    }
+}
+
+/**
+ * Extract clean bind-off instruction from phase description with pattern context
+ * Converts "BO 5 sts at beg of next 2 rows" to "Bind off 5 stitches at beginning of row, then work in pattern"
+ */
+function extractBindOffInstruction(description, construction, step, project, currentRow) {
+    if (!description) return 'Bind off stitches as established';
+
+    // Parse the phase description
+    // Format: "BO X sts at beg of next Y rows [using sloped bind-off]"
+    const match = description.match(/BO (\d+) sts at beg of/i);
+
+    if (match) {
+        const stitchCount = match[1];
+        const hasSloped = description.toLowerCase().includes('sloped');
+        const methodText = hasSloped ? ' using sloped bind-off' : '';
+
+        // Construction-aware instruction
+        const position = construction === 'round'
+            ? 'at beginning of round'
+            : 'at beginning of row';
+
+        // Get the base pattern the knitter is working in
+        const patternName = getStepPatternName(step);
+        const basePattern = getBasePatternForCurrentRow(step, currentRow, currentRow, construction, project);
+
+        // Combine bind-off with pattern instruction
+        return `Bind off ${stitchCount} stitches ${position}${methodText}, then ${basePattern}`;
+    }
+
+    // Fallback
+    return description;
+}
