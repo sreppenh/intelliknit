@@ -220,32 +220,55 @@ body.modal-open {
 
 /* ===== 3. FORM CONTROLS ===== */
 
-/* Input fields */
+/* Base input styling - shared properties */
+.input-base {
+  @apply w-full border-2 border-wool-200 rounded-xl text-base;
+  @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-300 focus:ring-opacity-50;
+  @apply transition-all duration-200 placeholder-wool-400 bg-white;
+  @apply disabled:bg-wool-50 disabled:cursor-not-allowed disabled:opacity-60;
+  min-height: 48px;
+  /* Accessibility: WCAG touch target */
+}
+
+/* Standard text inputs */
 .input-field {
-  @apply w-full border-2 border-wool-200 rounded-xl px-3 py-2.5 text-base;
-  @apply focus:border-sage-500 focus:ring-0 transition-colors;
-  @apply placeholder-wool-400 bg-white;
+  @apply input-base px-3 py-2.5;
 }
 
 .input-field-lg {
-  @apply w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base;
-  @apply focus:border-sage-500 focus:ring-0 transition-colors;
-  @apply placeholder-wool-400 bg-white;
+  @apply input-base px-4 py-4;
+  min-height: 56px;
 }
 
 /* Numeric inputs */
 .input-numeric {
-  @apply w-20 text-center border-2 border-wool-200 rounded-lg px-3 py-2 text-sm;
-  @apply focus:border-sage-500 focus:ring-2 focus:ring-sage-500 focus:ring-opacity-50 transition-colors;
-  @apply bg-white;
+  @apply input-base w-20 text-center px-3 py-2 text-sm;
+  min-height: 44px;
 }
 
 .input-numeric-lg {
   @apply input-numeric w-24 py-3 text-base;
+  min-height: 48px;
 }
 
 .input-numeric-sm {
   @apply input-numeric w-16 py-1 text-xs;
+  min-height: 40px;
+}
+
+/* Textarea */
+.input-textarea {
+  @apply input-base px-3 py-2.5 resize-none;
+  @apply min-h-[120px];
+}
+
+/* Legacy alias for backwards compatibility */
+.details-input-field {
+  @apply input-field;
+}
+
+.details-textarea {
+  @apply input-textarea;
 }
 
 /* Increment input groups */
@@ -320,7 +343,7 @@ body.modal-open {
 
 .segmented-option {
   @apply py-2 px-4 rounded-lg text-sm font-semibold transition-all duration-200;
-  @apply text-wool-600 hover:text-sage-600;
+  @apply text-wool-600 hover:text-sage-600 cursor-pointer;
 }
 
 .segmented-option-active {
@@ -331,28 +354,19 @@ body.modal-open {
   @apply text-sage-700;
 }
 
-/* Number entry */
-input[type="number"] {
-  -moz-appearance: textfield;
+/* Alternative segmented control variant (used in some places) */
+.segmented-control-alt {
+  @apply bg-wool-100 border-2 border-wool-200 rounded-xl p-1;
+  @apply hover:border-sage-300 transition-colors duration-200;
 }
 
-input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
+.segmented-option-alt {
+  @apply py-3 px-4 rounded-lg text-sm font-semibold transition-all duration-200;
+  @apply text-wool-600 hover:text-sage-600 cursor-pointer;
 }
 
-input[type="number"] {
-  pointer-events: auto;
-}
-
-input[type="number"]:focus {
-  outline: none;
-}
-
-/* Focus states */
-.focus-ring {
-  @apply focus:ring-2 focus:ring-lavender-500 focus:ring-offset-2;
+.segmented-option-alt-active {
+  @apply bg-sage-500 text-white shadow-sm transform scale-[1.02];
 }
 
 /* ===== 4. MODAL SYSTEM ===== */
