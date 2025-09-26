@@ -70,15 +70,14 @@ const MarkerTimingConfig = ({
                 );
                 lines.push(`Phase ${index + 1}: ${instruction.replace(/\s*\([+\-]?\d+\s*sts?\)\s*$/i, '')}`);
             } else if (phase.type === 'repeat') {
-                const construction_term = terms.row;
                 const times = phase.times || 1;
-
                 const frequency = phase.regularRows || 1;
-                const frequencyDisplay = `${frequency} ${construction_term}s`;
+                const frequencyDisplay = `${frequency} ${frequency === 1 ? terms.row : terms.rows}`;
 
                 lines.push(`Phase ${index + 1}: Repeat every ${frequencyDisplay} ${times} times`);
             } else if (phase.type === 'finish') {
-                lines.push(`Phase ${index + 1}: Work in ${basePattern} for ${phase.regularRows || 1} ${terms.row}`);
+                const finishRows = phase.regularRows || 1;
+                lines.push(`Phase ${index + 1}: Work in ${basePattern} for ${finishRows} ${finishRows === 1 ? terms.row : terms.rows}`);
             }
         });
 
@@ -325,10 +324,10 @@ const MarkerTimingConfig = ({
                                 return (
                                     <div key={phase.id} className="text-sm text-wool-600 text-left flex items-center justify-between">
                                         <span>
-                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.regularRows + 1} {getConstructionTerms(construction).rows} {phase.times} times ({phaseEndingStitches} sts)</span>
+                                            <span className="font-bold">Phase {index + 2}:</span> Repeat every {phase.regularRows + 1} {(phase.regularRows + 1) === 1 ? getConstructionTerms(construction).row : getConstructionTerms(construction).rows} {phase.times} times ({phaseEndingStitches} sts)</span>
                                         <button
                                             onClick={() => handleDeletePhase(phase.id)}
-                                            className="p-1 text-red-500 hover:bg-red-100 rounded transition-colors ml-2"
+                                            className="delete-icon-sm"
                                         >
                                             ✕
                                         </button>

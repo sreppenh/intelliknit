@@ -228,8 +228,10 @@ const getAdvancedPatternNotes = (step) => {
             const rowsToShow = rowInstructions.slice(0, 8);
             const formattedRows = rowsToShow.map((row, index) => {
                 // ✅ ENHANCED: Format for readability
+                const construction = step.construction || 'flat';
+                const terms = getConstructionTerms(construction);
                 const readableInstruction = formatReadableInstruction(row);
-                return `Row ${index + 1}: ${readableInstruction}`;
+                return `${terms.Row} ${index + 1}: ${readableInstruction}`;
             }).join('\n');
 
             // If there are more than 8 rows, add indicator
@@ -330,7 +332,9 @@ export const getContextualConfigNotes = (step) => {
             if (phases && phases.length > 0) {
                 const phaseDescriptions = phases.map((phase, index) => {
                     const methodText = phase.method === 'sloped' ? ' using sloped bind-off' : '';
-                    const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
+                    const construction = step.construction || 'flat';
+                    const terms = getConstructionTerms(construction);
+                    const nextRows = phase.rows === 1 ? `next ${terms.row}` : `next ${phase.rows} ${terms.rows}`;
                     return `Phase ${index + 1}: Bind off ${phase.stitches} stitches at beginning of the ${nextRows}${methodText}`;
                 });
                 notes.push(phaseDescriptions.join('\n'));
@@ -391,7 +395,9 @@ export const getContextualConfigNotes = (step) => {
                         } else if (phase.type === 'finish') {
                             const pattern = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
                             const rows = phase.config?.regularRows || phase.regularRows || 1;
-                            phaseDescriptions.push(`Phase ${index + 1}: Work in ${pattern} for ${rows} row${rows === 1 ? '' : 's'}`);
+                            const construction = step.construction || 'flat';
+                            const terms = getConstructionTerms(construction);
+                            phaseDescriptions.push(`Phase ${index + 1}: Work in ${pattern} for ${rows} ${rows === 1 ? terms.row : terms.rows}`);
                         }
                     });
 

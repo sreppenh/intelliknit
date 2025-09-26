@@ -119,10 +119,11 @@ export class PhaseCalculationService {
         totalRows += phaseRows;
         instructions.push(`work ${phaseRows} plain rows`);
 
+        const terms = getConstructionTerms(construction);
         phaseDetails.push({
           type: 'setup',
-          description: `Setup: Work ${phaseRows} plain ${phaseRows === 1 ? 'row' : 'rows'}`,
-          rowRange: `${startRow}-${endRow}`, // NEW: Add rowRange
+          description: `Setup: Work ${phaseRows} plain ${phaseRows === 1 ? terms.row : terms.rows}`,
+          rowRange: `${startRow}-${endRow}`,
           rows: phaseRows,
           startingStitches: currentStitchCount,
           endingStitches: currentStitchCount,
@@ -144,10 +145,11 @@ export class PhaseCalculationService {
         const positionText = config.position === 'beginning' ? 'at beginning' : 'at end';
         instructions.push(`bind off ${config.amount} stitches ${positionText} of next ${config.frequency} rows`);
 
+        const bindTerms = getConstructionTerms(construction);
         phaseDetails.push({
           type: 'bind_off',
-          description: `Bind off ${config.amount} stitches ${positionText} of next ${config.frequency} ${config.frequency === 1 ? 'row' : 'rows'}`,
-          rowRange: `${startRow}-${endRow}`, // NEW: Add rowRange
+          description: `Bind off ${config.amount} stitches ${positionText} of next ${config.frequency} ${config.frequency === 1 ? bindTerms.row : bindTerms.rows}`,
+          rowRange: `${startRow}-${endRow}`,
           amount: config.amount,
           frequency: config.frequency,
           position: config.position,
