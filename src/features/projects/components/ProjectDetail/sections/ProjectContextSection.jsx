@@ -246,9 +246,9 @@ const ProjectContextSection = ({
                                         key={priority}
                                         type="button"
                                         onClick={() => handleTempInputChange('priority', priority)}
-                                        className={`py-2 px-3 rounded-lg text-sm font-semibold transition-colors duration-200 ${tempFormData.priority === priority
-                                                ? 'bg-sage-500 text-white shadow-sm'
-                                                : 'text-wool-600 hover:text-sage-600'
+                                        className={`segmented-option-alt ${tempFormData.priority === priority
+                                                ? 'segmented-option-alt-active'
+                                                : ''
                                             }`}
                                     >
                                         {priority.charAt(0).toUpperCase() + priority.slice(1)}

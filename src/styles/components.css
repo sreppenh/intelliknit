@@ -262,6 +262,22 @@ body.modal-open {
   @apply min-h-[120px];
 }
 
+/* Input validation states */
+.input-field-error {
+  @apply border-red-300 bg-red-50;
+  @apply focus:border-red-500 focus:ring-red-300;
+}
+
+.input-field-success {
+  @apply border-sage-300 bg-sage-50;
+  @apply focus:border-sage-500 focus:ring-sage-300;
+}
+
+.input-field-warning {
+  @apply border-yarn-300 bg-yarn-50;
+  @apply focus:border-yarn-500 focus:ring-yarn-300;
+}
+
 /* Legacy alias for backwards compatibility */
 .details-input-field {
   @apply input-field;
