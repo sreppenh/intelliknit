@@ -94,7 +94,6 @@ const WizardHeader = ({ wizard, onBack, onCancel, onGoToLanding }) => {
       case 4:
         if (wizard.wizardData.hasShaping === false) return 'Duration';
         return 'Shaping';
-      case 5: return 'Preview';
       default: return 'Configuration';
     }
   };

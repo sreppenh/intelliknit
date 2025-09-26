@@ -18,7 +18,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
 import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../shared/utils/stepDisplayUtils';
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
-import StepPreview from './wizard-steps/StepPreview';
+import StepPreview from './wizard-steps/xx StepPreview';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
@@ -245,8 +245,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
         return wizardData.hasShaping !== undefined || wizardData.choiceMade;
       case 4: // Duration Config
         return true; // Always show warning - user is in step creation flow
-      case 5: // Preview
-        return true; // Always show warning - user has complete step data 
       default:
         return false;
     }
@@ -404,20 +402,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
             project={currentProject}
             onBack={navigation.previousStep} // 🎯 SIMPLIFIED: Direct navigation call
             onExitToComponentSteps={mode === 'notepad' ? () => { handleAddStep(); } : onBack}
-            mode={mode}
-          />
-        );
-
-      case 5:
-        return (
-          <StepPreview
-            wizardData={wizard.wizardData}
-            currentStitches={wizard.currentStitches}
-            construction={wizard.construction}
-            component={wizard.component}
-            onAddStep={handleAddStep}
-            onAddStepAndContinue={handleAddStepAndContinue}
-            onBack={navigation.previousStep}
             mode={mode}
           />
         );

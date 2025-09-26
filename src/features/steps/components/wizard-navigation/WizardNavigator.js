@@ -7,13 +7,12 @@ export const shouldSkipConfiguration = (wizardData) => {
 
 // Helper function to determine if navigation buttons should be shown
 export const shouldShowNavigation = (wizardStep) => {
-  // Don't show nav buttons for choice screens or auto-advancing screens
-  const choiceSteps = [3]; // Duration/Shaping choice
-  const autoAdvanceSteps = []; // Pattern selector auto-advances
+  const choiceSteps = [3];
+  const autoAdvanceSteps = [];
 
   return !choiceSteps.includes(wizardStep) &&
     !autoAdvanceSteps.includes(wizardStep) &&
-    wizardStep < 5;
+    wizardStep < 4; // Changed from 5 to 4
 };
 
 // Main navigation logic
@@ -45,10 +44,12 @@ export const createWizardNavigator = (wizardData, currentStep) => {
         if (wizardData.hasShaping === false) {
           return 4; // Go to duration config
         }
-        return 5; // Go to preview (or future shaping step)
+        // Shaping opens ShapingWizard modal, no next step needed
+        return 4;
 
       case 4: // Duration Config
-        return 5; // Go to preview
+        // DurationWizard saves directly, no next step
+        return 4;
 
       default:
         return currentStep + 1;
@@ -59,12 +60,6 @@ export const createWizardNavigator = (wizardData, currentStep) => {
     const { pattern } = wizardData.stitchPattern;
 
     switch (currentStep) {
-      case 5: // Preview
-        if (wizardData.hasShaping === false) {
-          return 4; // Back to duration config
-        }
-        return 3; // Back to choice
-
       case 4: // Duration Config
         return 3; // Back to choice
 

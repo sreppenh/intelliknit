@@ -54,18 +54,6 @@ export const renderStep = (
         />
       );
 
-    /* case 5:
-      // Preview step (has custom buttons, no nav needed)
-      return (
-        <StepPreview
-          wizard={wizard}
-          onAddStep={handleAddStep}
-          onAddStepAndContinue={handleAddStepAndContinue}
-          onFinishComponent={handleFinishComponent}
-          onBack={onBack}
-        />
-      ); */
-
     default:
       return <div>Step not found</div>;
   }
