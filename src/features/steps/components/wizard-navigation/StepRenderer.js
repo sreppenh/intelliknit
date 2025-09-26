@@ -2,9 +2,7 @@ import React from 'react';
 import PatternSelector from '../wizard-steps/PatternSelector';
 import PatternConfiguration from '../wizard-steps/PatternConfiguration';
 import DurationChoice from '../wizard-steps/DurationChoice';
-// import StepPreview from '../wizard-steps/StepPreview';
 import DurationShapingChoice from '../wizard-steps/DurationShapingChoice';
-import { shouldSkipConfiguration } from './WizardNavigator';
 
 export const renderStep = (
   wizardStep,

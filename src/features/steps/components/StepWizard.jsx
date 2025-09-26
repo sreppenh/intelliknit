@@ -18,7 +18,6 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
 import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../shared/utils/stepDisplayUtils';
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
-import StepPreview from './wizard-steps/xx StepPreview';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
