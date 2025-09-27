@@ -559,6 +559,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                         onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
                         label="starting stitches"
                         unit="stitches"
+                        size="sm"
                         min={1}
                         placeholder="80"
                       />
@@ -637,6 +638,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                     onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
                     label="starting stitches"
                     unit="stitches"
+                    size="sm"
                     min={1}
                     placeholder="80"
                   />

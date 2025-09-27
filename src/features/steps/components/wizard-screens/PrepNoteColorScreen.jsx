@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
 const PrepNoteColorScreen = ({
@@ -14,11 +14,82 @@ const PrepNoteColorScreen = ({
     const [colorChoice, setColorChoice] = useState(null);
     const [selectedYarnIds, setSelectedYarnIds] = useState([]);
 
+    // Auto-handle components without colorMode set (legacy components)
+    useEffect(() => {
+        if (!component.colorMode) {
+            onContinue('pattern-selection');
+        }
+    }, [component.colorMode, onContinue]);
+
+    const getPreviousStepColor = () => {
+        // For the first regular step (after initialization), use startStepColorYarnIds
+        if (component.steps && component.steps.length === 1) {
+            if (component.startStepColorYarnIds && component.startStepColorYarnIds.length > 0) {
+                return {
+                    type: component.startStepColorYarnIds.length === 1 ? 'single' : 'multi-strand',
+                    yarnIds: component.startStepColorYarnIds
+                };
+            }
+        }
+
+        // For subsequent steps, check the last step's colorwork
+        if (component.steps && component.steps.length > 1) {
+            const lastStep = component.steps[component.steps.length - 1];
+            if (lastStep.colorwork) {
+                if (lastStep.colorwork.type === 'single') {
+                    return { type: 'single', yarnIds: [lastStep.colorwork.yarnId] };
+                }
+                if (lastStep.colorwork.type === 'multi-strand') {
+                    return { type: 'multi-strand', yarnIds: lastStep.colorwork.yarnIds };
+                }
+                if (lastStep.colorwork.type === 'stripes') {
+                    return { type: 'stripes', yarnIds: [] };
+                }
+            }
+        }
+
+        // Fallback to component defaults
+        if (component.colorMode === 'single' && component.singleColorYarnId) {
+            return { type: 'single', yarnIds: [component.singleColorYarnId] };
+        }
+
+        return null;
+    };
+
+    const previousColor = getPreviousStepColor();
+
+    const updatePrepNoteForColor = (newYarnIds) => {
+        if (newYarnIds.length === 0) return;
+
+        // Check if color changed from previous step
+        const colorChanged = !previousColor ||
+            JSON.stringify([...newYarnIds].sort()) !== JSON.stringify([...previousColor.yarnIds].sort());
+
+        if (!colorChanged) return;
+
+        // Generate prep note
+        let note = '';
+        if (newYarnIds.length === 1) {
+            // Convert to number for comparison since dropdown returns strings
+            const yarnId = typeof newYarnIds[0] === 'string' ? parseInt(newYarnIds[0]) : newYarnIds[0];
+            const yarn = yarns.find(y => y.id === yarnId);
+            if (yarn) {
+                note = `Switch to Color ${yarn.letter} (${yarn.color})`;
+            }
+        } else {
+            const selectedYarns = yarns
+                .filter(y => newYarnIds.includes(y.id))
+                .sort((a, b) => a.letter.localeCompare(b.letter));
+            const colorNames = selectedYarns.map(y => `${y.letter} (${y.color})`).join(' and ');
+            note = `Using Colors ${colorNames} together`;
+        }
+
+        setPrepNote(note);
+    };
+
     const handleContinue = () => {
-        // Save prep note
         updateWizardData('prepNote', prepNote);
 
-        // Handle color choice
         if (component.colorMode === 'single') {
             updateWizardData('colorwork', {
                 type: 'single',
@@ -26,9 +97,11 @@ const PrepNoteColorScreen = ({
             });
             onContinue('pattern-selection');
         } else if (colorChoice === 'single') {
+            // Convert string ID to number
+            const yarnId = typeof selectedYarnIds[0] === 'string' ? parseInt(selectedYarnIds[0]) : selectedYarnIds[0];
             updateWizardData('colorwork', {
                 type: 'single',
-                yarnId: selectedYarnIds[0]
+                yarnId: yarnId
             });
             onContinue('pattern-selection');
         } else if (colorChoice === 'stripes') {
@@ -39,18 +112,6 @@ const PrepNoteColorScreen = ({
                 yarnIds: selectedYarnIds
             });
             onContinue('pattern-selection');
-        }
-    };
-
-    const toggleYarnSelection = (yarnId) => {
-        if (colorChoice === 'single') {
-            setSelectedYarnIds([yarnId]);
-        } else if (colorChoice === 'multi-strand') {
-            setSelectedYarnIds(prev =>
-                prev.includes(yarnId)
-                    ? prev.filter(id => id !== yarnId)
-                    : [...prev, yarnId]
-            );
         }
     };
 
@@ -70,28 +131,22 @@ const PrepNoteColorScreen = ({
         return a.letter.localeCompare(b.letter);
     });
 
+    // Default to previous step's color if available
+    useEffect(() => {
+        if (previousColor && previousColor.type !== 'stripes' && selectedYarnIds.length === 0) {
+            if (previousColor.yarnIds.length === 1) {
+                setColorChoice('single');
+                setSelectedYarnIds(previousColor.yarnIds);
+            } else if (previousColor.yarnIds.length > 1) {
+                setColorChoice('multi-strand');
+                setSelectedYarnIds(previousColor.yarnIds);
+            }
+        }
+    }, []);
+
     return (
         <div className="stack-lg">
-            {/* Prep Note (always visible, optional) */}
-            <div>
-                <h2 className="content-header-primary">Create Step</h2>
-                <p className="content-subheader">Add any setup notes needed for this step</p>
-                {/* <p className="content-subheader">Choose how you want to specify your pattern</p> */}
-            </div>
-            <div>
-                <label className="form-label">
-                    Preparation Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
-                </label>
-                <textarea
-                    value={prepNote}
-                    onChange={(e) => setPrepNote(e.target.value)}
-                    placeholder="e.g., Switch to US 6 needles, place stitch markers"
-                    rows={2}
-                    className="input-field-lg resize-none"
-                />
-            </div>
-
-            {/* Color Choice (only if multiple colors) */}
+            {/* Color Choice - MOVED TO TOP */}
             {component.colorMode === 'multiple' && (
                 <>
                     <div>
@@ -103,6 +158,7 @@ const PrepNoteColorScreen = ({
                                 onClick={() => {
                                     setColorChoice('single');
                                     setSelectedYarnIds([]);
+                                    setPrepNote(''); // Clear prep note when changing mode
                                 }}
                                 className={`w-full card-interactive ${colorChoice === 'single' ? 'ring-2 ring-sage-500' : ''
                                     }`}
@@ -120,7 +176,10 @@ const PrepNoteColorScreen = ({
 
                             {/* Stripes Option */}
                             <button
-                                onClick={() => setColorChoice('stripes')}
+                                onClick={() => {
+                                    setColorChoice('stripes');
+                                    setPrepNote(''); // Clear prep note
+                                }}
                                 className={`w-full card-interactive ${colorChoice === 'stripes' ? 'ring-2 ring-sage-500' : ''
                                     }`}
                             >
@@ -140,6 +199,7 @@ const PrepNoteColorScreen = ({
                                 onClick={() => {
                                     setColorChoice('multi-strand');
                                     setSelectedYarnIds([]);
+                                    setPrepNote(''); // Clear prep note
                                 }}
                                 className={`w-full card-interactive ${colorChoice === 'multi-strand' ? 'ring-2 ring-sage-500' : ''
                                     }`}
@@ -157,39 +217,84 @@ const PrepNoteColorScreen = ({
                         </div>
                     </div>
 
-                    {/* Yarn Selection (for single or multi-strand) */}
+                    {/* Yarn Selection */}
                     {(colorChoice === 'single' || colorChoice === 'multi-strand') && (
                         <div>
                             <label className="form-label text-sm">
                                 {colorChoice === 'single' ? 'Select Yarn' : 'Select Yarns to Hold Together'}
                             </label>
-                            <div className="space-y-2">
-                                {sortedYarns.map(yarn => (
-                                    <button
-                                        key={yarn.id}
-                                        onClick={() => toggleYarnSelection(yarn.id)}
-                                        className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${selectedYarnIds.includes(yarn.id)
-                                            ? 'border-sage-500 bg-sage-50'
-                                            : 'border-wool-200 hover:border-wool-300'
-                                            }`}
-                                    >
-                                        <div
-                                            className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
-                                            style={{ backgroundColor: yarn.colorHex }}
-                                        />
-                                        <div className="text-left text-xs flex-1">
-                                            <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
-                                        </div>
-                                        {colorChoice === 'multi-strand' && selectedYarnIds.includes(yarn.id) && (
-                                            <span className="text-sage-600">✓</span>
-                                        )}
-                                    </button>
-                                ))}
-                            </div>
+
+                            {colorChoice === 'single' ? (
+                                <select
+                                    value={selectedYarnIds[0] || ''}
+                                    onChange={(e) => {
+                                        const newIds = e.target.value ? [e.target.value] : [];
+                                        setSelectedYarnIds(newIds);
+                                        updatePrepNoteForColor(newIds);
+                                    }}
+                                    className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+                                >
+                                    <option value="">Select color...</option>
+                                    {sortedYarns.map(yarn => (
+                                        <option key={yarn.id} value={yarn.id}>
+                                            {yarn.letter} - {yarn.color}
+                                        </option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <div className="grid grid-cols-3 gap-2">
+                                    {sortedYarns.map(yarn => {
+                                        const isSelected = selectedYarnIds.includes(yarn.id);
+                                        return (
+                                            <button
+                                                key={yarn.id}
+                                                type="button"
+                                                onClick={() => {
+                                                    const newIds = isSelected
+                                                        ? selectedYarnIds.filter(id => id !== yarn.id)
+                                                        : [...selectedYarnIds, yarn.id];
+                                                    setSelectedYarnIds(newIds);
+                                                    if (newIds.length >= 2) {
+                                                        updatePrepNoteForColor(newIds);
+                                                    }
+                                                }}
+                                                className={`p-3 rounded-lg border-2 transition-all ${isSelected
+                                                        ? 'border-sage-500 bg-sage-50'
+                                                        : 'border-wool-200 hover:border-wool-300'
+                                                    }`}
+                                            >
+                                                <div
+                                                    className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
+                                                    style={{ backgroundColor: yarn.colorHex }}
+                                                />
+                                                <div className="text-xs font-medium text-center">{yarn.letter}</div>
+                                                <div className="text-xs text-center truncate">{yarn.color}</div>
+                                                {isSelected && (
+                                                    <div className="text-sage-600 text-center mt-1">✓</div>
+                                                )}
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            )}
                         </div>
                     )}
                 </>
             )}
+
+            {/* Prep Note - MOVED TO BOTTOM */}
+            <div>
+                <label className="form-label">
+                    Preparation Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+                </label>
+                <textarea
+                    value={prepNote}
+                    onChange={(e) => setPrepNote(e.target.value)}
+                    placeholder="e.g., Switch to US 6 needles, place stitch markers"
+                    rows={2}
+                    className="input-field-lg resize-none"
+                />
+            </div>
 
             {/* Navigation Buttons */}
             <div className="pt-6 border-t border-wool-100">
