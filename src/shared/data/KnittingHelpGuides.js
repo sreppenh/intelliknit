@@ -61,6 +61,24 @@ export const HELP_GUIDES = {
         ]
     },
 
+    sloped_bindoff: {
+        title: 'Sloped Bind Off',
+
+        steps: [
+            'Bind off specified stitches at beginning of row',
+            'On next row, work to last bound-off stitch',
+            'Work 2 together (SSK or K2tog) at boundary',
+            'Continue in pattern',
+            'Repeat for each bind-off row'
+        ],
+
+        tips: [
+            'Creates smoother edge than standard bind off',
+            'Common for shoulder shaping and necklines',
+            'The decrease at the boundary eliminates the "stair step" look'
+        ]
+    },
+
     sewn_bindoff: {
         title: 'Sewn Bind Off',
 

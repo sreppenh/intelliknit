@@ -1334,12 +1334,13 @@ function getBindOffPhaseRowInstruction(phase, currentRow, construction, step, pr
     if (isBindOffRow) {
         // This is the bind-off row - extract the bind-off instruction with pattern
         const bindOffInstruction = extractBindOffInstruction(phase.description, construction, step, project, currentRow);
+        const hasSloped = phase.description?.toLowerCase().includes('sloped') || false;
 
         return {
             instruction: bindOffInstruction,
             isSupported: true,
-            needsHelp: false,
-            helpTopic: null
+            needsHelp: hasSloped,
+            helpTopic: hasSloped ? 'sloped_bindoff' : null
         };
     } else {
         // Work in pattern row between bind-offs
