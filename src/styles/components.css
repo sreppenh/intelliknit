@@ -290,6 +290,8 @@ body.modal-open {
 /* Increment input groups */
 .increment-input-group {
   @apply flex items-center gap-2 justify-start;
+  width: fit-content;
+  flex-shrink: 0;
 }
 
 .increment-input-group-vertical {
