@@ -6,6 +6,7 @@ import { PrepStepModal, usePrepNoteManager, getPrepNoteConfig } from '../../../s
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
 import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
+import useYarnManager from '../../../shared/hooks/useYarnManager';
 
 const ComponentEndingWizard = ({
   component,
@@ -29,6 +30,14 @@ const ComponentEndingWizard = ({
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedEndingStep, setCompletedEndingStep] = useState(null);
+
+  const { yarns } = useYarnManager();
+  // Auto-select first yarn for multi-color components
+  React.useEffect(() => {
+    if (component?.colorMode === 'multiple' && yarns.length > 0 && !endingData.colorYarnId) {
+      setEndingData(prev => ({ ...prev, colorYarnId: yarns[0].id }));
+    }
+  }, [component, yarns, endingData.colorYarnId]);
 
   // Prep note management
   const {
@@ -351,6 +360,30 @@ const ComponentEndingWizard = ({
           </div>
         </div>
 
+        {/* Color Selection - only if component uses multiple colors */}
+        {component?.colorMode === 'multiple' && yarns.length > 0 && (
+          <div>
+            <label className="form-label">Bind Off Color</label>
+            <select
+              value={endingData.colorYarnId || ''}
+              onChange={(e) => setEndingData(prev => ({ ...prev, colorYarnId: e.target.value }))}
+              className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+            >
+              <option value="">Select color...</option>
+              {[...yarns].sort((a, b) => {
+                if (!a.letter && !b.letter) return 0;
+                if (!a.letter) return 1;
+                if (!b.letter) return -1;
+                return a.letter.localeCompare(b.letter);
+              }).map(yarn => (
+                <option key={yarn.id} value={yarn.id}>
+                  {yarn.letter} - {yarn.color}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
+
         {/* Method Selection - Radio Style */}
         <div className="space-y-3">
           {methods.map((method) => (
@@ -482,6 +515,30 @@ const ComponentEndingWizard = ({
           className="w-full border-2 border-wool-200 rounded-xl px-4 py-4 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
         />
       </div>
+
+      {/* Color Selection - only if component uses multiple colors */}
+      {component?.colorMode === 'multiple' && yarns.length > 0 && (
+        <div>
+          <label className="form-label">Bind Off Color</label>
+          <select
+            value={endingData.colorYarnId || ''}
+            onChange={(e) => setEndingData(prev => ({ ...prev, colorYarnId: e.target.value }))}
+            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
+          >
+            <option value="">Select color...</option>
+            {[...yarns].sort((a, b) => {
+              if (!a.letter && !b.letter) return 0;
+              if (!a.letter) return 1;
+              if (!b.letter) return -1;
+              return a.letter.localeCompare(b.letter);
+            }).map(yarn => (
+              <option key={yarn.id} value={yarn.id}>
+                {yarn.letter} - {yarn.color}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
 
       {/* Helpful examples */}
       <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">

@@ -70,12 +70,16 @@ export const createEndingStep = (endingData, currentStitches) => {
 
     // Base step structure
     const baseStep = {
-        description: generateDescription(), // ← Generate internally
+        description: generateDescription(),
         type: endingData.type,
         construction: 'flat',
         startingStitches: currentStitches,
         totalRows: 1,
-        prepNote: endingData.prepNote || ''
+        prepNote: endingData.prepNote || '',
+        colorwork: endingData.colorYarnId ? {
+            type: 'single',
+            yarnId: endingData.colorYarnId
+        } : null
     };
 
     switch (endingData.type) {

@@ -26,7 +26,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     prepNote: '',
     colorMode: null,           // NEW
     singleColorYarnId: null,
-    startStepColorYarnId: null
+    startStepColorYarnId: []
   });
 
 
@@ -188,7 +188,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       setupNotes: componentData.setupNotes,             // ADD THIS
       colorMode: componentData.colorMode || 'multiple',           // NEW
       singleColorYarnId: componentData.singleColorYarnId || null,  // NEW
-      startStepColorYarnId: componentData.startStepColorYarnId || null  // NEW
+      startStepColorYarnIds: componentData.startStepColorYarnIds || []
     };
 
     dispatch({
@@ -420,6 +420,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
           </div>
         ) : (
+
           // Screen 2: Method Selection & Configuration (Conditional Layout)
           <div className="p-6 bg-yarn-50 stack-lg">
 
@@ -440,8 +441,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                       <button
                         key={method.id}
                         onClick={() => setComponentData(prev => ({ ...prev, startMethod: method.id }))}
-                        className={`selection-button ${componentData.startMethod === method.id ? 'selection-button-selected' : ''
-                          }`}
+                        className={`selection-button ${componentData.startMethod === method.id ? 'selection-button-selected' : ''}`}
                       >
                         <div className="text-xl mb-1">{method.icon}</div>
                         <div className="text-xs font-medium">{method.name}</div>
@@ -467,40 +467,89 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                       </div>
                     )}
 
-                    {/* Color Selection - Only for multi-color components with 'multiple' mode */}
+                    {/* Color Selection - Multi-select cards */}
                     {currentProject?.colorCount > 1 && componentData.colorMode === 'multiple' && (
                       <div>
-                        <label className="form-label">Color for This Step</label>
-                        <div className="space-y-2">
+                        <label className="form-label">Select Color(s)</label>
+                        <p className="text-xs text-wool-600 mb-2">Click multiple colors for multi-strand</p>
+                        <div className="grid grid-cols-3 gap-2">
                           {yarns.sort((a, b) => {
                             if (!a.letter && !b.letter) return 0;
                             if (!a.letter) return 1;
                             if (!b.letter) return -1;
                             return a.letter.localeCompare(b.letter);
-                          }).map(yarn => (
-                            <button
-                              key={yarn.id}
-                              onClick={() => setComponentData(prev => ({
-                                ...prev,
-                                startStepColorYarnId: yarn.id
-                              }))}
-                              className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${componentData.startStepColorYarnId === yarn.id
-                                ? 'border-sage-500 bg-sage-50'
-                                : 'border-wool-200 hover:border-wool-300'
-                                }`}
-                            >
-                              <div
-                                className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
-                                style={{ backgroundColor: yarn.colorHex }}
-                              />
-                              <div className="text-left text-xs">
-                                <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
-                              </div>
-                            </button>
-                          ))}
+                          }).map(yarn => {
+                            const isSelected = componentData.startStepColorYarnIds?.includes(yarn.id);
+                            return (
+                              <button
+                                key={yarn.id}
+                                type="button"
+                                onClick={() => {
+                                  setComponentData(prev => {
+                                    const currentIds = prev.startStepColorYarnIds || [];
+                                    let newIds;
+
+                                    if (isSelected) {
+                                      // Deselect - but keep at least one selected
+                                      newIds = currentIds.filter(id => id !== yarn.id);
+                                      if (newIds.length === 0) newIds = [yarn.id]; // Keep at least one
+                                    } else {
+                                      // Select - add to array
+                                      newIds = [...currentIds, yarn.id];
+                                    }
+
+                                    // Auto-populate setup notes based on selection
+                                    let setupNote = '';
+                                    if (newIds.length === 1) {
+                                      const selectedYarn = yarns.find(y => y.id === newIds[0]);
+                                      setupNote = `Use Color ${selectedYarn.letter} (${selectedYarn.color})`;
+                                    } else {
+                                      const selectedYarns = yarns.filter(y => newIds.includes(y.id)).sort((a, b) => a.letter.localeCompare(b.letter));
+                                      const colorNames = selectedYarns.map(y => `${y.letter} (${y.color})`).join(' and ');
+                                      setupNote = `Using Colors ${colorNames} together`;
+                                    }
+
+                                    return {
+                                      ...prev,
+                                      startStepColorYarnIds: newIds,
+                                      setupNotes: setupNote
+                                    };
+                                  });
+                                }}
+                                className={`p-3 rounded-lg border-2 transition-all ${isSelected
+                                  ? 'border-sage-500 bg-sage-50'
+                                  : 'border-wool-200 hover:border-wool-300'
+                                  }`}
+                              >
+                                <div
+                                  className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
+                                  style={{ backgroundColor: yarn.colorHex }}
+                                />
+                                <div className="text-xs font-medium text-center">{yarn.letter}</div>
+                                <div className="text-xs text-center truncate">{yarn.color}</div>
+                                {isSelected && (
+                                  <div className="text-sage-600 text-center mt-1">✓</div>
+                                )}
+                              </button>
+                            );
+                          })}
                         </div>
                       </div>
                     )}
+
+                    {/* Setup Notes - Auto-populated from color selection */}
+                    <div>
+                      <label className="form-label">
+                        Setup Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+                      </label>
+                      <textarea
+                        value={componentData.setupNotes || ''}
+                        onChange={(e) => setComponentData(prev => ({ ...prev, setupNotes: e.target.value }))}
+                        placeholder="e.g., Switch to US 6 circular needles, place stitch markers, check measurements"
+                        rows={3}
+                        className="input-field-lg resize-none"
+                      />
+                    </div>
 
                     {/* Stitch Count */}
                     <div>
@@ -518,7 +567,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                 )}
               </>
             ) : (
-              // Pick Up, Continue, Other: Direct configuration
+              // Pick Up, Continue, Other: Direct configuration - UNCHANGED
               <>
                 {/* Header */}
                 <div>
@@ -528,15 +577,12 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                         'Custom Setup'}
                   </h2>
                   <p className="content-subheader">
-                    {//componentData.startType === 'pick_up' ? 'Configure your pick up details' :
-                      //componentData.startType === 'continue' ? 'Configure where to continue from' :
-                      'Describe your custom setup'}
+                    {'Describe your custom setup'}
                   </p>
                 </div>
 
-                {/* Auto-set method and show configuration */}
+                {/* Auto-set method */}
                 {(() => {
-                  // Auto-set the method if not already set
                   if (!componentData.startMethod) {
                     const autoMethod = componentData.startType === 'pick_up' ? 'pick_up_knit' :
                       componentData.startType === 'continue' ? 'from_stitches' :
@@ -566,7 +612,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                   />
                 </div>
 
-                {/* ✅ NEW: Instructions Field - HOW to pick up (only for pick_up) */}
+                {/* Instructions Field - HOW to pick up (only for pick_up) */}
                 {componentData.startType === 'pick_up' && (
                   <div>
                     <label className="form-label">Pick Up Instructions</label>
@@ -578,7 +624,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                       className="input-field-lg"
                     />
                     <div className="text-xs text-wool-500 mt-1">
-                      💡 <strong>Hint:</strong> Describe the pickup ratio or technique (e.g., "pick up 3 stitches for every 4 rows")
+                      💡 <strong>Hint:</strong> Describe the pickup ratio or technique
                     </div>
                   </div>
                 )}
@@ -598,7 +644,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               </>
             )}
 
-            {/* Navigation - Show when ready */}
+            {/* Navigation */}
             {(componentData.startType === 'cast_on' ? componentData.startMethod : true) && (
               <div className="pt-4">
                 <div className="flex gap-3">
