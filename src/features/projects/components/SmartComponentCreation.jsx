@@ -5,11 +5,12 @@ import IncrementInput from '../../../shared/components/IncrementInput';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import SegmentedControl from '../../../shared/components/SegmentedControl';
-
+import useYarnManager from '../../../shared/hooks/useYarnManager';
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
   const { currentProject } = useProjectsContext(); // ← ADD this line
+  const { yarns } = useYarnManager();
 
   const [screen, setScreen] = useState(1);
   // Keep your existing useState exactly as it is:
@@ -22,7 +23,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     startStitches: '',
     startDescription: '',
     startInstructions: '',
-    prepNote: ''
+    prepNote: '',
+    colorMode: null,           // NEW
+    singleColorYarnId: null
   });
 
 
@@ -215,6 +218,17 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     }
   }, [currentProject]);
 
+  // Auto-handle single-color projects
+  useEffect(() => {
+    if (currentProject?.colorCount === 1 && yarns.length > 0 && !componentData.colorMode) {
+      setComponentData(prev => ({
+        ...prev,
+        colorMode: 'single',
+        singleColorYarnId: yarns[0].id
+      }));
+    }
+  }, [currentProject, yarns, componentData.colorMode]);
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="app-container bg-yarn-50 min-h-screen shadow-lg">
@@ -281,6 +295,81 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               value={componentData.construction}
               onChange={(value) => setComponentData(prev => ({ ...prev, construction: value }))}
             />
+
+            {/* Color Configuration - Only show if project has multiple colors */}
+            {currentProject?.colorCount > 1 && (
+              <div>
+                <label className="form-label">Colors in This Component</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    onClick={() => setComponentData(prev => ({
+                      ...prev,
+                      colorMode: 'single',
+                      singleColorYarnId: yarns.length > 0 ? yarns[0].id : null
+                    }))}
+                    className={`card-selectable-compact ${componentData.colorMode === 'single' ? 'card-selectable-compact-selected' : ''
+                      }`}
+                  >
+                    <div className="text-xl mb-1">🎨</div>
+                    <div className="text-xs font-medium">Single Color</div>
+                  </button>
+                  <button
+                    onClick={() => setComponentData(prev => ({
+                      ...prev,
+                      colorMode: 'multiple',
+                      singleColorYarnId: null
+                    }))}
+                    className={`card-selectable-compact ${componentData.colorMode === 'multiple' ? 'card-selectable-compact-selected' : ''
+                      }`}
+                  >
+                    <div className="text-xl mb-1">🌈</div>
+                    <div className="text-xs font-medium">Multiple Colors</div>
+                  </button>
+                </div>
+
+                {/* Yarn Selection - Only for single color mode */}
+                {componentData.colorMode === 'single' && (
+                  <div className="mt-3">
+                    <label className="form-label text-sm">Select Yarn</label>
+                    {yarns.length === 0 ? (
+                      <div className="text-xs text-wool-600 p-3 bg-wool-50 rounded-lg">
+                        No yarns added yet. Add yarns in Project Details.
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {[...yarns].sort((a, b) => {
+                          // Sort by letter: A, B, C, etc.
+                          if (!a.letter && !b.letter) return 0;
+                          if (!a.letter) return 1;  // Unlabeled yarns go to end
+                          if (!b.letter) return -1;
+                          return a.letter.localeCompare(b.letter);
+                        }).map(yarn => (
+                          <button
+                            key={yarn.id}
+                            onClick={() => setComponentData(prev => ({
+                              ...prev,
+                              singleColorYarnId: yarn.id
+                            }))}
+                            className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${componentData.singleColorYarnId === yarn.id
+                              ? 'border-sage-500 bg-sage-50'
+                              : 'border-wool-200 hover:border-wool-300'
+                              }`}
+                          >
+                            <div
+                              className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
+                              style={{ backgroundColor: yarn.colorHex }}
+                            />
+                            <div className="text-left text-xs">
+                              <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
+                            </div>
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* How Does It Start */}
             <div>
