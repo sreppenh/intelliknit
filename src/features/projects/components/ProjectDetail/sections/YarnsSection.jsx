@@ -3,6 +3,8 @@ import { Plus, Edit2, X } from 'lucide-react';
 import IncrementInput from '../../../../../shared/components/IncrementInput';
 import PageHeader from '../../../../../shared/components/PageHeader';
 import { StandardModal, FullScreenModal } from '../../../../../shared/components/modals/StandardModal';
+import { colorPalette } from '../../../../../shared/components/yarns/colorPalette';
+import useYarnManager from '../../../../../shared/hooks/useYarnManager';
 
 /**
  * 🧶 YarnsSection - Full-screen yarn and color management
@@ -47,7 +49,7 @@ const YarnsSection = ({
     const [conflictPreview, setConflictPreview] = useState(null);
 
     // Get current data - use temp state when editing, real data when not
-    const yarns = isEditing ? tempFormState.yarns : (formData?.yarns || project?.yarns || []);
+    const yarns = isEditing ? (tempFormState.yarns || []) : (formData?.yarns || project?.yarns || []);
     const colorCount = isEditing ? tempFormState.colorCount : (formData?.colorCount || project?.colorCount || 2);
     const colorMapping = isEditing ? tempFormState.colorMapping : (formData?.colorMapping || project?.colorMapping || {});
 
@@ -103,58 +105,28 @@ const YarnsSection = ({
         setIsEditing(false);
     };
 
-    // Rainbow color palette for yarn selection
-    const colorPalette = [
-        // Reds
-        { name: 'Cherry', hex: '#dc2626' },
-        { name: 'Burgundy', hex: '#7f1d1d' },
-        { name: 'Dusty Rose', hex: '#be185d' },
-
-        // Oranges  
-        { name: 'Coral', hex: '#f97316' },
-        { name: 'Rust', hex: '#c2410c' },
-        { name: 'Peach', hex: '#fed7aa' },
-
-        // Yellows
-        { name: 'Sunshine', hex: '#eab308' },
-        { name: 'Mustard', hex: '#a16207' },
-        { name: 'Cream', hex: '#fef3c7' },
-
-        // Greens
-        { name: 'Sage', hex: '#4a8a4a' },
-        { name: 'Forest', hex: '#166534' },
-        { name: 'Mint', hex: '#6ee7b7' },
-
-        // Blues
-        { name: 'Sky', hex: '#3b82f6' },
-        { name: 'Navy', hex: '#1e3a8a' },
-        { name: 'Teal', hex: '#0891b2' },
-
-        // Purples
-        { name: 'Lavender', hex: '#9b7cb6' },
-        { name: 'Plum', hex: '#7c3aed' },
-        { name: 'Violet', hex: '#a855f7' },
-
-        // Pinks
-        { name: 'Blush', hex: '#fda4af' },
-        { name: 'Magenta', hex: '#ec4899' },
-        { name: 'Rose', hex: '#f472b6' },
-
-        // Neutrals
-        { name: 'Charcoal', hex: '#374151' },
-        { name: 'Stone', hex: '#78716c' },
-        { name: 'Silver', hex: '#d1d5db' },
-        { name: 'Ivory', hex: '#fffbeb' },
-        { name: 'White', hex: '#ffffff' },
-        { name: 'Black', hex: '#000000' }
-    ];
-
-    // Get available color letters (use temp state when editing)
+    // Then use in your component:
     const getAvailableLetters = () => {
-        const count = isEditing ? tempFormState.colorCount : colorCount;
-        return Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
-    };
+        console.log('🔍 getAvailableLetters called', {
+            isEditing,
+            tempFormStateColorCount: tempFormState.colorCount,
+            colorCount
+        });
 
+        // When editing, always calculate fresh based on temp state
+        if (isEditing) {
+            const count = tempFormState.colorCount || 2;
+            const result = Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
+            console.log('✅ Returning (editing):', result);
+            return result;
+        }
+
+        // When not editing, use real project data
+        const count = colorCount || 2;
+        const result = Array.from({ length: count }, (_, i) => String.fromCharCode(65 + i));
+        console.log('✅ Returning (not editing):', result);
+        return result;
+    };
     // Handle add yarn (use temp state for available letters + auto-assign next letter)
     const handleAddYarn = () => {
         const availableLetters = getAvailableLetters();
