@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import WizardLayout from './wizard-layout/WizardLayout';
-import WizardHeader from './wizard-layout/WizardHeader';
 import ShapingTypeSelector from './shaping-wizard/ShapingTypeSelector';
 import EvenDistributionConfig from './shaping-wizard/EvenDistributionConfig';
 import PhaseConfig from './shaping-wizard/PhaseConfig';
-import PhaseConfigSummary from './shaping-wizard/PhaseConfigSummary';
 import MarkerPhasesConfig from './shaping-wizard/MarkerPhasesConfig'; // NEW
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
-import WizardContextBar from './wizard-layout/WizardContextBar';
-import PageHeader from '../../../shared/components/PageHeader';
 import BindOffShapingConfig from './shaping-wizard/BindOffShapingConfig';
 
 const ShapingWizard = ({

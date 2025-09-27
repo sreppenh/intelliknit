@@ -205,7 +205,7 @@ export const PatternSelector = ({
         {/* Header with Prep Note */}
         <div className="text-center">
           <div className="content-header-with-buttons">
-            <h2 className="content-title">Create Step</h2>
+            <h2 className="content-title">Select Pattern</h2>
             <div className="button-group">
               <button
                 onClick={handleOpenModal}

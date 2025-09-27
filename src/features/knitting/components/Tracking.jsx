@@ -3,9 +3,8 @@ import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import { CheckCircle2, Circle, FileText, X } from 'lucide-react';
 import PageHeader from '../../../shared/components/PageHeader';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
-import { PrepNoteDisplay } from '../../../shared/components/PrepStepSystem';
 import KnittingStepModal from './modal/KnittingStepModal';
-import { isLengthBasedStep, formatLengthHeaderDisplay } from '../../../shared/utils/gaugeUtils';
+import { isLengthBasedStep } from '../../../shared/utils/gaugeUtils';
 
 const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const { currentProject, activeComponentIndex, dispatch } = useProjectsContext();
@@ -50,8 +49,6 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
     setSelectedStepIndex(null);
   };
 
-
-
   const activeComponent = currentProject.components[localActiveIndex];
 
   // Helper to determine if step has prep note
@@ -69,7 +66,6 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
       step.advancedWizardConfig?.afterNote ||
       '';
   };
-
 
   // Create display items (prep cards + step cards + assembly cards)
   const createDisplayItems = (component) => {

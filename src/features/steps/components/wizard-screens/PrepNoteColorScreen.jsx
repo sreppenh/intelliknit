@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import PageHeader from '../../../../shared/components/PageHeader';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
 const PrepNoteColorScreen = ({
@@ -21,7 +20,6 @@ const PrepNoteColorScreen = ({
 
         // Handle color choice
         if (component.colorMode === 'single') {
-            // Auto-assign component's yarn
             updateWizardData('colorwork', {
                 type: 'single',
                 yarnId: component.singleColorYarnId
@@ -73,138 +71,145 @@ const PrepNoteColorScreen = ({
     });
 
     return (
-        <div className="min-h-screen bg-yarn-50">
-            <PageHeader
-                title="Step Setup"
-                subtitle="Add optional prep note and choose colors"
-                onBack={onBack}
-                onCancel={onCancel}
-            />
+        <div className="stack-lg">
+            {/* Prep Note (always visible, optional) */}
+            <div>
+                <h2 className="content-header-primary">Create Step</h2>
+                <p className="content-subheader">Add any setup notes needed for this step</p>
+                {/* <p className="content-subheader">Choose how you want to specify your pattern</p> */}
+            </div>
+            <div>
+                <label className="form-label">
+                    Preparation Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+                </label>
+                <textarea
+                    value={prepNote}
+                    onChange={(e) => setPrepNote(e.target.value)}
+                    placeholder="e.g., Switch to US 6 needles, place stitch markers"
+                    rows={2}
+                    className="input-field-lg resize-none"
+                />
+            </div>
 
-            <div className="max-w-2xl mx-auto px-4 pt-6 space-y-6">
+            {/* Color Choice (only if multiple colors) */}
+            {component.colorMode === 'multiple' && (
+                <>
+                    <div>
+                        <label className="form-label">Colors for This Step</label>
+                        <div className="space-y-3">
 
-                {/* Prep Note (always visible, optional) */}
-                <div>
-                    <label className="form-label">
-                        Preparation Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
-                    </label>
-                    <textarea
-                        value={prepNote}
-                        onChange={(e) => setPrepNote(e.target.value)}
-                        placeholder="e.g., Switch to US 6 needles, place stitch markers"
-                        rows={2}
-                        className="input-field-lg resize-none"
-                    />
-                </div>
+                            {/* Single Color Option */}
+                            <button
+                                onClick={() => {
+                                    setColorChoice('single');
+                                    setSelectedYarnIds([]);
+                                }}
+                                className={`w-full card-interactive ${colorChoice === 'single' ? 'ring-2 ring-sage-500' : ''
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-sage-200 flex items-center justify-center">
+                                        <span className="text-lg">🎨</span>
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Single Color</div>
+                                        <div className="text-xs text-wool-600">Use one yarn for this step</div>
+                                    </div>
+                                </div>
+                            </button>
 
-                {/* Color Choice (only if multiple colors) */}
-                {component.colorMode === 'multiple' && (
-                    <>
+                            {/* Stripes Option */}
+                            <button
+                                onClick={() => setColorChoice('stripes')}
+                                className={`w-full card-interactive ${colorChoice === 'stripes' ? 'ring-2 ring-sage-500' : ''
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-b from-rose-300 via-amber-300 to-sage-300 flex items-center justify-center">
+                                        <span className="text-lg font-bold text-white">═</span>
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Stripes</div>
+                                        <div className="text-xs text-wool-600">Alternating color pattern</div>
+                                    </div>
+                                </div>
+                            </button>
+
+                            {/* Multi-Strand Option */}
+                            <button
+                                onClick={() => {
+                                    setColorChoice('multi-strand');
+                                    setSelectedYarnIds([]);
+                                }}
+                                className={`w-full card-interactive ${colorChoice === 'multi-strand' ? 'ring-2 ring-sage-500' : ''
+                                    }`}
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-300 to-blue-300 flex items-center justify-center">
+                                        <span className="text-lg">🧵🧵</span>
+                                    </div>
+                                    <div className="text-left">
+                                        <div className="font-semibold">Multi-Strand</div>
+                                        <div className="text-xs text-wool-600">Hold 2+ yarns together</div>
+                                    </div>
+                                </div>
+                            </button>
+                        </div>
+                    </div>
+
+                    {/* Yarn Selection (for single or multi-strand) */}
+                    {(colorChoice === 'single' || colorChoice === 'multi-strand') && (
                         <div>
-                            <label className="form-label">Colors for This Step</label>
-                            <div className="space-y-3">
-
-                                {/* Single Color Option */}
-                                <button
-                                    onClick={() => {
-                                        setColorChoice('single');
-                                        setSelectedYarnIds([]);
-                                    }}
-                                    className={`w-full card-interactive ${colorChoice === 'single' ? 'ring-2 ring-sage-500' : ''
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-sage-200 flex items-center justify-center">
-                                            <span className="text-lg">🎨</span>
+                            <label className="form-label text-sm">
+                                {colorChoice === 'single' ? 'Select Yarn' : 'Select Yarns to Hold Together'}
+                            </label>
+                            <div className="space-y-2">
+                                {sortedYarns.map(yarn => (
+                                    <button
+                                        key={yarn.id}
+                                        onClick={() => toggleYarnSelection(yarn.id)}
+                                        className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${selectedYarnIds.includes(yarn.id)
+                                            ? 'border-sage-500 bg-sage-50'
+                                            : 'border-wool-200 hover:border-wool-300'
+                                            }`}
+                                    >
+                                        <div
+                                            className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
+                                            style={{ backgroundColor: yarn.colorHex }}
+                                        />
+                                        <div className="text-left text-xs flex-1">
+                                            <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
                                         </div>
-                                        <div className="text-left">
-                                            <div className="font-semibold">Single Color</div>
-                                            <div className="text-xs text-wool-600">Use one yarn for this step</div>
-                                        </div>
-                                    </div>
-                                </button>
-
-                                {/* Stripes Option */}
-                                <button
-                                    onClick={() => setColorChoice('stripes')}
-                                    className={`w-full card-interactive ${colorChoice === 'stripes' ? 'ring-2 ring-sage-500' : ''
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-b from-rose-300 via-amber-300 to-sage-300 flex items-center justify-center">
-                                            <span className="text-lg font-bold text-white">═</span>
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="font-semibold">Stripes</div>
-                                            <div className="text-xs text-wool-600">Alternating color pattern</div>
-                                        </div>
-                                    </div>
-                                </button>
-
-                                {/* Multi-Strand Option */}
-                                <button
-                                    onClick={() => {
-                                        setColorChoice('multi-strand');
-                                        setSelectedYarnIds([]);
-                                    }}
-                                    className={`w-full card-interactive ${colorChoice === 'multi-strand' ? 'ring-2 ring-sage-500' : ''
-                                        }`}
-                                >
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-300 to-blue-300 flex items-center justify-center">
-                                            <span className="text-lg">🧵🧵</span>
-                                        </div>
-                                        <div className="text-left">
-                                            <div className="font-semibold">Multi-Strand</div>
-                                            <div className="text-xs text-wool-600">Hold 2+ yarns together</div>
-                                        </div>
-                                    </div>
-                                </button>
+                                        {colorChoice === 'multi-strand' && selectedYarnIds.includes(yarn.id) && (
+                                            <span className="text-sage-600">✓</span>
+                                        )}
+                                    </button>
+                                ))}
                             </div>
                         </div>
+                    )}
+                </>
+            )}
 
-                        {/* Yarn Selection (for single or multi-strand) */}
-                        {(colorChoice === 'single' || colorChoice === 'multi-strand') && (
-                            <div>
-                                <label className="form-label text-sm">
-                                    {colorChoice === 'single' ? 'Select Yarn' : 'Select Yarns to Hold Together'}
-                                </label>
-                                <div className="space-y-2">
-                                    {sortedYarns.map(yarn => (
-                                        <button
-                                            key={yarn.id}
-                                            onClick={() => toggleYarnSelection(yarn.id)}
-                                            className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${selectedYarnIds.includes(yarn.id)
-                                                    ? 'border-sage-500 bg-sage-50'
-                                                    : 'border-wool-200 hover:border-wool-300'
-                                                }`}
-                                        >
-                                            <div
-                                                className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
-                                                style={{ backgroundColor: yarn.colorHex }}
-                                            />
-                                            <div className="text-left text-xs flex-1">
-                                                <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
-                                            </div>
-                                            {colorChoice === 'multi-strand' && selectedYarnIds.includes(yarn.id) && (
-                                                <span className="text-sage-600">✓</span>
-                                            )}
-                                        </button>
-                                    ))}
-                                </div>
-                            </div>
-                        )}
-                    </>
-                )}
+            {/* Navigation Buttons */}
+            <div className="pt-6 border-t border-wool-100">
+                <div className="flex gap-3">
+                    <button
+                        onClick={onBack}
+                        className="flex-1 btn-tertiary"
+                    >
+                        ← Cancel
+                    </button>
 
-                {/* Continue Button */}
-                <button
-                    onClick={handleContinue}
-                    disabled={!canContinue()}
-                    className="btn-primary w-full"
-                >
-                    Continue to Pattern
-                </button>
+                    <button
+                        onClick={handleContinue}
+                        disabled={!canContinue()}
+                        className="flex-2 btn-primary"
+                        style={{ flexGrow: 2 }}
+                    >
+                        Continue to Pattern
+                    </button>
+                </div>
             </div>
         </div>
     );

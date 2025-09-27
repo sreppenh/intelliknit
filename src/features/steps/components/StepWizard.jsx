@@ -107,9 +107,14 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     canProceed: wizard.navigation.canProceed,
     nextStep: wizard.navigation.nextStep,
     previousStep: () => {
+      // If at step 1, go back to prep/color screen
+      if (wizard.wizardStep === 1) {
+        setShowPrepColorScreen(true);
+        return;
+      }
+
       const result = wizard.navigation.previousStep();
 
-      // Handle exit from wizard if navigation stack is empty
       if (result?.shouldExit) {
         IntelliKnitLogger.debug('Step Wizard', 'Navigation stack empty - exiting wizard');
         onBack();
@@ -291,21 +296,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     setShowExitModal(false);
   };
 
-  // 🎯 NEW: Clean step rendering with smart navigation
-  // Show prep/color screen first
-  if (showPrepColorScreen) {
-    return (
-      <PrepNoteColorScreen
-        wizardData={wizard.wizardData}
-        updateWizardData={wizard.updateWizardData}
-        component={wizard.component}
-        onContinue={handlePrepColorContinue}
-        onBack={onBack}
-        onCancel={handleXButtonClick}
-      />
-    );
-  }
-
   // Then render normal wizard steps
   const renderCurrentStep = () => {
     switch (wizard.wizardStep) {
@@ -454,7 +444,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
       <PageHeader
         useBranding={true}
         onHome={onGoToLanding}  // ← I had this right originally, just confirming
-        onBack={navigation.previousStep}
+        onBack={showPrepColorScreen ? onBack : navigation.previousStep}
         showCancelButton={true}
         onCancel={handleXButtonClick}
         compact={true}
@@ -462,7 +452,18 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
       />
       <WizardContextBar wizard={wizard} />
       <div className="p-6 bg-yarn-50 min-h-screen">
-        {renderCurrentStep()}
+        {showPrepColorScreen ? (
+          <PrepNoteColorScreen
+            wizardData={wizard.wizardData}
+            updateWizardData={wizard.updateWizardData}
+            component={wizard.component}
+            onContinue={handlePrepColorContinue}
+            onBack={onBack}
+            onCancel={handleXButtonClick}
+          />
+        ) : (
+          renderCurrentStep()
+        )}
       </div>
 
       <UnsavedChangesModal
