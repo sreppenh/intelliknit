@@ -18,6 +18,7 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
 import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../shared/utils/stepDisplayUtils';
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
+import PrepNoteColorScreen from './wizard-screens/PrepNoteColorScreen';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
@@ -28,6 +29,9 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const [showExitModal, setShowExitModal] = useState(false);
   const [showStepConfirmModal, setShowStepConfirmModal] = useState(false);
   const [pendingShapingInfo, setPendingShapingInfo] = useState(null);
+  const [showPrepColorScreen, setShowPrepColorScreen] = useState(true); // Start with prep/color screen
+  const [colorRouting, setColorRouting] = useState(null); // 'pattern-selection' or 'stripes-config'
+
 
   const wizardState = useWizardState(wizard, onBack, mode);
 
@@ -60,6 +64,24 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const handleCancelIntrinsicStep = () => {
     setShowStepConfirmModal(false);
     setPendingShapingInfo(null);
+  };
+
+  const handlePrepColorContinue = (route) => {
+    setShowPrepColorScreen(false);
+    setColorRouting(route);
+
+    if (route === 'stripes-config') {
+      // Go directly to pattern config with Stripes pre-selected
+      wizard.updateWizardData('stitchPattern', {
+        ...wizard.wizardData.stitchPattern,
+        category: 'colorwork',
+        pattern: 'Stripes'
+      });
+      wizard.navigation.goToStep(2); // Skip pattern selection
+    } else {
+      // Normal flow - go to pattern selection
+      wizard.navigation.goToStep(1);
+    }
   };
 
   // Component validation
@@ -259,7 +281,9 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
 
   const handleConfirmExit = () => {
     setShowExitModal(false);
-    wizard.resetWizardData(); // Clean data before exit
+    setShowPrepColorScreen(true); // Reset to start
+    setColorRouting(null);
+    wizard.resetWizardData();
     onBack();
   };
 
@@ -268,6 +292,21 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   };
 
   // 🎯 NEW: Clean step rendering with smart navigation
+  // Show prep/color screen first
+  if (showPrepColorScreen) {
+    return (
+      <PrepNoteColorScreen
+        wizardData={wizard.wizardData}
+        updateWizardData={wizard.updateWizardData}
+        component={wizard.component}
+        onContinue={handlePrepColorContinue}
+        onBack={onBack}
+        onCancel={handleXButtonClick}
+      />
+    );
+  }
+
+  // Then render normal wizard steps
   const renderCurrentStep = () => {
     switch (wizard.wizardStep) {
       case 1:
