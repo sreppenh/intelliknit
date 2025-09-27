@@ -3,6 +3,8 @@ import { createPortal } from 'react-dom';
 import { Plus, Edit2, X, List, Palette } from 'lucide-react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
+import YarnManagerModal from '../../../../shared/components/yarns/YarnManagerModal';
+import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
 const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onCancel, project }) => {
     // Stripe sequence state
@@ -26,15 +28,19 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
         color: 'A'
     });
 
+    // Yarn manager modal
+    const [showYarnModal, setShowYarnModal] = useState(false);
 
     // Modal unsaved changes tracking
     const [stripeModalHasChanges, setStripeModalHasChanges] = useState(false);
     const [showStripeUnsavedModal, setShowStripeUnsavedModal] = useState(false);
 
     // Get project color data
+    const { yarns, availableLetters, addYarn } = useYarnManager();
+
+    // Keep these for the component to use
     const projectColorCount = project?.colorCount || 6;
     const colorMapping = project?.colorMapping || {};
-    const yarns = project?.yarns || [];
 
     useEffect(() => {
         const totalRows = stripeSequence.reduce((sum, stripe) => sum + stripe.rows, 0);
@@ -157,6 +163,13 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
         setStripeModalHasChanges(false);
     };
 
+    // Handle yarn added from modal
+    const handleYarnSaved = ({ yarn, conflict }) => {
+        // The hook handles the actual saving
+        addYarn(yarn, conflict?.conflictYarn);
+        setShowYarnModal(false);
+    };
+
     // Quick pattern templates
     const insertQuickPattern = (pattern) => {
         let newSequence;
@@ -219,9 +232,23 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
                     />
                 </div>
 
-                {/* Color Selection - Visual Buttons with better readability */}
+                {/* Color Selection */}
                 <div>
                     <label className="form-label">What color?</label>
+
+                    {/* Add Yarn Button */}
+                    {yarns.length < availableLetters.length && (
+                        <button
+                            type="button"
+                            onClick={() => setShowYarnModal(true)}
+                            className="w-full mb-3 p-3 rounded-lg border-2 border-dashed border-sage-300 hover:border-sage-400 hover:bg-sage-50 transition-all text-sage-600 text-sm font-medium"
+                        >
+                            <Plus size={16} className="inline mr-1" />
+                            Add New Yarn to Project
+                        </button>
+                    )}
+
+                    {/* Color Selection Grid */}
                     <div className="grid grid-cols-3 gap-2">
                         {getAvailableColors().map(letter => {
                             const colorInfo = getColorInfo(letter);
@@ -513,10 +540,24 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
                 </StandardModal>,
                 document.body
             )}
+
+            {/* Yarn Manager Modal */}
+            {showYarnModal && createPortal(
+                <YarnManagerModal
+                    isOpen={showYarnModal}
+                    onClose={() => setShowYarnModal(false)}
+                    onSave={handleYarnSaved}
+                    existingYarns={yarns}
+                    availableLetters={availableLetters}
+                    autoAssignNextLetter={true}
+                    showSkeins={false}
+                    title="Add Yarn for Stripes"
+                    subtitle="Add a new yarn color to your project"
+                />,
+                document.body
+            )}
         </div>
     );
-
-
 };
 
 export default StripesConfig;
