@@ -818,74 +818,67 @@ body.modal-open {
   @apply active:bg-wool-100 active:border-sage-400;
 }
 
-/* ===== SELECTABLE CARD SYSTEM ===== */
-/* Single unified system for all selection card patterns */
-
-/* Base selectable card - unselected state */
-.card-select {
-  @apply p-4 border-2 rounded-lg cursor-pointer transition-all duration-200 text-center;
+/* Selectable cards - unified with SelectionGrid styling */
+.card-selectable {
+  @apply p-4 border-2 rounded-lg cursor-pointer transition-colors text-center;
   @apply border-wool-200 bg-white text-wool-700;
 }
 
-.card-select:not(.selected):hover {
-  @apply border-sage-300 bg-sage-50;
-}
-
-.card-select:not(.selected):active {
-  @apply bg-sage-100 scale-[0.98];
-}
-
-/* Selected state */
-.card-select.selected {
-  @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold shadow-sm;
-}
-
-/* Compact variant */
-.card-select.compact {
-  @apply p-3 text-sm;
-}
-
-/* ===== LEGACY CLASS ALIASES ===== */
-/* Maintain backwards compatibility while components are migrated */
-
-.card-selectable {
-  @apply card-select;
+.card-selectable:not(.card-selectable-selected):hover {
+  @apply border-sage-300;
 }
 
 .card-selectable-selected {
-  @apply card-select selected;
+  @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
 }
 
 .card-selectable-compact {
-  @apply card-select compact;
+  @apply p-3 border-2 rounded-lg cursor-pointer transition-colors text-center text-sm;
+  @apply border-wool-200 bg-white text-wool-700;
+}
+
+.card-selectable-compact:not(.card-selectable-compact-selected):hover {
+  @apply border-sage-300;
 }
 
 .card-selectable-compact-selected {
-  @apply card-select compact selected;
+  @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
 }
 
+/* Selection buttons */
 .selection-button {
-  @apply card-select;
+  @apply p-4 border-2 rounded-lg cursor-pointer transition-colors text-center;
+  @apply border-wool-200 bg-white text-wool-700;
+}
+
+.selection-button:not(.selection-button-selected):hover {
+  @apply border-sage-300;
 }
 
 .selection-button-selected {
-  @apply card-select selected;
+  @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
 }
 
 .card-marker-select {
-  @apply card-select;
+  @apply p-4 border-2 rounded-lg cursor-pointer transition-colors text-center;
+  @apply border-wool-200 bg-white text-wool-700;
 }
 
 .card-marker-select-selected {
-  @apply card-select selected;
+  @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
 }
 
 .card-marker-select-compact {
-  @apply card-select compact;
+  @apply p-3 border-2 rounded-lg cursor-pointer transition-colors text-center text-sm;
+  @apply border-wool-200 bg-white text-wool-700;
+}
+
+.card-marker-select-compact:not(.card-marker-select-compact-selected):hover {
+  @apply border-sage-300;
 }
 
 .card-marker-select-compact-selected {
-  @apply card-select compact selected;
+  @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
 }
 
 /* Component status cards */

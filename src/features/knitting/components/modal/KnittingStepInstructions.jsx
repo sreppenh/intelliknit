@@ -1,8 +1,11 @@
 // src/features/knitting/components/modal/KnittingStepInstructions.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { CheckCircle2, Circle } from 'lucide-react';
 import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
 import { isLengthBasedStep } from '../../../../shared/utils/gaugeUtils';
+import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';
+import { getHelpGuide } from '../../../../shared/data/KnittingHelpGuides';
+
 
 const KnittingStepInstructions = ({
     step,
@@ -14,6 +17,14 @@ const KnittingStepInstructions = ({
 }) => {
     const { description, contextualPatternNotes, contextualConfigNotes, technicalData } =
         getFormattedStepDisplay(step, component.name, project);
+
+    const [helpExpanded, setHelpExpanded] = useState(false);
+
+    // Get help guide if available
+    const instructionData = step.knittingInstruction || {};
+    const helpGuide = instructionData.needsHelp && instructionData.helpTopic
+        ? getHelpGuide(instructionData.helpTopic)
+        : null;
 
     // const isCompleted = progress.isStepCompleted(navigation.currentStep);
     const isCompleted = step.completed || false;
@@ -104,6 +115,66 @@ const KnittingStepInstructions = ({
                         </div>
                     </div>
                 )}
+
+                {/* Help Guide Section */}
+                {helpGuide && (
+                    <div className={`${theme.contentBg} backdrop-blur-sm rounded-2xl border shadow-sm overflow-hidden`}>
+                        {/* Help Header */}
+                        <button
+                            onClick={() => setHelpExpanded(!helpExpanded)}
+                            className={`w-full px-4 py-3 flex items-center justify-between ${theme.textPrimary} hover:bg-white/50 transition-colors`}
+                        >
+                            <div className="flex items-center gap-2">
+                                <HelpCircle size={18} className="text-lavender-500" />
+                                <span className="text-sm font-semibold">{helpGuide.title}</span>
+                            </div>
+                            {helpExpanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+                        </button>
+
+                        {/* Expandable Content */}
+                        {helpExpanded && (
+                            <div className="px-4 pb-4 space-y-3 text-sm border-t border-white/20">
+                                {Object.entries(helpGuide).map(([key, value]) => {
+                                    // Skip the title (already shown in header)
+                                    if (key === 'title' || !value) return null;
+
+                                    // Render based on value type
+                                    if (Array.isArray(value)) {
+                                        return (
+                                            <div key={key}>
+                                                <div className="font-semibold text-lavender-700 mb-1 capitalize">
+                                                    {key.replace(/([A-Z])/g, ' $1').trim()}:
+                                                </div>
+                                                <ol className="list-decimal list-inside space-y-1 text-wool-600">
+                                                    {value.map((item, i) => <li key={i}>{item}</li>)}
+                                                </ol>
+                                            </div>
+                                        );
+                                    } else if (typeof value === 'string') {
+                                        // String values like "mantra"
+                                        return (
+                                            <div key={key} className="bg-lavender-50 border border-lavender-200 rounded-lg p-2 text-center">
+                                                <span className="text-lavender-700 font-medium italic">{value}</span>
+                                            </div>
+                                        );
+                                    }
+                                    return null;
+                                })}
+
+                                {/* Tips section - always styled differently */}
+                                {helpGuide.tips && (
+                                    <div className="bg-yarn-50 border border-yarn-200 rounded-lg p-3">
+                                        <div className="font-semibold text-yarn-700 mb-1">Tips:</div>
+                                        <ul className="space-y-1 text-yarn-600 text-xs">
+                                            {helpGuide.tips.map((tip, i) => <li key={i}>• {tip}</li>)}
+                                        </ul>
+                                    </div>
+                                )}
+                            </div>
+                        )}
+                    </div>
+                )}
+
             </div>
             </div>
         </div>

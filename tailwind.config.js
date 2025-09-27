@@ -129,6 +129,32 @@ module.exports = {
 
 
       },
+      // ✨ NEW: Z-Index System
+      zIndex: {
+        // Base layers (0-10)
+        'base': '0',
+        'dropdown': '10',
+
+        // UI layers (10-30)
+        'sticky': '20',           // Sticky headers, tabs
+        'floating': '25',         // Floating action buttons
+        'header': '30',           // Page headers
+
+        // Overlay layers (40-60)
+        'overlay': '40',          // Dimmed overlays
+        'drawer': '45',           // Side drawers, slide-outs
+        'modal-backdrop': '50',   // Modal backdrops
+        'modal': '50',            // Modal dialogs
+
+        // Popup layers (60-80)
+        'popover': '60',          // Popovers, tooltips
+        'dropdown-menu': '70',    // Three-dot menus, dropdowns
+        'toast': '80',            // Toast notifications
+
+        // Critical layers (90-100)
+        'knitting-arrows': '90',  // Knitting modal navigation arrows
+        'tooltip': '100',         // Always-on-top tooltips
+      },
       fontFamily: {
         'sans': [
           '-apple-system',
