@@ -25,7 +25,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     startInstructions: '',
     prepNote: '',
     colorMode: null,           // NEW
-    singleColorYarnId: null
+    singleColorYarnId: null,
+    startStepColorYarnId: null
   });
 
 
@@ -185,6 +186,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       prepNote: componentData.prepNote,
       construction: componentData.construction,           // ADD THIS
       setupNotes: componentData.setupNotes,             // ADD THIS
+      colorMode: componentData.colorMode || 'multiple',           // NEW
+      singleColorYarnId: componentData.singleColorYarnId || null,  // NEW
+      startStepColorYarnId: componentData.startStepColorYarnId || null  // NEW
     };
 
     dispatch({
@@ -460,6 +464,41 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                           placeholder="e.g., Italian cast on, Judy's magic cast on"
                           className="input-field-lg"
                         />
+                      </div>
+                    )}
+
+                    {/* Color Selection - Only for multi-color components with 'multiple' mode */}
+                    {currentProject?.colorCount > 1 && componentData.colorMode === 'multiple' && (
+                      <div>
+                        <label className="form-label">Color for This Step</label>
+                        <div className="space-y-2">
+                          {yarns.sort((a, b) => {
+                            if (!a.letter && !b.letter) return 0;
+                            if (!a.letter) return 1;
+                            if (!b.letter) return -1;
+                            return a.letter.localeCompare(b.letter);
+                          }).map(yarn => (
+                            <button
+                              key={yarn.id}
+                              onClick={() => setComponentData(prev => ({
+                                ...prev,
+                                startStepColorYarnId: yarn.id
+                              }))}
+                              className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${componentData.startStepColorYarnId === yarn.id
+                                ? 'border-sage-500 bg-sage-50'
+                                : 'border-wool-200 hover:border-wool-300'
+                                }`}
+                            >
+                              <div
+                                className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
+                                style={{ backgroundColor: yarn.colorHex }}
+                              />
+                              <div className="text-left text-xs">
+                                <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
+                              </div>
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     )}
 
