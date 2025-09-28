@@ -789,6 +789,7 @@ const getPatternStepDescription = (step) => {
  * Determine if color should be shown in technical data
  */
 const shouldShowColorInTechnicalData = (step, stepIndex, component, project) => {
+
     // Single-yarn projects never show color
     if (!project || project.colorCount === 1) return false;
 
@@ -844,21 +845,31 @@ const getStepColorForComparison = (step, component) => {
 const getColorDisplayForTechnicalData = (step, project) => {
     const colorwork = step?.colorwork;
 
-    if (!colorwork) return null;
-
-    if (colorwork.type === 'single') {
-        const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
-        return yarn ? `Color ${yarn.letter}` : 'Color';
+    if (!colorwork) {
+        console.log('No colorwork data for step:', step?.id?.slice(0, 8));
+        return null;
     }
 
-    if (colorwork.type === 'multi-strand') {
-        const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
-        const letters = yarns.sort((a, b) => a.letter.localeCompare(b.letter)).map(y => y.letter).join('+');
-        return letters ? `Colors ${letters}` : 'Multi-strand';
+    // rest of the function...
+
+    // If step has colorwork data, use it
+    if (colorwork) {
+        if (colorwork.type === 'single') {
+            const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
+            return yarn ? `Color ${yarn.letter}` : 'Color';
+        }
+        if (colorwork.type === 'multi-strand') {
+            const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
+            const letters = yarns.sort((a, b) => a.letter.localeCompare(b.letter)).map(y => y.letter).join('+');
+            return letters ? `Colors ${letters}` : 'Multi-strand';
+        }
+        return null; // Stripes, etc.
     }
 
-    // Stripes already shown in description, don't repeat
-    return null;
+    // Fallback for legacy steps without colorwork data
+    // Assume they use the first yarn (Color A)
+    const firstYarn = project?.yarns?.find(y => y.letter === 'A');
+    return firstYarn ? `Color A` : 'Color';
 };
 
 

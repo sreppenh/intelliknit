@@ -59,17 +59,6 @@ const PrepNoteColorScreen = ({
 
     const previousColor = getPreviousStepColor();
 
-    // Debug the previous color detection
-    console.log('🔧 PREVIOUS COLOR DEBUG:', {
-        componentStepsLength: component.steps?.length,
-        lastStep: component.steps?.[component.steps.length - 1],
-        lastStepColorwork: component.steps?.[component.steps.length - 1]?.colorwork,
-        startStepColorYarnIds: component.startStepColorYarnIds,
-        componentColorMode: component.colorMode,
-        singleColorYarnId: component.singleColorYarnId,
-        previousColor: previousColor
-    });
-
     // ✅ REMOVED: updatePrepNoteForColor function - color info is now generated dynamically
 
     const handleContinue = () => {
@@ -81,7 +70,9 @@ const PrepNoteColorScreen = ({
                 type: 'single',
                 yarnId: component.singleColorYarnId
             });
+            console.log('Saved colorwork to wizard:', { type: 'single', yarnId: component.singleColorYarnId });
             onContinue('pattern-selection');
+
         } else if (colorChoice === 'single') {
             // Convert string ID to number
             const yarnId = typeof selectedYarnIds[0] === 'string' ?
@@ -90,6 +81,7 @@ const PrepNoteColorScreen = ({
                 type: 'single',
                 yarnId: yarnId
             });
+            console.log('Saved colorwork to wizard (multiple mode):', { type: 'single', yarnId: yarnId });
             onContinue('pattern-selection');
         } else if (colorChoice === 'stripes') {
             onContinue('stripes-config');
