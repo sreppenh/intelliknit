@@ -11,6 +11,7 @@ const PrepNoteColorScreen = ({
     onCancel
 }) => {
     const { yarns } = useYarnManager();
+    console.log('PrepNoteColorScreen is running - yarns:', yarns.length); // Add this line
     const [prepNote, setPrepNote] = useState(wizardData.prepNote || '');
     const [colorChoice, setColorChoice] = useState(null);
     const [selectedYarnIds, setSelectedYarnIds] = useState([]);
@@ -100,12 +101,28 @@ const PrepNoteColorScreen = ({
         return false;
     };
 
-    const sortedYarns = [...yarns].sort((a, b) => {
-        if (!a.letter && !b.letter) return 0;
-        if (!a.letter) return 1;
-        if (!b.letter) return -1;
-        return a.letter.localeCompare(b.letter);
+    // Generate yarn options based on component colorCount
+    const { currentProject } = useYarnManager();
+
+    // Debug what we're getting
+    console.log('Project colorCount:', currentProject?.colorCount);
+    console.log('Yarns from hook:', yarns.length);
+    console.log('Yarns:', yarns);
+
+    // Generate all 4 color slots
+    const sortedYarns = Array.from({ length: 4 }, (_, i) => {
+        const letter = String.fromCharCode(65 + i); // A, B, C, D
+        const existingYarn = yarns.find(y => y.letter === letter);
+
+        return existingYarn || {
+            id: `color-${letter}`,
+            letter: letter,
+            color: `Color ${letter}`,
+            hex: '#cccccc'  // Gray for unassigned colors
+        };
     });
+
+    console.log('Generated sortedYarns:', sortedYarns);
 
     // Default to previous step's color if available
     useEffect(() => {
@@ -209,7 +226,7 @@ const PrepNoteColorScreen = ({
                                     {sortedYarns.map(yarn => {
                                         const letter = yarn.letter || '?';
                                         const colorName = yarn.color || `Color ${letter}`;
-                                        const colorHex = yarn.hex || '#cccccc';
+                                        const colorHex = yarn.hex || yarn.colorHex || '#cccccc';
                                         const isSelected = selectedYarnIds.includes(yarn.id);
 
                                         return (
@@ -223,8 +240,7 @@ const PrepNoteColorScreen = ({
                                                             ? selectedYarnIds.filter(id => id !== yarn.id)
                                                             : [...selectedYarnIds, yarn.id];
                                                     setSelectedYarnIds(newSelectedYarns);
-                                                    // ✅ REMOVED: updatePrepNoteForColor call
-                                                    // Color info will be generated dynamically in PrepCard
+                                                    // ✅ NO updatePrepNoteForColor call here!
                                                 }}
                                                 className={`p-3 rounded-lg border-2 transition-all ${isSelected
                                                     ? 'border-sage-500 bg-sage-50'
