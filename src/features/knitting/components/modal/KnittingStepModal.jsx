@@ -202,9 +202,11 @@ const KnittingStepModal = ({
         if (currentItem.type === 'prep') {
             return (
                 <KnittingPrepCard
-                    prepNote={currentItem.prepNote}
+                    step={step}                    // ✅ ADD
                     stepIndex={stepIndex}
-                    navigation={navigation}
+                    component={component}          // ✅ ADD
+                    project={project}              // ✅ ADD
+                    prepNote={currentItem.prepNote}
                 />
             );
         }
