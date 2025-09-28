@@ -203,8 +203,7 @@ export const PrepNoteDisplay = ({ note, className = "", onClick }) => {
 
   return (
     <div
-      className={`bg-sage-100 border-l-4 border-sage-500 rounded-r-lg p-3 my-2 ${className} ${isClickable ? 'cursor-pointer hover:bg-sage-150 transition-colors' : ''
-        }`}
+      className={`bg-sage-100 border-l-4 border-sage-500 rounded-r-lg p-3 my-2 ${className} ${isClickable ? 'cursor-pointer hover:bg-sage-150 transition-colors' : ''}`}
       onClick={isClickable ? onClick : undefined}
       title={isClickable ? "Click to edit preparation note" : undefined}
     >

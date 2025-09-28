@@ -37,6 +37,7 @@ const StepCard = ({
         '';
 
     // ✅ Get formatted display data
+    console.log('StepCard DEBUG:', { stepIndex, component: !!component, project: !!project, projectColorCount: project?.colorCount });
     const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step, componentName, project, stepIndex, component);
 
     // 🔍 DEBUG LOG - Add this right after the above line
@@ -61,10 +62,9 @@ const StepCard = ({
             {/* PrepNote Display - Above the step, not numbered */}
             <PrepNoteDisplay
                 note={prepNote}
-                className="mx-1" // Slight margin to align with step content
+                className="mx-1"
                 onClick={() => onPrepNoteClick && onPrepNoteClick(stepIndex)}
             />
-
             {/* Step Card */}
             <div className="bg-sage-50 border-sage-300 border-2 rounded-xl p-4 transition-all duration-200">
                 <div className="flex items-start gap-3">

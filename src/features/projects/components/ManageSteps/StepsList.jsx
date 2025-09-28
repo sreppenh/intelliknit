@@ -88,6 +88,8 @@ const StepsList = ({
                         stepIndex={stepIndex}
                         isEditable={isEditable}
                         isCompleted={isCompleted}
+                        component={component}  // ← ADD THIS LINE
+                        componentName={componentName}
                         isSpecial={isSpecial}
                         isComponentFinished={isComponentFinished}
                         openMenuId={openMenuId}
@@ -100,6 +102,7 @@ const StepsList = ({
                         onPrepNoteClick={onPrepNoteClick}
                         onAfterNoteClick={onAfterNoteClick}
                         project={project}
+
                     />
                 );
             })}

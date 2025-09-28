@@ -11,7 +11,6 @@ const PrepNoteColorScreen = ({
     onCancel
 }) => {
     const { yarns } = useYarnManager();
-    console.log('PrepNoteColorScreen is running - yarns:', yarns.length); // Add this line
     const [prepNote, setPrepNote] = useState(wizardData.prepNote || '');
     const [colorChoice, setColorChoice] = useState(null);
     const [selectedYarnIds, setSelectedYarnIds] = useState([]);
@@ -60,6 +59,17 @@ const PrepNoteColorScreen = ({
 
     const previousColor = getPreviousStepColor();
 
+    // Debug the previous color detection
+    console.log('🔧 PREVIOUS COLOR DEBUG:', {
+        componentStepsLength: component.steps?.length,
+        lastStep: component.steps?.[component.steps.length - 1],
+        lastStepColorwork: component.steps?.[component.steps.length - 1]?.colorwork,
+        startStepColorYarnIds: component.startStepColorYarnIds,
+        componentColorMode: component.colorMode,
+        singleColorYarnId: component.singleColorYarnId,
+        previousColor: previousColor
+    });
+
     // ✅ REMOVED: updatePrepNoteForColor function - color info is now generated dynamically
 
     const handleContinue = () => {
@@ -104,11 +114,6 @@ const PrepNoteColorScreen = ({
     // Generate yarn options based on component colorCount
     const { currentProject } = useYarnManager();
 
-    // Debug what we're getting
-    console.log('Project colorCount:', currentProject?.colorCount);
-    console.log('Yarns from hook:', yarns.length);
-    console.log('Yarns:', yarns);
-
     // Generate all 4 color slots
     const sortedYarns = Array.from({ length: 4 }, (_, i) => {
         const letter = String.fromCharCode(65 + i); // A, B, C, D
@@ -122,11 +127,9 @@ const PrepNoteColorScreen = ({
         };
     });
 
-    console.log('Generated sortedYarns:', sortedYarns);
-
     // Default to previous step's color if available
     useEffect(() => {
-        if (previousColor && previousColor.type !== 'stripes' && selectedYarnIds.length === 0) {
+        if (previousColor && previousColor.type !== 'stripes' && selectedYarnIds.length === 0 && !colorChoice) {
             if (previousColor.yarnIds.length === 1) {
                 setColorChoice('single');
                 setSelectedYarnIds(previousColor.yarnIds);
@@ -135,7 +138,7 @@ const PrepNoteColorScreen = ({
                 setSelectedYarnIds(previousColor.yarnIds);
             }
         }
-    }, []);
+    }, [previousColor, selectedYarnIds, colorChoice]); // ← CHANGE: Add dependencies
 
     return (
         <div className="stack-lg">
