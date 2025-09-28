@@ -219,6 +219,12 @@ export const projectsReducer = (state, action) => {
           colorwork: action.payload.colorMode === 'single' && action.payload.singleColorYarnId ? {
             type: 'single',
             yarnId: action.payload.singleColorYarnId
+          } : action.payload.startStepColorYarnIds && action.payload.startStepColorYarnIds.length === 1 ? {
+            type: 'single',
+            yarnId: action.payload.startStepColorYarnIds[0]
+          } : action.payload.startStepColorYarnIds && action.payload.startStepColorYarnIds.length > 1 ? {
+            type: 'multi-strand',
+            yarnIds: action.payload.startStepColorYarnIds
           } : null,
           completed: false
         };

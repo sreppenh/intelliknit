@@ -518,7 +518,6 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                                     return {
                                       ...prev,
                                       startStepColorYarnIds: newIds,
-                                      setupNotes: setupNote
                                     };
                                   });
                                 }}
