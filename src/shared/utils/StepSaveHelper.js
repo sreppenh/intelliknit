@@ -74,6 +74,7 @@ export const useStepSaveHelper = () => {
                 construction: construction,
                 startingStitches: currentStitches > 0 ? currentStitches : effect.startingStitches || 0,
                 endingStitches: effect.endingStitches,
+                colorwork: wizardData.colorwork,  // ← ADD THIS LINE
                 totalRows: effect.totalRows,
                 wizardConfig: wizardData,
                 prepNote: wizardData.prepNote || '',
