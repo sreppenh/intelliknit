@@ -5,6 +5,8 @@ import PageHeader from '../../../shared/components/PageHeader';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
 import KnittingStepModal from './modal/KnittingStepModal';
 import { isLengthBasedStep } from '../../../shared/utils/gaugeUtils';
+import { getPrepCardColorInfo } from '../../../shared/utils/prepCardUtils';
+import { Palette } from 'lucide-react';
 
 const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const { currentProject, activeComponentIndex, dispatch } = useProjectsContext();
@@ -181,27 +183,57 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
           ) : (
             displayItems.map((item) => {
               if (item.type === 'prep') {
-                // Prep Card - Lavender themed
-                return (
-                  <div
-                    key={item.id}
-                    className="bg-lavender-50 border-l-4 border-lavender-400 rounded-r-xl p-4 shadow-sm"
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="w-7 h-7 rounded-full bg-lavender-400 text-white flex items-center justify-center flex-shrink-0">
-                        <FileText size={14} />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <div className="text-sm font-semibold text-lavender-700 mb-1 text-left">
-                          Preparation Note
+                if (item.type === 'prep') {
+                  // Get dynamic color info
+                  const step = activeComponent.steps[item.stepIndex];
+                  const colorInfo = getPrepCardColorInfo(step, item.stepIndex, activeComponent, currentProject);
+
+                  // Prep Card - Lavender themed with separated color/note sections
+                  return (
+                    <div
+                      key={item.id}
+                      className="space-y-2"
+                    >
+                      {/* Color change info - Yarn themed */}
+                      {colorInfo && (
+                        <div className="bg-yarn-100 border-l-4 border-yarn-500 rounded-r-xl p-3 shadow-sm">
+                          <div className="flex items-start gap-3">
+                            <div className="w-7 h-7 rounded-full bg-yarn-400 text-white flex items-center justify-center flex-shrink-0">
+                              <Palette size={14} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-semibold text-yarn-700 mb-1 text-left uppercase tracking-wide">
+                                Yarn Change
+                              </div>
+                              <div className="text-sm text-yarn-700 font-medium text-left">
+                                {colorInfo}
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="text-sm text-lavender-600 italic text-left">
-                          {item.prepNote}
+                      )}
+
+                      {/* User notes - Lavender themed */}
+                      {item.prepNote && item.prepNote.trim().length > 0 && (
+                        <div className="bg-lavender-50 border-l-4 border-lavender-400 rounded-r-xl p-3 shadow-sm">
+                          <div className="flex items-start gap-3">
+                            <div className="w-7 h-7 rounded-full bg-lavender-400 text-white flex items-center justify-center flex-shrink-0">
+                              <FileText size={14} />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-xs font-semibold text-lavender-700 mb-1 text-left uppercase tracking-wide">
+                                Preparation Note
+                              </div>
+                              <div className="text-sm text-lavender-600 italic text-left">
+                                "{item.prepNote}"
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                      </div>
+                      )}
                     </div>
-                  </div>
-                );
+                  );
+                }
               } else if (item.type === 'assembly') {
                 // ✅ NEW: Assembly Card - Sage themed
                 return (

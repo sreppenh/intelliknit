@@ -1,3 +1,4 @@
+// src/features/steps/components/wizard-screens/PrepNoteColorScreen.jsx
 import React, { useState, useEffect } from 'react';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
@@ -58,45 +59,10 @@ const PrepNoteColorScreen = ({
 
     const previousColor = getPreviousStepColor();
 
-    const updatePrepNoteForColor = (newYarnIds) => {
-        if (newYarnIds.length === 0) return;
-
-        const colorChanged = !previousColor ||
-            JSON.stringify([...newYarnIds].sort()) !== JSON.stringify([...previousColor.yarnIds].sort());
-
-        if (!colorChanged) return;
-
-        let note = '';
-        if (newYarnIds.length === 1) {
-            const yarnId = newYarnIds[0];
-            let letter, displayName;
-
-            if (typeof yarnId === 'string' && yarnId.startsWith('color-')) {
-                letter = yarnId.replace('color-', '');
-                displayName = `Color ${letter}`;
-            } else {
-                const numericId = typeof yarnId === 'string' ? parseInt(yarnId) : yarnId;
-                const yarn = yarns.find(y => y.id === numericId);
-                letter = yarn?.letter || 'A';
-                displayName = yarn?.color || `Color ${letter}`;
-            }
-
-            note = `Switch to Color ${letter} (${displayName})`;
-        } else {
-            const letters = newYarnIds.map(id => {
-                if (typeof id === 'string' && id.startsWith('color-')) {
-                    return id.replace('color-', '');
-                }
-                const yarn = yarns.find(y => y.id === id);
-                return yarn?.letter || '';
-            }).filter(Boolean).sort().join(' and ');
-            note = `Using Colors ${letters} together`;
-        }
-
-        setPrepNote(note);
-    };
+    // ✅ REMOVED: updatePrepNoteForColor function - color info is now generated dynamically
 
     const handleContinue = () => {
+        // Save only user's custom notes - no auto-generated color text
         updateWizardData('prepNote', prepNote);
 
         if (component.colorMode === 'single') {
@@ -107,7 +73,8 @@ const PrepNoteColorScreen = ({
             onContinue('pattern-selection');
         } else if (colorChoice === 'single') {
             // Convert string ID to number
-            const yarnId = typeof selectedYarnIds[0] === 'string' ? parseInt(selectedYarnIds[0]) : selectedYarnIds[0];
+            const yarnId = typeof selectedYarnIds[0] === 'string' ?
+                parseInt(selectedYarnIds[0]) : selectedYarnIds[0];
             updateWizardData('colorwork', {
                 type: 'single',
                 yarnId: yarnId
@@ -158,7 +125,6 @@ const PrepNoteColorScreen = ({
             <div>
                 <h2 className="content-header-primary">Set up step</h2>
                 <p className="content-subheader">Add preparation notes and yarn details</p>
-                {/* <p className="content-subheader">Choose how you want to specify your pattern</p> */}
             </div>
 
             {/* Color Choice - MOVED TO TOP */}
@@ -173,9 +139,10 @@ const PrepNoteColorScreen = ({
                                 onClick={() => {
                                     setColorChoice('single');
                                     setSelectedYarnIds([]);
-                                    setPrepNote(''); // Clear prep note when changing mode
+                                    // ✅ CHANGED: Don't clear prepNote - it's for user notes only
                                 }}
-                                className={`w-full card-interactive ${colorChoice === 'single' ? 'ring-2 ring-sage-500' : ''
+                                className={`w-full card-interactive ${colorChoice === 'single' ?
+                                    'ring-2 ring-sage-500' : ''
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
@@ -193,7 +160,7 @@ const PrepNoteColorScreen = ({
                             <button
                                 onClick={() => {
                                     setColorChoice('stripes');
-                                    setPrepNote(''); // Clear prep note
+                                    // ✅ CHANGED: Don't clear prepNote
                                 }}
                                 className={`w-full card-interactive ${colorChoice === 'stripes' ? 'ring-2 ring-sage-500' : ''
                                     }`}
@@ -214,76 +181,50 @@ const PrepNoteColorScreen = ({
                                 onClick={() => {
                                     setColorChoice('multi-strand');
                                     setSelectedYarnIds([]);
-                                    setPrepNote(''); // Clear prep note
+                                    // ✅ CHANGED: Don't clear prepNote
                                 }}
-                                className={`w-full card-interactive ${colorChoice === 'multi-strand' ? 'ring-2 ring-sage-500' : ''
+                                className={`w-full card-interactive ${colorChoice === 'multi-strand' ?
+                                    'ring-2 ring-sage-500' : ''
                                     }`}
                             >
                                 <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-300 to-blue-300 flex items-center justify-center">
-                                        <span className="text-lg">🧵🧵</span>
+                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sage-400 to-yarn-400 flex items-center justify-center">
+                                        <span className="text-lg font-bold text-white">⫽</span>
                                     </div>
                                     <div className="text-left">
-                                        <div className="font-semibold">Multi-Strand</div>
-                                        <div className="text-xs text-wool-600">Hold 2+ yarns together</div>
+                                        <div className="font-semibold">Multiple Colors</div>
+                                        <div className="text-xs text-wool-600">Hold multiple strands together</div>
                                     </div>
                                 </div>
                             </button>
                         </div>
-                    </div>
 
-                    {/* Yarn Selection */}
-                    {(colorChoice === 'single' || colorChoice === 'multi-strand') && (
-                        <div>
-                            <label className="form-label text-sm">
-                                {colorChoice === 'single' ? 'Select Yarn' : 'Select Yarns to Hold Together'}
-                            </label>
-
-                            {colorChoice === 'single' ? (
-                                <select
-                                    value={selectedYarnIds[0] || ''}
-                                    onChange={(e) => {
-                                        const newIds = e.target.value ? [e.target.value] : [];
-                                        setSelectedYarnIds(newIds);
-                                        updatePrepNoteForColor(newIds);
-                                    }}
-                                    className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
-                                >
-                                    <option value="">Select color...</option>
-                                    {Array.from({ length: component.colorCount || 2 }, (_, i) => {
-                                        const letter = String.fromCharCode(65 + i);
-                                        const yarn = yarns.find(y => y.letter === letter);
-                                        const yarnId = yarn?.id || `color-${letter}`;
-                                        const displayName = yarn?.color || `Color ${letter}`;
-                                        return (
-                                            <option key={letter} value={yarnId}>
-                                                {letter} - {displayName}
-                                            </option>
-                                        );
-                                    })}
-                                </select>
-                            ) : (
-                                <div className="grid grid-cols-3 gap-2">
-                                    {Array.from({ length: component.colorCount || 2 }, (_, i) => {
-                                        const letter = String.fromCharCode(65 + i);
-                                        const yarn = yarns.find(y => y.letter === letter);
-                                        const yarnId = yarn?.id || `color-${letter}`;
-                                        const colorHex = yarn?.colorHex || '#f3f4f6';
-                                        const colorName = yarn?.color || `Color ${letter}`;
-                                        const isSelected = selectedYarnIds.includes(yarnId);
+                        {/* Yarn Selection Grid */}
+                        {(colorChoice === 'single' || colorChoice === 'multi-strand') && (
+                            <div className="mt-4">
+                                <label className="form-label">
+                                    Select {colorChoice === 'single' ? 'Yarn' : 'Yarns'}
+                                </label>
+                                <div className="grid grid-cols-3 gap-3">
+                                    {sortedYarns.map(yarn => {
+                                        const letter = yarn.letter || '?';
+                                        const colorName = yarn.color || `Color ${letter}`;
+                                        const colorHex = yarn.hex || '#cccccc';
+                                        const isSelected = selectedYarnIds.includes(yarn.id);
 
                                         return (
                                             <button
-                                                key={letter}
+                                                key={yarn.id}
                                                 type="button"
                                                 onClick={() => {
-                                                    const newIds = isSelected
-                                                        ? selectedYarnIds.filter(id => id !== yarnId)
-                                                        : [...selectedYarnIds, yarnId];
-                                                    setSelectedYarnIds(newIds);
-                                                    if (newIds.length >= 2) {
-                                                        updatePrepNoteForColor(newIds);
-                                                    }
+                                                    const newSelectedYarns = colorChoice === 'single'
+                                                        ? [yarn.id]
+                                                        : isSelected
+                                                            ? selectedYarnIds.filter(id => id !== yarn.id)
+                                                            : [...selectedYarnIds, yarn.id];
+                                                    setSelectedYarnIds(newSelectedYarns);
+                                                    // ✅ REMOVED: updatePrepNoteForColor call
+                                                    // Color info will be generated dynamically in PrepCard
                                                 }}
                                                 className={`p-3 rounded-lg border-2 transition-all ${isSelected
                                                     ? 'border-sage-500 bg-sage-50'
@@ -303,21 +244,25 @@ const PrepNoteColorScreen = ({
                                         );
                                     })}
                                 </div>
-                            )}
-                        </div>
-                    )}
+                            </div>
+                        )}
+                    </div>
                 </>
             )}
 
             {/* Prep Note - MOVED TO BOTTOM */}
             <div>
                 <label className="form-label">
-                    Preparation Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+                    Additional Setup Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
                 </label>
+                {/* ✅ NEW: Helper text explaining separation */}
+                <div className="text-xs text-wool-500 mb-2">
+                    Yarn changes are tracked automatically. Add any additional setup instructions here.
+                </div>
                 <textarea
                     value={prepNote}
                     onChange={(e) => setPrepNote(e.target.value)}
-                    placeholder="e.g., Switch to US 6 needles, place stitch markers"
+                    placeholder="e.g., Switch to US 6 needles, place stitch markers, check gauge"
                     rows={2}
                     className="input-field-lg resize-none"
                 />
