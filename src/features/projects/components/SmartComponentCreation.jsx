@@ -335,19 +335,19 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                 {componentData.colorMode === 'single' && (
                   <div className="mt-3">
                     <label className="form-label text-sm">Select Yarn</label>
-                    {yarns.length === 0 ? (
-                      <div className="text-xs text-wool-600 p-3 bg-wool-50 rounded-lg">
-                        No yarns added yet. Add yarns in Project Details.
-                      </div>
-                    ) : (
-                      <div className="space-y-2">
-                        {[...yarns].sort((a, b) => {
-                          // Sort by letter: A, B, C, etc.
-                          if (!a.letter && !b.letter) return 0;
-                          if (!a.letter) return 1;  // Unlabeled yarns go to end
-                          if (!b.letter) return -1;
-                          return a.letter.localeCompare(b.letter);
-                        }).map(yarn => (
+                    <div className="space-y-2">
+                      {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
+                        const letter = String.fromCharCode(65 + i); // A, B, C, D
+                        const existingYarn = yarns.find(y => y.letter === letter);
+
+                        const yarn = existingYarn || {
+                          id: `color-${letter}`,
+                          letter: letter,
+                          color: `Color ${letter}`,
+                          colorHex: '#cccccc'  // Gray for unassigned colors
+                        };
+
+                        return (
                           <button
                             key={yarn.id}
                             onClick={() => setComponentData(prev => ({
@@ -367,9 +367,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                               <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
                             </div>
                           </button>
-                        ))}
-                      </div>
-                    )}
+                        );
+                      })}
+                    </div>
                   </div>
                 )}
               </div>

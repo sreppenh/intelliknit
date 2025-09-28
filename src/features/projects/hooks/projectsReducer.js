@@ -216,6 +216,10 @@ export const projectsReducer = (state, action) => {
           endingStitches: action.payload.startingStitches,
           totalRows: 1,
           construction: action.payload.construction || 'flat',
+          colorwork: action.payload.colorMode === 'single' && action.payload.singleColorYarnId ? {
+            type: 'single',
+            yarnId: action.payload.singleColorYarnId
+          } : null,
           completed: false
         };
 

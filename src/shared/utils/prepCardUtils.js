@@ -23,8 +23,8 @@ export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
         return null;
     }
 
-    // Component must use multiple colors
-    if (component.colorMode === 'single') {
+    // For single-color components, only show on first step
+    if (component.colorMode === 'single' && stepIndex !== 0) {
         return null;
     }
 

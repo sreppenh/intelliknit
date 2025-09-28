@@ -789,22 +789,11 @@ const getPatternStepDescription = (step) => {
  * Determine if color should be shown in technical data
  */
 const shouldShowColorInTechnicalData = (step, stepIndex, component, project) => {
-
     // Single-yarn projects never show color
     if (!project || project.colorCount === 1) return false;
 
-    // First step always shows color
-    if (stepIndex === 0) return true;
-
-    // No component or stepIndex - can't determine, skip
-    if (!component || stepIndex === null) return false;
-
-    // Check if color changed from previous step
-    const prevStep = component.steps[stepIndex - 1];
-    const currentColor = getStepColorForComparison(step, component);
-    const prevColor = getStepColorForComparison(prevStep, component);
-
-    return currentColor !== prevColor;
+    // Show color for any step that has colorwork data
+    return step?.colorwork !== null && step?.colorwork !== undefined;
 };
 
 /**

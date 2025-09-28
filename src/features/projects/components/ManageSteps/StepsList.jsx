@@ -54,23 +54,49 @@ const StepsList = ({
     // Replace the existing return statement with this enhanced version:
     return (
         <div className="stack-sm">
-            {/* Just the essentials */}
+            {/* FIXED: Button consistency to match ManageSteps exactly */}
             <div className="flex justify-between items-center">
                 <h3 className="content-header-secondary text-left">Instructions</h3>
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     {!isComponentFullyEntered() ? (
-                        <button onClick={onAddStep} className="btn-secondary btn-sm">
-                            + Add Step
-                        </button>
-                    ) : null}
-                    {!isComponentFullyEntered() && (
-                        <button onClick={onFinishComponent} className="btn-tertiary btn-sm">
-                            Finish Component
-                        </button>
+                        <>
+                            {component.steps.length > 0 && (
+                                <button
+                                    onClick={onFinishComponent}
+                                    className="flex-1 btn-secondary flex items-center justify-center gap-2"
+                                >
+                                    <span className="text-lg">🏁</span>
+                                    Finish
+                                </button>
+                            )}
+                            <button
+                                onClick={onAddStep}
+                                className="flex-1 btn-primary flex items-center justify-center gap-2"
+                            >
+                                <span className="text-lg">➕</span>
+                                Add Step
+                            </button>
+                        </>
+                    ) : (
+                        <>
+                            <button
+                                onClick={onBack}
+                                className="flex-1 btn-secondary flex items-center justify-center gap-2"
+                            >
+                                <span className="text-lg">📋</span>
+                                View Project
+                            </button>
+                            <button
+                                onClick={onStartKnitting}
+                                className="flex-1 btn-primary flex items-center justify-center gap-2"
+                            >
+                                <span className="text-lg">🧶</span>
+                                Start Knitting
+                            </button>
+                        </>
                     )}
                 </div>
             </div>
-
 
             {/* Steps with Unified PrepCards */}
             <div className="space-y-2">
