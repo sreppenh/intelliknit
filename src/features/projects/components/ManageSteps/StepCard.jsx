@@ -37,6 +37,20 @@ const StepCard = ({
 
     // ✅ Get formatted display data
     const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step, componentName, project);
+
+
+    // 🔍 DEBUG LOG - Add this right after the above line
+    console.log('=== STEP DEBUG ===', {
+        stepIndex,
+        construction: step.construction,
+        pattern: step.wizardConfig?.stitchPattern?.pattern,
+        shapingType: step.wizardConfig?.shapingConfig?.type,
+        technicalData,
+        fullStep: step
+    });
+
+
+
     // Check if we have both types of notes for divider logic
     const hasPatternNotes = contextualPatternNotes && contextualPatternNotes.trim().length > 0;
     const hasConfigNotes = contextualConfigNotes && contextualConfigNotes.trim().length > 0;

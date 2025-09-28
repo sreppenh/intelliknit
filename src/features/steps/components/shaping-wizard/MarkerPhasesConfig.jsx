@@ -371,6 +371,8 @@ const MarkerPhasesConfig = ({
                 shapingConfig: markerConfig,
                 stitchPattern: wizard?.wizardData?.stitchPattern
             },
+            currentStitches: currentStitches,  // ← ADD THIS
+            construction: construction,         // ← ADD THIS
             componentIndex,
             dispatch,
             skipNavigation: true
