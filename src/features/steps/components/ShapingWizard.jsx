@@ -181,7 +181,6 @@ const ShapingWizard = ({
             onCancel={handleCancel}
             mode={mode}
             project={project}
-            construction={construction}
           />
         );
 

@@ -20,7 +20,8 @@ const StepCard = ({
     onAfterNoteClick,
     editableStepIndex,
     componentName,
-    project
+    project,
+    component
 }) => {
 
     // Extract prep note from various possible locations
@@ -36,8 +37,7 @@ const StepCard = ({
         '';
 
     // ✅ Get formatted display data
-    const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step, componentName, project);
-
+    const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step, componentName, project, stepIndex, component);
 
     // 🔍 DEBUG LOG - Add this right after the above line
     console.log('=== STEP DEBUG ===', {

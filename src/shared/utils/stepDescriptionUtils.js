@@ -434,7 +434,7 @@ export const getContextualConfigNotes = (step) => {
  * Get complete formatted step display
  * Returns object with description, notes, and technical data
  */
-export const getFormattedStepDisplay = (step, componentName = null, project = null) => {
+export const getFormattedStepDisplay = (step, componentName = null, project = null, stepIndex = null, component = null) => {
     if (step.wizardConfig?.shapingConfig?.type === 'marker_phases') {
 
     }
@@ -443,7 +443,7 @@ export const getFormattedStepDisplay = (step, componentName = null, project = nu
         description: getHumanReadableDescription(step, componentName),
         contextualPatternNotes: getContextualPatternNotes(step, project),
         contextualConfigNotes: getContextualConfigNotes(step),
-        technicalData: getTechnicalDataDisplay(step, project)
+        technicalData: getTechnicalDataDisplay(step, project, stepIndex, component)
     };
 };
 
@@ -786,11 +786,87 @@ const getPatternStepDescription = (step) => {
 // ===== TECHNICAL DATA FORMATTING =====
 
 /**
+ * Determine if color should be shown in technical data
+ */
+const shouldShowColorInTechnicalData = (step, stepIndex, component, project) => {
+    // Single-yarn projects never show color
+    if (!project || project.colorCount === 1) return false;
+
+    // First step always shows color
+    if (stepIndex === 0) return true;
+
+    // No component or stepIndex - can't determine, skip
+    if (!component || stepIndex === null) return false;
+
+    // Check if color changed from previous step
+    const prevStep = component.steps[stepIndex - 1];
+    const currentColor = getStepColorForComparison(step, component);
+    const prevColor = getStepColorForComparison(prevStep, component);
+
+    return currentColor !== prevColor;
+};
+
+/**
+ * Get step color for comparison (normalized string)
+ */
+const getStepColorForComparison = (step, component) => {
+    // Check step's colorwork data
+    if (step?.colorwork) {
+        if (step.colorwork.type === 'single') {
+            return `single:${step.colorwork.yarnId}`;
+        }
+        if (step.colorwork.type === 'multi-strand') {
+            return `multi:${step.colorwork.yarnIds.sort().join(',')}`;
+        }
+        if (step.colorwork.type === 'stripes') {
+            return 'stripes';
+        }
+    }
+
+    // Fallback to component default
+    if (component?.colorMode === 'single' && component.singleColorYarnId) {
+        return `single:${component.singleColorYarnId}`;
+    }
+
+    if (component?.startStepColorYarnIds && component.startStepColorYarnIds.length > 0) {
+        if (component.startStepColorYarnIds.length === 1) {
+            return `single:${component.startStepColorYarnIds[0]}`;
+        }
+        return `multi:${component.startStepColorYarnIds.sort().join(',')}`;
+    }
+
+    return null;
+};
+
+/**
+ * Get color display text for technical data
+ */
+const getColorDisplayForTechnicalData = (step, project) => {
+    const colorwork = step?.colorwork;
+
+    if (!colorwork) return null;
+
+    if (colorwork.type === 'single') {
+        const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
+        return yarn ? `Color ${yarn.letter}` : 'Color';
+    }
+
+    if (colorwork.type === 'multi-strand') {
+        const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
+        const letters = yarns.sort((a, b) => a.letter.localeCompare(b.letter)).map(y => y.letter).join('+');
+        return letters ? `Colors ${letters}` : 'Multi-strand';
+    }
+
+    // Stripes already shown in description, don't repeat
+    return null;
+};
+
+
+/**
  * Format technical data display (the "good data - do not remove")
  * ✅ ENHANCED: Calculate total rows for repeat-based patterns
  */
-const getTechnicalDataDisplay = (step, project = null) => {
-
+const getTechnicalDataDisplay = (step, project = null, stepIndex = null, component = null) => {
     const parts = [];
 
     // Stitch counts
@@ -803,16 +879,12 @@ const getTechnicalDataDisplay = (step, project = null) => {
 
     if (shapingConfig?.type === 'marker_phases') {
         const sequences = shapingConfig?.config?.phases || [];
-
-        // Calculate total distance from all distance phases
         let totalDistance = 0;
         let hasDistancePhases = false;
         let totalEstimatedRows = 0;
 
         sequences.forEach(sequence => {
-
             const phases = sequence.phases || [];
-
             phases.forEach(phase => {
                 if (phase.type === 'repeat') {
                     const intervalType = phase.intervalType || phase.config?.intervalType;
@@ -822,27 +894,21 @@ const getTechnicalDataDisplay = (step, project = null) => {
                         const phaseDistance = distance * times;
                         totalDistance += phaseDistance;
 
-                        // Calculate estimated rows for this phase
                         const gaugeResult = calculateRowsFromDistance(distance, project, step.construction || 'flat');
                         if (gaugeResult.hasGauge) {
                             totalEstimatedRows += gaugeResult.estimatedRows * times;
                         }
-
                         hasDistancePhases = true;
                     }
-                }
-                // Add other phase types (initial, finish) that contribute rows
-                else if (phase.type === 'initial') {
+                } else if (phase.type === 'initial') {
                     totalEstimatedRows += 1;
-                }
-                else if (phase.type === 'finish') {
+                } else if (phase.type === 'finish') {
                     const finishRows = phase.config?.regularRows || phase.regularRows || 0;
                     totalEstimatedRows += finishRows;
                 }
             });
         });
 
-        // Show distance format if we have distance phases
         if (hasDistancePhases && totalDistance > 0) {
             const units = project?.defaultUnits || 'inches';
             const construction = step.construction || 'flat';
@@ -857,23 +923,29 @@ const getTechnicalDataDisplay = (step, project = null) => {
                 parts.push(distanceDisplay);
             }
         } else {
-            // Fallback to regular duration display
             const duration = getEnhancedDurationDisplay(step, project);
             if (duration) {
                 parts.push(duration);
             }
         }
     } else {
-        // Regular duration display for non-marker-phases steps
         const duration = getEnhancedDurationDisplay(step, project);
         if (duration) {
             parts.push(duration);
         }
     }
 
-    // Construction
-    const construction = step.construction || 'flat';
-    parts.push(construction);
+    // Add color indicator if needed (replaces construction)
+    if (shouldShowColorInTechnicalData(step, stepIndex, component, project)) {
+        const colorDisplay = getColorDisplayForTechnicalData(step, project);
+        if (colorDisplay) {
+            parts.push(colorDisplay);
+        }
+    } else {
+        // Show construction only when no color change
+        const construction = step.construction || 'flat';
+        parts.push(construction);
+    }
 
     return parts.join(' • ');
 };
