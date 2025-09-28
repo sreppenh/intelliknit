@@ -6,6 +6,7 @@
  */
 
 import { getStitchConsumption } from './stitchCalculatorUtils';
+import { getConstructionTerms } from './ConstructionTerminology';
 
 /**
  * Get stitch change for a technique (net gain/loss)
@@ -54,16 +55,16 @@ const findLastActionMarkerIndex = (markers, actionsByMarker) => {
  * @returns {string} - Human-readable instruction text
  */
 export const generateMarkerInstructionPreview = (allActions, timing, markerArray, construction, basePattern = 'pattern') => {
+    const terms = getConstructionTerms(construction);
     if (allActions.length === 0) return "No actions defined yet";
 
     // Handle 'continue' only actions - PRESERVE THIS WORKING LOGIC
     if (allActions.length === 1 && allActions[0].actionType === 'continue') {
-        const rowTerm = construction === 'round' ? 'round' : 'row';
         const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
             ? ` until ${timing.targetStitches} stitches remain`
             : timing.times ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
-        const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
-        return `Work in ${basePattern} until end of ${rowTerm}${frequencyText}${repeatText}`;
+        const frequencyText = timing.frequency > 1 ? ` every ${timing.frequency} ${terms.rows}` : '';
+        return `Work in ${basePattern} until end of ${terms.row}${frequencyText}${repeatText}`;
     }
 
     // Handle bind off actions
@@ -77,8 +78,7 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
             if (action.bindOffAmount === 'all' || action.stitchCount >= totalStitches) {
                 return `Bind off all stitches`;
             } else {
-                const rowTerm = construction === 'round' ? 'round' : 'row';
-                return `Bind off ${amount}${location} then work in ${basePattern} until end of ${rowTerm}`;
+                return `Bind off ${amount}${location} then work in ${basePattern} until end of ${terms.row}`;
             }
         });
         const repeatText = timing.amountMode === 'target' && timing.targetStitches !== null
@@ -406,7 +406,7 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
     const repeatText = hasRealTiming && timing.amountMode === 'target' && timing.targetStitches !== null && timing.targetStitches > 0
         ? ` until ${timing.targetStitches} stitches remain`
         : hasRealTiming && timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
-    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} ${terms.rows}}` : '';
 
     return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
 };
@@ -420,6 +420,7 @@ export const generateMarkerInstructionPreview = (allActions, timing, markerArray
  * @returns {string} - Round instruction text
  */
 const generateRoundInstructions = (allActions, timing, markerArray, basePattern) => {
+    const terms = getConstructionTerms('round');
     const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
     const actionsByMarker = {};
     let totalStitchChange = 0;
@@ -939,7 +940,7 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
                 const repeatText = hasRealTiming && timing.amountMode === 'target' && timing.targetStitches !== null && timing.targetStitches > 0
                     ? ` until ${timing.targetStitches} stitches remain`
                     : hasRealTiming && timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
-                const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} rounds` : '';
+                const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} ${terms.rows}` : '';
 
                 return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
             }
@@ -957,7 +958,7 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
     const repeatText = hasRealTiming && timing.amountMode === 'target' && timing.targetStitches !== null && timing.targetStitches > 0
         ? ` until ${timing.targetStitches} stitches remain`
         : hasRealTiming && timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
-    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} rounds` : '';
+    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} ${terms.rows}` : '';
 
     return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
 };
@@ -972,6 +973,7 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
  * @returns {string} - Sequential instruction text
  */
 const generateSequentialInstructions = (allActions, timing, markerArray, construction, basePattern) => {
+    const terms = getConstructionTerms(construction);
     const meaningfulActions = allActions.filter(action => action.actionType !== 'continue');
     const markers = markerArray.filter(item => typeof item === 'string' && item !== 'BOR');
     let totalStitchChange = 0;
@@ -1162,7 +1164,7 @@ const generateSequentialInstructions = (allActions, timing, markerArray, constru
     const repeatText = hasRealTiming && timing.amountMode === 'target' && timing.targetStitches !== null && timing.targetStitches > 0
         ? ` until ${timing.targetStitches} stitches remain`
         : hasRealTiming && timing.times && timing.times > 1 ? ` ${timing.times} time${timing.times === 1 ? '' : 's'}` : '';
-    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} ${construction === 'round' ? 'rounds' : 'rows'}` : '';
+    const frequencyText = hasRealTiming && timing.frequency && timing.frequency > 1 ? ` every ${timing.frequency} ${terms.rows}` : '';
 
     return instruction ? `${instruction.charAt(0).toUpperCase()}${instruction.slice(1)}${frequencyText}${repeatText}${stitchChangeText}` : "No valid actions defined";
 };
@@ -1175,7 +1177,8 @@ const generateSequentialInstructions = (allActions, timing, markerArray, constru
  * @param {Object} action - Action object with actionType, technique, position, etc.
  * @returns {string} - Technical description like "Decrease (SSK) 1 st from end of row"
  */
-export const getActionConfigDisplay = (action) => {
+export const getActionConfigDisplay = (action, construction = 'flat') => {
+    const terms = getConstructionTerms(construction);
     const parts = [];
 
     // Action Type and Technique
@@ -1204,10 +1207,10 @@ export const getActionConfigDisplay = (action) => {
                 action.position === 'both_ends' ? 'both ends' : action.position;
 
         if (action.distance === 'at') {
-            parts.push(`at ${positionText} of row`);
+            parts.push(`at ${positionText} ${terms.row}`);
         } else {
             const stText = action.distance === '1' ? 'st' : 'sts';
-            parts.push(`${action.distance} ${stText} from ${positionText} of row`);
+            parts.push(`${action.distance} ${stText} from ${positionText} ${terms.row}`);
         }
     } else {
         // Original logic for marker actions

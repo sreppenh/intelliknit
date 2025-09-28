@@ -613,12 +613,12 @@ const MarkerInstructionBuilder = ({
                                 <div key={index} className="flex items-center gap-2 text-left">
                                     <span className="w-1 h-1 bg-lavender-400 rounded-full"></span>
                                     <span className="flex-1 text-left">
-                                        {getActionConfigDisplay(action)}
+                                        {getActionConfigDisplay(action, construction)}
                                     </span>
                                     <button
                                         onClick={() => handleDeleteAction(index)}
                                         className="delete-icon"
-                                        aria-label={`Delete action: ${getActionConfigDisplay(action)}`}
+                                        aria-label={`Delete action: ${getActionConfigDisplay(action, construction)}`}
                                         title="Delete action"
                                     >
                                         ×
@@ -630,7 +630,7 @@ const MarkerInstructionBuilder = ({
                                 <div className="flex items-center gap-2 text-sage-600">
                                     <span className="w-1 h-1 bg-sage-400 rounded-full"></span>
                                     <span className="italic text-left">
-                                        {getActionConfigDisplay(currentAction)} {currentAction.targets.length === 0 && currentAction.actionType !== 'continue' ? '(building...)' : '(building...)'} </span>
+                                        {getActionConfigDisplay(currentAction, construction)} {currentAction.targets.length === 0 && currentAction.actionType !== 'continue' ? '(building...)' : '(building...)'} </span>
                                 </div>
                             )}
                         </div>

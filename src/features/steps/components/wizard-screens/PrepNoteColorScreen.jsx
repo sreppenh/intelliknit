@@ -146,6 +146,12 @@ const PrepNoteColorScreen = ({
 
     return (
         <div className="stack-lg">
+            <div>
+                <h2 className="content-header-primary">Set up step</h2>
+                <p className="content-subheader">Add preparation notes and yarn details</p>
+                {/* <p className="content-subheader">Choose how you want to specify your pattern</p> */}
+            </div>
+
             {/* Color Choice - MOVED TO TOP */}
             {component.colorMode === 'multiple' && (
                 <>
@@ -259,8 +265,8 @@ const PrepNoteColorScreen = ({
                                                     }
                                                 }}
                                                 className={`p-3 rounded-lg border-2 transition-all ${isSelected
-                                                        ? 'border-sage-500 bg-sage-50'
-                                                        : 'border-wool-200 hover:border-wool-300'
+                                                    ? 'border-sage-500 bg-sage-50'
+                                                    : 'border-wool-200 hover:border-wool-300'
                                                     }`}
                                             >
                                                 <div
