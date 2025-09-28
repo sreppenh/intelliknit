@@ -24,6 +24,7 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     endingStitches: effect.endingStitches,
     totalRows: effect.totalRows,
     expectedStitches: effect.endingStitches,
+    colorwork: wizard.wizardData.colorwork,
     wizardConfig: wizard.wizardData,
     advancedWizardConfig: {
       hasShaping: wizard.wizardData.hasShaping,
