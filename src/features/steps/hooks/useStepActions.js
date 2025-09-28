@@ -6,6 +6,8 @@ import { useStepGeneration } from './useStepGeneration';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 
 // ✅ EXTRACTED: Helper function to create step objects consistently
+// ✅ FIXED: Helper function to create step objects consistently
+// ✅ FIXED: Helper function to create step objects consistently
 const createStepObject = (instruction, effect, wizard, options = {}) => {
   const {
     forceManualType = false,
@@ -13,7 +15,10 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     useCurrentStitches = false
   } = options;
 
-  return {
+  // 🎯 FIX: Debug colorwork access
+  console.log('🔧 createStepObject - wizard.wizardData.colorwork:', wizard.wizardData.colorwork);
+
+  const stepObject = {
     description: instruction,
     type: forceManualType ? 'manual' : (effect.success ? 'calculated' : 'manual'),
     patternType: effect.detection?.type,
@@ -24,7 +29,10 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     endingStitches: effect.endingStitches,
     totalRows: effect.totalRows,
     expectedStitches: effect.endingStitches,
-    colorwork: wizard.wizardData.colorwork,
+
+    // 🎯 FIX: Ensure colorwork is properly transferred
+    colorwork: wizard.wizardData?.colorwork || null,
+
     wizardConfig: wizard.wizardData,
     advancedWizardConfig: {
       hasShaping: wizard.wizardData.hasShaping,
@@ -33,6 +41,11 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     ...(includeNavigation && wizard.navigationStack && { navigationStack: wizard.navigationStack }),
     ...(includeNavigation && wizard.navigationCache && { navigationCache: wizard.navigationCache })
   };
+
+  // 🎯 DEBUG: Log the final step object colorwork
+  console.log('🔧 createStepObject - final stepObject.colorwork:', stepObject.colorwork);
+
+  return stepObject;
 };
 
 export const useStepActions = (wizard, onBack, mode = 'project') => {

@@ -390,6 +390,7 @@ export const projectsReducer = (state, action) => {
         startingStitches: step.startingStitches,
         endingStitches: step.endingStitches !== undefined ? step.endingStitches : step.expectedStitches,
         totalRows: step.totalRows,
+        colorwork: step.colorwork,
         completed: false
       };
 

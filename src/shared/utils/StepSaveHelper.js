@@ -66,7 +66,9 @@ export const useStepSaveHelper = () => {
                 throw new Error(effect.error || 'Effect calculation failed');
             }
 
-            // Create step object following the established pattern from useStepActions
+            console.log('🔧 StepSaveHelper - wizardData.colorwork:', wizardData.colorwork);
+            console.log('🔧 StepSaveHelper - full wizardData:', wizardData);
+
             const stepData = {
                 description: instruction,
                 expectedStitches: effect.endingStitches,
@@ -83,6 +85,8 @@ export const useStepSaveHelper = () => {
                     shapingConfig: wizardData.shapingConfig
                 }
             };
+
+            console.log('🔧 StepSaveHelper - final stepData.colorwork:', stepData.colorwork);
 
             // Dispatch appropriate action - detect context type from dispatch function
             if (editingStepIndex !== null) {
