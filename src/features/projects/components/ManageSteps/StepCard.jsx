@@ -46,12 +46,6 @@ const StepCard = ({
 
     return (
         <div className="space-y-2">
-            {/* PrepNote Display - Above the step, not numbered */}
-            <PrepNoteDisplay
-                note={prepNote}
-                className="mx-1"
-                onClick={() => onPrepNoteClick && onPrepNoteClick(stepIndex)}
-            />
             {/* Step Card */}
             <div className="bg-sage-50 border-sage-300 border-2 rounded-xl p-4 transition-all duration-200">
                 <div className="flex items-start gap-3">

@@ -3,6 +3,9 @@
 import React from 'react';
 import StepCard from './StepCard';
 import { isConstructionStep, getComponentStatusWithDisplay, isFinishingStep } from '../../../../shared/utils/stepDisplayUtils';
+import { getPrepCardColorInfo } from '../../../../shared/utils/prepCardUtils';
+import { Palette } from 'lucide-react';
+import { UnifiedPrepDisplay } from '../../../../shared/components/PrepStepSystem';
 
 const StepsList = ({
     component,
@@ -48,64 +51,63 @@ const StepsList = ({
         );
     }
 
+    // Replace the existing return statement with this enhanced version:
     return (
         <div className="stack-sm">
             {/* Just the essentials */}
             <div className="flex justify-between items-center">
-                {/*    <h3 className="content-header-secondary text-left">{component.name}</h3> */}
                 <h3 className="content-header-secondary text-left">Instructions</h3>
                 <div className="flex gap-2">
                     {!isComponentFullyEntered() ? (
-                        <>
-
-                            {component.steps.length > 0 && (
-                                <button onClick={onFinishComponent} className="btn-secondary btn-sm">🏁 Finish</button>
-                            )}
-
-                            <button onClick={onAddStep} className="btn-primary btn-sm">+ Add Step</button>
-
-                        </>
-                    ) : (
-                        <>
-                            {/* <button onClick={onBack} className="btn-secondary btn-sm">📋 View Project</button> */}
-                            <button onClick={onStartKnitting} className="btn-primary btn-sm">🧶 Start Knitting</button>
-
-                        </>
+                        <button onClick={onAddStep} className="btn-secondary btn-sm">
+                            + Add Step
+                        </button>
+                    ) : null}
+                    {!isComponentFullyEntered() && (
+                        <button onClick={onFinishComponent} className="btn-tertiary btn-sm">
+                            Finish Component
+                        </button>
                     )}
                 </div>
             </div>
 
 
-            {component.steps.map((step, stepIndex) => {
-                const isEditable = stepIndex === editableStepIndex;
-                const isCompleted = step.completed;
-                const isSpecial = isConstructionStep(step);
+            {/* Steps with Unified PrepCards */}
+            <div className="space-y-2">
+                {component.steps.map((step, stepIndex) => (
+                    <div key={step.id || stepIndex}>
+                        {/* Unified PrepCard - combines color changes and user notes */}
+                        <UnifiedPrepDisplay
+                            step={step}
+                            stepIndex={stepIndex}
+                            component={component}
+                            project={project}
+                            onClick={() => onPrepNoteClick && onPrepNoteClick(stepIndex)}
+                        />
 
-                return (
-                    <StepCard
-                        key={step.id}
-                        step={step}
-                        stepIndex={stepIndex}
-                        isEditable={isEditable}
-                        isCompleted={isCompleted}
-                        component={component}  // ← ADD THIS LINE
-                        componentName={componentName}
-                        isSpecial={isSpecial}
-                        isComponentFinished={isComponentFinished}
-                        openMenuId={openMenuId}
-                        onMenuToggle={onMenuToggle}
-                        editableStepIndex={editableStepIndex}
-                        onEditStep={onEditStep}
-                        onEditPattern={onEditPattern}
-                        onEditConfig={onEditConfig}
-                        onDeleteStep={onDeleteStep}
-                        onPrepNoteClick={onPrepNoteClick}
-                        onAfterNoteClick={onAfterNoteClick}
-                        project={project}
-
-                    />
-                );
-            })}
+                        {/* Regular StepCard */}
+                        <StepCard
+                            step={step}
+                            stepIndex={stepIndex}
+                            isEditable={!isComponentFinished}
+                            isCompleted={step.completed}
+                            isComponentFinished={isComponentFinished}
+                            openMenuId={openMenuId}
+                            onMenuToggle={onMenuToggle}
+                            onEditStep={onEditStep}
+                            onEditPattern={onEditPattern}
+                            onEditConfig={onEditConfig}
+                            onDeleteStep={onDeleteStep}
+                            onPrepNoteClick={onPrepNoteClick}
+                            onAfterNoteClick={onAfterNoteClick}
+                            editableStepIndex={editableStepIndex}
+                            componentName={componentName}
+                            project={project}
+                            component={component}
+                        />
+                    </div>
+                ))}
+            </div>
         </div>
     );
 };

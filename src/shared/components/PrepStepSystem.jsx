@@ -1,6 +1,7 @@
 // src/shared/components/PrepStepSystem.jsx
 import React, { useState, useEffect } from 'react';
 import { StandardModal } from './modals/StandardModal';
+import { getPrepCardColorInfo } from '../utils/prepCardUtils';
 
 // Updated PrepStepModal using StandardModal
 export const PrepStepModal = ({
@@ -404,5 +405,72 @@ export const AssemblyNoteModal = ({
         </button>
       </div>
     </StandardModal>
+  );
+};
+
+// Add this new component to PrepStepSystem.jsx
+
+/**
+ * Unified Prep Card Display - combines color change info with user prep notes
+ * Shows both dynamic color information and user-entered preparation notes in one card
+ */
+export const UnifiedPrepDisplay = ({
+  step,
+  stepIndex,
+  component,
+  project,
+  className = "",
+  onClick
+}) => {
+  // Get color change information
+  const colorInfo = getPrepCardColorInfo(step, stepIndex, component, project);
+
+  // Get user prep note
+  const userNote = step.prepNote ||
+    step.wizardConfig?.prepNote ||
+    step.advancedWizardConfig?.prepNote ||
+    '';
+
+  // Don't show card if no color info and no user note
+  if (!colorInfo && (!userNote || userNote.trim().length === 0)) {
+    return null;
+  }
+
+  const isClickable = typeof onClick === 'function';
+
+  return (
+    <div
+      className={`bg-sage-100 border-l-4 border-sage-500 rounded-r-lg p-3 my-2 ${className} ${isClickable ? 'cursor-pointer hover:bg-sage-150 transition-colors' : ''}`}
+      onClick={isClickable ? onClick : undefined}
+      title={isClickable ? "Click to edit preparation note" : undefined}
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-5 h-5 rounded-full bg-sage-500 text-white flex items-center justify-center flex-shrink-0 mt-0.5">
+          <svg width="12" height="12" viewBox="0 0 20 20" fill="currentColor">
+            <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+          </svg>
+        </div>
+
+        <div className="flex-1 min-w-0 text-left">
+          <div className="text-xs font-semibold text-sage-700 mb-1 uppercase tracking-wide">
+            PREPARATION NOTE
+          </div>
+
+          {/* Color change information */}
+          {colorInfo && (
+            <div className="text-sm text-sage-800 font-medium mb-1">
+              {colorInfo}
+            </div>
+          )}
+
+          {/* User notes in italics */}
+          {userNote && userNote.trim().length > 0 && (
+            <div className="text-sm text-sage-700 italic">
+              "{userNote}"
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
   );
 };

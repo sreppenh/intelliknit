@@ -856,7 +856,8 @@ const getColorDisplayForTechnicalData = (step, project) => {
     if (colorwork) {
         if (colorwork.type === 'single') {
             const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
-            return yarn ? `Color ${yarn.letter}` : 'Color';
+            return yarn && yarn.color ? `${yarn.color} (${yarn.letter})` : yarn ? `Color ${yarn.letter}` : 'Color';
+
         }
         if (colorwork.type === 'multi-strand') {
             const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
