@@ -61,27 +61,36 @@ const PrepNoteColorScreen = ({
     const updatePrepNoteForColor = (newYarnIds) => {
         if (newYarnIds.length === 0) return;
 
-        // Check if color changed from previous step
         const colorChanged = !previousColor ||
             JSON.stringify([...newYarnIds].sort()) !== JSON.stringify([...previousColor.yarnIds].sort());
 
         if (!colorChanged) return;
 
-        // Generate prep note
         let note = '';
         if (newYarnIds.length === 1) {
-            // Convert to number for comparison since dropdown returns strings
-            const yarnId = typeof newYarnIds[0] === 'string' ? parseInt(newYarnIds[0]) : newYarnIds[0];
-            const yarn = yarns.find(y => y.id === yarnId);
-            if (yarn) {
-                note = `Switch to Color ${yarn.letter} (${yarn.color})`;
+            const yarnId = newYarnIds[0];
+            let letter, displayName;
+
+            if (typeof yarnId === 'string' && yarnId.startsWith('color-')) {
+                letter = yarnId.replace('color-', '');
+                displayName = `Color ${letter}`;
+            } else {
+                const numericId = typeof yarnId === 'string' ? parseInt(yarnId) : yarnId;
+                const yarn = yarns.find(y => y.id === numericId);
+                letter = yarn?.letter || 'A';
+                displayName = yarn?.color || `Color ${letter}`;
             }
+
+            note = `Switch to Color ${letter} (${displayName})`;
         } else {
-            const selectedYarns = yarns
-                .filter(y => newYarnIds.includes(y.id))
-                .sort((a, b) => a.letter.localeCompare(b.letter));
-            const colorNames = selectedYarns.map(y => `${y.letter} (${y.color})`).join(' and ');
-            note = `Using Colors ${colorNames} together`;
+            const letters = newYarnIds.map(id => {
+                if (typeof id === 'string' && id.startsWith('color-')) {
+                    return id.replace('color-', '');
+                }
+                const yarn = yarns.find(y => y.id === id);
+                return yarn?.letter || '';
+            }).filter(Boolean).sort().join(' and ');
+            note = `Using Colors ${letters} together`;
         }
 
         setPrepNote(note);
@@ -241,24 +250,36 @@ const PrepNoteColorScreen = ({
                                     className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors bg-white"
                                 >
                                     <option value="">Select color...</option>
-                                    {sortedYarns.map(yarn => (
-                                        <option key={yarn.id} value={yarn.id}>
-                                            {yarn.letter} - {yarn.color}
-                                        </option>
-                                    ))}
+                                    {Array.from({ length: component.colorCount || 2 }, (_, i) => {
+                                        const letter = String.fromCharCode(65 + i);
+                                        const yarn = yarns.find(y => y.letter === letter);
+                                        const yarnId = yarn?.id || `color-${letter}`;
+                                        const displayName = yarn?.color || `Color ${letter}`;
+                                        return (
+                                            <option key={letter} value={yarnId}>
+                                                {letter} - {displayName}
+                                            </option>
+                                        );
+                                    })}
                                 </select>
                             ) : (
                                 <div className="grid grid-cols-3 gap-2">
-                                    {sortedYarns.map(yarn => {
-                                        const isSelected = selectedYarnIds.includes(yarn.id);
+                                    {Array.from({ length: component.colorCount || 2 }, (_, i) => {
+                                        const letter = String.fromCharCode(65 + i);
+                                        const yarn = yarns.find(y => y.letter === letter);
+                                        const yarnId = yarn?.id || `color-${letter}`;
+                                        const colorHex = yarn?.colorHex || '#f3f4f6';
+                                        const colorName = yarn?.color || `Color ${letter}`;
+                                        const isSelected = selectedYarnIds.includes(yarnId);
+
                                         return (
                                             <button
-                                                key={yarn.id}
+                                                key={letter}
                                                 type="button"
                                                 onClick={() => {
                                                     const newIds = isSelected
-                                                        ? selectedYarnIds.filter(id => id !== yarn.id)
-                                                        : [...selectedYarnIds, yarn.id];
+                                                        ? selectedYarnIds.filter(id => id !== yarnId)
+                                                        : [...selectedYarnIds, yarnId];
                                                     setSelectedYarnIds(newIds);
                                                     if (newIds.length >= 2) {
                                                         updatePrepNoteForColor(newIds);
@@ -271,10 +292,10 @@ const PrepNoteColorScreen = ({
                                             >
                                                 <div
                                                     className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
-                                                    style={{ backgroundColor: yarn.colorHex }}
+                                                    style={{ backgroundColor: colorHex }}
                                                 />
-                                                <div className="text-xs font-medium text-center">{yarn.letter}</div>
-                                                <div className="text-xs text-center truncate">{yarn.color}</div>
+                                                <div className="text-xs font-medium text-center">{letter}</div>
+                                                <div className="text-xs text-center truncate">{colorName}</div>
                                                 {isSelected && (
                                                     <div className="text-sage-600 text-center mt-1">✓</div>
                                                 )}

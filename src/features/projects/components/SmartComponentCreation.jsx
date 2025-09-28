@@ -470,19 +470,20 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                     {/* Color Selection - Multi-select cards */}
                     {currentProject?.colorCount > 1 && componentData.colorMode === 'multiple' && (
                       <div>
-                        <label className="form-label">Select Color(s)</label>
+                        <label className="form-label">Select Colors</label>
                         <p className="text-xs text-wool-600 mb-2">Click multiple colors for multi-strand</p>
                         <div className="grid grid-cols-3 gap-2">
-                          {yarns.sort((a, b) => {
-                            if (!a.letter && !b.letter) return 0;
-                            if (!a.letter) return 1;
-                            if (!b.letter) return -1;
-                            return a.letter.localeCompare(b.letter);
-                          }).map(yarn => {
-                            const isSelected = componentData.startStepColorYarnIds?.includes(yarn.id);
+                          {Array.from({ length: currentProject.colorCount }, (_, i) => {
+                            const letter = String.fromCharCode(65 + i);
+                            const yarn = yarns.find(y => y.letter === letter);
+                            const colorHex = yarn?.colorHex || '#f3f4f6';
+                            const colorName = yarn?.color || `Color ${letter}`;
+                            const yarnId = yarn?.id || `color-${letter}`;
+                            const isSelected = componentData.startStepColorYarnIds?.includes(yarnId);
+
                             return (
                               <button
-                                key={yarn.id}
+                                key={letter}
                                 type="button"
                                 onClick={() => {
                                   setComponentData(prev => {
@@ -490,23 +491,28 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                                     let newIds;
 
                                     if (isSelected) {
-                                      // Deselect - but keep at least one selected
-                                      newIds = currentIds.filter(id => id !== yarn.id);
-                                      if (newIds.length === 0) newIds = [yarn.id]; // Keep at least one
+                                      newIds = currentIds.filter(id => id !== yarnId);
+                                      if (newIds.length === 0) newIds = [yarnId];
                                     } else {
-                                      // Select - add to array
-                                      newIds = [...currentIds, yarn.id];
+                                      newIds = [...currentIds, yarnId];
                                     }
 
-                                    // Auto-populate setup notes based on selection
                                     let setupNote = '';
                                     if (newIds.length === 1) {
+                                      const selectedLetter = newIds[0].toString().startsWith('color-')
+                                        ? newIds[0].replace('color-', '')
+                                        : yarns.find(y => y.id === newIds[0])?.letter || letter;
                                       const selectedYarn = yarns.find(y => y.id === newIds[0]);
-                                      setupNote = `Use Color ${selectedYarn.letter} (${selectedYarn.color})`;
+                                      const displayName = selectedYarn?.color || `Color ${selectedLetter}`;
+                                      setupNote = `Use Color ${selectedLetter} (${displayName})`;
                                     } else {
-                                      const selectedYarns = yarns.filter(y => newIds.includes(y.id)).sort((a, b) => a.letter.localeCompare(b.letter));
-                                      const colorNames = selectedYarns.map(y => `${y.letter} (${y.color})`).join(' and ');
-                                      setupNote = `Using Colors ${colorNames} together`;
+                                      const letters = newIds.map(id => {
+                                        if (id.toString().startsWith('color-')) {
+                                          return id.replace('color-', '');
+                                        }
+                                        return yarns.find(y => y.id === id)?.letter || '';
+                                      }).filter(Boolean).sort().join(' and ');
+                                      setupNote = `Using Colors ${letters} together`;
                                     }
 
                                     return {
@@ -516,17 +522,15 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                                     };
                                   });
                                 }}
-                                className={`p-3 rounded-lg border-2 transition-all ${isSelected
-                                  ? 'border-sage-500 bg-sage-50'
-                                  : 'border-wool-200 hover:border-wool-300'
+                                className={`p-3 rounded-lg border-2 transition-all ${isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'
                                   }`}
                               >
                                 <div
                                   className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
-                                  style={{ backgroundColor: yarn.colorHex }}
+                                  style={{ backgroundColor: colorHex }}
                                 />
-                                <div className="text-xs font-medium text-center">{yarn.letter}</div>
-                                <div className="text-xs text-center truncate">{yarn.color}</div>
+                                <div className="text-xs font-medium text-center">{letter}</div>
+                                <div className="text-xs text-center truncate">{colorName}</div>
                                 {isSelected && (
                                   <div className="text-sage-600 text-center mt-1">✓</div>
                                 )}
