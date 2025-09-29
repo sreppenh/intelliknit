@@ -255,10 +255,22 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   // Auto-handle single-color projects
   useEffect(() => {
     if (currentProject?.colorCount === 1 && yarns.length > 0 && !componentData.colorMode) {
+      const defaultYarn = yarns.find(y => y.letter === 'A') || yarns[0];
       setComponentData(prev => ({
         ...prev,
         colorMode: 'single',
-        singleColorYarnId: yarns[0].id
+        singleColorYarnId: defaultYarn?.id || null
+      }));
+    }
+  }, [currentProject, yarns, componentData.colorMode]);
+
+  useEffect(() => {
+    if (currentProject?.colorCount > 1 && !componentData.colorMode && yarns.length > 0) {
+      const defaultYarn = yarns.find(y => y.letter === 'A') || yarns[0];
+      setComponentData(prev => ({
+        ...prev,
+        colorMode: 'single',
+        singleColorYarnId: defaultYarn?.id || null
       }));
     }
   }, [currentProject, yarns, componentData.colorMode]);
@@ -331,12 +343,88 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
 
 
-            {/* Default Color Pattern - Only if multi-color project */}
+            {/* Color Mode - Only if multi-color project */}
             {currentProject?.colorCount > 1 && (
+              <div>
+                <label className="form-label">Component Color Usage</label>
+                <p className="text-xs text-wool-600 mb-2 text-left">
+                  Does this component use one color or multiple colors?
+                </p>
+                <div className="segmented-control">
+                  <div className="grid grid-cols-2 gap-1">
+                    <button
+                      onClick={() => {
+                        const defaultYarn = yarns.find(y => y.letter === 'A') || yarns[0];
+                        setComponentData(prev => ({
+                          ...prev,
+                          colorMode: 'single',
+                          singleColorYarnId: defaultYarn?.id || null
+                        }));
+                      }}
+                      className={`segmented-option ${componentData.colorMode === 'single' ? 'segmented-option-active' : ''}`}
+                    >
+                      Single Color
+                    </button>
+                    <button
+                      onClick={() => setComponentData(prev => ({
+                        ...prev,
+                        colorMode: 'multiple',
+                        singleColorYarnId: null
+                      }))}
+                      className={`segmented-option ${componentData.colorMode === 'multiple' ? 'segmented-option-active' : ''}`}
+                    >
+                      Multi-Color
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* If single color selected, show color picker */}
+            {currentProject?.colorCount > 1 && componentData.colorMode === 'single' && (
+              <div className="mt-3">
+                <label className="form-label text-sm">Select Color</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    const existingYarn = yarns.find(y => y.letter === letter);
+                    const yarn = existingYarn || {
+                      id: `color-${letter}`,
+                      letter: letter,
+                      color: `Color ${letter}`,
+                      colorHex: '#cccccc'
+                    };
+
+                    return (
+                      <button
+                        key={yarn.id}
+                        onClick={() => setComponentData(prev => ({
+                          ...prev,
+                          singleColorYarnId: yarn.id
+                        }))}
+                        className={`card-selectable-compact ${componentData.singleColorYarnId === yarn.id
+                          ? 'card-selectable-compact-selected'
+                          : ''
+                          }`}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
+                          style={{ backgroundColor: yarn.colorHex }}
+                        />
+                        <div className="text-xs font-medium">{letter}</div>
+                        <div className="text-xs truncate">{yarn.color}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            {/* Default Color Pattern - Only if multi-color component */}
+            {currentProject?.colorCount > 1 && componentData.colorMode === 'multiple' && (
               <div>
                 <label className="form-label">Default Color Pattern</label>
                 <p className="text-xs text-wool-600 mb-2 text-left">
-                  Set default colors or colorwork (like Stripes or Fair Isle) to use throughout this component
+                  Set colors or colorwork (like Stripes or Fair Isle) to use throughout this component
                 </p>
                 <div className="segmented-control">
                   <div className="grid grid-cols-2 gap-1">
