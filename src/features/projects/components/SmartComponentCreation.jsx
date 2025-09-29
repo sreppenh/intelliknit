@@ -329,29 +329,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               onChange={(value) => setComponentData(prev => ({ ...prev, construction: value }))}
             />
 
-            {/* Default Texture Pattern */}
-            <div>
-              <label className="form-label">Default Texture Pattern</label>
-              <p className="text-xs text-wool-600 mb-2 text-left">
-                Set a pattern (like Stockinette or Lace) to use throughout this component
-              </p>
-              <div className="segmented-control">
-                <div className="grid grid-cols-2 gap-1">
-                  <button
-                    onClick={() => setUseDefaultPattern(false)}
-                    className={`segmented-option ${!useDefaultPattern ? 'segmented-option-active' : ''}`}
-                  >
-                    Don't Set
-                  </button>
-                  <button
-                    onClick={() => setUseDefaultPattern(true)}
-                    className={`segmented-option ${useDefaultPattern ? 'segmented-option-active' : ''}`}
-                  >
-                    Set Default
-                  </button>
-                </div>
-              </div>
-            </div>
+
 
             {/* Default Color Pattern - Only if multi-color project */}
             {currentProject?.colorCount > 1 && (
@@ -379,100 +357,27 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               </div>
             )}
 
-            {/* ============================================
-        COMMENTED OUT - WILL MOVE TO COLOR CONFIG SCREEN
-        ============================================ */}
-            {/* 
-    {currentProject?.colorCount > 1 && (
-      <div>
-        <label className="form-label">Colors in This Component</label>
-        <div className="grid grid-cols-2 gap-2">
-          <button
-            onClick={() => setComponentData(prev => ({
-              ...prev,
-              colorMode: 'single',
-              singleColorYarnId: yarns.length > 0 ? yarns[0].id : null
-            }))}
-            className={`card-selectable-compact ${componentData.colorMode === 'single' ? 'card-selectable-compact-selected' : ''}`}
-          >
-            <div className="text-xl mb-1">🎨</div>
-            <div className="text-xs font-medium">Single Color</div>
-          </button>
-          <button
-            onClick={() => setComponentData(prev => ({
-              ...prev,
-              colorMode: 'multiple',
-              singleColorYarnId: null
-            }))}
-            className={`card-selectable-compact ${componentData.colorMode === 'multiple' ? 'card-selectable-compact-selected' : ''}`}
-          >
-            <div className="text-xl mb-1">🌈</div>
-            <div className="text-xs font-medium">Multiple Colors</div>
-          </button>
-        </div>
-
-        {componentData.colorMode === 'single' && (
-          <div className="mt-3">
-            <label className="form-label text-sm">Select Yarn</label>
-            <div className="space-y-2">
-              {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
-                const letter = String.fromCharCode(65 + i);
-                const existingYarn = yarns.find(y => y.letter === letter);
-                const yarn = existingYarn || {
-                  id: `color-${letter}`,
-                  letter: letter,
-                  color: `Color ${letter}`,
-                  colorHex: '#cccccc'
-                };
-                return (
-                  <button
-                    key={yarn.id}
-                    onClick={() => setComponentData(prev => ({
-                      ...prev,
-                      singleColorYarnId: yarn.id
-                    }))}
-                    className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${
-                      componentData.singleColorYarnId === yarn.id
-                        ? 'border-sage-500 bg-sage-50'
-                        : 'border-wool-200 hover:border-wool-300'
-                    }`}
-                  >
-                    <div
-                      className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
-                      style={{ backgroundColor: yarn.colorHex }}
-                    />
-                    <div className="text-left text-xs">
-                      <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        )}
-      </div>
-    )}
-    */}
-
-            {/* How Does It Start */}
+            {/* Default Texture Pattern */}
             <div>
-              <label className="form-label">How Does It Start</label>
-              <div className="grid grid-cols-2 gap-2">
-                {[
-                  { value: 'cast_on', label: 'Cast On', icon: '🏗️' },
-                  { value: 'pick_up', label: 'Pick Up & Knit', icon: '🧶' },
-                  { value: 'continue', label: 'Continue from Stitches', icon: '📎' },
-                  { value: 'other', label: 'Other', icon: '📝' }
-                ].map(option => (
+              <label className="form-label">Default Texture Pattern</label>
+              <p className="text-xs text-wool-600 mb-2 text-left">
+                Set a pattern (like Stockinette or Lace) to use throughout this component
+              </p>
+              <div className="segmented-control">
+                <div className="grid grid-cols-2 gap-1">
                   <button
-                    key={option.value}
-                    onClick={() => setComponentData(prev => ({ ...prev, startType: option.value }))}
-                    className={`card-selectable-compact ${componentData.startType === option.value ? 'card-selectable-compact-selected' : ''}`}
+                    onClick={() => setUseDefaultPattern(false)}
+                    className={`segmented-option ${!useDefaultPattern ? 'segmented-option-active' : ''}`}
                   >
-                    <div className="text-xl mb-1">{option.icon}</div>
-                    <div className="text-xs font-medium">{option.label}</div>
+                    Don't Set
                   </button>
-                ))}
+                  <button
+                    onClick={() => setUseDefaultPattern(true)}
+                    className={`segmented-option ${useDefaultPattern ? 'segmented-option-active' : ''}`}
+                  >
+                    Set Default
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -488,16 +393,15 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
                 <button
                   onClick={() => {
-                    // Determine next screen based on opt-in selections
                     if (currentProject?.colorCount > 1 && useDefaultColor) {
-                      setScreen(2); // Go to Color Config
+                      setScreen(2);
                     } else if (useDefaultPattern) {
-                      setScreen(4); // Skip to Pattern Config
+                      setScreen(4);
                     } else {
-                      setScreen(5); // Skip to Starting Method
+                      setScreen(5);
                     }
                   }}
-                  disabled={!componentData.name.trim() || !componentData.construction || !componentData.startType}
+                  disabled={!componentData.name.trim() || !componentData.construction}
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
                 >
@@ -1007,117 +911,209 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
           // Screen 5: Method Selection & Configuration (Conditional Layout)
           <div className="p-6 bg-yarn-50 stack-lg">
 
-            {componentData.startType === 'cast_on' ? (
-              // Cast On: Show method selection
+            {/* How Does It Start - Always visible first */}
+            <div>
+              <h2 className="content-header-primary">How Does It Start</h2>
+              <p className="content-subheader">Choose how this component begins</p>
+
+              <div className="grid grid-cols-2 gap-3 mt-4">
+                {[
+                  { value: 'cast_on', label: 'Cast On', icon: '🏗️', desc: 'Start from scratch' },
+                  { value: 'pick_up', label: 'Pick Up & Knit', icon: '🧶', desc: 'From existing edge' },
+                  { value: 'continue', label: 'Continue from Stitches', icon: '📎', desc: 'Resume saved stitches' },
+                  { value: 'other', label: 'Other', icon: '📝', desc: 'Complex setup' }
+                ].map(option => (
+                  <button
+                    key={option.value}
+                    onClick={() => setComponentData(prev => ({ ...prev, startType: option.value }))}
+                    className={`card-selectable ${componentData.startType === option.value ? 'card-selectable-selected' : ''}`}
+                  >
+                    <div className="text-2xl mb-2">{option.icon}</div>
+                    <div className="text-sm font-semibold">{option.label}</div>
+                    <div className="text-xs text-wool-600 mt-1">{option.desc}</div>
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Configuration - Only show after startType is selected */}
+            {componentData.startType && (
               <>
-                {/* Header */}
-                <div>
-                  <h2 className="content-header-primary">Select Cast On</h2>
-                  <p className="content-subheader">Provide method and starting number of stitches</p>
-                </div>
+                {componentData.startType === 'cast_on' ? (
 
-                {/* Method Selection Grid */}
-                <div>
-                  <label className="form-label">Method</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {methodsByStartType[componentData.startType]?.map(method => (
-                      <button
-                        key={method.id}
-                        onClick={() => setComponentData(prev => ({ ...prev, startMethod: method.id }))}
-                        className={`selection-button ${componentData.startMethod === method.id ? 'selection-button-selected' : ''}`}
-                      >
-                        <div className="text-xl mb-1">{method.icon}</div>
-                        <div className="text-xs font-medium">{method.name}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Configuration Fields - Only show when method selected */}
-                {componentData.startMethod && (
+                  // Cast On: Show method selection
                   <>
-                    {/* Description for "other" method */}
-                    {componentData.startMethod === 'other' && (
+
+                    {/* Method Selection Grid */}
+                    <div>
+                      <label className="form-label">Select Method</label>
+                      <div className="grid grid-cols-3 gap-3">
+                        {methodsByStartType[componentData.startType]?.map(method => (
+                          <button
+                            key={method.id}
+                            onClick={() => setComponentData(prev => ({ ...prev, startMethod: method.id }))}
+                            className={`selection-button ${componentData.startMethod === method.id ? 'selection-button-selected' : ''}`}
+                          >
+                            <div className="text-xl mb-1">{method.icon}</div>
+                            <div className="text-xs font-medium">{method.name}</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Configuration Fields - Only show when method selected */}
+                    {componentData.startMethod && (
+                      <>
+                        {/* Description for "other" method */}
+                        {componentData.startMethod === 'other' && (
+                          <div>
+                            <label className="form-label">Describe Your Cast On Method</label>
+                            <input
+                              type="text"
+                              value={componentData.startDescription}
+                              onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
+                              placeholder="e.g., Italian cast on, Judy's magic cast on"
+                              className="input-field-lg"
+                            />
+                          </div>
+                        )}
+
+                        {/* Color Selection - Multi-select cards */}
+                        {currentProject?.colorCount > 1 && componentData.colorMode === 'multiple' && (
+                          <div>
+                            <label className="form-label">Select Colors</label>
+                            <p className="text-xs text-wool-600 mb-2">Click multiple colors for multi-strand</p>
+                            <div className="grid grid-cols-3 gap-2">
+                              {Array.from({ length: currentProject.colorCount }, (_, i) => {
+                                const letter = String.fromCharCode(65 + i);
+                                const yarn = yarns.find(y => y.letter === letter);
+                                const colorHex = yarn?.colorHex || '#f3f4f6';
+                                const colorName = yarn?.color || `Color ${letter}`;
+                                const yarnId = yarn?.id || `color-${letter}`;
+                                const isSelected = componentData.startStepColorYarnIds?.includes(yarnId);
+
+                                return (
+                                  <button
+                                    key={letter}
+                                    type="button"
+                                    onClick={() => {
+                                      setComponentData(prev => {
+                                        const currentIds = prev.startStepColorYarnIds || [];
+                                        let newIds;
+
+                                        if (isSelected) {
+                                          newIds = currentIds.filter(id => id !== yarnId);
+                                          if (newIds.length === 0) newIds = [yarnId];
+                                        } else {
+                                          newIds = [...currentIds, yarnId];
+                                        }
+
+                                        return {
+                                          ...prev,
+                                          startStepColorYarnIds: newIds,
+                                        };
+                                      });
+                                    }}
+                                    className={`p-3 rounded-lg border-2 transition-all ${isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'
+                                      }`}
+                                  >
+                                    <div
+                                      className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
+                                      style={{ backgroundColor: colorHex }}
+                                    />
+                                    <div className="text-xs font-medium text-center">{letter}</div>
+                                    <div className="text-xs text-center truncate">{colorName}</div>
+                                    {isSelected && (
+                                      <div className="text-sage-600 text-center mt-1">✓</div>
+                                    )}
+                                  </button>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Setup Notes */}
+                        <div>
+                          <label className="form-label">
+                            Setup Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+                          </label>
+                          <textarea
+                            value={componentData.setupNotes || ''}
+                            onChange={(e) => setComponentData(prev => ({ ...prev, setupNotes: e.target.value }))}
+                            placeholder="e.g., Switch to US 6 circular needles, place stitch markers, check measurements"
+                            rows={3}
+                            className="input-field-lg resize-none"
+                          />
+                        </div>
+
+                        {/* Stitch Count */}
+                        <div>
+                          <label className="form-label">Starting Stitch Count</label>
+                          <IncrementInput
+                            value={componentData.startStitches}
+                            onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
+                            label="starting stitches"
+                            unit="stitches"
+                            size="sm"
+                            min={1}
+                            placeholder="80"
+                          />
+                        </div>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  // Pick Up, Continue, Other: Direct configuration
+                  <>
+
+                    {/* Auto-set method */}
+                    {(() => {
+                      if (!componentData.startMethod) {
+                        const autoMethod = componentData.startType === 'pick_up' ? 'pick_up_knit' :
+                          componentData.startType === 'continue' ? 'from_stitches' :
+                            'custom';
+                        setComponentData(prev => ({ ...prev, startMethod: autoMethod }));
+                      }
+                      return null;
+                    })()}
+
+                    {/* Description Field */}
+                    <div>
+                      <label className="form-label">
+                        {componentData.startType === 'pick_up' ? 'Pick Up From Where' :
+                          componentData.startType === 'continue' ? 'Continue From Where' :
+                            'Describe Your Setup'}
+                      </label>
+                      <input
+                        type="text"
+                        value={componentData.startDescription}
+                        onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
+                        placeholder={
+                          componentData.startType === 'pick_up' ? 'e.g., neckline, front edge, armhole' :
+                            componentData.startType === 'continue' ? 'e.g., from underarm, from previous section' :
+                              'Describe your custom setup method'
+                        }
+                        className="input-field-lg"
+                      />
+                    </div>
+
+                    {/* Instructions Field - HOW to pick up (only for pick_up) */}
+                    {componentData.startType === 'pick_up' && (
                       <div>
-                        <label className="form-label">Describe Your Cast On Method</label>
+                        <label className="form-label">Pick Up Instructions</label>
                         <input
                           type="text"
-                          value={componentData.startDescription}
-                          onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
-                          placeholder="e.g., Italian cast on, Judy's magic cast on"
+                          value={componentData.startInstructions}
+                          onChange={(e) => setComponentData(prev => ({ ...prev, startInstructions: e.target.value }))}
+                          placeholder="e.g., pick up 2 of every 3 stitches, pick up 1 stitch per row"
                           className="input-field-lg"
                         />
-                      </div>
-                    )}
-
-                    {/* Color Selection - Multi-select cards */}
-                    {currentProject?.colorCount > 1 && componentData.colorMode === 'multiple' && (
-                      <div>
-                        <label className="form-label">Select Colors</label>
-                        <p className="text-xs text-wool-600 mb-2">Click multiple colors for multi-strand</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {Array.from({ length: currentProject.colorCount }, (_, i) => {
-                            const letter = String.fromCharCode(65 + i);
-                            const yarn = yarns.find(y => y.letter === letter);
-                            const colorHex = yarn?.colorHex || '#f3f4f6';
-                            const colorName = yarn?.color || `Color ${letter}`;
-                            const yarnId = yarn?.id || `color-${letter}`;
-                            const isSelected = componentData.startStepColorYarnIds?.includes(yarnId);
-
-                            return (
-                              <button
-                                key={letter}
-                                type="button"
-                                onClick={() => {
-                                  setComponentData(prev => {
-                                    const currentIds = prev.startStepColorYarnIds || [];
-                                    let newIds;
-
-                                    if (isSelected) {
-                                      newIds = currentIds.filter(id => id !== yarnId);
-                                      if (newIds.length === 0) newIds = [yarnId];
-                                    } else {
-                                      newIds = [...currentIds, yarnId];
-                                    }
-
-                                    return {
-                                      ...prev,
-                                      startStepColorYarnIds: newIds,
-                                    };
-                                  });
-                                }}
-                                className={`p-3 rounded-lg border-2 transition-all ${isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'
-                                  }`}
-                              >
-                                <div
-                                  className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
-                                  style={{ backgroundColor: colorHex }}
-                                />
-                                <div className="text-xs font-medium text-center">{letter}</div>
-                                <div className="text-xs text-center truncate">{colorName}</div>
-                                {isSelected && (
-                                  <div className="text-sage-600 text-center mt-1">✓</div>
-                                )}
-                              </button>
-                            );
-                          })}
+                        <div className="text-xs text-wool-500 mt-1">
+                          💡 <strong>Hint:</strong> Describe the pickup ratio or technique
                         </div>
                       </div>
                     )}
-
-                    {/* Setup Notes */}
-                    <div>
-                      <label className="form-label">
-                        Setup Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
-                      </label>
-                      <textarea
-                        value={componentData.setupNotes || ''}
-                        onChange={(e) => setComponentData(prev => ({ ...prev, setupNotes: e.target.value }))}
-                        placeholder="e.g., Switch to US 6 circular needles, place stitch markers, check measurements"
-                        rows={3}
-                        className="input-field-lg resize-none"
-                      />
-                    </div>
 
                     {/* Stitch Count */}
                     <div>
@@ -1134,108 +1130,41 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                     </div>
                   </>
                 )}
-              </>
-            ) : (
-              // Pick Up, Continue, Other: Direct configuration
-              <>
-                {/* Header */}
-                <div>
-                  <h2 className="content-header-primary">
-                    {componentData.startType === 'pick_up' ? 'Pick Up & Knit' :
-                      componentData.startType === 'continue' ? 'Continue From Stitches' :
-                        'Custom Setup'}
-                  </h2>
-                  <p className="content-subheader">
-                    {'Describe your custom setup'}
-                  </p>
-                </div>
 
-                {/* Auto-set method */}
-                {(() => {
-                  if (!componentData.startMethod) {
-                    const autoMethod = componentData.startType === 'pick_up' ? 'pick_up_knit' :
-                      componentData.startType === 'continue' ? 'from_stitches' :
-                        'custom';
-                    setComponentData(prev => ({ ...prev, startMethod: autoMethod }));
-                  }
-                  return null;
-                })()}
+                {/* Navigation */}
+                {(componentData.startType === 'cast_on' ? componentData.startMethod : true) && (
+                  <div className="pt-4">
+                    <div className="flex gap-3">
+                      <button
+                        onClick={() => {
+                          if (useDefaultPattern) {
+                            setScreen(4); // Go back to Pattern wizard
+                          } else if (defaultColorData.colorwork.advancedType) {
+                            setScreen(3); // Go back to Color detail
+                          } else if (useDefaultColor && currentProject?.colorCount > 1) {
+                            setScreen(2); // Go back to Color config
+                          } else {
+                            setScreen(1); // Go back to Identity
+                          }
+                        }}
+                        className="flex-1 btn-tertiary"
+                      >
+                        ← Back
+                      </button>
 
-                {/* Description Field */}
-                <div>
-                  <label className="form-label">
-                    {componentData.startType === 'pick_up' ? 'Pick Up From Where' :
-                      componentData.startType === 'continue' ? 'Continue From Where' :
-                        'Describe Your Setup'}
-                  </label>
-                  <input
-                    type="text"
-                    value={componentData.startDescription}
-                    onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
-                    placeholder={
-                      componentData.startType === 'pick_up' ? 'e.g., neckline, front edge, armhole' :
-                        componentData.startType === 'continue' ? 'e.g., from underarm, from previous section' :
-                          'Describe your custom setup method'
-                    }
-                    className="input-field-lg"
-                  />
-                </div>
-
-                {/* Instructions Field - HOW to pick up (only for pick_up) */}
-                {componentData.startType === 'pick_up' && (
-                  <div>
-                    <label className="form-label">Pick Up Instructions</label>
-                    <input
-                      type="text"
-                      value={componentData.startInstructions}
-                      onChange={(e) => setComponentData(prev => ({ ...prev, startInstructions: e.target.value }))}
-                      placeholder="e.g., pick up 2 of every 3 stitches, pick up 1 stitch per row"
-                      className="input-field-lg"
-                    />
-                    <div className="text-xs text-wool-500 mt-1">
-                      💡 <strong>Hint:</strong> Describe the pickup ratio or technique
+                      <button
+                        onClick={handleCreateComponent}
+                        disabled={!canCreateComponent()}
+                        className="flex-2 btn-primary"
+                        style={{ flexGrow: 2 }}
+                      >
+                        <span className="text-lg">🧶</span>
+                        Create Component
+                      </button>
                     </div>
                   </div>
                 )}
-
-                {/* Stitch Count */}
-                <div>
-                  <label className="form-label">Starting Stitch Count</label>
-                  <IncrementInput
-                    value={componentData.startStitches}
-                    onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
-                    label="starting stitches"
-                    unit="stitches"
-                    size="sm"
-                    min={1}
-                    placeholder="80"
-                  />
-                </div>
               </>
-            )}
-
-            {/* Navigation */}
-            {(componentData.startType === 'cast_on' ? componentData.startMethod : true) && (
-              <div className="pt-4">
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setScreen(4)}
-                    className="flex-1 btn-tertiary"
-                  >
-                    ← Back
-                  </button>
-
-                  <button
-                    onClick={handleCreateComponent}
-                    disabled={!canCreateComponent()}
-                    className="flex-2 btn-primary"
-                    style={{ flexGrow: 2 }}
-                  >
-                    <span className="text-lg">🧶</span>
-                    Create Component
-                  </button>
-                </div>
-              </div>
             )}
           </div>
 
