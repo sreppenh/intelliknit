@@ -321,87 +321,136 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               />
             </div>
 
-
             {/* Construction Selection */}
             <SegmentedControl.Construction
               value={componentData.construction}
               onChange={(value) => setComponentData(prev => ({ ...prev, construction: value }))}
             />
 
-            {/* Color Configuration - Only show if project has multiple colors */}
-            {currentProject?.colorCount > 1 && (
-              <div>
-                <label className="form-label">Colors in This Component</label>
-                <div className="grid grid-cols-2 gap-2">
+            {/* Default Texture Pattern */}
+            <div>
+              <label className="form-label">Default Texture Pattern</label>
+              <p className="text-xs text-wool-600 mb-2 text-left">
+                Set a pattern (like Stockinette or Lace) to use throughout this component
+              </p>
+              <div className="segmented-control">
+                <div className="grid grid-cols-2 gap-1">
                   <button
-                    onClick={() => setComponentData(prev => ({
-                      ...prev,
-                      colorMode: 'single',
-                      singleColorYarnId: yarns.length > 0 ? yarns[0].id : null
-                    }))}
-                    className={`card-selectable-compact ${componentData.colorMode === 'single' ? 'card-selectable-compact-selected' : ''
-                      }`}
+                    onClick={() => setUseDefaultPattern(false)}
+                    className={`segmented-option ${!useDefaultPattern ? 'segmented-option-active' : ''}`}
                   >
-                    <div className="text-xl mb-1">🎨</div>
-                    <div className="text-xs font-medium">Single Color</div>
+                    Don't Set
                   </button>
                   <button
-                    onClick={() => setComponentData(prev => ({
-                      ...prev,
-                      colorMode: 'multiple',
-                      singleColorYarnId: null
-                    }))}
-                    className={`card-selectable-compact ${componentData.colorMode === 'multiple' ? 'card-selectable-compact-selected' : ''
-                      }`}
+                    onClick={() => setUseDefaultPattern(true)}
+                    className={`segmented-option ${useDefaultPattern ? 'segmented-option-active' : ''}`}
                   >
-                    <div className="text-xl mb-1">🌈</div>
-                    <div className="text-xs font-medium">Multiple Colors</div>
+                    Set Default
                   </button>
                 </div>
+              </div>
+            </div>
 
-                {/* Yarn Selection - Only for single color mode */}
-                {componentData.colorMode === 'single' && (
-                  <div className="mt-3">
-                    <label className="form-label text-sm">Select Yarn</label>
-                    <div className="space-y-2">
-                      {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
-                        const letter = String.fromCharCode(65 + i); // A, B, C, D
-                        const existingYarn = yarns.find(y => y.letter === letter);
-
-                        const yarn = existingYarn || {
-                          id: `color-${letter}`,
-                          letter: letter,
-                          color: `Color ${letter}`,
-                          colorHex: '#cccccc'  // Gray for unassigned colors
-                        };
-
-                        return (
-                          <button
-                            key={yarn.id}
-                            onClick={() => setComponentData(prev => ({
-                              ...prev,
-                              singleColorYarnId: yarn.id
-                            }))}
-                            className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${componentData.singleColorYarnId === yarn.id
-                              ? 'border-sage-500 bg-sage-50'
-                              : 'border-wool-200 hover:border-wool-300'
-                              }`}
-                          >
-                            <div
-                              className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
-                              style={{ backgroundColor: yarn.colorHex }}
-                            />
-                            <div className="text-left text-xs">
-                              <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
+            {/* Default Color Pattern - Only if multi-color project */}
+            {currentProject?.colorCount > 1 && (
+              <div>
+                <label className="form-label">Default Color Pattern</label>
+                <p className="text-xs text-wool-600 mb-2 text-left">
+                  Set colors or colorwork (like Stripes or Fair Isle) to use throughout this component
+                </p>
+                <div className="segmented-control">
+                  <div className="grid grid-cols-2 gap-1">
+                    <button
+                      onClick={() => setUseDefaultColor(false)}
+                      className={`segmented-option ${!useDefaultColor ? 'segmented-option-active' : ''}`}
+                    >
+                      Don't Set
+                    </button>
+                    <button
+                      onClick={() => setUseDefaultColor(true)}
+                      className={`segmented-option ${useDefaultColor ? 'segmented-option-active' : ''}`}
+                    >
+                      Set Default
+                    </button>
                   </div>
-                )}
+                </div>
               </div>
             )}
+
+            {/* ============================================
+        COMMENTED OUT - WILL MOVE TO COLOR CONFIG SCREEN
+        ============================================ */}
+            {/* 
+    {currentProject?.colorCount > 1 && (
+      <div>
+        <label className="form-label">Colors in This Component</label>
+        <div className="grid grid-cols-2 gap-2">
+          <button
+            onClick={() => setComponentData(prev => ({
+              ...prev,
+              colorMode: 'single',
+              singleColorYarnId: yarns.length > 0 ? yarns[0].id : null
+            }))}
+            className={`card-selectable-compact ${componentData.colorMode === 'single' ? 'card-selectable-compact-selected' : ''}`}
+          >
+            <div className="text-xl mb-1">🎨</div>
+            <div className="text-xs font-medium">Single Color</div>
+          </button>
+          <button
+            onClick={() => setComponentData(prev => ({
+              ...prev,
+              colorMode: 'multiple',
+              singleColorYarnId: null
+            }))}
+            className={`card-selectable-compact ${componentData.colorMode === 'multiple' ? 'card-selectable-compact-selected' : ''}`}
+          >
+            <div className="text-xl mb-1">🌈</div>
+            <div className="text-xs font-medium">Multiple Colors</div>
+          </button>
+        </div>
+
+        {componentData.colorMode === 'single' && (
+          <div className="mt-3">
+            <label className="form-label text-sm">Select Yarn</label>
+            <div className="space-y-2">
+              {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
+                const letter = String.fromCharCode(65 + i);
+                const existingYarn = yarns.find(y => y.letter === letter);
+                const yarn = existingYarn || {
+                  id: `color-${letter}`,
+                  letter: letter,
+                  color: `Color ${letter}`,
+                  colorHex: '#cccccc'
+                };
+                return (
+                  <button
+                    key={yarn.id}
+                    onClick={() => setComponentData(prev => ({
+                      ...prev,
+                      singleColorYarnId: yarn.id
+                    }))}
+                    className={`w-full p-2 rounded-lg border-2 flex items-center gap-2 transition-all ${
+                      componentData.singleColorYarnId === yarn.id
+                        ? 'border-sage-500 bg-sage-50'
+                        : 'border-wool-200 hover:border-wool-300'
+                    }`}
+                  >
+                    <div
+                      className="w-6 h-6 rounded-full border border-gray-300 flex-shrink-0"
+                      style={{ backgroundColor: yarn.colorHex }}
+                    />
+                    <div className="text-left text-xs">
+                      <div className="font-medium">{yarn.color} (Color {yarn.letter})</div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+    )}
+    */}
 
             {/* How Does It Start */}
             <div>
@@ -436,7 +485,16 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                 </button>
 
                 <button
-                  onClick={() => setScreen(2)}
+                  onClick={() => {
+                    // Determine next screen based on opt-in selections
+                    if (currentProject?.colorCount > 1 && useDefaultColor) {
+                      setScreen(2); // Go to Color Config
+                    } else if (useDefaultPattern) {
+                      setScreen(4); // Skip to Pattern Config
+                    } else {
+                      setScreen(5); // Skip to Starting Method
+                    }
+                  }}
                   disabled={!componentData.name.trim() || !componentData.construction || !componentData.startType}
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}

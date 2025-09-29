@@ -83,16 +83,36 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
 
   const [wizardData, setWizardData] = useState(() => {
     if (isEditing && editingStep?.wizardConfig) {
+      // Editing existing step - use step's config
       return {
         ...editingStep.wizardConfig,
         hasShaping: editingStep.advancedWizardConfig?.hasShaping || false,
         shapingConfig: {
           ...(editingStep.advancedWizardConfig?.shapingConfig || {})
         },
-        prepNote: editingStep.prepNote || '' // NEW: Include existing prep note when editing
+        prepNote: editingStep.prepNote || ''
       };
     }
-    return getInitialWizardData(currentProject?.defaultUnits);
+
+    // Creating new step - check for component defaults
+    const initialData = getInitialWizardData(currentProject?.defaultUnits);
+
+    // Apply component pattern default if exists
+    if (component?.defaultPattern) {
+      initialData.stitchPattern = {
+        ...initialData.stitchPattern,
+        ...component.defaultPattern
+      };
+    }
+
+    // Apply component colorwork default if exists
+    if (component?.defaultColorwork) {
+      initialData.colorwork = {
+        ...component.defaultColorwork
+      };
+    }
+
+    return initialData;
   });
 
   // Initialize smart navigation with saved data if editing
