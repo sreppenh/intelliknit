@@ -188,7 +188,10 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       setupNotes: componentData.setupNotes,             // ADD THIS
       colorMode: componentData.colorMode || 'multiple',           // NEW
       singleColorYarnId: componentData.singleColorYarnId || null,  // NEW
-      startStepColorYarnIds: componentData.startStepColorYarnIds || []
+      startStepColorYarnIds: componentData.startStepColorYarnIds || [],
+      defaultPattern: null,      // Will be set in Phase 0.3
+      defaultColorwork: null     // Will be set in Phase 0.3
+
     };
 
     dispatch({
