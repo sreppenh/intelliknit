@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { StandardModal } from '../modals/StandardModal';
 import IncrementInput from '../IncrementInput';
-import { colorPalette } from './colorPalette';
+import { COLOR_PALETTE_ARRAY as colorPalette } from '../../utils/constants';
 
 /**
  * 🧶 Reusable Yarn Add/Edit Modal
@@ -188,8 +188,8 @@ const YarnManagerModal = ({
                                     type="button"
                                     onClick={() => handleFormChange('colorHex', color.hex)}
                                     className={`w-8 h-8 rounded-full border-2 transition-all ${yarnForm.colorHex === color.hex
-                                            ? 'border-gray-800 scale-110'
-                                            : 'border-gray-300 hover:scale-105'
+                                        ? 'border-gray-800 scale-110'
+                                        : 'border-gray-300 hover:scale-105'
                                         }`}
                                     style={{ backgroundColor: color.hex }}
                                     title={color.name}
@@ -210,8 +210,8 @@ const YarnManagerModal = ({
                                 type="button"
                                 onClick={() => handleFormChange('letter', '')}
                                 className={`p-3 rounded-lg border-2 text-sm font-medium transition-all text-center ${yarnForm.letter === ''
-                                        ? 'border-sage-500 bg-sage-50 text-sage-700'
-                                        : 'border-wool-200 hover:border-wool-300 text-wool-600'
+                                    ? 'border-sage-500 bg-sage-50 text-sage-700'
+                                    : 'border-wool-200 hover:border-wool-300 text-wool-600'
                                     }`}
                             >
                                 <div className="font-bold text-lg">—</div>
@@ -231,10 +231,10 @@ const YarnManagerModal = ({
                                         type="button"
                                         onClick={() => handleFormChange('letter', letter)}
                                         className={`p-3 rounded-lg border-2 text-sm font-medium transition-all relative text-center ${isSelected
-                                                ? 'border-sage-500 bg-sage-50 text-sage-700'
-                                                : isOccupied
-                                                    ? 'border-wool-400 bg-wool-50 text-wool-800'
-                                                    : 'border-wool-200 hover:border-wool-300 text-wool-600 hover:bg-wool-25'
+                                            ? 'border-sage-500 bg-sage-50 text-sage-700'
+                                            : isOccupied
+                                                ? 'border-wool-400 bg-wool-50 text-wool-800'
+                                                : 'border-wool-200 hover:border-wool-300 text-wool-600 hover:bg-wool-25'
                                             }`}
                                     >
                                         <div className="font-bold text-lg">{letter}</div>

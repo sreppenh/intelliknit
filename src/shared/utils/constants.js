@@ -17,26 +17,34 @@ export const COLOR_PALETTE = {
   coral: { name: 'Coral', hex: '#f97316' },
   rust: { name: 'Rust', hex: '#c2410c' },
   peach: { name: 'Peach', hex: '#fed7aa' },
+  copper: { name: 'Copper', hex: '#b45309' },        // NEW
+  terracotta: { name: 'Terracotta', hex: '#ea580c' }, // NEW
 
   // Yellows
   sunshine: { name: 'Sunshine', hex: '#eab308' },
   mustard: { name: 'Mustard', hex: '#a16207' },
   cream: { name: 'Cream', hex: '#fef3c7' },
+  amber: { name: 'Amber', hex: '#f59e0b' },          // NEW
 
   // Greens
   sage: { name: 'Sage', hex: '#4a8a4a' },
   forest: { name: 'Forest', hex: '#166534' },
   mint: { name: 'Mint', hex: '#6ee7b7' },
+  emerald: { name: 'Emerald', hex: '#059669' },      // NEW
 
   // Blues
   sky: { name: 'Sky', hex: '#3b82f6' },
   navy: { name: 'Navy', hex: '#1e3a8a' },
   teal: { name: 'Teal', hex: '#0891b2' },
+  turquoise: { name: 'Turquoise', hex: '#06b6d4' },  // NEW
+  aqua: { name: 'Aqua', hex: '#14b8a6' },           // NEW
 
   // Purples
   lavender: { name: 'Lavender', hex: '#9b7cb6' },
   plum: { name: 'Plum', hex: '#7c3aed' },
   violet: { name: 'Violet', hex: '#a855f7' },
+  periwinkle: { name: 'Periwinkle', hex: '#a78bfa' }, // NEW
+  indigo: { name: 'Indigo', hex: '#4338ca' },        // NEW
 
   // Pinks
   blush: { name: 'Blush', hex: '#fda4af' },
@@ -49,9 +57,10 @@ export const COLOR_PALETTE = {
   silver: { name: 'Silver', hex: '#d1d5db' },
   ivory: { name: 'Ivory', hex: '#fffbeb' },
   white: { name: 'White', hex: '#ffffff' },
-  black: { name: 'Black', hex: '#000000' }
+  black: { name: 'Black', hex: '#000000' },
+  slate: { name: 'Slate', hex: '#475569' },          // NEW
+  taupe: { name: 'Taupe', hex: '#92857a' },          // NEW
 };
-
 // Convert to array for easy iteration in color pickers
 export const COLOR_PALETTE_ARRAY = Object.values(COLOR_PALETTE);
 
