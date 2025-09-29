@@ -3,7 +3,7 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import { needsDescriptionInput, needsRowInput, getPatternConfigurationTips } from '../../../../shared/utils/stepDisplayUtils';
 
-const BasicPatternConfig = ({ wizardData, updateWizardData, construction }) => {
+const BasicPatternConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {
   // 🔄 REPLACED: Hardcoded arrays with centralized functions
   // OLD: ['Fair Isle', 'Intarsia', 'Stripes'].includes(wizardData.stitchPattern.pattern)
   const needsRowInputValue = needsRowInput(wizardData.stitchPattern.pattern);

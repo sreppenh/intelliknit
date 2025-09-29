@@ -2,7 +2,7 @@
 
 import React from 'react';
 
-const BindOffConfig = ({ wizardData, updateWizardData }) => {
+const BindOffConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {
   const handleMethodSelect = (method) => {
     updateWizardData('stitchPattern', { method });
   };

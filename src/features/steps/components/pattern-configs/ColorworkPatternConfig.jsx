@@ -2,7 +2,7 @@
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 
-const ColorworkPatternConfig = ({ wizardData, updateWizardData, construction }) => {
+const ColorworkPatternConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {
     // Colorwork type options
     const colorworkTypes = [
         { name: 'Fair Isle', icon: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', desc: 'Traditional stranded colorwork' },

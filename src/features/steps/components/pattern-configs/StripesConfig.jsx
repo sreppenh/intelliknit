@@ -5,7 +5,7 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
-const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onCancel, project }) => {
+const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onCancel, project, mode = 'create' }) => {
     // Stripe sequence state
     const [stripeSequence, setStripeSequence] = useState([]);
 

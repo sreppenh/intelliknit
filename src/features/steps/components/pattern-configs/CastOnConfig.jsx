@@ -1,6 +1,6 @@
 import React from 'react';
 
-const CastOnConfig = ({ wizardData, updateWizardData }) => {
+const CastOnConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {
   const handleMethodSelect = (method) => {
     updateWizardData('stitchPattern', { method });
   };

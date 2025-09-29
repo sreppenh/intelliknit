@@ -24,6 +24,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
             wizardData={wizardData}
             updateWizardData={updateWizardData}
             construction={construction}
+            mode={mode}
           />
         );
 
@@ -33,6 +34,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
             wizardData={wizardData}
             updateWizardData={updateWizardData}
             construction={construction}
+            mode={mode}
           />
         );
 
@@ -42,6 +44,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
             wizardData={wizardData}
             updateWizardData={updateWizardData}
             construction={construction}
+            mode={mode}
           />
         );
 
@@ -53,6 +56,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
             updateWizardData={updateWizardData}
             construction={construction}
             project={project}
+            mode={mode}
           />
         );
 
@@ -79,6 +83,7 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
             wizardData={wizardData}
             updateWizardData={updateWizardData}
             construction={construction}
+            mode={mode}
           />
         );
     }
