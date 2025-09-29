@@ -66,21 +66,18 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     setPendingShapingInfo(null);
   };
 
-  const handlePrepColorContinue = (route) => {
+  const handlePrepColorContinue = (destination) => {
     setShowPrepColorScreen(false);
-    setColorRouting(route);
 
-    if (route === 'stripes-config') {
-      // Go directly to pattern config with Stripes pre-selected
-      wizard.updateWizardData('stitchPattern', {
-        ...wizard.wizardData.stitchPattern,
-        category: 'colorwork',
-        pattern: 'Stripes'
-      });
-      wizard.navigation.goToStep(2); // Skip pattern selection
-    } else {
-      // Normal flow - go to pattern selection
+    if (destination === 'pattern-override') {
+      // User chose to override pattern - go to pattern selection
       wizard.navigation.goToStep(1);
+    } else if (destination === 'pattern-selection') {
+      // Legacy/normal flow - go to pattern selection
+      wizard.navigation.goToStep(1);
+    } else if (destination === 'duration-shaping') {
+      // Using defaults or no pattern needed - skip to duration
+      wizard.navigation.goToStep(3);
     }
   };
 
