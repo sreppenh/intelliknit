@@ -1,6 +1,8 @@
 // src/features/steps/components/wizard-screens/PrepNoteColorScreen.jsx
 import React, { useState, useEffect } from 'react';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
+import PatternSelector from '../wizard-steps/PatternSelector';
+import PatternConfiguration from '../wizard-steps/PatternConfiguration';
 
 const PrepNoteColorScreen = ({
     wizardData,
@@ -14,6 +16,32 @@ const PrepNoteColorScreen = ({
     const [prepNote, setPrepNote] = useState(wizardData.prepNote || '');
     const [colorChoice, setColorChoice] = useState(null);
     const [selectedYarnIds, setSelectedYarnIds] = useState([]);
+
+    // Pattern state
+    const [useDefaultPattern, setUseDefaultPattern] = useState(!!component.defaultPattern);
+    const [overridePatternData, setOverridePatternData] = useState({
+        stitchPattern: {
+            category: null,
+            pattern: null,
+            customText: '',
+            rowsInPattern: '',
+            customDetails: '',
+            method: ''
+        }
+    });
+
+    // Color default state
+    const [useDefaultColor, setUseDefaultColor] = useState(!!component.defaultColorwork);
+
+    useEffect(() => {
+        console.log('Component data:', {
+            hasDefaultPattern: !!component.defaultPattern,
+            defaultPattern: component.defaultPattern,
+            hasDefaultColorwork: !!component.defaultColorwork,
+            defaultColorwork: component.defaultColorwork,
+            colorMode: component.colorMode
+        });
+    }, [component]);
 
     // Auto-handle components without colorMode set (legacy components)
     useEffect(() => {
@@ -62,40 +90,37 @@ const PrepNoteColorScreen = ({
     // ✅ REMOVED: updatePrepNoteForColor function - color info is now generated dynamically
 
     const handleContinue = () => {
-        // Save only user's custom notes - no auto-generated color text
+        // Save prep note
         updateWizardData('prepNote', prepNote);
 
-        if (component.colorMode === 'single') {
-            updateWizardData('colorwork', {
-                type: 'single',
-                yarnId: component.singleColorYarnId
-            });
-            console.log('Saved colorwork to wizard:', { type: 'single', yarnId: component.singleColorYarnId });
-            onContinue('pattern-selection');
-
-        } else if (colorChoice === 'single') {
-            // Convert string ID to number
-            const yarnId = typeof selectedYarnIds[0] === 'string' ?
-                parseInt(selectedYarnIds[0]) : selectedYarnIds[0];
-            updateWizardData('colorwork', {
-                type: 'single',
-                yarnId: yarnId
-            });
-            console.log('Saved colorwork to wizard (multiple mode):', { type: 'single', yarnId: yarnId });
-            onContinue('pattern-selection');
-        } else if (colorChoice === 'stripes') {
-            onContinue('stripes-config');
-        } else if (colorChoice === 'multi-strand') {
-            updateWizardData('colorwork', {
-                type: 'multi-strand',
-                yarnIds: selectedYarnIds
-            });
-            onContinue('pattern-selection');
+        // Determine routing based on override choices
+        if (component.defaultColorwork && !useDefaultColor) {
+            // Need to override color - route to color selection
+            onContinue('color-override');
+        } else if (component.defaultPattern && !useDefaultPattern) {
+            // Need to override pattern - route to pattern selection
+            onContinue('pattern-override');
+        } else {
+            // Using all defaults - save them and continue
+            if (component.defaultPattern) {
+                updateWizardData('stitchPattern', component.defaultPattern);
+            }
+            if (component.defaultColorwork) {
+                updateWizardData('colorwork', component.defaultColorwork);
+            }
+            // Skip to duration/shaping
+            onContinue('duration-shaping');
         }
     };
-
     const canContinue = () => {
+        // Pattern validation
+        if (component.defaultPattern && !useDefaultPattern) {
+            if (!overridePatternData.stitchPattern.pattern) return false;
+        }
+
+        // Color validation (existing logic)
         if (component.colorMode === 'single') return true;
+        if (component.defaultColorwork && useDefaultColor) return true;
         if (!colorChoice) return false;
         if (colorChoice === 'stripes') return true;
         if (colorChoice === 'single') return selectedYarnIds.length === 1;
@@ -139,126 +164,73 @@ const PrepNoteColorScreen = ({
                 <p className="content-subheader">Add preparation notes and yarn details</p>
             </div>
 
-            {/* Color Choice - MOVED TO TOP */}
+            {/* Color Choice - with defaults */}
             {component.colorMode === 'multiple' && (
                 <>
-                    <div>
-                        <label className="form-label">Colors for This Step</label>
-                        <div className="space-y-3">
+                    {component.defaultColorwork && (
+                        <div>
+                            <label className="form-label">Color</label>
+                            <p className="text-xs text-wool-600 mb-2">
+                                This component uses {
+                                    component.defaultColorwork.type === 'single' ? `Color ${component.defaultColorwork.colorLetter}` :
+                                        component.defaultColorwork.advancedType === 'stripes' ? 'Stripes' :
+                                            component.defaultColorwork.advancedType === 'fair_isle' ? 'Fair Isle' :
+                                                component.defaultColorwork.advancedType === 'intarsia' ? 'Intarsia' :
+                                                    'Multiple Colors'
+                                } by default
+                            </p>
 
-                            {/* Single Color Option */}
-                            <button
-                                onClick={() => {
-                                    setColorChoice('single');
-                                    setSelectedYarnIds([]);
-                                    // ✅ CHANGED: Don't clear prepNote - it's for user notes only
-                                }}
-                                className={`w-full card-interactive ${colorChoice === 'single' ?
-                                    'ring-2 ring-sage-500' : ''
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-sage-200 flex items-center justify-center">
-                                        <span className="text-lg">🎨</span>
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="font-semibold">Single Color</div>
-                                        <div className="text-xs text-wool-600">Use one yarn for this step</div>
-                                    </div>
-                                </div>
-                            </button>
-
-                            {/* Stripes Option */}
-                            <button
-                                onClick={() => {
-                                    setColorChoice('stripes');
-                                    // ✅ CHANGED: Don't clear prepNote
-                                }}
-                                className={`w-full card-interactive ${colorChoice === 'stripes' ? 'ring-2 ring-sage-500' : ''
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-b from-rose-300 via-amber-300 to-sage-300 flex items-center justify-center">
-                                        <span className="text-lg font-bold text-white">═</span>
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="font-semibold">Stripes</div>
-                                        <div className="text-xs text-wool-600">Alternating color pattern</div>
-                                    </div>
-                                </div>
-                            </button>
-
-                            {/* Multi-Strand Option */}
-                            <button
-                                onClick={() => {
-                                    setColorChoice('multi-strand');
-                                    setSelectedYarnIds([]);
-                                    // ✅ CHANGED: Don't clear prepNote
-                                }}
-                                className={`w-full card-interactive ${colorChoice === 'multi-strand' ?
-                                    'ring-2 ring-sage-500' : ''
-                                    }`}
-                            >
-                                <div className="flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-sage-400 to-yarn-400 flex items-center justify-center">
-                                        <span className="text-lg font-bold text-white">⫽</span>
-                                    </div>
-                                    <div className="text-left">
-                                        <div className="font-semibold">Multiple Colors</div>
-                                        <div className="text-xs text-wool-600">Hold multiple strands together</div>
-                                    </div>
-                                </div>
-                            </button>
-                        </div>
-
-                        {/* Yarn Selection Grid */}
-                        {(colorChoice === 'single' || colorChoice === 'multi-strand') && (
-                            <div className="mt-4">
-                                <label className="form-label">
-                                    Select {colorChoice === 'single' ? 'Yarn' : 'Yarns'}
-                                </label>
-                                <div className="grid grid-cols-3 gap-3">
-                                    {sortedYarns.map(yarn => {
-                                        const letter = yarn.letter || '?';
-                                        const colorName = yarn.color || `Color ${letter}`;
-                                        const colorHex = yarn.hex || yarn.colorHex || '#cccccc';
-                                        const isSelected = selectedYarnIds.includes(yarn.id);
-
-                                        return (
-                                            <button
-                                                key={yarn.id}
-                                                type="button"
-                                                onClick={() => {
-                                                    const newSelectedYarns = colorChoice === 'single'
-                                                        ? [yarn.id]
-                                                        : isSelected
-                                                            ? selectedYarnIds.filter(id => id !== yarn.id)
-                                                            : [...selectedYarnIds, yarn.id];
-                                                    setSelectedYarnIds(newSelectedYarns);
-                                                    // ✅ NO updatePrepNoteForColor call here!
-                                                }}
-                                                className={`p-3 rounded-lg border-2 transition-all ${isSelected
-                                                    ? 'border-sage-500 bg-sage-50'
-                                                    : 'border-wool-200 hover:border-wool-300'
-                                                    }`}
-                                            >
-                                                <div
-                                                    className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
-                                                    style={{ backgroundColor: colorHex }}
-                                                />
-                                                <div className="text-xs font-medium text-center">{letter}</div>
-                                                <div className="text-xs text-center truncate">{colorName}</div>
-                                                {isSelected && (
-                                                    <div className="text-sage-600 text-center mt-1">✓</div>
-                                                )}
-                                            </button>
-                                        );
-                                    })}
+                            <div className="segmented-control mb-4">
+                                <div className="grid grid-cols-2 gap-1">
+                                    <button
+                                        onClick={() => {
+                                            setUseDefaultColor(true);
+                                            setColorChoice(null);
+                                            setSelectedYarnIds([]);
+                                        }}
+                                        className={`segmented-option ${useDefaultColor ? 'segmented-option-active' : ''}`}
+                                    >
+                                        Use Default
+                                    </button>
+                                    <button
+                                        onClick={() => setUseDefaultColor(false)}
+                                        className={`segmented-option ${!useDefaultColor ? 'segmented-option-active' : ''}`}
+                                    >
+                                        Override
+                                    </button>
                                 </div>
                             </div>
-                        )}
-                    </div>
+                        </div>
+                    )}
                 </>
+            )}
+
+            {/* Pattern Selection */}
+            {component.defaultPattern && (
+                <div>
+                    <label className="form-label">Pattern</label>
+                    <p className="text-xs text-wool-600 mb-2">
+                        This component uses {component.defaultPattern.pattern} by default
+                    </p>
+
+                    <div className="segmented-control">
+                        <div className="grid grid-cols-2 gap-1">
+                            <button
+                                onClick={() => setUseDefaultPattern(true)}
+                                className={`segmented-option ${useDefaultPattern ? 'segmented-option-active' : ''}`}
+                            >
+                                Use Default
+                            </button>
+                            <button
+                                onClick={() => setUseDefaultPattern(false)}
+                                className={`segmented-option ${!useDefaultPattern ? 'segmented-option-active' : ''}`}
+                            >
+                                Override
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
             )}
 
             {/* Prep Note - MOVED TO BOTTOM */}
