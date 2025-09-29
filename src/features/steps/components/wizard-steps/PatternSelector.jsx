@@ -8,6 +8,7 @@ export const PatternSelector = ({
   updateWizardData,
   navigation,
   onCreatePrepStep,
+  mode = 'create',
   existingPrepNote = '',
   onSavePrepNote
 }) => {
@@ -26,6 +27,11 @@ export const PatternSelector = ({
 
   // ✅ FIX: Track which advanced category is expanded
   const [expandedAdvancedCategory, setExpandedAdvancedCategory] = useState(null);
+
+  // ⭐ ADD THIS SECTION - Mode detection
+  const isComponentDefault = mode === 'component-default';
+  const headerText = isComponentDefault ? 'Set Default Pattern' : 'Select Pattern';
+  const showPrepNote = !isComponentDefault;
 
   // Prep note management
   const {
@@ -205,15 +211,17 @@ export const PatternSelector = ({
         {/* Header with Prep Note */}
         <div className="text-center">
           <div className="content-header-with-buttons">
-            <h2 className="content-title">Select Pattern</h2>
-            <div className="button-group">
-              <button
-                onClick={handleOpenModal}
-                className="btn-secondary btn-sm"
-              >
-                {hasNote ? 'Edit Preparation Note' : '+ Add Preparation Note'}
-              </button>
-            </div>
+            <h2 className="content-title">{headerText}</h2>
+            {showPrepNote && (
+              <div className="button-group">
+                <button
+                  onClick={handleOpenModal}
+                  className="btn-secondary btn-sm"
+                >
+                  {hasNote ? 'Edit Preparation Note' : '+ Add Preparation Note'}
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
