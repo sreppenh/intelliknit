@@ -6,6 +6,8 @@ import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import SegmentedControl from '../../../shared/components/SegmentedControl';
 import useYarnManager from '../../../shared/hooks/useYarnManager';
+import PatternSelector from '../../steps/components/wizard-steps/PatternSelector';
+import PatternConfiguration from '../../steps/components/wizard-steps/PatternConfiguration';
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
@@ -29,6 +31,29 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     startStepColorYarnId: []
   });
 
+
+  // ⭐ ADD THESE NEW STATE VARIABLES
+  const [useDefaultPattern, setUseDefaultPattern] = useState(false);
+  const [defaultPatternData, setDefaultPatternData] = useState({
+    stitchPattern: {
+      category: null,
+      pattern: null,
+      customText: '',
+      rowsInPattern: '',
+      customDetails: '',
+      method: ''
+    }
+  });
+
+  const [useDefaultColor, setUseDefaultColor] = useState(false);
+  const [defaultColorData, setDefaultColorData] = useState({
+    colorwork: {
+      type: null,
+      colorLetter: null,
+      sequence: [],
+      colorLetters: []
+    }
+  });
 
   // State for which start type is expanded (like selectedQuickCategory)
   const [selectedStartType, setSelectedStartType] = useState(null);
@@ -189,8 +214,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       colorMode: componentData.colorMode || 'multiple',           // NEW
       singleColorYarnId: componentData.singleColorYarnId || null,  // NEW
       startStepColorYarnIds: componentData.startStepColorYarnIds || [],
-      defaultPattern: null,      // Will be set in Phase 0.3
-      defaultColorwork: null     // Will be set in Phase 0.3
+      defaultPattern: useDefaultPattern ? defaultPatternData.stitchPattern : null,
+      defaultColorwork: useDefaultColor ? defaultColorData.colorwork : null
 
     };
 
@@ -422,7 +447,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             </div>
 
           </div>
-        ) : (
+        ) : screen === 2 ? (
 
           // Screen 2: Method Selection & Configuration (Conditional Layout)
           <div className="p-6 bg-yarn-50 stack-lg">
@@ -664,19 +689,155 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                   </button>
 
                   <button
-                    onClick={handleCreateComponent}
+                    onClick={() => setScreen(3)}  // ⭐ CHANGE: was handleCreateComponent()
                     disabled={!canCreateComponent()}
                     className="flex-2 btn-primary"
                     style={{ flexGrow: 2 }}
                   >
                     <span className="text-lg">🧶</span>
-                    Create Component
+                    Continue →  {/* ⭐ CHANGE: was "Create Component" */}
                   </button>
                 </div>
               </div>
             )}
           </div>
-        )}
+
+        ) : screen === 3 ? (
+          // Screen 3: Pattern Defaults
+          <div className="p-6 bg-yarn-50 space-y-6">
+            <h1 className="page-title">Pattern Defaults</h1>
+            <p className="text-wool-600 text-center">
+              Set a default pattern to use throughout this component
+            </p>
+
+            {/* Option 1: No Default */}
+            <button
+              onClick={() => {
+                setUseDefaultPattern(false);
+                // Skip to screen 4 if multi-color, otherwise create component
+                if (currentProject?.colorCount > 1) {
+                  setScreen(4);
+                } else {
+                  handleCreateComponent();
+                }
+              }}
+              className={`w-full card-selectable ${!useDefaultPattern ? 'card-selectable-selected' : ''}`}
+            >
+              <div className="flex items-start gap-3 p-2">
+                <div className="text-2xl">⚪</div>
+                <div className="text-left flex-1">
+                  <div className="font-semibold text-wool-700">No Default</div>
+                  <div className="text-sm text-wool-600">Configure pattern for each step</div>
+                </div>
+              </div>
+            </button>
+
+            {/* Option 2: Set Default */}
+            <button
+              onClick={() => setUseDefaultPattern(true)}
+              className={`w-full card-selectable ${useDefaultPattern ? 'card-selectable-selected' : ''}`}
+            >
+              <div className="flex items-start gap-3 p-2">
+                <div className="text-2xl">●</div>
+                <div className="text-left flex-1">
+                  <div className="font-semibold text-wool-700">Set Default Pattern</div>
+                  <div className="text-sm text-wool-600">Most steps will use the same pattern</div>
+                </div>
+              </div>
+            </button>
+
+            {/* Show Pattern Selector if option 2 selected */}
+            {useDefaultPattern && (
+              <div className="bg-white rounded-2xl border-2 border-sage-200 p-4 space-y-4">
+                <PatternSelector
+                  wizardData={defaultPatternData}
+                  updateWizardData={(key, value) => {
+                    setDefaultPatternData(prev => ({
+                      ...prev,
+                      [key]: value
+                    }));
+                  }}
+                  construction={componentData.construction}
+                  mode="component-default"
+                />
+
+                {/* Show pattern config if pattern selected */}
+                {defaultPatternData.stitchPattern.pattern && (
+                  <PatternConfiguration
+                    wizardData={defaultPatternData}
+                    updateWizardData={(key, value) => {
+                      setDefaultPatternData(prev => ({
+                        ...prev,
+                        [key]: value
+                      }));
+                    }}
+                    construction={componentData.construction}
+                    currentStitches={componentData.startStitches}
+                    project={currentProject}
+                    mode="component-default"
+                  />
+                )}
+              </div>
+            )}
+
+            {/* Navigation */}
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setScreen(2)}
+                className="flex-1 btn-tertiary"
+              >
+                ← Back
+              </button>
+              <button
+                onClick={() => {
+                  // Go to color defaults if multi-color, otherwise create component
+                  if (currentProject?.colorCount > 1) {
+                    setScreen(4);
+                  } else {
+                    handleCreateComponent();
+                  }
+                }}
+                className="flex-2 btn-primary"
+                style={{ flexGrow: 2 }}
+              >
+                {currentProject?.colorCount > 1 ? 'Continue →' : 'Create Component'}
+              </button>
+            </div>
+          </div>
+
+        ) : screen === 4 ? (
+          // Screen 4: Color Defaults (only for multi-color projects)
+          <div className="p-6 bg-yarn-50 space-y-6">
+            <h1 className="page-title">Color Defaults</h1>
+            <p className="text-wool-600 text-center">
+              Set default colors for this component
+            </p>
+
+            {/* Coming in next step - for now just skip button */}
+            <div className="text-center py-8">
+              <p className="text-wool-500 mb-4">Color defaults configuration coming soon</p>
+            </div>
+
+            {/* Navigation */}
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setScreen(3)}
+                className="flex-1 btn-tertiary"
+              >
+                ← Back
+              </button>
+              <button
+                onClick={handleCreateComponent}
+                className="flex-2 btn-primary"
+                style={{ flexGrow: 2 }}
+              >
+                Create Component
+              </button>
+            </div>
+          </div>
+
+        ) : null}
+
 
         {/* Prep Note Modal */}
         <PrepStepModal
