@@ -336,7 +336,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               <div>
                 <label className="form-label">Default Color Pattern</label>
                 <p className="text-xs text-wool-600 mb-2 text-left">
-                  Set colors or colorwork (like Stripes or Fair Isle) to use throughout this component
+                  Set default colors or colorwork (like Stripes or Fair Isle) to use throughout this component
                 </p>
                 <div className="segmented-control">
                   <div className="grid grid-cols-2 gap-1">
@@ -361,7 +361,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
             <div>
               <label className="form-label">Default Texture Pattern</label>
               <p className="text-xs text-wool-600 mb-2 text-left">
-                Set a pattern (like Stockinette or Lace) to use throughout this component
+                Set a default pattern (like Stockinette or Lace) to use throughout this component
               </p>
               <div className="segmented-control">
                 <div className="grid grid-cols-2 gap-1">
