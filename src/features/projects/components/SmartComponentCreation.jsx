@@ -506,260 +506,272 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
           </div>
         ) : screen === 2 ? (
+          <div className="p-6 bg-yarn-50 space-y-4">
+            <h1 className="page-title">Color Defaults</h1>
+            <p className="text-wool-600 text-center mb-6">
+              Choose how colors are used throughout this component
+            </p>
 
-          // Screen 2: Method Selection & Configuration (Conditional Layout)
-          <div className="p-6 bg-yarn-50 stack-lg">
-
-            {componentData.startType === 'cast_on' ? (
-              // Cast On: Show method selection
-              <>
-                {/* Header */}
-                <div>
-                  <h2 className="content-header-primary">Select Cast On</h2>
-                  <p className="content-subheader">Provide method and starting number of stitches</p>
-                </div>
-
-                {/* Method Selection Grid */}
-                <div>
-                  <label className="form-label">Method</label>
-                  <div className="grid grid-cols-3 gap-3">
-                    {methodsByStartType[componentData.startType]?.map(method => (
-                      <button
-                        key={method.id}
-                        onClick={() => setComponentData(prev => ({ ...prev, startMethod: method.id }))}
-                        className={`selection-button ${componentData.startMethod === method.id ? 'selection-button-selected' : ''}`}
-                      >
-                        <div className="text-xl mb-1">{method.icon}</div>
-                        <div className="text-xs font-medium">{method.name}</div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                {/* Configuration Fields - Only show when method selected */}
-                {componentData.startMethod && (
-                  <>
-                    {/* Description for "other" method */}
-                    {componentData.startMethod === 'other' && (
-                      <div>
-                        <label className="form-label">Describe Your Cast On Method</label>
-                        <input
-                          type="text"
-                          value={componentData.startDescription}
-                          onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
-                          placeholder="e.g., Italian cast on, Judy's magic cast on"
-                          className="input-field-lg"
-                        />
-                      </div>
-                    )}
-
-                    {/* Color Selection - Multi-select cards */}
-                    {currentProject?.colorCount > 1 && componentData.colorMode === 'multiple' && (
-                      <div>
-                        <label className="form-label">Select Colors</label>
-                        <p className="text-xs text-wool-600 mb-2">Click multiple colors for multi-strand</p>
-                        <div className="grid grid-cols-3 gap-2">
-                          {Array.from({ length: currentProject.colorCount }, (_, i) => {
-                            const letter = String.fromCharCode(65 + i);
-                            const yarn = yarns.find(y => y.letter === letter);
-                            const colorHex = yarn?.colorHex || '#f3f4f6';
-                            const colorName = yarn?.color || `Color ${letter}`;
-                            const yarnId = yarn?.id || `color-${letter}`;
-                            const isSelected = componentData.startStepColorYarnIds?.includes(yarnId);
-
-                            return (
-                              <button
-                                key={letter}
-                                type="button"
-                                onClick={() => {
-                                  setComponentData(prev => {
-                                    const currentIds = prev.startStepColorYarnIds || [];
-                                    let newIds;
-
-                                    if (isSelected) {
-                                      newIds = currentIds.filter(id => id !== yarnId);
-                                      if (newIds.length === 0) newIds = [yarnId];
-                                    } else {
-                                      newIds = [...currentIds, yarnId];
-                                    }
-
-                                    let setupNote = '';
-                                    if (newIds.length === 1) {
-                                      const selectedLetter = newIds[0].toString().startsWith('color-')
-                                        ? newIds[0].replace('color-', '')
-                                        : yarns.find(y => y.id === newIds[0])?.letter || letter;
-                                      const selectedYarn = yarns.find(y => y.id === newIds[0]);
-                                      const displayName = selectedYarn?.color || `Color ${selectedLetter}`;
-                                      setupNote = `Use Color ${selectedLetter} (${displayName})`;
-                                    } else {
-                                      const letters = newIds.map(id => {
-                                        if (id.toString().startsWith('color-')) {
-                                          return id.replace('color-', '');
-                                        }
-                                        return yarns.find(y => y.id === id)?.letter || '';
-                                      }).filter(Boolean).sort().join(' and ');
-                                      setupNote = `Using Colors ${letters} together`;
-                                    }
-
-                                    return {
-                                      ...prev,
-                                      startStepColorYarnIds: newIds,
-                                    };
-                                  });
-                                }}
-                                className={`p-3 rounded-lg border-2 transition-all ${isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'
-                                  }`}
-                              >
-                                <div
-                                  className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
-                                  style={{ backgroundColor: colorHex }}
-                                />
-                                <div className="text-xs font-medium text-center">{letter}</div>
-                                <div className="text-xs text-center truncate">{colorName}</div>
-                                {isSelected && (
-                                  <div className="text-sage-600 text-center mt-1">✓</div>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Setup Notes - Auto-populated from color selection */}
-                    <div>
-                      <label className="form-label">
-                        Setup Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
-                      </label>
-                      <textarea
-                        value={componentData.setupNotes || ''}
-                        onChange={(e) => setComponentData(prev => ({ ...prev, setupNotes: e.target.value }))}
-                        placeholder="e.g., Switch to US 6 circular needles, place stitch markers, check measurements"
-                        rows={3}
-                        className="input-field-lg resize-none"
-                      />
-                    </div>
-
-                    {/* Stitch Count */}
-                    <div>
-                      <label className="form-label">Starting Stitch Count</label>
-                      <IncrementInput
-                        value={componentData.startStitches}
-                        onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
-                        label="starting stitches"
-                        unit="stitches"
-                        size="sm"
-                        min={1}
-                        placeholder="80"
-                      />
-                    </div>
-                  </>
-                )}
-              </>
-            ) : (
-              // Pick Up, Continue, Other: Direct configuration - UNCHANGED
-              <>
-                {/* Header */}
-                <div>
-                  <h2 className="content-header-primary">
-                    {componentData.startType === 'pick_up' ? 'Pick Up & Knit' :
-                      componentData.startType === 'continue' ? 'Continue From Stitches' :
-                        'Custom Setup'}
-                  </h2>
-                  <p className="content-subheader">
-                    {'Describe your custom setup'}
-                  </p>
-                </div>
-
-                {/* Auto-set method */}
-                {(() => {
-                  if (!componentData.startMethod) {
-                    const autoMethod = componentData.startType === 'pick_up' ? 'pick_up_knit' :
-                      componentData.startType === 'continue' ? 'from_stitches' :
-                        'custom';
-                    setComponentData(prev => ({ ...prev, startMethod: autoMethod }));
-                  }
-                  return null;
-                })()}
-
-                {/* Description Field */}
-                <div>
-                  <label className="form-label">
-                    {componentData.startType === 'pick_up' ? 'Pick Up From Where' :
-                      componentData.startType === 'continue' ? 'Continue From Where' :
-                        'Describe Your Setup'}
-                  </label>
+            <div className="space-y-4">
+              {/* Single Color Option */}
+              <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${defaultColorData.colorwork.type === 'single'
+                ? 'border-sage-500 bg-white text-sage-700 shadow-sm'
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300'
+                }`}>
+                <div className="flex items-start gap-4">
                   <input
-                    type="text"
-                    value={componentData.startDescription}
-                    onChange={(e) => setComponentData(prev => ({ ...prev, startDescription: e.target.value }))}
-                    placeholder={
-                      componentData.startType === 'pick_up' ? 'e.g., neckline, front edge, armhole' :
-                        componentData.startType === 'continue' ? 'e.g., from underarm, from previous section' :
-                          'Describe your custom setup method'
-                    }
-                    className="input-field-lg"
+                    type="radio"
+                    name="color_type"
+                    value="single"
+                    checked={defaultColorData.colorwork.type === 'single'}
+                    onChange={() => setDefaultColorData(prev => ({
+                      ...prev,
+                      colorwork: { type: 'single', colorLetter: null }
+                    }))}
+                    className="w-4 h-4 text-sage-600 mt-1"
                   />
-                </div>
-
-                {/* Instructions Field - HOW to pick up (only for pick_up) */}
-                {componentData.startType === 'pick_up' && (
-                  <div>
-                    <label className="form-label">Pick Up Instructions</label>
-                    <input
-                      type="text"
-                      value={componentData.startInstructions}
-                      onChange={(e) => setComponentData(prev => ({ ...prev, startInstructions: e.target.value }))}
-                      placeholder="e.g., pick up 2 of every 3 stitches, pick up 1 stitch per row"
-                      className="input-field-lg"
-                    />
-                    <div className="text-xs text-wool-500 mt-1">
-                      💡 <strong>Hint:</strong> Describe the pickup ratio or technique
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">🎨</div>
+                      <div className="text-left">
+                        <div className="font-semibold text-base">Single Color</div>
+                        <div className="text-sm opacity-75">Use one color throughout this component</div>
+                      </div>
                     </div>
-                  </div>
-                )}
 
-                {/* Stitch Count */}
-                <div>
-                  <label className="form-label">Starting Stitch Count</label>
-                  <IncrementInput
-                    value={componentData.startStitches}
-                    onChange={(value) => setComponentData(prev => ({ ...prev, startStitches: value }))}
-                    label="starting stitches"
-                    unit="stitches"
-                    size="sm"
-                    min={1}
-                    placeholder="80"
-                  />
+                    {/* Single Color Selection - INSIDE the label */}
+                    {defaultColorData.colorwork.type === 'single' && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
+                          const letter = String.fromCharCode(65 + i);
+                          const existingYarn = yarns.find(y => y.letter === letter);
+                          const yarn = existingYarn || {
+                            id: `color-${letter}`,
+                            letter: letter,
+                            color: `Color ${letter}`,
+                            colorHex: '#cccccc'
+                          };
+
+                          return (
+                            <button
+                              key={yarn.id}
+                              type="button"
+                              onClick={() => setDefaultColorData(prev => ({
+                                ...prev,
+                                colorwork: { ...prev.colorwork, colorLetter: letter }
+                              }))}
+                              className={`card-selectable-compact ${defaultColorData.colorwork.colorLetter === letter
+                                ? 'card-selectable-compact-selected'
+                                : ''
+                                }`}
+                            >
+                              <div
+                                className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
+                                style={{ backgroundColor: yarn.colorHex }}
+                              />
+                              <div className="text-xs font-medium">{letter}</div>
+                              <div className="text-xs truncate">{yarn.color}</div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              </>
-            )}
+              </label>
+
+              {/* Multi-Strand Option */}
+              <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${defaultColorData.colorwork.type === 'multi_strand'
+                ? 'border-sage-500 bg-white text-sage-700 shadow-sm'
+                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300'
+                }`}>
+                <div className="flex items-start gap-4">
+                  <input
+                    type="radio"
+                    name="color_type"
+                    value="multi_strand"
+                    checked={defaultColorData.colorwork.type === 'multi_strand'}
+                    onChange={() => setDefaultColorData(prev => ({
+                      ...prev,
+                      colorwork: { type: 'multi_strand', colorLetters: [] }
+                    }))}
+                    className="w-4 h-4 text-sage-600 mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">🧵</div>
+                      <div className="text-left">
+                        <div className="font-semibold text-base">Multiple Strands</div>
+                        <div className="text-sm opacity-75">Hold 2+ colors together (marled/tweed effect)</div>
+                      </div>
+                    </div>
+
+                    {/* Multi-Strand Selection - INSIDE the label */}
+                    {defaultColorData.colorwork.type === 'multi_strand' && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
+                          const letter = String.fromCharCode(65 + i);
+                          const existingYarn = yarns.find(y => y.letter === letter);
+                          const yarn = existingYarn || {
+                            id: `color-${letter}`,
+                            letter: letter,
+                            color: `Color ${letter}`,
+                            colorHex: '#cccccc'
+                          };
+                          const isSelected = defaultColorData.colorwork.colorLetters?.includes(letter);
+
+                          return (
+                            <button
+                              key={letter}
+                              type="button"
+                              onClick={() => {
+                                setDefaultColorData(prev => {
+                                  const current = prev.colorwork.colorLetters || [];
+                                  let updated;
+                                  if (isSelected) {
+                                    updated = current.filter(l => l !== letter);
+                                    if (updated.length < 2 && current.length === 2) return prev;
+                                  } else {
+                                    updated = [...current, letter].sort();
+                                  }
+                                  return {
+                                    ...prev,
+                                    colorwork: { ...prev.colorwork, colorLetters: updated }
+                                  };
+                                });
+                              }}
+                              className={`card-selectable-compact ${isSelected
+                                ? 'card-selectable-compact-selected'
+                                : ''
+                                }`}
+                            >
+                              <div
+                                className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
+                                style={{ backgroundColor: yarn.colorHex }}
+                              />
+                              <div className="text-xs font-medium">{letter}</div>
+                              <div className="text-xs truncate">{yarn.color}</div>
+                              {isSelected && <div className="text-sage-600 mt-1">✓</div>}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </label>
+
+              {/* Advanced Colorwork Option */}
+              <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${defaultColorData.colorwork.type === 'advanced'
+                  ? 'border-sage-500 bg-white text-sage-700 shadow-sm'
+                  : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300'
+                }`}>
+                <div className="flex items-start gap-4">
+                  <input
+                    type="radio"
+                    name="color_type"
+                    value="advanced"
+                    checked={defaultColorData.colorwork.type === 'advanced'}
+                    onChange={() => setDefaultColorData(prev => ({
+                      ...prev,
+                      colorwork: { type: 'advanced', advancedType: null }
+                    }))}
+                    className="w-4 h-4 text-sage-600 mt-1"
+                  />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                      <div className="text-2xl">🌈</div>
+                      <div className="text-left">
+                        <div className="font-semibold text-base">Advanced Colorwork</div>
+                        <div className="text-sm opacity-75">Stripes, Fair Isle, or Intarsia patterns</div>
+                      </div>
+                    </div>
+
+                    {/* Advanced Type Selection - INSIDE the label */}
+                    {defaultColorData.colorwork.type === 'advanced' && (
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => setDefaultColorData(prev => ({
+                            ...prev,
+                            colorwork: { ...prev.colorwork, advancedType: 'stripes' }
+                          }))}
+                          className={`card-selectable-compact ${defaultColorData.colorwork.advancedType === 'stripes'
+                              ? 'card-selectable-compact-selected'
+                              : ''
+                            }`}
+                        >
+                          <div className="text-xl mb-1">📊</div>
+                          <div className="text-xs font-medium">Stripes</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setDefaultColorData(prev => ({
+                            ...prev,
+                            colorwork: { ...prev.colorwork, advancedType: 'fair_isle' }
+                          }))}
+                          className={`card-selectable-compact ${defaultColorData.colorwork.advancedType === 'fair_isle'
+                              ? 'card-selectable-compact-selected'
+                              : ''
+                            }`}
+                        >
+                          <div className="text-xl mb-1">🎨</div>
+                          <div className="text-xs font-medium">Fair Isle</div>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => setDefaultColorData(prev => ({
+                            ...prev,
+                            colorwork: { ...prev.colorwork, advancedType: 'intarsia' }
+                          }))}
+                          className={`card-selectable-compact ${defaultColorData.colorwork.advancedType === 'intarsia'
+                              ? 'card-selectable-compact-selected'
+                              : ''
+                            }`}
+                        >
+                          <div className="text-xl mb-1">🖼️</div>
+                          <div className="text-xs font-medium">Intarsia</div>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </label>
+            </div>
 
             {/* Navigation */}
-            {(componentData.startType === 'cast_on' ? componentData.startMethod : true) && (
-              <div className="pt-4">
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setScreen(1)}
-                    className="flex-1 btn-tertiary"
-                  >
-                    ← Back
-                  </button>
-
-                  <button
-                    onClick={() => setScreen(3)}  // ⭐ CHANGE: was handleCreateComponent()
-                    disabled={!canCreateComponent()}
-                    className="flex-2 btn-primary"
-                    style={{ flexGrow: 2 }}
-                  >
-                    <span className="text-lg">🧶</span>
-                    Continue →  {/* ⭐ CHANGE: was "Create Component" */}
-                  </button>
-                </div>
-              </div>
-            )}
+            <div className="flex gap-3 pt-4">
+              <button
+                onClick={() => setScreen(1)}
+                className="flex-1 btn-tertiary"
+              >
+                ← Back
+              </button>
+              <button
+                onClick={() => {
+                  if (defaultColorData.colorwork.advancedType) {
+                    setScreen(3);
+                  } else if (useDefaultPattern) {
+                    setScreen(4);
+                  } else {
+                    setScreen(5);
+                  }
+                }}
+                disabled={
+                  !defaultColorData.colorwork.type ||
+                  (defaultColorData.colorwork.type === 'single' && !defaultColorData.colorwork.colorLetter) ||
+                  (defaultColorData.colorwork.type === 'multi_strand' && (!defaultColorData.colorwork.colorLetters || defaultColorData.colorwork.colorLetters.length < 2)) ||
+                  (defaultColorData.colorwork.type === 'advanced' && !defaultColorData.colorwork.advancedType)
+                }
+                className="flex-2 btn-primary"
+                style={{ flexGrow: 2 }}
+              >
+                Continue →
+              </button>
+            </div>
           </div>
-
         ) : screen === 3 ? (
           // Screen 3: Pattern Defaults
           <div className="p-6 bg-yarn-50 space-y-6">
