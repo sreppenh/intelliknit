@@ -9,10 +9,10 @@ const KnittingPrepCard = ({ step, stepIndex, component, project, prepNote }) => 
 
     return (
         <div className="flex-1 flex flex-col bg-gradient-to-br from-lavender-50 via-lavender-25 to-white relative overflow-hidden">
-            {/* Texture overlay */}
+            {/* Texture overlay - subtle lavender tint */}
             <div className="absolute inset-0 opacity-5 pointer-events-none">
                 <div className="w-full h-full" style={{
-                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23000' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E")`,
+                    backgroundImage: `url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%238b5cf6' fill-opacity='0.1'%3E%3Cpath d='M20 20c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10zm10 0c0-5.5-4.5-10-10-10s-10 4.5-10 10 4.5 10 10 10 10-4.5 10-10z'/%3E%3C/g%3E%3C/svg%3E")`,
                     backgroundSize: '40px 40px'
                 }} />
             </div>
@@ -27,16 +27,16 @@ const KnittingPrepCard = ({ step, stepIndex, component, project, prepNote }) => 
                 </h2>
 
                 <div className="space-y-3 w-full max-w-md">
-                    {/* Color change info (auto-generated, always up-to-date) */}
+                    {/* Color change info - now using lavender theme */}
                     {colorInfo && (
-                        <div className="bg-yarn-100 rounded-xl p-4 border-l-4 border-yarn-500 shadow-sm">
+                        <div className="bg-lavender-100 rounded-xl p-4 border-l-4 border-lavender-500 shadow-sm">
                             <div className="flex items-center gap-2 mb-2">
-                                <Palette size={16} className="text-yarn-600" />
-                                <span className="text-xs font-semibold text-yarn-700 uppercase tracking-wide">
+                                <Palette size={16} className="text-lavender-600" />
+                                <span className="text-xs font-semibold text-lavender-700 uppercase tracking-wide">
                                     Yarn
                                 </span>
                             </div>
-                            <p className="text-yarn-700 text-sm font-medium text-left">
+                            <p className="text-lavender-700 text-sm font-medium text-left">
                                 {colorInfo}
                             </p>
                         </div>

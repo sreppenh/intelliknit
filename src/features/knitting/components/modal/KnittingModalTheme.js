@@ -20,21 +20,27 @@ export const getModalTheme = (step, context = 'project') => {
         };
     }
 
-    // Existing project-based theme logic
+    // Get the pattern name to check for prep steps
     const patternName = getStepPatternName(step);
 
-    // Yarn theme for construction & finishing steps
-    if (['Cast On', 'Bind Off', 'Put on Holder', 'Other Ending', 'Pick Up & Knit', 'Continue from Stitches'].includes(patternName)) {
+    // Check if this is a prep step (has prep note OR is a "Preparation" step)
+    const hasPrep = step?.prepNote ||
+        step?.wizardConfig?.prepNote ||
+        step?.advancedWizardConfig?.prepNote ||
+        patternName === 'Preparation';
+
+    // Lavender theme for prep cards
+    if (hasPrep && (typeof hasPrep === 'string' ? hasPrep.trim().length > 0 : true)) {
         return {
-            cardBg: 'bg-gradient-to-br from-yarn-25 via-white to-yarn-50',
-            contentBg: 'bg-yarn-50/30 border-yarn-200/50',
-            textPrimary: 'text-yarn-900',
-            textSecondary: 'text-yarn-700',
-            accent: 'yarn'
+            cardBg: 'bg-gradient-to-br from-lavender-50 via-lavender-25 to-white',
+            contentBg: 'bg-lavender-50/30 border-lavender-200/50',
+            textPrimary: 'text-lavender-900',
+            textSecondary: 'text-lavender-700',
+            accent: 'lavender'
         };
     }
 
-    // Sage theme for regular patterns (default)
+    // Sage theme for all other steps (unified experience)
     return {
         cardBg: 'bg-gradient-to-br from-sage-25 via-white to-sage-50',
         contentBg: 'bg-sage-50/30 border-sage-200/50',

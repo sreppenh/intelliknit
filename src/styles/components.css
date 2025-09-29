@@ -529,19 +529,21 @@ body.modal-open {
   }
 }
 
-/* Tablet and up: Proper modal sizing */
+/* Tablet and up: Moderate width increase */
 @media (min-width: 640px) {
   .knitting-modal-content {
-    max-width: 420px;
+    max-width: 600px !important;
+    /* Wider than 420px but not excessive */
     max-height: 90vh;
     @apply rounded-2xl;
   }
 }
 
-/* Desktop: Slightly larger */
+/* Desktop: Slightly more but still reasonable */
 @media (min-width: 1024px) {
   .knitting-modal-content {
-    max-width: 480px;
+    max-width: 700px !important;
+    /* Wider than 480px but constrained */
   }
 }
 
