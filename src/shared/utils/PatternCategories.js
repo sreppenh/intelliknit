@@ -64,17 +64,6 @@ export const PATTERN_CATEGORIES = {
             { name: 'Cable Pattern', icon: '🔗', desc: 'Define your cable pattern' }
         ]
     },
-    // AFTER:
-    colorwork: {
-        name: 'Colorwork',
-        icon: '🌈',
-        type: 'advanced',
-        patterns: [
-            { name: 'Fair Isle', icon: '🏴󠁧󠁢󠁳󠁣󠁴󠁿', desc: 'Traditional stranded colorwork' },
-            { name: 'Intarsia', icon: '🎨', desc: 'Large color blocks' },
-            { name: 'Stripes', icon: '🌈', desc: 'Horizontal color bands' }
-        ]
-    },
     custom_texture: {
         type: 'advanced',
         name: 'Custom Texture',

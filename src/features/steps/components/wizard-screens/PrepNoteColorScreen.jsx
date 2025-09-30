@@ -16,10 +16,14 @@ const PrepNoteColorScreen = ({
     const [prepNote, setPrepNote] = useState(wizardData.prepNote || '');
 
     // Pattern state
-    const [useDefaultPattern, setUseDefaultPattern] = useState(false);
+    const [useDefaultPattern, setUseDefaultPattern] = useState(
+        component.defaultPattern ? true : false
+    );
 
-    // Color state
-    const [useDefaultColor, setUseDefaultColor] = useState(false);
+    // Color state  
+    const [useDefaultColor, setUseDefaultColor] = useState(
+        component.colorMode === 'multiple' && component.defaultColorwork ? true : false
+    );
 
     // Auto-handle components without colorMode set (legacy)
     useEffect(() => {
@@ -78,37 +82,43 @@ const PrepNoteColorScreen = ({
                 />
             </div>
 
-            {/* Pattern Checkbox */}
-            {component.defaultPattern && (
-                <div>
-                    <label className="form-label">Pattern</label>
-                    <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-wool-200 cursor-pointer hover:border-sage-300 transition-colors">
-                        <input
-                            type="checkbox"
-                            checked={useDefaultPattern}
-                            onChange={(e) => setUseDefaultPattern(e.target.checked)}
-                            className="w-4 h-4"
-                        />
-                        <span>Use default: {component.defaultPattern.pattern}</span>
-                    </label>
-                </div>
-            )}
 
             {/* Color Checkbox */}
             {component.colorMode === 'multiple' && component.defaultColorwork && (
                 <div>
                     <label className="form-label">Color</label>
-                    <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-wool-200 cursor-pointer hover:border-sage-300 transition-colors">
+                    <label className={`checkbox-container ${useDefaultColor ? 'checkbox-container-checked' : ''}`}>
                         <input
                             type="checkbox"
                             checked={useDefaultColor}
                             onChange={(e) => setUseDefaultColor(e.target.checked)}
-                            className="w-4 h-4"
+                            className="checkbox-sage"
                         />
-                        <span>Use default: {formatColorworkDisplay(component.defaultColorwork, yarns)}</span>
+                        <span className={`checkbox-label ${useDefaultColor ? 'checkbox-label-checked' : ''}`}>
+                            Use default: {formatColorworkDisplay(component.defaultColorwork, yarns)}
+                        </span>
                     </label>
                 </div>
             )}
+
+            {/* Pattern Checkbox */}
+            {component.defaultPattern && (
+                <div>
+                    <label className="form-label">Pattern</label>
+                    <label className={`checkbox-container ${useDefaultPattern ? 'checkbox-container-checked' : ''}`}>
+                        <input
+                            type="checkbox"
+                            checked={useDefaultPattern}
+                            onChange={(e) => setUseDefaultPattern(e.target.checked)}
+                            className="checkbox-sage"
+                        />
+                        <span className={`checkbox-label ${useDefaultPattern ? 'checkbox-label-checked' : ''}`}>
+                            Use default: {component.defaultPattern.pattern}
+                        </span>
+                    </label>
+                </div>
+            )}
+
 
             {/* Navigation Buttons */}
             <div className="pt-6 border-t border-wool-100">

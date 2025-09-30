@@ -218,7 +218,7 @@ body.modal-open {
   @apply btn-danger btn-sm;
 }
 
-/* ===== 3. FORM CONTROLS ===== */
+/* ===== 3. FORM CONTROLS & CHECKBOX SYSTEM ===== */
 
 /* Base input styling - shared properties */
 .input-base {
@@ -632,6 +632,67 @@ body.modal-open {
 .knitting-nav-completed {
   @apply text-wool-600 hover:text-wool-700;
 }
+
+/* ===== CHECKBOX SYSTEM ===== */
+
+/* Base checkbox styling - matches sage color scheme */
+.checkbox-sage {
+  @apply w-5 h-5 rounded border-2 border-wool-300;
+  @apply text-sage-600 focus:ring-2 focus:ring-sage-500 focus:ring-offset-0;
+  @apply cursor-pointer transition-colors duration-200;
+  @apply hover:border-sage-400;
+  /* Force sage colors on checked state */
+  accent-color: #468146;
+  /* sage-600 */
+}
+
+/* Alternative if accent-color doesn't work in your browser */
+.checkbox-sage:checked {
+  background-color: #468146 !important;
+  /* sage-600 */
+  border-color: #468146 !important;
+}
+
+/* Checkbox container - clickable card style */
+.checkbox-container {
+  @apply flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all duration-200;
+  @apply border-wool-200 bg-white;
+}
+
+.checkbox-container:hover {
+  @apply border-sage-300;
+}
+
+.checkbox-container-checked {
+  @apply border-sage-500 bg-sage-100;
+}
+
+/* Checkbox label text */
+.checkbox-label {
+  @apply text-wool-700 transition-colors duration-200;
+}
+
+.checkbox-label-checked {
+  @apply text-sage-700 font-semibold;
+}
+
+/* Compact variant for tighter spaces */
+.checkbox-container-compact {
+  @apply flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-all duration-200;
+  @apply border-wool-200 bg-white;
+}
+
+.checkbox-container-compact:hover {
+  @apply border-sage-300;
+}
+
+.checkbox-container-compact-checked {
+  @apply border-sage-500 bg-sage-100;
+}
+
+
+
+
 
 /* ===== 5. KNITTING MODAL SYSTEM ===== */
 
