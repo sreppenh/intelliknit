@@ -515,7 +515,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                 </button>
                 <button
                   onClick={handleStripesConfigContinue}
-                  disabled={!wizard.wizardData.stitchPattern?.stripeSequence?.length}
+                  disabled={!wizard.wizardData.colorwork?.stripeSequence?.length}
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
                 >

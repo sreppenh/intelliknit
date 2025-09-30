@@ -258,8 +258,8 @@ const getAdvancedPatternNotes = (step) => {
  * ✅ NEW: Generate detailed stripe sequence display
  */
 const getStripeSequenceDisplay = (step, project) => {
-    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
-    const stripeSequence = stitchPattern?.stripeSequence;
+    const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+    const stripeSequence = colorwork?.stripeSequence;
 
     if (!stripeSequence || !Array.isArray(stripeSequence) || stripeSequence.length === 0) {
         return null;
@@ -546,11 +546,11 @@ const getShapingStepDescription = (step) => {
  */
 const getStripePatternDescription = (step) => {
     const duration = getStepDurationDisplay(step);
-    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
-    const rowsInPattern = parseInt(stitchPattern?.rowsInPattern) || 0;
+    const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+    const totalRows = parseInt(colorwork?.totalRows) || 0;
 
-    if (duration && rowsInPattern > 0) {
-        return `Work ${duration} in ${rowsInPattern}-row Stripe Pattern`;
+    if (duration && totalRows > 0) {
+        return `Work ${duration} in ${totalRows}-row Stripe Pattern`;
     }
 
     // Fallback for edge cases

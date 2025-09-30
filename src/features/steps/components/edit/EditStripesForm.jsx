@@ -20,23 +20,21 @@ const EditStripesForm = ({
         const component = currentProject?.components?.[componentIndex];
         const step = component?.steps?.[editingStepIndex];
 
-        if (step?.wizardConfig?.stitchPattern) {
-            console.log('🔧 EditStripesForm - Loading step data:', step.wizardConfig.stitchPattern);
+        if (step?.wizardConfig?.colorwork) {
+            console.log('🔧 EditStripesForm - Loading step data:', step.wizardConfig.colorwork);
 
-            // Load the complete stitchPattern data including stripeSequence
             setWizardData({
-                stitchPattern: {
-                    ...step.wizardConfig.stitchPattern,
-                    // Ensure stripeSequence is explicitly included
-                    stripeSequence: step.wizardConfig.stitchPattern.stripeSequence || []
+                colorwork: {
+                    type: 'stripes',
+                    stripeSequence: step.wizardConfig.colorwork.stripeSequence || [],
+                    totalRows: step.wizardConfig.colorwork.totalRows || 0
                 }
             });
         } else {
-            // Fallback: initialize with empty data
             console.log('🔧 EditStripesForm - No existing stripe data found');
             setWizardData({
-                stitchPattern: {
-                    pattern: 'Stripes',
+                colorwork: {
+                    type: 'stripes',
                     stripeSequence: []
                 }
             });
@@ -75,10 +73,10 @@ const EditStripesForm = ({
 
     // Data handlers
     const updateWizardData = (section, data) => {
-        if (section === 'stitchPattern') {
+        if (section === 'colorwork') {
             setWizardData(prev => ({
                 ...prev,
-                stitchPattern: { ...prev.stitchPattern, ...data }
+                colorwork: { ...prev.colorwork, ...data }
             }));
         }
     };
@@ -87,9 +85,8 @@ const EditStripesForm = ({
     const handleSave = () => {
         const updatedWizardConfig = {
             ...step.wizardConfig,
-            stitchPattern: {
-                ...step.wizardConfig.stitchPattern,
-                ...wizardData.stitchPattern
+            colorwork: {
+                ...wizardData.colorwork
             }
         };
 
@@ -154,7 +151,7 @@ const EditStripesForm = ({
                         <button
                             onClick={handleSave}
                             className="flex-1 btn-primary"
-                            disabled={!wizardData.stitchPattern?.stripeSequence?.length}
+                            disabled={!wizardData.colorwork?.stripeSequence?.length}
                         >
                             Save Changes
                         </button>

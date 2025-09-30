@@ -1121,8 +1121,8 @@ function generateShapingTextWithColor(phase, action, step, currentRow, currentSt
     const patternName = getStepPatternName(step);
 
     if (patternName === 'Stripes') {
-        const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
-        const stripeSequence = stitchPattern?.stripeSequence;
+        const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+        const stripeSequence = colorwork?.stripeSequence;
 
         if (stripeSequence && stripeSequence.length > 0) {
             const currentColor = getCurrentStripeColor(currentRow, stripeSequence);
@@ -1152,8 +1152,8 @@ function addColorToInstruction(instruction, step, currentRow, construction, proj
 
     // Handle stripes (the main implemented color feature)
     if (patternName === 'Stripes') {
-        const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
-        const stripeSequence = stitchPattern?.stripeSequence;
+        const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+        const stripeSequence = colorwork?.stripeSequence;
 
         if (stripeSequence && stripeSequence.length > 0) {
             const currentColor = getCurrentStripeColor(currentRow, stripeSequence);

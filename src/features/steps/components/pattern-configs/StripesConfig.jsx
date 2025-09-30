@@ -22,11 +22,11 @@ const StripesConfig = ({
     const [stripeSequence, setStripeSequence] = useState([]);
 
     useEffect(() => {
-        if (wizardData.stitchPattern?.stripeSequence && wizardData.stitchPattern.stripeSequence.length > 0) {
-            console.log('🔧 StripesConfig - Loading stripe sequence:', wizardData.stitchPattern.stripeSequence);
-            setStripeSequence(wizardData.stitchPattern.stripeSequence);
+        if (wizardData.colorwork?.stripeSequence && wizardData.colorwork.stripeSequence.length > 0) {
+            console.log('🔧 StripesConfig - Loading stripe sequence:', wizardData.colorwork.stripeSequence);
+            setStripeSequence(wizardData.colorwork.stripeSequence);
         }
-    }, [wizardData.stitchPattern?.stripeSequence]);
+    }, [wizardData.colorwork?.stripeSequence]);
 
     // View toggle state
     const [viewMode, setViewMode] = useState('cards'); // 'cards' or 'visual'
@@ -44,7 +44,7 @@ const StripesConfig = ({
     const [showStripeUnsavedModal, setShowStripeUnsavedModal] = useState(false);
 
     // Get project color data
-    const { yarns, availableLetters, addYarn } = useYarnManager();
+    const { yarns } = useYarnManager();
 
     // Keep these for the component to use
     const projectColorCount = project?.colorCount || 6;
@@ -53,27 +53,12 @@ const StripesConfig = ({
     useEffect(() => {
         const totalRows = stripeSequence.reduce((sum, stripe) => sum + stripe.rows, 0);
 
-        updateWizardData('stitchPattern', {
-            ...wizardData.stitchPattern,
+        updateWizardData('colorwork', {
+            type: 'stripes',
             stripeSequence: stripeSequence,
-            rowsInPattern: totalRows > 0 ? totalRows.toString() : '',
-            customText: stripeSequence.length >= 2 ? 'Stripe pattern configured' : ''
+            totalRows: totalRows
         });
-    }, [stripeSequence]); // Only depend on stripeSequence to prevent infinite loops
-
-
-    useEffect(() => {
-        console.log('🔧 StripesConfig DEBUG:', {
-            'project?.colorCount': project?.colorCount,
-            'project?.yarns?.length': project?.yarns?.length,
-            'project?.yarns': project?.yarns,
-            'projectColorCount (final)': projectColorCount,
-            'actual yarns': yarns,
-            'available colors': getAvailableColors()
-        });
-    }, [project, projectColorCount, yarns]);
-
-
+    }, [stripeSequence]);
 
     // Get available color letters
     const getAvailableColors = () => {

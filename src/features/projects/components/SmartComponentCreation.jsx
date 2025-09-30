@@ -255,19 +255,16 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     }
   }, [currentProject]);
 
-  // Auto-handle single-color projects
+  // Auto-set colorMode to 'single' on first load
   useEffect(() => {
-    if (currentProject?.colorCount === 1 && yarns.length > 0 && !componentData.colorMode) {
-      const defaultYarn = yarns.find(y => y.letter === 'A') || yarns[0];
+    if (currentProject && !componentData.colorMode) {
       setComponentData(prev => ({
         ...prev,
         colorMode: 'single',
-        singleColorYarnId: defaultYarn?.id || null
+        singleColorYarnId: 'color-A'
       }));
     }
-  }, [currentProject, yarns, componentData.colorMode]);
-
-
+  }, [currentProject, componentData.colorMode]);
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="app-container bg-yarn-50 min-h-screen shadow-lg">

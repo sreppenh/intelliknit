@@ -186,7 +186,7 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
               <button
                 onClick={handleCreateProject}
                 disabled={!canCreateProject()}
-                className="flex-2 bg-yarn-600 text-white py-3 px-6 rounded-xl font-semibold text-base hover:bg-yarn-700 disabled:bg-wool-400 disabled:cursor-not-allowed transition-colors shadow-sm flex items-center justify-center gap-2"
+                className="btn-primary w-full"
                 style={{ flexGrow: 2 }}
               >
                 <span className="text-lg">🧶</span>
