@@ -71,7 +71,7 @@ const PrepNoteColorScreen = ({
             {/* Setup Notes */}
             <div>
                 <label className="form-label">
-                    Setup Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
+                    Preparation Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
                 </label>
                 <textarea
                     value={prepNote}

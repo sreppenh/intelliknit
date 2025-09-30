@@ -5,7 +5,19 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
-const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onCancel, project, mode = 'create' }) => {
+const StripesConfig = ({
+    wizardData,
+    updateWizardData,
+    construction,
+    onSave,
+    onCancel,
+    project,
+    mode = 'create',
+    // NEW: Optional header props
+    showHeader = false,
+    headerTitle = "Configure Stripes",
+    headerSubtitle = "Define your stripe sequence and colors"
+}) => {
     // Stripe sequence state
     const [stripeSequence, setStripeSequence] = useState([]);
 
@@ -278,7 +290,15 @@ const StripesConfig = ({ wizardData, updateWizardData, construction, onSave, onC
 
     return (
         <div className="space-y-6">
-            {/* Add Stripe Button and Toggle - Split layout */}
+            {/* Optional Header */}
+            {showHeader && (
+                <div>
+                    <h2 className="content-header-primary">{headerTitle}</h2>
+                    <p className="content-subheader">{headerSubtitle}</p>
+                </div>
+            )}
+
+            {/* Existing content starts here */}
             <div className="flex items-center justify-between mb-4">
                 {/* View Toggle - Left side */}
                 {stripeSequence.length > 0 && (

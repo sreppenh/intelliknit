@@ -20,6 +20,7 @@ import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../share
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
 import PrepNoteColorScreen from './wizard-screens/PrepNoteColorScreen';
 import ColorSelectionScreen from './wizard-screens/ColorSelectionScreen';
+import StripesConfig from './pattern-configs/StripesConfig';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
@@ -33,6 +34,8 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const [showPrepColorScreen, setShowPrepColorScreen] = useState(true); // Start with prep/color screen
   const [colorRouting, setColorRouting] = useState(null); // 'pattern-selection' or 'stripes-config'
 
+  // ADD THIS with the other state declarations:
+  const [showStripesConfig, setShowStripesConfig] = useState(false);
 
   const wizardState = useWizardState(wizard, onBack, mode);
 
@@ -73,16 +76,10 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     setShowPrepColorScreen(false);
 
     if (destination === 'color-selection') {
-      // Show color selection screen
       setShowColorSelectionScreen(true);
     } else if (destination === 'stripes-config') {
-      // Save stripes pattern to wizard data, then go to pattern config
-      wizard.updateWizardData('stitchPattern', {
-        ...wizard.wizardData.stitchPattern,
-        category: 'colorwork',
-        pattern: 'Stripes'
-      });
-      wizard.navigation.goToStep(2); // Skip pattern selection, go to stripes config
+      // ✅ CHANGED: Don't save to stitchPattern - StripesConfig will save to colorwork
+      setShowStripesConfig(true); // Show stripes config screen
     } else if (destination === 'pattern-override' || destination === 'pattern-selection') {
       wizard.navigation.goToStep(1); // Pattern selection
     } else if (destination === 'duration-shaping') {
@@ -94,16 +91,18 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     setShowColorSelectionScreen(false);
 
     if (destination === 'stripes-config') {
-      wizard.updateWizardData('stitchPattern', {
-        ...wizard.wizardData.stitchPattern,
-        category: 'colorwork',
-        pattern: 'Stripes'
-      });
-      wizard.navigation.goToStep(2);
+      // ✅ CHANGED: Don't save to stitchPattern - StripesConfig will save to colorwork
+      setShowStripesConfig(true); // Show stripes config screen
     } else {
       // Color configured, go to pattern selection
       wizard.navigation.goToStep(1);
     }
+  };
+
+  const handleStripesConfigContinue = () => {
+    setShowStripesConfig(false);
+    // After stripes configured, go to pattern selection
+    wizard.navigation.goToStep(1);
   };
 
   // Component validation
@@ -491,6 +490,17 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
             onContinue={handleColorSelectionContinue}
             onBack={() => setShowPrepColorScreen(true)}
             onCancel={handleXButtonClick}
+          />
+        ) : showStripesConfig ? (
+          <StripesConfig
+            wizardData={wizard.wizardData}
+            updateWizardData={wizard.updateWizardData}
+            construction={wizard.construction}
+            project={currentProject}
+            mode="create"
+            showHeader={true}
+            headerTitle="Configure Stripes"
+            headerSubtitle="Define your stripe sequence and colors"
           />
         ) : (
           renderCurrentStep()
