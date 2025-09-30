@@ -33,6 +33,7 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     // 🎯 FIX: Ensure colorwork is properly transferred
     colorwork: wizard.wizardData?.colorwork || null,
 
+
     wizardConfig: wizard.wizardData,
     advancedWizardConfig: {
       hasShaping: wizard.wizardData.hasShaping,
@@ -41,6 +42,8 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     ...(includeNavigation && wizard.navigationStack && { navigationStack: wizard.navigationStack }),
     ...(includeNavigation && wizard.navigationCache && { navigationCache: wizard.navigationCache })
   };
+
+  console.log('🔧 createStepObject - wizard.wizardData.colorwork:', wizard.wizardData.colorwork);
 
   // 🎯 DEBUG: Log the final step object colorwork
   console.log('🔧 createStepObject - final stepObject.colorwork:', stepObject.colorwork);
