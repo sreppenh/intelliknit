@@ -492,16 +492,38 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
             onCancel={handleXButtonClick}
           />
         ) : showStripesConfig ? (
-          <StripesConfig
-            wizardData={wizard.wizardData}
-            updateWizardData={wizard.updateWizardData}
-            construction={wizard.construction}
-            project={currentProject}
-            mode="create"
-            showHeader={true}
-            headerTitle="Configure Stripes"
-            headerSubtitle="Define your stripe sequence and colors"
-          />
+          <>
+            <StripesConfig
+              wizardData={wizard.wizardData}
+              updateWizardData={wizard.updateWizardData}
+              construction={wizard.construction}
+              project={currentProject}
+              mode="create"
+            />
+
+            {/* Navigation Buttons */}
+            <div className="pt-6 border-t border-wool-100">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowStripesConfig(false);
+                    setShowColorSelectionScreen(true);
+                  }}
+                  className="flex-1 btn-tertiary"
+                >
+                  ← Back
+                </button>
+                <button
+                  onClick={handleStripesConfigContinue}
+                  disabled={!wizard.wizardData.stitchPattern?.stripeSequence?.length}
+                  className="flex-2 btn-primary"
+                  style={{ flexGrow: 2 }}
+                >
+                  Continue →
+                </button>
+              </div>
+            </div>
+          </>
         ) : (
           renderCurrentStep()
         )}
