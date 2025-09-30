@@ -62,6 +62,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
   const [showExitModal, setShowExitModal] = useState(false);
 
+
   // Check if user has entered any component data (across both screens)
   const hasUnsavedData = () => {
     // Only consider it "dirty" if user has actually entered meaningful data
@@ -549,8 +550,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                           colorwork: { ...prev.colorwork, colorLetter: letter }
                         }))}
                         className={`card-selectable-compact ${defaultColorData.colorwork.colorLetter === letter
-                            ? 'card-selectable-compact-selected'
-                            : ''
+                          ? 'card-selectable-compact-selected'
+                          : ''
                           }`}
                       >
                         <div
