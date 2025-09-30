@@ -1,7 +1,7 @@
 // src/features/steps/components/wizard-screens/PrepNoteColorScreen.jsx
 import React, { useState, useEffect } from 'react';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
-import { formatColorworkDisplay, getYarnByLetter, getYarnDisplayName, getSortedYarnLetters } from '../../../../shared/utils/colorworkDisplayUtils';
+import { formatColorworkDisplay } from '../../../../shared/utils/colorworkDisplayUtils';
 
 
 const PrepNoteColorScreen = ({
@@ -20,8 +20,6 @@ const PrepNoteColorScreen = ({
 
     // Color state
     const [useDefaultColor, setUseDefaultColor] = useState(false);
-    const [colorChoice, setColorChoice] = useState(null);
-    const [selectedYarnIds, setSelectedYarnIds] = useState([]);
 
     // Auto-handle components without colorMode set (legacy)
     useEffect(() => {
@@ -29,9 +27,6 @@ const PrepNoteColorScreen = ({
             onContinue('pattern-selection');
         }
     }, [component.colorMode, onContinue]);
-
-    // Generate yarn options
-    const sortedYarns = getSortedYarnLetters(yarns);
 
     const handleContinue = () => {
         updateWizardData('prepNote', prepNote);
