@@ -12,23 +12,14 @@ import { getYarnByLetter } from './colorworkDisplayUtils';
  * Get dynamic color information for PrepCard display
  */
 export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
-    console.log('🔍 getPrepCardColorInfo called:', {
-        stepIndex,
-        projectColorCount: project?.colorCount,
-        componentColorMode: component?.colorMode,
-        stepColorwork: step?.colorwork,
-        componentSingleColorYarnId: component?.singleColorYarnId
-    });
 
     // Single-yarn projects never show color info
     if (!project || project.colorCount === 1) {
-        console.log('❌ Exit: single-yarn project');
         return null;
     }
 
     // For single-color components, only show on first step
     if (component.colorMode === 'single' && stepIndex !== 0) {
-        console.log('❌ Exit: single-color component, not first step');
         return null;
     }
 
@@ -37,13 +28,11 @@ export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
 
     // If no colorwork on step and this is a single-color component, use component's color
     if (!colorwork && component?.colorMode === 'single' && component?.singleColorYarnId) {
-        console.log('📝 No step colorwork, using component singleColorYarnId:', component.singleColorYarnId);
 
         // Extract letter if it's a pseudo-ID format
         let letter = component.singleColorYarnId;
         if (typeof letter === 'string' && letter.startsWith('color-')) {
             letter = letter.split('-')[1];
-            console.log('   Extracted letter from pseudo-ID:', letter);
         }
 
         colorwork = {
@@ -53,28 +42,22 @@ export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
     }
 
     if (!colorwork) {
-        console.log('❌ Exit: no colorwork found');
         return null;
     }
-
-    console.log('✅ Colorwork found:', colorwork);
 
     // First step: Always show "Using Color X"
     if (stepIndex === 0) {
         const result = generateInitialColorText(colorwork, project);
-        console.log('🎯 Initial color text result:', result);
         return result;
     }
 
     // Subsequent steps: Only show if color changed
     const colorChanged = hasColorChangedFromPreviousStep(step, stepIndex, component);
     if (!colorChanged) {
-        console.log('❌ No color change from previous step');
         return null;
     }
 
     const result = generateColorChangeText(colorwork, project);
-    console.log('🎯 Color change text result:', result);
     return result;
 };
 
@@ -82,31 +65,21 @@ export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
  * Generate "Using Color X" text for first step
  */
 const generateInitialColorText = (colorwork, project) => {
-    console.log('🔧 generateInitialColorText:', {
-        colorworkType: colorwork.type,
-        letter: colorwork.letter,
-        colorLetter: colorwork.colorLetter
-    });
 
     if (colorwork.type === 'single') {
         // Get the letter (check multiple possible field names for compatibility)
         const letter = colorwork.letter || colorwork.colorLetter;
 
-        console.log('   Letter found:', letter);
-
         if (!letter) {
-            console.log('   ❌ No letter found');
             return null;
         }
 
         // Look up yarn dynamically
         const yarn = getYarnByLetter(project?.yarns || [], letter);
-        console.log('   Yarn lookup result:', yarn);
 
         // If yarn has a real name (not just "Color A"), include it
         const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
         const result = `Using Color ${yarn.letter}${yarnName}`;
-        console.log('   Returning:', result);
         return result;
     }
 

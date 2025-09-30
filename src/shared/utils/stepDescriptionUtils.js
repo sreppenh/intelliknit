@@ -68,11 +68,6 @@ export const getContextualPatternNotes = (step, project = null) => {
         return null;
     }
 
-    // ✅ NEW: Show detailed stripe sequence instead of generic text
-    if (pattern === 'Stripes') {
-        return getStripeSequenceDisplay(step, project);
-    }
-
     // ✅ NEW: Show custom method for bind-off "other" method in italics
     if (pattern === 'Bind Off' && step.wizardConfig?.stitchPattern?.method === 'other') {
         const customMethod = step.wizardConfig?.stitchPattern?.customMethod;
@@ -432,6 +427,23 @@ export const getContextualConfigNotes = (step) => {
 };
 
 /**
+ * Get color-specific contextual notes
+ * Returns stripe sequences, colorwork patterns, etc.
+ */
+export const getContextualColorNotes = (step, project = null) => {
+    const pattern = getStepPatternName(step);
+
+    // Show stripe sequence for stripe patterns
+    if (pattern === 'Stripes') {
+        return getStripeSequenceDisplay(step, project);
+    }
+
+    // Future: Add Fair Isle, Intarsia, etc. here
+
+    return null;
+};
+
+/**
  * Get complete formatted step display
  * Returns object with description, notes, and technical data
  */
@@ -442,6 +454,7 @@ export const getFormattedStepDisplay = (step, componentName = null, project = nu
 
     return {
         description: getHumanReadableDescription(step, componentName),
+        contextualColorNotes: getContextualColorNotes(step, project),
         contextualPatternNotes: getContextualPatternNotes(step, project),
         contextualConfigNotes: getContextualConfigNotes(step),
         technicalData: getTechnicalDataDisplay(step, project, stepIndex, component)
@@ -1065,5 +1078,6 @@ export default {
     hasContextualPatternNotes,
     hasContextualConfigNotes,
     isEndingStep,
-    getStepDisplayPriority
+    getStepDisplayPriority,
+    getContextualColorNotes
 };

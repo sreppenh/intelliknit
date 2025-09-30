@@ -37,12 +37,11 @@ const StepCard = ({
         '';
 
     // ✅ Get formatted display data
-    const { description, contextualPatternNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step, componentName, project, stepIndex, component);
-
+    const { description, contextualPatternNotes, contextualColorNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step, componentName, project, stepIndex, component);
     // Check if we have both types of notes for divider logic
     const hasPatternNotes = contextualPatternNotes && contextualPatternNotes.trim().length > 0;
+    const hasColorNotes = contextualColorNotes && contextualColorNotes.trim().length > 0;
     const hasConfigNotes = contextualConfigNotes && contextualConfigNotes.trim().length > 0;
-    const hasBothNotes = hasPatternNotes && hasConfigNotes;
 
     return (
         <div className="space-y-2">
@@ -62,8 +61,7 @@ const StepCard = ({
                                     {description}
                                 </h4>
 
-                                {/* Dual Contextual Notes Section */}
-                                {(hasPatternNotes || hasConfigNotes) && (
+                                {(hasPatternNotes || hasColorNotes || hasConfigNotes) && (
                                     <div className="text-xs text-wool-600 italic mb-1 text-left">
                                         {/* Pattern Notes */}
                                         {hasPatternNotes && (
@@ -72,8 +70,20 @@ const StepCard = ({
                                             </div>
                                         )}
 
-                                        {/* Minimal Divider Rule - Only when both notes present */}
-                                        {hasBothNotes && (
+                                        {/* Divider between pattern and color */}
+                                        {hasPatternNotes && hasColorNotes && (
+                                            <div className="my-1.5 border-t border-wool-300 opacity-30"></div>
+                                        )}
+
+                                        {/* Color Notes */}
+                                        {hasColorNotes && (
+                                            <div className="whitespace-pre-line">
+                                                {contextualColorNotes}
+                                            </div>
+                                        )}
+
+                                        {/* Divider between color and config */}
+                                        {(hasPatternNotes || hasColorNotes) && hasConfigNotes && (
                                             <div className="my-1.5 border-t border-wool-300 opacity-30"></div>
                                         )}
 
