@@ -218,13 +218,19 @@ export const projectsReducer = (state, action) => {
           construction: action.payload.construction || 'flat',
           colorwork: action.payload.colorMode === 'single' && action.payload.singleColorYarnId ? {
             type: 'single',
-            yarnId: action.payload.singleColorYarnId
+            letter: action.payload.singleColorYarnId.startsWith('color-')
+              ? action.payload.singleColorYarnId.split('-')[1]
+              : action.payload.singleColorYarnId
           } : action.payload.startStepColorYarnIds && action.payload.startStepColorYarnIds.length === 1 ? {
             type: 'single',
-            yarnId: action.payload.startStepColorYarnIds[0]
+            letter: action.payload.startStepColorYarnIds[0].startsWith('color-')
+              ? action.payload.startStepColorYarnIds[0].split('-')[1]
+              : action.payload.startStepColorYarnIds[0]
           } : action.payload.startStepColorYarnIds && action.payload.startStepColorYarnIds.length > 1 ? {
             type: 'multi-strand',
-            yarnIds: action.payload.startStepColorYarnIds
+            letters: action.payload.startStepColorYarnIds.map(id =>
+              id.startsWith('color-') ? id.split('-')[1] : id
+            )
           } : null,
           completed: false
         };

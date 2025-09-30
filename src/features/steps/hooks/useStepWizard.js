@@ -111,6 +111,11 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
         ...component.defaultColorwork
       };
     } else if (component?.colorMode === 'single' && component?.singleColorYarnId) {
+      console.log('🚨 CREATING COLORWORK FROM SINGLE COLOR COMPONENT:', {
+        colorMode: component.colorMode,
+        singleColorYarnId: component.singleColorYarnId
+      });
+
       // ✅ FIX: For single-color components, create colorwork from singleColorYarnId
       let letter = component.singleColorYarnId;
 

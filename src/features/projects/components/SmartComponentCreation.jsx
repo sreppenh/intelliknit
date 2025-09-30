@@ -954,10 +954,10 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                                         let newIds;
 
                                         if (isSelected) {
-                                          newIds = currentIds.filter(id => id !== yarnId);
-                                          if (newIds.length === 0) newIds = [yarnId];
+                                          newIds = currentIds.filter(id => id !== letter);
+                                          if (newIds.length === 0) newIds = [letter];
                                         } else {
-                                          newIds = [...currentIds, yarnId];
+                                          newIds = [...currentIds, letter];
                                         }
 
                                         return {
