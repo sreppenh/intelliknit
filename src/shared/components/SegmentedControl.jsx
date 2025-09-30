@@ -39,7 +39,7 @@ const SegmentedControl = ({
                             onClick={() => !disabled && onChange(option.value)}
                             disabled={disabled}
                             className={`segmented-option ${value === option.value
-                                ? 'segmented-option-active hover:text-white' // ADD hover:text-white
+                                ? 'segmented-option-active'
                                 : ''
                                 } ${disabled ? 'opacity-50 cursor-not-allowed' : ''}`}
                             aria-pressed={value === option.value}

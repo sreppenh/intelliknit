@@ -133,9 +133,6 @@ const PrepNoteColorScreen = ({
                 <label className="form-label">
                     Setup Notes <span className="text-wool-400 text-sm font-normal">(Optional)</span>
                 </label>
-                <div className="text-xs text-wool-500 mb-2">
-                    Add any setup instructions for this step
-                </div>
                 <textarea
                     value={prepNote}
                     onChange={(e) => setPrepNote(e.target.value)}
@@ -152,8 +149,8 @@ const PrepNoteColorScreen = ({
                     {component.defaultColorwork && (
                         <div>
                             <label className="form-label">Color</label>
-                            <p className="text-xs text-wool-600 mb-2">
-                                This component uses {formatColorworkDisplay(component.defaultColorwork, yarns)} by default
+                            <p className="text-xs text-wool-600 mb-2 text-left">
+                                Default: {formatColorworkDisplay(component.defaultColorwork, yarns)}
                             </p>
 
                             <div className="segmented-control mb-4">

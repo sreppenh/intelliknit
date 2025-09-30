@@ -35,7 +35,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
 
   // ⭐ ADD THESE NEW STATE VARIABLES
-  const [useDefaultPattern, setUseDefaultPattern] = useState(false);
+
   const [defaultPatternData, setDefaultPatternData] = useState({
     stitchPattern: {
       category: null,
@@ -47,7 +47,6 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     }
   });
 
-  const [useDefaultColor, setUseDefaultColor] = useState(false);
   const [defaultColorData, setDefaultColorData] = useState({
     colorwork: {
       type: null,
@@ -211,14 +210,17 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       steps: [],
       currentStep: 0,
       prepNote: componentData.prepNote,
-      construction: componentData.construction,           // ADD THIS
-      setupNotes: componentData.setupNotes,             // ADD THIS
-      colorMode: componentData.colorMode || 'multiple',           // NEW
-      singleColorYarnId: componentData.singleColorYarnId || null,  // NEW
+      construction: componentData.construction,
+      setupNotes: componentData.setupNotes,
+      colorMode: componentData.colorMode || 'multiple',
+      singleColorYarnId: componentData.singleColorYarnId || null,
       startStepColorYarnIds: componentData.startStepColorYarnIds || [],
-      defaultPattern: useDefaultPattern ? defaultPatternData.stitchPattern : null,
-      defaultColorwork: useDefaultColor ? defaultColorData.colorwork : null
 
+      // Always save pattern default
+      defaultPattern: defaultPatternData.stitchPattern.pattern ? defaultPatternData.stitchPattern : null,
+
+      // Save color default if multi-color component
+      defaultColorwork: componentData.colorMode === 'multiple' ? defaultColorData.colorwork : null
     };
 
     dispatch({
@@ -341,12 +343,10 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               onChange={(value) => setComponentData(prev => ({ ...prev, construction: value }))}
             />
 
-
-
             {/* Color Mode - Only if multi-color project */}
             {currentProject?.colorCount > 1 && (
               <div>
-                <label className="form-label">Component Color Usage</label>
+                <label className="form-label">How Many Colors?</label>
                 <p className="text-xs text-wool-600 mb-2 text-left">
                   Does this component use one color or multiple colors?
                 </p>
@@ -419,55 +419,6 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                 </div>
               </div>
             )}
-            {/* Default Color Pattern - Only if multi-color component */}
-            {currentProject?.colorCount > 1 && componentData.colorMode === 'multiple' && (
-              <div>
-                <label className="form-label">Default Color Pattern</label>
-                <p className="text-xs text-wool-600 mb-2 text-left">
-                  Set colors or colorwork (like Stripes or Fair Isle) to use throughout this component
-                </p>
-                <div className="segmented-control">
-                  <div className="grid grid-cols-2 gap-1">
-                    <button
-                      onClick={() => setUseDefaultColor(false)}
-                      className={`segmented-option ${!useDefaultColor ? 'segmented-option-active' : ''}`}
-                    >
-                      Don't Set
-                    </button>
-                    <button
-                      onClick={() => setUseDefaultColor(true)}
-                      className={`segmented-option ${useDefaultColor ? 'segmented-option-active' : ''}`}
-                    >
-                      Set Default
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {/* Default Texture Pattern */}
-            <div>
-              <label className="form-label">Default Texture Pattern</label>
-              <p className="text-xs text-wool-600 mb-2 text-left">
-                Set a default pattern (like Stockinette or Lace) to use throughout this component
-              </p>
-              <div className="segmented-control">
-                <div className="grid grid-cols-2 gap-1">
-                  <button
-                    onClick={() => setUseDefaultPattern(false)}
-                    className={`segmented-option ${!useDefaultPattern ? 'segmented-option-active' : ''}`}
-                  >
-                    Don't Set
-                  </button>
-                  <button
-                    onClick={() => setUseDefaultPattern(true)}
-                    className={`segmented-option ${useDefaultPattern ? 'segmented-option-active' : ''}`}
-                  >
-                    Set Default
-                  </button>
-                </div>
-              </div>
-            </div>
 
             {/* Navigation Buttons */}
             <div className="pt-4">
@@ -481,12 +432,12 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
                 <button
                   onClick={() => {
-                    if (currentProject?.colorCount > 1 && useDefaultColor) {
+                    // Multi-color component → go to color config
+                    if (componentData.colorMode === 'multiple') {
                       setScreen(2);
-                    } else if (useDefaultPattern) {
-                      setScreen(4);
                     } else {
-                      setScreen(5);
+                      // Single-color component → go to pattern config
+                      setScreen(4);
                     }
                   }}
                   disabled={!componentData.name.trim() || !componentData.construction}
@@ -501,9 +452,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
           </div>
         ) : screen === 2 ? (
           <div className="p-6 bg-yarn-50 space-y-4">
-            <h1 className="page-title">Color Defaults</h1>
+            <h1 className="page-title">Component Colors</h1>
             <p className="text-wool-600 text-center mb-6">
-              Choose how colors are used throughout this component
+              How are colors used in this component?
             </p>
 
             <div className="space-y-4">
@@ -746,11 +697,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               <button
                 onClick={() => {
                   if (defaultColorData.colorwork.advancedType) {
-                    setScreen(3);
-                  } else if (useDefaultPattern) {
-                    setScreen(4);
+                    setScreen(3); // Advanced colorwork needs detail config
                   } else {
-                    setScreen(5);
+                    setScreen(4); // Go to pattern config
                   }
                 }}
                 disabled={
@@ -958,13 +907,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                 ← Back
               </button>
               <button
-                onClick={() => {
-                  if (useDefaultPattern) {
-                    setScreen(4); // Go to pattern config
-                  } else {
-                    setScreen(5); // Skip to starting method
-                  }
-                }}
+                onClick={() => setScreen(4)} // Always go to pattern next
                 className="flex-2 btn-primary"
                 style={{ flexGrow: 2 }}
               >
@@ -984,13 +927,13 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               setScreen(5); // Go to Starting Method after saving pattern
             }}
             onBack={() => {
-              // Go back to appropriate screen
+              // Go back based on what screens they went through
               if (defaultColorData.colorwork.advancedType) {
-                setScreen(3);
-              } else if (useDefaultColor && currentProject?.colorCount > 1) {
-                setScreen(2);
+                setScreen(3); // Back to color detail
+              } else if (componentData.colorMode === 'multiple') {
+                setScreen(2); // Back to color config
               } else {
-                setScreen(1);
+                setScreen(1); // Back to identity
               }
             }}
           />
@@ -1225,15 +1168,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                     <div className="flex gap-3">
                       <button
                         onClick={() => {
-                          if (useDefaultPattern) {
-                            setScreen(4); // Go back to Pattern wizard
-                          } else if (defaultColorData.colorwork.advancedType) {
-                            setScreen(3); // Go back to Color detail
-                          } else if (useDefaultColor && currentProject?.colorCount > 1) {
-                            setScreen(2); // Go back to Color config
-                          } else {
-                            setScreen(1); // Go back to Identity
-                          }
+                          // Always went through pattern config (screen 4)
+                          setScreen(4);
                         }}
                         className="flex-1 btn-tertiary"
                       >

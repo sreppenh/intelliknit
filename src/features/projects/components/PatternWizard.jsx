@@ -8,7 +8,8 @@ const PatternWizard = ({
     setDefaultPatternData,
     currentProject,
     onComplete,
-    onCancel
+    onCancel,
+    onBack
 }) => {
     const [wizardStep, setWizardStep] = useState(1);
 
@@ -26,7 +27,7 @@ const PatternWizard = ({
             <div className="bg-sage-500 text-white px-6 py-4">
                 <div className="flex items-center gap-3">
                     <button
-                        onClick={onCancel}
+                        onClick={onBack}
                         className="text-white text-lg hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
                     >
                         ←
@@ -84,25 +85,20 @@ const PatternWizard = ({
             {/* Footer */}
             <div className="bg-white border-t-2 border-wool-200 p-6">
                 <div className="flex gap-3">
-                    {wizardStep === 2 && (
-                        <button
-                            onClick={() => setWizardStep(1)}
-                            className="flex-1 btn-tertiary"
-                        >
-                            ← Back
-                        </button>
-                    )}
+                    <button
+                        onClick={wizardStep === 2 ? () => setWizardStep(1) : onBack}
+                        className="flex-1 btn-tertiary"
+                    >
+                        ← Back
+                    </button>
                     <button
                         onClick={() => {
                             if (wizardStep === 1 && defaultPatternData.stitchPattern.pattern) {
-                                // Import and use shouldSkipConfiguration
                                 const { shouldSkipConfiguration } = require('../../../shared/utils/PatternCategories');
 
                                 if (shouldSkipConfiguration({ stitchPattern: defaultPatternData.stitchPattern })) {
-                                    // Simple pattern - save immediately
                                     onComplete();
                                 } else {
-                                    // Complex pattern - go to configuration
                                     setWizardStep(2);
                                 }
                             } else if (wizardStep === 2) {
