@@ -14,36 +14,35 @@ const ColorSelectionScreen = ({
 }) => {
     const { yarns } = useYarnManager();
     const [colorChoice, setColorChoice] = useState(null);
-    const [selectedYarnIds, setSelectedYarnIds] = useState([]);
+    const [selectedLetters, setSelectedLetters] = useState([]); // ✅ CHANGED: Work with letters directly
 
     const handleContinue = () => {
         if (colorChoice === 'single') {
-            const yarnId = typeof selectedYarnIds[0] === 'string' ?
-                parseInt(selectedYarnIds[0]) : selectedYarnIds[0];
+            // ✅ FIXED: Save just the letter
             updateWizardData('colorwork', {
                 type: 'single',
-                yarnId: yarnId
+                letter: selectedLetters[0]
             });
             onContinue('pattern-selection');
         } else if (colorChoice === 'multi-strand') {
+            // ✅ FIXED: Save array of letters
             updateWizardData('colorwork', {
                 type: 'multi-strand',
-                yarnIds: selectedYarnIds
+                letters: selectedLetters
             });
             onContinue('pattern-selection');
         } else if (colorChoice === 'stripes') {
             onContinue('stripes-config');
         } else if (colorChoice === 'fair-isle' || colorChoice === 'intarsia') {
-            // Route to placeholder configs
-            onContinue('pattern-selection'); // For now, skip to pattern
+            onContinue('pattern-selection');
         }
     };
 
     const canContinue = () => {
         if (!colorChoice) return false;
-        if (colorChoice === 'single') return selectedYarnIds.length === 1;
-        if (colorChoice === 'multi-strand') return selectedYarnIds.length >= 2;
-        return true; // stripes, fair isle, intarsia
+        if (colorChoice === 'single') return selectedLetters.length === 1;
+        if (colorChoice === 'multi-strand') return selectedLetters.length >= 2;
+        return true;
     };
 
     const sortedYarns = getSortedYarnLetters(yarns);
@@ -60,7 +59,7 @@ const ColorSelectionScreen = ({
                 <button
                     onClick={() => {
                         setColorChoice('single');
-                        setSelectedYarnIds([]);
+                        setSelectedLetters([]);
                     }}
                     className={`card-selectable ${colorChoice === 'single' ? 'card-selectable-selected' : ''}`}
                 >
@@ -72,7 +71,7 @@ const ColorSelectionScreen = ({
                 <button
                     onClick={() => {
                         setColorChoice('multi-strand');
-                        setSelectedYarnIds([]);
+                        setSelectedLetters([]);
                     }}
                     className={`card-selectable ${colorChoice === 'multi-strand' ? 'card-selectable-selected' : ''}`}
                 >
@@ -106,17 +105,19 @@ const ColorSelectionScreen = ({
                     <label className="form-label">Select {colorChoice === 'single' ? 'Yarn' : 'Yarns'}</label>
                     <div className="grid grid-cols-3 gap-3">
                         {sortedYarns.map(yarn => {
-                            const isSelected = selectedYarnIds.includes(yarn.id);
+                            // ✅ CHANGED: Check if letter is selected, not yarn.id
+                            const isSelected = selectedLetters.includes(yarn.letter);
                             return (
                                 <button
-                                    key={yarn.id}
+                                    key={yarn.letter}
                                     onClick={() => {
+                                        // ✅ CHANGED: Work with letters directly
                                         const newSelected = colorChoice === 'single'
-                                            ? [yarn.id]
+                                            ? [yarn.letter]
                                             : isSelected
-                                                ? selectedYarnIds.filter(id => id !== yarn.id)
-                                                : [...selectedYarnIds, yarn.id];
-                                        setSelectedYarnIds(newSelected);
+                                                ? selectedLetters.filter(l => l !== yarn.letter)
+                                                : [...selectedLetters, yarn.letter].sort();
+                                        setSelectedLetters(newSelected);
                                     }}
                                     className={`p-3 rounded-lg border-2 transition-all ${isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'}`}
                                 >

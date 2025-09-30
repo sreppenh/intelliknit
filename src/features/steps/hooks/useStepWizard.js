@@ -110,6 +110,19 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
       initialData.colorwork = {
         ...component.defaultColorwork
       };
+    } else if (component?.colorMode === 'single' && component?.singleColorYarnId) {
+      // ✅ FIX: For single-color components, create colorwork from singleColorYarnId
+      let letter = component.singleColorYarnId;
+
+      // Extract letter if it's in pseudo-ID format
+      if (typeof letter === 'string' && letter.startsWith('color-')) {
+        letter = letter.split('-')[1];
+      }
+
+      initialData.colorwork = {
+        type: 'single',
+        letter: letter
+      };
     }
 
     return initialData;

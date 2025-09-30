@@ -834,9 +834,10 @@ const getStepColorForComparison = (step, component) => {
     return null;
 };
 
+
 /**
  * Get color display text for technical data
- * ✅ FIXED: Now uses colorLetter with fallback to legacy yarnId
+ * ✅ FIXED: Now uses colorLetter with fallback to legacy yarnId, including pseudo-ID handling
  */
 const getColorDisplayForTechnicalData = (step, project) => {
     const colorwork = step?.colorwork;
@@ -866,6 +867,19 @@ const getColorDisplayForTechnicalData = (step, project) => {
 
             // Legacy fallback: yarnId-based lookup
             if (colorwork.yarnId) {
+                // Check if yarnId is actually a pseudo-ID like 'color-A'
+                if (typeof colorwork.yarnId === 'string' && colorwork.yarnId.startsWith('color-')) {
+                    const extractedLetter = colorwork.yarnId.split('-')[1]; // 'color-A' -> 'A'
+                    const yarn = getYarnByLetter(project?.yarns || [], extractedLetter);
+
+                    if (yarn.color && yarn.color !== `Color ${extractedLetter}`) {
+                        return `${yarn.color} (Color ${yarn.letter})`;
+                    }
+
+                    return `Color ${yarn.letter}`;
+                }
+
+                // Otherwise try actual ID lookup
                 const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
                 if (yarn) {
                     if (yarn.color) {

@@ -5,116 +5,130 @@ import { getYarnByLetter } from './colorworkDisplayUtils';
 /**
  * PrepCard Utilities - Dynamic Color Information Generation
  * 
- * Generates color change information for PrepCards without storing static text.
- * Always pulls from live yarn data so color names stay current.
+ * SIMPLE APPROACH: Just store letters, look up yarn names dynamically
  */
 
 /**
  * Get dynamic color information for PrepCard display
- * Returns null if no color info should be shown, otherwise returns formatted text
- * 
- * @param {object} step - The step object
- * @param {number} stepIndex - Index of step in component (0-based)
- * @param {object} component - The component containing the step
- * @param {object} project - The project with yarn data
- * @returns {string|null} - Formatted color change text or null
  */
 export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
+    console.log('🔍 getPrepCardColorInfo called:', {
+        stepIndex,
+        projectColorCount: project?.colorCount,
+        componentColorMode: component?.colorMode,
+        stepColorwork: step?.colorwork,
+        componentSingleColorYarnId: component?.singleColorYarnId
+    });
+
     // Single-yarn projects never show color info
     if (!project || project.colorCount === 1) {
+        console.log('❌ Exit: single-yarn project');
         return null;
     }
 
     // For single-color components, only show on first step
     if (component.colorMode === 'single' && stepIndex !== 0) {
+        console.log('❌ Exit: single-color component, not first step');
         return null;
     }
 
-    const colorwork = step?.colorwork;
+    // Get colorwork - try step first, then component default
+    let colorwork = step?.colorwork;
+
+    // If no colorwork on step and this is a single-color component, use component's color
+    if (!colorwork && component?.colorMode === 'single' && component?.singleColorYarnId) {
+        console.log('📝 No step colorwork, using component singleColorYarnId:', component.singleColorYarnId);
+
+        // Extract letter if it's a pseudo-ID format
+        let letter = component.singleColorYarnId;
+        if (typeof letter === 'string' && letter.startsWith('color-')) {
+            letter = letter.split('-')[1];
+            console.log('   Extracted letter from pseudo-ID:', letter);
+        }
+
+        colorwork = {
+            type: 'single',
+            letter: letter
+        };
+    }
+
     if (!colorwork) {
+        console.log('❌ Exit: no colorwork found');
         return null;
     }
 
-    // First step (stepIndex === 0): Always show "Using Color X"
+    console.log('✅ Colorwork found:', colorwork);
+
+    // First step: Always show "Using Color X"
     if (stepIndex === 0) {
-        return generateInitialColorText(colorwork, project);
+        const result = generateInitialColorText(colorwork, project);
+        console.log('🎯 Initial color text result:', result);
+        return result;
     }
 
-    // Subsequent steps: Only show if color changed from previous step
+    // Subsequent steps: Only show if color changed
     const colorChanged = hasColorChangedFromPreviousStep(step, stepIndex, component);
     if (!colorChanged) {
+        console.log('❌ No color change from previous step');
         return null;
     }
 
-    // Generate "Switch to Color Y" text
-    return generateColorChangeText(colorwork, project);
+    const result = generateColorChangeText(colorwork, project);
+    console.log('🎯 Color change text result:', result);
+    return result;
 };
 
 /**
  * Generate "Using Color X" text for first step
  */
 const generateInitialColorText = (colorwork, project) => {
+    console.log('🔧 generateInitialColorText:', {
+        colorworkType: colorwork.type,
+        letter: colorwork.letter,
+        colorLetter: colorwork.colorLetter
+    });
+
     if (colorwork.type === 'single') {
-        // ✅ FIXED: Use colorLetter (new format) with fallback to yarnId (legacy)
-        const letter = colorwork.colorLetter || colorwork.letter;
+        // Get the letter (check multiple possible field names for compatibility)
+        const letter = colorwork.letter || colorwork.colorLetter;
 
-        if (letter) {
-            // Use letter-based lookup
-            const yarn = getYarnByLetter(project?.yarns || [], letter);
-            const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
-            return `Using Color ${yarn.letter}${yarnName}`;
+        console.log('   Letter found:', letter);
+
+        if (!letter) {
+            console.log('   ❌ No letter found');
+            return null;
         }
 
-        // Legacy fallback: yarnId-based lookup
-        if (colorwork.yarnId) {
-            const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
-            if (yarn) {
-                const yarnName = yarn.color ? ` (${yarn.color})` : '';
-                return `Using Color ${yarn.letter}${yarnName}`;
-            }
-        }
+        // Look up yarn dynamically
+        const yarn = getYarnByLetter(project?.yarns || [], letter);
+        console.log('   Yarn lookup result:', yarn);
 
-        return null;
+        // If yarn has a real name (not just "Color A"), include it
+        const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
+        const result = `Using Color ${yarn.letter}${yarnName}`;
+        console.log('   Returning:', result);
+        return result;
     }
 
     if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
-        // ✅ FIXED: Use colorLetters (new format) with fallback to yarnIds (legacy)
-        const letters = colorwork.colorLetters || colorwork.letters;
+        // Get the letters array
+        const letters = colorwork.letters || colorwork.colorLetters;
 
-        if (letters && letters.length > 0) {
-            // Use letter-based lookup
-            const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
-            const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
-            const letterList = sortedYarns.map(y => y.letter).join(' and ');
+        if (!letters || letters.length === 0) return null;
 
-            // Include yarn names if available
-            const yarnNames = sortedYarns
-                .filter(y => y.color && y.color !== `Color ${y.letter}`)
-                .map(y => `${y.letter}: ${y.color}`)
-                .join(', ');
+        // Look up yarns dynamically
+        const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
+        const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
+        const letterList = sortedYarns.map(y => y.letter).join(' and ');
 
-            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
-            return `Using Colors ${letterList} together${namesSuffix}`;
-        }
+        // Include real yarn names if they exist
+        const yarnNames = sortedYarns
+            .filter(y => y.color && y.color !== `Color ${y.letter}`)
+            .map(y => `${y.letter}: ${y.color}`)
+            .join(', ');
 
-        // Legacy fallback: yarnIds-based lookup
-        if (colorwork.yarnIds && colorwork.yarnIds.length > 0) {
-            const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
-            if (yarns.length === 0) return null;
-
-            const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
-            const letterList = sortedYarns.map(y => y.letter).join(' and ');
-
-            const yarnNames = sortedYarns
-                .filter(y => y.color)
-                .map(y => `${y.letter}: ${y.color}`)
-                .join(', ');
-
-            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
-            return `Using Colors ${letterList} together${namesSuffix}`;
-        }
-
-        return null;
+        const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
+        return `Using Colors ${letterList} together${namesSuffix}`;
     }
 
     if (colorwork.type === 'stripes') {
@@ -129,66 +143,31 @@ const generateInitialColorText = (colorwork, project) => {
  */
 const generateColorChangeText = (colorwork, project) => {
     if (colorwork.type === 'single') {
-        // ✅ FIXED: Use colorLetter (new format) with fallback to yarnId (legacy)
-        const letter = colorwork.colorLetter || colorwork.letter;
+        const letter = colorwork.letter || colorwork.colorLetter;
 
-        if (letter) {
-            // Use letter-based lookup
-            const yarn = getYarnByLetter(project?.yarns || [], letter);
-            const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
-            return `Switch to Color ${yarn.letter}${yarnName}`;
-        }
+        if (!letter) return null;
 
-        // Legacy fallback: yarnId-based lookup
-        if (colorwork.yarnId) {
-            const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
-            if (yarn) {
-                const yarnName = yarn.color ? ` (${yarn.color})` : '';
-                return `Switch to Color ${yarn.letter}${yarnName}`;
-            }
-        }
-
-        return null;
+        const yarn = getYarnByLetter(project?.yarns || [], letter);
+        const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
+        return `Switch to Color ${yarn.letter}${yarnName}`;
     }
 
     if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
-        // ✅ FIXED: Use colorLetters (new format) with fallback to yarnIds (legacy)
-        const letters = colorwork.colorLetters || colorwork.letters;
+        const letters = colorwork.letters || colorwork.colorLetters;
 
-        if (letters && letters.length > 0) {
-            // Use letter-based lookup
-            const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
-            const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
-            const letterList = sortedYarns.map(y => y.letter).join(' and ');
+        if (!letters || letters.length === 0) return null;
 
-            // Include yarn names if available
-            const yarnNames = sortedYarns
-                .filter(y => y.color && y.color !== `Color ${y.letter}`)
-                .map(y => `${y.letter}: ${y.color}`)
-                .join(', ');
+        const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
+        const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
+        const letterList = sortedYarns.map(y => y.letter).join(' and ');
 
-            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
-            return `Switch to Colors ${letterList} together${namesSuffix}`;
-        }
+        const yarnNames = sortedYarns
+            .filter(y => y.color && y.color !== `Color ${y.letter}`)
+            .map(y => `${y.letter}: ${y.color}`)
+            .join(', ');
 
-        // Legacy fallback: yarnIds-based lookup
-        if (colorwork.yarnIds && colorwork.yarnIds.length > 0) {
-            const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
-            if (yarns.length === 0) return null;
-
-            const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
-            const letterList = sortedYarns.map(y => y.letter).join(' and ');
-
-            const yarnNames = sortedYarns
-                .filter(y => y.color)
-                .map(y => `${y.letter}: ${y.color}`)
-                .join(', ');
-
-            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
-            return `Switch to Colors ${letterList} together${namesSuffix}`;
-        }
-
-        return null;
+        const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
+        return `Switch to Colors ${letterList} together${namesSuffix}`;
     }
 
     if (colorwork.type === 'stripes') {
@@ -213,20 +192,17 @@ const hasColorChangedFromPreviousStep = (step, stepIndex, component) => {
 
 /**
  * Get normalized color string for comparison
- * Reuses logic from stepDescriptionUtils but kept here for independence
  */
 const getStepColorForComparison = (step, component) => {
     // Check step's colorwork data
     if (step?.colorwork) {
         if (step.colorwork.type === 'single') {
-            // ✅ FIXED: Use colorLetter with fallback to yarnId
-            const identifier = step.colorwork.colorLetter || step.colorwork.letter || step.colorwork.yarnId;
-            return `single:${identifier}`;
+            const letter = step.colorwork.letter || step.colorwork.colorLetter;
+            return `single:${letter}`;
         }
         if (step.colorwork.type === 'multi-strand' || step.colorwork.type === 'multi_strand') {
-            // ✅ FIXED: Use colorLetters with fallback to yarnIds
-            const identifiers = step.colorwork.colorLetters || step.colorwork.letters || step.colorwork.yarnIds || [];
-            return `multi:${identifiers.sort().join(',')}`;
+            const letters = step.colorwork.letters || step.colorwork.colorLetters || [];
+            return `multi:${letters.sort().join(',')}`;
         }
         if (step.colorwork.type === 'stripes') {
             return 'stripes';
@@ -235,14 +211,14 @@ const getStepColorForComparison = (step, component) => {
 
     // Fallback to component default
     if (component?.colorMode === 'single' && component.singleColorYarnId) {
-        return `single:${component.singleColorYarnId}`;
-    }
+        let letter = component.singleColorYarnId;
 
-    if (component?.startStepColorYarnIds && component.startStepColorYarnIds.length > 0) {
-        if (component.startStepColorYarnIds.length === 1) {
-            return `single:${component.startStepColorYarnIds[0]}`;
+        // Extract letter from pseudo-ID if needed
+        if (typeof letter === 'string' && letter.startsWith('color-')) {
+            letter = letter.split('-')[1];
         }
-        return `multi:${component.startStepColorYarnIds.sort().join(',')}`;
+
+        return `single:${letter}`;
     }
 
     return null;
