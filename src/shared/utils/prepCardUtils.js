@@ -1,5 +1,7 @@
 // src/shared/utils/prepCardUtils.js
 
+import { getYarnByLetter } from './colorworkDisplayUtils';
+
 /**
  * PrepCard Utilities - Dynamic Color Information Generation
  * 
@@ -53,28 +55,66 @@ export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
  */
 const generateInitialColorText = (colorwork, project) => {
     if (colorwork.type === 'single') {
-        const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
-        if (!yarn) return null;
+        // ✅ FIXED: Use colorLetter (new format) with fallback to yarnId (legacy)
+        const letter = colorwork.colorLetter || colorwork.letter;
 
-        const yarnName = yarn.color ? ` (${yarn.color})` : '';
-        return `Using Color ${yarn.letter}${yarnName}`;
+        if (letter) {
+            // Use letter-based lookup
+            const yarn = getYarnByLetter(project?.yarns || [], letter);
+            const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
+            return `Using Color ${yarn.letter}${yarnName}`;
+        }
+
+        // Legacy fallback: yarnId-based lookup
+        if (colorwork.yarnId) {
+            const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
+            if (yarn) {
+                const yarnName = yarn.color ? ` (${yarn.color})` : '';
+                return `Using Color ${yarn.letter}${yarnName}`;
+            }
+        }
+
+        return null;
     }
 
-    if (colorwork.type === 'multi-strand') {
-        const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
-        if (yarns.length === 0) return null;
+    if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
+        // ✅ FIXED: Use colorLetters (new format) with fallback to yarnIds (legacy)
+        const letters = colorwork.colorLetters || colorwork.letters;
 
-        const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
-        const letters = sortedYarns.map(y => y.letter).join(' and ');
+        if (letters && letters.length > 0) {
+            // Use letter-based lookup
+            const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
+            const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
+            const letterList = sortedYarns.map(y => y.letter).join(' and ');
 
-        // Include yarn names if available
-        const yarnNames = sortedYarns
-            .filter(y => y.color)
-            .map(y => `${y.letter}: ${y.color}`)
-            .join(', ');
+            // Include yarn names if available
+            const yarnNames = sortedYarns
+                .filter(y => y.color && y.color !== `Color ${y.letter}`)
+                .map(y => `${y.letter}: ${y.color}`)
+                .join(', ');
 
-        const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
-        return `Using Colors ${letters} together${namesSuffix}`;
+            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
+            return `Using Colors ${letterList} together${namesSuffix}`;
+        }
+
+        // Legacy fallback: yarnIds-based lookup
+        if (colorwork.yarnIds && colorwork.yarnIds.length > 0) {
+            const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
+            if (yarns.length === 0) return null;
+
+            const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
+            const letterList = sortedYarns.map(y => y.letter).join(' and ');
+
+            const yarnNames = sortedYarns
+                .filter(y => y.color)
+                .map(y => `${y.letter}: ${y.color}`)
+                .join(', ');
+
+            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
+            return `Using Colors ${letterList} together${namesSuffix}`;
+        }
+
+        return null;
     }
 
     if (colorwork.type === 'stripes') {
@@ -89,28 +129,66 @@ const generateInitialColorText = (colorwork, project) => {
  */
 const generateColorChangeText = (colorwork, project) => {
     if (colorwork.type === 'single') {
-        const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
-        if (!yarn) return null;
+        // ✅ FIXED: Use colorLetter (new format) with fallback to yarnId (legacy)
+        const letter = colorwork.colorLetter || colorwork.letter;
 
-        const yarnName = yarn.color ? ` (${yarn.color})` : '';
-        return `Switch to Color ${yarn.letter}${yarnName}`;
+        if (letter) {
+            // Use letter-based lookup
+            const yarn = getYarnByLetter(project?.yarns || [], letter);
+            const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
+            return `Switch to Color ${yarn.letter}${yarnName}`;
+        }
+
+        // Legacy fallback: yarnId-based lookup
+        if (colorwork.yarnId) {
+            const yarn = project?.yarns?.find(y => y.id === colorwork.yarnId);
+            if (yarn) {
+                const yarnName = yarn.color ? ` (${yarn.color})` : '';
+                return `Switch to Color ${yarn.letter}${yarnName}`;
+            }
+        }
+
+        return null;
     }
 
-    if (colorwork.type === 'multi-strand') {
-        const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
-        if (yarns.length === 0) return null;
+    if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
+        // ✅ FIXED: Use colorLetters (new format) with fallback to yarnIds (legacy)
+        const letters = colorwork.colorLetters || colorwork.letters;
 
-        const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
-        const letters = sortedYarns.map(y => y.letter).join(' and ');
+        if (letters && letters.length > 0) {
+            // Use letter-based lookup
+            const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
+            const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
+            const letterList = sortedYarns.map(y => y.letter).join(' and ');
 
-        // Include yarn names if available
-        const yarnNames = sortedYarns
-            .filter(y => y.color)
-            .map(y => `${y.letter}: ${y.color}`)
-            .join(', ');
+            // Include yarn names if available
+            const yarnNames = sortedYarns
+                .filter(y => y.color && y.color !== `Color ${y.letter}`)
+                .map(y => `${y.letter}: ${y.color}`)
+                .join(', ');
 
-        const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
-        return `Switch to Colors ${letters} together${namesSuffix}`;
+            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
+            return `Switch to Colors ${letterList} together${namesSuffix}`;
+        }
+
+        // Legacy fallback: yarnIds-based lookup
+        if (colorwork.yarnIds && colorwork.yarnIds.length > 0) {
+            const yarns = project?.yarns?.filter(y => colorwork.yarnIds.includes(y.id)) || [];
+            if (yarns.length === 0) return null;
+
+            const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
+            const letterList = sortedYarns.map(y => y.letter).join(' and ');
+
+            const yarnNames = sortedYarns
+                .filter(y => y.color)
+                .map(y => `${y.letter}: ${y.color}`)
+                .join(', ');
+
+            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
+            return `Switch to Colors ${letterList} together${namesSuffix}`;
+        }
+
+        return null;
     }
 
     if (colorwork.type === 'stripes') {
@@ -141,10 +219,14 @@ const getStepColorForComparison = (step, component) => {
     // Check step's colorwork data
     if (step?.colorwork) {
         if (step.colorwork.type === 'single') {
-            return `single:${step.colorwork.yarnId}`;
+            // ✅ FIXED: Use colorLetter with fallback to yarnId
+            const identifier = step.colorwork.colorLetter || step.colorwork.letter || step.colorwork.yarnId;
+            return `single:${identifier}`;
         }
-        if (step.colorwork.type === 'multi-strand') {
-            return `multi:${step.colorwork.yarnIds.sort().join(',')}`;
+        if (step.colorwork.type === 'multi-strand' || step.colorwork.type === 'multi_strand') {
+            // ✅ FIXED: Use colorLetters with fallback to yarnIds
+            const identifiers = step.colorwork.colorLetters || step.colorwork.letters || step.colorwork.yarnIds || [];
+            return `multi:${identifiers.sort().join(',')}`;
         }
         if (step.colorwork.type === 'stripes') {
             return 'stripes';
