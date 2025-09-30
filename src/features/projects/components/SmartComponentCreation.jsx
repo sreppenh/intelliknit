@@ -267,32 +267,35 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     }
   }, [currentProject, yarns, componentData.colorMode]);
 
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="app-container bg-yarn-50 min-h-screen shadow-lg">
 
-        {/* Header */}
-        <div className="bg-sage-500 text-white px-6 py-4">
-          <div className="flex items-center gap-3">
-            <button
-              onClick={screen === 1 ? onBack : () => setScreen(1)}
-              className="text-white text-lg hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors flex-shrink-0"
-            >
-              ←
-            </button>
-            <div className="flex-1 min-w-0">
-              <h1 className="text-lg font-semibold">Add Component</h1>
-              <p className="text-sage-100 text-sm">{screen === 1 ? 'Component Identity & Setup' : 'Method & Configuration'}</p>
+        {/* Header - ONLY show when NOT on screen 4 (PatternWizard) */}
+        {screen !== 4 && (
+          <div className="bg-sage-500 text-white px-6 py-4">
+            <div className="flex items-center gap-3">
+              <button
+                onClick={screen === 1 ? onBack : () => setScreen(1)}
+                className="text-white text-lg hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors flex-shrink-0"
+              >
+                ←
+              </button>
+              <div className="flex-1 min-w-0">
+                <h1 className="text-lg font-semibold">Add Component</h1>
+                <p className="text-sage-100 text-sm">{screen === 1 ? 'Component Identity & Setup' : 'Method & Configuration'}</p>
+              </div>
+              <button
+                onClick={handleXButtonClick}
+                className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
+                title="Exit Component Creation"
+              >
+                ✕
+              </button>
             </div>
-            <button
-              onClick={handleXButtonClick}
-              className="text-white text-xl hover:bg-white hover:bg-opacity-20 rounded-full w-10 h-10 flex items-center justify-center transition-colors"
-              title="Exit Component Creation"
-            >
-              ✕
-            </button>
           </div>
-        </div>
+        )}
 
         {screen === 1 ? (
           // Screen 1: Component Identity & Setup
@@ -840,23 +843,21 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
           </div>
 
         ) : screen === 4 ? (
-          // Screen 4: Pattern Wizard (no launcher, direct render)
           <PatternWizard
             componentData={componentData}
             defaultPatternData={defaultPatternData}
             setDefaultPatternData={setDefaultPatternData}
             currentProject={currentProject}
             onComplete={() => {
-              setScreen(5); // Go to Starting Method after saving pattern
+              setScreen(5);
             }}
             onBack={() => {
-              // Go back based on what screens they went through
               if (defaultColorData.colorwork.advancedType) {
-                setScreen(3); // Back to color detail
+                setScreen(3);
               } else if (componentData.colorMode === 'multiple') {
-                setScreen(2); // Back to color config
+                setScreen(2);
               } else {
-                setScreen(1); // Back to identity
+                setScreen(1);
               }
             }}
           />
