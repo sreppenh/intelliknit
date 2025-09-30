@@ -451,240 +451,174 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
           </div>
         ) : screen === 2 ? (
-          <div className="p-6 bg-yarn-50 space-y-4">
-            <h1 className="page-title">Component Colors</h1>
+          <div className="p-6 bg-yarn-50 space-y-6">
+            <h1 className="page-title">Default Color Pattern</h1>
             <p className="text-wool-600 text-center mb-6">
-              How are colors used in this component?
+              Set the default way colors are used throughout this component. You can override this for individual steps.
             </p>
 
-            <div className="space-y-4">
-              {/* Single Color Option */}
-              <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${defaultColorData.colorwork.type === 'single'
-                ? 'border-sage-500 bg-white text-sage-700 shadow-sm'
-                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300'
-                }`}>
-                <div className="flex items-start gap-4">
-                  <input
-                    type="radio"
-                    name="color_type"
-                    value="single"
-                    checked={defaultColorData.colorwork.type === 'single'}
-                    onChange={() => setDefaultColorData(prev => ({
-                      ...prev,
-                      colorwork: { type: 'single', colorLetter: null }
-                    }))}
-                    className="w-4 h-4 text-sage-600 mt-1"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">🎨</div>
-                      <div className="text-left">
-                        <div className="font-semibold text-base">Single Color</div>
-                        <div className="text-sm opacity-75">Use one color throughout this component</div>
-                      </div>
-                    </div>
+            {/* Color Pattern Selection */}
+            <div className="grid grid-cols-2 gap-4">
+              {/* Single Solid Color */}
+              <button
+                onClick={() => setDefaultColorData(prev => ({
+                  ...prev,
+                  colorwork: { type: 'single', colorLetter: null }
+                }))}
+                className={`card-selectable ${defaultColorData.colorwork.type === 'single' ? 'card-selectable-selected' : ''}`}
+              >
+                <div className="text-3xl mb-2">🎨</div>
+                <div className="font-semibold">Single Color</div>
+                <div className="text-xs text-wool-600 mt-1">One color as default</div>
+              </button>
 
-                    {/* Single Color Selection - INSIDE the label */}
-                    {defaultColorData.colorwork.type === 'single' && (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
-                          const letter = String.fromCharCode(65 + i);
-                          const existingYarn = yarns.find(y => y.letter === letter);
-                          const yarn = existingYarn || {
-                            id: `color-${letter}`,
-                            letter: letter,
-                            color: `Color ${letter}`,
-                            colorHex: '#cccccc'
-                          };
+              {/* Marled/Multi-Strand */}
+              <button
+                onClick={() => setDefaultColorData(prev => ({
+                  ...prev,
+                  colorwork: { type: 'multi_strand', colorLetters: [] }
+                }))}
+                className={`card-selectable ${defaultColorData.colorwork.type === 'multi_strand' ? 'card-selectable-selected' : ''}`}
+              >
+                <div className="text-3xl mb-2">🧵</div>
+                <div className="font-semibold">Marled</div>
+                <div className="text-xs text-wool-600 mt-1">Hold 2+ colors together</div>
+              </button>
 
-                          return (
-                            <button
-                              key={yarn.id}
-                              type="button"
-                              onClick={() => setDefaultColorData(prev => ({
-                                ...prev,
-                                colorwork: { ...prev.colorwork, colorLetter: letter }
-                              }))}
-                              className={`card-selectable-compact ${defaultColorData.colorwork.colorLetter === letter
-                                ? 'card-selectable-compact-selected'
-                                : ''
-                                }`}
-                            >
-                              <div
-                                className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
-                                style={{ backgroundColor: yarn.colorHex }}
-                              />
-                              <div className="text-xs font-medium">{letter}</div>
-                              <div className="text-xs truncate">{yarn.color}</div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </label>
+              {/* Stripes */}
+              <button
+                onClick={() => setDefaultColorData(prev => ({
+                  ...prev,
+                  colorwork: { type: 'advanced', advancedType: 'stripes' }
+                }))}
+                className={`card-selectable ${defaultColorData.colorwork.advancedType === 'stripes' ? 'card-selectable-selected' : ''}`}
+              >
+                <div className="text-3xl mb-2">📊</div>
+                <div className="font-semibold">Stripes</div>
+                <div className="text-xs text-wool-600 mt-1">Alternating colors</div>
+              </button>
 
-              {/* Multi-Strand Option */}
-              <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${defaultColorData.colorwork.type === 'multi_strand'
-                ? 'border-sage-500 bg-white text-sage-700 shadow-sm'
-                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300'
-                }`}>
-                <div className="flex items-start gap-4">
-                  <input
-                    type="radio"
-                    name="color_type"
-                    value="multi_strand"
-                    checked={defaultColorData.colorwork.type === 'multi_strand'}
-                    onChange={() => setDefaultColorData(prev => ({
-                      ...prev,
-                      colorwork: { type: 'multi_strand', colorLetters: [] }
-                    }))}
-                    className="w-4 h-4 text-sage-600 mt-1"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">🧵</div>
-                      <div className="text-left">
-                        <div className="font-semibold text-base">Multiple Strands</div>
-                        <div className="text-sm opacity-75">Hold 2+ colors together (marled/tweed effect)</div>
-                      </div>
-                    </div>
+              {/* Fair Isle */}
+              <button
+                onClick={() => setDefaultColorData(prev => ({
+                  ...prev,
+                  colorwork: { type: 'advanced', advancedType: 'fair_isle' }
+                }))}
+                className={`card-selectable ${defaultColorData.colorwork.advancedType === 'fair_isle' ? 'card-selectable-selected' : ''}`}
+              >
+                <div className="text-3xl mb-2">🎨</div>
+                <div className="font-semibold">Fair Isle</div>
+                <div className="text-xs text-wool-600 mt-1">Colorwork patterns</div>
+              </button>
 
-                    {/* Multi-Strand Selection - INSIDE the label */}
-                    {defaultColorData.colorwork.type === 'multi_strand' && (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
-                          const letter = String.fromCharCode(65 + i);
-                          const existingYarn = yarns.find(y => y.letter === letter);
-                          const yarn = existingYarn || {
-                            id: `color-${letter}`,
-                            letter: letter,
-                            color: `Color ${letter}`,
-                            colorHex: '#cccccc'
-                          };
-                          const isSelected = defaultColorData.colorwork.colorLetters?.includes(letter);
-
-                          return (
-                            <button
-                              key={letter}
-                              type="button"
-                              onClick={() => {
-                                setDefaultColorData(prev => {
-                                  const current = prev.colorwork.colorLetters || [];
-                                  let updated;
-                                  if (isSelected) {
-                                    updated = current.filter(l => l !== letter);
-                                    if (updated.length < 2 && current.length === 2) return prev;
-                                  } else {
-                                    updated = [...current, letter].sort();
-                                  }
-                                  return {
-                                    ...prev,
-                                    colorwork: { ...prev.colorwork, colorLetters: updated }
-                                  };
-                                });
-                              }}
-                              className={`card-selectable-compact ${isSelected
-                                ? 'card-selectable-compact-selected'
-                                : ''
-                                }`}
-                            >
-                              <div
-                                className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
-                                style={{ backgroundColor: yarn.colorHex }}
-                              />
-                              <div className="text-xs font-medium">{letter}</div>
-                              <div className="text-xs truncate">{yarn.color}</div>
-                              {isSelected && <div className="text-sage-600 mt-1">✓</div>}
-                            </button>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </label>
-
-              {/* Advanced Colorwork Option */}
-              <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${defaultColorData.colorwork.type === 'advanced'
-                ? 'border-sage-500 bg-white text-sage-700 shadow-sm'
-                : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300'
-                }`}>
-                <div className="flex items-start gap-4">
-                  <input
-                    type="radio"
-                    name="color_type"
-                    value="advanced"
-                    checked={defaultColorData.colorwork.type === 'advanced'}
-                    onChange={() => setDefaultColorData(prev => ({
-                      ...prev,
-                      colorwork: { type: 'advanced', advancedType: null }
-                    }))}
-                    className="w-4 h-4 text-sage-600 mt-1"
-                  />
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3">
-                      <div className="text-2xl">🌈</div>
-                      <div className="text-left">
-                        <div className="font-semibold text-base">Advanced Colorwork</div>
-                        <div className="text-sm opacity-75">Stripes, Fair Isle, or Intarsia patterns</div>
-                      </div>
-                    </div>
-
-                    {/* Advanced Type Selection - INSIDE the label */}
-                    {defaultColorData.colorwork.type === 'advanced' && (
-                      <div className="mt-3 grid grid-cols-2 gap-2">
-                        <button
-                          type="button"
-                          onClick={() => setDefaultColorData(prev => ({
-                            ...prev,
-                            colorwork: { ...prev.colorwork, advancedType: 'stripes' }
-                          }))}
-                          className={`card-selectable-compact ${defaultColorData.colorwork.advancedType === 'stripes'
-                            ? 'card-selectable-compact-selected'
-                            : ''
-                            }`}
-                        >
-                          <div className="text-xl mb-1">📊</div>
-                          <div className="text-xs font-medium">Stripes</div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setDefaultColorData(prev => ({
-                            ...prev,
-                            colorwork: { ...prev.colorwork, advancedType: 'fair_isle' }
-                          }))}
-                          className={`card-selectable-compact ${defaultColorData.colorwork.advancedType === 'fair_isle'
-                            ? 'card-selectable-compact-selected'
-                            : ''
-                            }`}
-                        >
-                          <div className="text-xl mb-1">🎨</div>
-                          <div className="text-xs font-medium">Fair Isle</div>
-                        </button>
-
-                        <button
-                          type="button"
-                          onClick={() => setDefaultColorData(prev => ({
-                            ...prev,
-                            colorwork: { ...prev.colorwork, advancedType: 'intarsia' }
-                          }))}
-                          className={`card-selectable-compact ${defaultColorData.colorwork.advancedType === 'intarsia'
-                            ? 'card-selectable-compact-selected'
-                            : ''
-                            }`}
-                        >
-                          <div className="text-xl mb-1">🖼️</div>
-                          <div className="text-xs font-medium">Intarsia</div>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </label>
+              {/* Intarsia */}
+              <button
+                onClick={() => setDefaultColorData(prev => ({
+                  ...prev,
+                  colorwork: { type: 'advanced', advancedType: 'intarsia' }
+                }))}
+                className={`card-selectable ${defaultColorData.colorwork.advancedType === 'intarsia' ? 'card-selectable-selected' : ''}`}
+              >
+                <div className="text-3xl mb-2">🖼️</div>
+                <div className="font-semibold">Intarsia</div>
+                <div className="text-xs text-wool-600 mt-1">Color blocks</div>
+              </button>
             </div>
+
+            {/* Single Color Selection */}
+            {defaultColorData.colorwork.type === 'single' && (
+              <div>
+                <label className="form-label">Select Default Color</label>
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    const existingYarn = yarns.find(y => y.letter === letter);
+                    const yarn = existingYarn || {
+                      id: `color-${letter}`,
+                      letter: letter,
+                      color: `Color ${letter}`,
+                      colorHex: '#cccccc'
+                    };
+
+                    return (
+                      <button
+                        key={yarn.id}
+                        type="button"
+                        onClick={() => setDefaultColorData(prev => ({
+                          ...prev,
+                          colorwork: { ...prev.colorwork, colorLetter: letter }
+                        }))}
+                        className={`card-selectable-compact ${defaultColorData.colorwork.colorLetter === letter
+                            ? 'card-selectable-compact-selected'
+                            : ''
+                          }`}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
+                          style={{ backgroundColor: yarn.colorHex }}
+                        />
+                        <div className="text-xs font-medium">{letter}</div>
+                        <div className="text-xs truncate">{yarn.color}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Multi-Strand Color Selection */}
+            {defaultColorData.colorwork.type === 'multi_strand' && (
+              <div>
+                <label className="form-label">Select Colors</label>
+                <p className="text-xs text-wool-600 mb-2">Choose 2 or more colors to hold together</p>
+                <div className="grid grid-cols-2 gap-2">
+                  {Array.from({ length: currentProject?.colorCount || 4 }, (_, i) => {
+                    const letter = String.fromCharCode(65 + i);
+                    const existingYarn = yarns.find(y => y.letter === letter);
+                    const yarn = existingYarn || {
+                      id: `color-${letter}`,
+                      letter: letter,
+                      color: `Color ${letter}`,
+                      colorHex: '#cccccc'
+                    };
+                    const isSelected = defaultColorData.colorwork.colorLetters?.includes(letter);
+
+                    return (
+                      <button
+                        key={letter}
+                        type="button"
+                        onClick={() => {
+                          setDefaultColorData(prev => {
+                            const current = prev.colorwork.colorLetters || [];
+                            let updated;
+                            if (isSelected) {
+                              updated = current.filter(l => l !== letter);
+                              if (updated.length < 2 && current.length === 2) return prev;
+                            } else {
+                              updated = [...current, letter].sort();
+                            }
+                            return {
+                              ...prev,
+                              colorwork: { ...prev.colorwork, colorLetters: updated }
+                            };
+                          });
+                        }}
+                        className={`card-selectable-compact ${isSelected ? 'card-selectable-compact-selected' : ''
+                          }`}
+                      >
+                        <div
+                          className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1"
+                          style={{ backgroundColor: yarn.colorHex }}
+                        />
+                        <div className="text-xs font-medium">{letter}</div>
+                        <div className="text-xs truncate">{yarn.color}</div>
+                        {isSelected && <div className="text-sage-600 mt-1">✓</div>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* Navigation */}
             <div className="flex gap-3 pt-4">
@@ -697,16 +631,15 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               <button
                 onClick={() => {
                   if (defaultColorData.colorwork.advancedType) {
-                    setScreen(3); // Advanced colorwork needs detail config
+                    setScreen(3); // Configure stripes/fair isle/intarsia
                   } else {
-                    setScreen(4); // Go to pattern config
+                    setScreen(4); // Go to pattern
                   }
                 }}
                 disabled={
                   !defaultColorData.colorwork.type ||
                   (defaultColorData.colorwork.type === 'single' && !defaultColorData.colorwork.colorLetter) ||
-                  (defaultColorData.colorwork.type === 'multi_strand' && (!defaultColorData.colorwork.colorLetters || defaultColorData.colorwork.colorLetters.length < 2)) ||
-                  (defaultColorData.colorwork.type === 'advanced' && !defaultColorData.colorwork.advancedType)
+                  (defaultColorData.colorwork.type === 'multi_strand' && (!defaultColorData.colorwork.colorLetters || defaultColorData.colorwork.colorLetters.length < 2))
                 }
                 className="flex-2 btn-primary"
                 style={{ flexGrow: 2 }}
