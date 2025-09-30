@@ -19,6 +19,7 @@ import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculato
 import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../shared/utils/stepDisplayUtils';
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
 import PrepNoteColorScreen from './wizard-screens/PrepNoteColorScreen';
+import ColorSelectionScreen from './wizard-screens/ColorSelectionScreen';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
@@ -66,18 +67,42 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     setPendingShapingInfo(null);
   };
 
+  const [showColorSelectionScreen, setShowColorSelectionScreen] = useState(false);
+
   const handlePrepColorContinue = (destination) => {
     setShowPrepColorScreen(false);
 
-    if (destination === 'pattern-override') {
-      // User chose to override pattern - go to pattern selection
-      wizard.navigation.goToStep(1);
-    } else if (destination === 'pattern-selection') {
-      // Legacy/normal flow - go to pattern selection
-      wizard.navigation.goToStep(1);
+    if (destination === 'color-selection') {
+      // Show color selection screen
+      setShowColorSelectionScreen(true);
+    } else if (destination === 'stripes-config') {
+      // Save stripes pattern to wizard data, then go to pattern config
+      wizard.updateWizardData('stitchPattern', {
+        ...wizard.wizardData.stitchPattern,
+        category: 'colorwork',
+        pattern: 'Stripes'
+      });
+      wizard.navigation.goToStep(2); // Skip pattern selection, go to stripes config
+    } else if (destination === 'pattern-override' || destination === 'pattern-selection') {
+      wizard.navigation.goToStep(1); // Pattern selection
     } else if (destination === 'duration-shaping') {
-      // Using defaults or no pattern needed - skip to duration
-      wizard.navigation.goToStep(3);
+      wizard.navigation.goToStep(3); // Duration/shaping
+    }
+  };
+
+  const handleColorSelectionContinue = (destination) => {
+    setShowColorSelectionScreen(false);
+
+    if (destination === 'stripes-config') {
+      wizard.updateWizardData('stitchPattern', {
+        ...wizard.wizardData.stitchPattern,
+        category: 'colorwork',
+        pattern: 'Stripes'
+      });
+      wizard.navigation.goToStep(2);
+    } else {
+      // Color configured, go to pattern selection
+      wizard.navigation.goToStep(1);
     }
   };
 
@@ -458,6 +483,15 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
             onBack={onBack}
             onCancel={handleXButtonClick}
           />
+        ) : showColorSelectionScreen ? (
+          <ColorSelectionScreen
+            wizardData={wizard.wizardData}
+            updateWizardData={wizard.updateWizardData}
+            component={wizard.component}
+            onContinue={handleColorSelectionContinue}
+            onBack={() => setShowPrepColorScreen(true)}
+            onCancel={handleXButtonClick}
+          />
         ) : (
           renderCurrentStep()
         )}
@@ -532,10 +566,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
           </div>
         )}
       </StandardModal>
-
-
-
-
 
     </WizardLayout>
   );
