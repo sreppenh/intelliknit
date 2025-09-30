@@ -1,7 +1,7 @@
 // src/features/steps/components/wizard-screens/ColorSelectionScreen.jsx
 
 import React, { useState } from 'react';
-import { formatColorworkDisplay, getYarnByLetter } from '../../../../shared/utils/colorworkDisplayUtils';
+import { formatColorworkDisplay, getYarnByLetter, getSortedYarnLetters } from '../../../../shared/utils/colorworkDisplayUtils';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
 const ColorSelectionScreen = ({
@@ -46,10 +46,7 @@ const ColorSelectionScreen = ({
         return true; // stripes, fair isle, intarsia
     };
 
-    const sortedYarns = Array.from({ length: 4 }, (_, i) => {
-        const letter = String.fromCharCode(65 + i);
-        return getYarnByLetter(yarns, letter);
-    });
+    const sortedYarns = getSortedYarnLetters(yarns);
 
     return (
         <div className="stack-lg">

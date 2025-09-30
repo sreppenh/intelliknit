@@ -267,17 +267,6 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     }
   }, [currentProject, yarns, componentData.colorMode]);
 
-  useEffect(() => {
-    if (currentProject?.colorCount > 1 && !componentData.colorMode && yarns.length > 0) {
-      const defaultYarn = yarns.find(y => y.letter === 'A') || yarns[0];
-      setComponentData(prev => ({
-        ...prev,
-        colorMode: 'single',
-        singleColorYarnId: defaultYarn?.id || null
-      }));
-    }
-  }, [currentProject, yarns, componentData.colorMode]);
-
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="app-container bg-yarn-50 min-h-screen shadow-lg">

@@ -1,7 +1,7 @@
 // src/features/steps/components/wizard-screens/PrepNoteColorScreen.jsx
 import React, { useState, useEffect } from 'react';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
-import { formatColorworkDisplay, getYarnByLetter, getYarnDisplayName } from '../../../../shared/utils/colorworkDisplayUtils';
+import { formatColorworkDisplay, getYarnByLetter, getYarnDisplayName, getSortedYarnLetters } from '../../../../shared/utils/colorworkDisplayUtils';
 
 
 const PrepNoteColorScreen = ({
@@ -31,17 +31,16 @@ const PrepNoteColorScreen = ({
     }, [component.colorMode, onContinue]);
 
     // Generate yarn options
-    const sortedYarns = Array.from({ length: 4 }, (_, i) => {
-        const letter = String.fromCharCode(65 + i);
-        return getYarnByLetter(yarns, letter);
-    });
+    const sortedYarns = getSortedYarnLetters(yarns);
 
     const handleContinue = () => {
         updateWizardData('prepNote', prepNote);
 
         // Check what needs configuration
         const needsPatternConfig = component.defaultPattern && !useDefaultPattern;
-        const needsColorConfig = (component.defaultColorwork && !useDefaultColor) || (!component.defaultColorwork && component.colorMode === 'multiple');
+        const needsColorConfig = component.colorMode === 'multiple' &&
+            ((component.defaultColorwork && !useDefaultColor) ||
+                !component.defaultColorwork);
 
         if (needsColorConfig) {
             onContinue('color-selection');
@@ -52,7 +51,7 @@ const PrepNoteColorScreen = ({
             if (useDefaultPattern) {
                 updateWizardData('stitchPattern', component.defaultPattern);
             }
-            if (useDefaultColor) {
+            if (useDefaultColor && component.colorMode === 'multiple') {
                 updateWizardData('colorwork', component.defaultColorwork);
             }
             onContinue('duration-shaping');
@@ -101,7 +100,7 @@ const PrepNoteColorScreen = ({
             )}
 
             {/* Color Checkbox */}
-            {component.defaultColorwork && (
+            {component.colorMode === 'multiple' && component.defaultColorwork && (
                 <div>
                     <label className="form-label">Color</label>
                     <label className="flex items-center gap-3 p-3 rounded-lg border-2 border-wool-200 cursor-pointer hover:border-sage-300 transition-colors">

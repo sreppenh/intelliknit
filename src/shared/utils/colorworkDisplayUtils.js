@@ -65,3 +65,16 @@ export const formatColorworkDisplay = (colorwork, yarns) => {
             return 'Multiple Colors';
     }
 };
+
+/**
+ * Get sorted yarns A-D for display
+ * @param {Array} yarns - All project yarns
+ * @returns {Array} Array of 4 yarns (A, B, C, D) or null for empty slots
+ */
+export const getSortedYarnLetters = (yarns) => {
+    return Array.from({ length: 4 }, (_, i) => {
+        const letter = String.fromCharCode(65 + i);
+        return getYarnByLetter(yarns, letter);
+    });
+};
+
