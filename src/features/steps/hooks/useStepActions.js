@@ -15,6 +15,10 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     useCurrentStitches = false
   } = options;
 
+  console.log('🔧 createStepObject - wizard:', wizard);
+  console.log('🔧 createStepObject - wizard.wizardData:', wizard.wizardData);
+  console.log('🔧 createStepObject - wizard.wizardData.colorwork:', wizard.wizardData?.colorwork);
+
   // 🎯 FIX: Debug colorwork access
   console.log('🔧 createStepObject - wizard.wizardData.colorwork:', wizard.wizardData.colorwork);
 
@@ -47,6 +51,9 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
 
   // 🎯 DEBUG: Log the final step object colorwork
   console.log('🔧 createStepObject - final stepObject.colorwork:', stepObject.colorwork);
+
+  console.log('🔧 createStepObject - stepObject:', stepObject);
+  console.log('🔧 createStepObject - stepObject.wizardConfig:', stepObject.wizardConfig);
 
   return stepObject;
 };

@@ -82,6 +82,9 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
   });
 
   const [wizardData, setWizardData] = useState(() => {
+
+
+
     if (isEditing && editingStep?.wizardConfig) {
       // Editing existing step - use step's config
       return {
@@ -129,6 +132,13 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
         letter: letter
       };
     }
+
+    console.log('🔧 WIZARD COLORWORK CHECK:', {
+      hasDefaultColorwork: !!component?.defaultColorwork,
+      defaultColorwork: component?.defaultColorwork,
+      finalColorwork: initialData.colorwork
+    });
+
 
     return initialData;
   });

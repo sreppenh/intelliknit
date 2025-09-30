@@ -254,10 +254,16 @@ const getAdvancedPatternNotes = (step) => {
  * ✅ NEW: Generate detailed stripe sequence display
  */
 const getStripeSequenceDisplay = (step, project) => {
-    const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+    console.log('🎨 getStripeSequenceDisplay - colorwork:', colorwork);
+    console.log('🎨 getStripeSequenceDisplay - stripeSequence:', colorwork?.stripeSequence);
+
+
     const stripeSequence = colorwork?.stripeSequence;
 
     if (!stripeSequence || !Array.isArray(stripeSequence) || stripeSequence.length === 0) {
+        console.log('🎨 getStripeSequenceDisplay - NO SEQUENCE, returning null');
+
         return null;
     }
 
@@ -926,6 +932,18 @@ const getColorDisplayForTechnicalData = (step, project) => {
             }
 
             return 'Multi-strand';
+        }
+
+        if (colorwork.type === 'stripes') {
+            const stripeSequence = colorwork.stripeSequence;
+            if (stripeSequence && stripeSequence.length > 0) {
+                const uniqueColors = [...new Set(stripeSequence.map(s => s.color))];
+                const colorNames = uniqueColors.map(letter => {
+                    const yarn = getYarnByLetter(project?.yarns || [], letter);
+                    return `Color ${yarn.letter}`;
+                }).join(', ');
+                return colorNames;
+            }
         }
 
         return null; // Stripes, etc.

@@ -479,9 +479,13 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               <button
                 onClick={() => setDefaultColorData(prev => ({
                   ...prev,
-                  colorwork: { type: 'advanced', advancedType: 'stripes' }
+                  colorwork: {
+                    type: 'stripes',
+                    stripeSequence: [],
+                    totalRows: 0
+                  }
                 }))}
-                className={`card-selectable ${defaultColorData.colorwork.advancedType === 'stripes' ? 'card-selectable-selected' : ''}`}
+                className={`card-selectable ${defaultColorData.colorwork.type === 'stripes' ? 'card-selectable-selected' : ''}`}
               >
                 <div className="text-3xl mb-2">📊</div>
                 <div className="font-semibold">Stripes</div>
@@ -620,7 +624,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               </button>
               <button
                 onClick={() => {
-                  if (defaultColorData.colorwork.advancedType) {
+                  if (defaultColorData.colorwork.type === 'stripes') {
                     setScreen(3); // Configure stripes/fair isle/intarsia
                   } else {
                     setScreen(4); // Go to pattern
@@ -642,7 +646,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
         ) : screen === 3 ? (
           // Screen 3: Color Detail Configuration
           <div className="p-6 bg-yarn-50 space-y-6">
-            {defaultColorData.colorwork.advancedType === 'stripes' ? (
+            {defaultColorData.colorwork.type === 'stripes' ? (
               // Stripes Configuration
               <>
                 <h1 className="page-title">Stripe Pattern</h1>
@@ -651,12 +655,14 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                 </p>
 
                 <StripesConfig
-                  wizardData={defaultPatternData}
+                  wizardData={{ colorwork: defaultColorData.colorwork }}
                   updateWizardData={(key, value) => {
-                    setDefaultPatternData(prev => ({
-                      ...prev,
-                      [key]: value
-                    }));
+                    if (key === 'colorwork') {
+                      setDefaultColorData(prev => ({
+                        ...prev,
+                        colorwork: value
+                      }));
+                    }
                   }}
                   construction={componentData.construction}
                   project={currentProject}
@@ -942,7 +948,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                                 const colorHex = yarn?.colorHex || '#f3f4f6';
                                 const colorName = yarn?.color || `Color ${letter}`;
                                 const yarnId = yarn?.id || `color-${letter}`;
-                                const isSelected = componentData.startStepColorYarnIds?.includes(yarnId);
+                                const isSelected = componentData.startStepColorYarnIds?.includes(letter);
 
                                 return (
                                   <button
