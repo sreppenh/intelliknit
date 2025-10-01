@@ -14,13 +14,13 @@ const KnittingStepInstructions = ({
     progress,
     navigation
 }) => {
-    const { description, contextualPatternNotes, contextualConfigNotes, technicalData } =
+    const { description, contextualPatternNotes, contextualColorNotes, contextualConfigNotes, technicalData } =
         getFormattedStepDisplay(step, component.name, project);
 
     const isCompleted = step.completed || false;
     const hasPatternNotes = contextualPatternNotes?.trim().length > 0;
+    const hasColorNotes = contextualColorNotes?.trim().length > 0;
     const hasConfigNotes = contextualConfigNotes?.trim().length > 0;
-    const hasBothNotes = hasPatternNotes && hasConfigNotes;
 
     const [helpExpanded, setHelpExpanded] = useState(false);
 
@@ -101,7 +101,7 @@ const KnittingStepInstructions = ({
                     </div>
 
                     {/* Pattern notes */}
-                    {(hasPatternNotes || hasConfigNotes) && (
+                    {(hasPatternNotes || hasColorNotes || hasConfigNotes) && (
                         <div className={`${theme.contentBg} backdrop-blur-sm rounded-2xl p-6 border text-left shadow-sm`}>
                             <h3 className={`text-sm font-semibold mb-4 ${theme.textPrimary}`}>
                                 Instructions
@@ -113,7 +113,17 @@ const KnittingStepInstructions = ({
                                 </div>
                             )}
 
-                            {hasBothNotes && (
+                            {hasPatternNotes && hasColorNotes && (
+                                <div className="border-t my-3 opacity-30 border-sage-300" />
+                            )}
+
+                            {hasColorNotes && (
+                                <div className={`text-sm whitespace-pre-line mb-3 ${theme.textSecondary}`}>
+                                    {contextualColorNotes}
+                                </div>
+                            )}
+
+                            {(hasPatternNotes || hasColorNotes) && hasConfigNotes && (
                                 <div className="border-t my-3 opacity-30 border-sage-300" />
                             )}
 
