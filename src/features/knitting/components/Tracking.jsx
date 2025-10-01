@@ -79,7 +79,10 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
       const afterNote = getStepAfterNote(step); // ✅ FIXED: Now in correct scope
 
       // Add prep card if prep note exists
-      if (prepNote) {
+      // ✅ NEW: Check for dynamic color changes
+      const colorInfo = getPrepCardColorInfo(step, stepIndex, activeComponent, currentProject);
+      // ✅ FIXED: Add prep card if prep note exists OR color info exists
+      if (prepNote || colorInfo) {
         items.push({
           type: 'prep',
           stepIndex,

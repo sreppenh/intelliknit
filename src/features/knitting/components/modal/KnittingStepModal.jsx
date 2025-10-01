@@ -14,6 +14,7 @@ import KnittingCelebrationCard from './KnittingCelebrationCard';
 import KnittingGaugeCard from './KnittingGaugeCard';
 import { updateProjectGaugeFromMeasurement } from '../../../../shared/utils/gaugeUtils';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
+import { getPrepCardColorInfo } from '../../../../shared/utils/prepCardUtils';
 
 const KnittingStepModal = ({
     step,
@@ -104,14 +105,17 @@ const KnittingStepModal = ({
             step.advancedWizardConfig?.prepNote ||
             '';
 
+        // ✅ NEW: Check for dynamic color changes
+        const colorInfo = getPrepCardColorInfo(step, stepIndex, component, project);
+
         // Extract assembly note (afterNote)
         const afterNote = step.afterNote ||
             step.wizardConfig?.afterNote ||
             step.advancedWizardConfig?.afterNote ||
             '';
 
-        // Add prep card if prep note exists
-        if (prepNote) {
+        // ✅ FIXED: Add prep card if prep note exists OR color info exists
+        if (prepNote || colorInfo) {
             items.push({
                 type: 'prep',
                 stepIndex,
@@ -119,7 +123,6 @@ const KnittingStepModal = ({
                 id: `prep-${stepIndex}`
             });
         }
-
         // Add main step card (always present)
         items.push({
             type: 'step',
@@ -195,7 +198,7 @@ const KnittingStepModal = ({
     const handleComponentComplete = () => setShowCelebration(true);
 
     // Theme for current step
-    const theme = getModalTheme(step);
+    const theme = getModalTheme(step, 'project', stepIndex, component, project);
     const currentItem = navigation.currentItem || carouselItems[0];
 
     const renderCardContent = () => {

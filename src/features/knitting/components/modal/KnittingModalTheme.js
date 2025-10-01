@@ -1,5 +1,6 @@
 // src/features/knitting/components/modal/KnittingModalTheme.js
 import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
+import { getPrepCardColorInfo } from '../../../../shared/utils/prepCardUtils';
 
 /**
  * Get theme configuration for knitting step modal based on step type and context
@@ -8,7 +9,7 @@ import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
  * @param {string} context - Context: 'project', 'notepad', 'note' (default: 'project')
  * @returns {Object} Theme configuration with colors and styling
  */
-export const getModalTheme = (step, context = 'project') => {
+export const getModalTheme = (step, context = 'project', stepIndex = null, component = null, project = null) => {
     // Force lavender theme for notepad context
     if (context === 'notepad' || context === 'note') {
         return {
@@ -29,8 +30,14 @@ export const getModalTheme = (step, context = 'project') => {
         step?.advancedWizardConfig?.prepNote ||
         patternName === 'Preparation';
 
+    // ✅ NEW: Also check for dynamic color changes
+    const hasDynamicColorChange = stepIndex !== null &&
+        component &&
+        project &&
+        getPrepCardColorInfo(step, stepIndex, component, project);
+
     // Lavender theme for prep cards
-    if (hasPrep && (typeof hasPrep === 'string' ? hasPrep.trim().length > 0 : true)) {
+    if ((hasPrep && (typeof hasPrep === 'string' ? hasPrep.trim().length > 0 : true)) || hasDynamicColorChange) {
         return {
             cardBg: 'bg-gradient-to-br from-lavender-50 via-lavender-25 to-white',
             contentBg: 'bg-lavender-50/30 border-lavender-200/50',

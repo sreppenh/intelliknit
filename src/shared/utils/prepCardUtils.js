@@ -112,39 +112,60 @@ const generateInitialColorText = (colorwork, project) => {
 };
 
 /**
- * Generate "Switch to Color Y" text for color changes
+ * Generate "Change to Color X" text for subsequent steps
  */
 const generateColorChangeText = (colorwork, project) => {
     if (colorwork.type === 'single') {
         const letter = colorwork.letter || colorwork.colorLetter;
 
-        if (!letter) return null;
+        if (!letter) {
+            return null;
+        }
 
         const yarn = getYarnByLetter(project?.yarns || [], letter);
         const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
-        return `Switch to Color ${yarn.letter}${yarnName}`;
+
+        return `Switch to Color ${letter}${yarnName}`;
     }
 
     if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
-        const letters = colorwork.letters || colorwork.colorLetters;
+        const letters = colorwork.letters || colorwork.colorLetters || [];
 
-        if (!letters || letters.length === 0) return null;
+        if (letters.length === 0) {
+            return null;
+        }
 
-        const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
-        const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
-        const letterList = sortedYarns.map(y => y.letter).join(' and ');
+        const letterList = letters.sort().join(', ');
 
-        const yarnNames = sortedYarns
-            .filter(y => y.color && y.color !== `Color ${y.letter}`)
-            .map(y => `${y.letter}: ${y.color}`)
-            .join(', ');
+        // Get yarn names for all colors
+        const yarnNames = letters.map(letter => {
+            const yarn = getYarnByLetter(project?.yarns || [], letter);
+            return yarn.color && yarn.color !== `Color ${letter}` ? yarn.color : null;
+        }).filter(Boolean).join(', ');
 
         const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
         return `Switch to Colors ${letterList} together${namesSuffix}`;
     }
 
     if (colorwork.type === 'stripes') {
-        return 'Switch to stripe pattern';
+        // Get the stripe sequence to show which colors are in the pattern
+        const stripeSequence = colorwork.stripeSequence || [];
+
+        if (stripeSequence.length === 0) {
+            return 'Switch to stripe pattern';
+        }
+
+        // Collect unique colors from the stripe sequence
+        const uniqueColors = [...new Set(stripeSequence.map(stripe => stripe.color))];
+
+        // Get yarn names for each color
+        const colorInfo = uniqueColors.map(letter => {
+            const yarn = getYarnByLetter(project?.yarns || [], letter);
+            const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
+            return `Color ${letter}${yarnName}`;
+        }).join(', ');
+
+        return `Switch to stripe pattern: ${colorInfo}`;
     }
 
     return null;
