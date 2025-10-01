@@ -437,10 +437,12 @@ export const getContextualConfigNotes = (step) => {
  * Returns stripe sequences, colorwork patterns, etc.
  */
 export const getContextualColorNotes = (step, project = null) => {
-    const pattern = getStepPatternName(step);
+    console.log('🎨 getContextualColorNotes CALLED for step:', step.description);
 
-    // Show stripe sequence for stripe patterns
-    if (pattern === 'Stripes') {
+    // Check colorwork data for stripes
+    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+
+    if (colorwork?.type === 'stripes') {
         return getStripeSequenceDisplay(step, project);
     }
 

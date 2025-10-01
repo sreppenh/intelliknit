@@ -376,8 +376,8 @@ export const projectsReducer = (state, action) => {
 
     case 'ADD_STEP':
       console.log('🔧 ADD_STEP - payload:', action.payload);
-      console.log('🔧 ADD_STEP - payload.wizardConfig:', action.payload.wizardConfig);
-      console.log('🔧 ADD_STEP - payload.wizardConfig.colorwork:', action.payload.wizardConfig?.colorwork);
+      console.log('🔧 ADD_STEP - payload.step.wizardConfig:', action.payload.step?.wizardConfig);
+      console.log('🔧 ADD_STEP - payload.step.wizardConfig.colorwork:', action.payload.step?.wizardConfig?.colorwork);
       console.log('🔧 Project reducer ADD_STEP processing:', action.payload.step?.description);
 
 
