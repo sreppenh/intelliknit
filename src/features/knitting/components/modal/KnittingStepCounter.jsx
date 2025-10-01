@@ -1,6 +1,6 @@
 // src/features/knitting/components/modal/KnittingStepCounter.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Minus, Target, Check, RotateCcw } from 'lucide-react';
+import { Plus, Minus, Target, Check, RotateCcw, Lock } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
 import { getRowInstruction, getStepType } from '../../../../shared/utils/KnittingInstructionService';
 import {
@@ -13,7 +13,6 @@ import SimpleRowSettings from '../SimpleRowSettings';
 import { formatReadableInstruction } from '../../../../shared/utils/stepDescriptionUtils';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
-
 
 // Gauge utilities
 import {
@@ -28,6 +27,14 @@ import {
     updateProjectGaugeFromMeasurement,
 } from '../../../../shared/utils/gaugeUtils';
 
+// ✅ NEW: Progress tracking utilities
+import {
+    getStepProgressState,
+    saveStepProgressState,
+    canStartStep,
+    PROGRESS_STATUS
+} from '../../../../shared/utils/progressTracking';
+
 const KnittingStepCounter = ({
     step,
     component,
@@ -36,9 +43,9 @@ const KnittingStepCounter = ({
     progress,
     stepIndex,
     navigation,
-    updateProject, // this doesn't seem to be set anywhere
+    updateProject,
     onToggleCompletion,
-    onClose, // Add this prop
+    onClose,
     onComponentComplete,
     onShowGaugeCard,
     onShowCelebration
@@ -46,12 +53,18 @@ const KnittingStepCounter = ({
 
     const isNotepadMode = project?.isNotepadMode || false;
 
+    // ✅ NEW: Check if step is locked (skip for notepad mode)
+    const isStepLocked = !isNotepadMode && component && project ?
+        !canStartStep(stepIndex, component.steps, component.id, project.id) :
+        false;
+
+    // ✅ NEW: Get progress state
+    const progressState = !isNotepadMode && step && component && project ?
+        getStepProgressState(step.id, component.id, project.id) :
+        null;
+
     const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step, isNotepadMode);
-
-
-    // const rowCounter = useRowCounter(project?.id, component?.id, navigation.currentStep, step);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
-
 
     // Side tracking hook
     const sideTracking = useSideTracking(project?.id, component?.id, navigation.currentStep, step, component);
@@ -66,7 +79,7 @@ const KnittingStepCounter = ({
     const isLengthStep = isLengthBasedStep(step);
     const lengthTarget = isLengthStep ? getLengthTarget(step) : null;
 
-    // Until-length starting measurement state (moved up before lengthProgressData)
+    // Until-length starting measurement state
     const startingLengthKey = `until-length-start-${project?.id}-${component?.id}-${stepIndex}`;
     const [startingLength, setStartingLength] = useState(() => {
         if (lengthTarget?.type === 'until_length') {
@@ -76,12 +89,12 @@ const KnittingStepCounter = ({
         return null;
     });
 
-    // Now calculate progress data (moved down after startingLength is defined)
     const lengthProgressData = useMemo(() => {
         return isLengthStep ? getLengthProgressDisplay(step, currentRow, project, startingLength) : null;
     }, [isLengthStep, step.wizardConfig?.duration, currentRow, project?.gauge, startingLength]);
 
     const lengthDisplayData = isLengthStep ? formatLengthCounterDisplay(lengthProgressData, construction) : null;
+
     // Store starting length when it changes
     useEffect(() => {
         if (lengthTarget?.type === 'until_length' && startingLength !== null) {
@@ -89,9 +102,25 @@ const KnittingStepCounter = ({
         }
     }, [startingLength, startingLengthKey, lengthTarget?.type]);
 
+    // ✅ NEW: Save progress to tracking system on row changes (skip for notepad mode)
+    useEffect(() => {
+        if (isNotepadMode || !step || !component || !project) return;
+        if (isStepLocked) return; // Don't save progress for locked steps
+
+        const totalRows = calculateActualTotalRows(step);
+        const isComplete = currentRow >= totalRows && totalRows > 0;
+
+        saveStepProgressState(step.id, component.id, project.id, {
+            status: isComplete ? PROGRESS_STATUS.COMPLETED : PROGRESS_STATUS.IN_PROGRESS,
+            currentRow: currentRow,
+            totalRows: totalRows || step.totalRows,
+            lastWorkedAt: new Date().toISOString(),
+            completionMethod: 'knitting_modal'
+        });
+    }, [currentRow, step?.id, component?.id, project?.id, isNotepadMode, isStepLocked]);
+
     // Side intelligence calculations
     const useSideIntelligence = shouldUseSideIntelligence(step);
-
 
     // Get starting side for this step
     const stepStartingSide = useSideIntelligence
@@ -107,6 +136,7 @@ const KnittingStepCounter = ({
 
     // Mark Complete function
     const handleMarkComplete = () => {
+        if (isStepLocked) return; // Prevent completion of locked steps
 
         if (isNotepadMode) {
             // Notepad: Complete step with full state updates
@@ -153,8 +183,6 @@ const KnittingStepCounter = ({
                     calculatedGauge: calculatedGauge
                 };
 
-                console.log('Celebration data:', celebrationData);
-
                 onShowCelebration(celebrationData);
                 return;
             }
@@ -176,12 +204,8 @@ const KnittingStepCounter = ({
         }
     };
 
-
-
     // Calculate current stitch count based on step configuration
     const calculateCurrentStitchCount = (row) => {
-
-        // ... rest of function
         const patternName = step.wizardConfig?.stitchPattern?.pattern;
         if (patternName === 'Cast On') {
             return step.endingStitches || 0;
@@ -237,14 +261,11 @@ const KnittingStepCounter = ({
             }
         }
 
-        // After the even_distribution block, add these two new blocks:
-
         // Handle marker phases shaping
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'marker_phases') {
             const config = step.wizardConfig.shapingConfig.config;
             const calculation = config?.calculation;
 
-            // Check if we have arrayEvolution data (ideal path)
             if (calculation?.arrayEvolution && Array.isArray(calculation.arrayEvolution) && calculation.arrayEvolution.length > 0) {
                 const evolutionEntry = calculation.arrayEvolution
                     .filter(entry => entry.row <= row)
@@ -255,7 +276,6 @@ const KnittingStepCounter = ({
                 }
             }
 
-            // Calculate on-the-fly using instructionData
             const sequences = config?.phases;
             if (sequences && sequences.length > 0) {
                 const sequence = sequences[0];
@@ -264,10 +284,8 @@ const KnittingStepCounter = ({
                 if (instructionData?.actions && instructionData?.phases) {
                     const markerArray = config.markerSetup?.stitchArray || [];
                     const startingStitches = markerArrayUtils.sumArrayStitches(markerArray);
-
                     const stitchChangePerIteration = markerArrayUtils.calculateStitchChangePerIteration(instructionData.actions);
 
-                    // Walk through phases to find stitch count at this row
                     let currentRow = 1;
                     let currentStitches = startingStitches;
 
@@ -283,14 +301,12 @@ const KnittingStepCounter = ({
                             const frequency = phase.regularRows;
 
                             for (let i = 0; i < times; i++) {
-                                // Regular rows (no change)
                                 for (let j = 0; j < frequency - 1; j++) {
                                     if (row === currentRow) {
                                         return currentStitches;
                                     }
                                     currentRow++;
                                 }
-                                // Shaping row (stitch change happens)
                                 if (row === currentRow) {
                                     return currentStitches + stitchChangePerIteration;
                                 }
@@ -312,19 +328,17 @@ const KnittingStepCounter = ({
                 }
             }
 
-            // Final fallback - but this should rarely be hit now
             if (row === 1) {
                 return calculation?.startingStitches || step.startingStitches || 0;
             }
             return calculation?.endingStitches || step.endingStitches || 0;
         }
+
         // Handle bind-off shaping
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'bind_off_shaping') {
-
             const calculation = step.wizardConfig.shapingConfig.config?.calculation;
 
             if (calculation?.phases) {
-                // Find which phase the current row is in
                 let currentStitchCount = calculation.startingStitches || step.startingStitches || 0;
 
                 for (const phase of calculation.phases) {
@@ -340,16 +354,13 @@ const KnittingStepCounter = ({
                     }
 
                     if (row > phaseEndRow) {
-                        // We're past this phase - apply all its stitch changes
                         currentStitchCount = phase.endingStitches;
                     } else if (row >= phaseStartRow && row <= phaseEndRow) {
-                        // We're in this phase - show stitches AFTER completing this row
                         const rowsCompleted = row - phaseStartRow + 1;
                         const stitchesPerRow = phase.stitchChange / phase.rows;
                         currentStitchCount = phase.startingStitches + (stitchesPerRow * rowsCompleted);
                         break;
                     } else {
-                        // We haven't reached this phase yet
                         break;
                     }
                 }
@@ -357,7 +368,6 @@ const KnittingStepCounter = ({
                 return Math.round(currentStitchCount);
             }
 
-            // Fallback
             if (row === 1) {
                 return calculation?.startingStitches || step.startingStitches || 0;
             }
@@ -382,40 +392,30 @@ const KnittingStepCounter = ({
     const duration = step.wizardConfig?.duration;
 
     // Determine step type
-    // Replace the stepType calculation around line 123
     const stepType = (() => {
-        // Override for notepad length-based instructions
         if (isNotepadMode && isLengthStep) {
             return 'length_based';
         }
-        // Use original logic for everything else
         return getStepType(step, totalRows, duration);
     })();
 
     // Get current instruction
-    // Replace the getCurrentInstruction function with this clean version:
-
     const getCurrentInstruction = () => {
         try {
-            // Get the actual row instruction from the step's pattern data
             const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
-            // Check for row-by-row instructions FIRST (works for both project and notepad mode)
             if (stitchPattern?.entryMode === 'row_by_row' && stitchPattern?.rowInstructions) {
                 const rowInstructions = stitchPattern.rowInstructions;
                 const rowIndex = (currentRow - 1) % rowInstructions.length;
                 const rowData = rowInstructions[rowIndex];
 
-                // Handle string format (standard case)
                 if (rowData && typeof rowData === 'string') {
                     return {
                         instruction: formatReadableInstruction(rowData),
                         isSupported: true,
                         isRowByRow: true
                     };
-                }
-                // Handle object format (fallback for legacy data)
-                else if (rowData && rowData.instruction) {
+                } else if (rowData && rowData.instruction) {
                     return {
                         instruction: formatReadableInstruction(rowData.instruction),
                         isSupported: true,
@@ -444,16 +444,13 @@ const KnittingStepCounter = ({
         const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
         if (shouldPrompt) {
             if (isNotepadMode) {
-                // Auto-save gauge for notepad mode without prompting
                 const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
                 const updatedProject = updateProjectGaugeFromMeasurement(project, promptData);
 
-                // Update project if updateProject function is available
                 if (updateProject) {
                     updateProject(updatedProject);
                 }
             } else {
-                // Show prompt for project mode
                 const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
                 setGaugePromptData(promptData);
                 setShowGaugePrompt(true);
@@ -465,7 +462,6 @@ const KnittingStepCounter = ({
         if (gaugePromptData) {
             const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
 
-            // Update project directly using the updateProject prop from the modal
             if (updateProject) {
                 updateProject(updatedProject);
             }
@@ -483,13 +479,11 @@ const KnittingStepCounter = ({
     };
 
     const handleStepComplete = () => {
+        if (isStepLocked) return; // Prevent completion of locked steps
 
-        // For notepad mode, trigger celebration instead of just completing
         if (isNotepadMode && !isCompleted && onShowCelebration) {
-            // Complete the step first
             onToggleCompletion?.(stepIndex);
 
-            // Then trigger celebration
             const celebrationData = {
                 rowsCompleted: currentRow,
                 targetLength: step.totalRows || currentRow,
@@ -499,45 +493,39 @@ const KnittingStepCounter = ({
             return;
         }
 
-        // PROJECT MODE: Check for gauge update BEFORE any completion logic
         if (!isNotepadMode && isLengthStep && !isCompleted) {
             const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
             if (shouldPrompt && onShowGaugeCard) {
-                // Show gauge card immediately without completing step yet
                 const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
                 onShowGaugeCard(promptData);
-                return; // Exit early - gauge card will handle completion
+                return;
             }
         }
 
-        // Record actual ending side when step is completed
         if (useSideIntelligence && currentSide) {
             sideTracking.recordEndingSide(currentSide, currentRow, () => { });
         }
 
-        // Commit any session changes to permanent storage  
         if (sideTracking.hasSessionChanges) {
             sideTracking.commitSideChanges(() => { });
         }
 
-        // Toggle completion (only for non-gauge cases)
         onToggleCompletion?.(stepIndex);
     };
 
     const handleLengthBasedComplete = () => {
+        if (isStepLocked) return; // Prevent completion of locked steps
+
         if (isCompleted) {
-            // Currently completed - just toggle to incomplete and stay open
             onToggleCompletion?.(stepIndex);
-            return; // Don't close modal, don't do gauge stuff
+            return;
         }
 
-        // Currently not completed - do your existing completion logic
         const rowsKnitted = currentRow;
         const targetLength = parseFloat(step.wizardConfig?.duration?.value);
         const units = step.wizardConfig?.duration?.units || project?.defaultUnits || 'inches';
 
         if (isNotepadMode && rowsKnitted > 0 && targetLength > 0) {
-            // Calculate gauge from this instruction
             const calculatedGauge = {
                 rowGauge: {
                     rows: rowsKnitted,
@@ -563,18 +551,16 @@ const KnittingStepCounter = ({
                 updateProject(updatedProject);
             }
 
-            // Check for gauge prompt
             const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
             if (shouldPrompt && onShowGaugeCard) {
                 const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
                 onShowGaugeCard(promptData);
-                return; // Stay open for gauge view
+                return;
             }
         } else {
             handleStepComplete();
         }
 
-        // Only close if no gauge prompt
         if (isNotepadMode && onClose) {
             setTimeout(() => onClose(), 100);
         }
@@ -584,14 +570,12 @@ const KnittingStepCounter = ({
         IntelliKnitLogger.debug('Row Counter', 'Auto-advancing to next step from final row completion');
 
         try {
-            // Check if we can navigate right (this handles both carousel and step navigation)
             if (navigation.canGoRight) {
                 navigation.navigateRight();
                 IntelliKnitLogger.debug('Row Counter', 'Successfully navigated to next step');
             } else {
                 if (onComponentComplete) {
                     onComponentComplete();
-                    // Wait for carousel to update, then navigate to celebration
                     setTimeout(() => {
                         if (navigation.canGoRight) {
                             navigation.navigateRight();
@@ -601,35 +585,28 @@ const KnittingStepCounter = ({
             }
         } catch (error) {
             IntelliKnitLogger.error('Row Counter Auto-advancement failed', error);
-            // Stay on current step if navigation fails
         }
     };
 
     const handleRowIncrement = () => {
-        if (stepType === 'single_action') {
+        if (isStepLocked) return; // Prevent incrementing locked steps
 
-            // For single action steps, complete and advance (don't toggle)
+        if (stepType === 'single_action') {
             if (!isCompleted) {
-                handleStepComplete(); // Only complete if not already completed
+                handleStepComplete();
             }
 
             if (!isNotepadMode) {
-                handleAutoAdvanceToNextStep(); // Auto-advance in project mode
+                handleAutoAdvanceToNextStep();
             }
             return;
         }
 
         if (stepType === 'fixed_multi_row') {
             if (isNotepadMode && currentRow === totalRows) {
-                // Final row completion - auto-complete and close
-
                 handleStepComplete();
-                {/*}   setTimeout(() => {
-                    onClose?.();
-                }, 100); */}
                 return;
-            } else if (currentRow === totalRows) { // Changed from >= to ===
-                // Project mode - final row completion, auto-complete and advance
+            } else if (currentRow === totalRows) {
                 handleStepComplete();
                 handleAutoAdvanceToNextStep();
                 return;
@@ -637,7 +614,6 @@ const KnittingStepCounter = ({
                 incrementRow();
             }
         } else if (stepType === 'length_based') {
-            // Always allow row increment for length-based
             incrementRow();
         } else {
             incrementRow();
@@ -645,6 +621,7 @@ const KnittingStepCounter = ({
     };
 
     const handleRowDecrement = () => {
+        if (isStepLocked) return; // Prevent decrementing locked steps
         if (currentRow > 1) {
             decrementRow();
         }
@@ -652,18 +629,22 @@ const KnittingStepCounter = ({
 
     // Handle pattern offset changes
     const handleSideChange = (newSide) => {
+        if (isStepLocked) return;
         sideTracking.updateSideOverride(newSide);
     };
 
     const handlePatternRowChange = (patternRow) => {
+        if (isStepLocked) return;
         sideTracking.updatePatternOffset(patternRow - 1);
     };
 
-    const canIncrement = stepType === 'length_based' ||
+    const canIncrement = !isStepLocked && (
+        stepType === 'length_based' ||
         stepType === 'completion_when_ready' ||
         stepType === 'single_action' ||
-        (stepType === 'fixed_multi_row' && currentRow <= totalRows) || // Changed < to <=
-        (isNotepadMode && stepType === 'fixed_multi_row' && currentRow === totalRows);
+        (stepType === 'fixed_multi_row' && currentRow <= totalRows) ||
+        (isNotepadMode && stepType === 'fixed_multi_row' && currentRow === totalRows)
+    );
 
     function calculateActualTotalRows(step) {
         const duration = step.wizardConfig?.duration;
@@ -678,7 +659,6 @@ const KnittingStepCounter = ({
             }
         }
 
-        // ✅ NEW: Handle color repeats
         if (duration?.type === 'color_repeats') {
             const repeats = parseInt(duration.value) || 0;
             const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
@@ -697,11 +677,9 @@ const KnittingStepCounter = ({
 
     // Get display text for row with length intelligence
     const getRowDisplayText = () => {
-        // For length-based steps, use the gauge-aware display
         if (isLengthStep && lengthDisplayData) {
             let rowText = lengthDisplayData.rowText;
 
-            // Add side info for flat construction with side intelligence
             if (useSideIntelligence && construction === 'flat' && currentSide) {
                 rowText += ` (${currentSide})`;
             }
@@ -709,19 +687,16 @@ const KnittingStepCounter = ({
             return rowText;
         }
 
-        // Original logic for non-length steps
         const rowTerm = construction === 'round' ? 'Round' : 'Row';
 
         if (stepType === 'single_action') {
             return '';
         }
 
-        // Base row text
         let rowText = stepType === 'fixed_multi_row'
             ? `${rowTerm} ${currentRow} of ${totalRows}`
             : `${rowTerm} ${currentRow}`;
 
-        // Add side info only for flat construction with side intelligence
         if (useSideIntelligence && construction === 'flat' && currentSide) {
             rowText += ` (${currentSide})`;
         }
@@ -745,7 +720,18 @@ const KnittingStepCounter = ({
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
                 <div className="knitting-content-sage backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
 
-
+                    {/* ✅ NEW: Locked Step Warning */}
+                    {isStepLocked && (
+                        <div className="mb-4 p-4 bg-gray-100 border-2 border-gray-300 rounded-xl">
+                            <div className="flex items-center justify-center gap-2 mb-2">
+                                <Lock size={20} className="text-gray-500" />
+                                <span className="text-sm font-semibold text-gray-700">Step Locked</span>
+                            </div>
+                            <p className="text-xs text-gray-600">
+                                Complete previous steps first to work on this step.
+                            </p>
+                        </div>
+                    )}
 
                     {/* Row Display with Side Intelligence */}
                     {stepType !== 'single_action' && (
@@ -753,8 +739,6 @@ const KnittingStepCounter = ({
                             {getRowDisplayText()}
                         </div>
                     )}
-
-
 
                     <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed mb-4`}>
                         {instructionResult.instruction || 'Loading instruction...'}
@@ -782,7 +766,6 @@ const KnittingStepCounter = ({
                         {getProgressInfoText()}
                     </div>
 
-
                     {/* Gauge availability notice */}
                     {isLengthStep && lengthProgressData && !lengthProgressData.hasGauge && currentRow === 1 && (
                         <div className="bg-sage-50 border border-sage-200 rounded-lg p-3 mb-4">
@@ -793,13 +776,12 @@ const KnittingStepCounter = ({
                     )}
 
                     {/* PRIMARY ACTION AREA */}
-                    {/* Always show row counter interface for all steps */}
                     <div className="space-y-4">
                         {/* Row Counter - centered and prominent */}
                         <div className="flex items-center justify-center gap-4">
                             <button
                                 onClick={handleRowDecrement}
-                                disabled={currentRow <= 1}
+                                disabled={currentRow <= 1 || isStepLocked}
                                 className="p-3 rounded-full bg-orange-100 hover:bg-orange-200 disabled:bg-gray-100 disabled:text-gray-400 text-orange-600 hover:text-orange-700 transition-colors disabled:cursor-not-allowed"
                             >
                                 <RotateCcw size={18} />
@@ -838,9 +820,12 @@ const KnittingStepCounter = ({
                         {stepType === 'length_based' && (
                             <button
                                 onClick={isNotepadMode ? handleLengthBasedComplete : handleMarkComplete}
-                                className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isCompleted
-                                    ? 'bg-sage-500 text-white hover:bg-sage-600'
-                                    : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
+                                disabled={isStepLocked}
+                                className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isStepLocked
+                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                        : isCompleted
+                                            ? 'bg-sage-500 text-white hover:bg-sage-600'
+                                            : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
                                     }`}
                             >
                                 {isCompleted ? 'Mark incomplete' : 'Mark Complete'}
@@ -854,14 +839,10 @@ const KnittingStepCounter = ({
                             </div>
                         )}
                     </div>
-
-
-
                 </div>
 
                 {/* Row 1 Settings - Clean & Simple */}
-                {!isNotepadMode && currentRow === 1 && (useSideIntelligence || lengthTarget?.type === 'until_length') && (
-
+                {!isNotepadMode && !isStepLocked && currentRow === 1 && (useSideIntelligence || lengthTarget?.type === 'until_length') && (
                     <SimpleRowSettings
                         step={step}
                         construction={construction}
