@@ -107,11 +107,15 @@ const KnittingStepCounter = ({
         if (isNotepadMode || !step || !component || !project) return;
         if (isStepLocked) return; // Don't save progress for locked steps
 
-        const totalRows = calculateActualTotalRows(step);
-        const isComplete = currentRow >= totalRows && totalRows > 0;
+        // ✅ NEW: Don't overwrite completed status
+        const existingProgress = getStepProgressState(step.id, component.id, project.id);
+        if (existingProgress.status === PROGRESS_STATUS.COMPLETED) {
+            return; // Step is already complete, don't change it
+        }
 
+        const totalRows = calculateActualTotalRows(step);
         saveStepProgressState(step.id, component.id, project.id, {
-            status: isComplete ? PROGRESS_STATUS.COMPLETED : PROGRESS_STATUS.IN_PROGRESS,
+            status: PROGRESS_STATUS.IN_PROGRESS,
             currentRow: currentRow,
             totalRows: totalRows || step.totalRows,
             lastWorkedAt: new Date().toISOString(),
@@ -481,6 +485,19 @@ const KnittingStepCounter = ({
     const handleStepComplete = () => {
         if (isStepLocked) return; // Prevent completion of locked steps
 
+        // ✅ NEW: Save completion to progress system FIRST (project mode only)
+        if (!isNotepadMode && step && component && project) {
+            const totalRows = calculateActualTotalRows(step);
+            saveStepProgressState(step.id, component.id, project.id, {
+                status: PROGRESS_STATUS.COMPLETED,
+                currentRow: totalRows,
+                totalRows: totalRows,
+                completedAt: new Date().toISOString(),
+                completionMethod: 'knitting_modal'
+            });
+        }
+
+        // Notepad mode celebration
         if (isNotepadMode && !isCompleted && onShowCelebration) {
             onToggleCompletion?.(stepIndex);
 
@@ -493,6 +510,7 @@ const KnittingStepCounter = ({
             return;
         }
 
+        // Length-based gauge update check
         if (!isNotepadMode && isLengthStep && !isCompleted) {
             const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
             if (shouldPrompt && onShowGaugeCard) {
@@ -502,6 +520,7 @@ const KnittingStepCounter = ({
             }
         }
 
+        // Side tracking
         if (useSideIntelligence && currentSide) {
             sideTracking.recordEndingSide(currentSide, currentRow, () => { });
         }
@@ -510,7 +529,6 @@ const KnittingStepCounter = ({
             sideTracking.commitSideChanges(() => { });
         }
 
-        onToggleCompletion?.(stepIndex);
     };
 
     const handleLengthBasedComplete = () => {
@@ -822,10 +840,10 @@ const KnittingStepCounter = ({
                                 onClick={isNotepadMode ? handleLengthBasedComplete : handleMarkComplete}
                                 disabled={isStepLocked}
                                 className={`w-full py-3 rounded-xl font-medium transition-all duration-200 ${isStepLocked
-                                        ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                                        : isCompleted
-                                            ? 'bg-sage-500 text-white hover:bg-sage-600'
-                                            : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
+                                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                                    : isCompleted
+                                        ? 'bg-sage-500 text-white hover:bg-sage-600'
+                                        : 'bg-sage-100 hover:bg-sage-200 text-sage-700 border-2 border-sage-300 hover:border-sage-400'
                                     }`}
                             >
                                 {isCompleted ? 'Mark incomplete' : 'Mark Complete'}

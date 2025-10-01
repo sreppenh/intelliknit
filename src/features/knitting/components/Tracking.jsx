@@ -106,20 +106,41 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
     // Handle IN_PROGRESS steps
     if (progress.status === PROGRESS_STATUS.IN_PROGRESS) {
       const remaining = (progress.totalRows || step.totalRows) - progress.currentRow;
+      const finalRow = progress.totalRows || step.totalRows;
 
       setConfirmDialogData({
         title: 'Complete Remaining Rows?',
         message: `Mark the remaining ${remaining} rows as complete?`,
         onConfirm: () => {
+          // Save to progress system
           saveStepProgressState(step.id, component.id, currentProject.id, {
             status: PROGRESS_STATUS.COMPLETED,
-            currentRow: progress.totalRows || step.totalRows,
-            totalRows: progress.totalRows || step.totalRows,
+            currentRow: finalRow,
+            totalRows: finalRow,
             completionMethod: 'checkbox',
             completedAt: new Date().toISOString()
           });
+
+          // Update row counter
+          console.log('Updating row counter:', {
+            stepIndex,
+            finalRow,
+            key: `row-counter-${currentProject.id}-${component.id}-${stepIndex}`
+          });
+
+          // ✅ NEW: Also update the row counter localStorage
+          const rowCounterKey = `row-counter-${currentProject.id}-${component.id}-${step.id}`;
+          const rowCounterState = {
+            currentRow: finalRow,
+            stitchCount: step.endingStitches || step.startingStitches || 0,
+            lastUpdated: Date.now()
+          };
+          localStorage.setItem(rowCounterKey, JSON.stringify(rowCounterState));
+
+          console.log('After setItem:', localStorage.getItem(rowCounterKey));
+
           setShowConfirmDialog(false);
-          dispatch({ type: 'REFRESH_PROJECT' });
+          setRefreshTrigger(prev => prev + 1);
         },
         onCancel: () => {
           setShowConfirmDialog(false);
@@ -142,7 +163,7 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
         title: '⚠️ Frog This Step?',
         message: 'This will reset all progress for this step. Are you sure?',
         onConfirm: () => {
-          clearStepProgressState(step.id, component.id, currentProject.id);
+          clearStepProgressState(step.id, component.id, currentProject.id, stepIndex);
           setShowConfirmDialog(false);
           setRefreshTrigger(prev => prev + 1);
         },
@@ -159,14 +180,18 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
 
   // ✅ LEGACY: Keep old handler for backward compatibility with modal
   const handleToggleStepCompletion = useCallback((componentIndex, stepIndex, updatedProject = null) => {
-    // Redirect to new checkbox handler
-    handleCheckboxClick(componentIndex, stepIndex);
+    // ✅ CHANGED: Don't redirect to checkbox handler anymore
+    // The modal handles its own completion via progress system
+    // This is only for legacy compatibility
 
-    // Update project if gauge data was provided
+    // Just update project if gauge data was provided
     if (updatedProject) {
       updateProject(updatedProject);
     }
-  }, [handleCheckboxClick, updateProject]);
+
+    // Force refresh to show updated state
+    setRefreshTrigger(prev => prev + 1);
+  }, [updateProject]);
 
   const handleComponentTabClick = useCallback((index) => {
     setLocalActiveIndex(index);
@@ -381,12 +406,12 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                     key={item.id}
                     onClick={() => !isBlocked && handleStepClick(stepIndex)}
                     className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 ${isBlocked
-                        ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60'
-                        : isCompleted
-                          ? 'bg-sage-50 border-sage-300 cursor-pointer hover:shadow-md'
-                          : isCurrentStep
-                            ? 'bg-yarn-50 border-sage-400 shadow-md cursor-pointer hover:shadow-lg'
-                            : 'bg-white border-gray-200 cursor-pointer hover:border-gray-300 hover:shadow-md'
+                      ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60'
+                      : isCompleted
+                        ? 'bg-sage-50 border-sage-300 cursor-pointer hover:shadow-md'
+                        : isCurrentStep
+                          ? 'bg-yarn-50 border-sage-400 shadow-md cursor-pointer hover:shadow-lg'
+                          : 'bg-white border-gray-200 cursor-pointer hover:border-gray-300 hover:shadow-md'
                       }`}
                   >
                     <div className="flex items-start gap-3">
@@ -432,12 +457,12 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
 
                         {/* Main Description */}
                         <div className={`text-base font-medium mb-2 text-left ${isCompleted
-                            ? 'text-gray-500 line-through'
-                            : isBlocked
-                              ? 'text-gray-400'
-                              : isCurrentStep
-                                ? 'text-gray-900'
-                                : 'text-gray-800'
+                          ? 'text-gray-500 line-through'
+                          : isBlocked
+                            ? 'text-gray-400'
+                            : isCurrentStep
+                              ? 'text-gray-900'
+                              : 'text-gray-800'
                           }`}>
                           {description}
                         </div>

@@ -81,10 +81,17 @@ export const saveStepProgressState = (stepId, componentId, projectId, progressSt
 /**
  * Clear progress state for a specific step (frogging)
  */
-export const clearStepProgressState = (stepId, componentId, projectId) => {
+export const clearStepProgressState = (stepId, componentId, projectId, stepIndex = null) => {
+    // Clear from progress tracking system
     const allProgress = getAllProgressData(projectId, componentId);
     delete allProgress[stepId];
     saveAllProgressData(projectId, componentId, allProgress);
+
+    // ✅ NEW: Also clear the row counter localStorage if stepIndex provided
+    if (stepIndex !== null) {
+        const rowCounterKey = `row-counter-${projectId}-${componentId}-${stepIndex}`;
+        localStorage.removeItem(rowCounterKey);
+    }
 };
 
 /**
