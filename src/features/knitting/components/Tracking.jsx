@@ -152,18 +152,31 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
       return;
     }
 
-    // Handle COMPLETED steps (unchecking/frogging)
+    // When user clicks checkbox on a COMPLETED step (any completed step)
     if (progress.status === PROGRESS_STATUS.COMPLETED) {
-      if (!canUncheckStep(stepIndex, component.steps, component.id, currentProject.id)) {
-        alert('⚠️ Can only uncheck the most recently completed step.\n\nComplete or reset later steps first.');
-        return;
+      // Find all steps after this one
+      const stepsToReset = [];
+      for (let i = stepIndex + 1; i < component.steps.length; i++) {
+        stepsToReset.push(component.steps[i]);
       }
 
+      const resetMessage = stepsToReset.length > 0
+        ? `This will reset all steps from Step ${stepIndex + 1} through Step ${stepsToReset.length + stepIndex + 1}. You will lose all progress on these steps.`
+        : `This will reset Step ${stepIndex + 1}.`;
+
       setConfirmDialogData({
-        title: '⚠️ Frog This Step?',
-        message: 'This will reset all progress for this step. Are you sure?',
+        title: '⚠️ Frog Steps?',
+        message: resetMessage,
         onConfirm: () => {
+          // Clear this step
           clearStepProgressState(step.id, component.id, currentProject.id, stepIndex);
+
+          // Clear all subsequent steps
+          stepsToReset.forEach((s, idx) => {
+            const actualStepIndex = stepIndex + 1 + idx;
+            clearStepProgressState(s.id, component.id, currentProject.id, actualStepIndex);
+          });
+
           setShowConfirmDialog(false);
           setRefreshTrigger(prev => prev + 1);
         },
