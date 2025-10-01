@@ -113,10 +113,6 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
       initialData.colorwork = JSON.parse(JSON.stringify(component.defaultColorwork)); // ✅ Deep copy
 
     } else if (component?.colorMode === 'single' && component?.singleColorYarnId) {
-      console.log('🚨 CREATING COLORWORK FROM SINGLE COLOR COMPONENT:', {
-        colorMode: component.colorMode,
-        singleColorYarnId: component.singleColorYarnId
-      });
 
       // ✅ FIX: For single-color components, create colorwork from singleColorYarnId
       let letter = component.singleColorYarnId;

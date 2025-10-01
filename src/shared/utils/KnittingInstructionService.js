@@ -55,9 +55,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
 
     // Priority 3: Colorwork patterns (before algorithmic check)
     if (isColorworkPattern(patternName, step)) {
-        console.log('🎨 Calling getColorworkInstruction');
         const colorworkResult = getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project);
-        console.log('🎨 Colorwork result:', colorworkResult);
         if (colorworkResult?.instruction) {
             return {
                 ...colorworkResult,
@@ -835,7 +833,6 @@ function isColorworkPattern(patternName, step) {
     const colorworkPatterns = ['Stripes', 'Fair Isle', 'Intarsia', 'Stranded Colorwork', 'Mosaic'];
 
     if (colorworkPatterns.includes(patternName)) {
-        console.log('🎨 isColorworkPattern: TRUE (pattern name match)', patternName);
         return true;
     }
 
@@ -844,13 +841,6 @@ function isColorworkPattern(patternName, step) {
         step?.advancedWizardConfig?.colorwork;
 
     const hasStripes = colorwork?.type === 'stripes' || colorwork?.advancedType === 'stripes';
-    console.log('🎨 isColorworkPattern check:', {
-        patternName,
-        hasColorwork: !!colorwork,
-        colorworkType: colorwork?.type,
-        hasStripes,
-        result: hasStripes
-    });
 
     return hasStripes;
 }
@@ -859,10 +849,6 @@ function isColorworkPattern(patternName, step) {
  * Generate colorwork instructions with intelligent color tracking
  */
 function getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project) {
-    console.log('🎨 getColorworkInstruction called:', {
-        patternName,
-        stepStitchPattern: step.wizardConfig?.stitchPattern
-    });
 
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
@@ -870,7 +856,6 @@ function getColorworkInstruction(step, currentRow, currentStitchCount, construct
     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
 
     if (patternName === 'Stripes' || colorwork?.type === 'stripes' || colorwork?.advancedType === 'stripes') {
-        console.log('🎨 Detected stripes, calling getStripeInstruction');
         return getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project);
     }
 
@@ -892,11 +877,6 @@ function getColorworkInstruction(step, currentRow, currentStitchCount, construct
  * Generate intelligent stripe instructions with current color tracking 
  */
 function getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project) {
-    console.log('🎨 getStripeInstruction called:', {
-        currentRow,
-        stitchPattern,
-        stripeSequence: stitchPattern?.stripeSequence
-    });
 
     // ✅ FIX: Get stripe sequence from colorwork, not stitchPattern
     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
@@ -1068,13 +1048,10 @@ function formatBaseInstruction(instruction) {
  */
 function getBasePatternForCurrentRow(step, currentRow, currentStitchCount, construction, project) {
     const patternName = getStepPatternName(step);
-    console.log('🎨 getBasePatternForCurrentRow:', patternName, 'row:', currentRow);
 
     // Handle colorwork patterns (like striping)
     if (isColorworkPattern(patternName, step)) {
-        console.log('🎨 Detected as colorwork, calling getColorworkInstruction');
         const colorworkResult = getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project);
-        console.log('🎨 Colorwork result:', colorworkResult);
         if (colorworkResult?.instruction) {
             // Strip the "Row X:" prefix if it exists
             return colorworkResult.instruction.replace(/^(?:Row|Round)\s+\d+:\s*/, '');
