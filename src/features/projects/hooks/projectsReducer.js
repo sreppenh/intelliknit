@@ -375,11 +375,6 @@ export const projectsReducer = (state, action) => {
       };
 
     case 'ADD_STEP':
-      console.log('🔧 ADD_STEP - payload:', action.payload);
-      console.log('🔧 ADD_STEP - payload.step.wizardConfig:', action.payload.step?.wizardConfig);
-      console.log('🔧 ADD_STEP - payload.step.wizardConfig.colorwork:', action.payload.step?.wizardConfig?.colorwork);
-      console.log('🔧 Project reducer ADD_STEP processing:', action.payload.step?.description);
-
 
       if (!state.currentProject) {
         IntelliKnitLogger.error('ADD_STEP: No current project');

@@ -15,13 +15,6 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     useCurrentStitches = false
   } = options;
 
-  console.log('🔧 createStepObject - wizard:', wizard);
-  console.log('🔧 createStepObject - wizard.wizardData:', wizard.wizardData);
-  console.log('🔧 createStepObject - wizard.wizardData.colorwork:', wizard.wizardData?.colorwork);
-
-  // 🎯 FIX: Debug colorwork access
-  console.log('🔧 createStepObject - wizard.wizardData.colorwork:', wizard.wizardData.colorwork);
-
   const stepObject = {
     description: instruction,
     type: forceManualType ? 'manual' : (effect.success ? 'calculated' : 'manual'),
@@ -46,14 +39,6 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     ...(includeNavigation && wizard.navigationStack && { navigationStack: wizard.navigationStack }),
     ...(includeNavigation && wizard.navigationCache && { navigationCache: wizard.navigationCache })
   };
-
-  console.log('🔧 createStepObject - wizard.wizardData.colorwork:', wizard.wizardData.colorwork);
-
-  // 🎯 DEBUG: Log the final step object colorwork
-  console.log('🔧 createStepObject - final stepObject.colorwork:', stepObject.colorwork);
-
-  console.log('🔧 createStepObject - stepObject:', stepObject);
-  console.log('🔧 createStepObject - stepObject.wizardConfig:', stepObject.wizardConfig);
 
   return stepObject;
 };
@@ -109,20 +94,13 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
     const instruction = generateInstruction(wizard.wizardData);
     const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
 
-    console.log('🔧 Effect analysis:', {
-      effectSuccess: effect.success,
-      instructionText: instruction,
-      effectHasMultipleSteps: effect.steps ? effect.steps.length : 'no steps array',
-      effectStructure: Object.keys(effect)
-    });
-
     // ✅ USE HELPER: Create step object for debugging
     const stepObject = createStepObject(instruction, effect, wizard);
 
     if (wizard.isEditing) {
       // Update existing step
       const updateActionType = mode === 'notepad' ? 'UPDATE_STEP_IN_NOTE' : 'UPDATE_STEP';
-      console.log(`🔧 Dispatching ${updateActionType}`);
+
       dispatch({
         type: updateActionType,
         payload: {
@@ -158,7 +136,6 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
     }
 
     // Navigate back to component detail
-    console.log('🔧 About to call onBack()');
     onBack();
   };
 

@@ -104,15 +104,13 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     if (component?.defaultPattern) {
       initialData.stitchPattern = {
         ...initialData.stitchPattern,
-        ...component.defaultPattern
+        ...JSON.parse(JSON.stringify(component.defaultPattern)) // ✅ Deep copy
       };
     }
 
     // Apply component colorwork default if exists
     if (component?.defaultColorwork) {
-      initialData.colorwork = {
-        ...component.defaultColorwork
-      };
+      initialData.colorwork = JSON.parse(JSON.stringify(component.defaultColorwork)); // ✅ Deep copy
     } else if (component?.colorMode === 'single' && component?.singleColorYarnId) {
       console.log('🚨 CREATING COLORWORK FROM SINGLE COLOR COMPONENT:', {
         colorMode: component.colorMode,
@@ -132,13 +130,6 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
         letter: letter
       };
     }
-
-    console.log('🔧 WIZARD COLORWORK CHECK:', {
-      hasDefaultColorwork: !!component?.defaultColorwork,
-      defaultColorwork: component?.defaultColorwork,
-      finalColorwork: initialData.colorwork
-    });
-
 
     return initialData;
   });
@@ -297,7 +288,6 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     nextStep: () => {
 
       const nextStep = getNextStep(smartNav.currentStep);
-      console.log('Next step calculated:', nextStep);
       smartNav.goToStep(nextStep);
     },
 

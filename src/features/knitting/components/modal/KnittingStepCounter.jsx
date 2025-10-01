@@ -180,12 +180,6 @@ const KnittingStepCounter = ({
 
     // Calculate current stitch count based on step configuration
     const calculateCurrentStitchCount = (row) => {
-        console.log('🔍 calculateCurrentStitchCount called', {
-            row,
-            stepPattern: step.wizardConfig?.stitchPattern?.pattern,
-            hasShaping: step.wizardConfig?.hasShaping,
-            shapingType: step.wizardConfig?.shapingConfig?.type
-        });
 
         // ... rest of function
         const patternName = step.wizardConfig?.stitchPattern?.pattern;
@@ -326,9 +320,8 @@ const KnittingStepCounter = ({
         }
         // Handle bind-off shaping
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'bind_off_shaping') {
-            console.log('📤 Bind-off shaping detected');
+
             const calculation = step.wizardConfig.shapingConfig.config?.calculation;
-            console.log('Calculation phases:', calculation?.phases);
 
             if (calculation?.phases) {
                 // Find which phase the current row is in
@@ -529,7 +522,6 @@ const KnittingStepCounter = ({
 
         // Toggle completion (only for non-gauge cases)
         onToggleCompletion?.(stepIndex);
-        console.log('🔧 handleStepComplete finished');
     };
 
     const handleLengthBasedComplete = () => {

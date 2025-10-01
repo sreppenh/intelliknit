@@ -39,6 +39,14 @@ const DurationChoice = ({
   const patternHasRepeats = wizardData.stitchPattern?.rowsInPattern &&
     parseInt(wizardData.stitchPattern.rowsInPattern) > 1;
 
+  // ✅ DEBUG: Check what colorwork data we have
+  console.log('🎨 DurationChoice colorwork check:', {
+    hasColorwork: !!wizardData.colorwork,
+    colorworkType: wizardData.colorwork?.type,
+    stripeSequence: wizardData.colorwork?.stripeSequence,
+    fullWizardData: wizardData
+  });
+
   // ✅ NEW: Check if color pattern exists
   const hasColorPattern = wizardData.colorwork?.type === 'stripes' &&
     wizardData.colorwork?.stripeSequence?.length > 0;
