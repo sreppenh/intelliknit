@@ -1,440 +1,427 @@
-// src/shared/utils/gaugeUtils.js
+// src/shared/utils/progressTracking.js
 
 /**
- * Gauge-Aware Length Calculation Utilities
+ * Progress Tracking Utilities - Sequential Step Completion System
  * 
- * Transforms "work until X inches" from guesswork into intelligent, 
- * gauge-aware progress tracking with adaptive learning.
+ * Manages step-by-step progress with:
+ * - Sequential enforcement (can't skip steps)
+ * - Row-level tracking for in-progress steps
+ * - Smart completion inference for checkbox clicks
+ * - Frogging protection (can only uncheck most recent)
  */
 
-// ===== STEP TYPE DETECTION =====
+import { isLengthBasedStep, estimateRowsFromLength } from './gaugeUtils';
+
+// ===== STORAGE KEY GENERATION =====
 
 /**
- * Determine if a step is length-based
+ * Generate consistent localStorage key for progress tracking
  */
-export const isLengthBasedStep = (step) => {
-    const duration = step.wizardConfig?.duration;
-    return duration?.type === 'length' || duration?.type === 'until_length';
+export const getProgressStorageKey = (projectId, componentId) => {
+    return `knitting-progress-${projectId}-${componentId}`;
 };
 
 /**
- * Get length target information from step
+ * Get all progress data for a component
  */
-export const getLengthTarget = (step) => {
-    const duration = step.wizardConfig?.duration;
+export const getAllProgressData = (projectId, componentId) => {
+    try {
+        const key = getProgressStorageKey(projectId, componentId);
+        const data = localStorage.getItem(key);
+        return data ? JSON.parse(data) : {};
+    } catch (error) {
+        console.warn('Error reading progress data:', error);
+        return {};
+    }
+};
 
-    if (!isLengthBasedStep(step)) {
-        return null;
+/**
+ * Save all progress data for a component
+ */
+export const saveAllProgressData = (projectId, componentId, progressData) => {
+    try {
+        const key = getProgressStorageKey(projectId, componentId);
+        localStorage.setItem(key, JSON.stringify(progressData));
+    } catch (error) {
+        console.error('Error saving progress data:', error);
+    }
+};
+
+// ===== PROGRESS STATE MANAGEMENT =====
+
+/**
+ * Progress state types
+ */
+export const PROGRESS_STATUS = {
+    NOT_STARTED: 'not_started',
+    IN_PROGRESS: 'in_progress',
+    COMPLETED: 'completed'
+};
+
+/**
+ * Get progress state for a specific step
+ */
+export const getStepProgressState = (stepId, componentId, projectId) => {
+    const allProgress = getAllProgressData(projectId, componentId);
+    return allProgress[stepId] || { status: PROGRESS_STATUS.NOT_STARTED };
+};
+
+/**
+ * Save progress state for a specific step
+ */
+export const saveStepProgressState = (stepId, componentId, projectId, progressState) => {
+    const allProgress = getAllProgressData(projectId, componentId);
+    allProgress[stepId] = {
+        ...progressState,
+        lastUpdated: new Date().toISOString()
+    };
+    saveAllProgressData(projectId, componentId, allProgress);
+};
+
+/**
+ * Clear progress state for a specific step (frogging)
+ */
+export const clearStepProgressState = (stepId, componentId, projectId) => {
+    const allProgress = getAllProgressData(projectId, componentId);
+    delete allProgress[stepId];
+    saveAllProgressData(projectId, componentId, allProgress);
+};
+
+/**
+ * Clear all progress for a component
+ */
+export const clearAllProgress = (projectId, componentId) => {
+    const key = getProgressStorageKey(projectId, componentId);
+    localStorage.removeItem(key);
+};
+
+// ===== SEQUENTIAL ENFORCEMENT =====
+
+/**
+ * Check if a step can be started (previous step must be completed)
+ */
+export const canStartStep = (stepIndex, steps, componentId, projectId) => {
+    // First step can always be started
+    if (stepIndex === 0) return true;
+
+    // Check if previous step is completed
+    const previousStep = steps[stepIndex - 1];
+    if (!previousStep) return false;
+
+    const prevProgress = getStepProgressState(previousStep.id, componentId, projectId);
+    return prevProgress.status === PROGRESS_STATUS.COMPLETED;
+};
+
+/**
+ * Check if a step can be unchecked (only most recent completed step)
+ */
+export const canUncheckStep = (stepIndex, steps, componentId, projectId) => {
+    const step = steps[stepIndex];
+    if (!step) return false;
+
+    // Step must be completed to uncheck
+    const progress = getStepProgressState(step.id, componentId, projectId);
+    if (progress.status !== PROGRESS_STATUS.COMPLETED) return false;
+
+    // All subsequent steps must be not_started
+    for (let i = stepIndex + 1; i < steps.length; i++) {
+        const nextStep = steps[i];
+        const nextProgress = getStepProgressState(nextStep.id, componentId, projectId);
+        if (nextProgress.status !== PROGRESS_STATUS.NOT_STARTED) {
+            return false;
+        }
     }
 
+    return true;
+};
+
+/**
+ * Get the current active step index (first in-progress or not-started after completed)
+ */
+export const getCurrentStepIndex = (steps, componentId, projectId) => {
+    for (let i = 0; i < steps.length; i++) {
+        const step = steps[i];
+        const progress = getStepProgressState(step.id, componentId, projectId);
+
+        if (progress.status === PROGRESS_STATUS.IN_PROGRESS) {
+            return i; // Return first in-progress step
+        }
+
+        if (progress.status === PROGRESS_STATUS.NOT_STARTED) {
+            // Check if this step can be started
+            if (canStartStep(i, steps, componentId, projectId)) {
+                return i; // Return first available not-started step
+            }
+        }
+    }
+
+    // All steps completed or no available steps
+    return steps.length; // Beyond last step
+};
+
+// ===== SMART COMPLETION INFERENCE =====
+
+/**
+ * Infer progress data when completing a step via checkbox
+ * Handles fixed-row, repeat-based, and length-based steps
+ */
+export const inferProgressFromStep = (step, project = null) => {
+    const result = {
+        currentRow: null,
+        totalRows: null,
+        estimatedRows: null,
+        completionMethod: 'checkbox'
+    };
+
+    // Length-based steps - estimate using gauge
+    if (isLengthBasedStep(step)) {
+        const duration = step.wizardConfig?.duration;
+        const targetLength = parseFloat(duration?.value) || 0;
+        const targetUnits = duration?.units || 'inches';
+
+        const estimatedRows = estimateRowsFromLength(targetLength, targetUnits, project);
+
+        if (estimatedRows) {
+            result.estimatedRows = estimatedRows;
+            result.currentRow = estimatedRows; // Best guess
+            result.totalRows = null; // Unknown actual total
+        } else {
+            // No gauge - mark as unknown
+            result.currentRow = null;
+            result.totalRows = null;
+            result.estimatedRows = null;
+        }
+
+        return result;
+    }
+
+    // Fixed row count or repeat-based - use totalRows
+    if (step.totalRows) {
+        result.currentRow = step.totalRows;
+        result.totalRows = step.totalRows;
+        return result;
+    }
+
+    // Fallback - single row
+    result.currentRow = 1;
+    result.totalRows = 1;
+    return result;
+};
+
+/**
+ * Check if a step needs row count verification after checkbox completion
+ * (primarily for length-based steps with no gauge)
+ */
+export const needsRowVerification = (step, project = null) => {
+    if (!isLengthBasedStep(step)) return false;
+
+    const duration = step.wizardConfig?.duration;
+    const targetLength = parseFloat(duration?.value) || 0;
+    const targetUnits = duration?.units || 'inches';
+
+    const estimatedRows = estimateRowsFromLength(targetLength, targetUnits, project);
+
+    // Needs verification if we couldn't estimate
+    return !estimatedRows;
+};
+
+// ===== PROGRESS DISPLAY HELPERS =====
+
+/**
+ * Get human-readable progress summary for a step
+ */
+export const getProgressSummary = (stepId, componentId, projectId, step = null) => {
+    const progress = getStepProgressState(stepId, componentId, projectId);
+
+    switch (progress.status) {
+        case PROGRESS_STATUS.NOT_STARTED:
+            return {
+                status: 'not_started',
+                text: 'Not started',
+                canInteract: true
+            };
+
+        case PROGRESS_STATUS.IN_PROGRESS:
+            const currentRow = progress.currentRow || 1;
+            const totalRows = progress.totalRows || step?.totalRows;
+
+            if (totalRows && totalRows > 1) {
+                return {
+                    status: 'in_progress',
+                    text: `Row ${currentRow} of ${totalRows}`,
+                    currentRow,
+                    totalRows,
+                    canInteract: true
+                };
+            }
+
+            return {
+                status: 'in_progress',
+                text: `Row ${currentRow}`,
+                currentRow,
+                canInteract: true
+            };
+
+        case PROGRESS_STATUS.COMPLETED:
+            const completedAt = progress.completedAt;
+            const wasCheckbox = progress.completionMethod === 'checkbox';
+
+            return {
+                status: 'completed',
+                text: 'Completed',
+                completedAt,
+                wasCheckbox,
+                canInteract: true
+            };
+
+        default:
+            return {
+                status: 'unknown',
+                text: 'Unknown',
+                canInteract: false
+            };
+    }
+};
+
+/**
+ * Get progress statistics for a component
+ */
+export const getComponentProgressStats = (steps, componentId, projectId) => {
+    let completed = 0;
+    let inProgress = 0;
+    let notStarted = 0;
+
+    steps.forEach(step => {
+        const progress = getStepProgressState(step.id, componentId, projectId);
+        switch (progress.status) {
+            case PROGRESS_STATUS.COMPLETED:
+                completed++;
+                break;
+            case PROGRESS_STATUS.IN_PROGRESS:
+                inProgress++;
+                break;
+            case PROGRESS_STATUS.NOT_STARTED:
+                notStarted++;
+                break;
+        }
+    });
+
+    const total = steps.length;
+    const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+
     return {
-        value: parseFloat(duration.value) || 0,
-        units: duration.units || 'inches',
-        type: duration.type // 'length' or 'until_length'
+        completed,
+        inProgress,
+        notStarted,
+        total,
+        percentage,
+        isComplete: completed === total
     };
 };
 
-// ===== GAUGE CALCULATIONS =====
+// ===== MIGRATION HELPERS =====
 
 /**
- * Get row gauge from project in rows per inch
+ * Migrate old completion flags to new progress system
+ * Call this once to migrate existing projects
  */
-export const getRowGaugePerInch = (project) => {
-    const rowGauge = project?.gauge?.rowGauge;
+export const migrateOldCompletionFlags = (component, projectId) => {
+    const componentId = component.id;
+    const allProgress = getAllProgressData(projectId, componentId);
 
-    if (!rowGauge?.rows) return null;
+    component.steps.forEach((step, index) => {
+        // Skip if already has progress state
+        if (allProgress[step.id]) return;
 
-    const rows = parseFloat(rowGauge.rows);
-    const measurement = parseFloat(rowGauge.measurement) || 4;
-
-    return rows / measurement; // rows per inch
-};
-
-/**
- * Convert length to estimated rows using project gauge
- */
-export const estimateRowsFromLength = (targetLength, targetUnits, project) => {
-    const rowGaugePerInch = getRowGaugePerInch(project);
-
-    if (!rowGaugePerInch) return null;
-
-    // Convert target to inches if needed
-    const targetInches = targetUnits === 'cm' ? targetLength / 2.54 : targetLength;
-
-    return Math.round(targetInches * rowGaugePerInch);
-};
-
-/**
- * Convert current row to estimated length using project gauge  
- */
-export const estimateLengthFromRows = (currentRow, estimatedTotalRows, targetLength, targetUnits) => {
-    if (!estimatedTotalRows || estimatedTotalRows === 0) return 0;
-
-    const progress = currentRow / estimatedTotalRows;
-    return targetLength * progress;
-};
-
-/**
- * Calculate progress percentage for length-based steps
- */
-export const calculateLengthProgress = (currentRow, estimatedTotalRows, targetLength) => {
-    if (!estimatedTotalRows || estimatedTotalRows === 0) return 0;
-
-    return Math.min((currentRow / estimatedTotalRows) * 100, 100);
-};
-
-// ===== DISPLAY UTILITIES =====
-
-/**
- * Get gauge-aware display text for length-based steps
- * FIXED: Now correctly calculates progress for until_length steps
- */
-export const getLengthProgressDisplay = (step, currentRow, project, startingLength = null) => {
-    const lengthTarget = getLengthTarget(step);
-    if (!lengthTarget) return null;
-
-    // Handle until-length steps by converting to equivalent length step
-    let effectiveTargetLength = lengthTarget.value;
-    let effectiveTargetUnits = lengthTarget.units;
-
-    if (lengthTarget.type === 'until_length' && startingLength !== null) {
-        effectiveTargetLength = lengthTarget.value - startingLength;
-
-        if (effectiveTargetLength <= 0) {
-            // Already at or past target
-            return {
-                hasGauge: false,
-                targetLength: lengthTarget.value,
-                targetUnits: lengthTarget.units,
-                currentRow,
-                alreadyComplete: true,
-                showEstimate: false
+        // Migrate old completed flag
+        if (step.completed) {
+            allProgress[step.id] = {
+                status: PROGRESS_STATUS.COMPLETED,
+                currentRow: step.totalRows || 1,
+                totalRows: step.totalRows || 1,
+                completionMethod: 'migrated',
+                completedAt: new Date().toISOString(),
+                lastUpdated: new Date().toISOString()
             };
         }
-    }
+    });
 
-    const estimatedRows = estimateRowsFromLength(effectiveTargetLength, effectiveTargetUnits, project);
-    if (!estimatedRows) {
-        // No gauge available - show basic info
-        return {
-            hasGauge: false,
-            targetLength: lengthTarget.value,
-            targetUnits: lengthTarget.units,
-            currentRow,
-            showEstimate: false
-        };
-    }
-
-    // 🔧 FIXED: Use effectiveTargetLength for calculations
-    const currentLength = estimateLengthFromRows(currentRow, estimatedRows, effectiveTargetLength, effectiveTargetUnits);
-    const progressPercent = calculateLengthProgress(currentRow, estimatedRows, effectiveTargetLength);
-
-    // 🔧 FIXED: For until_length steps, add starting length to current progress for display
-    let displayCurrentLength = currentLength;
-    if (lengthTarget.type === 'until_length' && startingLength !== null) {
-        displayCurrentLength = startingLength + currentLength;
-    }
-
-    return {
-        hasGauge: true,
-        targetLength: lengthTarget.value,
-        targetUnits: lengthTarget.units,
-        estimatedRows,
-        currentRow,
-        currentLength: Math.round(displayCurrentLength * 10) / 10, // 1 decimal place
-        progressPercent: Math.round(progressPercent),
-        showEstimate: true,
-        isNearTarget: currentRow >= estimatedRows * 0.9, // 90% threshold
-        hasReachedEstimate: currentRow >= estimatedRows,
-        shouldShowNearAlert: currentRow === Math.ceil(estimatedRows * 0.9),
-        shouldShowTargetAlert: currentRow === estimatedRows
-    };
-};
-
-/**
- * Format length progress for counter display
- */
-export const formatLengthCounterDisplay = (progressData, construction) => {
-    if (!progressData) return null;
-
-    const rowTerm = construction === 'round' ? 'Round' : 'Row';
-
-    if (!progressData.showEstimate) {
-        // No gauge - basic display
-        return {
-            rowText: `${rowTerm} ${progressData.currentRow}`,
-            progressText: `Target: ${progressData.targetLength} ${progressData.targetUnits}`,
-            showProgressBar: false
-        };
-    }
-
-    // With gauge - intelligent display
-    const lengthText = `~${progressData.currentLength} ${progressData.targetUnits}`;
-    const targetText = `${progressData.targetLength} ${progressData.targetUnits}`;
-
-    return {
-        rowText: `${rowTerm} ${progressData.currentRow}`,
-        progressText: `${lengthText} of ${targetText} (${progressData.progressPercent}%)`,
-        showProgressBar: true,
-        progressPercent: progressData.progressPercent,
-        isNearTarget: progressData.isNearTarget,
-        hasReachedEstimate: progressData.hasReachedEstimate
-    };
-};
-
-/**
- * Format length progress for modal header
- */
-export const formatLengthHeaderDisplay = (step, currentRow, project, construction) => {
-    const progressData = getLengthProgressDisplay(step, currentRow, project);
-    if (!progressData) return null;
-
-    const rowTerm = construction === 'round' ? 'Round' : 'Row';
-
-    if (!progressData.showEstimate) {
-        return `${rowTerm} ${currentRow} • ${progressData.targetLength} ${progressData.targetUnits} target`;
-    }
-
-    return `${rowTerm} ${currentRow} • ~${progressData.currentLength}" of ${progressData.targetLength}" target`;
-};
-
-// ===== COMPLETION SUGGESTIONS =====
-
-/**
- * Determine if step should show completion suggestion
- */
-export const shouldSuggestCompletion = (step, currentRow, project) => {
-    const progressData = getLengthProgressDisplay(step, currentRow, project);
-    if (!progressData?.showEstimate) return false;
-
-    return progressData.hasReachedEstimate;
-};
-
-/**
- * Get completion suggestion text
- */
-export const getCompletionSuggestionText = (step, currentRow, project) => {
-    const lengthTarget = getLengthTarget(step);
-    if (!lengthTarget) return '';
-
-    return `🎯 You've likely reached ${lengthTarget.value} ${lengthTarget.units}. Measure to confirm!`;
-};
-
-// ===== ADAPTIVE LEARNING =====
-
-/**
- * Calculate measured gauge from completed length step
- */
-export const calculateMeasuredGauge = (actualRows, targetLength, targetUnits, step, startingLength = null) => {
-    // Calculate the effective distance that was actually knitted
-    let effectiveDistance = targetLength;
-
-    // For until_length steps, use only the distance actually knitted
-    if (step) {
-        const lengthTarget = getLengthTarget(step);
-        if (lengthTarget?.type === 'until_length' && startingLength !== null) {
-            effectiveDistance = targetLength - startingLength;
-
-            // Safety check - if no effective distance, can't calculate gauge
-            if (effectiveDistance <= 0) {
-                return null;
-            }
-        }
-    }
-
-    const effectiveInches = targetUnits === 'cm' ? effectiveDistance / 2.54 : effectiveDistance;
-    return actualRows / effectiveInches; // rows per inch
-};
-
-/**
- * Check if step completion should prompt for gauge update
- */
-export const shouldPromptGaugeUpdate = (step, actualRows, project, startingLength = null) => {
-    const lengthTarget = getLengthTarget(step);
-    if (!lengthTarget || !actualRows) return false;
-
-    const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units, step, startingLength);
-    if (!measuredGauge) return false; // Can't calculate gauge
-
-    const currentGauge = getRowGaugePerInch(project);
-
-    // Only prompt if there's a meaningful difference (>5% change)
-    if (!currentGauge) return true; // No existing gauge - always prompt
-
-    const percentDifference = Math.abs((measuredGauge - currentGauge) / currentGauge) * 100;
-    return percentDifference > 5;
-};
-
-/**
- * Get gauge update prompt data for user display
- */
-export const getGaugeUpdatePromptData = (actualRows, step, project, startingLength = null) => {
-    const lengthTarget = getLengthTarget(step);
-    if (!lengthTarget) return null;
-
-    const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units, step, startingLength);
-    if (!measuredGauge) return null; // Can't calculate gauge
-
-    const currentGauge = getRowGaugePerInch(project);
-
-    // Convert back to project's measurement format (4" or 10cm)
-    const gaugeMeasurement = project?.gauge?.rowGauge?.measurement || 4;
-    const newRowsForMeasurement = Math.round(measuredGauge * gaugeMeasurement);
-
-    // Calculate what distance was actually knitted for display
-    let actualDistance = lengthTarget.value;
-    if (lengthTarget.type === 'until_length' && startingLength !== null) {
-        actualDistance = lengthTarget.value - startingLength;
-    }
-
-    return {
-        measuredGauge: Math.round(measuredGauge * 10) / 10, // 1 decimal
-        newRowsForMeasurement,
-        measurement: gaugeMeasurement,
-        units: project?.defaultUnits === 'cm' ? 'cm' : 'inches',
-        hasExistingGauge: !!currentGauge,
-        oldRowsForMeasurement: currentGauge ? Math.round(currentGauge * gaugeMeasurement) : null,
-        actualDistance: Math.round(actualDistance * 10) / 10, // Show what was actually knitted
-        actualRows: actualRows
-    };
-};
-
-/**
- * Update project gauge with measured data
- */
-export const updateProjectGaugeFromMeasurement = (project, gaugeData) => {
-    return {
-        ...project,
-        gauge: {
-            ...project.gauge,
-            rowGauge: {
-                rows: gaugeData.newRowsForMeasurement,
-                measurement: gaugeData.measurement
-            }
-        }
-    };
+    saveAllProgressData(projectId, componentId, allProgress);
 };
 
 // ===== VALIDATION UTILITIES =====
 
 /**
- * Check if project has sufficient gauge data for length calculations
+ * Validate progress state consistency
+ * Returns array of issues found
  */
-export const hasValidGaugeForLength = (project) => {
-    const rowGauge = project?.gauge?.rowGauge;
-    return !!(rowGauge?.rows && parseFloat(rowGauge.rows) > 0);
-};
+export const validateProgressState = (steps, componentId, projectId) => {
+    const issues = [];
+    let lastCompletedIndex = -1;
 
-/**
- * Get gauge availability message for user
- */
-export const getGaugeAvailabilityMessage = (project) => {
-    if (hasValidGaugeForLength(project)) {
-        const rowGaugePerInch = getRowGaugePerInch(project);
-        return {
-            hasGauge: true,
-            message: `Using gauge: ${project.gauge.rowGauge.rows} rows = ${project.gauge.rowGauge.measurement || 4} inches`
-        };
-    }
+    steps.forEach((step, index) => {
+        const progress = getStepProgressState(step.id, componentId, projectId);
 
-    return {
-        hasGauge: false,
-        message: 'Add row gauge to your project for intelligent length tracking!'
-    };
-};
-
-// ===== STEP DESCRIPTION FIXES =====
-
-/**
- * Get corrected duration display for length steps
- * Fixes the issue where "2 inches" shows as "2 rows"
- */
-export const getCorrectDurationDisplay = (step, project) => {
-    const duration = step.wizardConfig?.duration;
-    const construction = step.construction || 'flat';
-    const rowTerm = construction === 'round' ? 'rounds' : 'rows';
-
-    if (!duration?.type) {
-        return step.totalRows ? `${step.totalRows} ${rowTerm}` : null;
-    }
-
-    // Handle length-based steps correctly
-    if (duration.type === 'length') {
-        const estimatedRows = estimateRowsFromLength(
-            parseFloat(duration.value) || 0,
-            duration.units || 'inches',
-            project
-        );
-
-        if (estimatedRows) {
-            return `${duration.value} ${duration.units} (~${estimatedRows} ${rowTerm})`;
+        // Check for gaps in completion
+        if (progress.status === PROGRESS_STATUS.COMPLETED) {
+            lastCompletedIndex = index;
+        } else if (progress.status === PROGRESS_STATUS.IN_PROGRESS ||
+            progress.status === PROGRESS_STATUS.NOT_STARTED) {
+            if (index > 0 && lastCompletedIndex < index - 1) {
+                issues.push({
+                    stepIndex: index,
+                    issue: 'gap_in_completion',
+                    message: `Step ${index + 1} is accessible but previous steps aren't complete`
+                });
+            }
         }
 
-        return `${duration.value} ${duration.units}`;
-    }
-
-    if (duration.type === 'until_length') {
-        const referenceText = duration.reference ? ` from ${duration.reference}` : '';
-        return `until ${duration.value} ${duration.units}${referenceText}`;
-    }
-
-    // Handle other types normally
-    switch (duration.type) {
-        case 'rows':
-        case 'rounds':
-            return `${duration.value} ${rowTerm}`;
-        case 'repeats':
-            // Get pattern name from step
-            const patternName = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
-            return `${duration.value} ${patternName} repeats`;
-
-        case 'color_repeats':
-            // Get colorwork type from step
-            const colorworkType = step.colorwork?.type ||
-                step.wizardConfig?.colorwork?.type ||
-                step.wizardConfig?.colorwork?.advancedType ||
-                'color';
-
-            // Capitalize and make singular for better grammar
-            let colorTypeName = colorworkType.charAt(0).toUpperCase() + colorworkType.slice(1);
-
-            // Remove trailing 's' if it exists (Stripes -> Stripe)
-            if (colorTypeName.endsWith('s')) {
-                colorTypeName = colorTypeName.slice(0, -1);
+        // Validate row counts
+        if (progress.currentRow && progress.totalRows) {
+            if (progress.currentRow > progress.totalRows) {
+                issues.push({
+                    stepIndex: index,
+                    issue: 'invalid_row_count',
+                    message: `Current row (${progress.currentRow}) exceeds total rows (${progress.totalRows})`
+                });
             }
+        }
+    });
 
-            return `${duration.value} ${colorTypeName} repeats`;
-        case 'stitches':
-            return `${duration.value || 'all'} stitches`;
-        default:
-            return null;
-    }
+    return issues;
 };
 
-/**
- * Calculate rows from distance for marker timing with construction awareness
- * @param {number} distance - Distance value
- * @param {object} project - Project with gauge data
- * @param {string} construction - 'flat' or 'round' 
- * @returns {object} - { estimatedRows: number | null, hasGauge: boolean }
- */
-export const calculateRowsFromDistance = (distance, project, construction = 'flat') => {
-    const estimatedRows = estimateRowsFromLength(
-        distance,
-        project?.defaultUnits || 'inches',
-        project
-    );
+// ===== EXPORT ALL =====
 
-    if (!estimatedRows) {
-        return { estimatedRows: null, hasGauge: false };
-    }
+export default {
+    // Storage
+    getProgressStorageKey,
+    getAllProgressData,
+    saveAllProgressData,
 
-    // For flat construction, ensure odd number (shaping ends on RS)
-    let adjustedRows = estimatedRows;
-    if (construction === 'flat' && estimatedRows % 2 === 0) {
-        // Round even numbers up to next odd for flat construction
-        adjustedRows = estimatedRows + 1;
-    }
+    // State Management
+    PROGRESS_STATUS,
+    getStepProgressState,
+    saveStepProgressState,
+    clearStepProgressState,
+    clearAllProgress,
 
-    return { estimatedRows: adjustedRows, hasGauge: true };
+    // Sequential Enforcement
+    canStartStep,
+    canUncheckStep,
+    getCurrentStepIndex,
+
+    // Smart Completion
+    inferProgressFromStep,
+    needsRowVerification,
+
+    // Display Helpers
+    getProgressSummary,
+    getComponentProgressStats,
+
+    // Migration
+    migrateOldCompletionFlags,
+
+    // Validation
+    validateProgressState
 };

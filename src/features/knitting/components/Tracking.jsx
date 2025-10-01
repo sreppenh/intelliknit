@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
-import { CheckCircle2, Circle, FileText, X } from 'lucide-react';
+import { CheckCircle2, Circle, FileText, X, Lock } from 'lucide-react';
 import PageHeader from '../../../shared/components/PageHeader';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
 import KnittingStepModal from './modal/KnittingStepModal';
@@ -8,6 +8,22 @@ import { isLengthBasedStep } from '../../../shared/utils/gaugeUtils';
 import { getPrepCardColorInfo } from '../../../shared/utils/prepCardUtils';
 import { Palette } from 'lucide-react';
 import { UnifiedPrepDisplay } from '../../../shared/components/PrepStepSystem';
+import StandardModal from '../../../shared/components/modals/StandardModal';
+
+// ✅ NEW: Import progress tracking utilities
+import {
+  getStepProgressState,
+  saveStepProgressState,
+  clearStepProgressState,
+  canStartStep,
+  canUncheckStep,
+  inferProgressFromStep,
+  needsRowVerification,
+  getProgressSummary,
+  getComponentProgressStats,
+  migrateOldCompletionFlags,
+  PROGRESS_STATUS
+} from '../../../shared/utils/progressTracking';
 
 const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const { currentProject, activeComponentIndex, dispatch } = useProjectsContext();
@@ -15,44 +31,166 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const [selectedStepIndex, setSelectedStepIndex] = useState(null);
   const [showStepModal, setShowStepModal] = useState(false);
 
-  // Add this new function after handleCloseStepModal
+  // ✅ NEW: Confirmation dialog state
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [confirmDialogData, setConfirmDialogData] = useState(null);
+
+  // ✅ NEW: Force re-render trigger
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
+
+  // ✅ IMPORTANT: Calculate activeComponent BEFORE hooks (needed for hook dependencies)
+  const activeComponent = currentProject?.components[localActiveIndex];
+
+  // ✅ NEW: Get progress stats using new system (BEFORE hooks)
+  const progressStats = activeComponent ? getComponentProgressStats(
+    activeComponent.steps,
+    activeComponent.id,
+    currentProject.id
+  ) : null;
+
+  // ✅ NEW: One-time migration of old completion flags
+  useEffect(() => {
+    if (activeComponent && currentProject) {
+      const progressKey = `knitting-progress-${currentProject.id}-${activeComponent.id}`;
+      const hasNewProgress = localStorage.getItem(progressKey);
+
+      // If no new progress exists, migrate old completed flags
+      if (!hasNewProgress) {
+        migrateOldCompletionFlags(activeComponent, currentProject.id);
+        setRefreshTrigger(prev => prev + 1); // Trigger re-render after migration
+      }
+    }
+  }, [activeComponent?.id, currentProject?.id]);
+
   const updateProject = useCallback((updatedProject) => {
     dispatch({ type: 'UPDATE_PROJECT', payload: updatedProject });
   }, [dispatch]);
 
+  // ✅ NEW: Smart checkbox handler with sequential enforcement (MUST be before early return)
+  const handleCheckboxClick = useCallback((componentIndex, stepIndex) => {
+    if (!currentProject) return;
+    const component = currentProject.components[componentIndex];
+    const step = component.steps[stepIndex];
+    const progress = getStepProgressState(step.id, component.id, currentProject.id);
+
+    // Handle NOT_STARTED steps
+    if (progress.status === PROGRESS_STATUS.NOT_STARTED) {
+      // Check if can start
+      if (!canStartStep(stepIndex, component.steps, component.id, currentProject.id)) {
+        // Show toast or alert
+        alert('⚠️ Complete previous steps first');
+        return;
+      }
+
+      // Infer completion from step data
+      const inferred = inferProgressFromStep(step, currentProject);
+
+      // Save as completed
+      saveStepProgressState(step.id, component.id, currentProject.id, {
+        status: PROGRESS_STATUS.COMPLETED,
+        ...inferred,
+        completionMethod: 'checkbox',
+        completedAt: new Date().toISOString()
+      });
+
+      // Show warning for length-based steps without gauge
+      if (needsRowVerification(step, currentProject)) {
+        alert('✓ Step completed\n\nNote: Row count is estimated. Verify in knitting mode if needed.');
+      }
+
+      // Force re-render to show updated state
+      setRefreshTrigger(prev => prev + 1);
+      return;
+    }
+
+    // Handle IN_PROGRESS steps
+    if (progress.status === PROGRESS_STATUS.IN_PROGRESS) {
+      const remaining = (progress.totalRows || step.totalRows) - progress.currentRow;
+
+      setConfirmDialogData({
+        title: 'Complete Remaining Rows?',
+        message: `Mark the remaining ${remaining} rows as complete?`,
+        onConfirm: () => {
+          saveStepProgressState(step.id, component.id, currentProject.id, {
+            status: PROGRESS_STATUS.COMPLETED,
+            currentRow: progress.totalRows || step.totalRows,
+            totalRows: progress.totalRows || step.totalRows,
+            completionMethod: 'checkbox',
+            completedAt: new Date().toISOString()
+          });
+          setShowConfirmDialog(false);
+          dispatch({ type: 'REFRESH_PROJECT' });
+        },
+        onCancel: () => {
+          setShowConfirmDialog(false);
+          setConfirmDialogData(null);
+        }
+      });
+
+      setShowConfirmDialog(true);
+      return;
+    }
+
+    // Handle COMPLETED steps (unchecking/frogging)
+    if (progress.status === PROGRESS_STATUS.COMPLETED) {
+      if (!canUncheckStep(stepIndex, component.steps, component.id, currentProject.id)) {
+        alert('⚠️ Can only uncheck the most recently completed step.\n\nComplete or reset later steps first.');
+        return;
+      }
+
+      setConfirmDialogData({
+        title: '⚠️ Frog This Step?',
+        message: 'This will reset all progress for this step. Are you sure?',
+        onConfirm: () => {
+          clearStepProgressState(step.id, component.id, currentProject.id);
+          setShowConfirmDialog(false);
+          setRefreshTrigger(prev => prev + 1);
+        },
+        onCancel: () => {
+          setShowConfirmDialog(false);
+          setConfirmDialogData(null);
+        }
+      });
+
+      setShowConfirmDialog(true);
+      return;
+    }
+  }, [currentProject, dispatch]);
+
+  // ✅ LEGACY: Keep old handler for backward compatibility with modal
+  const handleToggleStepCompletion = useCallback((componentIndex, stepIndex, updatedProject = null) => {
+    // Redirect to new checkbox handler
+    handleCheckboxClick(componentIndex, stepIndex);
+
+    // Update project if gauge data was provided
+    if (updatedProject) {
+      updateProject(updatedProject);
+    }
+  }, [handleCheckboxClick, updateProject]);
+
+  const handleComponentTabClick = useCallback((index) => {
+    setLocalActiveIndex(index);
+    dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: index });
+  }, [dispatch]);
+
+  const handleStepClick = useCallback((stepIndex) => {
+    setSelectedStepIndex(stepIndex);
+    setShowStepModal(true);
+  }, []);
+
+  const handleCloseStepModal = useCallback(() => {
+    setShowStepModal(false);
+    setSelectedStepIndex(null);
+  }, []);
+
+  // ✅ NOW: Early return AFTER all hooks
   if (!currentProject) {
     return <div>No project selected</div>;
   }
 
-  const handleToggleStepCompletion = (componentIndex, stepIndex, updatedProject = null) => {
-    // First, toggle the step completion
-    dispatch({
-      type: 'TOGGLE_STEP_COMPLETION',
-      payload: { componentIndex, stepIndex }
-    });
-
-    // Then update project if gauge data was provided
-    if (updatedProject) {
-      updateProject(updatedProject);
-    }
-  };
-
-  const handleComponentTabClick = (index) => {
-    setLocalActiveIndex(index);
-    dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: index });
-  };
-
-  const handleStepClick = (stepIndex) => {
-    setSelectedStepIndex(stepIndex);
-    setShowStepModal(true);
-  };
-
-  const handleCloseStepModal = () => {
-    setShowStepModal(false);
-    setSelectedStepIndex(null);
-  };
-
-  const activeComponent = currentProject.components[localActiveIndex];
+  if (!activeComponent) {
+    return <div>No component selected</div>;
+  }
 
   // Helper to determine if step has prep note
   const getStepPrepNote = (step) => {
@@ -76,12 +214,10 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
 
     component.steps.forEach((step, stepIndex) => {
       const prepNote = getStepPrepNote(step);
-      const afterNote = getStepAfterNote(step); // ✅ FIXED: Now in correct scope
+      const afterNote = getStepAfterNote(step);
 
       // Add prep card if prep note exists
-      // ✅ NEW: Check for dynamic color changes
       const colorInfo = getPrepCardColorInfo(step, stepIndex, activeComponent, currentProject);
-      // ✅ FIXED: Add prep card if prep note exists OR color info exists
       if (prepNote || colorInfo) {
         items.push({
           type: 'prep',
@@ -99,7 +235,7 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
         id: `step-${stepIndex}`
       });
 
-      // ✅ FIXED: Add assembly note card if it exists (now in correct scope)
+      // Add assembly note card if it exists
       if (afterNote) {
         items.push({
           type: 'assembly',
@@ -145,28 +281,21 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
           </div>
         </div>
 
-        {/* Progress Overview */}
+        {/* ✅ UPDATED: Progress Overview using new stats */}
         <div className="p-6 pb-3 bg-yarn-50">
           <h2 className="text-lg font-semibold text-gray-800 mb-2 text-left">
             {activeComponent.name}
           </h2>
           <div className="flex justify-between text-sm text-gray-600 mb-2">
             <span>
-              {activeComponent.steps.filter(s => s.completed).length} of{' '}
-              {activeComponent.steps.length} steps completed
+              {progressStats.completed} of {progressStats.total} steps completed
             </span>
-            <span>
-              {Math.round((activeComponent.steps.filter(s => s.completed).length /
-                activeComponent.steps.length) * 100) || 0}% done
-            </span>
+            <span>{progressStats.percentage}% done</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div
               className="bg-sage-500 h-2 rounded-full transition-all duration-300"
-              style={{
-                width: `${(activeComponent.steps.filter(s => s.completed).length /
-                  activeComponent.steps.length) * 100}%`
-              }}
+              style={{ width: `${progressStats.percentage}%` }}
             />
           </div>
         </div>
@@ -186,11 +315,8 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
             </div>
           ) : (
             displayItems.map((item) => {
-
               if (item.type === 'prep') {
-                // Use unified prep display for both color changes and user notes
                 const step = activeComponent.steps[item.stepIndex];
-
                 return (
                   <UnifiedPrepDisplay
                     key={item.id}
@@ -201,7 +327,6 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                   />
                 );
               } else if (item.type === 'assembly') {
-                // ✅ NEW: Assembly Card - Sage themed
                 return (
                   <div
                     key={item.id}
@@ -223,43 +348,72 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                   </div>
                 );
               } else {
-                // Step Card - Sage themed, streamlined
+                // ✅ UPDATED: Step Card with new progress system
                 const step = item.step;
                 const stepIndex = item.stepIndex;
-                const isCompleted = step.completed;
-                const isCurrentStep = stepIndex === activeComponent.currentStep;
-                const { description, technicalData } = getFormattedStepDisplay(step, activeComponent.name, currentProject);
+                const { description, technicalData } = getFormattedStepDisplay(
+                  step,
+                  activeComponent.name,
+                  currentProject
+                );
+
+                // Get progress state using new system
+                const progress = getStepProgressState(
+                  step.id,
+                  activeComponent.id,
+                  currentProject.id
+                );
+
+                const isCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
+                const isInProgress = progress.status === PROGRESS_STATUS.IN_PROGRESS;
+                const isBlocked = !canStartStep(
+                  stepIndex,
+                  activeComponent.steps,
+                  activeComponent.id,
+                  currentProject.id
+                ) && progress.status === PROGRESS_STATUS.NOT_STARTED;
+
+                const isCurrentStep = isInProgress ||
+                  (!isCompleted && !isBlocked && stepIndex === progressStats.completed);
 
                 return (
                   <div
                     key={item.id}
-                    onClick={() => handleStepClick(stepIndex)}
-                    className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 cursor-pointer hover:shadow-md ${isCompleted
-                      ? 'bg-sage-50 border-sage-300'
-                      : isCurrentStep
-                        ? 'bg-yarn-50 border-sage-400 shadow-md'
-                        : 'bg-white border-gray-200 hover:border-gray-300'
+                    onClick={() => !isBlocked && handleStepClick(stepIndex)}
+                    className={`border-2 rounded-xl p-5 shadow-sm transition-all duration-200 ${isBlocked
+                        ? 'bg-gray-50 border-gray-200 cursor-not-allowed opacity-60'
+                        : isCompleted
+                          ? 'bg-sage-50 border-sage-300 cursor-pointer hover:shadow-md'
+                          : isCurrentStep
+                            ? 'bg-yarn-50 border-sage-400 shadow-md cursor-pointer hover:shadow-lg'
+                            : 'bg-white border-gray-200 cursor-pointer hover:border-gray-300 hover:shadow-md'
                       }`}
                   >
                     <div className="flex items-start gap-3">
-                      {/* Completion Toggle */}
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleToggleStepCompletion(localActiveIndex, stepIndex);
-                        }}
-                        className="flex-shrink-0 mt-0.5"
-                      >
-                        {isCompleted ? (
-                          <CheckCircle2 size={24} className="text-sage-500" />
-                        ) : (
-                          <Circle size={24} className="text-gray-400 hover:text-sage-500 transition-colors" />
-                        )}
-                      </button>
+                      {/* ✅ UPDATED: Conditional checkbox rendering */}
+                      {!isBlocked ? (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleCheckboxClick(localActiveIndex, stepIndex);
+                          }}
+                          className="flex-shrink-0 mt-0.5"
+                        >
+                          {isCompleted ? (
+                            <CheckCircle2 size={24} className="text-sage-500" />
+                          ) : (
+                            <Circle size={24} className="text-gray-400 hover:text-sage-500 transition-colors" />
+                          )}
+                        </button>
+                      ) : (
+                        <div className="flex-shrink-0 mt-0.5">
+                          <Lock size={24} className="text-gray-300" />
+                        </div>
+                      )}
 
                       {/* Step Content */}
                       <div className="flex-1 min-w-0">
-                        {/* Step number and badge */}
+                        {/* Step number and badges */}
                         <div className="flex items-center gap-2 mb-2">
                           <span className="text-xs font-semibold text-gray-500">
                             STEP {stepIndex + 1}
@@ -269,46 +423,53 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
                               CURRENT
                             </span>
                           )}
+                          {isBlocked && (
+                            <span className="text-xs bg-gray-400 text-white px-2 py-0.5 rounded-full font-semibold">
+                              LOCKED
+                            </span>
+                          )}
                         </div>
 
                         {/* Main Description */}
                         <div className={`text-base font-medium mb-2 text-left ${isCompleted
-                          ? 'text-gray-500 line-through'
-                          : isCurrentStep
-                            ? 'text-gray-900'
-                            : 'text-gray-800'
+                            ? 'text-gray-500 line-through'
+                            : isBlocked
+                              ? 'text-gray-400'
+                              : isCurrentStep
+                                ? 'text-gray-900'
+                                : 'text-gray-800'
                           }`}>
                           {description}
                         </div>
 
-                        {/* Technical Data + Row Progress Combined */}
+                        {/* ✅ UPDATED: Progress info using new system */}
                         <div className="text-xs text-gray-500 text-left">
                           {(() => {
-                            const storageKey = `row-counter-${currentProject.id}-${activeComponent.id}-${stepIndex}`;
-                            const rowState = JSON.parse(localStorage.getItem(storageKey) || '{}');
-                            const currentRow = rowState.currentRow || 1;
-                            const totalRows = step.totalRows || 1;
+                            let progressInfo = null;
 
-                            let rowInfo = null;
-                            if (isLengthBasedStep(step)) {
-                              rowInfo = `Row ${currentRow}`;
-                            } else if (totalRows > 1) {
-                              rowInfo = `Row ${currentRow} of ${totalRows}`;
+                            if (isInProgress && progress.currentRow) {
+                              const totalRows = progress.totalRows || step.totalRows;
+                              if (isLengthBasedStep(step)) {
+                                progressInfo = `Row ${progress.currentRow}`;
+                              } else if (totalRows > 1) {
+                                progressInfo = `Row ${progress.currentRow} of ${totalRows}`;
+                              }
+                            } else if (isBlocked) {
+                              progressInfo = 'Complete previous steps first';
                             }
 
-                            // Combine technical data with row info
-                            if (technicalData && rowInfo) {
-                              return `${technicalData} • ${rowInfo}`;
+                            // Combine with technical data
+                            if (technicalData && progressInfo) {
+                              return `${technicalData} • ${progressInfo}`;
                             } else if (technicalData) {
                               return technicalData;
-                            } else if (rowInfo) {
-                              return rowInfo;
+                            } else if (progressInfo) {
+                              return progressInfo;
                             }
                             return null;
                           })()}
                         </div>
                       </div>
-
                     </div>
                   </div>
                 );
@@ -316,18 +477,35 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
             })
           )}
 
-          {/* Component Complete State */}
-          {activeComponent.steps.length > 0 &&
-            activeComponent.currentStep >= activeComponent.steps.length && (
-              <div className="mt-6 p-6 bg-sage-50 border-2 border-sage-200 rounded-xl text-center">
-                <div className="text-4xl mb-2">🎉</div>
-                <h3 className="text-lg font-semibold text-sage-800 mb-1">Component Complete!</h3>
-                <p className="text-sage-600 text-sm">
-                  Great job finishing {activeComponent.name}!
-                </p>
-              </div>
-            )}
+          {/* ✅ UPDATED: Component Complete State */}
+          {activeComponent.steps.length > 0 && progressStats.isComplete && (
+            <div className="mt-6 p-6 bg-sage-50 border-2 border-sage-200 rounded-xl text-center">
+              <div className="text-4xl mb-2">🎉</div>
+              <h3 className="text-lg font-semibold text-sage-800 mb-1">Component Complete!</h3>
+              <p className="text-sage-600 text-sm">
+                Great job finishing {activeComponent.name}!
+              </p>
+            </div>
+          )}
         </div>
+
+        {/* ✅ UPDATED: Confirmation Dialog using StandardModal */}
+        {showConfirmDialog && confirmDialogData && (
+          <StandardModal
+            isOpen={showConfirmDialog}
+            onClose={confirmDialogData.onCancel}
+            onConfirm={confirmDialogData.onConfirm}
+            category="simple"
+            colorScheme={confirmDialogData.title.includes('⚠️') ? 'red' : 'sage'}
+            title={confirmDialogData.title}
+            primaryButtonText="Confirm"
+            secondaryButtonText="Cancel"
+          >
+            <p className="text-sm text-gray-600">
+              {confirmDialogData.message}
+            </p>
+          </StandardModal>
+        )}
 
         {/* Full-Screen Step Modal */}
         {showStepModal && selectedStepIndex !== null && (
