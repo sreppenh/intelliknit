@@ -280,8 +280,15 @@ const KnittingStepModal = ({
         );
     };
 
-    // Dynamic color scheme based on step type
+    // Dynamic color scheme based on current card type
     const getModalColorScheme = () => {
+        // If showing a prep card, use lavender
+        if (currentItem.type === 'prep') return 'lavender';
+
+        // If showing celebration or assembly, use yarn
+        if (currentItem.type === 'celebration' || currentItem.type === 'assembly') return 'yarn';
+
+        // Otherwise use the step's theme
         if (theme.accent === 'lavender') return 'lavender';
         if (theme.accent === 'yarn') return 'yarn';
         return 'sage'; // default
@@ -292,7 +299,7 @@ const KnittingStepModal = ({
             isOpen={true}
             onClose={onClose}
             category="complex"
-            colorScheme="transparent"
+            colorScheme={getModalColorScheme()}
             showButtons={false}
             className="knitting-modal-content"
             allowBackdropClick={true}

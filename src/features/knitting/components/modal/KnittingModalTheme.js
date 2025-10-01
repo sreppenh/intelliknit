@@ -9,7 +9,7 @@ import { getPrepCardColorInfo } from '../../../../shared/utils/prepCardUtils';
  * @param {string} context - Context: 'project', 'notepad', 'note' (default: 'project')
  * @returns {Object} Theme configuration with colors and styling
  */
-export const getModalTheme = (step, context = 'project', stepIndex = null, component = null, project = null) => {
+export const getModalTheme = (step, context = 'project') => {
     // Force lavender theme for notepad context
     if (context === 'notepad' || context === 'note') {
         return {
@@ -30,14 +30,8 @@ export const getModalTheme = (step, context = 'project', stepIndex = null, compo
         step?.advancedWizardConfig?.prepNote ||
         patternName === 'Preparation';
 
-    // ✅ NEW: Also check for dynamic color changes
-    const hasDynamicColorChange = stepIndex !== null &&
-        component &&
-        project &&
-        getPrepCardColorInfo(step, stepIndex, component, project);
-
-    // Lavender theme for prep cards
-    if ((hasPrep && (typeof hasPrep === 'string' ? hasPrep.trim().length > 0 : true)) || hasDynamicColorChange) {
+    // Lavender theme for prep cards ONLY
+    if (hasPrep && (typeof hasPrep === 'string' ? hasPrep.trim().length > 0 : true)) {
         return {
             cardBg: 'bg-gradient-to-br from-lavender-50 via-lavender-25 to-white',
             contentBg: 'bg-lavender-50/30 border-lavender-200/50',
@@ -51,8 +45,8 @@ export const getModalTheme = (step, context = 'project', stepIndex = null, compo
     return {
         cardBg: 'bg-gradient-to-br from-sage-25 via-white to-sage-50',
         contentBg: 'bg-sage-50/30 border-sage-200/50',
-        textPrimary: 'text-sage-900',
-        textSecondary: 'text-sage-700',
+        textPrimary: 'text-gray-800',      // ✅ Changed to gray-800 for consistency
+        textSecondary: 'text-gray-700',    // ✅ Changed to gray-700 for consistency
         accent: 'sage'
     };
 };
