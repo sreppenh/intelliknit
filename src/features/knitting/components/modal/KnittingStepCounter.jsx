@@ -424,8 +424,18 @@ const KnittingStepCounter = ({
                 }
             }
 
-            // Use original logic for ALL modes - no special notepad handling
-            return getRowInstruction(step, currentRow, stitchCount, project);
+            console.log('📋 Step data being passed to instruction service:', {
+                stepId: step.id,
+                description: step.description,
+                hasColorwork: !!step.colorwork,
+                colorwork: step.colorwork,
+                wizardConfigColorwork: step.wizardConfig?.colorwork,
+                advancedConfigColorwork: step.advancedWizardConfig?.colorwork
+            });
+
+            const result = getRowInstruction(step, currentRow, stitchCount, project);
+            console.log('📋 getRowInstruction returned:', result, 'type:', typeof result);
+            return result;
         } catch (error) {
             console.error('Error getting row instruction:', error);
             return {
@@ -738,6 +748,8 @@ const KnittingStepCounter = ({
         return `Target: ${targetStitches} stitches`;
     };
 
+    console.log('📋 instructionResult:', instructionResult);
+
     return (
         <div className={`flex-1 flex flex-col items-center justify-center ${theme.cardBg} relative overflow-hidden`}>
             <div className="knitting-texture-circles" />
@@ -745,12 +757,16 @@ const KnittingStepCounter = ({
             <div className="text-center px-6 relative z-10 w-full max-w-sm">
                 <div className="knitting-content-sage backdrop-blur-sm rounded-2xl p-6 shadow-lg border border-white/50 mb-6">
 
+
+
                     {/* Row Display with Side Intelligence */}
                     {stepType !== 'single_action' && (
                         <div className={`text-sm font-medium ${theme.textSecondary} mb-3`}>
                             {getRowDisplayText()}
                         </div>
                     )}
+
+
 
                     <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed mb-4`}>
                         {instructionResult.instruction || 'Loading instruction...'}

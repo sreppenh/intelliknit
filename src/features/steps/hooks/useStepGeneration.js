@@ -14,7 +14,7 @@ const createMockStep = (wizardData, construction) => ({
 
 // Helper for consistent duration text
 const getDurationText = (wizardData, construction) => {
-  const { duration } = wizardData;
+  const { duration, colorwork } = wizardData;
 
   switch (duration.type) {
     case 'rows':
@@ -23,6 +23,17 @@ const getDurationText = (wizardData, construction) => {
       return ` until piece measures ${duration.value} ${duration.units}`;
     case 'repeats':
       return ` for ${duration.value} repeats`;
+    case 'color_repeats':
+      // Calculate total rows from stripe sequence
+      if (colorwork?.stripeSequence) {
+        const totalRowsInSequence = colorwork.stripeSequence.reduce(
+          (sum, stripe) => sum + (stripe.rows || 0),
+          0
+        );
+        const totalRows = totalRowsInSequence * parseInt(duration.value);
+        return ` for ${totalRows} ${construction === 'round' ? 'rounds' : 'rows'}`;
+      }
+      return ` for ${duration.value} color repeats`;
     case 'measurement': // Handle legacy type
       return ` until piece measures ${duration.value} ${duration.units}`;
     default:

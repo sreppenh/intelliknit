@@ -111,6 +111,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     // Apply component colorwork default if exists
     if (component?.defaultColorwork) {
       initialData.colorwork = JSON.parse(JSON.stringify(component.defaultColorwork)); // ✅ Deep copy
+
     } else if (component?.colorMode === 'single' && component?.singleColorYarnId) {
       console.log('🚨 CREATING COLORWORK FROM SINGLE COLOR COMPONENT:', {
         colorMode: component.colorMode,

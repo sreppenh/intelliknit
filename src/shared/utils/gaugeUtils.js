@@ -384,7 +384,26 @@ export const getCorrectDurationDisplay = (step, project) => {
         case 'rounds':
             return `${duration.value} ${rowTerm}`;
         case 'repeats':
-            return `${duration.value} repeats`;
+            // Get pattern name from step
+            const patternName = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
+            return `${duration.value} ${patternName} repeats`;
+
+        case 'color_repeats':
+            // Get colorwork type from step
+            const colorworkType = step.colorwork?.type ||
+                step.wizardConfig?.colorwork?.type ||
+                step.wizardConfig?.colorwork?.advancedType ||
+                'color';
+
+            // Capitalize and make singular for better grammar
+            let colorTypeName = colorworkType.charAt(0).toUpperCase() + colorworkType.slice(1);
+
+            // Remove trailing 's' if it exists (Stripes -> Stripe)
+            if (colorTypeName.endsWith('s')) {
+                colorTypeName = colorTypeName.slice(0, -1);
+            }
+
+            return `${duration.value} ${colorTypeName} repeats`;
         case 'stitches':
             return `${duration.value || 'all'} stitches`;
         default:

@@ -51,6 +51,8 @@ const DurationChoice = ({
   const hasColorPattern = wizardData.colorwork?.type === 'stripes' &&
     wizardData.colorwork?.stripeSequence?.length > 0;
 
+  console.log('HAS COLOR PATTERN:', hasColorPattern, 'colorwork:', wizardData.colorwork);
+
   const handleDurationTypeSelect = (type) => {
     updateWizardData('duration', { type, value: '' });
   };

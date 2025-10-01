@@ -95,7 +95,12 @@ const PrepNoteColorScreen = ({
                             className="checkbox-sage"
                         />
                         <span className={`checkbox-label ${useDefaultColor ? 'checkbox-label-checked' : ''}`}>
-                            Use default: {formatColorworkDisplay(component.defaultColorwork, yarns)}
+                            Use default: {(() => {
+                                const display = formatColorworkDisplay(component.defaultColorwork, yarns);
+                                console.log('CHECKBOX DISPLAY:', display, component.defaultColorwork);
+                                return display;
+                            })()}
+
                         </span>
                     </label>
                 </div>

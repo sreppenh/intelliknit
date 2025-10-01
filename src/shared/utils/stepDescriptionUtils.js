@@ -255,15 +255,10 @@ const getAdvancedPatternNotes = (step) => {
  */
 const getStripeSequenceDisplay = (step, project) => {
     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-    console.log('🎨 getStripeSequenceDisplay - colorwork:', colorwork);
-    console.log('🎨 getStripeSequenceDisplay - stripeSequence:', colorwork?.stripeSequence);
-
 
     const stripeSequence = colorwork?.stripeSequence;
 
     if (!stripeSequence || !Array.isArray(stripeSequence) || stripeSequence.length === 0) {
-        console.log('🎨 getStripeSequenceDisplay - NO SEQUENCE, returning null');
-
         return null;
     }
 
@@ -437,7 +432,6 @@ export const getContextualConfigNotes = (step) => {
  * Returns stripe sequences, colorwork patterns, etc.
  */
 export const getContextualColorNotes = (step, project = null) => {
-    console.log('🎨 getContextualColorNotes CALLED for step:', step.description);
 
     // Check colorwork data for stripes
     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
