@@ -286,6 +286,20 @@ const calculateTotalRows = (patternData) => {
             const rowsInPattern = parseInt(patternData.rowsInPattern) || 1;
             return repeats * rowsInPattern;
 
+        // ✅ NEW: Handle color repeats
+        case 'color_repeats':
+            const colorRepeats = parseInt(duration.value) || 1;
+            // Need to get colorwork from patternData
+            if (patternData.colorwork?.stripeSequence) {
+                const totalRowsInSequence = patternData.colorwork.stripeSequence.reduce(
+                    (sum, stripe) => sum + (stripe.rows || 0),
+                    0
+                );
+                return colorRepeats * totalRowsInSequence;
+            }
+            return 1;
+
+
         default:
             return 1;
     }

@@ -686,6 +686,20 @@ const KnittingStepCounter = ({
             }
         }
 
+        // ✅ NEW: Handle color repeats
+        if (duration?.type === 'color_repeats') {
+            const repeats = parseInt(duration.value) || 0;
+            const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+
+            if (repeats > 0 && colorwork?.stripeSequence) {
+                const totalRowsInSequence = colorwork.stripeSequence.reduce(
+                    (sum, stripe) => sum + (stripe.rows || 0),
+                    0
+                );
+                return repeats * totalRowsInSequence;
+            }
+        }
+
         return step.totalRows || 1;
     }
 

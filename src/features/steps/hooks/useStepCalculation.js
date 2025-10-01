@@ -134,6 +134,39 @@ export const useStepCalculation = () => {
       };
     }
 
+    // Handle patterns with repeats (Lace, Cable, Colorwork)
+    if (wizardData.duration.type === 'repeats' && wizardData.stitchPattern.rowsInPattern) {
+      const rowsPerRepeat = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
+      const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
+      const totalRows = rowsPerRepeat * numberOfRepeats;
+
+      return {
+        success: true,
+        totalRows: totalRows,
+        startingStitches: currentStitches,
+        endingStitches: currentStitches,
+        isPatternRepeat: true
+      };
+    }
+
+    // ✅ NEW: Handle color pattern repeats
+    if (wizardData.duration.type === 'color_repeats' && wizardData.colorwork?.stripeSequence) {
+      const totalRowsInSequence = wizardData.colorwork.stripeSequence.reduce(
+        (sum, stripe) => sum + (stripe.rows || 0),
+        0
+      );
+      const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
+      const totalRows = totalRowsInSequence * numberOfRepeats;
+
+      return {
+        success: true,
+        totalRows: totalRows,
+        startingStitches: currentStitches,
+        endingStitches: currentStitches,
+        isColorRepeat: true
+      };
+    }
+
     try {
       // Use existing PatternDetector for other patterns
       const instruction = generateInstructionForDetection(wizardData);

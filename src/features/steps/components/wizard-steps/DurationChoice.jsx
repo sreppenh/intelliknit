@@ -35,8 +35,13 @@ const DurationChoice = ({
   const isEditMode = mode === 'edit';
   const isCreateMode = mode === 'create';
 
-  const patternHasRepeats = wizardData.stitchPattern.rowsInPattern &&
-    parseInt(wizardData.stitchPattern.rowsInPattern) > 0;
+  // Check if pattern has repeats (existing code)
+  const patternHasRepeats = wizardData.stitchPattern?.rowsInPattern &&
+    parseInt(wizardData.stitchPattern.rowsInPattern) > 1;
+
+  // ✅ NEW: Check if color pattern exists
+  const hasColorPattern = wizardData.colorwork?.type === 'stripes' &&
+    wizardData.colorwork?.stripeSequence?.length > 0;
 
   const handleDurationTypeSelect = (type) => {
     updateWizardData('duration', { type, value: '' });
@@ -349,6 +354,66 @@ const DurationChoice = ({
                           ({(parseInt(wizardData.stitchPattern.rowsInPattern) || 0) * (parseInt(wizardData.duration.value) || 0)} total {construction === 'round' ? 'rounds' : 'rows'})
                         </div>
                       )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </label>
+          )}
+
+          {/* Color pattern repeats - only show if colorwork exists */}
+          {hasColorPattern && (
+            <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${wizardData.duration.type === 'color_repeats'
+              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+              }`}>
+              <div className="flex items-start gap-4">
+                <input
+                  type="radio"
+                  name="duration_type"
+                  value="color_repeats"
+                  checked={wizardData.duration.type === 'color_repeats'}
+                  onChange={() => handleDurationTypeSelect('color_repeats')}
+                  className="w-4 h-4 text-sage-600 mt-1"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-2xl">🎨</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-base">Repeat Color Pattern</div>
+                      <div className="text-sm opacity-75">Repeat the stripe sequence</div>
+                    </div>
+                  </div>
+
+                  {wizardData.duration.type === 'color_repeats' && (
+                    <div className="mt-3 space-y-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-sage-700">Repeat the color pattern</span>
+                        <IncrementInput
+                          value={wizardData.duration.value}
+                          onChange={(value) => updateWizardData('duration', { value })}
+                          label="color repeats"
+                          unit="times"
+                          min={1}
+                          size="sm"
+                        />
+                      </div>
+
+                      {wizardData.duration.value && (() => {
+                        // Calculate total rows in stripe sequence
+                        const totalRowsInSequence = wizardData.colorwork.stripeSequence.reduce(
+                          (sum, stripe) => sum + (stripe.rows || 0),
+                          0
+                        );
+                        const totalRows = totalRowsInSequence * parseInt(wizardData.duration.value);
+
+                        return (
+                          <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
+                            <strong>Preview:</strong> Repeat the {totalRowsInSequence}-{construction === 'round' ? 'round' : 'row'} stripe pattern {wizardData.duration.value} times
+                            ({totalRows} total {construction === 'round' ? 'rounds' : 'rows'})
+                          </div>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>

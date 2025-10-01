@@ -588,6 +588,10 @@ export const getStepDurationDisplay = (step) => {
         case 'repeats':
             return `${duration.value} repeats`;
 
+        // ✅ NEW: Color repeats display
+        case 'color_repeats':
+            return `${duration.value} color repeats`;
+
         case 'stitches':
             return `${duration.value || 'all'} stitches`;
 
