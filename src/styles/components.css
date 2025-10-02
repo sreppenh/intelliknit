@@ -892,12 +892,11 @@ body.modal-open {
   @apply active:bg-wool-100 active:border-sage-400;
 }
 
-/* Selectable cards - unified with SelectionGrid styling */
 .card-selectable {
   @apply p-4 border-2 rounded-lg cursor-pointer transition-colors text-center;
   @apply border-wool-200 bg-white text-wool-700;
-  height: 90px;
-  /* Fixed height instead of min-height */
+  min-height: 110px;
+  /* Min-height allows content to expand */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -906,7 +905,7 @@ body.modal-open {
 
 .card-selectable-selected {
   @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
-  height: 90px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
