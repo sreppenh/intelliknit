@@ -4,19 +4,20 @@ import { getAlgorithmicRowInstruction, isAlgorithmicPattern } from './Algorithmi
 import { calculateRowStitches } from './stitchCalculatorUtils';
 import { formatKnittingInstruction } from './../../shared/utils/knittingNotation'
 import { generateMarkerInstructionPreview } from './markerInstructionUtils';
+import { getAdjustedColorRow, getAdjustedPatternRow } from './progressTracking';
 
 /**
  * Smart Instruction Generation - Phase 2 implementation
  * Generates proper knitting instructions based on step configuration
  */
-export const getRowInstruction = (step, currentRow, currentStitchCount, project = null) => {
+export const getRowInstruction = (step, currentRow, currentStitchCount, project = null, component = null, stepIndex = null) => {
     try {
         // Get basic step info
         const construction = step.construction || 'flat';
         const rowTerm = construction === 'round' ? 'Round' : 'Row';
 
         // Route to appropriate instruction type
-        const instructionResult = routeInstruction(step, currentRow, currentStitchCount, construction, project);
+        const instructionResult = routeInstruction(step, currentRow, currentStitchCount, construction, project, component, stepIndex);
 
         // Add row number prefix for multi-row steps
         // if (step.totalRows > 1 && instructionResult.instruction) {
@@ -39,7 +40,7 @@ export const getRowInstruction = (step, currentRow, currentStitchCount, project 
 /**
  * Route instruction generation based on step type and configuration
  */
-function routeInstruction(step, currentRow, currentStitchCount, construction, project) {
+function routeInstruction(step, currentRow, currentStitchCount, construction, project, component = null, stepIndex = null) {
     const patternName = getStepPatternName(step);
     const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
@@ -55,7 +56,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
 
     // Priority 3: Colorwork patterns (before algorithmic check)
     if (isColorworkPattern(patternName, step)) {
-        const colorworkResult = getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project);
+        const colorworkResult = getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project, component, stepIndex);
         if (colorworkResult?.instruction) {
             return {
                 ...colorworkResult,
@@ -848,7 +849,7 @@ function isColorworkPattern(patternName, step) {
 /**
  * Generate colorwork instructions with intelligent color tracking
  */
-function getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project) {
+function getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project, component = null, stepIndex = null) {
 
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
@@ -856,7 +857,7 @@ function getColorworkInstruction(step, currentRow, currentStitchCount, construct
     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
 
     if (patternName === 'Stripes' || colorwork?.type === 'stripes' || colorwork?.advancedType === 'stripes') {
-        return getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project);
+        return getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project, component, stepIndex);
     }
 
     // Other colorwork patterns - basic handling for now
@@ -876,7 +877,7 @@ function getColorworkInstruction(step, currentRow, currentStitchCount, construct
 /**
  * Generate intelligent stripe instructions with current color tracking 
  */
-function getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project) {
+function getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project, component = null, stepIndex = null) {
 
     // ✅ FIX: Get stripe sequence from colorwork, not stitchPattern
     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
@@ -891,8 +892,13 @@ function getStripeInstruction(step, currentRow, currentStitchCount, construction
         };
     }
 
-    // Calculate which color should be used for current row
-    const currentColor = getCurrentStripeColor(currentRow, stripeSequence);
+    // ✅ NEW: Use adjusted row number that accounts for continuation
+    const adjustedRow = component && stepIndex !== null && project
+        ? getAdjustedColorRow(currentRow, step, component, stepIndex, project.id)
+        : currentRow;
+
+    // Calculate which color should be used for the adjusted row
+    const currentColor = getCurrentStripeColor(adjustedRow, stripeSequence);
 
     if (!currentColor) {
         return {

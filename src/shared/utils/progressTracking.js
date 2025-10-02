@@ -402,6 +402,222 @@ export const validateProgressState = (steps, componentId, projectId) => {
     return issues;
 };
 
+// ===== PATTERN & COLOR CONTINUATION UTILITIES =====
+
+/**
+ * Calculate pattern length for a step
+ * Returns the number of rows in the pattern repeat
+ */
+export const getPatternLength = (step) => {
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+
+    if (!stitchPattern) return null;
+
+    // Row-by-row entry mode
+    if (stitchPattern.entryMode === 'row_by_row' && stitchPattern.rowInstructions) {
+        return stitchPattern.rowInstructions.length;
+    }
+
+    // Description mode with rowsInPattern
+    if (stitchPattern.rowsInPattern) {
+        return parseInt(stitchPattern.rowsInPattern);
+    }
+
+    return null;
+};
+
+/**
+ * Calculate color sequence length for a step
+ * Returns the total number of rows in the stripe sequence
+ */
+export const getColorSequenceLength = (step) => {
+    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+
+    if (!colorwork || colorwork.type !== 'stripes') return null;
+
+    const stripeSequence = colorwork.stripeSequence;
+    if (!stripeSequence || !Array.isArray(stripeSequence) || stripeSequence.length === 0) {
+        return null;
+    }
+
+    return stripeSequence.reduce((sum, stripe) => sum + (stripe.rows || 0), 0);
+};
+
+/**
+ * Check if step should ignore pattern/color continuation
+ * Returns true for steps with "repeats" or "color_repeats" duration
+ */
+export const shouldIgnoreContinuation = (step) => {
+    const durationType = step.wizardConfig?.duration?.type;
+    return durationType === 'repeats' || durationType === 'color_repeats';
+};
+
+/**
+ * Calculate continuation state when a step is completed
+ * Returns object with pattern and color ending positions
+ */
+export const calculateContinuationState = (step) => {
+    // Don't calculate continuation for repeat-based steps
+    if (shouldIgnoreContinuation(step)) {
+        return null;
+    }
+
+    const patternLength = getPatternLength(step);
+    const colorLength = getColorSequenceLength(step);
+    const totalRows = step.totalRows || 1;
+
+    const continuation = {};
+
+    // Calculate pattern continuation
+    if (patternLength && patternLength > 0) {
+        continuation.patternRow = (totalRows % patternLength) || patternLength;
+        continuation.patternLength = patternLength;
+    }
+
+    // Calculate color continuation
+    if (colorLength && colorLength > 0) {
+        continuation.colorRow = (totalRows % colorLength) || colorLength;
+        continuation.colorLength = colorLength;
+    }
+
+    // Only return continuation object if we have data
+    return (continuation.patternRow || continuation.colorRow) ? continuation : null;
+};
+
+/**
+ * Get continuation state from previous step
+ * Returns continuation offsets for pattern and color, or null if no previous step
+ */
+export const getPreviousStepContinuation = (component, stepIndex, projectId) => {
+    // First step has no previous continuation
+    if (stepIndex === 0) return null;
+
+    const prevStep = component.steps[stepIndex - 1];
+    if (!prevStep) return null;
+
+    const prevProgress = getStepProgressState(prevStep.id, component.id, projectId);
+
+    // Return continuation data if it exists
+    return prevProgress?.continuation || null;
+};
+
+/**
+ * Get pattern row offset for current step
+ * Accounts for previous step continuation and user overrides
+ */
+export const getPatternRowOffset = (step, component, stepIndex, projectId) => {
+    // Check if user wants to reset pattern
+    if (step.continuationOverrides?.resetPattern) {
+        return 0;
+    }
+
+    // Check if this step type should ignore continuation
+    if (shouldIgnoreContinuation(step)) {
+        return 0;
+    }
+
+    // Get continuation from previous step
+    const prevContinuation = getPreviousStepContinuation(component, stepIndex, projectId);
+
+    if (!prevContinuation || !prevContinuation.patternRow) {
+        return 0;
+    }
+
+    // Validate that pattern lengths match (safety check)
+    const currentPatternLength = getPatternLength(step);
+    if (currentPatternLength && prevContinuation.patternLength !== currentPatternLength) {
+        // Pattern changed, don't continue
+        console.warn('Pattern length mismatch - resetting pattern continuation');
+        return 0;
+    }
+
+    return prevContinuation.patternRow;
+};
+
+/**
+ * Get color row offset for current step
+ * Accounts for previous step continuation and user overrides
+ */
+export const getColorRowOffset = (step, component, stepIndex, projectId) => {
+    // Check if user wants to reset color
+    if (step.continuationOverrides?.resetColor) {
+        return 0;
+    }
+
+    // Check if this step type should ignore continuation
+    if (shouldIgnoreContinuation(step)) {
+        return 0;
+    }
+
+    // Get continuation from previous step
+    const prevContinuation = getPreviousStepContinuation(component, stepIndex, projectId);
+
+    if (!prevContinuation || !prevContinuation.colorRow) {
+        return 0;
+    }
+
+    // Validate that color sequence lengths match (safety check)
+    const currentColorLength = getColorSequenceLength(step);
+    if (currentColorLength && prevContinuation.colorLength !== currentColorLength) {
+        // Color sequence changed, don't continue
+        console.warn('Color sequence length mismatch - resetting color continuation');
+        return 0;
+    }
+
+    return prevContinuation.colorRow;
+};
+
+/**
+ * Calculate adjusted row number for pattern instructions
+ * Use this when fetching the current pattern row
+ */
+export const getAdjustedPatternRow = (currentRow, step, component, stepIndex, projectId) => {
+    const patternLength = getPatternLength(step);
+    if (!patternLength) return currentRow;
+
+    const offset = getPatternRowOffset(step, component, stepIndex, projectId);
+    const adjustedRow = offset + currentRow - 1;
+
+    return (adjustedRow % patternLength) + 1; // Return 1-indexed row number
+};
+
+/**
+ * Calculate adjusted row number for color instructions
+ * Use this when determining current stripe color
+ */
+export const getAdjustedColorRow = (currentRow, step, component, stepIndex, projectId) => {
+    const colorLength = getColorSequenceLength(step);
+    if (!colorLength) return currentRow;
+
+    const offset = getColorRowOffset(step, component, stepIndex, projectId);
+    const adjustedRow = offset + currentRow - 1;
+
+    return (adjustedRow % colorLength) + 1; // Return 1-indexed row number
+};
+
+/**
+ * Get display text for continuation status (for debugging/UI)
+ */
+export const getContinuationStatusText = (step, component, stepIndex, projectId) => {
+    const patternOffset = getPatternRowOffset(step, component, stepIndex, projectId);
+    const colorOffset = getColorRowOffset(step, component, stepIndex, projectId);
+
+    const parts = [];
+
+    if (patternOffset > 0) {
+        const patternLength = getPatternLength(step);
+        parts.push(`Pattern continues from row ${patternOffset} of ${patternLength}`);
+    }
+
+    if (colorOffset > 0) {
+        const colorLength = getColorSequenceLength(step);
+        parts.push(`Color continues from row ${colorOffset} of ${colorLength}`);
+    }
+
+    return parts.length > 0 ? parts.join(', ') : null;
+};
+
+
 // ===== EXPORT ALL =====
 
 export default {
@@ -434,5 +650,17 @@ export default {
     migrateOldCompletionFlags,
 
     // Validation
-    validateProgressState
+    validateProgressState,
+
+    // ✅ NEW: Pattern & Color Continuation
+    getPatternLength,
+    getColorSequenceLength,
+    shouldIgnoreContinuation,
+    calculateContinuationState,
+    getPreviousStepContinuation,
+    getPatternRowOffset,
+    getColorRowOffset,
+    getAdjustedPatternRow,
+    getAdjustedColorRow,
+    getContinuationStatusText
 };
