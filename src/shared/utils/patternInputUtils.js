@@ -298,6 +298,22 @@ const handleBracketContextIncrement = (action, newCount, contextText, tempRowTex
 export const handleSmartDelete = (tempRowText, setTempRowText, resetAutoIncrement, isLongPress = false, onBracketChange = null) => {
     if (!tempRowText) return false;
 
+    // SPECIAL CASE: Actions with numbers in their names (brk1, brp1, Sl1, sl1yo)
+    // Handle these FIRST before any regex logic runs
+    const knownActionsWithNumbers = ['brk1', 'brp1', 'Sl1', 'sl1yo', 'K1', 'P1'];
+    const parts = tempRowText.split(', ');
+    const lastPart = parts[parts.length - 1];
+
+    if (knownActionsWithNumbers.includes(lastPart)) {
+        // Delete this entire action
+        parts.pop();
+        setTempRowText(parts.join(', '));
+        resetAutoIncrement();
+        return true;
+    }
+
+    // [All your existing code continues below unchanged...]
+
 
 
     // Check if we're inside an open bracket/paren and delete more carefully
