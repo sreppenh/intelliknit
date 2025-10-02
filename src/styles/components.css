@@ -915,7 +915,7 @@ body.modal-open {
 .card-selectable-compact {
   @apply p-4 border-2 rounded-lg cursor-pointer transition-colors text-center text-sm;
   @apply border-wool-200 bg-white text-wool-700;
-  height: 90px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -924,7 +924,7 @@ body.modal-open {
 
 .card-selectable-compact-selected {
   @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
-  height: 90px;
+  min-height: 100px;
   display: flex;
   flex-direction: column;
   align-items: center;
