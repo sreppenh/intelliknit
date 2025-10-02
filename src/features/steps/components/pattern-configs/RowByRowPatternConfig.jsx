@@ -103,19 +103,11 @@ const RowByRowPatternConfig = ({
 
 
     const updateProject = (updates) => {
-        if (project) {
-            // Notes mode: project is passed as prop, but we can't update it directly
-            // In notes mode, custom keyboard actions should be handled by the parent
-            console.warn('RowByRowPatternConfig: updateProject called in notes mode, but notes handle updates differently');
-            // For now, do nothing - notes don't support custom keyboard actions yet
-            return;
-        } else {
-            // Projects mode: use dispatch as normal
-            projectsContext.dispatch({
-                type: 'UPDATE_PROJECT',
-                payload: { ...currentProject, ...updates }
-            });
-        }
+        // Always use the context dispatch - it works in all modes
+        projectsContext.dispatch({
+            type: 'UPDATE_PROJECT',
+            payload: { ...currentProject, ...updates }
+        });
     };
 
 
