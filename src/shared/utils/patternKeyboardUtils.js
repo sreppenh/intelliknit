@@ -104,7 +104,7 @@ const getCableKeyboardLayout = (layer, context = {}) => {
 const getBriocheKeyboardLayout = (layer) => {
     return {
         fullRow: ['K to end', 'P to end'],
-        input: ['brk1', 'brp1', 'sl1yo', 'K', 'P', 'YO'],
+        input: ['brk1', 'brp1', 'sl1yo', 'Sl1', 'Sl1 wyif', 'K2tog', 'K3tog', 'K', 'P'],
         actions: ['⌫', '[', '(']
     };
 };

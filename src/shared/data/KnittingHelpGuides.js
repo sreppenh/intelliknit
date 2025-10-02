@@ -169,6 +169,42 @@ export const HELP_GUIDES = {
         ]
     },
 
+    brioche_help: {
+        title: 'Brioche Knitting',
+
+        basics: [
+            'Brioche creates a thick, squishy, reversible fabric',
+            'Each stitch is worked together with its yarn over from previous row',
+            'Pattern is worked over multiple rows that build on each other'
+        ],
+
+        keyStitches: [
+            'brk1 (brioche knit): Knit stitch together with its yarn over - consumes 2, makes 1',
+            'brp1 (brioche purl): Purl stitch together with its yarn over - consumes 2, makes 1',
+            'sl1yo (slip 1 with yarn over): Slip stitch and wrap yarn over needle - consumes 1, makes 2'
+        ],
+
+        steps: [
+            'Setup row establishes the pattern (usually all sl1yo)',
+            'Row 1: Work brk1 and sl1yo according to pattern',
+            'Row 2: Work brp1 and sl1yo (opposite of Row 1)',
+            'Repeat Rows 1-2 for pattern'
+        ],
+
+        tips: [
+            'Keep track of which row you\'re on - brioche rows look similar',
+            'Use a row counter or place a marker to identify right side',
+            'Tension should be slightly looser than stockinette',
+            'The fabric will "scrunch up" on needles - this is normal'
+        ],
+
+        troubleshooting: [
+            'If stitch count is off: Check that every sl1yo has been worked with its partner on next row',
+            'If fabric looks uneven: Check tension - brioche needs consistent, slightly loose tension',
+            'Lost your place? Look at the stitches - a "brk1" stitch sits on top of a yarn over'
+        ]
+    },
+
     stripe_setup_help: {
         title: 'Stripe Pattern Setup',
 

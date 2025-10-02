@@ -896,27 +896,40 @@ body.modal-open {
 .card-selectable {
   @apply p-4 border-2 rounded-lg cursor-pointer transition-colors text-center;
   @apply border-wool-200 bg-white text-wool-700;
-}
-
-.card-selectable:not(.card-selectable-selected):hover {
-  @apply border-sage-300;
+  height: 90px;
+  /* Fixed height instead of min-height */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-selectable-selected {
   @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-selectable-compact {
-  @apply p-3 border-2 rounded-lg cursor-pointer transition-colors text-center text-sm;
+  @apply p-4 border-2 rounded-lg cursor-pointer transition-colors text-center text-sm;
   @apply border-wool-200 bg-white text-wool-700;
-}
-
-.card-selectable-compact:not(.card-selectable-compact-selected):hover {
-  @apply border-sage-300;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .card-selectable-compact-selected {
   @apply border-sage-500 bg-sage-100 text-sage-700 font-semibold;
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 /* Selection buttons */
