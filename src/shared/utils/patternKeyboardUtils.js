@@ -36,6 +36,8 @@ export const getKeyboardLayout = (patternType, layer = KEYBOARD_LAYERS.PRIMARY, 
         // In getKeyboardLayout function, add this case after 'Custom pattern':
         case 'Custom Texture':
             return getCustomTextureKeyboardLayout(layer);
+        case 'Brioche':
+            return getBriocheKeyboardLayout(layer);
         default:
             return getBasicKeyboardLayout(layer);
     }
@@ -98,6 +100,16 @@ const getCableKeyboardLayout = (layer, context = {}) => {
             return getCableKeyboardLayout(KEYBOARD_LAYERS.PRIMARY, context);
     }
 };
+
+const getBriocheKeyboardLayout = (layer) => {
+    return {
+        fullRow: ['K to end', 'P to end'],
+        input: ['brk1', 'brp1', 'sl1yo', 'K', 'P', 'YO'],
+        actions: ['⌫', '[', '(']
+    };
+};
+
+
 
 const getCustomKeyboardLayout = (layer) => {
     return {

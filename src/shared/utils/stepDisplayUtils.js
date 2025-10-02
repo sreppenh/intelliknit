@@ -166,6 +166,36 @@ const PATTERN_CONFIG = {
         ]
     },
 
+    'Brioche': {
+        // Copy from Lace Pattern, but customize keyboard
+        quickActions: ['K to end', 'P to end', 'brk1', 'brp1', 'sl1yo'],
+        placeholderText: "e.g., 'sl1yo, brk1 to end'",
+        descriptionPlaceholder: "Describe your brioche pattern...",
+
+        category: 'structure',
+        requiresAdvancedRowByRow: true,
+        isAdvancedPattern: true,
+
+        requiresCustomText: false,
+        requiresRowsInPattern: true,
+        needsDescriptionInput: false,
+        needsRowInput: false,
+
+        keyboardPatternKey: 'brioche',
+        keyboardLayer: null,  // Single layer for now
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['primary'],
+
+        includesInRowCountPatterns: true,
+
+        configurationTips: [
+            'Brioche stitches work in pairs across rows',
+            'brk1 and brp1 each consume 2 stitches',
+            'sl1yo consumes 1 stitch and creates 2'
+        ]
+    },
+
     'Custom pattern': {
         quickActions: ['K to end', 'P to end'],
         placeholderText: "e.g., '5 rows stockinette, 1 bobble row'",

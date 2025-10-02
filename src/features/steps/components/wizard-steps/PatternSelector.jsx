@@ -198,7 +198,7 @@ export const PatternSelector = ({
 
   // ✅ FIX: Define fixed order for advanced categories with colorwork first
   const getAdvancedCategories = () => {
-    const fixedOrder = ['custom_texture', 'lace', 'cable', 'custom'];
+    const fixedOrder = ['custom_texture', 'lace', 'cable', 'brioche', 'custom'];
     return fixedOrder
       .filter(key => PATTERN_CATEGORIES[key]?.type === 'advanced')
       .map(key => [key, PATTERN_CATEGORIES[key]]);

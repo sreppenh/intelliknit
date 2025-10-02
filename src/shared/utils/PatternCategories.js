@@ -77,6 +77,15 @@ export const PATTERN_CATEGORIES = {
         ]
     },
 
+    brioche: {
+        name: 'Brioche',
+        icon: '🌊',
+        type: 'advanced',
+        patterns: [
+            { name: 'Brioche', icon: '🌊', desc: 'Two-sided reversible fabric' }
+        ]
+    },
+
     // Custom Category
     custom: {
         name: 'Custom Pattern',

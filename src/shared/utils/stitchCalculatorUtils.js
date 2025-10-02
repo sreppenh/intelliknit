@@ -32,6 +32,11 @@ const STITCH_VALUES = {
     'M1R': { consumes: 0, produces: 1 },
     'KFB': { consumes: 1, produces: 2 }, // Knit Front and Back
 
+    // Brioche
+    'brk1': { consumed: 2, produced: 1 },
+    'brp1': { consumed: 2, produced: 1 },
+    'sl1yo': { consumed: 1, produced: 2 },
+
     // Special operations
     'Sl1': { consumes: 1, produces: 1 }, // Slip stitch
     'Sl1 wyif': { consumes: 1, produces: 1 }, // Slip stitch
