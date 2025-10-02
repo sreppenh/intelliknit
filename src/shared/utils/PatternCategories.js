@@ -84,17 +84,17 @@ export const PATTERN_CATEGORIES = {
         patterns: [
             { name: 'Brioche', icon: '🌊', desc: 'Two-sided reversible fabric' }
         ]
-    },
+    }
 
     // Custom Category
-    custom: {
-        name: 'Custom Pattern',
-        icon: '✨',
-        type: 'advanced',
-        patterns: [
-            { name: 'Custom pattern', icon: '📝', desc: 'Define your own pattern' }
-        ]
-    }
+    //  custom: {
+    //  name: 'Custom Pattern',
+    //  icon: '✨',
+    //  type: 'advanced',
+    //   patterns: [
+    //       { name: 'Custom pattern', icon: '📝', desc: 'Define your own pattern' }
+    //    ]
+    //  }
 };
 
 /**
