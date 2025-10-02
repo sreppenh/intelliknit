@@ -976,6 +976,32 @@ const RowByRowPatternConfig = ({
                 </div>
             )}
 
+            {/* Stitch Change per Repeat - For Description Mode */}
+            {currentEntryMode === 'description' && (
+                <div>
+                    <label className="form-label">Stitch Change per Repeat</label>
+                    <IncrementInput
+                        value={wizardData.stitchPattern.stitchChangePerRepeat || 0}
+                        onChange={(value) => updateWizardData('stitchPattern', { stitchChangePerRepeat: value })}
+                        label="stitch change"
+                        unit="stitches"
+                        construction={construction}
+                        min={-20}
+                        max={20}
+                        allowNegative={true}
+                        disabled={isReadOnly('stitchChangePerRepeat')}
+                    />
+                    <div className="form-help">
+                        Stitches gained (+) or lost (-) per repeat. Use 0 for stitch-neutral patterns (most common).
+                    </div>
+                    {isReadOnly('stitchChangePerRepeat') && (
+                        <p className="text-xs text-yarn-600 mt-1">
+                            Stitch change is locked to preserve calculations
+                        </p>
+                    )}
+                </div>
+            )}
+
             {shouldShowActions && (
                 <div className="pt-4 border-t border-wool-200">
                     <div className="flex gap-3">
