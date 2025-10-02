@@ -11,6 +11,8 @@
  */
 
 import { isLengthBasedStep, estimateRowsFromLength } from './gaugeUtils';
+import { getStepPatternName } from './stepDisplayUtils';
+import { isAlgorithmicPattern } from './AlgorithmicPatterns';
 
 // ===== STORAGE KEY GENERATION =====
 
@@ -523,14 +525,17 @@ export const getPatternRowOffset = (step, component, stepIndex, projectId) => {
         return 0;
     }
 
-    // Validate that pattern lengths match (safety check)
-    const currentPatternLength = getPatternLength(step);
-    if (currentPatternLength && prevContinuation.patternLength !== currentPatternLength) {
-        // Pattern changed, don't continue
-        console.warn('Pattern length mismatch - resetting pattern continuation');
+    // Compare actual pattern names
+    const prevStep = component.steps[stepIndex - 1];
+    const currentPatternName = getStepPatternName(step);
+    const prevPatternName = getStepPatternName(prevStep);
+
+    if (currentPatternName !== prevPatternName) {
+        console.warn(`Pattern changed from ${prevPatternName} to ${currentPatternName} - resetting continuation`);
         return 0;
     }
 
+    // Pattern names match, use continuation
     return prevContinuation.patternRow;
 };
 
@@ -556,16 +561,40 @@ export const getColorRowOffset = (step, component, stepIndex, projectId) => {
         return 0;
     }
 
-    // Validate that color sequence lengths match (safety check)
-    const currentColorLength = getColorSequenceLength(step);
-    if (currentColorLength && prevContinuation.colorLength !== currentColorLength) {
-        // Color sequence changed, don't continue
-        console.warn('Color sequence length mismatch - resetting color continuation');
+    // Compare stripe sequences
+    const prevStep = component.steps[stepIndex - 1];
+    const currentColorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+    const prevColorwork = prevStep.colorwork || prevStep.wizardConfig?.colorwork || prevStep.advancedWizardConfig?.colorwork;
+
+    // Both must be stripe patterns
+    if (currentColorwork?.type !== 'stripes' || prevColorwork?.type !== 'stripes') {
+        return 0;
+    }
+
+    // Compare stripe sequences for exact match
+    if (!doStripeSequencesMatch(currentColorwork.stripeSequence, prevColorwork.stripeSequence)) {
+        console.warn('Stripe sequence changed - resetting color continuation');
         return 0;
     }
 
     return prevContinuation.colorRow;
 };
+
+/**
+ * Helper: Compare two stripe sequences for exact match
+ */
+function doStripeSequencesMatch(seq1, seq2) {
+    if (!seq1 || !seq2) return false;
+    if (seq1.length !== seq2.length) return false;
+
+    for (let i = 0; i < seq1.length; i++) {
+        if (seq1[i].color !== seq2[i].color || seq1[i].rows !== seq2[i].rows) {
+            return false;
+        }
+    }
+
+    return true;
+}
 
 /**
  * Calculate adjusted row number for pattern instructions
@@ -620,6 +649,7 @@ export const getContinuationStatusText = (step, component, stepIndex, projectId)
 
 // ===== EXPORT ALL =====
 
+
 export default {
     // Storage
     getProgressStorageKey,
@@ -652,7 +682,7 @@ export default {
     // Validation
     validateProgressState,
 
-    // ✅ NEW: Pattern & Color Continuation
+    // Pattern & Color Continuation
     getPatternLength,
     getColorSequenceLength,
     shouldIgnoreContinuation,
