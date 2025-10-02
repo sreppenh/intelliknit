@@ -87,10 +87,14 @@ export const clearStepProgressState = (stepId, componentId, projectId, stepIndex
     delete allProgress[stepId];
     saveAllProgressData(projectId, componentId, allProgress);
 
-    // ✅ NEW: Also clear the row counter localStorage if stepIndex provided
+    // Clear the row counter localStorage (uses stepId for project mode)
+    const rowCounterKey = `row-counter-${projectId}-${componentId}-${stepId}`;
+    localStorage.removeItem(rowCounterKey);
+
+    // Also try with stepIndex as fallback (shouldn't be needed but for safety)
     if (stepIndex !== null) {
-        const rowCounterKey = `row-counter-${projectId}-${componentId}-${stepIndex}`;
-        localStorage.removeItem(rowCounterKey);
+        const altKey = `row-counter-${projectId}-${componentId}-${stepIndex}`;
+        localStorage.removeItem(altKey);
     }
 };
 

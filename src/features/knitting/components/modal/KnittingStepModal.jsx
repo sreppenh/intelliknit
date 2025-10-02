@@ -264,6 +264,7 @@ const KnittingStepModal = ({
                     onToggleCompletion={onToggleCompletion}
                     onComponentComplete={handleComponentComplete}
                     onShowGaugeCard={handleShowGaugeCard}
+                    onClose={onClose}
                 />
             );
         }

@@ -585,37 +585,71 @@ const KnittingStepCounter = ({
     };
 
     const handleAutoAdvanceToNextStep = () => {
-        IntelliKnitLogger.debug('Row Counter', 'Auto-advancing to next step from final row completion');
+        console.log('=== handleAutoAdvanceToNextStep START ===');
+        console.log('navigation object:', navigation);
+        console.log('navigation.canGoRight:', navigation?.canGoRight);
+        console.log('onClose exists?', !!onClose);
+        console.log('onComponentComplete exists?', !!onComponentComplete);
+
+        IntelliKnitLogger.debug('Row Counter', 'Auto-advancing from final row completion');
 
         try {
             if (navigation.canGoRight) {
+                console.log('Attempting navigation.navigateRight()');
                 navigation.navigateRight();
-                IntelliKnitLogger.debug('Row Counter', 'Successfully navigated to next step');
             } else {
+                console.log('No navigation.canGoRight, trying close');
+                if (onClose) {
+                    console.log('Calling onClose()');
+                    onClose();
+                } else {
+                    console.log('onClose is not defined!');
+                }
+
                 if (onComponentComplete) {
+                    console.log('Calling onComponentComplete()');
                     onComponentComplete();
-                    setTimeout(() => {
-                        if (navigation.canGoRight) {
-                            navigation.navigateRight();
-                        }
-                    }, 50);
                 }
             }
         } catch (error) {
-            IntelliKnitLogger.error('Row Counter Auto-advancement failed', error);
+            console.error('Error in handleAutoAdvanceToNextStep:', error);
+            if (onClose) {
+                onClose();
+            }
         }
+
+        console.log('=== handleAutoAdvanceToNextStep END ===');
     };
 
     const handleRowIncrement = () => {
+        console.log('handleRowIncrement called', {
+            stepType,
+            currentRow,
+            totalRows,
+            isStepLocked
+        });
+
         if (isStepLocked) return; // Prevent incrementing locked steps
 
         if (stepType === 'single_action') {
-            if (!isCompleted) {
+            console.log('Single action handler triggered');
+
+            const progress = getStepProgressState(step.id, component.id, project.id);
+            console.log('Current progress state:', progress);
+
+            const alreadyCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
+            console.log('Already completed?', alreadyCompleted);
+
+            if (!alreadyCompleted) {
+                console.log('Calling handleStepComplete');
                 handleStepComplete();
+                console.log('handleStepComplete returned');
             }
 
             if (!isNotepadMode) {
+                console.log('Calling handleAutoAdvanceToNextStep');
                 handleAutoAdvanceToNextStep();
+                console.log('handleAutoAdvanceToNextStep returned');
             }
             return;
         }
