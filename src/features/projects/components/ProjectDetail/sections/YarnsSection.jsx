@@ -281,53 +281,60 @@ const YarnsSection = ({
                                 Add Yarn
                             </button>
                         </div>
-
                         {yarns.length > 0 ? (
                             <div className="space-y-3">
-                                {yarns.map((yarn, index) => (
-                                    <div key={yarn.id || index} className="flex items-start gap-4 p-4 bg-white rounded-xl border-2 border-wool-200">
-                                        {/* Color chip - aligned to top */}
-                                        <div
-                                            className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 border-gray-300 flex-shrink-0"
-                                            style={{
-                                                backgroundColor: yarn.colorHex || '#f3f4f6',
-                                                color: yarn.colorHex && yarn.colorHex !== '#ffffff' ? 'white' : '#6b7280'
-                                            }}
-                                        >
-                                            {yarn.letter || '?'}
-                                        </div>
-
-                                        {/* Yarn info */}
-                                        <div className="flex-1">
-                                            <div className="font-medium text-gray-900">
-                                                {yarn.brand} - {yarn.color}
-                                            </div>
-                                            <div className="text-sm text-gray-500">
-                                                {yarn.skeins} {yarn.skeins === 1 ? 'skein' : 'skeins'}
-                                                {yarn.letter && ` • Color ${yarn.letter}`}
-                                            </div>
-                                        </div>
-
-                                        {/* Actions */}
-                                        <div className="flex gap-2">
-                                            <button
-                                                onClick={() => handleEditYarn(index)}
-                                                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
-                                                title="Edit yarn"
+                                {[...yarns]
+                                    .sort((a, b) => {
+                                        // Assigned letters come first, alphabetically
+                                        if (a.letter && !b.letter) return -1;
+                                        if (!a.letter && b.letter) return 1;
+                                        if (a.letter && b.letter) return a.letter.localeCompare(b.letter);
+                                        return 0; // Keep unassigned in original order
+                                    })
+                                    .map((yarn, index) => (
+                                        <div key={yarn.id || index} className="flex items-start gap-4 p-4 bg-white rounded-xl border-2 border-wool-200">
+                                            {/* Color chip - aligned to top */}
+                                            <div
+                                                className="w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold border-2 border-gray-300 flex-shrink-0"
+                                                style={{
+                                                    backgroundColor: yarn.colorHex || '#f3f4f6',
+                                                    color: yarn.colorHex && yarn.colorHex !== '#ffffff' ? 'white' : '#6b7280'
+                                                }}
                                             >
-                                                <Edit2 size={16} />
-                                            </button>
-                                            <button
-                                                onClick={() => handleDeleteYarn(index)}
-                                                className="delete-icon"
-                                                title="Delete yarn"
-                                                aria-label={`Delete yarn: ${yarn?.color || yarn?.brand || `yarn ${index + 1}`}`}
-                                            >
-                                                ×
-                                            </button>
+                                                {yarn.letter || '?'}
+                                            </div>
+
+                                            {/* Yarn info */}
+                                            <div className="flex-1">
+                                                <div className="font-medium text-gray-900">
+                                                    {yarn.brand} - {yarn.color}
+                                                </div>
+                                                <div className="text-sm text-gray-500">
+                                                    {yarn.skeins} {yarn.skeins === 1 ? 'skein' : 'skeins'}
+                                                    {yarn.letter && ` • Color ${yarn.letter}`}
+                                                </div>
+                                            </div>
+
+                                            {/* Actions */}
+                                            <div className="flex gap-2">
+                                                <button
+                                                    onClick={() => handleEditYarn(index)}
+                                                    className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded"
+                                                    title="Edit yarn"
+                                                >
+                                                    <Edit2 size={16} />
+                                                </button>
+                                                <button
+                                                    onClick={() => handleDeleteYarn(index)}
+                                                    className="delete-icon"
+                                                    title="Delete yarn"
+                                                    aria-label={`Delete yarn: ${yarn?.color || yarn?.brand || `yarn ${index + 1}`}`}
+                                                >
+                                                    ×
+                                                </button>
+                                            </div>
                                         </div>
-                                    </div>
-                                ))}
+                                    ))}
                             </div>
                         ) : (
                             <div className="text-center py-8 text-gray-500">

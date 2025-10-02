@@ -239,7 +239,7 @@ const YarnManagerModal = ({
                                     >
                                         <div className="font-bold text-lg">{letter}</div>
                                         <div className="text-xs mt-1">
-                                            {isSelected ? 'Selected' : isOccupied ? 'Reassign' : 'Available'}
+                                            {isSelected ? 'Selected' : isOccupied ? 'In Use' : ''}
                                         </div>
 
                                         {/* Color dot */}
