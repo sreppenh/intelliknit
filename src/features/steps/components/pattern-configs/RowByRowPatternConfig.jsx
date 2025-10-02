@@ -194,6 +194,8 @@ const RowByRowPatternConfig = ({
         setshowRowEntryModal(true);
     };
 
+    console.log('KEYBOARD_LAYERS values:', KEYBOARD_LAYERS);
+
     // In RowByRowPatternConfig.jsx - find the handleSaveRow function and replace it with this:
 
     const handleSaveRow = () => {
@@ -512,20 +514,28 @@ const RowByRowPatternConfig = ({
 
         // Keyboard layer switching
         if (action === '⇧') {
+            console.log('🔀 Shift pressed!', {
+                patternType,
+                supportsMultiple: supportsMultipleLayers(patternType),
+                currentLayer: currentKeyboardLayer
+            });
+
             if (supportsMultipleLayers(patternType)) {
                 const nextLayer = getNextKeyboardLayer(currentKeyboardLayer, patternType);
+                console.log('🔀 Switching to layer:', nextLayer);
                 setCurrentKeyboardLayer(nextLayer);
 
-                // Manual number mode: ⇧⇧ (secondary back to primary) - only for supported patterns
+                // Manual number mode: ⇧⇧ (secondary back to primary)
                 if (supportsManualNumbers(patternType) && nextLayer === KEYBOARD_LAYERS.PRIMARY && currentKeyboardLayer === KEYBOARD_LAYERS.SECONDARY) {
                     setKeyboardMode('numbers');
-                    setPendingRepeatText(''); // Manual mode - no brackets
+                    setPendingRepeatText('');
                     return;
                 }
+            } else {
+                console.log('❌ Pattern does not support multiple layers');
             }
             return;
         }
-
         // Closing brackets (Trigger Number Mode)
         if (action === ']') {
             setBracketState(prev => ({ ...prev, hasOpenBracket: false }));

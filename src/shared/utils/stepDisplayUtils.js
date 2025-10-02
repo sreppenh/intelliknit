@@ -90,7 +90,7 @@ const PATTERN_CONFIG = {
         // Added
         supportsMultipleLayers: true,
         supportsManualNumbers: false,  // Only contextual numbers (brackets/parens)
-        availableLayers: ['PRIMARY', 'SECONDARY'], // Only 2 layers
+        availableLayers: ['primary', 'secondary'], // Only 2 layers
 
 
         // 🆕 Step generation behavior
@@ -121,7 +121,7 @@ const PATTERN_CONFIG = {
         keyboardLayer: 'TERTIARY',
         supportsMultipleLayers: true,
         supportsManualNumbers: true,
-        availableLayers: ['PRIMARY', 'SECONDARY', 'TERTIARY'], // All 3 layers
+        availableLayers: ['primary', 'secondary', 'tertiary'], // All 3 layers
 
         includesInRowCountPatterns: true,
         configurationTips: [

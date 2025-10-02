@@ -26,7 +26,10 @@ const EnhancedKeyboard = ({
     isLocked = false,
     directStateAccess  // ← ADD THIS
 }) => {
+    console.log('⌨️ EnhancedKeyboard rendering with layer:', layer, 'for pattern:', patternType);
+
     const keyboardLayout = getKeyboardLayout(patternType, layer, context);
+    console.log('⌨️ Got keyboard layout:', keyboardLayout);
 
     // Enhanced Keyboard with Hold-Down Functionality
     // Replace the input section in EnhancedKeyboard component
