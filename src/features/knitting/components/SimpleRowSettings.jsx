@@ -5,6 +5,7 @@ import SegmentedControl from '../../../shared/components/SegmentedControl';
 import { getStepPatternInfo } from '../../../shared/utils/sideIntelligence';
 import { isAlgorithmicPattern, getPatternMetadata } from '../../../shared/utils/AlgorithmicPatterns';
 import IncrementInput from '../../../shared/components/IncrementInput';
+import { getPatternRowOffset, getColorRowOffset } from '../../../shared/utils/progressTracking';
 
 /**
  * Simple Row 1 Settings
@@ -20,11 +21,44 @@ const SimpleRowSettings = ({
     lengthTarget = null,
     startingLength = null,
     onStartingLengthChange = null,
-    defaultExpanded = false
+    defaultExpanded = false,
+    component = null,
+    stepIndex = null,
+    project = null,
+    onContinuationChange = null
 }) => {
     const [isExpanded, setIsExpanded] = useState(defaultExpanded);
     const patternInfo = getStepPatternInfo(step);
     const [selectedPatternRow, setSelectedPatternRow] = useState(1);
+
+    // ✅ NEW: Continuation state
+    const [resetPattern, setResetPattern] = useState(false);
+    const [resetColor, setResetColor] = useState(false);
+
+    // ✅ NEW: Calculate continuation offsets
+    const patternOffset = component && stepIndex !== null && project
+        ? getPatternRowOffset(step, component, stepIndex, project.id)
+        : 0;
+
+    const colorOffset = component && stepIndex !== null && project
+        ? getColorRowOffset(step, component, stepIndex, project.id)
+        : 0;
+
+    // ✅ NEW: Show toggles only if there's an actual offset
+    const showPatternContinuation = patternOffset > 0;
+    const showColorContinuation = colorOffset > 0;
+
+    // ✅ NEW: Handle continuation toggle changes
+    const handleResetPatternChange = (checked) => {
+        setResetPattern(checked);
+        onContinuationChange?.({ resetPattern: checked, resetColor });
+    };
+
+    const handleResetColorChange = (checked) => {
+        setResetColor(checked);
+        onContinuationChange?.({ resetPattern, resetColor: checked });
+    };
+
 
     const handleSideToggle = (newSide) => {
         onSideChange?.(newSide);
@@ -93,7 +127,7 @@ const SimpleRowSettings = ({
     const showPatternRows = patternRowOptions.length > 1;
 
     // Don't render anything if there are no controls to show
-    if (!showSideToggle && !showPatternRows && lengthTarget?.type !== 'until_length') {
+    if (!showSideToggle && !showPatternRows && lengthTarget?.type !== 'until_length' && !showPatternContinuation && !showColorContinuation) {
         return null;
     }
 
@@ -186,6 +220,50 @@ const SimpleRowSettings = ({
                                 <div className="form-help">
                                     {patternInfo.patternName} pattern ({patternInfo.patternLength} row repeat)
                                 </div>
+                            </div>
+                        )}
+
+                        {/* ✅ NEW: Pattern Continuation Toggle */}
+                        {showPatternContinuation && (
+                            <div className="pt-3 border-t border-yarn-200">
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={resetPattern}
+                                        onChange={(e) => handleResetPatternChange(e.target.checked)}
+                                        className="mt-0.5 w-4 h-4 text-sage-600 border-wool-300 rounded focus:ring-sage-500"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="text-sm font-medium text-wool-700">
+                                            Reset pattern to Row 1
+                                        </div>
+                                        <div className="text-xs text-wool-600 mt-0.5">
+                                            Previous step ended on row {patternOffset}. Check this to start fresh.
+                                        </div>
+                                    </div>
+                                </label>
+                            </div>
+                        )}
+
+                        {/* ✅ NEW: Color Continuation Toggle */}
+                        {showColorContinuation && (
+                            <div className={showPatternContinuation ? '' : 'pt-3 border-t border-yarn-200'}>
+                                <label className="flex items-start gap-3 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={resetColor}
+                                        onChange={(e) => handleResetColorChange(e.target.checked)}
+                                        className="mt-0.5 w-4 h-4 text-sage-600 border-wool-300 rounded focus:ring-sage-500"
+                                    />
+                                    <div className="flex-1">
+                                        <div className="text-sm font-medium text-wool-700">
+                                            Reset color sequence
+                                        </div>
+                                        <div className="text-xs text-wool-600 mt-0.5">
+                                            Previous step ended on row {colorOffset} of stripe pattern. Check this to start fresh.
+                                        </div>
+                                    </div>
+                                </label>
                             </div>
                         )}
 

@@ -32,6 +32,7 @@ import {
     getStepProgressState,
     saveStepProgressState,
     canStartStep,
+    calculateContinuationState,
     PROGRESS_STATUS
 } from '../../../../shared/utils/progressTracking';
 
@@ -488,12 +489,22 @@ const KnittingStepCounter = ({
         // ✅ NEW: Save completion to progress system FIRST (project mode only)
         if (!isNotepadMode && step && component && project) {
             const totalRows = calculateActualTotalRows(step);
+
+            // ✅ NEW: Calculate continuation state for this step
+            const continuation = calculateContinuationState(step);
+
+            // ✅ NEW: Log continuation state for debugging
+            if (continuation) {
+                console.log('💾 Saving continuation state:', continuation);
+            }
+
             saveStepProgressState(step.id, component.id, project.id, {
                 status: PROGRESS_STATUS.COMPLETED,
                 currentRow: totalRows,
                 totalRows: totalRows,
                 completedAt: new Date().toISOString(),
-                completionMethod: 'knitting_modal'
+                completionMethod: 'knitting_modal',
+                continuation: continuation  // ✅ NEW: Add continuation data
             });
         }
 
@@ -528,7 +539,6 @@ const KnittingStepCounter = ({
         if (sideTracking.hasSessionChanges) {
             sideTracking.commitSideChanges(() => { });
         }
-
     };
 
     const handleLengthBasedComplete = () => {
@@ -905,6 +915,30 @@ const KnittingStepCounter = ({
                         startingLength={startingLength}
                         onStartingLengthChange={setStartingLength}
                         defaultExpanded={lengthTarget?.type === 'until_length'}
+                        component={component}
+                        stepIndex={stepIndex}
+                        project={project}
+                        onContinuationChange={(overrides) => {
+                            if (!component || !project || !updateProject) return;
+
+                            // Update the step with continuation overrides
+                            const updatedProject = {
+                                ...project,
+                                components: project.components.map((comp, idx) =>
+                                    comp.id === component.id ? {
+                                        ...comp,
+                                        steps: comp.steps.map((s, idx) =>
+                                            idx === stepIndex ? {
+                                                ...s,
+                                                continuationOverrides: overrides
+                                            } : s
+                                        )
+                                    } : comp
+                                )
+                            };
+
+                            updateProject(updatedProject);
+                        }}
                     />
                 )}
             </div>
