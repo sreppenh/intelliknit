@@ -125,12 +125,19 @@ export const useStepCalculation = () => {
       const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
       const totalRows = rowsPerRepeat * numberOfRepeats;
 
+      // ✅ NEW: Calculate stitch change based on stitchChangePerRepeat
+      const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+      const totalStitchChange = stitchChangePerRepeat * numberOfRepeats;
+      const endingStitches = currentStitches + totalStitchChange;
+
       return {
         success: true,
         totalRows: totalRows,
         startingStitches: currentStitches,
-        endingStitches: currentStitches,
-        isPatternRepeat: true
+        endingStitches: endingStitches,
+        isPatternRepeat: true,
+        stitchChangePerRepeat: stitchChangePerRepeat,
+        totalStitchChange: totalStitchChange
       };
     }
 
@@ -140,12 +147,19 @@ export const useStepCalculation = () => {
       const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
       const totalRows = rowsPerRepeat * numberOfRepeats;
 
+      // ✅ NEW: Calculate stitch change based on stitchChangePerRepeat
+      const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+      const totalStitchChange = stitchChangePerRepeat * numberOfRepeats;
+      const endingStitches = currentStitches + totalStitchChange;
+
       return {
         success: true,
         totalRows: totalRows,
         startingStitches: currentStitches,
-        endingStitches: currentStitches,
-        isPatternRepeat: true
+        endingStitches: endingStitches,
+        isPatternRepeat: true,
+        stitchChangePerRepeat: stitchChangePerRepeat,
+        totalStitchChange: totalStitchChange
       };
     }
 

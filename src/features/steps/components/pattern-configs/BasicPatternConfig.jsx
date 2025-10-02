@@ -59,6 +59,28 @@ const BasicPatternConfig = ({ wizardData, updateWizardData, construction, mode =
         </div>
       )}
 
+      {/* Stitch Change per Repeat - For patterns with rowsInPattern */}
+      {(needsRowInputValue || (canHaveOptionalRepeats() && wizardData.stitchPattern.rowsInPattern)) && (
+        <div>
+          <label className="form-label">
+            Stitch Change per Repeat
+          </label>
+          <IncrementInput
+            value={wizardData.stitchPattern.stitchChangePerRepeat || 0}
+            onChange={(value) => updateWizardData('stitchPattern', { stitchChangePerRepeat: value })}
+            label="stitch change"
+            unit="stitches"
+            construction={construction}
+            min={-20}
+            max={20}
+            allowNegative={true}
+          />
+          <label className="form-help">
+            Stitches gained (+) or lost (-) per repeat. Use 0 for stitch-neutral patterns (most common).
+          </label>
+        </div>
+      )}
+
       {/* Basic/Rib/Textured - Optional repeat input */}
       {canHaveOptionalRepeats() && !needsRowInputValue && (
         <div>

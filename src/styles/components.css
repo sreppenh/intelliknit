@@ -1516,6 +1516,23 @@ body.modal-open {
     box-shadow: none !important;
   }
 
+  /* Disable all transforms on selectable cards for desktop */
+  .card-selectable,
+  .card-selectable:hover,
+  .card-selectable:active,
+  .card-selectable-selected,
+  .card-selectable-selected:hover,
+  .card-selectable-selected:active,
+  .card-selectable-compact,
+  .card-selectable-compact:hover,
+  .card-selectable-compact:active,
+  .card-selectable-compact-selected,
+  .card-selectable-compact-selected:hover,
+  .card-selectable-compact-selected:active {
+    transform: none !important;
+    transition: background-color 0.2s, border-color 0.2s, color 0.2s !important;
+  }
+
   ::-webkit-scrollbar {
     display: none;
   }
