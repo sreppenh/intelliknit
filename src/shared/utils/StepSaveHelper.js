@@ -43,6 +43,10 @@ export const useStepSaveHelper = () => {
         onNavigate,
         skipNavigation = false
     }) => {
+        console.log('🚀 StepSaveHelper.saveStepAndNavigate called!');
+        console.log('📊 wizardData:', wizardData);
+        console.log('📊 currentStitches:', currentStitches);
+
         try {
             setIsLoading(true);
             setError(null);

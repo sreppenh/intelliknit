@@ -3,6 +3,9 @@ import DurationChoice from './wizard-steps/DurationChoice';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../shared/utils/StepSaveHelper';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import { useStepCalculation } from '../hooks/useStepCalculation';
+import { useStepGeneration } from '../hooks/useStepGeneration';
+
 
 const DurationWizard = ({
     wizardData,
@@ -16,29 +19,24 @@ const DurationWizard = ({
     editingStepIndex = null,
     mode
 }) => {
-    IntelliKnitLogger.debug('DurationWizard props', { construction, currentStitches });
-
     const { dispatch } = useProjectsContext();
     const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
 
+    // ✅ ADD THESE:
+    const { calculateEffect } = useStepCalculation();
+    const { generateInstruction } = useStepGeneration(construction);
+
     const handleDurationComplete = async () => {
-        // 🎯 PRESERVE: Original data structure
         const originalWizardData = { ...wizardData };
 
-        // ✅ ADD: Save the step using our helper
         try {
-            // Generate instruction from existing wizard data
-            const instruction = generateInstructionFromWizardData(wizardData);
+            // ✅ USE REAL CALCULATION:
+            const instruction = generateInstruction(wizardData);
+            const effect = calculateEffect(wizardData, currentStitches, construction);
 
             const saveResult = await saveStepAndNavigate({
                 instruction,
-                effect: {
-                    success: true,
-                    endingStitches: currentStitches, // Duration doesn't change stitch count
-                    startingStitches: currentStitches,
-                    totalRows: wizardData.duration?.value || 1,
-                    error: null
-                },
+                effect,  // ← Use real calculated effect
                 wizardData: originalWizardData,
                 currentStitches,
                 construction,

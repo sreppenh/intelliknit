@@ -186,8 +186,6 @@ const RowByRowPatternConfig = ({
         setshowRowEntryModal(true);
     };
 
-    console.log('KEYBOARD_LAYERS values:', KEYBOARD_LAYERS);
-
     // In RowByRowPatternConfig.jsx - find the handleSaveRow function and replace it with this:
 
     const handleSaveRow = () => {
@@ -485,8 +483,6 @@ const RowByRowPatternConfig = ({
             /p\s+to\s+end/gi.test(tempRowText) ||
             /k\/p\s+as\s+set/gi.test(tempRowText);
 
-        // console.log('🔒 Lock check:', { tempRowText, isRowLocked }); // ADD THIS LINE
-
         if (isRowLocked && !['⌫', 'Enter', '✓'].includes(action)) {
             return; // Block all input except delete and enter
         }
@@ -499,11 +495,6 @@ const RowByRowPatternConfig = ({
 
         // Keyboard layer switching
         if (action === '⇧') {
-            console.log('🔀 Shift pressed!', {
-                patternType,
-                supportsMultiple: supportsMultipleLayers(patternType),
-                currentLayer: currentKeyboardLayer
-            });
 
             if (supportsMultipleLayers(patternType)) {
                 const nextLayer = getNextKeyboardLayer(currentKeyboardLayer, patternType);

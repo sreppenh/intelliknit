@@ -89,13 +89,9 @@ export const useStepActions = (wizard, onBack, mode = 'project') => {
   };
 
   const handleAddStep = () => {
-    const creationId = Date.now() + Math.random();
 
     const instruction = generateInstruction(wizard.wizardData);
-    const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction);
-
-    // ✅ USE HELPER: Create step object for debugging
-    const stepObject = createStepObject(instruction, effect, wizard);
+    const effect = calculateEffect(wizard.wizardData, wizard.currentStitches, wizard.construction)
 
     if (wizard.isEditing) {
       // Update existing step

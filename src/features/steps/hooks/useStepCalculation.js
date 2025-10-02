@@ -11,6 +11,15 @@ export const useStepCalculation = () => {
 
   const calculateEffect = useMemo(() => (wizardData, currentStitches, construction) => {
     // Handle Cast On specially - it sets the stitch count from 0
+    console.log('🔍 calculateEffect called with:', {
+      pattern: wizardData.stitchPattern?.pattern,
+      durationType: wizardData.duration?.type,
+      durationValue: wizardData.duration?.value,
+      rowsInPattern: wizardData.stitchPattern?.rowsInPattern,
+      stitchChangePerRepeat: wizardData.stitchPattern?.stitchChangePerRepeat,
+      hasShaping: wizardData.hasShaping,
+      entryMode: wizardData.stitchPattern?.entryMode
+    });
     if (wizardData.stitchPattern.pattern === 'Cast On') {
       const stitchCount = parseInt(wizardData.stitchPattern.stitchCount) || 0;
       return {
@@ -31,6 +40,45 @@ export const useStepCalculation = () => {
         startingStitches: currentStitches,
         endingStitches: Math.max(0, currentStitches - stitchesToBindOff),
         isBindOff: true
+      };
+    }
+
+    // ✅ MOVED UP: Handle patterns with repeats FIRST (before shaping and PatternDetector)
+    if (wizardData.duration.type === 'repeats' && wizardData.stitchPattern.rowsInPattern) {
+      console.log('🎯 PATTERN REPEATS CALCULATION TRIGGERED');
+      console.log('📊 Input data:', {
+        durationType: wizardData.duration.type,
+        durationValue: wizardData.duration.value,
+        rowsInPattern: wizardData.stitchPattern.rowsInPattern,
+        stitchChangePerRepeat: wizardData.stitchPattern.stitchChangePerRepeat,
+        currentStitches: currentStitches
+      });
+
+      const rowsPerRepeat = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
+      const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
+      const totalRows = rowsPerRepeat * numberOfRepeats;
+
+      // Calculate stitch change based on stitchChangePerRepeat
+      const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+      const totalStitchChange = stitchChangePerRepeat * numberOfRepeats;
+      const endingStitches = currentStitches + totalStitchChange;
+
+      console.log('✅ CALCULATED RESULT:', {
+        totalRows,
+        startingStitches: currentStitches,
+        endingStitches,
+        stitchChangePerRepeat,
+        totalStitchChange
+      });
+
+      return {
+        success: true,
+        totalRows: totalRows,
+        startingStitches: currentStitches,
+        endingStitches: endingStitches,
+        isPatternRepeat: true,
+        stitchChangePerRepeat: stitchChangePerRepeat,
+        totalStitchChange: totalStitchChange
       };
     }
 
@@ -74,7 +122,6 @@ export const useStepCalculation = () => {
           };
 
         }
-        // Add this right after the existing 'phases' case
         else if (type === 'marker_phases' && config?.calculation) {
           return {
             success: true,
@@ -99,7 +146,6 @@ export const useStepCalculation = () => {
           };
         }
 
-        // Add this AFTER the existing phases case:
         else if (type === 'intrinsic_pattern' && config?.calculation) {
           return {
             success: true,
@@ -117,50 +163,6 @@ export const useStepCalculation = () => {
       } catch (error) {
         IntelliKnitLogger.error('Modern shaping calculation error', error);
       }
-    }
-
-    // Handle patterns with repeats (Lace, Cable, Colorwork)
-    if (wizardData.duration.type === 'repeats' && wizardData.stitchPattern.rowsInPattern) {
-      const rowsPerRepeat = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
-      const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
-      const totalRows = rowsPerRepeat * numberOfRepeats;
-
-      // ✅ NEW: Calculate stitch change based on stitchChangePerRepeat
-      const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
-      const totalStitchChange = stitchChangePerRepeat * numberOfRepeats;
-      const endingStitches = currentStitches + totalStitchChange;
-
-      return {
-        success: true,
-        totalRows: totalRows,
-        startingStitches: currentStitches,
-        endingStitches: endingStitches,
-        isPatternRepeat: true,
-        stitchChangePerRepeat: stitchChangePerRepeat,
-        totalStitchChange: totalStitchChange
-      };
-    }
-
-    // Handle patterns with repeats (Lace, Cable, Colorwork)
-    if (wizardData.duration.type === 'repeats' && wizardData.stitchPattern.rowsInPattern) {
-      const rowsPerRepeat = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
-      const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
-      const totalRows = rowsPerRepeat * numberOfRepeats;
-
-      // ✅ NEW: Calculate stitch change based on stitchChangePerRepeat
-      const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
-      const totalStitchChange = stitchChangePerRepeat * numberOfRepeats;
-      const endingStitches = currentStitches + totalStitchChange;
-
-      return {
-        success: true,
-        totalRows: totalRows,
-        startingStitches: currentStitches,
-        endingStitches: endingStitches,
-        isPatternRepeat: true,
-        stitchChangePerRepeat: stitchChangePerRepeat,
-        totalStitchChange: totalStitchChange
-      };
     }
 
     // ✅ NEW: Handle color pattern repeats
