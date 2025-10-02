@@ -134,7 +134,7 @@ const PATTERN_CONFIG = {
 
     'Custom Texture': {
         // Keyboard config 
-        quickActions: ['K to end', 'P to end', 'K', 'P', 'Bobble', 'Sl1'],
+        quickActions: ['K to end', 'P to end', 'K', 'P', 'Bobble', 'Sl1', 'Sl1 wyif'],
         placeholderText: "e.g., 'K2, P2, Bobble, P2, K2'",
         descriptionPlaceholder: "Describe your custom texture pattern...",
 

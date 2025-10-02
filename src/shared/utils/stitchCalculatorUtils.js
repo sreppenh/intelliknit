@@ -34,6 +34,7 @@ const STITCH_VALUES = {
 
     // Special operations
     'Sl1': { consumes: 1, produces: 1 }, // Slip stitch
+    'Sl1 wyif': { consumes: 1, produces: 1 }, // Slip stitch
     'BO': { consumes: 1, produces: 0 }, // Bind off (for partial bind-offs)
 
     // Cable operations (neutral)

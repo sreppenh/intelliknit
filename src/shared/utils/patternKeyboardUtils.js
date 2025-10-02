@@ -111,7 +111,7 @@ const getCustomKeyboardLayout = (layer) => {
 const getCustomTextureKeyboardLayout = (layer) => {
     return {
         fullRow: ['K to end', 'P to end', 'K/P as set'],
-        input: ['K', 'P', 'Bobble', 'Sl1'],
+        input: ['K', 'P', 'Bobble', 'Sl1', 'Sl1 wyif'],
         actions: ['⌫', '[', '(']
     };
 };
