@@ -248,25 +248,27 @@ const RowByRowPatternConfig = ({
     };
 
     const getStitchCalculation = () => {
-        // This is the nonsense here
-        {/*    if (!currentProject) {
-            const result = {
-                isValid: true,
-                previousStitches: currentStitches || 40,
-                totalStitches: currentStitches || 40,
-                stitchChange: 0,
-                stitchesConsumed: 4
-            };
-            //  return result;
-        }. */}
+        const baselineStitches = currentStitches || 0;
 
-        const baselineStitches = currentStitches || 0; // ✅ CHANGE: No hardcoded 80
+        // Build custom actions lookup ONCE at the top
+        const customActionsLookup = {};
+        const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
+        customActions.forEach(action => {
+            if (typeof action === 'object' && action.name) {
+                customActionsLookup[action.name] = {
+                    consumes: action.consumed,
+                    produces: action.stitches
+                };
+            }
+        });
 
+        // Empty row case
         if (!tempRowText || !tempRowText.trim()) {
             const previousStitches = getPreviousRowStitches(
                 rowInstructions,
                 editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-                baselineStitches
+                baselineStitches,
+                customActionsLookup  // ✅ Pass custom actions
             );
             return {
                 isValid: true,
@@ -277,7 +279,7 @@ const RowByRowPatternConfig = ({
             };
         }
 
-        // NEW: Check for open brackets/parens - stop calculating if found
+        // Check for open brackets/parens
         let openBrackets = 0;
         let openParens = 0;
         for (const char of tempRowText) {
@@ -291,11 +293,12 @@ const RowByRowPatternConfig = ({
             const previousStitches = getPreviousRowStitches(
                 rowInstructions,
                 editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-                baselineStitches
+                baselineStitches,
+                customActionsLookup  // ✅ Pass custom actions
             );
             return {
                 isValid: false,
-                isCalculating: true,  // NEW: Flag for "Calculating..." display
+                isCalculating: true,
                 previousStitches: previousStitches,
                 totalStitches: previousStitches,
                 stitchChange: 0,
@@ -303,23 +306,13 @@ const RowByRowPatternConfig = ({
             };
         }
 
-        // Continue with existing calculation logic...
+        // Normal calculation
         const previousStitches = getPreviousRowStitches(
             rowInstructions,
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
-            baselineStitches
+            baselineStitches,
+            customActionsLookup  // ✅ Pass custom actions
         );
-
-        // 🔄 REPLACED: Use centralized pattern key
-        // OLD: patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general'
-        const customActionsLookup = {};
-        const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
-
-        customActions.forEach(action => {
-            if (typeof action === 'object' && action.name) {
-                customActionsLookup[action.name] = action.stitches;
-            }
-        });
 
         return calculateRowStitchesLive(tempRowText, previousStitches, customActionsLookup);
     };

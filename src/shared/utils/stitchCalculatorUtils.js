@@ -615,16 +615,15 @@ export const getMaxSafeMultiplier = (action, remainingStitches, customActionsDat
  * @param {number} componentStartingStitches - Stitches at component start
  * @returns {number} - Stitch count available for current row
  */
-export const getPreviousRowStitches = (rowInstructions, currentRowIndex, componentStartingStitches) => {
+export const getPreviousRowStitches = (rowInstructions, currentRowIndex, componentStartingStitches, customActionsData = {}) => {
     if (currentRowIndex === 0) {
         return componentStartingStitches;
     }
 
-    // Calculate running totals up to previous row
     let currentStitches = componentStartingStitches;
 
     for (let i = 0; i < currentRowIndex; i++) {
-        const result = calculateRowStitches(rowInstructions[i], currentStitches);
+        const result = calculateRowStitches(rowInstructions[i], currentStitches, customActionsData);
         currentStitches = result.totalStitches;
     }
 
