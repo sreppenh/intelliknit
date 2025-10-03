@@ -180,8 +180,12 @@ function getBindOffInstruction(step, stitchPattern) {
     return {
         instruction: `Bind off ${stitchText} using ${methodName}`,
         isSupported: true,
-        needsHelp: method === 'three_needle' || method === 'sewn',
-        helpTopic: method === 'three_needle' ? 'three_needle_bindoff' : method === 'sewn' ? 'sewn_bindoff' : null
+        needsHelp: method === 'three_needle' || method === 'sewn' || method === 'stretchy' || method === 'picot',
+        helpTopic: method === 'three_needle' ? 'three_needle_bindoff'
+            : method === 'sewn' ? 'sewn_bindoff'
+                : method === 'stretchy' ? 'jssbo_bindoff'
+                    : method === 'picot' ? 'picot_bindoff'
+                        : null
     };
 }
 

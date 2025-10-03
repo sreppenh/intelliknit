@@ -102,7 +102,7 @@ export const CAST_ON_METHODS = {
 
 export const BIND_OFF_METHODS = {
   STANDARD: { id: 'standard', name: 'Standard', displayName: 'Standard Bind Off', icon: '✂️' },
-  STRETCHY: { id: 'stretchy', name: 'Stretchy', displayName: 'Stretchy Bind Off', icon: '🌊' },
+  STRETCHY: { id: 'stretchy', name: 'Stretchy', displayName: "Jeny's Surprisingly Stretchy Bind Off", icon: '🌊' },
   SEWN: { id: 'sewn', name: 'Sewn', displayName: 'Sewn Bind Off', icon: '🪡' },
   PICOT: { id: 'picot', name: 'Picot', displayName: 'Picot Bind Off', icon: '🌸' },
   THREE_NEEDLE: { id: 'three_needle', name: 'Three Needle', displayName: 'Three Needle Bind Off', icon: '🔗' },

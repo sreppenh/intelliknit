@@ -43,6 +43,8 @@ const KnittingStepInstructions = ({
         if (pattern === 'Bind Off') {
             if (method === 'three_needle') return 'three_needle_bindoff';
             if (method === 'sewn') return 'sewn_bindoff';
+            if (method === 'stretchy') return 'jssbo_bindoff';  // NEW
+            if (method === 'picot') return 'picot_bindoff';     // NEW
         }
 
         // Pick Up & Knit

@@ -286,6 +286,51 @@ export const HELP_GUIDES = {
         ]
     },
 
+    jssbo_bindoff: {
+        title: "Jeny's Surprisingly Stretchy Bind Off",
+
+        preparation: [
+            'Work to last stitch of row',
+            'Keep working yarn attached'
+        ],
+
+        steps: [
+            'Create backwards yarn over (wrap yarn opposite direction)',
+            'Knit next stitch',
+            'Pass yarn over over knit stitch',
+            'Create another backwards yarn over',
+            'Knit next stitch',
+            'Pass both loops (yarn over and previous stitch) over',
+            'Repeat until all stitches bound off'
+        ],
+
+        tips: [
+            'Extremely stretchy - perfect for ribbing and necklines',
+            'Takes practice to get rhythm - work slowly at first',
+            'Backwards yarn over is key: wrap opposite your normal direction',
+            'Result should be very elastic and comfortable'
+        ]
+    },
+
+    picot_bindoff: {
+        title: 'Picot Bind Off',
+
+        steps: [
+            'Use cable cast on to add 2 stitches',
+            'Bind off 4 stitches using standard bind off',
+            'Slip remaining stitch back to left needle',
+            'Repeat: cast on 2, bind off 4, slip 1 back',
+            'Continue to end of row'
+        ],
+
+        tips: [
+            'Creates decorative scalloped edge with small points',
+            'Use for baby blankets, shawl edges, decorative hems',
+            'Keep tension consistent for even picots',
+            'Each picot uses 2 stitches from your work'
+        ]
+    },
+
     cable_help: {
         title: 'Cable Knitting',
 
