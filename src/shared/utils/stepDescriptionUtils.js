@@ -13,6 +13,7 @@ import { generateMarkerInstructionPreview } from './markerInstructionUtils';
 import { calculateRowsFromDistance } from './gaugeUtils';
 import { getConstructionTerms } from './ConstructionTerminology';
 import { getYarnByLetter } from './colorworkDisplayUtils';
+import { getCastOnDisplayName, getBindOffDisplayName } from './constants';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
@@ -619,6 +620,7 @@ const getNonShapingStepDescription = (step) => {
 
 /**
  * Generate cast on description
+ * ✅ MIGRATED: Now uses constants.js
  */
 const getCastOnDescription = (step) => {
     const method = step.wizardConfig?.stitchPattern?.method;
@@ -629,20 +631,10 @@ const getCastOnDescription = (step) => {
         return `Cast on ${stitchCount} stitches`;
     }
 
-    // Get display name for method
-    const CAST_ON_METHODS = {
-        'long_tail': 'Long Tail Cast On',
-        'cable': 'Cable Cast On',
-        'knitted': 'Knitted Cast On',
-        'backwards_loop': 'Backwards Loop Cast On',
-        'provisional': 'Provisional Cast On',
-        'judy': 'Judy\'s Magic Cast On',
-        'german_twisted': 'German Twisted Cast On'
-    };
+    // Get display name from constants
+    const methodDisplay = getCastOnDisplayName(method);
 
-    const methodDisplay = CAST_ON_METHODS[method];
-
-    if (methodDisplay) {
+    if (methodDisplay && methodDisplay !== method) {
         return `Using ${methodDisplay}, cast on ${stitchCount} stitches`;
     }
 
