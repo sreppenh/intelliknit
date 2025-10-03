@@ -37,7 +37,7 @@ const DurationChoice = ({
 
   // Check if pattern has repeats (existing code)
   const patternHasRepeats = wizardData.stitchPattern?.rowsInPattern &&
-    parseInt(wizardData.stitchPattern.rowsInPattern) > 1;
+    parseInt(wizardData.stitchPattern.rowsInPattern) > 0;
 
   // ✅ NEW: Check if color pattern exists
   const hasColorPattern = wizardData.colorwork?.type === 'stripes' &&

@@ -31,12 +31,15 @@ const CustomActionEditor = ({
 
     // Handle save
     const handleSave = () => {
-        if (!formData.name.trim()) {
+        // Strip spaces and validate
+        const cleanedName = formData.name.replace(/\s+/g, '').trim();
+
+        if (!cleanedName) {
             alert('Please enter a name for the custom action');
             return;
         }
 
-        const trimmedAction = formData.name.trim().substring(0, 6);
+        const trimmedAction = cleanedName.substring(0, 6);
         const customActionData = {
             name: trimmedAction,
             consumed: formData.consumed,
@@ -69,6 +72,9 @@ const CustomActionEditor = ({
         onCancel(); // Return to keyboard mode
     };
 
+    // Check if name has spaces for warning
+    const hasSpaces = formData.name.includes(' ');
+
     return (
         <div className="bg-yarn-50 border border-yarn-200 rounded-lg p-4 space-y-4">
             {/* Small header - left aligned */}
@@ -84,13 +90,16 @@ const CustomActionEditor = ({
                     value={formData.name}
                     onChange={(e) => setFormData(prev => ({
                         ...prev,
-                        name: e.target.value.substring(0, 6)
+                        name: e.target.value.substring(0, 6).replace(/\s+/g, '')
                     }))}
                     maxLength={6}
                     placeholder="e.g., Bobble"
                     className="input-field"
                     autoFocus
                 />
+                <div className="form-help">
+                    No spaces allowed (max 6 characters)
+                </div>
             </div>
 
             {/* Stitches Consumed */}
