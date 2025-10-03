@@ -1,4 +1,5 @@
 import IntelliKnitLogger from "./ConsoleLogging";
+import { getCastOnDisplayName } from './constants';
 
 // src/shared/utils/stepCreationUtils.js
 
@@ -11,29 +12,16 @@ import IntelliKnitLogger from "./ConsoleLogging";
 
 // ===== PATTERN MAPPINGS (mirrors stepDisplayUtils.js) =====
 
-const CAST_ON_METHODS = {
+const LEGACY_CAST_ON_METHODS = {
     'long_tail': 'Long Tail',
     'cable': 'Cable Cast On',
     'knitted': 'Knitted Cast On',
     'backwards_loop': 'Backwards Loop',
     'provisional': 'Provisional',
     'judy': 'Judy\'s Magic',
-    'german_twisted': 'German Twisted'
-};
-
-const BIND_OFF_METHODS = {
-    'standard': 'Standard',
-    'stretchy': 'Stretchy',
-    'picot': 'Picot',
-    'three_needle': 'Three Needle',
-    'sewn': 'Sewn Bind Off'
-};
-
-const ATTACH_METHODS = {
-    'mattress_stitch': 'Mattress Stitch',
-    'backstitch': 'Backstitch',
-    'kitchener_stitch': 'Kitchener Stitch',
-    'three_needle_bindoff': 'Three Needle Bind Off'
+    'german_twisted': 'German Twisted',
+    'garter_tab': 'Garter Tab',
+    'tubular': 'Tubular'
 };
 
 // ===== CORE CREATION FUNCTIONS =====
@@ -148,9 +136,10 @@ export const createEndingStep = (endingData, currentStitches) => {
 /**
  * Create cast on step from wizard data
  * Used by: StepWizard, ComponentCreationWizard
+ * ✅ MIGRATED: Now uses constants.js
  */
 export const createCastOnStep = (castOnData) => {
-    const methodDisplay = CAST_ON_METHODS[castOnData.method] || castOnData.method;
+    const methodDisplay = getCastOnDisplayName(castOnData.method) || LEGACY_CAST_ON_METHODS[castOnData.method] || castOnData.method;
     const stitchCount = parseInt(castOnData.stitchCount) || 0;
 
     return {
