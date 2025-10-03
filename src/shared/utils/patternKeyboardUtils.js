@@ -61,7 +61,7 @@ const getLaceKeyboardLayout = (layer, context = {}) => {
         case KEYBOARD_LAYERS.SECONDARY:
             return {
                 fullRow: ['K3tog', 'P2tog', 'S2KP', 'SK2P'],
-                input: ['K2tog tbl', 'SSK tbl', 'SSP', 'Sl1', 'M1L', 'M1R'],
+                input: ['K2tog tbl', 'SSK tbl', 'SSP', 'Sl1', 'Sl1 wyif', 'M1L', 'M1R'],
                 actions: ['⌫', '[', '(', '⇧'],
                 custom: ['Custom', 'Custom', 'Custom', 'Custom']
             };
