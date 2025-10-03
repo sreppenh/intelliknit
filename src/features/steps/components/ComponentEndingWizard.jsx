@@ -6,6 +6,7 @@ import { PrepStepModal, usePrepNoteManager, getPrepNoteConfig } from '../../../s
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
 import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
+import { getBindOffMethodsArray } from '../../../shared/utils/constants';
 import useYarnManager from '../../../shared/hooks/useYarnManager';
 
 const ComponentEndingWizard = ({
@@ -289,38 +290,24 @@ const ComponentEndingWizard = ({
 
   // BindOffConfig
   const renderBindOffConfig = () => {
-    const methods = [
-      {
-        id: 'standard',
-        name: 'Standard Bind Off',
-        icon: '✂️',
-        description: 'Basic bind off, most common'
-      },
-      {
-        id: 'stretchy',
-        name: 'Stretchy Bind Off',
-        icon: '🌊',
-        description: 'Extra stretch for ribbing'
-      },
-      {
-        id: 'picot',
-        name: 'Picot Bind Off',
-        icon: '🌸',
-        description: 'Decorative scalloped edge'
-      },
-      {
-        id: 'three_needle',
-        name: 'Three Needle Bind Off',
-        icon: '🔗',
-        description: 'Joins to another component'
-      },
-      {
-        id: 'other',
-        name: 'Other Method',
-        icon: '📝',
-        description: 'Specify your own'
-      }
-    ];
+    // Get base methods from constants
+    const baseMethods = getBindOffMethodsArray();
+
+    // Add UI-specific descriptions
+    const methodDescriptions = {
+      'standard': 'Basic bind off, most common',
+      'stretchy': 'Extra stretch for ribbing',
+      'sewn': 'Soft, stretchy finish',
+      'picot': 'Decorative scalloped edge',
+      'three_needle': 'Joins to another component',
+      'other': 'Specify your own'
+    };
+
+    // Merge constants with descriptions
+    const methods = baseMethods.map(method => ({
+      ...method,
+      description: methodDescriptions[method.id] || ''
+    }));
 
     const availableComponents = [
       'Left Sleeve',
@@ -369,8 +356,7 @@ const ComponentEndingWizard = ({
                   value={method.id}
                   checked={endingData.method === method.id}
                   onChange={(e) => {
-                    const newYarnId = e.target.value;
-                    setEndingData(prev => ({ ...prev, colorYarnId: newYarnId }));
+                    setEndingData(prev => ({ ...prev, method: e.target.value }));
                   }}
                   className="w-4 h-4 text-sage-600 mt-1"
                 />

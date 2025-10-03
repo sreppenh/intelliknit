@@ -1,4 +1,5 @@
 import React from 'react';
+import { getCastOnDisplayName } from '../../../shared/utils/constants';
 
 const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onClose }) => {
   const getConstructionDisplay = (construction) => {
@@ -13,18 +14,7 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
       if (startMethod === 'other' && startDescription) {
         return startDescription; // Custom cast on description
       }
-      const methodMap = {
-        'long_tail': 'Long Tail Cast On',
-        'cable': 'Cable Cast On',
-        'garter_tab': 'Garter Tab Cast On',
-        'provisional': 'Provisional Cast On',
-        'german_twisted': 'German Twisted Cast On',
-        'judy': "Judy's Magic Cast On",
-        'tubular': 'Tubular Cast On',
-        'knitted': 'Knitted Cast On',
-        'backward_loop': 'Backward Loop Cast On'
-      };
-      return methodMap[startMethod] || 'Cast On';
+      return getCastOnDisplayName(startMethod) || 'Cast On';
     }
 
     // Pick Up methods

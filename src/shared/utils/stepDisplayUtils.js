@@ -19,56 +19,6 @@ import {
     PATTERN_CATEGORIES
 } from './constants';
 
-// ===== LEGACY COMPATIBILITY LAYER =====
-// These will be removed in Phase 4 after all files are migrated
-
-const CAST_ON_METHODS = {
-    'long_tail': 'Long Tail',
-    'cable': 'Cable Cast On',
-    'knitted': 'Knitted Cast On',
-    'backwards_loop': 'Backwards Loop',
-    'provisional': 'Provisional',
-    'judy': 'Judy\'s Magic',
-    'german_twisted': 'German Twisted',
-    'garter_tab': 'Garter Tab',
-    'tubular': 'Tubular (Italian)'
-};
-
-const PICK_UP_KNIT_METHODS = {
-    'pick_up_knit': 'Pick Up & Knit'
-};
-
-const CONTINUE_METHODS = {
-    'from_stitches': 'From Live Stitches'
-};
-
-const CUSTOM_INITIALIZATION_METHODS = {
-    'custom': 'Custom Setup'
-};
-
-const BIND_OFF_METHODS = {
-    'standard': 'Standard Bind Off',
-    'stretchy': 'Stretchy Bind Off',
-    'picot': 'Picot Bind Off',
-    'three_needle': 'Three Needle Bind Off',
-    'sewn': 'Sewn Bind Off'
-};
-
-const ATTACH_METHODS = {
-    'mattress_stitch': 'Mattress Stitch',
-    'backstitch': 'Backstitch',
-    'kitchener_stitch': 'Kitchener Stitch',
-    'three_needle_bindoff': 'Three Needle Bind Off',
-    'three_needle': 'Three Needle Bind Off'
-};
-
-// Keep old PATTERN_CATEGORIES for backwards compatibility
-const OLD_PATTERN_CATEGORIES = {
-    'construction': ['Cast On', 'Pick Up & Knit', 'Continue from Stitches', 'Custom Initialization', 'Bind Off', 'Put on Holder', 'Other Ending'],
-    'texture': ['Stockinette', 'Garter', 'Reverse Stockinette', '1x1 Rib', '2x2 Rib', 'Seed Stitch', 'Moss Stitch'],
-    'colorwork': ['Stranded Colorwork', 'Intarsia', 'Fair Isle', 'Mosaic'],
-    'structure': ['Lace', 'Cable', 'Brioche']
-};
 
 // ===== 🆕 EXPANDED PATTERN CONFIGURATION - SINGLE SOURCE OF TRUTH =====
 
@@ -577,26 +527,20 @@ export const getStepMethodDisplay = (step) => {
     // Handle "other" method for all patterns
     if (method === 'other' && customText) return customText;
 
-    // Use new constants with fallback to legacy
+    // Use constants.js helpers
     switch (pattern) {
         case 'Cast On':
-            return getCastOnDisplayName(method) || CAST_ON_METHODS[method] || method;
-
+            return getCastOnDisplayName(method) || method;
         case 'Pick Up & Knit':
-            return getPickUpDisplayName(method) || PICK_UP_KNIT_METHODS[method] || method;
-
+            return getPickUpDisplayName(method) || method;
         case 'Continue from Stitches':
-            return getContinueDisplayName(method) || CONTINUE_METHODS[method] || method;
-
+            return getContinueDisplayName(method) || method;
         case 'Custom Initialization':
-            return getCustomInitDisplayName(method) || CUSTOM_INITIALIZATION_METHODS[method] || method;
-
+            return getCustomInitDisplayName(method) || method;
         case 'Bind Off':
-            return getBindOffDisplayName(method) || BIND_OFF_METHODS[method] || method;
-
+            return getBindOffDisplayName(method) || method;
         case 'Attach to Piece':
-            return getAttachDisplayName(method) || ATTACH_METHODS[method] || method;
-
+            return getAttachDisplayName(method) || method;
         default:
             return '';
     }
@@ -709,7 +653,7 @@ export const getShapingDisplay = (step) => {
  */
 export const isConstructionStep = (step) => {
     const pattern = getStepPatternName(step);
-    return (PATTERN_CATEGORIES.CONSTRUCTION || OLD_PATTERN_CATEGORIES.construction).includes(pattern);
+    return PATTERN_CATEGORIES.CONSTRUCTION.includes(pattern);
 };
 
 

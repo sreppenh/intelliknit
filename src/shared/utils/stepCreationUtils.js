@@ -10,20 +10,6 @@ import { getCastOnDisplayName } from './constants';
  * Single source of truth for step creation across the application.
  */
 
-// ===== PATTERN MAPPINGS (mirrors stepDisplayUtils.js) =====
-
-const LEGACY_CAST_ON_METHODS = {
-    'long_tail': 'Long Tail',
-    'cable': 'Cable Cast On',
-    'knitted': 'Knitted Cast On',
-    'backwards_loop': 'Backwards Loop',
-    'provisional': 'Provisional',
-    'judy': 'Judy\'s Magic',
-    'german_twisted': 'German Twisted',
-    'garter_tab': 'Garter Tab',
-    'tubular': 'Tubular'
-};
-
 // ===== CORE CREATION FUNCTIONS =====
 
 /**
@@ -139,7 +125,7 @@ export const createEndingStep = (endingData, currentStitches) => {
  * ✅ MIGRATED: Now uses constants.js
  */
 export const createCastOnStep = (castOnData) => {
-    const methodDisplay = getCastOnDisplayName(castOnData.method) || LEGACY_CAST_ON_METHODS[castOnData.method] || castOnData.method;
+    const methodDisplay = getCastOnDisplayName(castOnData.method);
     const stitchCount = parseInt(castOnData.stitchCount) || 0;
 
     return {
