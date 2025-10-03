@@ -205,6 +205,112 @@ export const HELP_GUIDES = {
         ]
     },
 
+    garter_tab_cast_on: {
+        title: 'Garter Tab Cast On',
+
+        preparation: [
+            'Commonly used for top-down triangular shawls',
+            'Creates seamless garter edge with no gap at center'
+        ],
+
+        steps: [
+            'Cast on 3 stitches (or number specified in pattern)',
+            'Knit 6 rows in garter stitch (knit every row)',
+            'Turn work 90° and pick up 3 stitches along the side edge',
+            'Turn work 90° again and pick up 3 stitches from cast-on edge',
+            'You now have 9 stitches total to begin your shawl'
+        ],
+
+        tips: [
+            'Keep garter tab loose - it will tighten as you work',
+            'Use stitch markers in cast-on edge for easier pickup',
+            'Mark center stitch immediately after completing tab',
+            'Some patterns use 2 or 4 stitches instead of 3'
+        ]
+    },
+
+    tubular_cast_on: {
+        title: 'Tubular Cast On (Italian Cast On)',
+
+        preparation: [
+            'Creates invisible, stretchy edge perfect for 1x1 ribbing',
+            'Works with circular or straight needles',
+            'Requires waste yarn in contrasting color'
+        ],
+
+        steps: [
+            'With waste yarn, cast on half the required stitches using provisional method',
+            'Work 3-4 rows in stockinette with waste yarn',
+            'Switch to working yarn and knit one row',
+            'Next row: *K1, pick up loop below next stitch and purl it, repeat from *',
+            'Continue in 1x1 rib for a few rows',
+            'Remove waste yarn carefully'
+        ],
+
+        tips: [
+            'Count carefully - you cast on HALF the stitches you need',
+            'The picked-up stitches create the other half',
+            'Keep tension loose when picking up loops',
+            'Perfect for sock cuffs and necklines'
+        ]
+    },
+
+    lace_help: {
+        title: 'Lace Knitting',
+
+        basics: [
+            'Lace creates open, airy fabric through yarn overs and decreases',
+            'Each yarn over must be paired with a decrease to maintain stitch count',
+            'Pattern repeats create the lace motif'
+        ],
+
+        commonStitches: [
+            'yo (yarn over): Creates a new stitch and an eyelet hole',
+            'k2tog: Right-leaning decrease',
+            'ssk: Left-leaning decrease',
+            'sk2p: Double decrease (slip, k2tog, pass slipped st over)'
+        ],
+
+        tips: [
+            'Use lifelines - thread waste yarn through a completed row',
+            'Count stitches after each pattern repeat',
+            'Block lace aggressively to open up the pattern',
+            'Larger needles than usual create more drape',
+            'Use stitch markers to separate pattern repeats'
+        ],
+
+        troubleshooting: [
+            'Too many stitches: Missed a decrease',
+            'Too few stitches: Missed a yarn over',
+            'Use a crochet hook to fix dropped yarn overs'
+        ]
+    },
+
+    cable_help: {
+        title: 'Cable Knitting',
+
+        basics: [
+            'Cables are created by crossing stitches over each other',
+            'Requires a cable needle or learning to cable without one',
+            'Cables pull in fabric - gauge swatch is essential'
+        ],
+
+        cableNotation: [
+            'C4F (cable 4 front): Slip 2 to cable needle, hold in front, k2, k2 from cable needle',
+            'C4B (cable 4 back): Slip 2 to cable needle, hold in back, k2, k2 from cable needle',
+            'Numbers indicate total stitches in cable',
+            'F (front) = left-leaning, B (back) = right-leaning'
+        ],
+
+        tips: [
+            'Cable needle should be same size or smaller than working needles',
+            'Try cabling without a needle for speed',
+            'Cables look better with a bit of extra twist in the yarn',
+            'Keep cable stitches slightly looser than background',
+            'Count rows between cable crossings carefully'
+        ]
+    },
+
     stripe_setup_help: {
         title: 'Stripe Pattern Setup',
 

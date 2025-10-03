@@ -158,7 +158,9 @@ function getCastOnInstruction(step, stitchPattern) {
         'backwards_loop': 'Backwards Loop Cast On',
         'provisional': 'Provisional Cast On',
         'judy': "Judy's Magic Cast On",
-        'german_twisted': 'German Twisted Cast On'
+        'german_twisted': 'German Twisted Cast On',
+        'garter_tab': 'Garter Tab Cast On',
+        'tubular': 'Tubular Cast On'
     };
 
     const methodName = methodNames[method] || 'Cast On';
@@ -166,8 +168,11 @@ function getCastOnInstruction(step, stitchPattern) {
     return {
         instruction: `Using ${methodName}, cast on ${stitchCount} stitches`,
         isSupported: true,
-        needsHelp: method === 'provisional' || method === 'judy',
-        helpTopic: method === 'provisional' ? 'provisional_cast_on' : method === 'judy' ? 'magic_cast_on' : null
+        needsHelp: method === 'provisional' || method === 'judy' || method === 'garter_tab',
+        helpTopic: method === 'provisional' ? 'provisional_cast_on'
+            : method === 'judy' ? 'magic_cast_on'
+                : method === 'garter_tab' ? 'garter_tab_cast_on'
+                    : null
     };
 }
 

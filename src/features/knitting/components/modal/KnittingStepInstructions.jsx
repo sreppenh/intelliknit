@@ -32,18 +32,29 @@ const KnittingStepInstructions = ({
     const helpTopic = (() => {
         if (!pattern) return null;
 
+        // Cast On methods
         if (pattern === 'Cast On') {
             if (method === 'provisional') return 'provisional_cast_on';
             if (method === 'judy') return 'magic_cast_on';
+            if (method === 'garter_tab') return 'garter_tab_cast_on';
         }
 
+        // Bind Off methods
         if (pattern === 'Bind Off') {
             if (method === 'three_needle') return 'three_needle_bindoff';
             if (method === 'sewn') return 'sewn_bindoff';
         }
 
+        // Pick Up & Knit
         if (pattern === 'Pick Up & Knit') return 'pick_up_knit';
+
+        // Attach to Piece
         if (pattern === 'Attach to Piece' && method === 'kitchener_stitch') return 'kitchener_stitch';
+
+        // Structure patterns (NEW!)
+        if (pattern === 'Brioche') return 'brioche_help';
+        if (pattern === 'Lace') return 'lace_help';
+        if (pattern === 'Cable') return 'cable_help';
 
         return null;
     })();

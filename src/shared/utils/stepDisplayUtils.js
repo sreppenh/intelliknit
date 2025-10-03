@@ -17,7 +17,9 @@ const CAST_ON_METHODS = {
     'backwards_loop': 'Backwards Loop',
     'provisional': 'Provisional',
     'judy': 'Judy\'s Magic',
-    'german_twisted': 'German Twisted'
+    'german_twisted': 'German Twisted',
+    'garter_tab': 'Garter Tab',
+    'tubular': 'Tubular (Italian)'
 };
 
 const PICK_UP_KNIT_METHODS = {

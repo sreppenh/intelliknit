@@ -19,6 +19,12 @@ const CastOnConfig = ({ wizardData, updateWizardData, construction, mode = 'crea
       description: 'Firm, decorative edge'
     },
     {
+      id: 'garter_tab',
+      name: 'Garter Tab',
+      icon: '🔺',
+      description: 'For top-down shawls'
+    },
+    {
       id: 'provisional',
       name: 'Provisional',
       icon: '📎',
@@ -35,6 +41,12 @@ const CastOnConfig = ({ wizardData, updateWizardData, construction, mode = 'crea
       name: 'Backward Loop',
       icon: '↪️',
       description: 'Quick and simple'
+    },
+    {
+      id: 'tubular',
+      name: 'Tubular',
+      icon: '⭕',
+      description: 'Invisible edge for 1x1 rib'
     },
     {
       id: 'other',
@@ -111,6 +123,7 @@ const CastOnConfig = ({ wizardData, updateWizardData, construction, mode = 'crea
         <div className="text-sm text-sage-600 space-y-1">
           <div>• <strong>Long Tail:</strong> Most versatile, good for most projects</div>
           <div>• <strong>Cable:</strong> Best for edges that need structure</div>
+          <div>• <strong>Garter Tab:</strong> Essential for center-out triangular shawls</div>
           <div>• <strong>German Twisted:</strong> Perfect for ribbed edges</div>
           <div>• <strong>Provisional:</strong> When you'll pick up stitches later</div>
         </div>
