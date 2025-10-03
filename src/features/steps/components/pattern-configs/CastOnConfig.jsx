@@ -1,5 +1,5 @@
 import React from 'react';
-import { getCastOnMethodsArray } from '../../../shared/utils/constants';
+import { getCastOnMethodsArray } from '../../../../shared/utils/constants';
 
 const CastOnConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {
   const handleMethodSelect = (method) => {

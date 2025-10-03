@@ -1,5 +1,5 @@
 import React from 'react';
-import { getBindOffMethodsArray } from '../../../shared/utils/constants';
+import { getBindOffMethodsArray } from '../../../../shared/utils/constants';
 
 const BindOffConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {
   const handleMethodSelect = (method) => {
