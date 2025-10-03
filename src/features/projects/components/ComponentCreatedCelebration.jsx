@@ -16,8 +16,12 @@ const ComponentCreatedCelebration = ({ component, onAddSteps, onAddAnother, onCl
       const methodMap = {
         'long_tail': 'Long Tail Cast On',
         'cable': 'Cable Cast On',
+        'garter_tab': 'Garter Tab Cast On',
         'provisional': 'Provisional Cast On',
+        'german_twisted': 'German Twisted Cast On',
+        'judy': "Judy's Magic Cast On",
         'tubular': 'Tubular Cast On',
+        'knitted': 'Knitted Cast On',
         'backward_loop': 'Backward Loop Cast On'
       };
       return methodMap[startMethod] || 'Cast On';

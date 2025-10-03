@@ -115,8 +115,12 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     cast_on: [
       { id: 'long_tail', name: 'Long Tail', icon: '🪢' },
       { id: 'cable', name: 'Cable', icon: '🔗' },
+      { id: 'garter_tab', name: 'Garter Tab', icon: '🔺' },
       { id: 'provisional', name: 'Provisional', icon: '📎' },
-      { id: 'tubular', name: 'Tubular', icon: '🌊' },
+      { id: 'german_twisted', name: 'German Twisted', icon: '🌀' },
+      { id: 'judy', name: "Judy's Magic", icon: '✨' },
+      { id: 'tubular', name: 'Tubular', icon: '⭕' },
+      { id: 'knitted', name: 'Knitted', icon: '🧵' },
       { id: 'backward_loop', name: 'Backward Loop', icon: '↪️' },
       { id: 'other', name: 'Other', icon: '📝' }
     ],
