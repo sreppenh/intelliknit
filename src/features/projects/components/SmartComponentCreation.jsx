@@ -10,7 +10,12 @@ import PatternSelector from '../../steps/components/wizard-steps/PatternSelector
 import PatternConfiguration from '../../steps/components/wizard-steps/PatternConfiguration';
 import StripesConfig from '../../steps/components/pattern-configs/StripesConfig';
 import PatternWizard from './PatternWizard';
-import { getCastOnMethodsArray } from '../../../shared/utils/constants';  // ✅ ADD THIS
+import {
+  getCastOnMethodsArray,
+  getPickUpMethodsArray,
+  getContinueMethodsArray,
+  getCustomInitMethodsArray  // Add this
+} from '../../../shared/utils/constants';
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
@@ -112,18 +117,11 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const prepConfig = getPrepNoteConfig('componentCreation');
 
   // Method definitions - organized by start type
-  // ✅ MIGRATED: Cast-on methods now come from constants.js
   const methodsByStartType = {
     cast_on: getCastOnMethodsArray(),
-    pick_up: [
-      { id: 'pick_up_knit', name: 'Pick Up & Knit', icon: '🧶' }
-    ],
-    continue: [
-      { id: 'from_stitches', name: 'From Live Stitches', icon: '📎' }
-    ],
-    other: [
-      { id: 'custom', name: 'Custom Setup', icon: '📝' }
-    ]
+    pick_up: getPickUpMethodsArray(),
+    continue: getContinueMethodsArray(),
+    other: getCustomInitMethodsArray()
   };
 
   const startTypes = [

@@ -134,6 +134,7 @@ export const getBindOffMethodsArray = () => Object.values(BIND_OFF_METHODS);
 export const getPickUpMethodsArray = () => Object.values(PICK_UP_METHODS);
 export const getAttachMethodsArray = () => Object.values(ATTACH_METHODS);
 export const getContinueMethodsArray = () => Object.values(CONTINUE_METHODS);
+export const getCustomInitMethodsArray = () => Object.values(CUSTOM_INITIALIZATION_METHODS);
 
 // Helper functions to get display names by ID
 export const getCastOnDisplayName = (id) => {

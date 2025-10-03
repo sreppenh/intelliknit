@@ -1,44 +1,29 @@
-// File used for partial bind-offs
-
 import React from 'react';
+import { getBindOffMethodsArray } from '../../../shared/utils/constants';
 
 const BindOffConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {
   const handleMethodSelect = (method) => {
     updateWizardData('stitchPattern', { method });
   };
 
-  const methods = [
-    {
-      id: 'standard',
-      name: 'Standard Bind Off',
-      icon: '✂️',
-      description: 'Basic bind off, most common'
-    },
-    {
-      id: 'stretchy',
-      name: 'Stretchy Bind Off',
-      icon: '🌊',
-      description: 'Extra stretch for ribbing'
-    },
-    {
-      id: 'picot',
-      name: 'Picot Bind Off',
-      icon: '🌸',
-      description: 'Decorative scalloped edge'
-    },
-    {
-      id: 'three_needle',
-      name: 'Three Needle Bind Off',
-      icon: '🔗',
-      description: 'Joins two pieces together'
-    },
-    {
-      id: 'other',
-      name: 'Other Method',
-      icon: '📝',
-      description: 'Specify your own'
-    }
-  ];
+  // Get base methods from constants
+  const baseMethods = getBindOffMethodsArray();
+
+  // Add UI-specific descriptions
+  const methodDescriptions = {
+    'standard': 'Basic bind off, most common',
+    'stretchy': 'Extra stretch for ribbing',
+    'sewn': 'Soft, stretchy finish',
+    'picot': 'Decorative scalloped edge',
+    'three_needle': 'Joins two pieces together',
+    'other': 'Specify your own'
+  };
+
+  // Merge constants with descriptions
+  const methods = baseMethods.map(method => ({
+    ...method,
+    description: methodDescriptions[method.id] || ''
+  }));
 
   return (
     <div className="stack-lg">

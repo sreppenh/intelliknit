@@ -1,60 +1,33 @@
 import React from 'react';
+import { getCastOnMethodsArray } from '../../../shared/utils/constants';
 
 const CastOnConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {
   const handleMethodSelect = (method) => {
     updateWizardData('stitchPattern', { method });
   };
 
-  const methods = [
-    {
-      id: 'long_tail',
-      name: 'Long Tail',
-      icon: '🪢',
-      description: 'Most common, stretchy edge'
-    },
-    {
-      id: 'cable',
-      name: 'Cable Cast On',
-      icon: '🔗',
-      description: 'Firm, decorative edge'
-    },
-    {
-      id: 'garter_tab',
-      name: 'Garter Tab',
-      icon: '🔺',
-      description: 'For top-down shawls'
-    },
-    {
-      id: 'provisional',
-      name: 'Provisional',
-      icon: '📎',
-      description: 'Removable, for later picking up'
-    },
-    {
-      id: 'german_twisted',
-      name: 'German Twisted',
-      icon: '🌀',
-      description: 'Very stretchy, great for ribbing'
-    },
-    {
-      id: 'backward_loop',
-      name: 'Backward Loop',
-      icon: '↪️',
-      description: 'Quick and simple'
-    },
-    {
-      id: 'tubular',
-      name: 'Tubular',
-      icon: '⭕',
-      description: 'Invisible edge for 1x1 rib'
-    },
-    {
-      id: 'other',
-      name: 'Other Method',
-      icon: '📝',
-      description: 'Specify your own'
-    }
-  ];
+  // Get base methods from constants
+  const baseMethods = getCastOnMethodsArray();
+
+  // Add UI-specific descriptions
+  const methodDescriptions = {
+    'long_tail': 'Most common, stretchy edge',
+    'cable': 'Firm, decorative edge',
+    'garter_tab': 'For top-down shawls',
+    'provisional': 'Removable, for later picking up',
+    'german_twisted': 'Very stretchy, great for ribbing',
+    'judy': 'Perfect for toe-up socks',
+    'knitted': 'Easy and decorative',
+    'backward_loop': 'Quick and simple',
+    'tubular': 'Invisible edge for 1x1 rib',
+    'other': 'Specify your own'
+  };
+
+  // Merge constants with descriptions
+  const methods = baseMethods.map(method => ({
+    ...method,
+    description: methodDescriptions[method.id] || ''
+  }));
 
   return (
     <div className="stack-lg">
