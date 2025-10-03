@@ -10,6 +10,7 @@ import PatternSelector from '../../steps/components/wizard-steps/PatternSelector
 import PatternConfiguration from '../../steps/components/wizard-steps/PatternConfiguration';
 import StripesConfig from '../../steps/components/pattern-configs/StripesConfig';
 import PatternWizard from './PatternWizard';
+import { getCastOnMethodsArray } from '../../../shared/utils/constants';  // ✅ ADD THIS
 
 const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const { dispatch } = useProjectsContext();
@@ -111,19 +112,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const prepConfig = getPrepNoteConfig('componentCreation');
 
   // Method definitions - organized by start type
+  // ✅ MIGRATED: Cast-on methods now come from constants.js
   const methodsByStartType = {
-    cast_on: [
-      { id: 'long_tail', name: 'Long Tail', icon: '🪢' },
-      { id: 'cable', name: 'Cable', icon: '🔗' },
-      { id: 'garter_tab', name: 'Garter Tab', icon: '🔺' },
-      { id: 'provisional', name: 'Provisional', icon: '📎' },
-      { id: 'german_twisted', name: 'German Twisted', icon: '🌀' },
-      { id: 'judy', name: "Judy's Magic", icon: '✨' },
-      { id: 'tubular', name: 'Tubular', icon: '⭕' },
-      { id: 'knitted', name: 'Knitted', icon: '🧵' },
-      { id: 'backward_loop', name: 'Backward Loop', icon: '↪️' },
-      { id: 'other', name: 'Other', icon: '📝' }
-    ],
+    cast_on: getCastOnMethodsArray(),
     pick_up: [
       { id: 'pick_up_knit', name: 'Pick Up & Knit', icon: '🧶' }
     ],
