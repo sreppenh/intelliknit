@@ -126,7 +126,6 @@ const RowEntryModal = ({
             return { isComplete: false, reason: 'invalid' };
         }
 
-        // 🔄 REPLACED: Get custom actions using centralized pattern key function
         const customActionsLookup = {};
         const patternType = wizardData?.stitchPattern?.pattern;
         const patternKey = getKeyboardPatternKey(patternType);
@@ -134,7 +133,10 @@ const RowEntryModal = ({
 
         customActions.forEach(customAction => {
             if (typeof customAction === 'object' && customAction.name) {
-                customActionsLookup[customAction.name] = customAction;
+                customActionsLookup[customAction.name] = {
+                    consumes: customAction.consumed,  // ✅ Map to correct property
+                    produces: customAction.stitches   // ✅ Map to correct property
+                };
             }
         });
 
