@@ -5,6 +5,7 @@ import { calculateRowStitches } from './stitchCalculatorUtils';
 import { formatKnittingInstruction } from './../../shared/utils/knittingNotation'
 import { generateMarkerInstructionPreview } from './markerInstructionUtils';
 import { getAdjustedColorRow, getAdjustedPatternRow } from './progressTracking';
+import { getCastOnDisplayName, getBindOffDisplayName } from './constants';  // ✅ ADD THIS
 
 /**
  * Smart Instruction Generation - Phase 2 implementation
@@ -145,53 +146,35 @@ function getConstructionInstruction(step, patternName) {
 
 /**
  * Cast On instruction generation
+ * ✅ MIGRATED: Now uses constants.js
  */
 function getCastOnInstruction(step, stitchPattern) {
     const method = stitchPattern?.method || 'long_tail';
     const stitchCount = stitchPattern?.stitchCount || step.endingStitches || '0';
-    // const stitchCount = step.endingStitches || stitchPattern?.stitchCount || 0;
 
-    const methodNames = {
-        'long_tail': 'Long Tail Cast On',
-        'cable': 'Cable Cast On',
-        'knitted': 'Knitted Cast On',
-        'backwards_loop': 'Backwards Loop Cast On',
-        'provisional': 'Provisional Cast On',
-        'judy': "Judy's Magic Cast On",
-        'german_twisted': 'German Twisted Cast On',
-        'garter_tab': 'Garter Tab Cast On',
-        'tubular': 'Tubular Cast On'
-    };
-
-    const methodName = methodNames[method] || 'Cast On';
+    const methodName = getCastOnDisplayName(method) || 'Cast On';
 
     return {
         instruction: `Using ${methodName}, cast on ${stitchCount} stitches`,
         isSupported: true,
-        needsHelp: method === 'provisional' || method === 'judy' || method === 'garter_tab',
+        needsHelp: method === 'provisional' || method === 'judy' || method === 'garter_tab' || method === 'tubular',
         helpTopic: method === 'provisional' ? 'provisional_cast_on'
             : method === 'judy' ? 'magic_cast_on'
                 : method === 'garter_tab' ? 'garter_tab_cast_on'
-                    : null
+                    : method === 'tubular' ? 'tubular_cast_on'
+                        : null
     };
 }
 
 /**
  * Bind Off instruction generation
+ * ✅ MIGRATED: Now uses constants.js
  */
 function getBindOffInstruction(step, stitchPattern) {
     const method = stitchPattern?.method || 'standard';
     const stitchCount = stitchPattern?.stitchCount || 'all';
 
-    const methodNames = {
-        'standard': 'Standard Bind Off',
-        'stretchy': 'Stretchy Bind Off',
-        'picot': 'Picot Bind Off',
-        'three_needle': 'Three Needle Bind Off',
-        'sewn': 'Sewn Bind Off'
-    };
-
-    const methodName = methodNames[method] || 'Standard Bind Off';
+    const methodName = getBindOffDisplayName(method) || 'Standard Bind Off';
     const stitchText = stitchCount === 'all' ? 'all stitches' : `${stitchCount} stitches`;
 
     return {
