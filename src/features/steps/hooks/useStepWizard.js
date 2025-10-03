@@ -111,20 +111,11 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     // Apply component colorwork default if exists
     if (component?.defaultColorwork) {
       initialData.colorwork = JSON.parse(JSON.stringify(component.defaultColorwork)); // ✅ Deep copy
-
-    } else if (component?.colorMode === 'single' && component?.singleColorYarnId) {
-
-      // ✅ FIX: For single-color components, create colorwork from singleColorYarnId
-      let letter = component.singleColorYarnId;
-
-      // Extract letter if it's in pseudo-ID format
-      if (typeof letter === 'string' && letter.startsWith('color-')) {
-        letter = letter.split('-')[1];
-      }
-
+    } else if (component?.colorMode === 'single' && component?.singleColorLetter) {
+      // For single-color components, use letter directly
       initialData.colorwork = {
         type: 'single',
-        letter: letter
+        letter: component.singleColorLetter
       };
     }
 

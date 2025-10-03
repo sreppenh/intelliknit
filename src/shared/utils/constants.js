@@ -84,3 +84,97 @@ export const SHAPING_ACTIONS = {
   DECREASE: 'decrease',
   BIND_OFF: 'bind_off'
 };
+
+// ===== KNITTING METHODS =====
+
+export const CAST_ON_METHODS = {
+  LONG_TAIL: { id: 'long_tail', name: 'Long Tail', displayName: 'Long Tail Cast On', icon: '🪢' },
+  CABLE: { id: 'cable', name: 'Cable', displayName: 'Cable Cast On', icon: '🔗' },
+  GARTER_TAB: { id: 'garter_tab', name: 'Garter Tab', displayName: 'Garter Tab Cast On', icon: '🔺' },
+  PROVISIONAL: { id: 'provisional', name: 'Provisional', displayName: 'Provisional Cast On', icon: '📎' },
+  GERMAN_TWISTED: { id: 'german_twisted', name: 'German Twisted', displayName: 'German Twisted Cast On', icon: '🌀' },
+  JUDY: { id: 'judy', name: "Judy's Magic", displayName: "Judy's Magic Cast On", icon: '✨' },
+  TUBULAR: { id: 'tubular', name: 'Tubular', displayName: 'Tubular Cast On', icon: '⭕' },
+  KNITTED: { id: 'knitted', name: 'Knitted', displayName: 'Knitted Cast On', icon: '🧵' },
+  BACKWARD_LOOP: { id: 'backward_loop', name: 'Backward Loop', displayName: 'Backward Loop Cast On', icon: '↪️' },
+  OTHER: { id: 'other', name: 'Other Method', displayName: 'Other Cast On', icon: '📝' }
+};
+
+export const BIND_OFF_METHODS = {
+  STANDARD: { id: 'standard', name: 'Standard', displayName: 'Standard Bind Off', icon: '✂️' },
+  STRETCHY: { id: 'stretchy', name: 'Stretchy', displayName: 'Stretchy Bind Off', icon: '🌊' },
+  SEWN: { id: 'sewn', name: 'Sewn', displayName: 'Sewn Bind Off', icon: '🪡' },
+  PICOT: { id: 'picot', name: 'Picot', displayName: 'Picot Bind Off', icon: '🌸' },
+  THREE_NEEDLE: { id: 'three_needle', name: 'Three Needle', displayName: 'Three Needle Bind Off', icon: '🔗' },
+  OTHER: { id: 'other', name: 'Other Method', displayName: 'Other Bind Off', icon: '📝' }
+};
+
+export const PICK_UP_METHODS = {
+  PICK_UP_KNIT: { id: 'pick_up_knit', name: 'Pick Up & Knit', displayName: 'Pick Up & Knit', icon: '🧶' }
+};
+
+export const ATTACH_METHODS = {
+  MATTRESS_STITCH: { id: 'mattress_stitch', name: 'Mattress Stitch', displayName: 'Mattress Stitch', icon: '🪡' },
+  BACKSTITCH: { id: 'backstitch', name: 'Backstitch', displayName: 'Backstitch', icon: '⬆️' },
+  KITCHENER_STITCH: { id: 'kitchener_stitch', name: 'Kitchener Stitch', displayName: 'Kitchener Stitch', icon: '🔄' },
+  THREE_NEEDLE: { id: 'three_needle', name: 'Three Needle', displayName: 'Three Needle Bind Off', icon: '🔗' }
+};
+
+export const CONTINUE_METHODS = {
+  FROM_STITCHES: { id: 'from_stitches', name: 'From Live Stitches', displayName: 'From Live Stitches', icon: '📎' }
+};
+
+export const CUSTOM_INITIALIZATION_METHODS = {
+  CUSTOM: { id: 'custom', name: 'Custom Setup', displayName: 'Custom Setup', icon: '📝' }
+};
+
+// Helper functions to get method arrays
+export const getCastOnMethodsArray = () => Object.values(CAST_ON_METHODS);
+export const getBindOffMethodsArray = () => Object.values(BIND_OFF_METHODS);
+export const getPickUpMethodsArray = () => Object.values(PICK_UP_METHODS);
+export const getAttachMethodsArray = () => Object.values(ATTACH_METHODS);
+export const getContinueMethodsArray = () => Object.values(CONTINUE_METHODS);
+
+// Helper functions to get display names by ID
+export const getCastOnDisplayName = (id) => {
+  const method = Object.values(CAST_ON_METHODS).find(m => m.id === id);
+  return method?.displayName || id;
+};
+
+export const getBindOffDisplayName = (id) => {
+  const method = Object.values(BIND_OFF_METHODS).find(m => m.id === id);
+  return method?.displayName || id;
+};
+
+// Helper function to get pick up method display name
+export const getPickUpDisplayName = (id) => {
+  const method = Object.values(PICK_UP_METHODS).find(m => m.id === id);
+  return method?.displayName || id;
+};
+
+// Helper function to get attach method display name
+export const getAttachDisplayName = (id) => {
+  const method = Object.values(ATTACH_METHODS).find(m => m.id === id);
+  return method?.displayName || id;
+};
+
+// Helper function to get continue method display name
+export const getContinueDisplayName = (id) => {
+  const method = Object.values(CONTINUE_METHODS).find(m => m.id === id);
+  return method?.displayName || id;
+};
+
+// Helper function to get custom initialization method display name
+export const getCustomInitDisplayName = (id) => {
+  const method = Object.values(CUSTOM_INITIALIZATION_METHODS).find(m => m.id === id);
+  return method?.displayName || id;
+};
+
+// ===== PATTERN CATEGORIES =====
+
+export const PATTERN_CATEGORIES = {
+  CONSTRUCTION: ['Cast On', 'Pick Up & Knit', 'Continue from Stitches', 'Custom Initialization', 'Bind Off', 'Put on Holder', 'Other Ending'],
+  TEXTURE: ['Stockinette', 'Garter', 'Reverse Stockinette', '1x1 Rib', '2x2 Rib', '3x3 Rib', '2x1 Rib', '1x1 Twisted Rib', '2x2 Twisted Rib', 'Seed Stitch', 'Moss Stitch', 'Double Seed', 'Basketweave'],
+  COLORWORK: ['Stranded Colorwork', 'Intarsia', 'Fair Isle', 'Mosaic'],
+  STRUCTURE: ['Lace', 'Cable', 'Brioche']
+};

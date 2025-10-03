@@ -835,15 +835,15 @@ const getStepColorForComparison = (step, component) => {
     }
 
     // Fallback to component default
-    if (component?.colorMode === 'single' && component.singleColorYarnId) {
-        return `single:${component.singleColorYarnId}`;
+    if (component?.colorMode === 'single' && component.singleColorLetter) {
+        return `single:${component.singleColorLetter}`;
     }
 
-    if (component?.startStepColorYarnIds && component.startStepColorYarnIds.length > 0) {
-        if (component.startStepColorYarnIds.length === 1) {
-            return `single:${component.startStepColorYarnIds[0]}`;
+    if (component?.startStepColorLetters && component.startStepColorLetters.length > 0) {
+        if (component.startStepColorLetters.length === 1) {
+            return `single:${component.startStepColorLetters[0]}`;
         }
-        return `multi:${component.startStepColorYarnIds.sort().join(',')}`;
+        return `multi:${component.startStepColorLetters.sort().join(',')}`;
     }
 
     return null;

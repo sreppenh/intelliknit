@@ -6,9 +6,21 @@
  * Single source of truth for step display across the application.
  */
 
-// ===== PATTERN MAPPINGS =====
+// ===== IMPORTS =====
 
 import { getConstructionTerms } from './ConstructionTerminology';
+import {
+    getCastOnDisplayName,
+    getBindOffDisplayName,
+    getPickUpDisplayName,
+    getAttachDisplayName,
+    getContinueDisplayName,
+    getCustomInitDisplayName,
+    PATTERN_CATEGORIES
+} from './constants';
+
+// ===== LEGACY COMPATIBILITY LAYER =====
+// These will be removed in Phase 4 after all files are migrated
 
 const CAST_ON_METHODS = {
     'long_tail': 'Long Tail',
@@ -50,7 +62,8 @@ const ATTACH_METHODS = {
     'three_needle': 'Three Needle Bind Off'
 };
 
-const PATTERN_CATEGORIES = {
+// Keep old PATTERN_CATEGORIES for backwards compatibility
+const OLD_PATTERN_CATEGORIES = {
     'construction': ['Cast On', 'Pick Up & Knit', 'Continue from Stitches', 'Custom Initialization', 'Bind Off', 'Put on Holder', 'Other Ending'],
     'texture': ['Stockinette', 'Garter', 'Reverse Stockinette', '1x1 Rib', '2x2 Rib', 'Seed Stitch', 'Moss Stitch'],
     'colorwork': ['Stranded Colorwork', 'Intarsia', 'Fair Isle', 'Mosaic'],
@@ -552,6 +565,7 @@ export const getStepPatternName = (step) => {
 /**
  * Get method display name for a step
  * Returns empty string if no method applies
+ * ✅ MIGRATED: Now uses constants.js as source of truth
  */
 export const getStepMethodDisplay = (step) => {
     const pattern = getStepPatternName(step);
@@ -560,21 +574,28 @@ export const getStepMethodDisplay = (step) => {
 
     if (!method) return '';
 
+    // Handle "other" method for all patterns
+    if (method === 'other' && customText) return customText;
+
+    // Use new constants with fallback to legacy
     switch (pattern) {
         case 'Cast On':
-            return CAST_ON_METHODS[method] || (method === 'other' ? customText : method);
+            return getCastOnDisplayName(method) || CAST_ON_METHODS[method] || method;
 
         case 'Pick Up & Knit':
-            return PICK_UP_KNIT_METHODS[method] || (method === 'other' ? customText : method);
+            return getPickUpDisplayName(method) || PICK_UP_KNIT_METHODS[method] || method;
 
         case 'Continue from Stitches':
-            return CONTINUE_METHODS[method] || (method === 'other' ? customText : method);
+            return getContinueDisplayName(method) || CONTINUE_METHODS[method] || method;
 
         case 'Custom Initialization':
-            return CUSTOM_INITIALIZATION_METHODS[method] || (method === 'other' ? customText : method);
+            return getCustomInitDisplayName(method) || CUSTOM_INITIALIZATION_METHODS[method] || method;
 
         case 'Bind Off':
-            return BIND_OFF_METHODS[method] || (method === 'other' ? customText : method);
+            return getBindOffDisplayName(method) || BIND_OFF_METHODS[method] || method;
+
+        case 'Attach to Piece':
+            return getAttachDisplayName(method) || ATTACH_METHODS[method] || method;
 
         default:
             return '';
@@ -684,10 +705,11 @@ export const getShapingDisplay = (step) => {
 /**
  * Check if step is a special construction step
  * (Cast On, Bind Off, Attach to Piece, Put on Holder)
+ * ✅ MIGRATED: Now uses constants.js
  */
 export const isConstructionStep = (step) => {
     const pattern = getStepPatternName(step);
-    return PATTERN_CATEGORIES.construction.includes(pattern);
+    return (PATTERN_CATEGORIES.CONSTRUCTION || OLD_PATTERN_CATEGORIES.construction).includes(pattern);
 };
 
 

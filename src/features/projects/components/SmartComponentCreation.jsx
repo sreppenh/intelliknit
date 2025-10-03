@@ -28,9 +28,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     startDescription: '',
     startInstructions: '',
     prepNote: '',
-    colorMode: null,           // NEW
-    singleColorYarnId: null,
-    startStepColorYarnId: []
+    colorMode: null,
+    singleColorLetter: null,   // ✅ ADD THIS
+    startStepColorLetters: []  // ✅ ADD THIS
   });
 
 
@@ -218,8 +218,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       construction: componentData.construction,
       setupNotes: componentData.setupNotes,
       colorMode: componentData.colorMode || 'multiple',
-      singleColorYarnId: componentData.singleColorYarnId || null,
-      startStepColorYarnIds: componentData.startStepColorYarnIds || [],
+      singleColorLetter: componentData.singleColorLetter || null,  // ✅ CHANGED
+      startStepColorLetters: componentData.startStepColorLetters || [],  // ✅ CHANGED
 
       // Always save pattern default
       defaultPattern: defaultPatternData.stitchPattern.pattern ? defaultPatternData.stitchPattern : null,
@@ -265,7 +265,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
       setComponentData(prev => ({
         ...prev,
         colorMode: 'single',
-        singleColorYarnId: 'color-A'
+        singleColorLetter: 'A'
       }));
     }
   }, [currentProject, componentData.colorMode]);
@@ -352,7 +352,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                         setComponentData(prev => ({
                           ...prev,
                           colorMode: 'single',
-                          singleColorYarnId: defaultYarn?.id || null
+                          singleColorLetter: defaultYarn?.letter || 'A'  // ✅ CHANGED
                         }));
                       }}
                       className={`segmented-option ${componentData.colorMode === 'single' ? 'segmented-option-active' : ''}`}
@@ -363,12 +363,13 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                       onClick={() => setComponentData(prev => ({
                         ...prev,
                         colorMode: 'multiple',
-                        singleColorYarnId: null
+                        singleColorLetter: null  // ✅ CHANGED
                       }))}
                       className={`segmented-option ${componentData.colorMode === 'multiple' ? 'segmented-option-active' : ''}`}
                     >
                       Multi-Color
                     </button>
+
                   </div>
                 </div>
               </div>
@@ -391,12 +392,12 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
                     return (
                       <button
-                        key={yarn.id}
+                        key={letter}  // ✅ Also change key to use letter instead of yarn.id
                         onClick={() => setComponentData(prev => ({
                           ...prev,
-                          singleColorYarnId: yarn.id
+                          singleColorLetter: letter  // ✅ Correct
                         }))}
-                        className={`card-selectable-compact ${componentData.singleColorYarnId === yarn.id
+                        className={`card-selectable-compact ${componentData.singleColorLetter === letter  // ✅ NOW correct!
                           ? 'card-selectable-compact-selected'
                           : ''
                           }`}
@@ -951,8 +952,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                                 const yarn = yarns.find(y => y.letter === letter);
                                 const colorHex = yarn?.colorHex || '#f3f4f6';
                                 const colorName = yarn?.color || `Color ${letter}`;
-                                const yarnId = yarn?.id || `color-${letter}`;
-                                const isSelected = componentData.startStepColorYarnIds?.includes(letter);
+                                const isSelected = componentData.startStepColorLetters?.includes(letter);  // ✅ CHANGED
 
                                 return (
                                   <button
@@ -960,19 +960,19 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                                     type="button"
                                     onClick={() => {
                                       setComponentData(prev => {
-                                        const currentIds = prev.startStepColorYarnIds || [];
-                                        let newIds;
+                                        const currentLetters = prev.startStepColorLetters || [];  // ✅ CHANGED
+                                        let newLetters;  // ✅ CHANGED
 
                                         if (isSelected) {
-                                          newIds = currentIds.filter(id => id !== letter);
-                                          if (newIds.length === 0) newIds = [letter];
+                                          newLetters = currentLetters.filter(l => l !== letter);  // ✅ CHANGED
+                                          if (newLetters.length === 0) newLetters = [letter];
                                         } else {
-                                          newIds = [...currentIds, letter];
+                                          newLetters = [...currentLetters, letter];  // ✅ CHANGED
                                         }
 
                                         return {
                                           ...prev,
-                                          startStepColorYarnIds: newIds,
+                                          startStepColorLetters: newLetters,  // ✅ CHANGED
                                         };
                                       });
                                     }}

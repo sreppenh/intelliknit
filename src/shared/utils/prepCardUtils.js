@@ -27,17 +27,10 @@ export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
     let colorwork = step?.colorwork;
 
     // If no colorwork on step and this is a single-color component, use component's color
-    if (!colorwork && component?.colorMode === 'single' && component?.singleColorYarnId) {
-
-        // Extract letter if it's a pseudo-ID format
-        let letter = component.singleColorYarnId;
-        if (typeof letter === 'string' && letter.startsWith('color-')) {
-            letter = letter.split('-')[1];
-        }
-
+    if (!colorwork && component?.colorMode === 'single' && component?.singleColorLetter) {
         colorwork = {
             type: 'single',
-            letter: letter
+            letter: component.singleColorLetter
         };
     }
 
@@ -204,15 +197,8 @@ const getStepColorForComparison = (step, component) => {
     }
 
     // Fallback to component default
-    if (component?.colorMode === 'single' && component.singleColorYarnId) {
-        let letter = component.singleColorYarnId;
-
-        // Extract letter from pseudo-ID if needed
-        if (typeof letter === 'string' && letter.startsWith('color-')) {
-            letter = letter.split('-')[1];
-        }
-
-        return `single:${letter}`;
+    if (component?.colorMode === 'single' && component.singleColorLetter) {
+        return `single:${component.singleColorLetter}`;
     }
 
     return null;

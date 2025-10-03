@@ -216,20 +216,33 @@ export const projectsReducer = (state, action) => {
           endingStitches: action.payload.startingStitches,
           totalRows: 1,
           construction: action.payload.construction || 'flat',
-          colorwork: action.payload.startStepColorYarnIds && action.payload.startStepColorYarnIds.length > 0 ? (
-            action.payload.startStepColorYarnIds.length === 1 ? {
-              type: 'single',
-              letter: action.payload.startStepColorYarnIds[0]
-            } : {
-              type: 'multi-strand',
-              letters: action.payload.startStepColorYarnIds
+          colorwork: (() => {
+            // Priority 1: Explicit start step colors (already letters)
+            if (action.payload.startStepColorLetters && action.payload.startStepColorLetters.length > 0) {
+              if (action.payload.startStepColorLetters.length === 1) {
+                return {
+                  type: 'single',
+                  letter: action.payload.startStepColorLetters[0]
+                };
+              }
+              return {
+                type: 'multi-strand',
+                letters: action.payload.startStepColorLetters
+              };
             }
-          ) : action.payload.colorMode === 'single' && action.payload.singleColorYarnId ? {
-            type: 'single',
-            letter: action.payload.singleColorYarnId.startsWith('color-')
-              ? action.payload.singleColorYarnId.split('-')[1]
-              : action.payload.singleColorYarnId
-          } : null,
+
+            // Priority 2: Single color component (now using letter directly!)
+            if (action.payload.colorMode === 'single' && action.payload.singleColorLetter) {
+              return {
+                type: 'single',
+                letter: action.payload.singleColorLetter
+              };
+            }
+
+            // No color info
+            return null;
+          })(),
+
           completed: false
         };
 
