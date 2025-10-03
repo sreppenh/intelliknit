@@ -1,13 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
-import { PrepStepModal, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
+import { PrepStepModal, usePrepNoteManager, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IncrementInput from '../../../shared/components/IncrementInput';
-import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import SegmentedControl from '../../../shared/components/SegmentedControl';
 import useYarnManager from '../../../shared/hooks/useYarnManager';
-import PatternSelector from '../../steps/components/wizard-steps/PatternSelector';
-import PatternConfiguration from '../../steps/components/wizard-steps/PatternConfiguration';
 import StripesConfig from '../../steps/components/pattern-configs/StripesConfig';
 import PatternWizard from './PatternWizard';
 import {
@@ -62,12 +59,7 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     }
   });
 
-  // State for which start type is expanded (like selectedQuickCategory)
-  const [selectedStartType, setSelectedStartType] = useState(null);
-
-
   const [showExitModal, setShowExitModal] = useState(false);
-
 
   // Check if user has entered any component data (across both screens)
   const hasUnsavedData = () => {
@@ -105,9 +97,6 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
   const {
     isModalOpen,
     currentNote,
-    hasNote,
-    notePreview,
-    handleOpenModal,
     handleCloseModal,
     handleSaveNote
   } = usePrepNoteManager(componentData.prepNote, (note) => {
@@ -124,39 +113,6 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
     other: getCustomInitMethodsArray()
   };
 
-  const startTypes = [
-    { id: 'cast_on', name: 'Cast On', icon: '🏗️', desc: 'Start from scratch' },
-    { id: 'pick_up', name: 'Pick Up & Knit', icon: '🧶', desc: 'From existing edge' },
-    { id: 'continue', name: 'From Holder', icon: '📎', desc: 'Resume saved stitches' },
-    { id: 'other', name: 'Other', icon: '📝', desc: 'Complex setup' }
-  ];
-
-  const handleStartTypeSelect = (startTypeId) => {
-    setSelectedStartType(selectedStartType === startTypeId ? null : startTypeId);
-    // Reset component data when changing start type
-    setComponentData(prev => ({
-      ...prev,
-      startType: null,
-      startMethod: null,
-      startStitches: '',
-      startDescription: '',
-      startInstructions: ''
-    }));
-  };
-
-  const handleMethodSelect = (startTypeId, methodId) => {
-    setComponentData(prev => ({
-      ...prev,
-      startType: startTypeId,
-      startMethod: methodId
-    }));
-
-    // Auto-advance to screen 2 after a brief delay (like PatternSelector)
-    setTimeout(() => {
-      setScreen(2);
-    }, 50);
-  };
-
   const needsDescription = () => {
     return componentData.startType === 'pick_up' ||
       componentData.startType === 'continue' ||
@@ -165,12 +121,6 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
   const needsInstructions = () => {
     return componentData.startType === 'pick_up';
-  };
-
-  const canProceedToDetails = () => {
-    return componentData.name.trim() &&
-      componentData.startType &&
-      componentData.startMethod;
   };
 
   const canCreateComponent = () => {
@@ -237,15 +187,15 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
   // In SmartComponentCreation.jsx, add this useEffect near the top after your state declarations:
 
-  // Keep the existing useEffect exactly as it is:
+  // Initialize with project defaults when component mounts
   useEffect(() => {
-    // Initialize with project defaults when component mounts
     if (currentProject && !componentData.construction) {
       setComponentData(prev => ({
         ...prev,
         construction: currentProject.construction || 'flat'
       }));
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentProject]);
 
   // Auto-set colorMode to 'single' on first load
@@ -257,7 +207,9 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
         singleColorLetter: 'A'
       }));
     }
-  }, [currentProject, componentData.colorMode]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentProject]);
+
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="app-container bg-yarn-50 min-h-screen shadow-lg">

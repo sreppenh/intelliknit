@@ -6,14 +6,14 @@
  * Companion to stepDisplayUtils.js and stepCreationUtils.js
  * Generates human-friendly descriptions and contextual notes for step display.
  */
-import { getStepPatternName, getStepMethodDisplay, getStepPrepNote, getStepType, hasShaping, requiresAdvancedPatternEdit } from './stepDisplayUtils'; import { formatKnittingInstruction } from './knittingNotation';
+import { getStepPatternName, getStepMethodDisplay, getStepType, requiresAdvancedPatternEdit } from './stepDisplayUtils'; import { formatKnittingInstruction } from './knittingNotation';
 import { PhaseCalculationService } from './PhaseCalculationService';
-import { getCorrectDurationDisplay, estimateRowsFromLength } from './gaugeUtils';
+import { getCorrectDurationDisplay } from './gaugeUtils';
 import { generateMarkerInstructionPreview } from './markerInstructionUtils';
 import { calculateRowsFromDistance } from './gaugeUtils';
 import { getConstructionTerms } from './ConstructionTerminology';
 import { getYarnByLetter } from './colorworkDisplayUtils';
-import { getCastOnDisplayName, getBindOffDisplayName } from './constants';
+import { getCastOnDisplayName } from './constants';
 
 // ===== HUMAN-READABLE DESCRIPTIONS =====
 
@@ -725,31 +725,6 @@ const getHolderDescription = (step) => {
 };
 
 /**
- * Generate attachment description
- */
-const getAttachmentDescription = (step) => {
-    const method = step.wizardConfig?.stitchPattern?.method;
-    const customMethod = step.wizardConfig?.stitchPattern?.customMethod || step.wizardConfig?.stitchPattern?.customText;
-    const targetComponent = step.wizardConfig?.stitchPattern?.targetComponent;
-
-    // Handle user-entered component names
-    const target = targetComponent || 'selected component';
-
-    // ✅ FIX: Handle custom method properly
-    if (method === 'other' && customMethod) {
-        return `Attach this component to ${target} using ${customMethod}`;
-    }
-
-    // Handle standard methods
-    const methodDisplay = getStepMethodDisplay(step);
-    if (methodDisplay && method !== 'other') {
-        return `Using ${methodDisplay}, attach this component to ${target}`;
-    }
-
-    return `Attach this component to ${target}`;
-};
-
-/**
  * Generate other ending description
  */
 const getOtherEndingDescription = (step) => {
@@ -803,44 +778,6 @@ const shouldShowColorInTechnicalData = (step, stepIndex, component, project) => 
     // Show color for any step that has colorwork data
     return step?.colorwork !== null && step?.colorwork !== undefined;
 };
-
-/**
- * Get step color for comparison (normalized string)
- * ✅ FIXED: Now uses colorLetter with fallback to legacy yarnId
- */
-const getStepColorForComparison = (step, component) => {
-    // Check step's colorwork data
-    if (step?.colorwork) {
-        if (step.colorwork.type === 'single') {
-            // ✅ FIXED: Use colorLetter (new) or letter with fallback to yarnId (legacy)
-            const identifier = step.colorwork.colorLetter || step.colorwork.letter || step.colorwork.yarnId;
-            return `single:${identifier}`;
-        }
-        if (step.colorwork.type === 'multi-strand' || step.colorwork.type === 'multi_strand') {
-            // ✅ FIXED: Use colorLetters (new) or letters with fallback to yarnIds (legacy)
-            const identifiers = step.colorwork.colorLetters || step.colorwork.letters || step.colorwork.yarnIds || [];
-            return `multi:${identifiers.sort().join(',')}`;
-        }
-        if (step.colorwork.type === 'stripes') {
-            return 'stripes';
-        }
-    }
-
-    // Fallback to component default
-    if (component?.colorMode === 'single' && component.singleColorLetter) {
-        return `single:${component.singleColorLetter}`;
-    }
-
-    if (component?.startStepColorLetters && component.startStepColorLetters.length > 0) {
-        if (component.startStepColorLetters.length === 1) {
-            return `single:${component.startStepColorLetters[0]}`;
-        }
-        return `multi:${component.startStepColorLetters.sort().join(',')}`;
-    }
-
-    return null;
-};
-
 
 /**
  * Get color display text for technical data
@@ -1076,7 +1013,7 @@ export const getStepDisplayPriority = (step) => {
 
 // ===== EXPORTS =====
 
-export default {
+const stepDescriptionUtils = {
     getHumanReadableDescription,
     getContextualPatternNotes,
     getContextualConfigNotes,
@@ -1087,3 +1024,5 @@ export default {
     getStepDisplayPriority,
     getContextualColorNotes
 };
+
+export default stepDescriptionUtils;
