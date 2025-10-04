@@ -91,8 +91,7 @@ export const PATTERN_CATEGORIES = {
         icon: '✨',
         type: 'advanced',
         patterns: [
-            { name: 'Custom Row-by-Row', icon: '📝', desc: 'Define row-by-row sequence' },
-            { name: 'Custom Description', icon: '✍️', desc: 'Free-form step description' }
+            { name: 'Custom', icon: '✨', desc: 'Define your own pattern' }
         ]
     }
 };

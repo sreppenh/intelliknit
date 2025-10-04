@@ -19,7 +19,7 @@ import { calculateRowStitchesLive, calculateRowStitches, formatRunningTotal, get
 import RowEntryModal from './RowEntryModal';
 import PatternInputContainer from './Keyboards/PatternInputContainer';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
-
+import SimpleRowBuilder from './SimpleRowBuilder';
 
 
 const RowByRowPatternConfig = ({
@@ -847,6 +847,8 @@ const RowByRowPatternConfig = ({
                 </div>
             </div>
 
+
+
             {/* Description Mode */}
             {currentEntryMode === 'description' && (
                 <div>
@@ -873,75 +875,86 @@ const RowByRowPatternConfig = ({
             {/* Row-by-Row Mode */}
             {currentEntryMode === 'row_by_row' && (
                 <div>
-                    <label className="form-label">Pattern Rows</label>
-                    {isReadOnly('rowInstructions') && (
-                        <p className="text-xs text-yarn-600 mb-2">
-                            Row instructions are read-only to preserve step calculations
-                        </p>
-                    )}
+                    {patternType === 'Custom' ? (
+                        <SimpleRowBuilder
+                            wizardData={wizardData}
+                            updateWizardData={updateWizardData}
+                            construction={construction}
+                            currentStitches={currentStitches}
+                        />
+                    ) : (
+                        <>
+                            <label className="form-label">Pattern Rows</label>
+                            {isReadOnly('rowInstructions') && (
+                                <p className="text-xs text-yarn-600 mb-2">
+                                    Row instructions are read-only to preserve step calculations
+                                </p>
+                            )}
 
-                    {/* Row List */}
-                    {rowInstructions.length > 0 && (
-                        <div className="space-y-2 mb-4">
-                            {rowInstructions.map((instruction, index) => {
-                                const rowNumber = index + 1;
-                                const rowSide = getRowSide(rowNumber);
+                            {/* Row List */}
+                            {rowInstructions.length > 0 && (
+                                <div className="space-y-2 mb-4">
+                                    {rowInstructions.map((instruction, index) => {
+                                        const rowNumber = index + 1;
+                                        const rowSide = getRowSide(rowNumber);
 
-                                return (
-                                    <div key={index} className="flex items-center gap-3 p-3 bg-white border-2 border-wool-200 rounded-lg">
-                                        <div className="flex-shrink-0 text-sm font-medium text-wool-600 min-w-[80px]">
-                                            {terms.Row} {rowNumber} ({rowSide}):
-                                        </div>
-                                        <div className="flex-1 text-sm text-wool-700 font-mono">
-                                            {instruction}
-                                        </div>
-                                        {!isReadOnly('rowInstructions') && (
-                                            <div className="flex gap-1">
-                                                <button
-                                                    onClick={() => handleEditRow(index)}
-                                                    className="p-1 text-sage-600 hover:text-sage-700 hover:bg-sage-100 rounded transition-colors"
-                                                    title="Edit row"
-                                                >
-                                                    ✏️
-                                                </button>
-                                                <button
-                                                    onClick={() => handleDeleteRow(index)}
-                                                    className="delete-icon-sm"
-                                                    title="Delete row"
-                                                    aria-label={`Delete row ${index + 1}`}
-                                                >
-                                                    ×
-                                                </button>
+                                        return (
+                                            <div key={index} className="flex items-center gap-3 p-3 bg-white border-2 border-wool-200 rounded-lg">
+                                                <div className="flex-shrink-0 text-sm font-medium text-wool-600 min-w-[80px]">
+                                                    {terms.Row} {rowNumber} ({rowSide}):
+                                                </div>
+                                                <div className="flex-1 text-sm text-wool-700 font-mono">
+                                                    {instruction}
+                                                </div>
+                                                {!isReadOnly('rowInstructions') && (
+                                                    <div className="flex gap-1">
+                                                        <button
+                                                            onClick={() => handleEditRow(index)}
+                                                            className="p-1 text-sage-600 hover:text-sage-700 hover:bg-sage-100 rounded transition-colors"
+                                                            title="Edit row"
+                                                        >
+                                                            ✏️
+                                                        </button>
+                                                        <button
+                                                            onClick={() => handleDeleteRow(index)}
+                                                            className="delete-icon-sm"
+                                                            title="Delete row"
+                                                            aria-label={`Delete row ${index + 1}`}
+                                                        >
+                                                            ×
+                                                        </button>
+                                                    </div>
+                                                )}
                                             </div>
-                                        )}
-                                    </div>
-                                );
-                            })}
-                        </div>
-                    )}
+                                        );
+                                    })}
+                                </div>
+                            )}
 
-                    {/* Add Row Button */}
-                    {!isReadOnly('rowInstructions') && (
-                        <button
-                            onClick={handleAddRow}
-                            className="w-full py-3 px-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-500 hover:text-sage-700 hover:bg-sage-50 transition-colors font-medium"
-                        >
-                            + Add {terms.Row} {rowInstructions.length + 1}
-                        </button>
-                    )}
+                            {/* Add Row Button */}
+                            {!isReadOnly('rowInstructions') && (
+                                <button
+                                    onClick={handleAddRow}
+                                    className="w-full py-3 px-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-500 hover:text-sage-700 hover:bg-sage-50 transition-colors font-medium"
+                                >
+                                    + Add {terms.Row} {rowInstructions.length + 1}
+                                </button>
+                            )}
 
-                    {/* Pattern Summary */}
-                    {rowInstructions.length > 0 && (
-                        <div className="mt-3 text-sm text-wool-600 text-center">
-                            {rowInstructions.length} {rowInstructions.length === 1 ? terms.row : terms.rows} in pattern
-                        </div>
-                    )}
+                            {/* Pattern Summary */}
+                            {rowInstructions.length > 0 && (
+                                <div className="mt-3 text-sm text-wool-600 text-center">
+                                    {rowInstructions.length} {rowInstructions.length === 1 ? terms.row : terms.rows} in pattern
+                                </div>
+                            )}
 
-                    {/* Helper text for new users */}
-                    {rowInstructions.length === 0 && !isReadOnly('rowInstructions') && (
-                        <div className="mt-3 text-sm text-wool-500 text-center italic">
-                            Add your first {terms.row} to get started
-                        </div>
+                            {/* Helper text for new users */}
+                            {rowInstructions.length === 0 && !isReadOnly('rowInstructions') && (
+                                <div className="mt-3 text-sm text-wool-500 text-center italic">
+                                    Add your first {terms.row} to get started
+                                </div>
+                            )}
+                        </>
                     )}
                 </div>
             )}

@@ -1,6 +1,5 @@
 import React, { useEffect } from 'react';
-import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig, RowByRowPatternConfig, StripesConfig } from '../pattern-configs';
-import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
+import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig, RowByRowPatternConfig, StripesConfig, CustomConfig } from '../pattern-configs'; import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
 
 
 const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
@@ -55,6 +54,18 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
             wizardData={wizardData}
             updateWizardData={updateWizardData}
             construction={construction}
+            project={project}
+            mode={mode}
+          />
+        );
+
+      case 'Custom':
+        return (
+          <RowByRowPatternConfig
+            wizardData={wizardData}
+            updateWizardData={updateWizardData}
+            construction={construction}
+            currentStitches={currentStitches}
             project={project}
             mode={mode}
           />
