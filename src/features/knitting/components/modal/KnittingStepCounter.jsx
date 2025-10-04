@@ -220,6 +220,25 @@ const KnittingStepCounter = ({
             return step.endingStitches || 0;
         }
 
+        // ✅ NEW: Handle Custom pattern with customSequence.rows
+        const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+        if (stitchPattern?.pattern === 'Custom' && stitchPattern?.customSequence?.rows) {
+            const rows = stitchPattern.customSequence.rows;
+            const startingStitches = step.startingStitches || 0;
+
+            // Calculate stitch count by accumulating changes up to current row
+            let currentStitches = startingStitches;
+            const patternLength = rows.length;
+
+            for (let i = 1; i <= row; i++) {
+                const rowIndex = (i - 1) % patternLength;
+                const stitchChange = rows[rowIndex]?.stitchChange || 0;
+                currentStitches += stitchChange;
+            }
+
+            return currentStitches;
+        }
+
         const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'phases') {
