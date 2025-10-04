@@ -1,6 +1,8 @@
 // src/features/steps/components/pattern-configs/SimpleRowBuilder.jsx
-import React from 'react';
+import React, { useState } from 'react';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import IncrementInput from '../../../../shared/components/IncrementInput';
+import StandardModal from '../../../../shared/components/modals/StandardModal'
 
 const SimpleRowBuilder = ({
     wizardData,
@@ -10,36 +12,74 @@ const SimpleRowBuilder = ({
 }) => {
     const terms = getConstructionTerms(construction);
 
+    // Modal state
+    const [showModal, setShowModal] = useState(false);
+    const [editingRowIndex, setEditingRowIndex] = useState(null);
+    const [tempInstruction, setTempInstruction] = useState('');
+    const [tempStitchChange, setTempStitchChange] = useState(0);
+
     const customSequence = wizardData.stitchPattern?.customSequence || { rows: [] };
     const rows = customSequence.rows || [];
 
-    const handleRowChange = (index, field, value) => {
+    // ===== MODAL HANDLERS =====
+    const handleOpenModal = (index = null) => {
+        if (index !== null) {
+            // Editing existing row
+            setEditingRowIndex(index);
+            setTempInstruction(rows[index].instruction || '');
+            setTempStitchChange(rows[index].stitchChange || 0);
+        } else {
+            // Adding new row
+            setEditingRowIndex(null);
+            setTempInstruction('');
+            setTempStitchChange(0);
+        }
+        setShowModal(true);
+    };
+
+    const handleCloseModal = () => {
+        setShowModal(false);
+        setEditingRowIndex(null);
+        setTempInstruction('');
+        setTempStitchChange(0);
+    };
+
+    const handleSaveRow = () => {
         const newRows = [...rows];
-        newRows[index] = { ...newRows[index], [field]: value };
+
+        if (editingRowIndex !== null) {
+            // Update existing row
+            newRows[editingRowIndex] = {
+                instruction: tempInstruction,
+                stitchChange: tempStitchChange
+            };
+        } else {
+            // Add new row
+            newRows.push({
+                instruction: tempInstruction,
+                stitchChange: tempStitchChange
+            });
+        }
 
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
             customSequence: { rows: newRows }
         });
+
+        handleCloseModal();
     };
 
-    const handleAddRow = () => {
-        const newRows = [...rows, { instruction: '', stitchChange: 0 }];
-
-        updateWizardData('stitchPattern', {
-            ...wizardData.stitchPattern,
-            customSequence: { rows: newRows }
-        });
-    };
-
+    // ===== ROW MANAGEMENT =====
     const handleCopyRow = (index) => {
         const rowToCopy = rows[index];
-        const newRows = [...rows];
-        newRows.splice(index + 1, 0, { ...rowToCopy });
+        // ✅ FIX: Append to END of array
+        const newRows = [...rows, { ...rowToCopy }];
 
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
-            customSequence: { rows: newRows }
+            customSequence: { rows: newRows },
+            // ✅ FIX: Update rowsInPattern for Pattern Repeats to work
+            rowsInPattern: String(newRows.length)
         });
     };
 
@@ -54,6 +94,7 @@ const SimpleRowBuilder = ({
         });
     };
 
+    // ===== UTILITIES =====
     const getRowSide = (rowNumber) => {
         if (construction === 'round') return 'Round';
         return rowNumber % 2 === 1 ? 'RS' : 'WS';
@@ -63,6 +104,11 @@ const SimpleRowBuilder = ({
         return rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
     };
 
+    const canSave = () => {
+        return tempInstruction.trim() !== '';
+    };
+
+    // ===== INITIALIZATION =====
     if (rows.length === 0) {
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
@@ -75,60 +121,69 @@ const SimpleRowBuilder = ({
         <div>
             <label className="form-label">Pattern {terms.Rows}</label>
 
-            <div className="space-y-2 mb-4">
-                {rows.map((row, index) => {
-                    const rowNumber = index + 1;
-                    const rowSide = getRowSide(rowNumber);
+            {/* Compact Row Display */}
+            {rows.length > 0 && (
+                <div className="space-y-2 mb-4">
+                    {rows.map((row, index) => {
+                        const rowNumber = index + 1;
+                        const rowSide = getRowSide(rowNumber);
 
-                    return (
-                        <div key={index} className="flex items-center gap-3 p-3 bg-white border-2 border-wool-200 rounded-lg">
-                            <div className="flex-shrink-0 text-sm font-medium text-wool-600 min-w-[80px]">
-                                {terms.Row} {rowNumber} ({rowSide}):
-                            </div>
-                            <input
-                                type="text"
-                                value={row.instruction || ''}
-                                onChange={(e) => handleRowChange(index, 'instruction', e.target.value)}
-                                placeholder="e.g., K1, m1, k to last st, m1, k1"
-                                className="flex-1 border-2 border-wool-200 rounded-lg px-3 py-2 text-sm focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
-                            />
-                            <input
-                                type="number"
-                                value={row.stitchChange || 0}
-                                onChange={(e) => handleRowChange(index, 'stitchChange', parseInt(e.target.value) || 0)}
-                                className="w-16 border-2 border-wool-200 rounded-lg px-2 py-2 text-sm text-center focus:border-sage-500 focus:ring-0 transition-colors"
-                                title="Stitch change"
-                            />
-                            <div className="flex gap-1">
-                                <button
-                                    onClick={() => handleCopyRow(index)}
-                                    className="p-1 text-sage-600 hover:text-sage-700 transition-colors"
-                                    title="Copy row"
-                                >
-                                    📋
-                                </button>
-                                {rows.length > 1 && (
-                                    <button
-                                        onClick={() => handleDeleteRow(index)}
-                                        className="delete-icon-sm"
-                                        title="Delete row"
-                                    >
-                                        ×
-                                    </button>
+                        return (
+                            <div
+                                key={index}
+                                className="flex items-center gap-3 p-3 bg-white border-2 border-wool-200 rounded-lg"
+                            >
+                                <div className="flex-shrink-0 text-sm font-medium text-wool-600 min-w-[100px]">
+                                    {terms.Row} {rowNumber} ({rowSide}):
+                                </div>
+                                <div className="flex-1 text-sm text-wool-700 font-mono">
+                                    {row.instruction || <span className="text-wool-400 italic">No instruction</span>}
+                                </div>
+                                {row.stitchChange !== 0 && (
+                                    <div className="text-sm font-medium text-sage-600">
+                                        {row.stitchChange > 0 ? '+' : ''}{row.stitchChange}
+                                    </div>
                                 )}
+                                <div className="flex gap-1">
+                                    <button
+                                        onClick={() => handleOpenModal(index)}
+                                        className="p-1 text-sage-600 hover:text-sage-700 hover:bg-sage-100 rounded transition-colors"
+                                        title="Edit row"
+                                    >
+                                        ✏️
+                                    </button>
+                                    <button
+                                        onClick={() => handleCopyRow(index)}
+                                        className="p-1 text-sage-600 hover:text-sage-700 hover:bg-sage-100 rounded transition-colors"
+                                        title="Copy row"
+                                    >
+                                        📋
+                                    </button>
+                                    {rows.length > 1 && (
+                                        <button
+                                            onClick={() => handleDeleteRow(index)}
+                                            className="p-1 text-red-600 hover:text-red-700 hover:bg-red-100 rounded transition-colors"
+                                            title="Delete row"
+                                        >
+                                            🗑️
+                                        </button>
+                                    )}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
-            </div>
+                        );
+                    })}
+                </div>
+            )}
 
+            {/* Add Row Button */}
             <button
-                onClick={handleAddRow}
+                onClick={() => handleOpenModal()}
                 className="w-full py-3 px-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-500 hover:text-sage-700 hover:bg-sage-50 transition-colors font-medium"
             >
                 + Add {terms.Row} {rows.length + 1}
             </button>
 
+            {/* Net Change Summary */}
             {rows.length > 0 && calculateNetChange() !== 0 && (
                 <div className="help-block mt-4">
                     <div className="text-sm text-sage-700">
@@ -136,6 +191,73 @@ const SimpleRowBuilder = ({
                     </div>
                 </div>
             )}
+
+            {/* Row Entry Modal */}
+            <StandardModal
+                isOpen={showModal}
+                onClose={handleCloseModal}
+                category="simple"
+                colorScheme="sage"
+                title={editingRowIndex !== null ? `Edit ${terms.Row} ${editingRowIndex + 1}` : `Add ${terms.Row} ${rows.length + 1}`}
+                showButtons={false}
+            >
+                <div className="space-y-4">
+                    {/* Row Instruction Input */}
+                    <div>
+                        <label className="form-label">
+                            {terms.Row} Instruction
+                        </label>
+                        <input
+                            type="text"
+                            value={tempInstruction}
+                            onChange={(e) => setTempInstruction(e.target.value)}
+                            placeholder="e.g., K1, m1, k to last st, m1, k1"
+                            className="input-field-lg"
+                            autoFocus
+                        />
+                        <div className="form-help">
+                            Enter your custom instruction for this {terms.row}
+                        </div>
+                    </div>
+
+                    {/* Stitch Change Input */}
+                    <div>
+                        <label className="form-label">
+                            Net Stitch Change
+                        </label>
+                        <IncrementInput
+                            value={tempStitchChange}
+                            onChange={(value) => setTempStitchChange(value)}
+                            label="stitch change"
+                            unit="stitches"
+                            size="sm"
+                            min={-999}
+                            max={999}
+                            allowNegative={true}
+                        />
+                        <div className="form-help">
+                            Stitches gained (+) or lost (-) in this {terms.row}. Use 0 for no change.
+                        </div>
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex gap-3 pt-2">
+                        <button
+                            onClick={handleCloseModal}
+                            className="flex-1 btn-tertiary"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            onClick={handleSaveRow}
+                            disabled={!canSave()}
+                            className="flex-1 btn-primary"
+                        >
+                            {editingRowIndex !== null ? `Save ${terms.Row}` : `Add ${terms.Row}`}
+                        </button>
+                    </div>
+                </div>
+            </StandardModal>
         </div>
     );
 };
