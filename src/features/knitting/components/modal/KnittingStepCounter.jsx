@@ -405,10 +405,27 @@ const KnittingStepCounter = ({
     })();
 
     // Get current instruction
+    // Around line 188 in KnittingStepCounter.jsx
     const getCurrentInstruction = () => {
         try {
             const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
+            // ✅ FIX: Check for Custom pattern's customSequence.rows FIRST
+            if (stitchPattern?.pattern === 'Custom' && stitchPattern?.customSequence?.rows) {
+                const rows = stitchPattern.customSequence.rows;
+                const rowIndex = (currentRow - 1) % rows.length;
+                const rowData = rows[rowIndex];
+
+                if (rowData && rowData.instruction) {
+                    return {
+                        instruction: rowData.instruction,  // Already plain text, no need to format
+                        isSupported: true,
+                        isRowByRow: true
+                    };
+                }
+            }
+
+            // Original row-by-row check for Lace/Cable
             if (stitchPattern?.entryMode === 'row_by_row' && stitchPattern?.rowInstructions) {
                 const rowInstructions = stitchPattern.rowInstructions;
                 const rowIndex = (currentRow - 1) % rowInstructions.length;

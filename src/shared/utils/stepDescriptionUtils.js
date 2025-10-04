@@ -208,15 +208,46 @@ export const formatReadableInstruction = (instruction) => {
  * ✅ NEW: Get contextual notes for advanced patterns (Lace, Cable, Custom)
  * Handles both Description mode and Row by Row mode
  */
+// In stepDescriptionUtils.js - UPDATE the getAdvancedPatternNotes function
+
+/**
+ * ✅ ENHANCED: Get contextual notes for advanced patterns (Lace, Cable, Custom)
+ * Handles both Description mode and Row by Row mode, AND Custom pattern's SimpleRowBuilder
+ */
 const getAdvancedPatternNotes = (step) => {
     // Check both wizardConfig and advancedWizardConfig
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
     if (!stitchPattern) return null;
 
+    const pattern = stitchPattern.pattern;
     const entryMode = stitchPattern.entryMode;
 
-    // Row by Row mode - show the actual row instructions
+    // ✅ FIX: Custom pattern uses customSequence.rows instead of rowInstructions!
+    if (pattern === 'Custom' && stitchPattern.customSequence?.rows) {
+        const rows = stitchPattern.customSequence.rows;
+
+        if (rows && rows.length > 0) {
+            // Show up to 8 rows with formatted instructions
+            const rowsToShow = rows.slice(0, 8);
+            const construction = step.construction || 'flat';
+            const terms = getConstructionTerms(construction);
+
+            const formattedRows = rowsToShow.map((row, index) => {
+                const instruction = row.instruction || '';
+                return `${terms.Row} ${index + 1}: ${instruction}`;
+            }).join('\n');
+
+            // If there are more than 8 rows, add indicator
+            if (rows.length > 8) {
+                return `${formattedRows}\n... (${rows.length - 8} more ${terms.rows})`;
+            }
+
+            return formattedRows;
+        }
+    }
+
+    // Row by Row mode (for Lace/Cable) - show the rowInstructions
     if (entryMode === 'row_by_row') {
         const rowInstructions = stitchPattern.rowInstructions;
 

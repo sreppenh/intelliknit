@@ -186,6 +186,26 @@ const PATTERN_CONFIG = {
         ]
     },
 
+    'Custom': {  // ← Add entry for "Custom" (without "pattern")
+        quickActions: ['K to end', 'P to end'],
+        placeholderText: "e.g., '5 rows stockinette, 1 bobble row'",
+        descriptionPlaceholder: "e.g., '5 rows stockinette, 1 bobble row'",
+        category: 'texture',
+        requiresAdvancedRowByRow: true,
+        isAdvancedPattern: true,
+        requiresCustomText: false,
+        requiresRowsInPattern: true,
+        needsDescriptionInput: false,
+        needsRowInput: false,
+        keyboardPatternKey: 'general',
+        keyboardLayer: null,
+        supportsMultipleLayers: false,
+        supportsManualNumbers: true,
+        availableLayers: ['PRIMARY'],
+        includesInRowCountPatterns: true,  // ✅ THIS IS THE KEY FIX!
+        configurationTips: []
+    },
+
     // ===== COLORWORK PATTERNS (Need description + rows, but not advanced row-by-row) =====
     'Fair Isle': {
         quickActions: ['K to end', 'P to end'],
