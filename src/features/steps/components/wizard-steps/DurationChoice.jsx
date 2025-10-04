@@ -35,9 +35,22 @@ const DurationChoice = ({
   const isEditMode = mode === 'edit';
   // const isCreateMode = mode === 'create';
 
+  // 🚨 CRITICAL DEBUGGING - Check what we have
+  console.log('🔍 DURATION CHOICE DEBUG:', {
+    pattern,
+    rowsInPattern: wizardData.stitchPattern?.rowsInPattern,
+    rowInstructions: wizardData.stitchPattern?.rowInstructions,
+    rowInstructionsLength: wizardData.stitchPattern?.rowInstructions?.length,
+    entryMode: wizardData.stitchPattern?.entryMode,
+    fullStitchPattern: wizardData.stitchPattern,
+    FULL_WIZARD_DATA: wizardData
+  });
+
   // Check if pattern has repeats (existing code)
   const patternHasRepeats = wizardData.stitchPattern?.rowsInPattern &&
     parseInt(wizardData.stitchPattern.rowsInPattern) > 0;
+
+  console.log('🎯 PATTERN HAS REPEATS?', patternHasRepeats);
 
   // ✅ NEW: Check if color pattern exists
   const hasColorPattern = wizardData.colorwork?.type === 'stripes' &&
@@ -111,6 +124,17 @@ const DurationChoice = ({
       <div>
         <h2 className="content-header-primary">Configure Length</h2>
         <p className="content-subheader">Choose how you want to measure your {pattern?.toLowerCase()}</p>
+      </div>
+
+      {/* 🚨 TEMPORARY DEBUG DISPLAY */}
+      <div className="bg-red-100 border-2 border-red-300 rounded-xl p-3 mb-4">
+        <p className="text-xs font-mono text-red-800">
+          <strong>DEBUG:</strong><br />
+          Pattern: {pattern}<br />
+          rowsInPattern: {wizardData.stitchPattern?.rowsInPattern || 'UNDEFINED'}<br />
+          rowInstructions.length: {wizardData.stitchPattern?.rowInstructions?.length || 'UNDEFINED'}<br />
+          patternHasRepeats: {patternHasRepeats ? 'TRUE ✅' : 'FALSE ❌'}
+        </p>
       </div>
 
       {/* Bind Off - Special case */}

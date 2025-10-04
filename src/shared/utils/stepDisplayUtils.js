@@ -178,7 +178,8 @@ const PATTERN_CONFIG = {
         supportsManualNumbers: true,
         availableLayers: ['PRIMARY'], // Only primary layer
 
-        includesInRowCountPatterns: false, // Different generation logic
+
+        includesInRowCountPatterns: true, // Different generation logic
         configurationTips: [
             'Describe your custom pattern clearly',
             'Include any special techniques or notes'

@@ -1,10 +1,8 @@
-// src/features/steps/hooks/useStepWizard.js (ENHANCED VERSION)
+// src/features/steps/hooks/useStepWizard.js (FIXED VERSION)
 import { useState, useEffect } from 'react';
-// import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import { useActiveContext } from '../../../shared/hooks/useActiveContext';
 import { CONSTRUCTION_TYPES } from '../../../shared/utils/constants';
 import useSmartStepNavigation from '../../../shared/hooks/useSmartStepNavigation';
-import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { validatePatternConfiguration } from '../../../shared/utils/stepDisplayUtils';
 import { shouldSkipConfiguration as shouldSkipPatternConfiguration } from '../../../shared/utils/PatternCategories';
 
@@ -72,47 +70,53 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
       rowsInPattern: '',
       stitchCount: '',
       customDetails: '',
-      entryMode: 'row_by_row', // ✅ ADD THIS LINE - it's probably missing!
-      rowInstructions: []       // ✅ ADD THIS LINE - also probably missing!
+      entryMode: 'row_by_row',
+      rowInstructions: []
     },
     duration: { type: '', value: '', units: defaultUnits, measurement: '', targetLength: '' },
     hasShaping: false,
     shapingConfig: {},
-    prepNote: '' // NEW: Add prep note to wizard data
+    prepNote: ''
   });
 
   const [wizardData, setWizardData] = useState(() => {
-
-
+    // 🔧 FIX: Always start with complete initial data structure
+    const initialData = getInitialWizardData(currentProject?.defaultUnits);
 
     if (isEditing && editingStep?.wizardConfig) {
-      // Editing existing step - use step's config
+      // ✅ FIX: Deep merge saved config with initial structure to ensure all fields exist
       return {
+        ...initialData,
         ...editingStep.wizardConfig,
-        hasShaping: editingStep.advancedWizardConfig?.hasShaping || false,
-        shapingConfig: {
-          ...(editingStep.advancedWizardConfig?.shapingConfig || {})
+        stitchPattern: {
+          ...initialData.stitchPattern,
+          ...editingStep.wizardConfig.stitchPattern
         },
-        prepNote: editingStep.prepNote || ''
+        duration: {
+          ...initialData.duration,
+          ...editingStep.wizardConfig.duration
+        },
+        hasShaping: editingStep.advancedWizardConfig?.hasShaping || editingStep.wizardConfig.hasShaping || false,
+        shapingConfig: {
+          ...initialData.shapingConfig,
+          ...(editingStep.advancedWizardConfig?.shapingConfig || editingStep.wizardConfig.shapingConfig || {})
+        },
+        prepNote: editingStep.prepNote || editingStep.wizardConfig.prepNote || ''
       };
     }
 
     // Creating new step - check for component defaults
-    const initialData = getInitialWizardData(currentProject?.defaultUnits);
-
-    // Apply component pattern default if exists
     if (component?.defaultPattern) {
       initialData.stitchPattern = {
         ...initialData.stitchPattern,
-        ...JSON.parse(JSON.stringify(component.defaultPattern)) // ✅ Deep copy
+        ...JSON.parse(JSON.stringify(component.defaultPattern))
       };
     }
 
     // Apply component colorwork default if exists
     if (component?.defaultColorwork) {
-      initialData.colorwork = JSON.parse(JSON.stringify(component.defaultColorwork)); // ✅ Deep copy
+      initialData.colorwork = JSON.parse(JSON.stringify(component.defaultColorwork));
     } else if (component?.colorMode === 'single' && component?.singleColorLetter) {
-      // For single-color components, use letter directly
       initialData.colorwork = {
         type: 'single',
         letter: component.singleColorLetter
