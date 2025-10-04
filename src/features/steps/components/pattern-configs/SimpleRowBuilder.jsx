@@ -61,9 +61,11 @@ const SimpleRowBuilder = ({
             });
         }
 
+        // ✅ FIX: Also set rowsInPattern so Repeat Pattern option shows!
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
-            customSequence: { rows: newRows }
+            customSequence: { rows: newRows },
+            rowsInPattern: String(newRows.length)
         });
 
         handleCloseModal();
@@ -72,13 +74,11 @@ const SimpleRowBuilder = ({
     // ===== ROW MANAGEMENT =====
     const handleCopyRow = (index) => {
         const rowToCopy = rows[index];
-        // ✅ FIX: Append to END of array
         const newRows = [...rows, { ...rowToCopy }];
 
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
             customSequence: { rows: newRows },
-            // ✅ FIX: Update rowsInPattern for Pattern Repeats to work
             rowsInPattern: String(newRows.length)
         });
     };
@@ -88,9 +88,11 @@ const SimpleRowBuilder = ({
 
         const newRows = rows.filter((_, i) => i !== index);
 
+        // ✅ FIX: Also update rowsInPattern when deleting
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
-            customSequence: { rows: newRows }
+            customSequence: { rows: newRows },
+            rowsInPattern: String(newRows.length)
         });
     };
 
@@ -109,13 +111,8 @@ const SimpleRowBuilder = ({
     };
 
     // ===== INITIALIZATION =====
-    if (rows.length === 0) {
-        updateWizardData('stitchPattern', {
-            ...wizardData.stitchPattern,
-            customSequence: { rows: [{ instruction: '', stitchChange: 0 }] }
-        });
-        return null;
-    }
+    // ✅ FIX: Don't auto-create a dead row on load!
+    // Just show empty state and let user click "Add Row"
 
     return (
         <div>
@@ -144,26 +141,26 @@ const SimpleRowBuilder = ({
                                         {row.stitchChange > 0 ? '+' : ''}{row.stitchChange}
                                     </div>
                                 )}
-                                <div className="flex gap-1">
+                                <div className="flex gap-2">
                                     <button
                                         onClick={() => handleOpenModal(index)}
-                                        className="p-1 text-sage-600 hover:text-sage-700 hover:bg-sage-100 rounded transition-colors"
-                                        title="Edit row"
+                                        className="text-sm text-sage-600 hover:text-sage-700 font-medium"
+                                        aria-label={`Edit row ${index + 1}`}
                                     >
                                         ✏️
                                     </button>
                                     <button
                                         onClick={() => handleCopyRow(index)}
-                                        className="p-1 text-sage-600 hover:text-sage-700 hover:bg-sage-100 rounded transition-colors"
-                                        title="Copy row"
+                                        className="text-sm text-sage-600 hover:text-sage-700 font-medium"
+                                        aria-label={`Copy row ${index + 1}`}
                                     >
                                         📋
                                     </button>
                                     {rows.length > 1 && (
                                         <button
                                             onClick={() => handleDeleteRow(index)}
-                                            className="p-1 text-red-600 hover:text-red-700 hover:bg-red-100 rounded transition-colors"
-                                            title="Delete row"
+                                            className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                            aria-label={`Delete row ${index + 1}`}
                                         >
                                             🗑️
                                         </button>
@@ -183,12 +180,15 @@ const SimpleRowBuilder = ({
                 + Add {terms.Row} {rows.length + 1}
             </button>
 
-            {/* Net Change Summary */}
-            {rows.length > 0 && calculateNetChange() !== 0 && (
-                <div className="help-block mt-4">
-                    <div className="text-sm text-sage-700">
-                        <span className="font-medium">Net change per sequence:</span> {calculateNetChange() > 0 ? '+' : ''}{calculateNetChange()} stitches
-                    </div>
+            {/* Pattern Summary */}
+            {rows.length > 0 && (
+                <div className="mt-3 text-sm text-wool-600 text-center">
+                    {rows.length} {rows.length === 1 ? terms.row : terms.rows} in pattern
+                    {calculateNetChange() !== 0 && (
+                        <span className="ml-2 text-sage-600 font-medium">
+                            ({calculateNetChange() > 0 ? '+' : ''}{calculateNetChange()} stitches)
+                        </span>
+                    )}
                 </div>
             )}
 
@@ -196,13 +196,12 @@ const SimpleRowBuilder = ({
             <StandardModal
                 isOpen={showModal}
                 onClose={handleCloseModal}
-                category="simple"
-                colorScheme="sage"
                 title={editingRowIndex !== null ? `Edit ${terms.Row} ${editingRowIndex + 1}` : `Add ${terms.Row} ${rows.length + 1}`}
-                showButtons={false}
+                category="complex"
+                colorScheme="sage"
             >
                 <div className="space-y-4">
-                    {/* Row Instruction Input */}
+                    {/* Row Instruction */}
                     <div>
                         <label className="form-label">
                             {terms.Row} Instruction
@@ -212,32 +211,31 @@ const SimpleRowBuilder = ({
                             value={tempInstruction}
                             onChange={(e) => setTempInstruction(e.target.value)}
                             placeholder="e.g., K1, m1, k to last st, m1, k1"
-                            className="input-field-lg"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
                             autoFocus
                         />
-                        <div className="form-help">
+                        <p className="text-xs text-wool-500 mt-1">
                             Enter your custom instruction for this {terms.row}
-                        </div>
+                        </p>
                     </div>
 
-                    {/* Stitch Change Input */}
+                    {/* Net Stitch Change */}
                     <div>
                         <label className="form-label">
                             Net Stitch Change
                         </label>
                         <IncrementInput
                             value={tempStitchChange}
-                            onChange={(value) => setTempStitchChange(value)}
+                            onChange={setTempStitchChange}
                             label="stitch change"
                             unit="stitches"
-                            size="sm"
-                            min={-999}
-                            max={999}
+                            min={-20}
+                            max={20}
                             allowNegative={true}
                         />
-                        <div className="form-help">
+                        <p className="text-xs text-wool-500 mt-1">
                             Stitches gained (+) or lost (-) in this {terms.row}. Use 0 for no change.
-                        </div>
+                        </p>
                     </div>
 
                     {/* Action Buttons */}
