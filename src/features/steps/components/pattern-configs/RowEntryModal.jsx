@@ -1,7 +1,6 @@
 // src/features/steps/components/pattern-configs/RowEntryModal.jsx
 import React from 'react';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
-import { formatRunningTotal, getPreviousRowStitches, calculateRowStitchesLive, calculateRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import { isRowComplete } from '../../../../shared/utils/stitchCalculatorUtils';
 import { getKeyboardPatternKey } from '../../../../shared/utils/stepDisplayUtils';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';

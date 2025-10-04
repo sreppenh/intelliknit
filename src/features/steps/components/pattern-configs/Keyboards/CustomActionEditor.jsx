@@ -72,9 +72,6 @@ const CustomActionEditor = ({
         onCancel(); // Return to keyboard mode
     };
 
-    // Check if name has spaces for warning
-    const hasSpaces = formData.name.includes(' ');
-
     return (
         <div className="bg-yarn-50 border border-yarn-200 rounded-lg p-4 space-y-4">
             {/* Small header - left aligned */}

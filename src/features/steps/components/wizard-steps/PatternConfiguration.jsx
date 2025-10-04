@@ -1,5 +1,5 @@
-import React, { useEffect } from 'react';
-import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig, RowByRowPatternConfig, StripesConfig, CustomConfig } from '../pattern-configs'; import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
+import React from 'react';
+import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig, RowByRowPatternConfig, StripesConfig } from '../pattern-configs'; import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
 
 
 const PatternConfiguration = ({ wizardData, updateWizardData, navigation,

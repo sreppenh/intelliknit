@@ -33,7 +33,7 @@ const DurationChoice = ({
   }
 
   const isEditMode = mode === 'edit';
-  const isCreateMode = mode === 'create';
+  // const isCreateMode = mode === 'create';
 
   // Check if pattern has repeats (existing code)
   const patternHasRepeats = wizardData.stitchPattern?.rowsInPattern &&

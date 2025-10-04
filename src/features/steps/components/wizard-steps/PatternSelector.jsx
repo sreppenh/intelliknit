@@ -1,6 +1,6 @@
 // src/features/steps/components/wizard-steps/PatternSelector.jsx
 import React, { useState, useEffect, useCallback } from 'react';
-import { PrepStepModal, usePrepNoteManager, PrepStepButton, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
+import { PrepStepModal, usePrepNoteManager, getPrepNoteConfig } from '../../../../shared/components/PrepStepSystem';
 import { PATTERN_CATEGORIES } from '../../../../shared/utils/PatternCategories';
 
 export const PatternSelector = ({
@@ -38,7 +38,6 @@ export const PatternSelector = ({
     isModalOpen,
     currentNote,
     hasNote,
-    notePreview,
     handleOpenModal,
     handleCloseModal,
     handleSaveNote

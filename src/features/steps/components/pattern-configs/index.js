@@ -5,4 +5,3 @@ export { default as ColorworkPatternConfig } from './ColorworkPatternConfig';
 export { default as ShapingToggle } from './ShapingToggle';
 export { default as RowByRowPatternConfig } from './RowByRowPatternConfig';
 export { default as StripesConfig } from './StripesConfig';
-export { default as CustomConfig } from './CustomConfig';  

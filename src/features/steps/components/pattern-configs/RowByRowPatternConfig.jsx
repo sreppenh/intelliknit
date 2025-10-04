@@ -1,21 +1,20 @@
 // src/features/steps/components/pattern-configs/RowByRowPatternConfig.jsx
 import React, { useState, useEffect } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import { getPatternQuickActions, getPatternPlaceholderText, getKeyboardPatternKey } from '../../../../shared/utils/stepDisplayUtils';
+import { getPatternPlaceholderText, getKeyboardPatternKey } from '../../../../shared/utils/stepDisplayUtils';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import {
     KEYBOARD_LAYERS,
     getNextKeyboardLayer,
     supportsManualNumbers,
     supportsMultipleLayers,
-    isWorkToEndAction
 } from '../../../../shared/utils/patternKeyboardUtils';
 import {
     handleQuickActionEnhanced,
     isNumberAction,
     handleSmartDelete
 } from '../../../../shared/utils/patternInputUtils';
-import { calculateRowStitchesLive, calculateRowStitches, formatRunningTotal, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
+import { calculateRowStitchesLive, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import RowEntryModal from './RowEntryModal';
 import PatternInputContainer from './Keyboards/PatternInputContainer';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
@@ -79,7 +78,7 @@ const RowByRowPatternConfig = ({
     // ===== MODE-AWARE HELPERS =====
     const isEditMode = mode === 'edit';
     const isNotepadMode = mode === 'notepad';
-    const isCreateMode = mode === 'create';
+    // const isCreateMode = mode === 'create';
 
     // Construction Awareness
     const terms = getConstructionTerms(construction);
@@ -458,17 +457,6 @@ const RowByRowPatternConfig = ({
                 return newText;
             });
 
-            // CRITICAL FIX: Keep auto-increment state ALIVE for continued clicking!
-            // Extract the base action and set it as the last action
-            const finalBaseAction = complexAccumulatedMatch ?
-                complexAccumulatedMatch[1].trim() :
-                simpleAccumulatedMatch[1];
-
-            // Calculate what the consecutive count should be based on the accumulated action
-            const finalCount = parseInt(complexAccumulatedMatch ?
-                complexAccumulatedMatch[2] :
-                simpleAccumulatedMatch[2]);
-
             return;
         }
 
@@ -731,13 +719,6 @@ const RowByRowPatternConfig = ({
                 // DON'T update setTempRowText here - only update mini display!
             }
             return;
-        }
-    };
-
-
-    const handleModalBackdrop = (e) => {
-        if (e.target === e.currentTarget) {
-            setshowRowEntryModal(false);
         }
     };
 
