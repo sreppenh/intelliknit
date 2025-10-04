@@ -58,17 +58,27 @@ export const useStepCalculation = () => {
       const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
       const totalRows = rowsPerRepeat * numberOfRepeats;
 
-      // Calculate stitch change based on stitchChangePerRepeat
-      const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+      // ✅ NEW: Calculate stitch change for Custom patterns from customSequence
+      let stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+
+      // ✅ FIX: For Custom pattern, calculate from customSequence.rows
+      if (wizardData.stitchPattern.pattern === 'Custom' && wizardData.stitchPattern.customSequence?.rows) {
+        const rows = wizardData.stitchPattern.customSequence.rows;
+        stitchChangePerRepeat = rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
+        console.log('📊 Custom Pattern - calculated stitchChangePerRepeat:', stitchChangePerRepeat, 'from rows:', rows);
+      }
+
       const totalStitchChange = stitchChangePerRepeat * numberOfRepeats;
       const endingStitches = currentStitches + totalStitchChange;
 
       console.log('✅ CALCULATED RESULT:', {
+        pattern: wizardData.stitchPattern.pattern,
         totalRows,
         startingStitches: currentStitches,
         endingStitches,
         stitchChangePerRepeat,
-        totalStitchChange
+        totalStitchChange,
+        numberOfRepeats
       });
 
       return {
