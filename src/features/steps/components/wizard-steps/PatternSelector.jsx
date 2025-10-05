@@ -263,6 +263,7 @@ export const PatternSelector = ({
                     >
                       <div className="text-xl mb-1">{category.icon}</div>
                       <div className="text-xs font-medium">{category.name}</div>
+
                     </button>
                   ))}
               </div>
@@ -324,6 +325,10 @@ export const PatternSelector = ({
                   >
                     <div className="text-xl mb-1">{category.icon}</div>
                     <div className="text-xs font-medium">{category.name}</div>
+                    {/*}   <div className="text-xs opacity-70">{category.patterns[0].desc}</div> */}
+
+
+
                   </button>
                 ))}
               </div>

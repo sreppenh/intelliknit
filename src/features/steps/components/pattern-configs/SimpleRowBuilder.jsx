@@ -122,47 +122,53 @@ const SimpleRowBuilder = ({
                         return (
                             <div
                                 key={index}
-                                className="flex items-center gap-3 p-3 bg-white border-2 border-wool-200 rounded-lg"
+                                className="p-3 bg-white border-2 border-wool-200 rounded-lg space-y-2"
                             >
-                                <div className="flex-shrink-0 text-sm font-medium text-wool-600 min-w-[100px]">
-                                    {terms.Row} {rowNumber} ({rowSide}):
-                                </div>
-                                <div className="flex-1 text-sm text-wool-700 font-mono">
-                                    {row.instruction || <span className="text-wool-400 italic">No instruction</span>}
-                                </div>
+                                {/* First line: Row label, stitch badge, and action buttons */}
+                                <div className="flex items-center justify-between gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="text-sm font-medium text-wool-600">
+                                            {terms.Row} {rowNumber} ({rowSide}):
+                                        </div>
+                                        {/* Stitch change badge */}
+                                        <div className={`text-xs font-semibold px-2 py-1 rounded-md whitespace-nowrap ${row.stitchChange > 0 ? 'bg-green-100 text-green-700 border border-green-300' :
+                                            row.stitchChange < 0 ? 'bg-red-100 text-red-700 border border-red-300' :
+                                                'bg-gray-100 text-gray-600 border border-gray-300'
+                                            }`}>
+                                            {row.stitchChange > 0 ? '+' : ''}{row.stitchChange} sts
+                                        </div>
+                                    </div>
 
-                                {/* Always show stitch change with prominent color-coded badge */}
-                                <div className={`text-xs font-semibold px-2 py-1 rounded-md whitespace-nowrap ${row.stitchChange > 0 ? 'bg-green-100 text-green-700 border border-green-300' :
-                                        row.stitchChange < 0 ? 'bg-red-100 text-red-700 border border-red-300' :
-                                            'bg-gray-100 text-gray-600 border border-gray-300'
-                                    }`}>
-                                    {row.stitchChange > 0 ? '+' : ''}{row.stitchChange} sts
-                                </div>
-
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => handleOpenModal(index)}
-                                        className="text-sm text-sage-600 hover:text-sage-700 font-medium"
-                                        aria-label={`Edit row ${index + 1}`}
-                                    >
-                                        ✏️
-                                    </button>
-                                    <button
-                                        onClick={() => handleCopyRow(index)}
-                                        className="text-sm text-sage-600 hover:text-sage-700 font-medium"
-                                        aria-label={`Copy row ${index + 1}`}
-                                    >
-                                        📋
-                                    </button>
-                                    {rows.length > 1 && (
+                                    {/* Action buttons */}
+                                    <div className="flex gap-2">
                                         <button
-                                            onClick={() => handleDeleteRow(index)}
-                                            className="text-sm text-red-600 hover:text-red-700 font-medium"
-                                            aria-label={`Delete row ${index + 1}`}
+                                            onClick={() => handleOpenModal(index)}
+                                            className="text-sm text-sage-600 hover:text-sage-700 font-medium"
+                                            aria-label={`Edit row ${index + 1}`}
                                         >
-                                            🗑️
+                                            ✏️
                                         </button>
-                                    )}
+                                        <button
+                                            onClick={() => handleCopyRow(index)}
+                                            className="text-sm text-sage-600 hover:text-sage-700 font-medium"
+                                            aria-label={`Copy row ${index + 1}`}
+                                        >
+                                            📋
+                                        </button>
+                                        {rows.length > 1 && (
+                                            <button
+                                                onClick={() => handleDeleteRow(index)}
+                                                className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                                aria-label={`Delete row ${index + 1}`}
+                                            >
+                                                🗑️
+                                            </button>
+                                        )}
+                                    </div>
+                                </div>
+
+                                {/* Second line: Instruction gets full width */}
+                                <div className="text-sm text-wool-700 font-mono pl-2">{row.instruction || <span className="text-wool-400 italic">No instruction</span>}
                                 </div>
                             </div>
                         );

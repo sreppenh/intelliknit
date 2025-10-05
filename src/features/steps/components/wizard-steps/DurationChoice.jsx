@@ -437,7 +437,6 @@ const DurationChoice = ({
                           unit="stitches"
                           min={repeatInfo.stitchChangePerRepeat > 0 ? currentStitches + repeatInfo.stitchChangePerRepeat : repeatInfo.stitchChangePerRepeat}
                           max={validTargets[validTargets.length - 1]}
-                          step={Math.abs(repeatInfo.stitchChangePerRepeat)}
                           size="sm"
                         />
                       </div>
