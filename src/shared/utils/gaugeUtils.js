@@ -348,6 +348,7 @@ export const getGaugeAvailabilityMessage = (project) => {
 /**
  * Get corrected duration display for length steps
  * Fixes the issue where "2 inches" shows as "2 rows"
+ * ✅ UPDATED: Now handles target_repeats duration type
  */
 export const getCorrectDurationDisplay = (step, project) => {
     const duration = step.wizardConfig?.duration;
@@ -378,11 +379,24 @@ export const getCorrectDurationDisplay = (step, project) => {
         return `until ${duration.value} ${duration.units}${referenceText}`;
     }
 
+    // ✅ NEW: Handle target-based repeats
+    if (duration.type === 'target_repeats') {
+        const targetStitches = duration.targetStitches;
+        const completeSequence = duration.completeSequence;
+
+        if (completeSequence) {
+            return `until ${targetStitches} stitches (complete repeat)`;
+        }
+
+        return `until ${targetStitches} stitches`;
+    }
+
     // Handle other types normally
     switch (duration.type) {
         case 'rows':
         case 'rounds':
             return `${duration.value} ${rowTerm}`;
+
         case 'repeats':
             // Get pattern name from step
             const patternName = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
@@ -404,13 +418,14 @@ export const getCorrectDurationDisplay = (step, project) => {
             }
 
             return `${duration.value} ${colorTypeName} repeats`;
+
         case 'stitches':
             return `${duration.value || 'all'} stitches`;
+
         default:
             return null;
     }
 };
-
 /**
  * Calculate rows from distance for marker timing with construction awareness
  * @param {number} distance - Distance value

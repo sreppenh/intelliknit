@@ -61,7 +61,6 @@ const SimpleRowBuilder = ({
             });
         }
 
-        // ✅ FIX: Also set rowsInPattern so Repeat Pattern option shows!
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
             customSequence: { rows: newRows },
@@ -88,7 +87,6 @@ const SimpleRowBuilder = ({
 
         const newRows = rows.filter((_, i) => i !== index);
 
-        // ✅ FIX: Also update rowsInPattern when deleting
         updateWizardData('stitchPattern', {
             ...wizardData.stitchPattern,
             customSequence: { rows: newRows },
@@ -109,10 +107,6 @@ const SimpleRowBuilder = ({
     const canSave = () => {
         return tempInstruction.trim() !== '';
     };
-
-    // ===== INITIALIZATION =====
-    // ✅ FIX: Don't auto-create a dead row on load!
-    // Just show empty state and let user click "Add Row"
 
     return (
         <div>
@@ -136,11 +130,15 @@ const SimpleRowBuilder = ({
                                 <div className="flex-1 text-sm text-wool-700 font-mono">
                                     {row.instruction || <span className="text-wool-400 italic">No instruction</span>}
                                 </div>
-                                {row.stitchChange !== 0 && (
-                                    <div className="text-sm font-medium text-sage-600">
-                                        {row.stitchChange > 0 ? '+' : ''}{row.stitchChange}
-                                    </div>
-                                )}
+
+                                {/* Always show stitch change with prominent color-coded badge */}
+                                <div className={`text-xs font-semibold px-2 py-1 rounded-md whitespace-nowrap ${row.stitchChange > 0 ? 'bg-green-100 text-green-700 border border-green-300' :
+                                        row.stitchChange < 0 ? 'bg-red-100 text-red-700 border border-red-300' :
+                                            'bg-gray-100 text-gray-600 border border-gray-300'
+                                    }`}>
+                                    {row.stitchChange > 0 ? '+' : ''}{row.stitchChange} sts
+                                </div>
+
                                 <div className="flex gap-2">
                                     <button
                                         onClick={() => handleOpenModal(index)}
@@ -180,15 +178,25 @@ const SimpleRowBuilder = ({
                 + Add {terms.Row} {rows.length + 1}
             </button>
 
-            {/* Pattern Summary */}
+            {/* Enhanced Pattern Summary */}
             {rows.length > 0 && (
-                <div className="mt-3 text-sm text-wool-600 text-center">
-                    {rows.length} {rows.length === 1 ? terms.row : terms.rows} in pattern
-                    {calculateNetChange() !== 0 && (
-                        <span className="ml-2 text-sage-600 font-medium">
-                            ({calculateNetChange() > 0 ? '+' : ''}{calculateNetChange()} stitches)
+                <div className="mt-3 p-3 bg-sage-50 border border-sage-200 rounded-lg">
+                    <div className="text-sm text-center">
+                        <span className="text-wool-700 font-medium">
+                            {rows.length} {rows.length === 1 ? terms.row : terms.rows} in pattern
                         </span>
-                    )}
+                        {calculateNetChange() !== 0 && (
+                            <span className={`ml-2 font-semibold ${calculateNetChange() > 0 ? 'text-green-700' : 'text-red-700'
+                                }`}>
+                                • {calculateNetChange() > 0 ? '+' : ''}{calculateNetChange()} stitches per repeat
+                            </span>
+                        )}
+                        {calculateNetChange() === 0 && (
+                            <span className="ml-2 text-gray-600">
+                                • No net change
+                            </span>
+                        )}
+                    </div>
                 </div>
             )}
 

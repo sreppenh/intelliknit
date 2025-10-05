@@ -870,6 +870,10 @@ export const validatePatternConfiguration = (stitchPattern) => {
     // Advanced Row-by-Row patterns (Custom, Cable, Lace)
     if (config.requiresAdvancedRowByRow) {
         if (entryMode === 'row_by_row') {
+            // ✅ FIX: Custom pattern uses customSequence.rows, others use rowInstructions
+            if (pattern === 'Custom') {
+                return stitchPattern.customSequence?.rows && stitchPattern.customSequence.rows.length > 0;
+            }
             // Row-by-row mode: need at least one row instruction
             return rowInstructions && rowInstructions.length > 0;
         } else {

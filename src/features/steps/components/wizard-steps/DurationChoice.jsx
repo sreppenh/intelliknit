@@ -1,5 +1,6 @@
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
+import { getPatternRepeatInfo, getValidTargetStitches, calculateRepeatsToTarget, calculateTargetRows } from '../../../../shared/utils/targetStitchUtils';
 
 const DurationChoice = ({
   wizardData,
@@ -9,7 +10,8 @@ const DurationChoice = ({
   mode,
   onSave,
   onCancel,
-  showSaveActions = false
+  showSaveActions = false,
+  currentStitches = 0
 }) => {
   const { pattern } = wizardData.stitchPattern;
 
@@ -33,24 +35,19 @@ const DurationChoice = ({
   }
 
   const isEditMode = mode === 'edit';
-  // const isCreateMode = mode === 'create';
-
-  // 🚨 CRITICAL DEBUGGING - Check what we have
-  console.log('🔍 DURATION CHOICE DEBUG:', {
-    pattern,
-    rowsInPattern: wizardData.stitchPattern?.rowsInPattern,
-    rowInstructions: wizardData.stitchPattern?.rowInstructions,
-    rowInstructionsLength: wizardData.stitchPattern?.rowInstructions?.length,
-    entryMode: wizardData.stitchPattern?.entryMode,
-    fullStitchPattern: wizardData.stitchPattern,
-    FULL_WIZARD_DATA: wizardData
-  });
 
   // Check if pattern has repeats (existing code)
   const patternHasRepeats = wizardData.stitchPattern?.rowsInPattern &&
     parseInt(wizardData.stitchPattern.rowsInPattern) > 0;
 
-  console.log('🎯 PATTERN HAS REPEATS?', patternHasRepeats);
+  // ✅ NEW: Check if pattern supports target-based repeats
+  const repeatInfo = getPatternRepeatInfo(wizardData.stitchPattern);
+  const supportsTargetRepeats = repeatInfo.hasRepeat && repeatInfo.stitchChangePerRepeat !== 0;
+
+  // ✅ NEW: Calculate valid target stitches if applicable
+  const validTargets = supportsTargetRepeats
+    ? getValidTargetStitches(currentStitches, repeatInfo.stitchChangePerRepeat, 100)
+    : [];
 
   // ✅ NEW: Check if color pattern exists
   const hasColorPattern = wizardData.colorwork?.type === 'stripes' &&
@@ -87,8 +84,39 @@ const DurationChoice = ({
     ? calculateRowsFromLength(wizardData.duration.value)
     : null;
 
+  // ✅ NEW: Calculate target repeat details
+  const targetRepeatDetails = wizardData.duration.type === 'target_repeats' && wizardData.duration.targetStitches
+    ? (() => {
+      const targetStitches = parseInt(wizardData.duration.targetStitches);
+      const calculation = calculateRepeatsToTarget(
+        currentStitches,
+        targetStitches,
+        repeatInfo.stitchChangePerRepeat
+      );
+
+      const rowCalc = calculateTargetRows(
+        calculation.repeats,
+        repeatInfo.rowsInPattern,
+        wizardData.duration.completeSequence || false,
+        targetStitches,
+        currentStitches,
+        repeatInfo.stitchChangePerRepeat
+      );
+
+      return {
+        ...calculation,
+        ...rowCalc,
+        changePerRepeat: repeatInfo.stitchChangePerRepeat,
+        rowsPerRepeat: repeatInfo.rowsInPattern
+      };
+    })()
+    : null;
+
   // Validation
   const canSave = () => {
+    if (wizardData.duration.type === 'target_repeats') {
+      return wizardData.duration.targetStitches && parseInt(wizardData.duration.targetStitches) > 0;
+    }
     return wizardData.duration?.type && wizardData.duration?.value && (
       wizardData.duration.type === 'until_length' ? true : parseFloat(wizardData.duration.value) > 0
     );
@@ -124,17 +152,6 @@ const DurationChoice = ({
       <div>
         <h2 className="content-header-primary">Configure Length</h2>
         <p className="content-subheader">Choose how you want to measure your {pattern?.toLowerCase()}</p>
-      </div>
-
-      {/* 🚨 TEMPORARY DEBUG DISPLAY */}
-      <div className="bg-red-100 border-2 border-red-300 rounded-xl p-3 mb-4">
-        <p className="text-xs font-mono text-red-800">
-          <strong>DEBUG:</strong><br />
-          Pattern: {pattern}<br />
-          rowsInPattern: {wizardData.stitchPattern?.rowsInPattern || 'UNDEFINED'}<br />
-          rowInstructions.length: {wizardData.stitchPattern?.rowInstructions?.length || 'UNDEFINED'}<br />
-          patternHasRepeats: {patternHasRepeats ? 'TRUE ✅' : 'FALSE ❌'}
-        </p>
       </div>
 
       {/* Bind Off - Special case */}
@@ -377,6 +394,90 @@ const DurationChoice = ({
                           <strong>Preview:</strong> Repeat the {wizardData.stitchPattern.rowsInPattern}-{construction === 'round' ? 'round' : 'row'} pattern {wizardData.duration.value} times
                           ({(parseInt(wizardData.stitchPattern.rowsInPattern) || 0) * (parseInt(wizardData.duration.value) || 0)} total {construction === 'round' ? 'rounds' : 'rows'})
                         </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </label>
+          )}
+
+          {/* ✅ NEW: Target Stitch Count - only show for patterns with net stitch change */}
+          {supportsTargetRepeats && (
+            <label className={`block cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${wizardData.duration.type === 'target_repeats'
+              ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+              : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
+              }`}>
+              <div className="flex items-start gap-4">
+                <input
+                  type="radio"
+                  name="duration_type"
+                  value="target_repeats"
+                  checked={wizardData.duration.type === 'target_repeats'}
+                  onChange={() => handleDurationTypeSelect('target_repeats')}
+                  className="w-4 h-4 text-sage-600 mt-1"
+                />
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <div className="text-2xl">🎯</div>
+                    <div className="text-left">
+                      <div className="font-semibold text-base">Until target stitch count</div>
+                      <div className="text-sm opacity-75">Repeat pattern until reaching specific stitch count</div>
+                    </div>
+                  </div>
+
+                  {wizardData.duration.type === 'target_repeats' && (
+                    <div className="mt-3 space-y-3">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-sage-700">Target stitches:</span>
+                        <IncrementInput
+                          value={wizardData.duration.targetStitches}
+                          onChange={(value) => updateWizardData('duration', { targetStitches: value })}
+                          label="target stitch count"
+                          unit="stitches"
+                          min={repeatInfo.stitchChangePerRepeat > 0 ? currentStitches + repeatInfo.stitchChangePerRepeat : repeatInfo.stitchChangePerRepeat}
+                          max={validTargets[validTargets.length - 1]}
+                          step={Math.abs(repeatInfo.stitchChangePerRepeat)}
+                          size="sm"
+                        />
+                      </div>
+
+                      <div className="text-xs text-sage-600 bg-white border border-sage-200 rounded-lg p-2">
+                        <div><strong>Currently:</strong> {currentStitches} stitches</div>
+                        <div><strong>Pattern change:</strong> {repeatInfo.stitchChangePerRepeat > 0 ? '+' : ''}{repeatInfo.stitchChangePerRepeat} stitches per repeat</div>
+                      </div>
+
+                      {targetRepeatDetails && (
+                        <>
+                          <div className="bg-sage-50 border border-sage-200 rounded-lg p-3">
+                            <div className="text-sm text-sage-700">
+                              <div className="font-medium mb-1">Calculation:</div>
+                              <div className="text-xs space-y-1">
+                                <div>• Needs {targetRepeatDetails.repeats} {targetRepeatDetails.repeats === 1 ? 'repeat' : 'repeats'}</div>
+                                <div>• Total {construction === 'round' ? 'rounds' : 'rows'}: {targetRepeatDetails.totalRows}</div>
+                                <div>• Ending stitches: {targetRepeatDetails.endingStitches}</div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Complete sequence toggle */}
+                          <label className="flex items-start gap-3 p-3 bg-white border border-sage-200 rounded-lg cursor-pointer hover:bg-sage-50 transition-colors">
+                            <input
+                              type="checkbox"
+                              checked={wizardData.duration.completeSequence || false}
+                              onChange={(e) => updateWizardData('duration', { completeSequence: e.target.checked })}
+                              className="w-4 h-4 text-sage-600 mt-0.5"
+                            />
+                            <div className="flex-1">
+                              <div className="text-sm font-medium text-sage-700">
+                                Complete final repeat
+                              </div>
+                              <div className="text-xs text-sage-600 mt-1">
+                                Finish all {repeatInfo.rowsInPattern} {construction === 'round' ? 'rounds' : 'rows'} even if target is reached mid-sequence
+                              </div>
+                            </div>
+                          </label>
+                        </>
                       )}
                     </div>
                   )}

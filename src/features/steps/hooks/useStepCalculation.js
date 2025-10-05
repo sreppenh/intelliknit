@@ -1,8 +1,9 @@
 import { useMemo } from 'react';
 import PatternDetector, { PATTERN_TYPES } from '../../../shared/utils/PatternDetector';
 import PatternCalculator from '../../../shared/utils/PatternCalculator';
-import { AdvancedPatternCalculator, ADVANCED_PATTERN_TYPES } from '../../../shared/utils/AdvancedPatternCalculator';
+import { AdvancedPatternCalculator } from '../../../shared/utils/AdvancedPatternCalculator';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import { calculateRepeatsToTarget, calculateTargetRows, calculateStitchChangePerRepeat } from '../../../shared/utils/targetStitchUtils';
 
 export const useStepCalculation = () => {
   const detector = useMemo(() => new PatternDetector(), []);
@@ -20,6 +21,7 @@ export const useStepCalculation = () => {
       hasShaping: wizardData.hasShaping,
       entryMode: wizardData.stitchPattern?.entryMode
     });
+
     if (wizardData.stitchPattern.pattern === 'Cast On') {
       const stitchCount = parseInt(wizardData.stitchPattern.stitchCount) || 0;
       return {
@@ -43,7 +45,66 @@ export const useStepCalculation = () => {
       };
     }
 
-    // ✅ MOVED UP: Handle patterns with repeats FIRST (before shaping and PatternDetector)
+    // ✅ NEW: Handle target-based pattern repeats
+    if (wizardData.duration.type === 'target_repeats' && wizardData.duration.targetStitches) {
+      IntelliKnitLogger.debug('Target Repeats Calculation', 'Triggered');
+
+      const targetStitches = parseInt(wizardData.duration.targetStitches);
+      const rowsPerRepeat = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
+      const completeSequence = wizardData.duration.completeSequence || false;
+
+      // Calculate stitch change per repeat
+      let stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+
+      // For Custom pattern, calculate from customSequence.rows
+      if (wizardData.stitchPattern.pattern === 'Custom' && wizardData.stitchPattern.customSequence?.rows) {
+        stitchChangePerRepeat = calculateStitchChangePerRepeat(wizardData.stitchPattern.customSequence.rows);
+        IntelliKnitLogger.debug('Custom Pattern Stitch Change', { stitchChangePerRepeat });
+      }
+
+      // Calculate repeats needed
+      const repeatCalc = calculateRepeatsToTarget(
+        currentStitches,
+        targetStitches,
+        stitchChangePerRepeat
+      );
+
+      // Calculate total rows
+      const rowCalc = calculateTargetRows(
+        repeatCalc.repeats,
+        rowsPerRepeat,
+        completeSequence,
+        targetStitches,
+        currentStitches,
+        stitchChangePerRepeat
+      );
+
+      IntelliKnitLogger.success('Target Repeats Calculated', {
+        pattern: wizardData.stitchPattern.pattern,
+        startingStitches: currentStitches,
+        targetStitches,
+        stitchChangePerRepeat,
+        repeatsNeeded: repeatCalc.repeats,
+        totalRows: rowCalc.totalRows,
+        endingStitches: rowCalc.endingStitches,
+        completeSequence
+      });
+
+      return {
+        success: true,
+        totalRows: rowCalc.totalRows,
+        startingStitches: currentStitches,
+        endingStitches: rowCalc.endingStitches,
+        isTargetRepeat: true,
+        targetStitches: targetStitches,
+        repeatsNeeded: repeatCalc.repeats,
+        actualRepeats: rowCalc.actualRepeats,
+        stitchChangePerRepeat: stitchChangePerRepeat,
+        completeSequence: completeSequence
+      };
+    }
+
+    // Handle patterns with repeats (existing code)
     if (wizardData.duration.type === 'repeats' && wizardData.stitchPattern.rowsInPattern) {
       console.log('🎯 PATTERN REPEATS CALCULATION TRIGGERED');
       console.log('📊 Input data:', {
@@ -58,10 +119,10 @@ export const useStepCalculation = () => {
       const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
       const totalRows = rowsPerRepeat * numberOfRepeats;
 
-      // ✅ NEW: Calculate stitch change for Custom patterns from customSequence
+      // Calculate stitch change for Custom patterns from customSequence
       let stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
 
-      // ✅ FIX: For Custom pattern, calculate from customSequence.rows
+      // For Custom pattern, calculate from customSequence.rows
       if (wizardData.stitchPattern.pattern === 'Custom' && wizardData.stitchPattern.customSequence?.rows) {
         const rows = wizardData.stitchPattern.customSequence.rows;
         stitchChangePerRepeat = rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
@@ -175,7 +236,7 @@ export const useStepCalculation = () => {
       }
     }
 
-    // ✅ NEW: Handle color pattern repeats
+    // Handle color pattern repeats
     if (wizardData.duration.type === 'color_repeats' && wizardData.colorwork?.stripeSequence) {
       const totalRowsInSequence = wizardData.colorwork.stripeSequence.reduce(
         (sum, stripe) => sum + (stripe.rows || 0),
@@ -244,6 +305,8 @@ function generateInstructionForDetection(wizardData) {
     return `${pattern} until piece measures ${wizardData.duration.value} ${wizardData.duration.units}`;
   } else if (wizardData.duration.type === 'repeats') {
     return `${pattern} for ${wizardData.duration.value} repeats`;
+  } else if (wizardData.duration.type === 'target_repeats') {
+    return `${pattern} until ${wizardData.duration.targetStitches} stitches`;
   } else {
     return pattern;
   }
