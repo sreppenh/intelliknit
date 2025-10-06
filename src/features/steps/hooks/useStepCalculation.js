@@ -153,6 +153,57 @@ export const useStepCalculation = () => {
       };
     }
 
+    // Handle Custom patterns with duration.type === 'rows'
+    if (wizardData.stitchPattern.pattern === 'Custom' &&
+      wizardData.duration.type === 'rows' &&
+      wizardData.stitchPattern.customSequence?.rows) {
+
+      const totalRows = parseInt(wizardData.duration.value) || 1;
+      const rowsInPattern = wizardData.stitchPattern.customSequence.rows.length;
+
+      // Calculate stitch change per repeat
+      const stitchChangePerRepeat = wizardData.stitchPattern.customSequence.rows.reduce(
+        (sum, row) => sum + (row.stitchChange || 0),
+        0
+      );
+
+      // Calculate how many complete repeats + partial repeat
+      const completeRepeats = Math.floor(totalRows / rowsInPattern);
+      const partialRows = totalRows % rowsInPattern;
+
+      // Calculate stitch change from partial repeat
+      let partialStitchChange = 0;
+      for (let i = 0; i < partialRows; i++) {
+        partialStitchChange += wizardData.stitchPattern.customSequence.rows[i].stitchChange || 0;
+      }
+
+      const totalStitchChange = (stitchChangePerRepeat * completeRepeats) + partialStitchChange;
+      const endingStitches = currentStitches + totalStitchChange;
+
+      IntelliKnitLogger.success('Custom Pattern with Rows Calculated', {
+        totalRows,
+        rowsInPattern,
+        completeRepeats,
+        partialRows,
+        stitchChangePerRepeat,
+        partialStitchChange,
+        totalStitchChange,
+        startingStitches: currentStitches,
+        endingStitches
+      });
+
+      return {
+        success: true,
+        totalRows: totalRows,
+        startingStitches: currentStitches,
+        endingStitches: endingStitches,
+        isCustomPatternRows: true,
+        stitchChangePerRepeat: stitchChangePerRepeat,
+        totalStitchChange: totalStitchChange
+      };
+    }
+
+
     // Handle patterns with modern shaping system
     if (wizardData.hasShaping && wizardData.shapingConfig) {
       try {
