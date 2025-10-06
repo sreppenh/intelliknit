@@ -78,7 +78,7 @@ const IncrementInput = ({
     const shouldUseDecimals = useDecimals || (step % 1 !== 0);
     const inputValue = e.target.value.replace(shouldUseDecimals ? /[^0-9.]/g : /[^0-9]/g, '');
 
-    // FIXED: Temporarily allow the empty state
+    // Allow empty state temporarily
     if (inputValue === '') {
       onChange('');
       return;
@@ -86,7 +86,22 @@ const IncrementInput = ({
 
     const numValue = shouldUseDecimals ? parseFloat(inputValue) : parseInt(inputValue);
 
-    // Validate against min/max bounds
+    // ✅ JUST PASS THE VALUE - NO VALIDATION YET
+    // Let them type freely, validate on blur
+    onChange(numValue);
+  };
+
+  const handleInputBlur = () => {
+    // ✅ NOW DO ALL VALIDATION HERE
+    if (value === '' || value === undefined || value === null) {
+      onChange(min);
+      return;
+    }
+
+    const shouldUseDecimals = useDecimals || (step % 1 !== 0);
+    const numValue = shouldUseDecimals ? parseFloat(value) : parseInt(value);
+
+    // Apply min/max constraints
     if (numValue < min) {
       onChange(min);
       return;
@@ -97,14 +112,8 @@ const IncrementInput = ({
       return;
     }
 
+    // Value is valid, keep it
     onChange(numValue);
-  };
-
-  const handleInputBlur = () => {
-    // FIXED: Always ensure we have a valid value on blur
-    if (value === '' || value === undefined || value === null) {
-      onChange(min);
-    }
   };
 
   const handleInputFocus = (e) => {
