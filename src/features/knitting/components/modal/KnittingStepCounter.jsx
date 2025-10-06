@@ -74,6 +74,82 @@ const KnittingStepCounter = ({
     const [showGaugePrompt, setShowGaugePrompt] = useState(false);
     const [gaugePromptData, setGaugePromptData] = useState(null);
 
+    // Add this at the top of KnittingStepCounter component (after other useState hooks)
+
+    // Animation state for visual feedback
+    const [isAnimating, setIsAnimating] = useState(false);
+    const [animationDirection, setAnimationDirection] = useState(null); // 'up' or 'down'
+
+    // Modified increment handler with animation
+    const handleRowIncrementWithFeedback = () => {
+        console.log('handleRowIncrement called', {
+            stepType,
+            currentRow,
+            totalRows,
+            isStepLocked
+        });
+
+        if (isStepLocked) return;
+
+        // Trigger animation BEFORE the actual increment
+        setAnimationDirection('up');
+        setIsAnimating(true);
+        setTimeout(() => setIsAnimating(false), 400);
+
+        if (stepType === 'single_action') {
+            console.log('Single action handler triggered');
+
+            const progress = getStepProgressState(step.id, component.id, project.id);
+            console.log('Current progress state:', progress);
+
+            const alreadyCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
+            console.log('Already completed?', alreadyCompleted);
+
+            if (!alreadyCompleted) {
+                console.log('Calling handleStepComplete');
+                handleStepComplete();
+                console.log('handleStepComplete returned');
+            }
+
+            if (!isNotepadMode) {
+                console.log('Calling handleAutoAdvanceToNextStep');
+                handleAutoAdvanceToNextStep();
+                console.log('handleAutoAdvanceToNextStep returned');
+            }
+            return;
+        }
+
+        if (stepType === 'fixed_multi_row') {
+            if (isNotepadMode && currentRow === totalRows) {
+                handleStepComplete();
+                return;
+            } else if (currentRow === totalRows) {
+                handleStepComplete();
+                handleAutoAdvanceToNextStep();
+                return;
+            } else {
+                incrementRow();
+            }
+        } else if (stepType === 'length_based') {
+            incrementRow();
+        } else {
+            incrementRow();
+        }
+    };
+
+    // Modified decrement handler with animation
+    const handleRowDecrementWithFeedback = () => {
+        if (isStepLocked) return;
+        if (currentRow > 1) {
+            // Trigger animation
+            setAnimationDirection('down');
+            setIsAnimating(true);
+            setTimeout(() => setIsAnimating(false), 400);
+
+            decrementRow();
+        }
+    };
+
     const construction = step.construction || component.construction || 'flat';
 
     // Length-based step detection and progress
@@ -875,26 +951,34 @@ const KnittingStepCounter = ({
 
                     {/* PRIMARY ACTION AREA */}
                     <div className="space-y-4">
-                        {/* Row Counter - centered and prominent */}
-                        <div className="flex items-center justify-center gap-4">
+                        {/* Row Counter - BIGGER BUTTONS with STRONG FEEDBACK */}
+                        <div className="flex items-center justify-center gap-3">
+                            {/* Back Button - Smaller but still accessible */}
                             <button
-                                onClick={handleRowDecrement}
+                                onClick={handleRowDecrementWithFeedback}
                                 disabled={currentRow <= 1 || isStepLocked}
-                                className="p-3 rounded-full bg-orange-100 hover:bg-orange-200 disabled:bg-gray-100 disabled:text-gray-400 text-orange-600 hover:text-orange-700 transition-colors disabled:cursor-not-allowed"
+                                className="p-4 rounded-full bg-orange-100 hover:bg-orange-200 active:bg-orange-300 active:scale-95 disabled:bg-gray-100 disabled:text-gray-400 text-orange-600 hover:text-orange-700 transition-all duration-150 disabled:cursor-not-allowed shadow-sm hover:shadow-md"
                             >
-                                <RotateCcw size={18} />
+                                <RotateCcw size={20} strokeWidth={2.5} />
                             </button>
 
-                            <div className={`text-3xl font-bold ${theme.textPrimary} min-w-[80px]`}>
+                            {/* Current Row Number - WITH ANIMATION */}
+                            <div className={`text-5xl font-bold ${theme.textPrimary} min-w-[100px] text-center transition-all duration-300 ${isAnimating
+                                    ? animationDirection === 'up'
+                                        ? 'scale-110 text-sage-600'
+                                        : 'scale-110 text-orange-600'
+                                    : 'scale-100'
+                                }`}>
                                 {currentRow}
                             </div>
 
+                            {/* Plus Button - BIG and PROMINENT */}
                             <button
-                                onClick={handleRowIncrement}
+                                onClick={handleRowIncrementWithFeedback}
                                 disabled={!canIncrement}
-                                className="p-3 rounded-full bg-sage-100 hover:bg-sage-200 disabled:bg-gray-100 disabled:text-gray-400 text-sage-600 hover:text-sage-700 transition-colors disabled:cursor-not-allowed"
+                                className="p-6 rounded-full bg-sage-500 hover:bg-sage-600 active:bg-sage-700 active:scale-95 disabled:bg-gray-100 disabled:text-gray-400 text-white transition-all duration-150 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
                             >
-                                <Check size={18} />
+                                <Check size={28} strokeWidth={3} />
                             </button>
                         </div>
 
