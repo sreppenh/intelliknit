@@ -1,6 +1,5 @@
 // src/features/steps/components/pattern-configs/RowByRowPatternConfig.jsx
 import React, { useState, useEffect } from 'react';
-import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getPatternPlaceholderText, getKeyboardPatternKey } from '../../../../shared/utils/stepDisplayUtils';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import {
@@ -71,14 +70,11 @@ const RowByRowPatternConfig = ({
     const [editingAction, setEditingAction] = useState(null);
     const [editingIndex, setEditingIndex] = useState(null);
 
-    // Initialize entryMode if not set (backwards compatibility)
-    const currentEntryMode = wizardData.stitchPattern.entryMode || 'row_by_row';
     const rowInstructions = wizardData.stitchPattern.rowInstructions || [];
 
     // ===== MODE-AWARE HELPERS =====
     const isEditMode = mode === 'edit';
     const isNotepadMode = mode === 'notepad';
-    // const isCreateMode = mode === 'create';
 
     // Construction Awareness
     const terms = getConstructionTerms(construction);
@@ -92,17 +88,14 @@ const RowByRowPatternConfig = ({
     // ===== NEW: MOBILE DETECTION =====
     const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
-    //const { currentProject, dispatch } = useProjectsContext();
-    // Then replace the useProjectsContext line with:
     const projectsContext = useProjectsContext();
-    const currentProject = project || projectsContext.currentProject; // Use prop first, fall back to context
+    const currentProject = project || projectsContext.currentProject;
 
-    const [newActionStitches, setNewActionStitches] = useState('1'); // Default to 1
+    const [newActionStitches, setNewActionStitches] = useState('1');
 
 
 
     const updateProject = (updates) => {
-        // Always use the context dispatch - it works in all modes
         projectsContext.dispatch({
             type: 'UPDATE_PROJECT',
             payload: { ...currentProject, ...updates }
@@ -135,26 +128,12 @@ const RowByRowPatternConfig = ({
     // Get pattern-specific data
     const patternType = wizardData.stitchPattern.pattern;
     const placeholderText = getPatternPlaceholderText(patternType);
-
-    // 🔄 REPLACED: Centralized pattern key lookup
-    // OLD: patternType === 'Lace Pattern' ? 'lace' : patternType === 'Cable Pattern' ? 'cable' : 'general'
     const patternKey = getKeyboardPatternKey(patternType);
 
     // Get current enhanced keyboard
     const currentRowNumber = editingRowIndex === null ? rowInstructions.length + 1 : editingRowIndex + 1;
 
-    // ===== MODE TOGGLE HANDLING =====
-    const handleModeToggle = (newMode) => {
-        if (isReadOnly('entryMode')) return; // Prevent toggle if read-only
-
-        updateWizardData('stitchPattern', {
-            entryMode: newMode,
-            rowInstructions: newMode === 'row_by_row' ? rowInstructions : wizardData.stitchPattern.rowInstructions
-        });
-    };
-
     // ===== ROW MANAGEMENT =====
-    // ALSO UPDATE your handleAddRow and handleEditRow functions to reset keyboard layer:
     const handleAddRow = () => {
         if (isReadOnly('rowInstructions')) return;
 
@@ -166,7 +145,7 @@ const RowByRowPatternConfig = ({
         setIsCreatingRepeat(false);
         setKeyboardMode('pattern');
         setPendingRepeatText('');
-        setBracketState({ hasOpenBracket: false, hasOpenParen: false }); // ← ADD THIS
+        setBracketState({ hasOpenBracket: false, hasOpenParen: false });
         setshowRowEntryModal(true);
     };
 
@@ -181,11 +160,9 @@ const RowByRowPatternConfig = ({
         setIsCreatingRepeat(false);
         setKeyboardMode('pattern');
         setPendingRepeatText('');
-        setBracketState({ hasOpenBracket: false, hasOpenParen: false }); // ← ADD THIS
+        setBracketState({ hasOpenBracket: false, hasOpenParen: false });
         setshowRowEntryModal(true);
     };
-
-    // In RowByRowPatternConfig.jsx - find the handleSaveRow function and replace it with this:
 
     const handleSaveRow = () => {
 
@@ -229,7 +206,7 @@ const RowByRowPatternConfig = ({
     };
 
     const handleDeleteRow = (index) => {
-        if (isReadOnly('rowInstructions')) return; // Prevent if read-only
+        if (isReadOnly('rowInstructions')) return;
 
         const updatedInstructions = rowInstructions.filter((_, i) => i !== index);
         updateWizardData('stitchPattern', {
@@ -247,7 +224,6 @@ const RowByRowPatternConfig = ({
     const getStitchCalculation = () => {
         const baselineStitches = currentStitches || 0;
 
-        // Build custom actions lookup ONCE at the top
         const customActionsLookup = {};
         const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
         customActions.forEach(action => {
@@ -259,13 +235,12 @@ const RowByRowPatternConfig = ({
             }
         });
 
-        // Empty row case
         if (!tempRowText || !tempRowText.trim()) {
             const previousStitches = getPreviousRowStitches(
                 rowInstructions,
                 editingRowIndex === null ? rowInstructions.length : editingRowIndex,
                 baselineStitches,
-                customActionsLookup  // ✅ Pass custom actions
+                customActionsLookup
             );
             return {
                 isValid: true,
@@ -291,7 +266,7 @@ const RowByRowPatternConfig = ({
                 rowInstructions,
                 editingRowIndex === null ? rowInstructions.length : editingRowIndex,
                 baselineStitches,
-                customActionsLookup  // ✅ Pass custom actions
+                customActionsLookup
             );
             return {
                 isValid: false,
@@ -303,28 +278,20 @@ const RowByRowPatternConfig = ({
             };
         }
 
-        // Normal calculation
         const previousStitches = getPreviousRowStitches(
             rowInstructions,
             editingRowIndex === null ? rowInstructions.length : editingRowIndex,
             baselineStitches,
-            customActionsLookup  // ✅ Pass custom actions
+            customActionsLookup
         );
 
         return calculateRowStitchesLive(tempRowText, previousStitches, customActionsLookup);
     };
 
-    /**
-     * Find the matching opening bracket for a closing bracket at the end of text
-     * @param {string} text - The full text
-     * @param {string} closingBracket - Either ']' or ')'
-     * @returns {number} - Index of matching opening bracket, or -1 if not found
-     */
     const findMatchingOpeningBracket = (text, closingBracket) => {
         const openBracket = closingBracket === ']' ? '[' : '(';
         let depth = 0;
 
-        // Walk backwards from the end
         for (let i = text.length - 1; i >= 0; i--) {
             const char = text[i];
 
@@ -333,84 +300,64 @@ const RowByRowPatternConfig = ({
             } else if (char === openBracket) {
                 depth--;
                 if (depth === 0) {
-                    // Found the matching opening bracket
                     return i;
                 }
             }
         }
 
-        return -1; // No matching bracket found
+        return -1;
     };
 
 
     // ===== UPDATED handleQuickAction FUNCTION =====
-    // This needs to be updated in the main component to handle accumulated actions like "K36"
-
-    // CORRECTED SOLUTION: Update handleQuickAction in RowByRowPatternConfig.jsx
-    // This properly handles both K2tog and simple actions
-
     const handleQuickAction = (action) => {
-        // ✨ NEW: Route copy_row mode to number input handler
         if (keyboardMode === 'copy_row') {
             handleNumberInput(action);
             return;
         }
-        // Enhanced debouncing to prevent ghost clicks across different UI elements
+
         const now = Date.now();
         const timeSinceLastClick = now - lastClickTime;
 
-        // Block ALL actions if they happen too quickly (prevents cross-element ghost clicks)
-        if (timeSinceLastClick < 400) { // Increased to 400ms
+        if (timeSinceLastClick < 400) {
             return;
         }
         setLastClickTime(now);
 
-        // Rest of your existing function...
-
-
-
-        // ✅ BLOCK actions during keyboard transitions
         if (isTransitioning) {
             return;
         }
 
         // Handle accumulated actions from hold operations
-        const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);  // K36, P12, YO4
-        const complexAccumulatedMatch = action.match(/^(.+?)\s*×\s*(\d+)$/); // K2tog × 6, SSK × 3
+        const simpleAccumulatedMatch = action.match(/^(K|P|YO)(\d+)$/);
+        const complexAccumulatedMatch = action.match(/^(.+?)\s*×\s*(\d+)$/);
 
         if (simpleAccumulatedMatch || complexAccumulatedMatch) {
 
             let baseAction, count;
 
             if (complexAccumulatedMatch) {
-                // Handle "K2tog × 6" format from hold-down
                 [, baseAction, count] = complexAccumulatedMatch;
                 baseAction = baseAction.trim();
 
             } else if (simpleAccumulatedMatch) {
-                // Handle "K36" format from hold-down of simple actions
                 [, baseAction, count] = simpleAccumulatedMatch;
             }
 
-            // Determine if this is ACTUALLY a simple action
             const isSimpleAction = ['K', 'P', 'YO'].includes(baseAction);
             const formattedAction = isSimpleAction
                 ? `${baseAction}${count}`
                 : `${baseAction} × ${count}`;
 
-            // Add the properly formatted action with smart comma logic AND merging
             setTempRowText(prev => {
                 const actions = prev.split(', ').filter(a => a.trim() !== '');
 
-                // Check if the last action is the same base action
                 if (actions.length > 0) {
                     const lastAction = actions[actions.length - 1];
 
-                    // Extract base from last action (handle both formats)
                     let lastBase = lastAction;
                     let lastCount = 1;
 
-                    // Check for simple format first (more specific)
                     const lastSimpleMatch = lastAction.match(/^(K|P|YO)(\d*)$/);
                     const lastComplexMatch = lastAction.match(/^(.+?)\s*×\s*(\d+)$/);
 
@@ -421,7 +368,6 @@ const RowByRowPatternConfig = ({
                         lastBase = lastSimpleMatch[1];
                         lastCount = parseInt(lastSimpleMatch[2] || '1');
                     } else if (lastAction === baseAction) {
-                        // Plain action with no count
                         lastBase = lastAction;
                         lastCount = 1;
                     }
@@ -434,15 +380,13 @@ const RowByRowPatternConfig = ({
 
                         actions[actions.length - 1] = mergedAction;
 
-                        // CRITICAL: Update state SYNCHRONOUSLY here with the FINAL merged count
                         setLastQuickAction(baseAction);
-                        setConsecutiveCount(newCount);  // Use the MERGED count, not the original
+                        setConsecutiveCount(newCount);
 
                         return actions.join(', ');
                     }
                 }
 
-                // Not mergeable, use comma logic
                 const shouldAddComma = prev &&
                     !prev.endsWith('[') &&
                     !prev.endsWith('(') &&
@@ -450,7 +394,6 @@ const RowByRowPatternConfig = ({
 
                 const newText = shouldAddComma ? `${prev}, ${formattedAction}` : `${prev}${formattedAction}`;
 
-                // CRITICAL: Update state SYNCHRONOUSLY here with the original count
                 setLastQuickAction(baseAction);
                 setConsecutiveCount(parseInt(count));
 
@@ -460,55 +403,45 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        // Helper function to reset auto-increment 
         const resetAutoIncrement = () => {
             setLastQuickAction(null);
             setConsecutiveCount(1);
         };
 
-        // Row locking check
         const isRowLocked = /k\s+to\s+end/gi.test(tempRowText) ||
             /p\s+to\s+end/gi.test(tempRowText) ||
             /k\/p\s+as\s+set/gi.test(tempRowText);
 
         if (isRowLocked && !['⌫', 'Enter', '✓'].includes(action)) {
-            return; // Block all input except delete and enter
+            return;
         }
 
-        // Number mode handling
         if (keyboardMode === 'numbers') {
             handleNumberInput(action);
             return;
         }
 
-        // Keyboard layer switching
         if (action === '⇧') {
 
             if (supportsMultipleLayers(patternType)) {
                 const nextLayer = getNextKeyboardLayer(currentKeyboardLayer, patternType);
-                console.log('🔀 Switching to layer:', nextLayer);
                 setCurrentKeyboardLayer(nextLayer);
 
-                // Manual number mode: ⇧⇧ (secondary back to primary)
                 if (supportsManualNumbers(patternType) && nextLayer === KEYBOARD_LAYERS.PRIMARY && currentKeyboardLayer === KEYBOARD_LAYERS.SECONDARY) {
                     setKeyboardMode('numbers');
                     setPendingRepeatText('');
                     return;
                 }
-            } else {
-                console.log('❌ Pattern does not support multiple layers');
             }
             return;
         }
-        // Closing brackets (Trigger Number Mode)
+
         if (action === ']') {
             setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
 
-            // Add ] to main display
             const textWithClosingBracket = tempRowText + ']';
             setTempRowText(textWithClosingBracket);
 
-            // Set up mini display for multiplier
             const matchingIndex = findMatchingOpeningBracket(textWithClosingBracket, ']');
             if (matchingIndex !== -1) {
                 const bracketContent = textWithClosingBracket.substring(matchingIndex);
@@ -517,15 +450,13 @@ const RowByRowPatternConfig = ({
                 setPendingRepeatText(textWithClosingBracket);
             }
 
-            // ✅ PROTECTED transition with debouncing
             setIsTransitioning(true);
             setKeyboardMode('numbers');
             setIsCreatingRepeat(false);
 
-            // Clear transition flag after a short delay
             setTimeout(() => {
                 setIsTransitioning(false);
-            }, 200); // 200ms buffer
+            }, 200);
 
             return;
         }
@@ -533,34 +464,28 @@ const RowByRowPatternConfig = ({
         if (action === ')') {
             setBracketState(prev => ({ ...prev, hasOpenParen: false }));
 
-            // Add ) to main display
             const textWithClosingParen = tempRowText + ')';
             setTempRowText(textWithClosingParen);
 
-            // Set up mini display for multiplier
             const matchingIndex = findMatchingOpeningBracket(textWithClosingParen, ')');
             if (matchingIndex !== -1) {
                 const parenContent = textWithClosingParen.substring(matchingIndex);
                 setPendingRepeatText(parenContent);
 
-                // ✅ PROTECTED transition with debouncing
                 setIsTransitioning(true);
                 setKeyboardMode('numbers');
                 setIsCreatingRepeat(false);
 
-                // Clear transition flag after a short delay
                 setTimeout(() => {
                     setIsTransitioning(false);
-                }, 200); // 200ms buffer
+                }, 200);
             }
             return;
         }
 
-        // Opening brackets (With Smart Commas)
         if (action === '[') {
             setBracketState(prev => ({ ...prev, hasOpenBracket: true }));
 
-            // Smart comma logic
             const shouldAddComma = tempRowText &&
                 !tempRowText.endsWith('[') &&
                 !tempRowText.endsWith('(') &&
@@ -574,7 +499,6 @@ const RowByRowPatternConfig = ({
         if (action === '(') {
             setBracketState(prev => ({ ...prev, hasOpenParen: true }));
 
-            // Smart comma logic
             const shouldAddComma = tempRowText &&
                 !tempRowText.endsWith('[') &&
                 !tempRowText.endsWith('(') &&
@@ -585,11 +509,9 @@ const RowByRowPatternConfig = ({
             return;
         }
 
-        // Delete with bracket reset
         if (action === '⌫') {
             const handleBracketReset = (newText, info) => {
                 if (info?.deletedBracket) {
-                    // Reset bracket state based on what was deleted
                     if (info.deletedBracket === '[') {
                         setBracketState(prev => ({ ...prev, hasOpenBracket: false }));
                     } else if (info.deletedBracket === ']') {
@@ -607,7 +529,6 @@ const RowByRowPatternConfig = ({
             return handleSmartDelete(tempRowText, setTempRowText, resetAutoIncrement, false, handleBracketReset);
         }
 
-        // All other actions get processed by the enhanced handler
         handleQuickActionEnhanced(
             action,
             tempRowText,
@@ -623,19 +544,15 @@ const RowByRowPatternConfig = ({
         );
     };
 
-    // ADD this new function for number input handling:
     const handleNumberInput = (action) => {
 
-        // ✨ NEW: Handle copy row mode
         if (keyboardMode === 'copy_row') {
             if (action === 'Enter' || action === '✓') {
                 const rowNum = parseInt(currentNumber);
                 if (rowNum >= 1 && rowNum <= rowInstructions.length) {
-                    // Copy the selected row to current input
                     const selectedRowContent = rowInstructions[rowNum - 1];
                     setTempRowText(selectedRowContent);
 
-                    // Reset keyboard to pattern mode
                     setKeyboardMode('pattern');
                     setPendingRepeatText('');
                     setCurrentNumber('');
@@ -649,25 +566,21 @@ const RowByRowPatternConfig = ({
             }
 
             if (isNumberAction(action)) {
-                // Build up the row number
                 setCurrentNumber(prev => (prev || '') + action);
                 return;
             }
 
-            // For any other action in copy mode, just return
             return;
         }
 
 
         if (action === 'Enter' || action === '✓') {
             if (!pendingRepeatText || pendingRepeatText === '') {
-                // Manual mode: Just add the accumulated number to text
                 const numberDisplay = currentNumber || '';
                 if (numberDisplay) {
                     setTempRowText(prev => prev ? `${prev}, ${currentNumber}` : currentNumber);
                 }
             } else {
-                // BRACKET MODE: Just append the multiplier to existing text
                 const multiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1];
                 if (multiplier) {
                     setTempRowText(prev => `${prev} × ${multiplier}`);
@@ -679,19 +592,16 @@ const RowByRowPatternConfig = ({
             return;
         }
         if (action === 'Cancel' || action === '✗') {
-            // Cancel and return to pattern mode
             setKeyboardMode('pattern');
             setPendingRepeatText('');
             setCurrentNumber('');
             return;
         }
-        // ✅ FIX: Handle back button properly
+
         if (action === '⌫') {
             if (!pendingRepeatText || pendingRepeatText === '') {
-                // Manual mode: remove last digit from currentNumber
                 setCurrentNumber(prev => prev.slice(0, -1));
             } else {
-                // Bracket mode: remove last digit from multiplier
                 const currentText = pendingRepeatText.replace(/\s*×\s*\d*$/, '');
                 const existingMultiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1] || '';
                 const newMultiplier = existingMultiplier.slice(0, -1);
@@ -707,31 +617,21 @@ const RowByRowPatternConfig = ({
 
         if (isNumberAction(action)) {
             if (!pendingRepeatText || pendingRepeatText === '') {
-                // MANUAL MODE: Build up a number like "20"
                 setCurrentNumber(prev => (prev || '') + action);
             } else {
-                // BRACKET MODE: Add multiplier to existing bracket - ONLY update mini display
-                const currentText = pendingRepeatText.replace(/\s*×\s*\d*$/, ''); // Remove just the multiplier part
+                const currentText = pendingRepeatText.replace(/\s*×\s*\d*$/, '');
                 const existingMultiplier = pendingRepeatText.match(/×\s*(\d+)$/)?.[1] || '';
                 const newMultiplier = existingMultiplier + action;
                 const newText = `${currentText} × ${newMultiplier}`;
                 setPendingRepeatText(newText);
-                // DON'T update setTempRowText here - only update mini display!
             }
             return;
         }
     };
 
     const canSave = () => {
-
-        if (currentEntryMode === 'description') {
-            const result = wizardData.stitchPattern.customText?.trim() && wizardData.stitchPattern.rowsInPattern;
-            return result;
-        } else {
-            const currentRows = wizardData.stitchPattern.rowInstructions || [];
-            const result = currentRows.length > 0;
-            return result;
-        }
+        const currentRows = wizardData.stitchPattern.rowInstructions || [];
+        return currentRows.length > 0;
     };
 
 
@@ -774,219 +674,92 @@ const RowByRowPatternConfig = ({
                 </div>
             )}
 
-            {/* Entry Mode Toggle */}
+            {/* Row-by-Row Pattern Entry */}
             <div>
-                <label className="form-label">Pattern Entry Method                    </label>
+                {patternType === 'Custom' ? (
+                    <SimpleRowBuilder
+                        wizardData={wizardData}
+                        updateWizardData={updateWizardData}
+                        construction={construction}
+                        currentStitches={currentStitches}
+                    />
+                ) : (
+                    <>
+                        <label className="form-label">Pattern Rows</label>
+                        {isReadOnly('rowInstructions') && (
+                            <p className="text-xs text-yarn-600 mb-2">
+                                Row instructions are read-only to preserve step calculations
+                            </p>
+                        )}
 
-                {isReadOnly('entryMode') && (
-                    <p className="text-xs text-yarn-600 mb-2">
-                        Entry method is locked to preserve existing row data
-                    </p>
+                        {/* Row List */}
+                        {rowInstructions.length > 0 && (
+                            <div className="space-y-2 mb-4">
+                                {rowInstructions.map((instruction, index) => {
+                                    const rowNumber = index + 1;
+                                    const rowSide = getRowSide(rowNumber);
+
+                                    return (
+                                        <div key={index} className="flex items-center gap-3 p-3 bg-white border-2 border-wool-200 rounded-lg">
+                                            <div className="flex-shrink-0 text-sm font-medium text-wool-600 min-w-[80px]">
+                                                {terms.Row} {rowNumber} ({rowSide}):
+                                            </div>
+                                            <div className="flex-1 text-sm text-wool-700 font-mono">
+                                                {instruction}
+                                            </div>
+                                            {!isReadOnly('rowInstructions') && (
+                                                <div className="flex gap-1">
+                                                    <button
+                                                        onClick={() => handleEditRow(index)}
+                                                        className="p-1 text-sage-600 hover:text-sage-700 hover:bg-sage-100 rounded transition-colors"
+                                                        title="Edit row"
+                                                    >
+                                                        ✏️
+                                                    </button>
+                                                    <button
+                                                        onClick={() => handleDeleteRow(index)}
+                                                        className="delete-icon-sm"
+                                                        title="Delete row"
+                                                        aria-label={`Delete row ${index + 1}`}
+                                                    >
+                                                        ×
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        )}
+
+                        {/* Add Row Button */}
+                        {!isReadOnly('rowInstructions') && (
+                            <button
+                                onClick={handleAddRow}
+                                className="w-full py-3 px-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-500 hover:text-sage-700 hover:bg-sage-50 transition-colors font-medium"
+                            >
+                                + Add {terms.Row} {rowInstructions.length + 1}
+                            </button>
+                        )}
+
+                        {/* Pattern Summary */}
+                        {rowInstructions.length > 0 && (
+                            <div className="mt-3 text-sm text-wool-600 text-center">
+                                {rowInstructions.length} {rowInstructions.length === 1 ? terms.row : terms.rows} in pattern
+                            </div>
+                        )}
+
+                        {/* Helper text for new users */}
+                        {rowInstructions.length === 0 && !isReadOnly('rowInstructions') && (
+                            <div className="mt-3 text-sm text-wool-500 text-center italic">
+                                Add your first {terms.row} to get started
+                            </div>
+                        )}
+                    </>
                 )}
-                <div className="flex gap-3">
-                    {/* ✅ SWAPPED: Row-by-Row comes first now */}
-                    <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${currentEntryMode === 'row_by_row'
-                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                        } ${isReadOnly('entryMode') ? 'opacity-60 cursor-not-allowed' : ''}`}>
-                        <input
-                            type="radio"
-                            name="entry_mode"
-                            value="row_by_row"
-                            checked={currentEntryMode === 'row_by_row'}
-                            onChange={() => handleModeToggle('row_by_row')}
-                            disabled={isReadOnly('entryMode')}
-                            className="sr-only"
-                        />
-                        <div className="text-center">
-                            <div className="text-2xl mb-2">📋</div>
-                            <div className="font-semibold">{terms.Row}-by-{terms.Row}</div>
-                            <div className="text-sm opacity-75">Enter each {terms.row} individually</div>
-                        </div>
-                    </label>
-
-                    {/* ✅ SWAPPED: Description comes second now */}
-                    <label className={`flex-1 cursor-pointer p-4 rounded-xl border-2 transition-all duration-200 ${currentEntryMode === 'description'
-                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                        : 'border-wool-200 bg-white text-wool-700 hover:border-sage-300 hover:bg-sage-50'
-                        } ${isReadOnly('entryMode') ? 'opacity-60 cursor-not-allowed' : ''}`}>
-                        <input
-                            type="radio"
-                            name="entry_mode"
-                            value="description"
-                            checked={currentEntryMode === 'description'}
-                            onChange={() => handleModeToggle('description')}
-                            disabled={isReadOnly('entryMode')}
-                            className="sr-only"
-                        />
-                        <div className="text-center">
-                            <div className="text-2xl mb-2">📝</div>
-                            <div className="font-semibold">Description</div>
-                            <div className="text-sm opacity-75">Traditional text description</div>
-                        </div>
-                    </label>
-                </div>
             </div>
 
-
-
-            {/* Description Mode */}
-            {currentEntryMode === 'description' && (
-                <div>
-                    <label className="form-label">Pattern Description</label>
-                    <textarea
-                        value={wizardData.stitchPattern.customText || ''}
-                        onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
-                        placeholder="e.g., '5 rows stockinette, 1 bobble row'"
-                        rows={3}
-                        className="input-field-lg resize-none"
-                        readOnly={isReadOnly('customText')}
-                    />
-                    <div className="form-help">
-                        Describe your pattern in your own words
-                    </div>
-                    {isReadOnly('customText') && (
-                        <p className="text-xs text-yarn-600 mt-1">
-                            Pattern description is read-only in edit mode
-                        </p>
-                    )}
-                </div>
-            )}
-
-            {/* Row-by-Row Mode */}
-            {currentEntryMode === 'row_by_row' && (
-                <div>
-                    {patternType === 'Custom' ? (
-                        <SimpleRowBuilder
-                            wizardData={wizardData}
-                            updateWizardData={updateWizardData}
-                            construction={construction}
-                            currentStitches={currentStitches}
-                        />
-                    ) : (
-                        <>
-                            <label className="form-label">Pattern Rows</label>
-                            {isReadOnly('rowInstructions') && (
-                                <p className="text-xs text-yarn-600 mb-2">
-                                    Row instructions are read-only to preserve step calculations
-                                </p>
-                            )}
-
-                            {/* Row List */}
-                            {rowInstructions.length > 0 && (
-                                <div className="space-y-2 mb-4">
-                                    {rowInstructions.map((instruction, index) => {
-                                        const rowNumber = index + 1;
-                                        const rowSide = getRowSide(rowNumber);
-
-                                        return (
-                                            <div key={index} className="flex items-center gap-3 p-3 bg-white border-2 border-wool-200 rounded-lg">
-                                                <div className="flex-shrink-0 text-sm font-medium text-wool-600 min-w-[80px]">
-                                                    {terms.Row} {rowNumber} ({rowSide}):
-                                                </div>
-                                                <div className="flex-1 text-sm text-wool-700 font-mono">
-                                                    {instruction}
-                                                </div>
-                                                {!isReadOnly('rowInstructions') && (
-                                                    <div className="flex gap-1">
-                                                        <button
-                                                            onClick={() => handleEditRow(index)}
-                                                            className="p-1 text-sage-600 hover:text-sage-700 hover:bg-sage-100 rounded transition-colors"
-                                                            title="Edit row"
-                                                        >
-                                                            ✏️
-                                                        </button>
-                                                        <button
-                                                            onClick={() => handleDeleteRow(index)}
-                                                            className="delete-icon-sm"
-                                                            title="Delete row"
-                                                            aria-label={`Delete row ${index + 1}`}
-                                                        >
-                                                            ×
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        );
-                                    })}
-                                </div>
-                            )}
-
-                            {/* Add Row Button */}
-                            {!isReadOnly('rowInstructions') && (
-                                <button
-                                    onClick={handleAddRow}
-                                    className="w-full py-3 px-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-500 hover:text-sage-700 hover:bg-sage-50 transition-colors font-medium"
-                                >
-                                    + Add {terms.Row} {rowInstructions.length + 1}
-                                </button>
-                            )}
-
-                            {/* Pattern Summary */}
-                            {rowInstructions.length > 0 && (
-                                <div className="mt-3 text-sm text-wool-600 text-center">
-                                    {rowInstructions.length} {rowInstructions.length === 1 ? terms.row : terms.rows} in pattern
-                                </div>
-                            )}
-
-                            {/* Helper text for new users */}
-                            {rowInstructions.length === 0 && !isReadOnly('rowInstructions') && (
-                                <div className="mt-3 text-sm text-wool-500 text-center italic">
-                                    Add your first {terms.row} to get started
-                                </div>
-                            )}
-                        </>
-                    )}
-                </div>
-            )}
-
-            {/* Rows in Pattern (Traditional Input for Description Mode) */}
-            {currentEntryMode === 'description' && (
-                <div>
-                    <label className="form-label">Rows in Pattern</label>
-                    <IncrementInput
-                        value={wizardData.stitchPattern.rowsInPattern}
-                        onChange={(value) => updateWizardData('stitchPattern', { rowsInPattern: value })}
-                        label="rows in pattern"
-                        construction={construction}
-                        disabled={isReadOnly('rowsInPattern')}
-                    />
-                    <div className="form-help">
-                        Number of {terms.rows} in one complete pattern repeat</div>
-                    {isReadOnly('rowsInPattern') && (
-                        <p className="text-xs text-yarn-600 mt-1">
-                            Row count is locked to preserve calculations
-                        </p>
-                    )}
-                </div>
-            )}
-
-            {/* Stitch Change per Repeat - For Description Mode */}
-            {currentEntryMode === 'description' && (
-                <div>
-                    <label className="form-label">Stitch Change per Repeat</label>
-                    <IncrementInput
-                        value={wizardData.stitchPattern.stitchChangePerRepeat || 0}
-                        onChange={(value) => updateWizardData('stitchPattern', { stitchChangePerRepeat: value })}
-                        label="stitch change"
-                        unit="stitches"
-                        construction={construction}
-                        min={-20}
-                        max={20}
-                        allowNegative={true}
-                        disabled={isReadOnly('stitchChangePerRepeat')}
-                    />
-                    <div className="form-help">
-                        Stitches gained (+) or lost (-) per repeat. Use 0 for stitch-neutral patterns (most common).
-                    </div>
-                    {isReadOnly('stitchChangePerRepeat') && (
-                        <p className="text-xs text-yarn-600 mt-1">
-                            Stitch change is locked to preserve calculations
-                        </p>
-                    )}
-                </div>
-            )}
-
+            {/* Save/Cancel Actions */}
             {shouldShowActions && (
                 <div className="pt-4 border-t border-wool-200">
                     <div className="flex gap-3">
@@ -1030,12 +803,9 @@ const RowByRowPatternConfig = ({
                 construction={construction}
                 keyboardComponent={
                     <PatternInputContainer
-                        // Core state
                         keyboardMode={keyboardMode}
                         patternType={patternType}
                         currentKeyboardLayer={currentKeyboardLayer}
-
-                        // UI state
                         isMobile={isMobile}
                         isCreatingRepeat={isCreatingRepeat}
                         bracketState={bracketState}
@@ -1043,29 +813,17 @@ const RowByRowPatternConfig = ({
                         isLocked={/k\s+to\s+end/gi.test(tempRowText) ||
                             /p\s+to\s+end/gi.test(tempRowText) ||
                             /k\/p\s+as\s+set/gi.test(tempRowText)}
-
-                        // Data
                         rowInstructions={rowInstructions}
                         pendingRepeatText={pendingRepeatText}
                         currentNumber={currentNumber}
-
-                        // Project context
                         currentProject={currentProject}
                         updateProject={updateProject}
                         newActionStitches={newActionStitches}
                         setNewActionStitches={setNewActionStitches}
-
-                        // Row context
                         currentRowNumber={currentRowNumber}
                         construction={construction}
-
-                        // Advanced features (only for Cable/Lace patterns)
                         getStitchCalculation={getStitchCalculation}
-
-                        // Handlers
                         onAction={handleQuickAction}
-
-                        // Direct state access for advanced patterns
                         directStateAccess={{
                             setPendingRepeatText,
                             setTempRowText,

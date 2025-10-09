@@ -1,10 +1,27 @@
+// src/features/steps/components/wizard-steps/PatternConfiguration.jsx
 import React from 'react';
-import { CastOnConfig, BindOffConfig, BasicPatternConfig, ColorworkPatternConfig, RowByRowPatternConfig, StripesConfig } from '../pattern-configs'; import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
+import {
+  CastOnConfig,
+  BindOffConfig,
+  BasicPatternConfig,
+  ColorworkPatternConfig,
+  RowByRowPatternConfig,
+  DescriptionPatternConfig, // ✨ NEW
+  StripesConfig
+} from '../pattern-configs';
+import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
 
 
-const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
-  construction, currentStitches, project, mode }) => {
-  const { pattern } = wizardData.stitchPattern;
+const PatternConfiguration = ({
+  wizardData,
+  updateWizardData,
+  navigation,
+  construction,
+  currentStitches,
+  project,
+  mode
+}) => {
+  const { pattern, entryMode } = wizardData.stitchPattern;
 
   if (!pattern) {
     return (
@@ -47,7 +64,6 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
           />
         );
 
-      // 🎯 ADD THIS:
       case 'Stripes':
         return (
           <StripesConfig
@@ -59,36 +75,54 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
           />
         );
 
+      // ✨ NEW: Route Custom pattern based on entryMode
       case 'Custom':
-        return (
-          <RowByRowPatternConfig
-            wizardData={wizardData}
-            updateWizardData={updateWizardData}
-            construction={construction}
-            currentStitches={currentStitches}
-            project={project}
-            mode={mode}
-          />
-        );
-
-      default:
-        // ===== UPDATED: Use utility function to determine routing =====
-        if (isAdvancedRowByRowPattern(pattern)) {
+        if (entryMode === 'row_by_row') {
           return (
-
             <RowByRowPatternConfig
               wizardData={wizardData}
               updateWizardData={updateWizardData}
               construction={construction}
-              currentStitches={currentStitches}  // this may be a lie
-              // currentStitches={wizard.currentStitches}  // ✅ CHANGE: was {wizard.currentStitches}
+              currentStitches={currentStitches}
+              project={project}
+              mode={mode}
+            />
+          );
+        } else if (entryMode === 'description') {
+          return (
+            <DescriptionPatternConfig
+              wizardData={wizardData}
+              updateWizardData={updateWizardData}
+              construction={construction}
+              mode={mode}
+            />
+          );
+        } else {
+          // No entry mode selected yet - shouldn't happen but handle gracefully
+          return (
+            <div className="text-center py-8">
+              <div className="text-4xl mb-4">⚠️</div>
+              <p className="text-wool-600">Please select an entry method</p>
+            </div>
+          );
+        }
 
+      default:
+        // For other advanced patterns (backward compatibility)
+        if (isAdvancedRowByRowPattern(pattern)) {
+          return (
+            <RowByRowPatternConfig
+              wizardData={wizardData}
+              updateWizardData={updateWizardData}
+              construction={construction}
+              currentStitches={currentStitches}
               project={project}
               mode={mode}
             />
           );
         }
 
+        // Basic patterns
         return (
           <BasicPatternConfig
             wizardData={wizardData}
@@ -104,7 +138,6 @@ const PatternConfiguration = ({ wizardData, updateWizardData, navigation,
     <div className="stack-lg">
       <div>
         <h2 className="content-header-primary">Configure {pattern}</h2>
-        {/*  <p className="content-subheader">Set up the details for your {pattern.toLowerCase()}</p> */}
       </div>
 
       {renderPatternConfig()}
