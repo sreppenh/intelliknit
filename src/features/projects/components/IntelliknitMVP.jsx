@@ -165,8 +165,14 @@ const IntelliknitMVPContent = () => {
 
   };
 
+  // ===== PARSE CURRENT VIEW FOR TAB ROUTING =====
+  // Extract tab parameter from views like 'project-detail:components'
+  const viewMatch = currentView.match(/^([^:]+)(?::(.+))?$/);
+  const baseView = viewMatch ? viewMatch[1] : currentView;
+  const viewParam = viewMatch ? viewMatch[2] : null;
+
   // Router logic based on current view
-  switch (currentView) {
+  switch (baseView) {
     case 'landing':
       return (
         <LandingPage
@@ -211,6 +217,7 @@ const IntelliknitMVPContent = () => {
     case 'project-detail':
       return (
         <ProjectDetail
+          initialTab={viewParam} // Pass the tab parameter if present
           onBack={handleBackToProjectList}
           onViewComponent={handleViewComponent}
           onEditSteps={handleEditSteps}

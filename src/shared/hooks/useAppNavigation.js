@@ -25,8 +25,13 @@ export const useAppNavigation = (setCurrentView, setSelectedProjectType = null, 
     };
 
     // Navigate back to project detail - clears component selection
-    const goToProjectDetail = () => {
-        setCurrentView('project-detail');
+    // Now accepts optional initialTab parameter for tab navigation
+    const goToProjectDetail = (initialTab = null) => {
+        if (initialTab) {
+            setCurrentView(`project-detail:${initialTab}`);
+        } else {
+            setCurrentView('project-detail');
+        }
         dispatch({ type: 'SET_SELECTED_COMPONENT_INDEX', payload: null });
     };
 

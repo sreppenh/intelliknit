@@ -142,14 +142,8 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
 
   // ===== TAB NAVIGATION =====
   const handleTabChange = (tabId) => {
-    if (tabId === 'components') {
-      // Already on components view (ManageSteps is part of components)
-      // Could scroll to top or do nothing
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-
-    // Navigate to other tabs by going back to ProjectDetail with the selected tab
+    // All tab changes should navigate back to ProjectDetail with the selected tab
+    // This includes "components" - user wants to see the component list, not stay in ManageSteps
     if (onChangeTab) {
       onChangeTab(tabId);
     } else {
