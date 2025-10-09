@@ -1,48 +1,48 @@
 // src/shared/utils/stitchCalculatorUtils.js
 /**
  * Smart Stitch Calculator for Pattern Rows
- * Calculates stitch counts and running totals for lace patterns
+ * CLEANED VERSION - Custom action support removed
  */
 
 // ===== STITCH OPERATION VALUES =====
 const STITCH_VALUES = {
-    // Basic stitches (consume and produce 1)
+    // Basic stitches
     'K': { consumes: 1, produces: 1 },
     'P': { consumes: 1, produces: 1 },
     'K1': { consumes: 1, produces: 1 },
     'P1': { consumes: 1, produces: 1 },
 
-    // Decreases (consume more than they produce)
+    // Decreases
     'K2tog': { consumes: 2, produces: 1 },
     'SSK': { consumes: 2, produces: 1 },
     'K3tog': { consumes: 3, produces: 1 },
     'SSSK': { consumes: 2, produces: 1 },
-    'CDD': { consumes: 3, produces: 1 }, // Central Double Decrease
-    'S2KP': { consumes: 3, produces: 1 }, // Slip 2, K1, Pass over
+    'CDD': { consumes: 3, produces: 1 },
+    'S2KP': { consumes: 3, produces: 1 },
     'SK2P': { consumes: 3, produces: 1 },
     'P2tog': { consumes: 2, produces: 1 },
     'SSP': { consumes: 2, produces: 1 },
     'K2tog tbl': { consumes: 2, produces: 1 },
     'SSK tbl': { consumes: 2, produces: 1 },
 
-    // Increases (produce more than they consume)
-    'YO': { consumes: 0, produces: 1 }, // Yarn Over
-    'M1': { consumes: 0, produces: 1 }, // Make 1
+    // Increases
+    'YO': { consumes: 0, produces: 1 },
+    'M1': { consumes: 0, produces: 1 },
     'M1L': { consumes: 0, produces: 1 },
     'M1R': { consumes: 0, produces: 1 },
-    'KFB': { consumes: 1, produces: 2 }, // Knit Front and Back
+    'KFB': { consumes: 1, produces: 2 },
 
     // Brioche
-    'brk1': { consumes: 2, produced: 1 },
-    'brp1': { consumes: 2, produced: 1 },
-    'sl1yo': { consumes: 1, produced: 2 },
+    'brk1': { consumes: 2, produces: 1 },
+    'brp1': { consumes: 2, produces: 1 },
+    'sl1yo': { consumes: 1, produces: 2 },
 
     // Special operations
-    'Sl1': { consumes: 1, produces: 1 }, // Slip stitch
-    'Sl1 wyif': { consumes: 1, produces: 1 }, // Slip stitch
-    'BO': { consumes: 1, produces: 0 }, // Bind off (for partial bind-offs)
+    'Sl1': { consumes: 1, produces: 1 },
+    'Sl1 wyif': { consumes: 1, produces: 1 },
+    'BO': { consumes: 1, produces: 0 },
 
-    // Cable operations (neutral)
+    // Cable operations (all neutral)
     'C4F': { consumes: 4, produces: 4 },
     'C4B': { consumes: 4, produces: 4 },
     'C6F': { consumes: 6, produces: 6 },
@@ -73,6 +73,7 @@ const STITCH_VALUES = {
     '2/2 LPC': { consumes: 4, produces: 4 },
     '2/2 RPC': { consumes: 4, produces: 4 },
     '1/1 RPC': { consumes: 2, produces: 2 },
+    'Bobble': { consumes: 1, produces: 1 },
 };
 
 const hasWorkToEndAction = (instruction) => {
@@ -87,10 +88,8 @@ const hasWorkToEndAction = (instruction) => {
  * @param {number} startingStitches - Stitches available at start of row
  * @returns {Object} - { totalStitches, stitchChange, breakdown, isValid }
  */
-export const calculateRowStitches = (instruction, startingStitches = 0, customActionsData = {}) => {
-
+export const calculateRowStitches = (instruction, startingStitches = 0) => {
     if (!instruction || !instruction.trim()) {
-        // ... rest of function
         return {
             previousStitches: startingStitches,
             totalStitches: 0,
@@ -102,13 +101,12 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
     }
 
     // SMART "TO END" PREPROCESSING
-    // Calculate what "to end" means, but keep the original instruction for display
-    let processedInstruction = preprocessToEndInstructions(instruction, startingStitches, customActionsData);
+    let processedInstruction = preprocessToEndInstructions(instruction, startingStitches);
 
     let totalProduced = 0;
     let totalConsumed = 0;
 
-    // Handle legacy "K all" and "P all" (keeping for backward compatibility)
+    // Handle legacy "K all" and "P all"
     if (processedInstruction.toLowerCase().includes('k all') || processedInstruction.toLowerCase().includes('knit all')) {
         return {
             previousStitches: startingStitches,
@@ -131,27 +129,9 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         };
     }
 
-    // Helper function to get stitch value (checks custom actions first)
+    // Helper function to get stitch value
     const getStitchValue = (operation) => {
-        // Check custom actions first
-        if (customActionsData[operation]) {
-            const customAction = customActionsData[operation];
-
-            // Handle new format: { consumes: 5, produces: 1 }
-            if (typeof customAction === 'object' && customAction.consumes !== undefined && customAction.produces !== undefined) {
-                return { consumes: customAction.consumes, produces: customAction.produces };
-            }
-
-            // Handle legacy format: just a number (assumes 1:1 consumption)
-            if (typeof customAction === 'number') {
-                return { consumes: 1, produces: customAction };
-            }
-
-            // Fallback for malformed custom actions
-            return { consumes: 1, produces: 1 };
-        }
-        // Fall back to standard lookup
-        return STITCH_VALUES[operation] || { consumes: 1, produces: 1 }; // Default to 1:1
+        return STITCH_VALUES[operation] || { consumes: 1, produces: 1 };
     };
 
     // FIXED: Parse bracketed repeats - handles both [...]3 and [...] × 3 and incomplete [...]
@@ -161,9 +141,8 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
 
     while ((match = bracketPattern.exec(processedInstruction)) !== null) {
         const [fullMatch, bracketContent, repeatCount] = match;
-        const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete brackets
+        const count = repeatCount ? parseInt(repeatCount) : 1;
 
-        // Parse content inside brackets (can contain parentheses)
         const bracketResult = parseBracketContent(bracketContent, getStitchValue);
 
         const consumedInRepeat = bracketResult.consumed * count;
@@ -172,17 +151,15 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         totalConsumed += consumedInRepeat;
         totalProduced += producedInRepeat;
 
-        // Remove this bracket from remaining instruction
         remainingInstruction = remainingInstruction.replace(fullMatch, '');
     }
 
-    // FIXED: Parse parentheses repeats that are NOT inside brackets - (K2tog)3 and incomplete (K2tog
+    // FIXED: Parse parentheses repeats that are NOT inside brackets
     const parenPattern = /\(([^)]*)\)(?:\s*(?:×\s*)?(\d+))?/g;
     while ((match = parenPattern.exec(remainingInstruction)) !== null) {
         const [fullMatch, parenContent, repeatCount] = match;
-        const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete parens
+        const count = repeatCount ? parseInt(repeatCount) : 1;
 
-        // Parse content inside parentheses (can be complex like brackets)
         if (parenContent.trim()) {
             const parenResult = parseBracketContent(parenContent, getStitchValue);
             const consumedInRepeat = parenResult.consumed * count;
@@ -192,7 +169,6 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
             totalProduced += producedInRepeat;
         }
 
-        // Remove this paren from remaining instruction
         remainingInstruction = remainingInstruction.replace(fullMatch, '');
     }
 
@@ -202,7 +178,6 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
         .filter(op => op.length > 0);
 
     for (const operation of remainingOps) {
-
         // FIXED: Handle × multiplier operations like "K2tog × 10", "SSK × 5"
         const multiplierMatch = operation.match(/^(.+?)\s*×\s*(\d+)$/);
         if (multiplierMatch) {
@@ -224,10 +199,7 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
         } else if (operation.trim()) {
-            // Single operation like "K", "YO", "SSK"
-
-            const stitchValue = getStitchValue(operation); // REMOVED .toUpperCase()
-
+            const stitchValue = getStitchValue(operation);
             totalConsumed += stitchValue.consumes;
             totalProduced += stitchValue.produces;
         }
@@ -246,20 +218,15 @@ export const calculateRowStitches = (instruction, startingStitches = 0, customAc
 };
 
 /**
- * DEBUG VERSION: Process "K to end" and "P to end" instructions for calculation only
+ * Process "K to end" and "P to end" instructions for calculation only
  * Returns processed instruction for math, but doesn't change the display
  */
-/**
- * FIXED: Process "K to end" and "P to end" instructions for calculation only
- * Returns processed instruction for math, but doesn't change the display
- * NOW WITH SMART COMMA SPLITTING that respects brackets and parentheses
- */
-const preprocessToEndInstructions = (instruction, startingStitches, customActionsData = {}) => {
+const preprocessToEndInstructions = (instruction, startingStitches) => {
     if (!hasWorkToEndAction(instruction)) {
-        return instruction; // No "to end" patterns, return as-is
+        return instruction;
     }
 
-    // ✨ NEW: Smart comma splitting that respects brackets and parentheses
+    // Smart comma splitting that respects brackets and parentheses
     const smartSplit = (text) => {
         const parts = [];
         let currentPart = '';
@@ -278,7 +245,6 @@ const preprocessToEndInstructions = (instruction, startingStitches, customAction
             } else if (char === ')') {
                 parenDepth--;
             } else if (char === ',' && bracketDepth === 0 && parenDepth === 0) {
-                // Only split on commas that are outside brackets and parentheses
                 parts.push(currentPart.trim());
                 currentPart = '';
                 continue;
@@ -287,7 +253,6 @@ const preprocessToEndInstructions = (instruction, startingStitches, customAction
             currentPart += char;
         }
 
-        // Don't forget the last part
         if (currentPart.trim()) {
             parts.push(currentPart.trim());
         }
@@ -295,27 +260,23 @@ const preprocessToEndInstructions = (instruction, startingStitches, customAction
         return parts;
     };
 
-    // Parse everything BEFORE the "to end" commands to calculate consumed stitches
+    // Parse everything BEFORE the "to end" commands
     let tempConsumed = 0;
     const parts = smartSplit(instruction);
     const processedParts = [];
 
     for (const part of parts) {
         if (/k\s+to\s+end/gi.test(part)) {
-            // Calculate remaining stitches for K to end
             const remainingStitches = startingStitches - tempConsumed;
             processedParts.push(remainingStitches > 0 ? `K${remainingStitches}` : 'K0');
         } else if (/p\s+to\s+end/gi.test(part)) {
-            // Calculate remaining stitches for P to end
             const remainingStitches = startingStitches - tempConsumed;
             processedParts.push(remainingStitches > 0 ? `P${remainingStitches}` : 'P0');
         } else if (/k\/p\s+as\s+set/gi.test(part)) {
-            // Calculate remaining stitches for K/P as set (works like K to end)
             const remainingStitches = startingStitches - tempConsumed;
             processedParts.push(remainingStitches > 0 ? `K${remainingStitches}` : 'K0');
         } else {
-            // Regular part - calculate its consumption and add to processed parts
-            const partResult = calculatePartialStitches(part, customActionsData);
+            const partResult = calculatePartialStitches(part);
             tempConsumed += partResult.consumed;
             processedParts.push(part);
         }
@@ -325,18 +286,14 @@ const preprocessToEndInstructions = (instruction, startingStitches, customAction
 };
 
 /**
- * FIXED: Parse content inside brackets (can contain parentheses)
- * Handles: "K2, (P2tog)3, YO" inside [...] and incomplete content
+ * Parse content inside brackets (can contain parentheses)
  */
-// In src/shared/utils/stitchCalculatorUtils.js
-// Replace the parseBracketContent function with this fixed version:
-
 const parseBracketContent = (content, getStitchValue) => {
     let totalConsumed = 0;
     let totalProduced = 0;
 
     if (!content || !content.trim()) {
-        return { consumed: 0, produced: 0 }; // Empty brackets
+        return { consumed: 0, produced: 0 };
     }
 
     // First, handle any parentheses inside the bracket content
@@ -346,16 +303,14 @@ const parseBracketContent = (content, getStitchValue) => {
 
     while ((match = parenPattern.exec(content)) !== null) {
         const [fullMatch, parenContent, repeatCount] = match;
-        const count = repeatCount ? parseInt(repeatCount) : 1; // Default to 1 for incomplete
+        const count = repeatCount ? parseInt(repeatCount) : 1;
 
-        // Parse the operation inside parentheses (recursive call)
         if (parenContent.trim()) {
             const parenResult = parseBracketContent(parenContent, getStitchValue);
             totalConsumed += parenResult.consumed * count;
             totalProduced += parenResult.produced * count;
         }
 
-        // Remove this paren from working content
         workingContent = workingContent.replace(fullMatch, '');
     }
 
@@ -365,7 +320,7 @@ const parseBracketContent = (content, getStitchValue) => {
         .filter(op => op.length > 0);
 
     for (const operation of operations) {
-        // FIXED: Handle standalone multiplier operations like "K2tog × 10", "SSK × 5"
+        // Handle standalone multiplier operations
         const multiplierMatch = operation.match(/^(.+?)\s*×\s*(\d+)$/);
         if (multiplierMatch) {
             const [, stitchOp, repeatNum] = multiplierMatch;
@@ -376,7 +331,7 @@ const parseBracketContent = (content, getStitchValue) => {
             continue;
         }
 
-        // Handle numbered operations like "K5", "P3"
+        // Handle numbered operations
         const numberedMatch = operation.match(/^([A-Za-z]+)(\d+)$/);
         if (numberedMatch) {
             const [, stitchOp, repeatNum] = numberedMatch;
@@ -385,7 +340,6 @@ const parseBracketContent = (content, getStitchValue) => {
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
         } else if (operation.trim()) {
-            // Single operation like "K", "YO", "SSK"
             const stitchValue = getStitchValue(operation);
             totalConsumed += stitchValue.consumes;
             totalProduced += stitchValue.produces;
@@ -397,14 +351,8 @@ const parseBracketContent = (content, getStitchValue) => {
 
 /**
  * Helper function to calculate stitch consumption for a partial instruction
- * Used for "to end" calculations
  */
-/**
- * ✨ FIXED: Helper function to calculate stitch consumption for a partial instruction
- * Now handles ALL patterns including brackets with multipliers!
- * Used for "to end" calculations in preprocessToEndInstructions
- */
-const calculatePartialStitches = (partialInstruction, customActionsData = {}) => {
+const calculatePartialStitches = (partialInstruction) => {
     let totalConsumed = 0;
     let totalProduced = 0;
 
@@ -412,22 +360,11 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
         return { consumed: 0, produced: 0 };
     }
 
-    // Helper function to get stitch value (same as main function)
     const getStitchValue = (operation) => {
-        if (customActionsData[operation]) {
-            const customAction = customActionsData[operation];
-            if (typeof customAction === 'object' && customAction.consumes !== undefined && customAction.produces !== undefined) {
-                return { consumes: customAction.consumes, produces: customAction.produces };
-            }
-            if (typeof customAction === 'number') {
-                return { consumes: 1, produces: customAction };
-            }
-            return { consumes: 1, produces: 1 };
-        }
         return STITCH_VALUES[operation] || { consumes: 1, produces: 1 };
     };
 
-    // ✅ NEW: Handle bracketed repeats - [K2, P2] × 2
+    // Handle bracketed repeats
     const bracketPattern = /\[([^\]]*)\](?:\s*(?:×\s*)?(\d+))?/g;
     let remainingInstruction = partialInstruction;
     let match;
@@ -436,17 +373,15 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
         const [fullMatch, bracketContent, repeatCount] = match;
         const count = repeatCount ? parseInt(repeatCount) : 1;
 
-        // Parse content inside brackets using existing helper
         const bracketResult = parseBracketContent(bracketContent, getStitchValue);
 
         totalConsumed += bracketResult.consumed * count;
         totalProduced += bracketResult.produced * count;
 
-        // Remove this bracket from remaining instruction
         remainingInstruction = remainingInstruction.replace(fullMatch, '');
     }
 
-    // ✅ NEW: Handle parentheses repeats - (K2tog)3
+    // Handle parentheses repeats
     const parenPattern = /\(([^)]*)\)(?:\s*(?:×\s*)?(\d+))?/g;
     while ((match = parenPattern.exec(remainingInstruction)) !== null) {
         const [fullMatch, parenContent, repeatCount] = match;
@@ -461,13 +396,12 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
         remainingInstruction = remainingInstruction.replace(fullMatch, '');
     }
 
-    // Handle remaining operations (comma-separated)
+    // Handle remaining operations
     const remainingOps = remainingInstruction.split(',')
         .map(op => op.trim())
         .filter(op => op.length > 0);
 
     for (const operation of remainingOps) {
-        // Handle × multiplier operations like "K2tog × 10", "SSK × 5"
         const multiplierMatch = operation.match(/^(.+?)\s*×\s*(\d+)$/);
         if (multiplierMatch) {
             const [, stitchOp, repeatNum] = multiplierMatch;
@@ -478,7 +412,6 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
             continue;
         }
 
-        // Handle numbered operations like "K5", "P3"
         const numberedMatch = operation.match(/^([A-Za-z\/]+)(\d+)$/);
         if (numberedMatch) {
             const [, stitchOp, repeatNum] = numberedMatch;
@@ -487,7 +420,6 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
             totalConsumed += stitchValue.consumes * count;
             totalProduced += stitchValue.produces * count;
         } else if (operation.trim()) {
-            // Single operation like "1/1 LC", "K2tog", "K", etc.
             const stitchValue = getStitchValue(operation);
             totalConsumed += stitchValue.consumes;
             totalProduced += stitchValue.produces;
@@ -499,8 +431,6 @@ const calculatePartialStitches = (partialInstruction, customActionsData = {}) =>
 
 /**
  * Format stitch change for display
- * @param {number} change - Stitch change (+/-)
- * @returns {Object} - { text, color }
  */
 export const formatRunningTotal = (startStitches, endStitches, change) => {
     const baseText = `${startStitches} sts → ${endStitches} sts`;
@@ -524,20 +454,16 @@ export const formatRunningTotal = (startStitches, endStitches, change) => {
 };
 
 /**
- * Live calculation wrapper - auto-completes incomplete brackets/parens for real-time validation
- * @param {string} instruction - Raw instruction (may have unclosed brackets/parens)
- * @param {number} startingStitches - Starting stitch count
- * @param {Object} customActionsData - Custom actions lookup
- * @returns {Object} - Same as calculateRowStitches but for incomplete instructions
+ * Live calculation wrapper - auto-completes incomplete brackets/parens
  */
-export const calculateRowStitchesLive = (instruction, startingStitches = 0, customActionsData = {}) => {
+export const calculateRowStitchesLive = (instruction, startingStitches = 0) => {
     if (!instruction || !instruction.trim()) {
-        return calculateRowStitches(instruction, startingStitches, customActionsData);
+        return calculateRowStitches(instruction, startingStitches);
     }
 
     let calculationText = instruction;
 
-    // ONLY auto-close incomplete brackets/parens - NO expansion
+    // Auto-close incomplete brackets/parens
     let openBrackets = 0;
     let openParens = 0;
 
@@ -551,71 +477,13 @@ export const calculateRowStitchesLive = (instruction, startingStitches = 0, cust
     calculationText += ']'.repeat(Math.max(0, openBrackets));
     calculationText += ')'.repeat(Math.max(0, openParens));
 
-    // Let the main parser handle all the nested multiplier expansion correctly
-    return calculateRowStitches(calculationText, startingStitches, customActionsData);
+    return calculateRowStitches(calculationText, startingStitches);
 };
-
-
-// Add this function to the end of stitchCalculatorUtils.js, before the getPreviousRowStitches function:
-
-/**
- * Get stitch consumption for a single action
- * @param {string} action - The stitch action (e.g., 'K', 'K2tog', 'YO')
- * @param {Object} customActionsData - Custom actions lookup from project data
- * @returns {number} - Number of stitches this action consumes
- */
-export const getStitchConsumption = (action, customActionsData = {}) => {
-    // Check custom actions first
-    if (customActionsData[action]) {
-        const customAction = customActionsData[action];
-
-        // Handle new format: { consumes: 5, produces: 1 }
-        if (typeof customAction === 'object' && customAction.consumes !== undefined) {
-            return customAction.consumes;
-        }
-
-        // Handle legacy format: just a number (assumes 1:1 consumption)
-        if (typeof customAction === 'number') {
-            return 1; // Legacy custom actions assumed 1 consumed
-        }
-
-        // Fallback for malformed custom actions
-        return 1;
-    }
-
-    // Use existing STITCH_VALUES lookup
-    const stitchValue = STITCH_VALUES[action];
-    return stitchValue ? stitchValue.consumes : 1; // Default to 1 if unknown
-};
-
-export const getMaxSafeMultiplier = (action, remainingStitches, customActionsData = {}) => {
-
-    if (remainingStitches <= 0) return 1; // Can't do anything with no stitches
-
-    const singleActionConsumption = getStitchConsumption(action, customActionsData);
-
-    if (singleActionConsumption === 0) {
-        return 999; // Non-consuming actions like YO can be done many times
-    }
-
-    // Calculate max without overconsumption
-    const maxMultiplier = Math.floor(remainingStitches / singleActionConsumption);
-
-    // Clamp between 1 and 999
-    return Math.max(1, Math.min(999, maxMultiplier));
-
-    //return 3;
-};
-
 
 /**
  * Get previous row stitch count for smart calculations
- * @param {Array} rowInstructions - All row instructions
- * @param {number} currentRowIndex - Index of current row being calculated
- * @param {number} componentStartingStitches - Stitches at component start
- * @returns {number} - Stitch count available for current row
  */
-export const getPreviousRowStitches = (rowInstructions, currentRowIndex, componentStartingStitches, customActionsData = {}) => {
+export const getPreviousRowStitches = (rowInstructions, currentRowIndex, componentStartingStitches) => {
     if (currentRowIndex === 0) {
         return componentStartingStitches;
     }
@@ -623,7 +491,7 @@ export const getPreviousRowStitches = (rowInstructions, currentRowIndex, compone
     let currentStitches = componentStartingStitches;
 
     for (let i = 0; i < currentRowIndex; i++) {
-        const result = calculateRowStitches(rowInstructions[i], currentStitches, customActionsData);
+        const result = calculateRowStitches(rowInstructions[i], currentStitches);
         currentStitches = result.totalStitches;
     }
 
@@ -632,17 +500,13 @@ export const getPreviousRowStitches = (rowInstructions, currentRowIndex, compone
 
 /**
  * Determine if a row instruction is complete and ready to save
- * @param {string} instruction - Row instruction text
- * @param {number} startingStitches - Stitches available at start of row
- * @param {Object} customActionsData - Custom actions lookup
- * @returns {Object} - { isComplete, reason, remaining? }
  */
-export const isRowComplete = (instruction, startingStitches, customActionsData = {}) => {
+export const isRowComplete = (instruction, startingStitches) => {
     if (!instruction || !instruction.trim()) {
         return { isComplete: false, reason: 'empty' };
     }
 
-    // Check for "to end" commands first - these are always complete
+    // Check for "to end" commands first
     if (instruction.includes('K to end') || instruction.includes('P to end') ||
         instruction.includes('K/P as set') ||
         instruction.includes('K all') || instruction.includes('P all')) {
@@ -650,7 +514,7 @@ export const isRowComplete = (instruction, startingStitches, customActionsData =
     }
 
     // Check stitch consumption
-    const calculation = calculateRowStitchesLive(instruction, startingStitches, customActionsData);
+    const calculation = calculateRowStitchesLive(instruction, startingStitches);
     if (!calculation || !calculation.isValid) {
         return { isComplete: false, reason: 'invalid' };
     }
@@ -660,7 +524,7 @@ export const isRowComplete = (instruction, startingStitches, customActionsData =
         return { isComplete: true, reason: 'all_stitches_consumed' };
     }
 
-    // Row incomplete - provide remaining count
+    // Row incomplete
     return {
         isComplete: false,
         reason: 'incomplete',
@@ -672,12 +536,8 @@ export const isRowComplete = (instruction, startingStitches, customActionsData =
 
 /**
  * Calculate final stitch count after processing all row instructions
- * @param {Array} rowInstructions - Array of row instruction strings
- * @param {number} startingStitches - Initial stitch count
- * @param {Object} customActionsData - Custom actions lookup from project
- * @returns {number} - Final stitch count after all rows
  */
-export const calculateFinalStitchCount = (rowInstructions, startingStitches, customActionsData = {}) => {
+export const calculateFinalStitchCount = (rowInstructions, startingStitches) => {
     if (!rowInstructions || rowInstructions.length === 0) {
         return startingStitches;
     }
@@ -685,9 +545,18 @@ export const calculateFinalStitchCount = (rowInstructions, startingStitches, cus
     let currentStitches = startingStitches;
 
     for (const instruction of rowInstructions) {
-        const result = calculateRowStitches(instruction, currentStitches, customActionsData);
+        const result = calculateRowStitches(instruction, currentStitches);
         currentStitches = result.totalStitches;
     }
 
     return currentStitches;
+};
+
+export default {
+    calculateRowStitches,
+    calculateRowStitchesLive,
+    formatRunningTotal,
+    getPreviousRowStitches,
+    isRowComplete,
+    calculateFinalStitchCount
 };
