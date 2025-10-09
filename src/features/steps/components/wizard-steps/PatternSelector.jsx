@@ -208,20 +208,8 @@ export const PatternSelector = ({
     <>
       <div className="space-y-4 relative">
         {/* Header with Prep Note */}
-        <div className="text-center">
-          <div className="content-header-with-buttons">
-            <h2 className="content-title">{headerText}</h2>
-            {showPrepNote && (
-              <div className="button-group">
-                <button
-                  onClick={handleOpenModal}
-                  className="btn-secondary btn-sm"
-                >
-                  {hasNote ? 'Edit Preparation Note' : '+ Add Preparation Note'}
-                </button>
-              </div>
-            )}
-          </div>
+        <div>
+          <h2 className="content-header-primary">Select Pattern</h2>
         </div>
 
         {/* Pattern Type Toggle */}
