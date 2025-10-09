@@ -16,7 +16,7 @@ import { useActiveContext } from '../../../shared/hooks/useActiveContext';
 import WizardContextBar from './wizard-layout/WizardContextBar';
 import PageHeader from '../../../shared/components/PageHeader';
 import { calculateFinalStitchCount } from '../../../shared/utils/stitchCalculatorUtils';
-import { isAdvancedRowByRowPattern, getKeyboardPatternKey } from '../../../shared/utils/stepDisplayUtils';
+import { isAdvancedRowByRowPattern } from '../../../shared/utils/stepDisplayUtils';
 import { StandardModal } from '../../../shared/components/modals/StandardModal';
 import PrepNoteColorScreen from './wizard-screens/PrepNoteColorScreen';
 import ColorSelectionScreen from './wizard-screens/ColorSelectionScreen';
@@ -162,7 +162,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
    * Detect if a pattern has intrinsic shaping from row-by-row instructions
    * Put this function inside StepWizard.jsx since it needs both utilities
    */
-  const detectIntrinsicShaping = (wizardData, currentStitches, customActionsData = {}) => {
+  const detectIntrinsicShaping = (wizardData, currentStitches) => {
     const { pattern, entryMode, rowInstructions } = wizardData.stitchPattern || {};
 
     // Only check advanced row-by-row patterns
@@ -176,8 +176,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     }
 
     // Calculate final stitch count using existing utilities
-    const finalStitches = calculateFinalStitchCount(rowInstructions, currentStitches, customActionsData);
-
+    const finalStitches = calculateFinalStitchCount(rowInstructions, currentStitches);
     // Check if stitches changed
     if (finalStitches !== currentStitches) {
       const netChange = finalStitches - currentStitches;
@@ -382,23 +381,10 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                 <button
                   onClick={() => {
 
-                    // 🔄 REPLACED: Get custom actions using centralized pattern key function
-                    const customActionsData = {};
-                    const patternType = wizard.wizardData.stitchPattern.pattern;
-                    const patternKey = getKeyboardPatternKey(patternType);
-                    const customActions = currentProject?.customKeyboardActions?.[patternKey] || [];
-
-                    customActions.forEach(action => {
-                      if (typeof action === 'object' && action.name) {
-                        customActionsData[action.name] = action;
-                      }
-                    });
-
-                    // Check for intrinsic shaping
+                    // Check for intrinsic shaping (no custom actions needed anymore)
                     const shapingInfo = detectIntrinsicShaping(
                       wizard.wizardData,
-                      wizard.currentStitches,
-                      customActionsData
+                      wizard.currentStitches
                     );
 
                     if (shapingInfo?.hasIntrinsicShaping) {
