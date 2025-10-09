@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
 import StepWizard from './StepWizard';
 import ComponentEndingWizard from './ComponentEndingWizard';
-import EditScreenHeader from '../../../shared/components/EditScreenHeader';
+import PageHeader from '../../../shared/components/PageHeader';
+import TabBar from '../../../shared/components/TabBar';
 import StepsList from '../../projects/components/ManageSteps/StepsList';
 import EditPatternModal from './edit/EditPatternModal';
 import EditStepRouter from './edit/EditStepRouter';
@@ -30,7 +31,7 @@ import { getHumanReadableDescription } from '../../../shared/utils/stepDescripti
  * Handles step creation, editing, deletion, and navigation
  * for component construction workflows
  */
-const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, mode = 'project' }) => {
+const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, onChangeTab, mode = 'project' }) => {
   // ===== STATE MANAGEMENT =====
   const { currentProject, dispatch } = useProjectsContext();
   const [isEditing, setIsEditing] = useState(false);
@@ -139,7 +140,23 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
 
   const editableStepIndex = getEditableStepIndex();
 
+  // ===== TAB NAVIGATION =====
+  const handleTabChange = (tabId) => {
+    if (tabId === 'components') {
+      // Already on components view (ManageSteps is part of components)
+      // Could scroll to top or do nothing
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
 
+    // Navigate to other tabs by going back to ProjectDetail with the selected tab
+    if (onChangeTab) {
+      onChangeTab(tabId);
+    } else {
+      // Fallback: just go back (assumes ProjectDetail will handle)
+      onBack();
+    }
+  };
 
   // ===== NOTE HANDLERS =====
   const handlePrepNoteClick = (stepIndex) => {
@@ -387,6 +404,20 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
     setEditingStepIndex(null);
   };
 
+  // ===== STATUS ICON HELPER =====
+  const getStatusIcon = (statusType) => {
+    const statusIcons = {
+      'ready_to_knit': '⚡',
+      'in_progress': '🧶',
+      'complete': '✅',
+      'edit_mode': '🔧',
+      'planning': '📝',
+      'dormant': '😴',
+      'frogged': '🐸'
+    };
+    return statusIcons[statusType] || '🔧';
+  };
+
   // ===== CONDITIONAL RENDERS =====
 
   // Step editing - Smart routing
@@ -406,7 +437,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
     }
 
     // EDIT flow - use router for specific edits
-
     if (editMode === 'rowByRow' || editMode === 'duration' || editMode === 'shaping' || editMode === 'pattern') {
       return (
         <EditStepRouter
@@ -466,18 +496,40 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
   return (
     <div className="min-h-screen bg-yarn-50">
       <div className="app-container bg-white min-h-screen shadow-lg">
-        <EditScreenHeader
+        {/* Header with branding and navigation */}
+        <PageHeader
+          useBranding={true}
+          onHome={onGoToLanding}
+          compact={true}
           onBack={onBack}
-          onGoToLanding={onGoToLanding}
-          title={`${component.name} - ${componentStatus.display.replace(/^[^\w\s]+\s*/, '')}`}
-          subtitle={`${currentProject?.name} • Managing ${component.steps.length} steps`}
-          statusClass={componentStatus.headerStyle}
-          statusType={componentStatus.status}
+          showCancelButton={true}
+          onCancel={onBack}
         />
 
+        {/* Project Tabs */}
+        <TabBar currentTab="components" onTabChange={handleTabChange}>
+          <TabBar.Tab id="overview" label="Overview" />
+          <TabBar.Tab id="components" label="Components" />
+          <TabBar.Tab id="details" label="Details" />
+          <TabBar.Tab id="checklist" label="Checklist" />
+        </TabBar>
+
+        {/* Component Status Bar */}
+        <div className={`${componentStatus.headerStyle} rounded-xl p-3 mx-6 mt-6 mb-4`}>
+          <div className="flex items-center gap-3">
+            <span className="text-2xl flex-shrink-0">{getStatusIcon(componentStatus.status)}</span>
+            <div className="flex-1">
+              <p className="text-lg font-medium">
+                {`${component.name} - ${componentStatus.display.replace(/^[^\w\s]+\s*/, '')}`}
+              </p>
+              <p className="text-xs mt-1">
+                {`${currentProject?.name} • Managing ${component.steps.length} steps`}
+              </p>
+            </div>
+          </div>
+        </div>
+
         <div className="px-6 pb-6 pt-3 bg-yarn-50 stack-lg">
-
-
           <StepsList
             component={component}
             componentName={component.name}
@@ -510,8 +562,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
           {/* Action Buttons */}
           {!isComponentFullyEntered() ? (
             <div className="flex gap-3">
-
-
               {component.steps.length > 0 && (
                 <button
                   onClick={handleFinishComponent}
@@ -529,12 +579,9 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, m
                 <span className="text-lg">➕</span>
                 Add Step
               </button>
-
-
             </div>
           ) : (
             <div className="flex gap-3">
-
               <button
                 onClick={handleViewAllComponents}
                 className="flex-1 btn-secondary flex items-center justify-center gap-2"

@@ -254,6 +254,11 @@ const IntelliknitMVPContent = () => {
           onBack={handleBackToProjectDetail}
           onStartKnitting={handleStartKnitting}
           onGoToLanding={goToLanding}
+          onChangeTab={(tabId) => {
+            // Navigate back to ProjectDetail with the selected tab
+            goToProjectDetail(tabId);
+          }}
+          mode="project"
         />
       );
 

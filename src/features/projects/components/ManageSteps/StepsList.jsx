@@ -79,13 +79,7 @@ const StepsList = ({
                         </>
                     ) : (
                         <>
-                            <button
-                                onClick={onBack}
-                                className="flex-1 btn-secondary flex items-center justify-center gap-2 btn-sm"
-                            >
-                                <span className="text-lg">📋</span>
-                                View Project
-                            </button>
+
                             <button
                                 onClick={onStartKnitting}
                                 className="flex-1 btn-primary flex items-center justify-center gap-2 btn-sm"
