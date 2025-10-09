@@ -3,7 +3,6 @@ import React, { useState, useEffect } from 'react';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 import { formatColorworkDisplay } from '../../../../shared/utils/colorworkDisplayUtils';
 
-
 const PrepNoteColorScreen = ({
     wizardData,
     updateWizardData,
@@ -64,11 +63,11 @@ const PrepNoteColorScreen = ({
     return (
         <div className="stack-lg">
             <div>
-                <h2 className="content-header-primary">Set up step</h2>
-                <p className="content-subheader">Configure pattern and color for this step</p>
+                <h2 className="content-header-primary">Step Options</h2>
+                <p className="content-subheader">Add notes and modify settings</p>
             </div>
 
-            {/* Setup Notes */}
+            {/* Preparation Note */}
             <div>
                 <label className="form-label">
                     Preparation Note <span className="text-wool-400 text-sm font-normal">(Optional)</span>
@@ -82,6 +81,10 @@ const PrepNoteColorScreen = ({
                 />
             </div>
 
+            {/* Helper Text */}
+            <div className="text-sm text-wool-600 text-center py-2 border-t border-b border-wool-200">
+                Uncheck any option below to customize it for this step
+            </div>
 
             {/* Color Checkbox */}
             {component.colorMode === 'multiple' && component.defaultColorwork && (
@@ -95,12 +98,7 @@ const PrepNoteColorScreen = ({
                             className="checkbox-sage"
                         />
                         <span className={`checkbox-label ${useDefaultColor ? 'checkbox-label-checked' : ''}`}>
-                            Use default: {(() => {
-                                const display = formatColorworkDisplay(component.defaultColorwork, yarns);
-                                console.log('CHECKBOX DISPLAY:', display, component.defaultColorwork);
-                                return display;
-                            })()}
-
+                            {formatColorworkDisplay(component.defaultColorwork, yarns)}
                         </span>
                     </label>
                 </div>
@@ -118,12 +116,11 @@ const PrepNoteColorScreen = ({
                             className="checkbox-sage"
                         />
                         <span className={`checkbox-label ${useDefaultPattern ? 'checkbox-label-checked' : ''}`}>
-                            Use default: {component.defaultPattern.pattern}
+                            {component.defaultPattern.pattern}
                         </span>
                     </label>
                 </div>
             )}
-
 
             {/* Navigation Buttons */}
             <div className="pt-6 border-t border-wool-100">

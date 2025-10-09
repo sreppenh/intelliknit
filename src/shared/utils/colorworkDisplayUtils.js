@@ -18,6 +18,12 @@ export const getYarnByLetter = (yarns, letter) => {
 export const getYarnDisplayName = (yarn) => {
     if (!yarn) return 'Unknown Color';
     const name = yarn.color || `Color ${yarn.letter}`;
+
+    // If the name is already "Color X", don't add redundant (Color X)
+    if (name === `Color ${yarn.letter}`) {
+        return name;
+    }
+
     return `${name} (Color ${yarn.letter})`;
 };
 
