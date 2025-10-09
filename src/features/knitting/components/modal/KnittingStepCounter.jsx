@@ -1,6 +1,6 @@
 // src/features/knitting/components/modal/KnittingStepCounter.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { Plus, Minus, Target, Check, RotateCcw, Lock } from 'lucide-react';
+import { Check, RotateCcw, Lock } from 'lucide-react';
 import { useRowCounter } from '../../hooks/useRowCounter';
 import { getRowInstruction, getStepType } from '../../../../shared/utils/KnittingInstructionService';
 import {
@@ -20,11 +20,8 @@ import {
     getLengthTarget,
     getLengthProgressDisplay,
     formatLengthCounterDisplay,
-    shouldSuggestCompletion,
-    getCompletionSuggestionText,
     shouldPromptGaugeUpdate,
     getGaugeUpdatePromptData,
-    updateProjectGaugeFromMeasurement,
 } from '../../../../shared/utils/gaugeUtils';
 
 // ✅ NEW: Progress tracking utilities
@@ -59,22 +56,11 @@ const KnittingStepCounter = ({
         !canStartStep(stepIndex, component.steps, component.id, project.id) :
         false;
 
-    // ✅ NEW: Get progress state
-    const progressState = !isNotepadMode && step && component && project ?
-        getStepProgressState(step.id, component.id, project.id) :
-        null;
-
     const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step, isNotepadMode);
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
 
     // Side tracking hook
     const sideTracking = useSideTracking(project?.id, component?.id, navigation.currentStep, step, component);
-
-    // Gauge update state
-    const [showGaugePrompt, setShowGaugePrompt] = useState(false);
-    const [gaugePromptData, setGaugePromptData] = useState(null);
-
-    // Add this at the top of KnittingStepCounter component (after other useState hooks)
 
     // Animation state for visual feedback
     const [isAnimating, setIsAnimating] = useState(false);
@@ -554,47 +540,6 @@ const KnittingStepCounter = ({
 
     const instructionResult = getCurrentInstruction();
 
-    // Gauge update handling
-    const checkForGaugeUpdate = () => {
-        if (!isLengthStep) return;
-
-        const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
-        if (shouldPrompt) {
-            if (isNotepadMode) {
-                const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
-                const updatedProject = updateProjectGaugeFromMeasurement(project, promptData);
-
-                if (updateProject) {
-                    updateProject(updatedProject);
-                }
-            } else {
-                const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
-                setGaugePromptData(promptData);
-                setShowGaugePrompt(true);
-            }
-        }
-    };
-
-    const handleGaugeAccept = () => {
-        if (gaugePromptData) {
-            const updatedProject = updateProjectGaugeFromMeasurement(project, gaugePromptData);
-
-            if (updateProject) {
-                updateProject(updatedProject);
-            }
-
-            setGaugePromptData({
-                ...gaugePromptData,
-                success: true
-            });
-        }
-    };
-
-    const handleGaugeDecline = () => {
-        setShowGaugePrompt(false);
-        setGaugePromptData(null);
-    };
-
     const handleStepComplete = () => {
         if (isStepLocked) return; // Prevent completion of locked steps
 
@@ -741,64 +686,6 @@ const KnittingStepCounter = ({
         }
 
         console.log('=== handleAutoAdvanceToNextStep END ===');
-    };
-
-    const handleRowIncrement = () => {
-        console.log('handleRowIncrement called', {
-            stepType,
-            currentRow,
-            totalRows,
-            isStepLocked
-        });
-
-        if (isStepLocked) return; // Prevent incrementing locked steps
-
-        if (stepType === 'single_action') {
-            console.log('Single action handler triggered');
-
-            const progress = getStepProgressState(step.id, component.id, project.id);
-            console.log('Current progress state:', progress);
-
-            const alreadyCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
-            console.log('Already completed?', alreadyCompleted);
-
-            if (!alreadyCompleted) {
-                console.log('Calling handleStepComplete');
-                handleStepComplete();
-                console.log('handleStepComplete returned');
-            }
-
-            if (!isNotepadMode) {
-                console.log('Calling handleAutoAdvanceToNextStep');
-                handleAutoAdvanceToNextStep();
-                console.log('handleAutoAdvanceToNextStep returned');
-            }
-            return;
-        }
-
-        if (stepType === 'fixed_multi_row') {
-            if (isNotepadMode && currentRow === totalRows) {
-                handleStepComplete();
-                return;
-            } else if (currentRow === totalRows) {
-                handleStepComplete();
-                handleAutoAdvanceToNextStep();
-                return;
-            } else {
-                incrementRow();
-            }
-        } else if (stepType === 'length_based') {
-            incrementRow();
-        } else {
-            incrementRow();
-        }
-    };
-
-    const handleRowDecrement = () => {
-        if (isStepLocked) return; // Prevent decrementing locked steps
-        if (currentRow > 1) {
-            decrementRow();
-        }
     };
 
     // Handle pattern offset changes
@@ -964,10 +851,10 @@ const KnittingStepCounter = ({
 
                             {/* Current Row Number - WITH ANIMATION */}
                             <div className={`text-5xl font-bold ${theme.textPrimary} min-w-[100px] text-center transition-all duration-300 ${isAnimating
-                                    ? animationDirection === 'up'
-                                        ? 'scale-110 text-sage-600'
-                                        : 'scale-110 text-orange-600'
-                                    : 'scale-100'
+                                ? animationDirection === 'up'
+                                    ? 'scale-110 text-sage-600'
+                                    : 'scale-110 text-orange-600'
+                                : 'scale-100'
                                 }`}>
                                 {currentRow}
                             </div>

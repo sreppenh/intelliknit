@@ -1,7 +1,6 @@
 // src/features/knitting/components/modal/KnittingStepModal.jsx
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
-import { X, RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { RotateCcw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useStepNavigation } from '../../hooks/useStepNavigation';
 import { useKnittingProgress } from '../../hooks/useKnittingProgress';
 import { getModalTheme } from './KnittingModalTheme';
@@ -36,7 +35,7 @@ const KnittingStepModal = ({
     );
 
     // States for cards
-    const [showCelebration, setShowCelebration] = useState(false);
+    const [setShowCelebration] = useState(false);
     const [showGaugeCard, setShowGaugeCard] = useState(false);
     const [gaugeData, setGaugeData] = useState(null);
 

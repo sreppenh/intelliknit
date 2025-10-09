@@ -46,17 +46,6 @@ export const useRowCounter = (projectId, componentId, stepIndex, step, isNotepad
         }
     }, [storageKey, step.startingStitches]);
 
-    // Save to localStorage whenever state changes
-    {/*}    const updateState = useCallback((newState) => {
-        const updatedState = typeof newState === 'function' ? newState(rowState) : newState;
-        setRowState(updatedState);
-        try {
-            window.localStorage.setItem(storageKey, JSON.stringify(updatedState));
-        } catch (error) {
-            console.warn(`Error saving to localStorage:`, error);
-        }
-    }, [storageKey, rowState]); */}
-
     const updateState = useCallback((newState) => {
         setRowState(prev => {
             const updatedState = typeof newState === 'function' ? newState(prev) : newState;

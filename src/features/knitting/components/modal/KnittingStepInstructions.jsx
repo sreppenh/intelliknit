@@ -1,6 +1,5 @@
 // src/features/knitting/components/modal/KnittingStepInstructions.jsx
 import React, { useState } from 'react';
-import { CheckCircle2, Circle } from 'lucide-react';
 import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
 import { isLengthBasedStep } from '../../../../shared/utils/gaugeUtils';
 import { ChevronDown, ChevronUp, HelpCircle } from 'lucide-react';

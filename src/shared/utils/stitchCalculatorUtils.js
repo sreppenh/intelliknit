@@ -552,11 +552,21 @@ export const calculateFinalStitchCount = (rowInstructions, startingStitches) => 
     return currentStitches;
 };
 
+/**
+ * Get stitch consumption for a single action
+ * Used by marker instructions to calculate stitch placement
+ */
+export const getStitchConsumption = (action) => {
+    const stitchValue = STITCH_VALUES[action];
+    return stitchValue ? stitchValue.consumes : 1; // Default to 1 if unknown
+};
+
 export default {
     calculateRowStitches,
     calculateRowStitchesLive,
     formatRunningTotal,
     getPreviousRowStitches,
     isRowComplete,
-    calculateFinalStitchCount
+    calculateFinalStitchCount,
+    getStitchConsumption  // Add to exports
 };

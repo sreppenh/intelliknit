@@ -1,8 +1,6 @@
 // src/features/steps/components/EditConfigScreen.jsx
 import React from 'react';
 import EditDurationForm from './EditDurationForm';
-import EvenDistributionConfig from '../shaping-wizard/EvenDistributionConfig';
-import PhaseConfig from '../shaping-wizard/PhaseConfig';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';
 import EditEvenDistributionForm from './EditEvenDistributionForm';
@@ -80,20 +78,6 @@ const EditConfigScreen = ({
     };
 
     const configType = getConfigType();
-
-    // Get current stitches (needed for shaping components)
-    const getCurrentStitches = () => {
-        if (editingStepIndex === 0) {
-            return step.startingStitches || 0;
-        }
-
-        // Get from previous step
-        const previousStep = component.steps[editingStepIndex - 1];
-        return previousStep?.endingStitches || previousStep?.expectedStitches || 0;
-    };
-
-    const currentStitches = getCurrentStitches();
-    const construction = step.construction || 'flat';
 
     // Render appropriate configuration component
     switch (configType) {

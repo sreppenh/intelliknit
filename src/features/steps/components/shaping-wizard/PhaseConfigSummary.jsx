@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
 import { useActiveContext } from '../../../../shared/hooks/useActiveContext'; // ✅ FIXED: Use context bridge
-import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { PhaseCalculationService } from '../../../../shared/utils/PhaseCalculationService';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import ShapingHeader from './ShapingHeader';
@@ -35,10 +34,6 @@ const PhaseConfigSummary = ({
   const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
   const [showBackWarning, setShowBackWarning] = useState(false);
 
-  const [showExitModal, setShowExitModal] = useState(false);
-  const [exitType, setExitType] = useState('exit');
-  const [customNavigation, setCustomNavigation] = useState(null);
-
   // Determine if we're in edit mode
   const isEditMode = mode === 'edit';
 
@@ -53,12 +48,6 @@ const PhaseConfigSummary = ({
         description: result.instruction
       });
     } else {
-      // create mode: Use saveStepAndNavigate (triggers ADD_STEP)
-      const originalPhaseData = {
-        phases: phases,
-        construction: construction,
-        calculation: result,
-      };
 
       const saveResult = await saveStepAndNavigate({
         instruction: result.instruction,

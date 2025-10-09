@@ -12,7 +12,6 @@ const NoteCard = ({ note, onOpen, onDelete, onRename }) => {
 
     // Get note info
     const hasStep = note.components?.[0]?.steps?.length > 0;
-    const stepCount = note.components?.[0]?.steps?.length || 0;
     const hasYarns = note.yarns?.length > 0;
     const hasGauge = note.gauge?.stitchGauge || note.gauge?.rowGauge;
     const hasNeedles = note.needleInfo?.trim();
@@ -44,13 +43,6 @@ const NoteCard = ({ note, onOpen, onDelete, onRename }) => {
         }
         setShowRenameModal(false);
         setNewName('');
-    };
-
-    // Handle rename modal open
-    const openRenameModal = (e) => {
-        e.stopPropagation();
-        setNewName(note.name);
-        setShowRenameModal(true);
     };
 
     // Handle delete modal open

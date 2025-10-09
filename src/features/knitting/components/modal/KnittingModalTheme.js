@@ -1,6 +1,5 @@
 // src/features/knitting/components/modal/KnittingModalTheme.js
 import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
-import { getPrepCardColorInfo } from '../../../../shared/utils/prepCardUtils';
 
 /**
  * Get theme configuration for knitting step modal based on step type and context

@@ -2,7 +2,6 @@
 import React from 'react';
 import ShapingHeader from './ShapingHeader';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
-import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 
 const MarkerSequenceSummary = ({

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
-import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getUnifiedProjectStatus } from '../../../shared/utils/unifiedProjectStatus';
 
 
@@ -47,31 +46,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack, onGoToLanding }) 
       other: '✨'
     };
     return icons[projectType] || '🧶';
-  };
-
-  // Calculate streak days (consecutive days of any activity)
-  const getStreakDays = (project) => {
-    if (!project.activityLog || project.activityLog.length === 0) return 0;
-
-    let streak = 0;
-    const today = new Date();
-    const msPerDay = 24 * 60 * 60 * 1000;
-
-    // Check each day going backwards from today
-    for (let i = 0; i < 30; i++) { // Check last 30 days max
-      const checkDate = new Date(today.getTime() - (i * msPerDay));
-      const dayString = checkDate.toISOString().split('T')[0];
-
-      if (project.activityLog.includes(dayString)) {
-        streak = i + 1;
-      } else if (i === 0) {
-        // No activity today, check if streak continues from yesterday
-        continue;
-      } else {
-        break; // Streak broken
-      }
-    }
-    return streak;
   };
 
   // NEW: Use unified status system
@@ -240,24 +214,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack, onGoToLanding }) 
     }
   };
 
-  // Get last activity display
-  const getLastActivityDisplay = (project) => {
-    if (!project.lastActivityAt) {
-      const daysSinceCreated = Math.floor((Date.now() - new Date(project.createdAt).getTime()) / (1000 * 60 * 60 * 24));
-      if (daysSinceCreated === 0) return 'Created today';
-      if (daysSinceCreated === 1) return 'Created yesterday';
-      return `Created ${daysSinceCreated} days ago`;
-    }
-
-    const days = Math.floor((Date.now() - new Date(project.lastActivityAt).getTime()) / (1000 * 60 * 60 * 24));
-
-    if (days === 0) return 'Active today';
-    if (days === 1) return 'Active yesterday';
-    if (days < 7) return `Active ${days} days ago`;
-    if (days < 30) return `Active ${Math.floor(days / 7)} weeks ago`;
-    return `Active ${Math.floor(days / 30)} months ago`;
-  };
-
   const getEmptyStateContent = () => {
     switch (filterState) {
       case 'active':
@@ -294,15 +250,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack, onGoToLanding }) 
         };
     }
   };
-
-  // Handle navigation
-  const handleBackToLanding = () => {
-    if (onBack) {
-      onBack();
-    }
-  };
-
-  const filteredProjects = getFilteredProjects();
 
   return (
     <div className="min-h-screen bg-yarn-50">
@@ -460,19 +407,6 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack, onGoToLanding }) 
                 const componentInfo = getComponentInfo(project);
                 const projectIcon = getProjectIcon(project.projectType);
                 const statusText = getStatusWithDate(project, personality);
-
-                // Enhanced hover that coordinates with status color
-                const getHoverClass = (borderColor) => {
-                  const colorMap = {
-                    'border-orange-400': 'hover:border-orange-500 hover:bg-orange-25',
-                    'border-yarn-400': 'hover:border-yarn-500 hover:bg-yarn-25',
-                    'border-lavender-400': 'hover:border-lavender-500 hover:bg-lavender-25',
-                    'border-wool-400': 'hover:border-wool-500 hover:bg-wool-50',
-                    'border-sage-400': 'hover:border-sage-500 hover:bg-sage-25',
-                    'border-blue-400': 'hover:border-blue-500 hover:bg-blue-25'
-                  };
-                  return `${colorMap[borderColor] || 'hover:border-sage-400 hover:bg-wool-50'} hover:shadow-md`;
-                };
 
                 return (
                   <div

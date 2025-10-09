@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, RotateCcw } from 'lucide-react';
+import { RotateCcw } from 'lucide-react';
 import { useActiveContext } from '../../../shared/hooks/useActiveContext';
 import { useKnittingProgress } from '../../knitting/hooks/useKnittingProgress';
 import { getModalTheme } from '../../knitting/components/modal/KnittingModalTheme';
@@ -28,7 +28,7 @@ const NoteCounter = ({ onBack, onGoToLanding }) => {
     const [gaugeData, setGaugeData] = useState(null);
 
     // Celebration state
-    const [showCelebration, setShowCelebration] = useState(false);
+    const [setShowCelebration] = useState(false);
     const [celebrationData, setCelebrationData] = useState(null);
 
     // Extract step data (with fallback for hooks)

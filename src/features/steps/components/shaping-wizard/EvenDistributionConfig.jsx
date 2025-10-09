@@ -29,7 +29,7 @@ const EvenDistributionConfig = ({
 
   // ✅ FIXED: Use context bridge instead of hardcoded projects context
   const { dispatch } = useActiveContext(mode);
-  const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
+  const { error, clearError } = useStepSaveHelper();
 
   // Get initial configuration from shapingData
   const getInitialConfig = () => {
@@ -53,38 +53,6 @@ const EvenDistributionConfig = ({
     console.log('🔧 EvenDistributionConfig handleFormSave called with mode:', mode);
     console.log('🔧 configData:', configData);
     console.log('🔧 dispatch function:', dispatch);
-    // Preserve original data structure and flow - EXACTLY as before
-    const originalShapingData = {
-      ...configData,
-      construction,
-      calculation: configData.calculation
-    };
-
-    // Save the step using the helper
-    const saveResult = await saveStepAndNavigate({
-      instruction: configData.calculation.instruction,
-      effect: {
-        success: !configData.calculation.error,
-        endingStitches: configData.calculation.endingStitches,
-        startingStitches: configData.calculation.startingStitches,
-        totalRows: 1,
-        error: configData.calculation.error
-      },
-      wizardData: {
-        stitchPattern: wizardData.stitchPattern,
-        hasShaping: true,
-        shapingConfig: {
-          type: 'even_distribution',
-          config: originalShapingData
-        }
-      },
-      currentStitches,
-      construction,
-      componentIndex,
-      editingStepIndex,
-      dispatch,
-      skipNavigation: true // Don't interfere with existing navigation
-    });
 
     // Navigate back to component steps
     onExitToComponentSteps();

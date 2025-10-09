@@ -9,7 +9,6 @@ import { useState, useEffect } from 'react';
 export const useSideTracking = (projectId, componentId, stepIndex, step, component) => {
     // Storage keys
     const sessionKey = `side-session-${projectId}-${componentId}-${stepIndex}`;
-    const stepKey = `side-step-${projectId}-${componentId}-${stepIndex}`;
 
     // Session state (temporary overrides)
     const [sessionOverride, setSessionOverride] = useState(() => {

@@ -1,5 +1,4 @@
 import React from 'react';
-import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import ShapingHeader from './ShapingHeader';
 
 

@@ -1,13 +1,11 @@
 import React, { useState } from 'react';
 import ShapingHeader from './ShapingHeader';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import { generateMarkerInstructionPreview } from '../../../../shared/utils/markerInstructionUtils';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import SelectionGrid from '../../../../shared/components/SelectionGrid';
-import { calculateRowsFromDistance } from '../../../../shared/utils/gaugeUtils';
 
 const MarkerTimingConfig = ({
     instructionData,
@@ -125,7 +123,6 @@ const MarkerTimingConfig = ({
             if (phase.type === 'initial') {
                 // Initial phase: 1 row, applies stitch change
                 const startRow = currentRowPosition;
-                const endRow = currentRowPosition;
                 const phaseStartStitches = currentStitchCount;
 
                 currentStitchCount += stitchChangePerIteration;

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Plus, Edit2, X, List, Palette } from 'lucide-react';
+import { Plus, Edit2, List, Palette } from 'lucide-react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { StandardModal } from '../../../../shared/components/modals/StandardModal';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
@@ -269,9 +269,6 @@ const StripesConfig = ({
             </div>
         </StandardModal>
     );
-
-    const canProceed = stripeSequence.length > 0;
-
 
     return (
         <div className="space-y-6">

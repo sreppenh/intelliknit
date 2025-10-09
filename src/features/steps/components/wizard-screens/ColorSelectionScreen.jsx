@@ -1,7 +1,7 @@
 // src/features/steps/components/wizard-screens/ColorSelectionScreen.jsx
 
 import React, { useState } from 'react';
-import { formatColorworkDisplay, getYarnByLetter, getSortedYarnLetters } from '../../../../shared/utils/colorworkDisplayUtils';
+import { getSortedYarnLetters } from '../../../../shared/utils/colorworkDisplayUtils';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
 const ColorSelectionScreen = ({
@@ -14,18 +14,17 @@ const ColorSelectionScreen = ({
 }) => {
     const { yarns } = useYarnManager();
     const [colorChoice, setColorChoice] = useState(null);
-    const [selectedLetters, setSelectedLetters] = useState([]); // ✅ CHANGED: Work with letters directly
+    const [selectedLetters, setSelectedLetters] = useState([]);
+    const [hasSetupRow, setHasSetupRow] = useState(true); // ✅ NEW: For brioche setup row
 
     const handleContinue = () => {
         if (colorChoice === 'single') {
-            // ✅ FIXED: Save just the letter
             updateWizardData('colorwork', {
                 type: 'single',
                 letter: selectedLetters[0]
             });
             onContinue('pattern-selection');
         } else if (colorChoice === 'multi-strand') {
-            // ✅ FIXED: Save array of letters
             updateWizardData('colorwork', {
                 type: 'multi-strand',
                 letters: selectedLetters
@@ -35,6 +34,14 @@ const ColorSelectionScreen = ({
             onContinue('stripes-config');
         } else if (colorChoice === 'fair-isle' || colorChoice === 'intarsia') {
             onContinue('pattern-selection');
+        } else if (colorChoice === 'two-color-brioche') {
+            // ✅ NEW: Save brioche config and go to brioche-config screen
+            updateWizardData('colorwork', {
+                type: 'two_color_brioche',
+                letters: selectedLetters,
+                hasSetupRow: hasSetupRow
+            });
+            onContinue('brioche-config');
         }
     };
 
@@ -42,6 +49,7 @@ const ColorSelectionScreen = ({
         if (!colorChoice) return false;
         if (colorChoice === 'single') return selectedLetters.length === 1;
         if (colorChoice === 'multi-strand') return selectedLetters.length >= 2;
+        if (colorChoice === 'two-color-brioche') return selectedLetters.length === 2;
         return true;
     };
 
@@ -90,6 +98,18 @@ const ColorSelectionScreen = ({
                 </button>
 
                 <button
+                    onClick={() => {
+                        setColorChoice('two-color-brioche');
+                        setSelectedLetters([]);
+                    }}
+                    className={`card-selectable ${colorChoice === 'two-color-brioche' ? 'card-selectable-selected' : ''}`}
+                >
+                    <div className="text-3xl mb-2">🌊</div>
+                    <div className="font-semibold">Two-Color Brioche</div>
+                    <div className="text-xs text-wool-600 mt-1">Reversible brioche fabric</div>
+                </button>
+
+                <button
                     onClick={() => setColorChoice('fair-isle')}
                     className={`card-selectable ${colorChoice === 'fair-isle' ? 'card-selectable-selected' : ''}`}
                 >
@@ -100,23 +120,29 @@ const ColorSelectionScreen = ({
             </div>
 
             {/* Yarn Selection */}
-            {(colorChoice === 'single' || colorChoice === 'multi-strand') && (
+            {(colorChoice === 'single' || colorChoice === 'multi-strand' || colorChoice === 'two-color-brioche') && (
                 <div>
-                    <label className="form-label">Select {colorChoice === 'single' ? 'Yarn' : 'Yarns'}</label>
+                    <label className="form-label">
+                        Select {colorChoice === 'single' ? 'Yarn' : colorChoice === 'two-color-brioche' ? '2 Yarns' : 'Yarns'}
+                    </label>
                     <div className="grid grid-cols-3 gap-3">
                         {sortedYarns.map(yarn => {
-                            // ✅ CHANGED: Check if letter is selected, not yarn.id
                             const isSelected = selectedLetters.includes(yarn.letter);
                             return (
                                 <button
                                     key={yarn.letter}
                                     onClick={() => {
-                                        // ✅ CHANGED: Work with letters directly
                                         const newSelected = colorChoice === 'single'
                                             ? [yarn.letter]
-                                            : isSelected
-                                                ? selectedLetters.filter(l => l !== yarn.letter)
-                                                : [...selectedLetters, yarn.letter].sort();
+                                            : colorChoice === 'two-color-brioche'
+                                                ? isSelected
+                                                    ? selectedLetters.filter(l => l !== yarn.letter)
+                                                    : selectedLetters.length < 2
+                                                        ? [...selectedLetters, yarn.letter].sort()
+                                                        : selectedLetters
+                                                : isSelected
+                                                    ? selectedLetters.filter(l => l !== yarn.letter)
+                                                    : [...selectedLetters, yarn.letter].sort();
                                         setSelectedLetters(newSelected);
                                     }}
                                     className={`p-3 rounded-lg border-2 transition-all ${isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'}`}
@@ -129,6 +155,24 @@ const ColorSelectionScreen = ({
                             );
                         })}
                     </div>
+                </div>
+            )}
+
+            {/* ✅ NEW: Setup Row Checkbox for Two-Color Brioche */}
+            {colorChoice === 'two-color-brioche' && (
+                <div>
+                    <label className="checkbox-container">
+                        <input
+                            type="checkbox"
+                            checked={hasSetupRow}
+                            onChange={(e) => setHasSetupRow(e.target.checked)}
+                            className="checkbox-sage"
+                        />
+                        <span className="checkbox-label">Include setup row</span>
+                    </label>
+                    <p className="text-xs text-wool-500 mt-2">
+                        Most brioche patterns start with a setup row of sl1yo across all stitches
+                    </p>
                 </div>
             )}
 

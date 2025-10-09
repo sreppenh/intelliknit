@@ -4,7 +4,7 @@
 // CSS GRID LAYOUT: Fixed sticky header positioning
 // ✨ NEW: Upgraded to use compact branding header with perfect tab connection
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import useProjectActions from './ProjectDetail/hooks/useProjectActions';
 import useTabNavigation from './ProjectDetail/hooks/useTabNavigation';
@@ -61,21 +61,6 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
   if (!currentProject) {
     return <div>No project selected</div>;
   }
-
-  // Project type icons mapping
-  const getProjectIcon = (projectType) => {
-    const icons = {
-      sweater: '🧥',
-      shawl: '🌙',
-      hat: '🎩',
-      scarf_cowl: '🧣',
-      socks: '🧦',
-      blanket: '🛏️',
-      toys: '🧸',
-      other: '✨'
-    };
-    return icons[projectType] || '🧶';
-  };
 
   // Calculate project stats
   const totalComponents = currentProject.components?.length || 0;

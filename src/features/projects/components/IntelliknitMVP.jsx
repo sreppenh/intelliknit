@@ -18,8 +18,6 @@ import NoteDetail from '../../../features/notes/components/NoteDetail';
 import { useNotesContext } from '../../../features/notes/hooks/useNotesContext';
 import CreateNoteWizard from '../../notes/components/CreateNoteWizard';
 import ConfigureNotePattern from '../../notes/components/ConfigureNotePattern';
-import NoteCounter from '../../notes/components/NoteCounter';
-
 
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing');
@@ -29,13 +27,7 @@ const IntelliknitMVPContent = () => {
 
   const {
     goToLanding,
-    goToProjectList,
     goToProjectDetail,
-    goToStepWizard,
-    goToManageSteps,
-    goToTracking,
-    goToComponentDetail,
-    goToEditProjectDetails
   } = useAppNavigation(setCurrentView, setSelectedProjectType, setProjectCreationSource);
 
   const handleAddNewProject = () => {

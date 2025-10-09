@@ -23,8 +23,6 @@ export const useStepNavigation = ({
     // Enhanced carousel positioning when step changes
     useEffect(() => {
         if (carouselItems.length > 0) {
-            // Check if this step has different content types
-            const hasPrep = carouselItems.some(item => item.type === 'prep');
 
             // For backward navigation, land on main step (skip prep initially)
             if (navigationDirection === 'backward' && carouselItems.length > 1) {

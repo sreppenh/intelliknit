@@ -1,6 +1,5 @@
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import { needsDescriptionInput, needsRowInput, getPatternConfigurationTips } from '../../../../shared/utils/stepDisplayUtils';
 
 const BasicPatternConfig = ({ wizardData, updateWizardData, construction, mode = 'create' }) => {

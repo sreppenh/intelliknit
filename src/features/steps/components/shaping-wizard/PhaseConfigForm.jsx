@@ -1,7 +1,6 @@
 // src/features/steps/components/shaping-wizard/PhaseConfigForm.jsx
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import ShapingHeader from './ShapingHeader';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 

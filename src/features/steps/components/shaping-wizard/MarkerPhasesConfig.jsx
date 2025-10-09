@@ -6,10 +6,8 @@ import MarkerSequenceSummary from './MarkerSequenceSummary';
 import MarkerInstructionBuilder from './MarkerInstructionBuilder';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import { MarkerSequenceCalculator } from '../../../../shared/utils/MarkerSequenceCalculator';
-import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import MarkerTimingConfig from './MarkerTimingConfig';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../../shared/utils/StepSaveHelper';
 import { useActiveContext } from '../../../../shared/hooks/useActiveContext';
@@ -43,7 +41,7 @@ const MarkerPhasesConfig = ({
 
     // ===== NAVIGATION HOOKS =====
     const { dispatch } = useActiveContext(mode);
-    const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
+    const { saveStepAndNavigate, error, clearError } = useStepSaveHelper();
 
     // ===== MULTI-SCREEN STATE MANAGEMENT =====
     const [currentScreen, setCurrentScreen] = useState('marker-setup');
@@ -81,9 +79,6 @@ const MarkerPhasesConfig = ({
             return { ...prev, [markerName]: nextIndex };
         });
     };
-
-    // ===== GET TERMINOLOGY =====
-    const terms = getConstructionTerms(construction);
 
     // ===== EXISTING MARKER DETECTION =====
     const hasExistingMarkers = useMemo(() => {
@@ -275,25 +270,6 @@ const MarkerPhasesConfig = ({
     const handleDeleteSequence = (sequenceId) => {
         setSequences(prev => prev.filter(s => s.id !== sequenceId));
         IntelliKnitLogger.info('Sequence deleted', sequenceId);
-    };
-
-
-    // ===== HELPER FUNCTION - CREATE SEGMENTS ON DEMAND =====
-    const createSegmentsForCount = (count) => {
-        // Just return the array directly, no complex segment state
-        const baseStitches = Math.floor(currentStitches / (count + 1));
-        const remainder = currentStitches % (count + 1);
-
-        const array = [];
-        if (construction === 'round') array.push('BOR');
-
-        for (let i = 0; i < count; i++) {
-            array.push(baseStitches + (i < remainder ? 1 : 0));
-            array.push(`M${i + 1}`);
-        }
-
-        array.push(baseStitches + (count < remainder ? 1 : 0));
-        return array;
     };
 
     // ===== NEW: INSTRUCTION BUILDER HANDLERS =====

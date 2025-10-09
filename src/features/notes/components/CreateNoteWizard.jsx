@@ -44,20 +44,6 @@ const CreateNoteWizard = ({ onBack, onGoToLanding, onNoteCreated }) => {
         setOptionalData(prev => ({ ...prev, [field]: value }));
     };
 
-    // Handle yarn section updates (this integrates with your existing YarnsSection)
-    const handleYarnUpdate = (field, value) => {
-        updateOptional(field, value);
-    };
-
-    const applyGaugeSwatchTemplate = () => {
-        setEssentials({
-            name: 'Stockinette Gauge Swatch',
-            startingStitches: 30,
-            construction: 'flat',
-            units: 'inches'
-        });
-    };
-
     const canProceedToPage2 = () => {
         return essentials.name.trim() && essentials.startingStitches > 0;
     };

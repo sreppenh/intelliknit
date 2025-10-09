@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
-import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import PageHeader from '../../../shared/components/PageHeader';
 import SegmentedControl from '../../../shared/components/SegmentedControl';

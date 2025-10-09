@@ -771,7 +771,7 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
 
                     if (action.position === 'before_and_after') {
                         // Handle after part of before_and_after
-                        const [beforeTech, afterTech] = action.technique.split('_');
+                        const [afterTech] = action.technique.split('_');
                         if (borDistance > 0) {
                             instructionParts.push(`k${borDistance}`);
                         }
@@ -890,7 +890,7 @@ const generateRoundInstructions = (allActions, timing, markerArray, basePattern)
 
                         if (action.position === 'before_and_after') {
                             // Handle before part of before_and_after
-                            const [beforeTech, afterTech] = action.technique.split('_');
+                            const [beforeTech] = action.technique.split('_');
                             const consumption = getStitchConsumption(beforeTech);
                             const totalStitchesNeeded = consumption + borDistance;
 
@@ -1019,7 +1019,6 @@ const generateSequentialInstructions = (allActions, timing, markerArray, constru
         const position = positions[i];
         const positionActions = actionsByPosition[position.name];
         const isFirst = i === 0;
-        const isLast = i === lastPositionIndex;
 
         if (position.type === 'edge' && position.name === 'beginning') {
             // Handle beginning actions

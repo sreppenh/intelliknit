@@ -1,12 +1,11 @@
 import React, { useState, useCallback, useEffect } from 'react';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
-import { CheckCircle2, Circle, FileText, X, Lock } from 'lucide-react';
+import { CheckCircle2, Circle, Lock } from 'lucide-react';
 import PageHeader from '../../../shared/components/PageHeader';
 import { getFormattedStepDisplay } from '../../../shared/utils/stepDescriptionUtils';
 import KnittingStepModal from './modal/KnittingStepModal';
 import { isLengthBasedStep } from '../../../shared/utils/gaugeUtils';
 import { getPrepCardColorInfo } from '../../../shared/utils/prepCardUtils';
-import { Palette } from 'lucide-react';
 import { UnifiedPrepDisplay } from '../../../shared/components/PrepStepSystem';
 import StandardModal from '../../../shared/components/modals/StandardModal';
 
@@ -16,10 +15,8 @@ import {
   saveStepProgressState,
   clearStepProgressState,
   canStartStep,
-  canUncheckStep,
   inferProgressFromStep,
   needsRowVerification,
-  getProgressSummary,
   getComponentProgressStats,
   migrateOldCompletionFlags,
   PROGRESS_STATUS
@@ -36,7 +33,7 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const [confirmDialogData, setConfirmDialogData] = useState(null);
 
   // ✅ NEW: Force re-render trigger
-  const [refreshTrigger, setRefreshTrigger] = useState(0);
+  const [setRefreshTrigger] = useState(0);
 
   // ✅ IMPORTANT: Calculate activeComponent BEFORE hooks (needed for hook dependencies)
   const activeComponent = currentProject?.components[localActiveIndex];

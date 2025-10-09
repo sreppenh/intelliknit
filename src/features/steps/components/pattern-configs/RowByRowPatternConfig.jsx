@@ -1,7 +1,6 @@
 // src/features/steps/components/pattern-configs/RowByRowPatternConfig.jsx
 import React, { useState } from 'react';
 import { getPatternPlaceholderText } from '../../../../shared/utils/stepDisplayUtils';
-import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import { calculateRowStitchesLive, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import SimpleRowBuilder from './SimpleRowBuilder';
@@ -39,9 +38,6 @@ const RowByRowPatternConfig = ({
     const isNotepadMode = mode === 'notepad';
     const isReadOnly = (fieldName) => readOnlyFields.includes(fieldName);
     const shouldShowActions = showSaveActions || isEditMode;
-
-    const projectsContext = useProjectsContext();
-    const currentProject = project || projectsContext.currentProject;
 
     // ===== ROW MANAGEMENT =====
     const handleAddRow = () => {
@@ -289,8 +285,8 @@ const RowByRowPatternConfig = ({
                             {terms.Row} {currentRowNumber}:
                         </span>
                         <span className={`px-2 py-1 rounded ${getRowSide(currentRowNumber) === 'RS'
-                                ? 'bg-sage-100 text-sage-700'
-                                : 'bg-lavender-100 text-lavender-700'
+                            ? 'bg-sage-100 text-sage-700'
+                            : 'bg-lavender-100 text-lavender-700'
                             }`}>
                             {getRowSide(currentRowNumber)}
                         </span>
@@ -319,8 +315,8 @@ const RowByRowPatternConfig = ({
                         const calc = getStitchCalculation();
                         return (
                             <div className={`p-3 rounded-lg ${calc.stitchesConsumed === calc.previousStitches
-                                    ? 'bg-green-50 border border-green-200'
-                                    : 'bg-yellow-50 border border-yellow-200'
+                                ? 'bg-green-50 border border-green-200'
+                                : 'bg-yellow-50 border border-yellow-200'
                                 }`}>
                                 <div className="text-sm">
                                     <span className="font-medium text-wool-700">

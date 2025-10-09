@@ -4,7 +4,6 @@ import { ChevronDown, RotateCw } from 'lucide-react';
 import {
     getStepPatternInfo,
     calculatePatternOffset,
-    getCurrentSide
 } from '../../../shared/utils/sideIntelligence';
 
 /**

@@ -28,14 +28,11 @@ export const PatternSelector = ({
   // Mode detection
   const isComponentDefault = mode === 'component-default';
   const headerText = isComponentDefault ? 'Set Default Pattern' : 'Select Pattern';
-  const showPrepNote = !isComponentDefault;
 
   // Prep note management
   const {
     isModalOpen,
     currentNote,
-    hasNote,
-    handleOpenModal,
     handleCloseModal,
     handleSaveNote
   } = usePrepNoteManager(existingPrepNote, onSavePrepNote);
@@ -152,7 +149,6 @@ export const PatternSelector = ({
   };
 
   // Get current selections
-  const selectedCategory = wizardData?.stitchPattern?.category;
   const selectedPattern = wizardData?.stitchPattern?.pattern;
 
   // Main pattern selector
@@ -249,8 +245,8 @@ export const PatternSelector = ({
               <button
                 onClick={() => handleCustomEntryModeSelect('row_by_row')}
                 className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${wizardData?.stitchPattern?.entryMode === 'row_by_row'
-                    ? 'border-sage-500 bg-sage-50 shadow-sm'
-                    : 'border-wool-200 bg-white hover:border-sage-300 hover:bg-sage-50'
+                  ? 'border-sage-500 bg-sage-50 shadow-sm'
+                  : 'border-wool-200 bg-white hover:border-sage-300 hover:bg-sage-50'
                   }`}
               >
                 <div className="flex items-start gap-3">
@@ -274,8 +270,8 @@ export const PatternSelector = ({
               <button
                 onClick={() => handleCustomEntryModeSelect('description')}
                 className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${wizardData?.stitchPattern?.entryMode === 'description'
-                    ? 'border-sage-500 bg-sage-50 shadow-sm'
-                    : 'border-wool-200 bg-white hover:border-sage-300 hover:bg-sage-50'
+                  ? 'border-sage-500 bg-sage-50 shadow-sm'
+                  : 'border-wool-200 bg-white hover:border-sage-300 hover:bg-sage-50'
                   }`}
               >
                 <div className="flex items-start gap-3">

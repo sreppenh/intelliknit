@@ -1,29 +1,12 @@
 // MarkerInstructionBuilder.jsx
 
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import MarkerArrayVisualization from '../../../../shared/components/MarkerArrayVisualization';
-import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
-import { generateMarkerFlowInstruction, generateMarkerInstructionPreview, getActionConfigDisplay } from '../../../../shared/utils/markerInstructionUtils';
+import { generateMarkerInstructionPreview, getActionConfigDisplay } from '../../../../shared/utils/markerInstructionUtils';
 import MarkerChip from '../../../../shared/components/MarkerChip';
 import SelectionGrid from '../../../../shared/components/SelectionGrid';
 import { DangerModal, ConfirmationModal } from '../../../../shared/components/modals/StandardModal';
-
-
-// Utility to get marker color based on markerName and markerColors
-const getMarkerColor = (markerName, markerColors) => {
-    if (markerName === 'BOR') {
-        return { bg: 'bg-lavender-200', border: 'border-lavender-500', text: 'text-lavender-700' };
-    }
-    const MARKER_COLOR_OPTIONS = [
-        { bg: 'bg-sage-100', border: 'border-sage-400', text: 'text-sage-700' },
-        { bg: 'bg-yarn-600', border: 'border-yarn-700', text: 'text-yarn-50' },
-        { bg: 'bg-yarn-100', border: 'border-yarn-400', text: 'text-yarn-700' },
-        { bg: 'bg-orange-200', border: 'border-orange-500', text: 'text-orange-800' }
-    ];
-    const colorIndex = markerColors[markerName] || 0;
-    return MARKER_COLOR_OPTIONS[colorIndex];
-};
 
 // Conflict detection for markers and edges
 const getPositionConflicts = (completedActions) => {
@@ -323,12 +306,6 @@ const MarkerInstructionBuilder = ({
         const defaultTiming = { frequency: 1, times: 0, amountMode: 'times', targetStitches: null };
         return generateMarkerInstructionPreview(allActions, defaultTiming, markerArray, construction, basePattern);
     };
-
-    // Preview helpers
-    const shouldShowPreview = () => (
-        completedActions.length > 0 ||
-        (currentAction.actionType && currentAction.actionType !== '')
-    );
 
     const getPreviewTitle = () => {
         if (completedActions.length > 0 && (!currentAction.actionType || currentAction.targets.length === 0)) {

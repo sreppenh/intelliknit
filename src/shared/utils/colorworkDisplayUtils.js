@@ -74,18 +74,6 @@ export const formatColorworkDisplay = (colorwork, yarns) => {
         }
 
         case 'advanced': {
-            {/*   if (colorwork.advancedType === 'stripes') {
-                // Show which colors are in the stripe pattern
-                if (colorwork.stripeSequence?.length > 0) {
-                    const uniqueColors = [...new Set(colorwork.stripeSequence.map(s => s.color))];
-                    const colorNames = uniqueColors.map(letter => {
-                        const yarn = getYarnByLetter(yarns, letter);
-                        return `Color ${yarn.letter}`;
-                    }).join(', ');
-                    return `Stripes (${colorNames})`;
-                }
-                return 'Stripes';
-            }. */}
             if (colorwork.advancedType === 'fair_isle') return 'Fair Isle';
             if (colorwork.advancedType === 'intarsia') return 'Intarsia';
             return 'Colorwork';

@@ -1,7 +1,6 @@
 // src/features/steps/hooks/usePhaseManager.js
 import { useState } from 'react';
 import { PhaseCalculationService } from '../../../shared/utils/PhaseCalculationService';
-import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminology';
 
 /**
@@ -9,31 +8,6 @@ import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminol
  * Extracts complex state management from PhaseConfig component
  */
 export const usePhaseManager = (currentStitches, construction, existingShapingData) => {
-
-  const getInitialPhases = () => {
-    // Edit mode: direct access to phases
-    if (existingShapingData?.phases) {
-      return existingShapingData.phases;
-    }
-    // Add mode: nested under config
-    if (existingShapingData?.config?.phases) {
-      return existingShapingData.config.phases;
-    }
-    return [];
-  };
-
-
-  const getInitialDescription = () => {
-    // Edit mode: direct access to description
-    if (existingShapingData?.description) {
-      return existingShapingData.description;
-    }
-    // Add mode: nested under config
-    if (existingShapingData?.config?.description) {
-      return existingShapingData.config.description;
-    }
-    return '';
-  };
 
   // NEW:
   const [phases, setPhases] = useState(() => {

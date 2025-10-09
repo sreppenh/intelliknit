@@ -1,6 +1,5 @@
 import React from 'react';
 import PageHeader from '../../../shared/components/PageHeader';
-import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getResumeData } from '../../knitting/utils/resumeDetection';
 
 const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNotepad }) => {
@@ -29,13 +28,6 @@ const LandingPage = ({ onAddNewProject, onViewProjects, onContinueKnitting, onNo
 
     // Call the parent handler with resume data
     onContinueKnitting(resumeData);
-  };
-
-
-
-  const handleNotepad = () => {
-    // Placeholder for future notepad feature
-    alert("Notepad coming soon! Quick notes and calculations for your knitting.");
   };
 
   return (

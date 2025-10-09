@@ -2,9 +2,6 @@ import React from 'react';
 
 const DurationShapingChoice = (props) => {
   const { wizardData, updateWizardData, construction } = props;
-  const { pattern } = wizardData.stitchPattern;
-
-
 
   const handleDurationChoice = () => {
     updateWizardData('hasShaping', false);
@@ -16,7 +13,6 @@ const DurationShapingChoice = (props) => {
       }
     }, 200);
   };
-
 
   const handleShapingChoice = () => {
     updateWizardData('hasShaping', true);

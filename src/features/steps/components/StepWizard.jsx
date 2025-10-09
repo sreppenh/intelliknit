@@ -25,14 +25,14 @@ import StripesConfig from './pattern-configs/StripesConfig';
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
   const wizard = useStepWizard(componentIndex, editingStepIndex, editMode, mode);
-  const { handleAddStep, handleAddStepAndContinue, handleAddStepWithCustomData } = useStepActions(wizard, onBack, mode);
+  const { handleAddStep, handleAddStepWithCustomData } = useStepActions(wizard, onBack, mode);
   const { currentProject } = useActiveContext(mode);
   const [showShapingWizard, setShowShapingWizard] = useState(false);
   const [showExitModal, setShowExitModal] = useState(false);
   const [showStepConfirmModal, setShowStepConfirmModal] = useState(false);
   const [pendingShapingInfo, setPendingShapingInfo] = useState(null);
   const [showPrepColorScreen, setShowPrepColorScreen] = useState(true); // Start with prep/color screen
-  const [colorRouting, setColorRouting] = useState(null); // 'pattern-selection' or 'stripes-config'
+  const [setColorRouting] = useState(null); // 'pattern-selection' or 'stripes-config'
 
   // ADD THIS with the other state declarations:
   const [showStripesConfig, setShowStripesConfig] = useState(false);
