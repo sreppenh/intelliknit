@@ -17,7 +17,6 @@ const BriocheConfig = ({
     const terms = getConstructionTerms(construction);
     const colorwork = wizardData.colorwork || {};
     const letters = colorwork.letters || [];
-    const hasSetupRow = colorwork.hasSetupRow || false;
 
     // Get yarn colors for display
     const colorA = letters[0] ? getYarnByLetter(yarns, letters[0]) : null;
@@ -26,7 +25,6 @@ const BriocheConfig = ({
     // Initialize rows from colorwork or defaults
     const getInitialRows = () => {
         const defaults = {
-            setup: { instruction: 'sl1yo across all stitches', stitchChange: 0 },
             '1a': { instruction: '[brk1, sl1yo] to end', stitchChange: 0 },
             '1b': { instruction: '[brk1, sl1yo] to end', stitchChange: 0 },
             '2a': { instruction: '[brp1, sl1yo] to end', stitchChange: 0 },
@@ -54,15 +52,6 @@ const BriocheConfig = ({
     // Define row structure
     const getRowStructure = () => {
         const structure = [];
-
-        if (hasSetupRow && rows.setup) {
-            structure.push({
-                key: 'setup',
-                label: 'Setup Row',
-                side: 'RS',
-                color: null
-            });
-        }
 
         // Get all row numbers that exist
         const rowNumbers = Object.keys(rows)
@@ -325,7 +314,7 @@ const BriocheConfig = ({
                                             📋
                                         </button>
                                         {/* Only show delete for rows beyond the base 4 rows */}
-                                        {rowDef.key !== 'setup' && parseInt(rowDef.key.charAt(0)) > 2 && (
+                                        {parseInt(rowDef.key.charAt(0)) > 2 && (
                                             <button
                                                 onClick={() => handleDeleteRow(rowDef.key)}
                                                 className="text-sm text-red-600 hover:text-red-700 font-medium"

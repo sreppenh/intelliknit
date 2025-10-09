@@ -470,7 +470,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
               wizard.updateWizardData('colorwork', {
                 letters: wizard.wizardData.colorwork?.letters || [],
                 type: null,
-                hasSetupRow: wizard.wizardData.colorwork?.hasSetupRow || false
               });
               setShowColorSelectionScreen(true);
             } :
@@ -553,7 +552,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                     wizard.updateWizardData('colorwork', {  // Note: wizard.updateWizardData
                       letters: wizard.wizardData.colorwork?.letters || [],
                       type: null,
-                      hasSetupRow: wizard.wizardData.colorwork?.hasSetupRow || false
                     });
                     setShowColorSelectionScreen(true);
                   }}

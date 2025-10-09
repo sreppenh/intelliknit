@@ -15,7 +15,6 @@ const ColorSelectionScreen = ({
     const { yarns } = useYarnManager();
     const [colorChoice, setColorChoice] = useState(null);
     const [selectedLetters, setSelectedLetters] = useState([]);
-    const [hasSetupRow, setHasSetupRow] = useState(true); // ✅ NEW: For brioche setup row
 
     const handleContinue = () => {
         if (colorChoice === 'single') {
@@ -39,7 +38,6 @@ const ColorSelectionScreen = ({
             updateWizardData('colorwork', {
                 type: 'two_color_brioche',
                 letters: selectedLetters,
-                hasSetupRow: hasSetupRow
             });
             onContinue('brioche-config');
         }
@@ -155,24 +153,6 @@ const ColorSelectionScreen = ({
                             );
                         })}
                     </div>
-                </div>
-            )}
-
-            {/* ✅ NEW: Setup Row Checkbox for Two-Color Brioche */}
-            {colorChoice === 'two-color-brioche' && (
-                <div>
-                    <label className="checkbox-container">
-                        <input
-                            type="checkbox"
-                            checked={hasSetupRow}
-                            onChange={(e) => setHasSetupRow(e.target.checked)}
-                            className="checkbox-sage"
-                        />
-                        <span className="checkbox-label">Include setup row</span>
-                    </label>
-                    <p className="text-xs text-wool-500 mt-2">
-                        Most brioche patterns start with a setup row of sl1yo across all stitches
-                    </p>
                 </div>
             )}
 
