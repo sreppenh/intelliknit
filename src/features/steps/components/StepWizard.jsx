@@ -33,7 +33,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const [showStepConfirmModal, setShowStepConfirmModal] = useState(false);
   const [pendingShapingInfo, setPendingShapingInfo] = useState(null);
   const [showPrepColorScreen, setShowPrepColorScreen] = useState(true); // Start with prep/color screen
-  const [setColorRouting] = useState(null); // 'pattern-selection' or 'stripes-config'
 
   // ADD THIS with the other state declarations:
   const [showStripesConfig, setShowStripesConfig] = useState(false);
@@ -319,7 +318,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const handleConfirmExit = () => {
     setShowExitModal(false);
     setShowPrepColorScreen(true); // Reset to start
-    setColorRouting(null);
     wizard.resetWizardData();
     onBack();
   };
@@ -561,7 +559,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                 </button>
                 <button
                   onClick={handleBriocheConfigContinue}
-                  disabled={!wizard.wizardData.colorwork?.rows}
+                  disabled={false}
                   className="flex-2 btn-primary"
                   style={{ flexGrow: 2 }}
                 >

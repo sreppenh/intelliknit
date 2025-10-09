@@ -22,23 +22,18 @@ const BriocheConfig = ({
     const colorA = letters[0] ? getYarnByLetter(yarns, letters[0]) : null;
     const colorB = letters[1] ? getYarnByLetter(yarns, letters[1]) : null;
 
-    // Initialize rows from colorwork or defaults
+    // ✅ CHANGED: Read from stitchPattern.customSequence.rows instead of colorwork.rows
     const getInitialRows = () => {
-        const defaults = {
-            '1a': { instruction: '[brk1, sl1yo] to end', stitchChange: 0 },
-            '1b': { instruction: '[brk1, sl1yo] to end', stitchChange: 0 },
-            '2a': { instruction: '[brp1, sl1yo] to end', stitchChange: 0 },
-            '2b': { instruction: '[brp1, sl1yo] to end', stitchChange: 0 }
-        };
-        return colorwork.rows || defaults;
+        // Start with NO default rows - completely empty
+        return wizardData.stitchPattern?.customSequence?.rows || {};
     };
-
     const [rows, setRows] = useState(getInitialRows());
 
-    // Modal state
+    // Modal state - need to track both rows in the pair
     const [showModal, setShowModal] = useState(false);
     const [editingRowKey, setEditingRowKey] = useState(null);
-    const [tempInstruction, setTempInstruction] = useState('');
+    const [tempInstructionA, setTempInstructionA] = useState('');
+    const [tempInstructionB, setTempInstructionB] = useState('');
     const [tempStitchChange, setTempStitchChange] = useState(0);
 
     // Get color display name
@@ -49,13 +44,12 @@ const BriocheConfig = ({
             : yarn.letter;
     };
 
-    // Define row structure
+    // Define row structure dynamically based on what rows exist
     const getRowStructure = () => {
         const structure = [];
 
         // Get all row numbers that exist
         const rowNumbers = Object.keys(rows)
-            .filter(k => k !== 'setup')
             .map(k => parseInt(k.charAt(0)))
             .filter(n => !isNaN(n))
             .sort((a, b) => a - b);
@@ -78,94 +72,52 @@ const BriocheConfig = ({
 
     // ===== MODAL HANDLERS =====
     const handleOpenModal = (rowKey) => {
-        setEditingRowKey(rowKey);
-        setTempInstruction(rows[rowKey]?.instruction || '');
-        setTempStitchChange(rows[rowKey]?.stitchChange || 0);
+        // Get the row number from the key (e.g., '1a' -> '1')
+        const rowNum = parseInt(rowKey.charAt(0));
+        setEditingRowKey(rowNum);
+
+        // Load both rows in the pair
+        setTempInstructionA(rows[`${rowNum}a`]?.instruction || '');
+        setTempInstructionB(rows[`${rowNum}b`]?.instruction || '');
+        setTempStitchChange(rows[`${rowNum}a`]?.stitchChange || 0);
         setShowModal(true);
     };
 
     const handleCloseModal = () => {
         setShowModal(false);
         setEditingRowKey(null);
-        setTempInstruction('');
+        setTempInstructionA('');
+        setTempInstructionB('');
         setTempStitchChange(0);
     };
 
     const handleSaveRow = () => {
+        if (!tempInstructionA.trim() || !tempInstructionB.trim()) return;
+
         const updatedRows = {
             ...rows,
-            [editingRowKey]: {
-                instruction: tempInstruction,
-                stitchChange: tempStitchChange
+            [`${editingRowKey}a`]: {
+                instruction: tempInstructionA,
+                stitchChange: tempStitchChange // Only row A stores the change
+            },
+            [`${editingRowKey}b`]: {
+                instruction: tempInstructionB,
+                stitchChange: 0 // Row B has 0 change
             }
         };
 
         setRows(updatedRows);
 
-        // Save to wizardData
-        updateWizardData('colorwork', {
-            ...colorwork,
-            rows: updatedRows
-        });
-
-        // Also update rowsInPattern
         updateWizardData('stitchPattern', {
-            rowsInPattern: String(rowStructure.length)
+            pattern: 'Brioche',
+            customSequence: { rows: updatedRows },
+            rowsInPattern: String(Object.keys(updatedRows).length)
         });
 
         handleCloseModal();
     };
 
-    const handleDeleteRow = (rowKey) => {
-        // Get the row number
-        const rowNum = parseInt(rowKey.charAt(0));
-
-        // Remove both a and b rows for this number
-        const updatedRows = { ...rows };
-        delete updatedRows[`${rowNum}a`];
-        delete updatedRows[`${rowNum}b`];
-
-        setRows(updatedRows);
-        updateWizardData('colorwork', {
-            ...colorwork,
-            rows: updatedRows
-        });
-        updateWizardData('stitchPattern', {
-            rowsInPattern: String(Object.keys(updatedRows).length)
-        });
-    };
-
-    const getNextRowNumber = () => {
-        const existingRowNumbers = Object.keys(rows)
-            .filter(k => k !== 'setup')
-            .map(k => parseInt(k.charAt(0)))
-            .filter(n => !isNaN(n));
-        return existingRowNumbers.length > 0 ? Math.max(...existingRowNumbers) + 1 : 3;
-    };
-
-    const handleAddNewRow = () => {
-        const nextNum = getNextRowNumber();
-
-        // Add both rows of the new pair with empty instructions
-        const updatedRows = {
-            ...rows,
-            [`${nextNum}a`]: { instruction: '', stitchChange: 0 },
-            [`${nextNum}b`]: { instruction: '', stitchChange: 0 }
-        };
-
-        setRows(updatedRows);
-        updateWizardData('colorwork', {
-            ...colorwork,
-            rows: updatedRows
-        });
-        updateWizardData('stitchPattern', {
-            rowsInPattern: String(Object.keys(updatedRows).length)
-        });
-
-        // Open modal for the first new row
-        handleOpenModal(`${nextNum}a`);
-    };
-
+    // ===== ROW MANAGEMENT =====
     const handleCopyRow = (rowKey) => {
         const sourceRow = rows[rowKey];
         if (!sourceRow) return;
@@ -183,7 +135,6 @@ const BriocheConfig = ({
 
         // Find the next row number
         const existingRowNumbers = Object.keys(rows)
-            .filter(k => k !== 'setup')
             .map(k => parseInt(k.charAt(0)))
             .filter(n => !isNaN(n));
         const nextRowNum = Math.max(...existingRowNumbers, 0) + 1;
@@ -196,23 +147,79 @@ const BriocheConfig = ({
         };
 
         setRows(updatedRows);
-        updateWizardData('colorwork', {
-            ...colorwork,
-            rows: updatedRows
-        });
+
+        // ✅ CHANGED: Save to stitchPattern.customSequence
         updateWizardData('stitchPattern', {
+            pattern: 'Brioche',
+            customSequence: { rows: updatedRows },
             rowsInPattern: String(Object.keys(updatedRows).length)
         });
     };
 
-    // ===== UTILITIES =====
-    const canSave = () => {
-        return tempInstruction.trim() !== '';
+    const handleDeleteRow = (rowKey) => {
+        // Get the row number
+        const rowNum = parseInt(rowKey.charAt(0));
+
+        // Remove both a and b rows for this number
+        const updatedRows = { ...rows };
+        delete updatedRows[`${rowNum}a`];
+        delete updatedRows[`${rowNum}b`];
+
+        setRows(updatedRows);
+
+        // ✅ CHANGED: Save to stitchPattern.customSequence
+        updateWizardData('stitchPattern', {
+            pattern: 'Brioche',
+            customSequence: { rows: updatedRows },
+            rowsInPattern: String(Object.keys(updatedRows).length)
+        });
     };
 
+    const getNextRowNumber = () => {
+        const existingRowNumbers = Object.keys(rows)
+            .map(k => parseInt(k.charAt(0)))
+            .filter(n => !isNaN(n));
+        return existingRowNumbers.length > 0 ? Math.max(...existingRowNumbers) + 1 : 1;
+    };
+
+    const handleAddNewRow = () => {
+        const nextNum = getNextRowNumber();
+
+        // Add both rows of the new pair with empty instructions
+        const updatedRows = {
+            ...rows,
+            [`${nextNum}a`]: { instruction: '', stitchChange: 0 },
+            [`${nextNum}b`]: { instruction: '', stitchChange: 0 }
+        };
+
+        setRows(updatedRows);
+
+        // ✅ CHANGED: Save to stitchPattern.customSequence
+        updateWizardData('stitchPattern', {
+            pattern: 'Brioche',
+            customSequence: { rows: updatedRows },
+            rowsInPattern: String(Object.keys(updatedRows).length)
+        });
+
+        // Open modal for the first new row
+        handleOpenModal(`${nextNum}a`);
+    };
+
+    // ===== UTILITIES =====
+    const canSave = () => {
+        return tempInstructionA.trim() !== '' && tempInstructionB.trim() !== '';
+    };
+
+    // Get current editing row info for modal
+    const currentRowNum = editingRowKey;
+    const rowDef1a = rowStructure.find(r => r.key === `${currentRowNum}a`);
+    const rowDef1b = rowStructure.find(r => r.key === `${currentRowNum}b`);
+
+
     const calculateNetChange = () => {
-        return rowStructure.reduce((sum, rowDef) => {
-            return sum + (rows[rowDef.key]?.stitchChange || 0);
+        const rowNumbers = [...new Set(Object.keys(rows).map(k => parseInt(k.charAt(0))))].filter(n => !isNaN(n));
+        return rowNumbers.reduce((sum, num) => {
+            return sum + (rows[`${num}a`]?.stitchChange || 0);
         }, 0);
     };
 
@@ -267,76 +274,109 @@ const BriocheConfig = ({
                 <label className="form-label">Pattern {terms.Rows}</label>
 
                 <div className="space-y-2 mb-4">
-                    {rowStructure.map((rowDef) => {
-                        const row = rows[rowDef.key];
-                        const instruction = row?.instruction || '';
-                        const stitchChange = row?.stitchChange || 0;
+                    {/* Group rows by pairs */}
+                    {(() => {
+                        const rowNumbers = [...new Set(rowStructure.map(r => parseInt(r.key.charAt(0))))];
 
-                        return (
-                            <div
-                                key={rowDef.key}
-                                className="p-3 bg-white border-2 border-wool-200 rounded-lg space-y-2"
-                            >
-                                {/* First line: Row label, color, stitch badge, and edit button */}
-                                <div className="flex items-center justify-between gap-3">
-                                    <div className="flex items-center gap-3">
-                                        <div className="text-sm font-medium text-wool-600">
-                                            {rowDef.label} ({getRowSide(rowDef.side)})
-                                            {rowDef.color && (
-                                                <span className="text-xs text-wool-500 ml-1">
-                                                    - Color {rowDef.color.letter}
-                                                </span>
+                        return rowNumbers.map(rowNum => {
+                            const rowA = rows[`${rowNum}a`];
+                            const rowB = rows[`${rowNum}b`];
+                            const rowDefA = rowStructure.find(r => r.key === `${rowNum}a`);
+                            const rowDefB = rowStructure.find(r => r.key === `${rowNum}b`);
+                            const stitchChange = rowA?.stitchChange || 0;
+
+                            return (
+                                <div
+                                    key={rowNum}
+                                    className="p-3 bg-white border-2 border-wool-200 rounded-lg space-y-2"
+                                >
+                                    {/* Header: Row number, side, stitch change, and actions */}
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex items-center gap-3">
+                                            <div className="text-sm font-medium text-wool-600">
+                                                Row {rowNum} ({rowDefA?.side || 'RS'})
+                                            </div>
+                                            {/* Stitch change badge - only show if non-zero */}
+                                            {stitchChange !== 0 && (
+                                                <div className={`text-xs font-semibold px-2 py-1 rounded-md whitespace-nowrap ${stitchChange > 0 ? 'bg-green-100 text-green-700 border border-green-300' :
+                                                    'bg-red-100 text-red-700 border border-red-300'
+                                                    }`}>
+                                                    {stitchChange > 0 ? '+' : ''}{stitchChange} sts
+                                                </div>
                                             )}
                                         </div>
-                                        {/* Stitch change badge */}
-                                        <div className={`text-xs font-semibold px-2 py-1 rounded-md whitespace-nowrap ${stitchChange > 0 ? 'bg-green-100 text-green-700 border border-green-300' :
-                                            stitchChange < 0 ? 'bg-red-100 text-red-700 border border-red-300' :
-                                                'bg-gray-100 text-gray-600 border border-gray-300'
-                                            }`}>
-                                            {stitchChange > 0 ? '+' : ''}{stitchChange} sts
+
+                                        {/* Action buttons */}
+                                        <div className="flex gap-2">
+                                            <button
+                                                onClick={() => handleOpenModal(`${rowNum}a`)}
+                                                className="text-sm text-sage-600 hover:text-sage-700 font-medium"
+                                                aria-label={`Edit Row ${rowNum}`}
+                                            >
+                                                ✏️
+                                            </button>
+                                            <button
+                                                onClick={() => handleCopyRow(`${rowNum}a`)}
+                                                className="text-sm text-sage-600 hover:text-sage-700 font-medium"
+                                                aria-label={`Copy Row ${rowNum}`}
+                                            >
+                                                📋
+                                            </button>
+                                            {/* Only show delete for rows beyond row 2 */}
+                                            {rowNum > 2 && (
+                                                <button
+                                                    onClick={() => handleDeleteRow(`${rowNum}a`)}
+                                                    className="text-sm text-red-600 hover:text-red-700 font-medium"
+                                                    aria-label={`Delete Row ${rowNum}`}
+                                                >
+                                                    🗑️
+                                                </button>
+                                            )}
                                         </div>
                                     </div>
 
-                                    {/* Edit, Copy, and Delete buttons */}
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => handleOpenModal(rowDef.key)}
-                                            className="text-sm text-sage-600 hover:text-sage-700 font-medium"
-                                            aria-label={`Edit ${rowDef.label}`}
-                                        >
-                                            ✏️
-                                        </button>
-                                        <button
-                                            onClick={() => handleCopyRow(rowDef.key)}
-                                            className="text-sm text-sage-600 hover:text-sage-700 font-medium"
-                                            aria-label={`Copy ${rowDef.label}`}
-                                        >
-                                            📋
-                                        </button>
-                                        {/* Only show delete for rows beyond the base 4 rows */}
-                                        {parseInt(rowDef.key.charAt(0)) > 2 && (
-                                            <button
-                                                onClick={() => handleDeleteRow(rowDef.key)}
-                                                className="text-sm text-red-600 hover:text-red-700 font-medium"
-                                                aria-label={`Delete ${rowDef.label}`}
-                                            >
-                                                🗑️
-                                            </button>
-                                        )}
+                                    {/* Row A instruction with color indicator */}
+                                    <div className="flex items-start gap-2 pl-2 text-left">
+                                        <div
+                                            className="w-3 h-3 rounded-full border border-gray-300 mt-1 flex-shrink-0"
+                                            style={{ backgroundColor: colorA?.colorHex || colorA?.hex }}
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xs text-wool-500 mb-1 text-left">Color {colorA?.letter}:</div>
+                                            <div className="text-sm text-wool-700 font-mono break-words text-left">
+                                                {rowA?.instruction || <span className="text-wool-400 italic">Not set</span>}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Row B instruction with color indicator */}
+                                    <div className="flex items-start gap-2 pl-2 text-left">
+                                        <div
+                                            className="w-3 h-3 rounded-full border border-gray-300 mt-1 flex-shrink-0"
+                                            style={{ backgroundColor: colorB?.colorHex || colorB?.hex }}
+                                        />
+                                        <div className="flex-1 min-w-0">
+                                            <div className="text-xs text-wool-500 mb-1 text-left">Color {colorB?.letter}:</div>
+                                            <div className="text-sm text-wool-700 font-mono break-words text-left">
+                                                {rowB?.instruction || <span className="text-wool-400 italic">Not set</span>}
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-
-                                {/* Second line: Instruction */}
-                                <div className="text-sm text-wool-700 font-mono pl-2">
-                                    {instruction || <span className="text-wool-400 italic">Not set</span>}
-                                </div>
-                            </div>
-                        );
-                    })}
+                            );
+                        });
+                    })()}
                 </div>
+                {/* Add Row Button */}
+                <button
+                    onClick={handleAddNewRow}
+                    className="w-full py-3 px-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-500 hover:text-sage-700 hover:bg-sage-50 transition-colors font-medium"
+                >
+                    + Add {terms.Row} Pair {getNextRowNumber()}
+                </button>
 
                 {/* Pattern Summary */}
-                <div className="p-3 bg-sage-50 border border-sage-200 rounded-lg">
+                <div className="mt-3 p-3 bg-sage-50 border border-sage-200 rounded-lg">
                     <div className="text-sm text-center">
                         <span className="text-wool-700 font-medium">
                             {rowStructure.length} {rowStructure.length === 1 ? terms.row : terms.rows} in pattern
@@ -356,14 +396,6 @@ const BriocheConfig = ({
                 </div>
             </div>
 
-            {/* Add Row Button */}
-            <button
-                onClick={() => handleAddNewRow()}
-                className="w-full py-3 px-4 border-2 border-dashed border-sage-300 rounded-lg text-sage-600 hover:border-sage-500 hover:text-sage-700 hover:bg-sage-50 transition-colors font-medium"
-            >
-                + Add {terms.Row} Pair {getNextRowNumber()}
-            </button>
-
             {/* Helper Tip */}
             <div className="bg-lavender-50 border-2 border-lavender-200 rounded-xl p-4">
                 <h4 className="text-sm font-semibold text-lavender-700 mb-2">💡 Brioche Tips</h4>
@@ -375,52 +407,66 @@ const BriocheConfig = ({
                 </div>
             </div>
 
-
-
             {/* Row Entry Modal */}
             <StandardModal
                 isOpen={showModal}
                 onClose={handleCloseModal}
-                title={currentRowDef ? `Edit ${currentRowDef.label}` : 'Edit Row'}
+                title={`Edit Row ${currentRowNum}`}
                 category="complex"
                 colorScheme="sage"
             >
                 <div className="space-y-4">
-                    {/* Show color context in modal */}
-                    {currentRowDef?.color && (
-                        <div className="flex items-center gap-2 p-3 bg-yarn-50 border border-yarn-200 rounded-lg">
-                            <div
-                                className="w-5 h-5 rounded-full border-2 border-gray-300"
-                                style={{ backgroundColor: currentRowDef.color.colorHex || currentRowDef.color.hex }}
-                            />
-                            <span className="text-sm font-medium text-yarn-700">
-                                Using Color {getColorDisplay(currentRowDef.color)}
-                            </span>
-                        </div>
-                    )}
-
-                    {/* Row Instruction */}
+                    {/* Row A Instruction */}
                     <div>
                         <label className="form-label">
-                            {terms.Row} Instruction
+                            Row {currentRowNum}a ({rowDef1a?.side || 'RS'}, Color {colorA?.letter})
                         </label>
+                        {rowDef1a?.color && (
+                            <div className="flex items-center gap-2 mb-2 text-xs text-yarn-600">
+                                <div
+                                    className="w-4 h-4 rounded-full border border-gray-300"
+                                    style={{ backgroundColor: rowDef1a.color.colorHex || rowDef1a.color.hex }}
+                                />
+                                Using Color {getColorDisplay(rowDef1a.color)}
+                            </div>
+                        )}
                         <input
                             type="text"
-                            value={tempInstruction}
-                            onChange={(e) => setTempInstruction(e.target.value)}
+                            value={tempInstructionA}
+                            onChange={(e) => setTempInstructionA(e.target.value)}
                             placeholder="e.g., [brk1, sl1yo] to end"
                             className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
                             autoFocus
                         />
-                        <p className="text-xs text-wool-500 mt-1">
-                            Enter your custom instruction for this {terms.row}
-                        </p>
                     </div>
 
-                    {/* Net Stitch Change */}
+                    {/* Row B Instruction */}
                     <div>
                         <label className="form-label">
-                            Net Stitch Change
+                            Row {currentRowNum}b ({rowDef1b?.side || 'RS'}, Color {colorB?.letter})
+                        </label>
+                        {rowDef1b?.color && (
+                            <div className="flex items-center gap-2 mb-2 text-xs text-yarn-600">
+                                <div
+                                    className="w-4 h-4 rounded-full border border-gray-300"
+                                    style={{ backgroundColor: rowDef1b.color.colorHex || rowDef1b.color.hex }}
+                                />
+                                Using Color {getColorDisplay(rowDef1b.color)}
+                            </div>
+                        )}
+                        <input
+                            type="text"
+                            value={tempInstructionB}
+                            onChange={(e) => setTempInstructionB(e.target.value)}
+                            placeholder="e.g., [brk1, sl1yo] to end"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
+                        />
+                    </div>
+
+                    {/* Net Stitch Change - Single input for the pair */}
+                    <div>
+                        <label className="form-label">
+                            Net Stitch Change (for both rows)
                         </label>
                         <IncrementInput
                             value={tempStitchChange}
@@ -432,7 +478,7 @@ const BriocheConfig = ({
                             allowNegative={true}
                         />
                         <p className="text-xs text-wool-500 mt-1">
-                            Stitches gained (+) or lost (-) in this {terms.row}. Use 0 for no change.
+                            Stitches gained (+) or lost (-) across both rows of this pair. Use 0 for no change.
                         </p>
                     </div>
 
@@ -449,7 +495,7 @@ const BriocheConfig = ({
                             disabled={!canSave()}
                             className="flex-1 btn-primary"
                         >
-                            Save {terms.Row}
+                            Save Row Pair
                         </button>
                     </div>
                 </div>
