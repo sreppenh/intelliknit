@@ -21,6 +21,7 @@ import { StandardModal } from '../../../shared/components/modals/StandardModal';
 import PrepNoteColorScreen from './wizard-screens/PrepNoteColorScreen';
 import ColorSelectionScreen from './wizard-screens/ColorSelectionScreen';
 import StripesConfig from './pattern-configs/StripesConfig';
+import BriocheConfig from './pattern-configs/BriocheConfig';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
@@ -36,6 +37,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
 
   // ADD THIS with the other state declarations:
   const [showStripesConfig, setShowStripesConfig] = useState(false);
+  const [showBriocheConfig, setShowBriocheConfig] = useState(false); // ✅ ADD THIS
 
   const wizardState = useWizardState(wizard, onBack, mode);
 
@@ -80,6 +82,8 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     } else if (destination === 'stripes-config') {
       // ✅ CHANGED: Don't save to stitchPattern - StripesConfig will save to colorwork
       setShowStripesConfig(true); // Show stripes config screen
+    } else if (destination === 'brioche-config') { // ✅ ADD THIS
+      setShowBriocheConfig(true);
     } else if (destination === 'pattern-override' || destination === 'pattern-selection') {
       wizard.navigation.goToStep(1); // Pattern selection
     } else if (destination === 'duration-shaping') {
@@ -93,6 +97,8 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     if (destination === 'stripes-config') {
       // ✅ CHANGED: Don't save to stitchPattern - StripesConfig will save to colorwork
       setShowStripesConfig(true); // Show stripes config screen
+    } else if (destination === 'brioche-config') { // ✅ ADD THIS
+      setShowBriocheConfig(true);
     } else {
       // Color configured, go to pattern selection
       wizard.navigation.goToStep(1);
@@ -103,6 +109,12 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     setShowStripesConfig(false);
     // After stripes configured, go to pattern selection
     wizard.navigation.goToStep(1);
+  };
+
+  const handleBriocheConfigContinue = () => {
+    setShowBriocheConfig(false);
+    // After brioche configured, skip pattern selection and go to duration/shaping
+    wizard.navigation.goToStep(3);
   };
 
   // Component validation
@@ -450,8 +462,20 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     <WizardLayout>
       <PageHeader
         useBranding={true}
-        onHome={onGoToLanding}  // ← I had this right originally, just confirming
-        onBack={showPrepColorScreen ? onBack : navigation.previousStep}
+        onHome={onGoToLanding}
+        onBack={
+          showPrepColorScreen ? onBack :
+            showBriocheConfig ? () => {
+              setShowBriocheConfig(false);
+              wizard.updateWizardData('colorwork', {
+                letters: wizard.wizardData.colorwork?.letters || [],
+                type: null,
+                hasSetupRow: wizard.wizardData.colorwork?.hasSetupRow || false
+              });
+              setShowColorSelectionScreen(true);
+            } :
+              navigation.previousStep
+        }
         showCancelButton={true}
         onCancel={handleXButtonClick}
         compact={true}
@@ -510,9 +534,48 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
               </div>
             </div>
           </>
+        ) : showBriocheConfig ? ( // ✅ ADD THIS ENTIRE SECTION
+          <>
+            <BriocheConfig
+              wizardData={wizard.wizardData}
+              updateWizardData={wizard.updateWizardData}
+              construction={wizard.construction}
+              currentStitches={wizard.currentStitches}
+              mode="create"
+            />
+            {/* Navigation Buttons */}
+            <div className="pt-6 border-t border-wool-100">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowBriocheConfig(false);
+                    // ✅ THIS CODE clears brioche data
+                    wizard.updateWizardData('colorwork', {  // Note: wizard.updateWizardData
+                      letters: wizard.wizardData.colorwork?.letters || [],
+                      type: null,
+                      hasSetupRow: wizard.wizardData.colorwork?.hasSetupRow || false
+                    });
+                    setShowColorSelectionScreen(true);
+                  }}
+                  className="flex-1 btn-tertiary"
+                >
+                  ← Back
+                </button>
+                <button
+                  onClick={handleBriocheConfigContinue}
+                  disabled={!wizard.wizardData.colorwork?.rows}
+                  className="flex-2 btn-primary"
+                  style={{ flexGrow: 2 }}
+                >
+                  Continue →
+                </button>
+              </div>
+            </div>
+          </>
         ) : (
           renderCurrentStep()
         )}
+
       </div>
 
       <UnsavedChangesModal
