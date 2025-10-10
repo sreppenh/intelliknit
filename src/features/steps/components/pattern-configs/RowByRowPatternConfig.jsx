@@ -1,10 +1,13 @@
 // src/features/steps/components/pattern-configs/RowByRowPatternConfig.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // Add useRef
 import { getPatternPlaceholderText } from '../../../../shared/utils/stepDisplayUtils';
 import { calculateRowStitchesLive, getPreviousRowStitches } from '../../../../shared/utils/stitchCalculatorUtils';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import SimpleRowBuilder from './SimpleRowBuilder';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
+import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar'; // ✨ NEW
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ NEW
+
 
 /**
  * RowByRowPatternConfig - SIMPLIFIED VERSION
@@ -25,10 +28,28 @@ const RowByRowPatternConfig = ({
     showSaveActions = false
 }) => {
 
-    // ===== SIMPLE STATE - NO MORE KEYBOARD COMPLEXITY =====
+    // ===== STATE =====
     const [showModal, setShowModal] = useState(false);
     const [editingRowIndex, setEditingRowIndex] = useState(null);
     const [tempRowText, setTempRowText] = useState('');
+
+    // ✨ NEW: Add refs and context
+    const textareaRef = useRef(null);
+    const { currentProject, dispatch } = useProjectsContext();
+
+    // ✨ NEW: Handler for updating recently used abbreviations
+    const handleUpdateRecentlyUsed = (updatedArray) => {
+        dispatch({
+            type: 'UPDATE_PROJECT',
+            payload: {
+                ...currentProject,
+                customAbbreviations: {
+                    ...currentProject.customAbbreviations,
+                    recentlyUsed: updatedArray
+                }
+            }
+        });
+    };
 
     const rowInstructions = wizardData.stitchPattern.rowInstructions || [];
     const terms = getConstructionTerms(construction);

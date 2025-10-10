@@ -1325,6 +1325,51 @@ body.modal-open {
   @apply active:scale-95;
 }
 
+/* Add to src/styles/components.css after the .suggestion-bubble class */
+
+/* Knitting Abbreviation Bar */
+.knitting-abbreviation-bar {
+  /* Sticky positioning - stays above keyboard on mobile */
+  position: sticky;
+  bottom: 0;
+  z-index: 50;
+
+  /* Styling */
+  background: white;
+  border-top: 1px solid #e5e7eb;
+  padding: 0.75rem 1rem;
+  margin: 0 -1rem;
+  /* Extend to edges of modal/container */
+
+  /* Shadow for visual separation */
+  box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* Horizontal scroll styling (webkit browsers) */
+.knitting-abbreviation-bar .flex::-webkit-scrollbar {
+  height: 4px;
+}
+
+.knitting-abbreviation-bar .flex::-webkit-scrollbar-track {
+  background: #f3f4f6;
+  border-radius: 4px;
+}
+
+.knitting-abbreviation-bar .flex::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.knitting-abbreviation-bar .flex::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Remove scrollbar for Firefox (optional - it auto-hides anyway) */
+.knitting-abbreviation-bar .flex {
+  scrollbar-width: thin;
+  scrollbar-color: #d1d5db #f3f4f6;
+}
+
 /* Animations */
 @keyframes slideInFromTop {
   0% {
