@@ -51,7 +51,8 @@ const ColorSelectionScreen = ({
         return true;
     };
 
-    const sortedYarns = getSortedYarnLetters(yarns);
+    // Only show yarns that actually exist in the project
+    const sortedYarns = getSortedYarnLetters(yarns).filter(yarn => yarn && yarn.id);
 
     return (
         <div className="stack-lg">
