@@ -67,6 +67,20 @@ export const getUnifiedProjectStatus = (project) => {
         })
     );
 
+    console.log('🔍 DEBUG hasProgress:', {
+        projectId: project.id,
+        projectName: project.name,
+        hasProgress: hasProgress,
+        components: project.components?.map(c => ({
+            id: c.id,
+            name: c.name,
+            stepsWithProgress: c.steps?.filter(s => {
+                const prog = getStepProgressState(s.id, c.id, project.id);
+                return prog.status === PROGRESS_STATUS.COMPLETED || prog.status === PROGRESS_STATUS.IN_PROGRESS;
+            }).length
+        }))
+    });
+
     // Calculate streak (for active projects only)
     const getStreakDays = () => {
         if (!project.activityLog || project.activityLog.length === 0) return 0;

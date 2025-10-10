@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateOverviewTab, extractOverviewTabProps } from '../types/TabProps';
-import { getProjectStatus as getSharedProjectStatus } from '../../../../../shared/utils/projectStatus';
+import { getProjectStatus as getSharedProjectStatus } from '../../../../../shared/utils/unifiedProjectStatus';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 import { getComponentState as getComponentStatusWithDisplay } from '../../../../../shared/utils/stepDisplayUtils';
 import StandardModal from '../../../../../shared/components/modals/StandardModal';
