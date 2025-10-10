@@ -71,6 +71,9 @@ const CreateProject = ({ onBack, onProjectCreated, selectedProjectType, onExitTo
       yarn: '',
       needleSize: '',
       components: [],
+      customAbbreviations: {
+        recentlyUsed: [] // Will populate as user types
+      },
       completed: false,
       createdAt: new Date().toISOString()
     };
