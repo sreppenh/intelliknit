@@ -318,17 +318,27 @@ const RowByRowPatternConfig = ({
                         <label className="form-label">
                             {terms.Row} Instruction
                         </label>
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRef}
                             value={tempRowText}
                             onChange={(e) => setTempRowText(e.target.value)}
                             placeholder={placeholderText}
-                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base font-mono focus:border-sage-500 focus:ring-0 transition-colors"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base font-mono focus:border-sage-500 focus:ring-0 transition-colors resize-none"
+                            rows="3"
                             autoFocus
                         />
                         <p className="text-xs text-wool-500 mt-1">
                             Enter knitting abbreviations separated by commas
                         </p>
+
+                        {/* ✨ NEW: Abbreviation Bar */}
+                        <KnittingAbbreviationBar
+                            textareaRef={textareaRef}
+                            value={tempRowText}
+                            onChange={setTempRowText}
+                            recentlyUsed={currentProject?.customAbbreviations?.recentlyUsed || []}
+                            onUpdateRecentlyUsed={handleUpdateRecentlyUsed}
+                        />
                     </div>
 
                     {/* Real-time Stitch Calculation */}

@@ -116,6 +116,7 @@ export const projectsReducer = (state, action) => {
         currentComponent: 0,
         colorCount: action.payload.colorCount || 2,        // ✅ ADD THIS
         colorMapping: action.payload.colorMapping || {},   // ✅ ADD THIS
+        customAbbreviations: { recentlyUsed: [] },
         createdAt: new Date().toISOString(),
         lastActivityAt: new Date().toISOString(), // NEW: Track activity on creation
         completed: false
