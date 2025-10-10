@@ -16,6 +16,9 @@ import {
     PATTERN_CATEGORIES
 } from './constants';
 
+// ✅ ADD THIS IMPORT
+import { getStepProgressState, PROGRESS_STATUS } from './progressTracking';
+
 // ===== PATTERN CONFIGURATION =====
 
 const PATTERN_CONFIG = {
@@ -519,7 +522,7 @@ export const validateStepConfiguration = (step) => {
     return { isValid: true };
 };
 
-export const getComponentState = (component) => {
+export const getComponentState = (component, projectId = null) => {
     if (!component.steps || component.steps.length === 0) {
         return 'edit_mode';
     }
@@ -528,8 +531,26 @@ export const getComponentState = (component) => {
     const hasEnding = component.steps.some(step =>
         isFinishingStep(step) || (typeof step.endingStitches === 'number' && step.endingStitches === 0)
     );
-    const hasProgress = component.steps.some(step => step.completed);
-    const allComplete = component.steps.every(step => step.completed);
+
+    // ✅ NEW: Check progress tracking system instead of step.completed
+    let hasProgress = false;
+    let allComplete = true;
+
+    if (projectId && component.id) {
+        // Use NEW progress tracking system
+        hasProgress = component.steps.some(step => {
+            const progress = getStepProgressState(step.id, component.id, projectId);
+            return progress.status === PROGRESS_STATUS.COMPLETED || progress.status === PROGRESS_STATUS.IN_PROGRESS;
+        });
+        allComplete = component.steps.every(step => {
+            const progress = getStepProgressState(step.id, component.id, projectId);
+            return progress.status === PROGRESS_STATUS.COMPLETED;
+        });
+    } else {
+        // Fallback to OLD completed flag for backward compatibility
+        hasProgress = component.steps.some(step => step.completed);
+        allComplete = component.steps.every(step => step.completed);
+    }
 
     if (hasEnding && allComplete) return 'finished';
     if (hasCastOn && hasProgress) return 'currently_knitting';
@@ -584,7 +605,7 @@ export const validatePatternConfiguration = (stitchPattern) => {
     return true;
 };
 
-export const getComponentStatusWithDisplay = (component) => {
+export const getComponentStatusWithDisplay = (component, projectId = null) => {
     const statusCategories = {
         'edit_mode': {
             display: '✏️ Edit Mode',
@@ -629,7 +650,8 @@ export const getComponentStatusWithDisplay = (component) => {
         };
     }
 
-    const status = getComponentState(component);
+    // ✅ CHANGED: Pass projectId to getComponentState
+    const status = getComponentState(component, projectId);
 
     return {
         status,
