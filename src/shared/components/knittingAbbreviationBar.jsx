@@ -58,7 +58,7 @@ const KnittingAbbreviationBar = ({
                 ))}
             </div>
         </div>
-    );
+    ); // hi
 };
 
 export default KnittingAbbreviationBar;
