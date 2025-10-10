@@ -22,61 +22,6 @@ import { getStepProgressState, PROGRESS_STATUS } from './progressTracking';
 // ===== PATTERN CONFIGURATION =====
 
 const PATTERN_CONFIG = {
-    'Lace Pattern': {
-        placeholderText: "e.g., 'K1, YO, K2tog, K3, SSK, YO, K1'",
-        descriptionPlaceholder: "Describe your lace pattern with key techniques and any chart references...",
-        category: 'structure',
-        requiresAdvancedRowByRow: true,
-        isAdvancedPattern: true,
-        requiresCustomText: false,
-        requiresRowsInPattern: true,
-        needsDescriptionInput: false,
-        needsRowInput: false,
-        includesInRowCountPatterns: true,
-        configurationTips: [
-            'Include chart name or written instructions',
-            'Note any yarn-over/decrease pairings',
-            'Mention blocking requirements if important'
-        ]
-    },
-
-    'Cable Pattern': {
-        placeholderText: "e.g., 'K2, P2, C6F, P2, K2'",
-        descriptionPlaceholder: "Describe your cable pattern crossings, directions, and any background stitches...",
-        category: 'structure',
-        requiresAdvancedRowByRow: true,
-        isAdvancedPattern: true,
-        requiresCustomText: false,
-        requiresRowsInPattern: true,
-        needsDescriptionInput: false,
-        needsRowInput: false,
-        includesInRowCountPatterns: true,
-        configurationTips: [
-            'Describe cable crossing (e.g., "6-st left cross")',
-            'Include chart reference if you have one',
-            'Note cable needle size if specific'
-        ]
-    },
-
-    'Custom Texture': {
-        placeholderText: "e.g., 'K2, P2, Bobble, P2, K2'",
-        descriptionPlaceholder: "Describe your custom texture pattern...",
-        category: 'texture',
-        requiresAdvancedRowByRow: true,
-        isAdvancedPattern: true,
-        requiresCustomText: false,
-        requiresRowsInPattern: true,
-        needsDescriptionInput: false,
-        needsRowInput: false,
-        includesInRowCountPatterns: true,
-        configurationTips: [
-            'Use K and P for basic stitches',
-            'Add Bobble for texture interest',
-            'Use brackets [ ] for repeats',
-            'Use parentheses ( ) for stitch groups'
-        ]
-    },
-
     'Brioche': {
         placeholderText: "e.g., 'sl1yo, brk1 to end'",
         descriptionPlaceholder: "Describe your brioche pattern...",

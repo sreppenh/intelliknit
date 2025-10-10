@@ -10,7 +10,7 @@ import {
   StripesConfig
 } from '../pattern-configs';
 import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
-
+import SimpleRowBuilder from '../pattern-configs/SimpleRowBuilder';
 
 const PatternConfiguration = ({
   wizardData,
@@ -79,13 +79,11 @@ const PatternConfiguration = ({
       case 'Custom':
         if (entryMode === 'row_by_row') {
           return (
-            <RowByRowPatternConfig
+            <SimpleRowBuilder    // ← Direct call, no wrapper!
               wizardData={wizardData}
               updateWizardData={updateWizardData}
               construction={construction}
               currentStitches={currentStitches}
-              project={project}
-              mode={mode}
             />
           );
         } else if (entryMode === 'description') {
@@ -109,20 +107,7 @@ const PatternConfiguration = ({
 
       default:
         // For other advanced patterns (backward compatibility)
-        if (isAdvancedRowByRowPattern(pattern)) {
-          return (
-            <RowByRowPatternConfig
-              wizardData={wizardData}
-              updateWizardData={updateWizardData}
-              construction={construction}
-              currentStitches={currentStitches}
-              project={project}
-              mode={mode}
-            />
-          );
-        }
 
-        // Basic patterns
         return (
           <BasicPatternConfig
             wizardData={wizardData}

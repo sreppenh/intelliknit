@@ -1,7 +1,6 @@
 // src/features/steps/components/edit/EditStepRouter.jsx
 import React from 'react';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
-import EditRowByRowPatternForm from './EditRowByRowPatternForm';
 import EditDurationForm from './EditDurationForm';
 import EditPatternModal from './EditPatternModal';
 import EditConfigScreen from './EditConfigScreen';
@@ -10,7 +9,6 @@ import EditSequentialPhasesForm from './EditSequentialPhasesForm';
 import EditStripesForm from './EditStripesForm';
 import {
     getStepPatternName,
-    isAdvancedRowByRowPattern,
     isInitializationStep,
     isFinishingStep
 } from '../../../../shared/utils/stepDisplayUtils';
@@ -85,21 +83,20 @@ const EditStepRouter = ({
     if (editType === 'pattern') {
         const patternName = getStepPatternName(step);
 
-        // Advanced patterns need row-by-row editor
-        if (isAdvancedRowByRowPattern(patternName)) {
-            return <EditRowByRowPatternForm {...commonProps} />;
-        }
-
-        // ADD THIS BLOCK HERE:
+        // Stripes has dedicated editor
         if (patternName === 'Stripes') {
             return <EditStripesForm {...commonProps} />;
         }
 
+        // Custom pattern with row-by-row entry mode
+        if (patternName === 'Custom' && step.wizardConfig?.stitchPattern?.entryMode === 'row_by_row') {
+            // TODO: Create EditCustomRowByRowForm if needed
+            // For now, return null and let ManageSteps handle via modal
+            return null;
+        }
 
-        // Simple patterns can use modal or dedicated screen
-        // For now, we'll return null and let ManageSteps handle the modal
-        // In future, could create EditPatternSimple.jsx
-        return null; // Let ManageSteps show EditPatternModal
+        // All other patterns use modal (handled by ManageSteps)
+        return null;
     }
 
     if (editType === 'duration') {
@@ -143,10 +140,8 @@ const EditStepRouter = ({
         return <EditConfigScreen {...commonProps} />;
     }
 
-    if (editType === 'rowByRow') {
-        // Direct route to row-by-row editor
-        return <EditRowByRowPatternForm {...commonProps} />;
-    }
+    // ===== REMOVED: 'rowByRow' editType - no longer needed =====
+    // Custom patterns now handled via 'pattern' editType above
 
     // ===== FULL STEP EDIT ROUTING =====
     // When no specific editType, determine based on step characteristics
@@ -156,7 +151,6 @@ const EditStepRouter = ({
 
         // Initialization steps (Cast On, Pick Up & Knit, etc.)
         if (isInitializationStep(step)) {
-            // For now, show message - could create EditInitializationScreen later
             return (
                 <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
                     <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
@@ -178,7 +172,6 @@ const EditStepRouter = ({
 
         // Finishing steps (Bind Off, Put on Holder)
         if (isFinishingStep(step)) {
-            // Could create EditFinishingScreen or reuse ComponentEndingWizard
             return (
                 <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
                     <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
@@ -200,12 +193,6 @@ const EditStepRouter = ({
         // Regular working steps - determine what needs editing
         const hasShaping = step.wizardConfig?.hasShaping ||
             step.advancedWizardConfig?.hasShaping;
-        const patternName = getStepPatternName(step);
-
-        // If it's an advanced pattern, go to row-by-row editor
-        if (isAdvancedRowByRowPattern(patternName)) {
-            return <EditRowByRowPatternForm {...commonProps} />;
-        }
 
         // If it has shaping, go to shaping editor
         if (hasShaping) {
