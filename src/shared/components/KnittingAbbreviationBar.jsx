@@ -6,7 +6,7 @@ import { useKnittingAbbreviations } from '../hooks/useKnittingAbbreviations';
 /**
  * Knitting Abbreviation Bar
  * 
- * Displays smart abbreviation suggestions above textareas for knitting pattern entry.
+ * Displays smart abbreviation suggestions above textareas for simplified knitting pattern entry.
  * Shows recently used terms by default, filters as user types.
  */
 const KnittingAbbreviationBar = ({
