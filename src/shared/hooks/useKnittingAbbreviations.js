@@ -65,7 +65,7 @@ export const useKnittingAbbreviations = ({
             setFilteredAbbreviations(filtered);
             setDisplayAbbreviations(filtered.slice(0, 8)); // Max 8 results
         } else {
-            // Not typing - show recently used
+            // Not typing - show most recently used
             const recent = getRecentlyUsedAbbreviations(recentlyUsed);
             setFilteredAbbreviations([]);
             setDisplayAbbreviations(recent);
@@ -103,20 +103,22 @@ export const useKnittingAbbreviations = ({
         const newText = beforeWord + abbr + suffix + textAfterCursor;
         const newCursorPos = (beforeWord + abbr + suffix).length;
 
-        // Update value
-        onChange(newText);
-
-        // Update recently used
+        // Update recently used FIRST
         if (onUpdateRecentlyUsed) {
             const updatedRecent = [abbr, ...recentlyUsed.filter(a => a !== abbr)].slice(0, 8);
             onUpdateRecentlyUsed(updatedRecent);
         }
 
-        // Restore focus and cursor position
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(newCursorPos, newCursorPos);
-        }, 0);
+        // Update value
+        onChange(newText);
+
+        // ✨ FIXED: Use requestAnimationFrame for better mobile reliability
+        requestAnimationFrame(() => {
+            if (textareaRef.current) {
+                textareaRef.current.focus();
+                textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+            }
+        });
     }, [value, onChange, recentlyUsed, onUpdateRecentlyUsed, textareaRef]);
 
     return {
