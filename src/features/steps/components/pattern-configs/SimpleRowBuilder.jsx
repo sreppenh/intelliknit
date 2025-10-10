@@ -1,8 +1,10 @@
 // src/features/steps/components/pattern-configs/SimpleRowBuilder.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // Add useRef
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import StandardModal from '../../../../shared/components/modals/StandardModal'
+import StandardModal from '../../../../shared/components/modals/StandardModal';
+import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
 
 const SimpleRowBuilder = ({
     wizardData,
@@ -17,6 +19,24 @@ const SimpleRowBuilder = ({
     const [editingRowIndex, setEditingRowIndex] = useState(null);
     const [tempInstruction, setTempInstruction] = useState('');
     const [tempStitchChange, setTempStitchChange] = useState(0);
+
+    // ✨ ADD THESE:
+    const textareaRef = useRef(null);
+    const { currentProject, dispatch } = useProjectsContext();
+
+    // ✨ ADD THIS HANDLER:
+    const handleUpdateRecentlyUsed = (updatedArray) => {
+        dispatch({
+            type: 'UPDATE_PROJECT',
+            payload: {
+                ...currentProject,
+                customAbbreviations: {
+                    ...currentProject.customAbbreviations,
+                    recentlyUsed: updatedArray
+                }
+            }
+        });
+    };
 
     const customSequence = wizardData.stitchPattern?.customSequence || { rows: [] };
     const rows = customSequence.rows || [];
@@ -220,17 +240,27 @@ const SimpleRowBuilder = ({
                         <label className="form-label">
                             {terms.Row} Instruction
                         </label>
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRef}
                             value={tempInstruction}
                             onChange={(e) => setTempInstruction(e.target.value)}
                             placeholder="e.g., K1, m1, k to last st, m1, k1"
-                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 resize-none"
+                            rows="3"
                             autoFocus
                         />
                         <p className="text-xs text-wool-500 mt-1">
                             Enter your custom instruction for this {terms.row}
                         </p>
+
+                        {/* ✨ ADD: Abbreviation Bar */}
+                        <KnittingAbbreviationBar
+                            textareaRef={textareaRef}
+                            value={tempInstruction}
+                            onChange={setTempInstruction}
+                            recentlyUsed={currentProject?.customAbbreviations?.recentlyUsed || []}
+                            onUpdateRecentlyUsed={handleUpdateRecentlyUsed}
+                        />
                     </div>
 
                     {/* Net Stitch Change */}

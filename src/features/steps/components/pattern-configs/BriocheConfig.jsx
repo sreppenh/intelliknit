@@ -1,11 +1,13 @@
 // src/features/steps/components/pattern-configs/BriocheConfig.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react'; // Add useRef
 import { getYarnByLetter } from '../../../../shared/utils/colorworkDisplayUtils';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
+import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
 
 const BriocheConfig = ({
     wizardData,
@@ -55,6 +57,25 @@ const BriocheConfig = ({
     const [tempInstructionA, setTempInstructionA] = useState('');
     const [tempInstructionB, setTempInstructionB] = useState('');
     const [tempStitchChange, setTempStitchChange] = useState(0);
+
+    // ✨ ADD THESE:
+    const textareaRefA = useRef(null);
+    const textareaRefB = useRef(null);
+    const { currentProject, dispatch } = useProjectsContext();
+
+    // ✨ ADD THIS HANDLER:
+    const handleUpdateRecentlyUsed = (updatedArray) => {
+        dispatch({
+            type: 'UPDATE_PROJECT',
+            payload: {
+                ...currentProject,
+                customAbbreviations: {
+                    ...currentProject.customAbbreviations,
+                    recentlyUsed: updatedArray
+                }
+            }
+        });
+    };
 
     // Get color display name
     const getColorDisplay = (yarn) => {
@@ -462,13 +483,23 @@ const BriocheConfig = ({
                                 Using Color {getColorDisplay(rowDef1a.color)}
                             </div>
                         )}
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRefA}
                             value={tempInstructionA}
                             onChange={(e) => setTempInstructionA(e.target.value)}
                             placeholder="e.g., [brk1, sl1yo] to end"
-                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 resize-none"
+                            rows="3"
                             autoFocus
+                        />
+
+                        {/* ✨ ADD: Abbreviation Bar for Row A */}
+                        <KnittingAbbreviationBar
+                            textareaRef={textareaRefA}
+                            value={tempInstructionA}
+                            onChange={setTempInstructionA}
+                            recentlyUsed={currentProject?.customAbbreviations?.recentlyUsed || []}
+                            onUpdateRecentlyUsed={handleUpdateRecentlyUsed}
                         />
                     </div>
 
@@ -486,12 +517,22 @@ const BriocheConfig = ({
                                 Using Color {getColorDisplay(rowDef1b.color)}
                             </div>
                         )}
-                        <input
-                            type="text"
+                        <textarea
+                            ref={textareaRefB}
                             value={tempInstructionB}
                             onChange={(e) => setTempInstructionB(e.target.value)}
                             placeholder="e.g., [brk1, sl1yo] to end"
-                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 resize-none"
+                            rows="3"
+                        />
+
+                        {/* ✨ ADD: Abbreviation Bar for Row B */}
+                        <KnittingAbbreviationBar
+                            textareaRef={textareaRefB}
+                            value={tempInstructionB}
+                            onChange={setTempInstructionB}
+                            recentlyUsed={currentProject?.customAbbreviations?.recentlyUsed || []}
+                            onUpdateRecentlyUsed={handleUpdateRecentlyUsed}
                         />
                     </div>
 

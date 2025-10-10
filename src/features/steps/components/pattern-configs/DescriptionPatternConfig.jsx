@@ -1,7 +1,9 @@
 // src/features/steps/components/pattern-configs/DescriptionPatternConfig.jsx
-import React from 'react';
+import React, { useRef } from 'react'; // Add useRef
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
 
 const DescriptionPatternConfig = ({
     wizardData,
@@ -24,6 +26,24 @@ const DescriptionPatternConfig = ({
 
     // Check if a field is read-only
     const isReadOnly = (fieldName) => readOnlyFields.includes(fieldName);
+
+    // ✨ ADD THESE:
+    const textareaRef = useRef(null);
+    const { currentProject, dispatch } = useProjectsContext();
+
+    // ✨ ADD THIS HANDLER:
+    const handleUpdateRecentlyUsed = (updatedArray) => {
+        dispatch({
+            type: 'UPDATE_PROJECT',
+            payload: {
+                ...currentProject,
+                customAbbreviations: {
+                    ...currentProject.customAbbreviations,
+                    recentlyUsed: updatedArray
+                }
+            }
+        });
+    };
 
     // Determine if we should show save/cancel actions
     const shouldShowActions = showSaveActions || isEditMode;
@@ -77,6 +97,7 @@ const DescriptionPatternConfig = ({
             <div>
                 <label className="form-label">Pattern Description</label>
                 <textarea
+                    ref={textareaRef}
                     value={wizardData.stitchPattern.customText || ''}
                     onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
                     placeholder="e.g., '5 rows stockinette, 1 bobble row'"
@@ -87,6 +108,17 @@ const DescriptionPatternConfig = ({
                 <div className="form-help">
                     Describe your pattern in your own words
                 </div>
+
+                {/* ✨ ADD: Abbreviation Bar */}
+                {!isReadOnly('customText') && (
+                    <KnittingAbbreviationBar
+                        textareaRef={textareaRef}
+                        value={wizardData.stitchPattern.customText || ''}
+                        onChange={(newValue) => updateWizardData('stitchPattern', { customText: newValue })}
+                        recentlyUsed={currentProject?.customAbbreviations?.recentlyUsed || []}
+                        onUpdateRecentlyUsed={handleUpdateRecentlyUsed}
+                    />
+                )}
                 {isReadOnly('customText') && (
                     <p className="text-xs text-yarn-600 mt-1">
                         Pattern description is read-only in edit mode
