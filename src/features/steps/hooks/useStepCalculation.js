@@ -119,14 +119,22 @@ export const useStepCalculation = () => {
       const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
       const totalRows = rowsPerRepeat * numberOfRepeats;
 
-      // Calculate stitch change for Custom patterns from customSequence
+      // Calculate stitch change for Custom and Brioche patterns from customSequence
       let stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
 
-      // For Custom pattern, calculate from customSequence.rows
-      if ((wizardData.stitchPattern.pattern === 'Custom' || wizardData.stitchPattern.pattern === 'Brioche') && wizardData.stitchPattern.customSequence?.rows) {
+      // For Custom pattern (uses array)
+      if (wizardData.stitchPattern.pattern === 'Custom' && wizardData.stitchPattern.customSequence?.rows) {
         const rows = wizardData.stitchPattern.customSequence.rows;
         stitchChangePerRepeat = rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
         console.log('📊 Custom Pattern - calculated stitchChangePerRepeat:', stitchChangePerRepeat, 'from rows:', rows);
+      }
+
+      // For Brioche pattern (uses object - convert to array first)
+      if (wizardData.stitchPattern.pattern === 'Brioche' && wizardData.stitchPattern.customSequence?.rows) {
+        const rows = wizardData.stitchPattern.customSequence.rows;
+        const rowValues = Object.values(rows);
+        stitchChangePerRepeat = rowValues.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
+        console.log('📊 Brioche Pattern - calculated stitchChangePerRepeat:', stitchChangePerRepeat, 'from rows:', rows);
       }
 
       const totalStitchChange = stitchChangePerRepeat * numberOfRepeats;

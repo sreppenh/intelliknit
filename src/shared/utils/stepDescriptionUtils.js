@@ -50,6 +50,8 @@ export const getHumanReadableDescription = (step, componentName = null) => {
  */
 export const getContextualPatternNotes = (step, project = null) => {
     const pattern = getStepPatternName(step);
+    console.log('🔍 getContextualPatternNotes called with pattern:', pattern);  // ← ADD THIS
+
     // ✅ TEMPORARY: Debug what pattern we're getting
 
     // For Pick Up & Knit, show the instruction (how to pick up)
@@ -92,6 +94,14 @@ export const getContextualPatternNotes = (step, project = null) => {
         return null;
     }
 
+    // ✅ Handle Brioche FIRST - before advanced pattern check
+    if (pattern === 'Brioche' || pattern === 'Two-Color Brioche') {
+        console.log('🧶 Brioche pattern detected, calling getBriocheRowInstructions');
+        const result = getBriocheRowInstructions(step);
+        console.log('🧶 getBriocheRowInstructions returned:', result);
+        return result;
+    }
+
     // 🔄 REPLACED: Handle advanced patterns using centralized function
     // OLD: ['Lace Pattern', 'Cable Pattern', 'Custom pattern'].includes(pattern)
     if (requiresAdvancedPatternEdit({ wizardConfig: { stitchPattern: { pattern } } })) {
@@ -102,10 +112,6 @@ export const getContextualPatternNotes = (step, project = null) => {
     const customText = step.wizardConfig?.stitchPattern?.customText;
     if (customText && customText.trim() !== '') {
         return customText.trim();
-    }
-
-    if (pattern === 'Brioche' || pattern === 'Two-Color Brioche') {
-        return getBriocheRowInstructions(step);
     }
 
     return null;
@@ -645,7 +651,7 @@ const getNonShapingStepDescription = (step) => {
         return getBriocheDescription(step, duration);
     }
 
-    // 🔄 REPLACED: For advanced patterns, include row count in pattern name
+    // 🔄 : For advanced patterns, include row count in pattern name
     // OLD: ['Lace Pattern', 'Cable Pattern', 'Custom pattern'].includes(pattern)
     let enhancedPattern = pattern;
     if (requiresAdvancedPatternEdit({ wizardConfig: { stitchPattern: { pattern } } })) {
@@ -1084,8 +1090,10 @@ export const getStepDisplayPriority = (step) => {
  */
 const getBriocheRowInstructions = (step) => {
     const rows = step.wizardConfig?.stitchPattern?.customSequence?.rows;
+    console.log('🧶 getBriocheRowInstructions - rows:', rows);  // ← ADD THIS
 
     if (!rows || Object.keys(rows).length === 0) {
+        console.log('🧶 No rows found or empty');  // ← ADD THIS
         return null;
     }
 
@@ -1099,6 +1107,7 @@ const getBriocheRowInstructions = (step) => {
         })
         .filter(Boolean);
 
+    console.log('🧶 Final instructions:', instructions);  // ← ADD THIS
     return instructions.length > 0 ? instructions.join('\n') : null;
 };
 
