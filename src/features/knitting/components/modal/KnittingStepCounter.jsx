@@ -33,6 +33,32 @@ import {
     PROGRESS_STATUS
 } from '../../../../shared/utils/progressTracking';
 
+/**
+ * Check if step is 2-color brioche and calculate actual pattern rows
+ */
+function isTwoColorBrioche(step) {
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+
+    if (stitchPattern?.pattern === 'Brioche' && stitchPattern?.customSequence?.rows) {
+        const rows = stitchPattern.customSequence.rows;
+        const rowKeys = Object.keys(rows);
+
+        // Check for 'a' and 'b' suffixes
+        const hasTwoColorStructure = rowKeys.some(key => key.endsWith('a') || key.endsWith('b'));
+
+        if (hasTwoColorStructure) {
+            // Count unique row numbers (1a and 1b = 1 row)
+            const uniqueRows = new Set(rowKeys.map(key => parseInt(key.charAt(0))));
+            return {
+                isBrioche: true,
+                actualRows: uniqueRows.size
+            };
+        }
+    }
+
+    return { isBrioche: false, actualRows: null };
+}
+
 const KnittingStepCounter = ({
     step,
     component,
@@ -708,6 +734,21 @@ const KnittingStepCounter = ({
     );
 
     function calculateActualTotalRows(step) {
+        // 🆕 CHECK FOR 2-COLOR BRIOCHE FIRST
+        const briocheCheck = isTwoColorBrioche(step);
+        if (briocheCheck.isBrioche) {
+            const duration = step.wizardConfig?.duration;
+
+            if (duration?.type === 'repeats') {
+                const repeats = parseInt(duration.value) || 0;
+                return repeats * briocheCheck.actualRows;
+            }
+
+            // For non-repeat brioche, return actual pattern rows
+            return briocheCheck.actualRows;
+        }
+
+        // EXISTING LOGIC CONTINUES BELOW (keep all existing code)
         const duration = step.wizardConfig?.duration;
 
         if (duration?.type === 'repeats') {
@@ -801,9 +842,12 @@ const KnittingStepCounter = ({
                         </div>
                     )}
 
-                    <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed mb-4`}>
-                        {instructionResult.instruction || 'Loading instruction...'}
+                    <div className={`${instructionResult.isBrioche ? 'text-left' : ''} mb-4`}>
+                        <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed ${instructionResult.isBrioche ? 'whitespace-pre-line' : ''}`}>
+                            {instructionResult.instruction || 'Loading instruction...'}
+                        </div>
                     </div>
+
 
                     {/* Progress alerts */}
                     {lengthProgressData?.shouldShowNearAlert && (

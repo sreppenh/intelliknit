@@ -45,6 +45,11 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
     const patternName = getStepPatternName(step);
     const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
+    // 🆕 PRIORITY 0: 2-color Brioche (before everything else)
+    if (isTwoColorBrioche(step)) {
+        return getTwoColorBriocheInstruction(step, currentRow, construction);
+    }
+
     // Priority 1: Construction patterns (Cast On, Bind Off)
     if (isConstructionPattern(patternName)) {
         return getConstructionInstruction(step, patternName);
@@ -143,6 +148,91 @@ function getConstructionInstruction(step, patternName) {
             };
     }
 }
+
+// ========================================
+// ADD THIS SECTION to KnittingInstructionService.js
+// Place it right after the isColorworkPattern function (around line 735)
+// ========================================
+
+/**
+ * Check if pattern is 2-color Brioche
+ */
+function isTwoColorBrioche(step) {
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+
+    // Check if it's Brioche pattern with customSequence
+    if (stitchPattern?.pattern === 'Brioche' && stitchPattern?.customSequence?.rows) {
+        const rows = stitchPattern.customSequence.rows;
+        const rowKeys = Object.keys(rows);
+
+        // 2-color brioche has rows with 'a' and 'b' suffixes (e.g., "1a", "1b", "2a", "2b")
+        const hasTwoColorStructure = rowKeys.some(key => key.endsWith('a') || key.endsWith('b'));
+
+        return hasTwoColorStructure;
+    }
+
+    return false;
+}
+
+/**
+ * Get 2-color brioche instruction for current row
+ * Returns both 'a' and 'b' instructions together
+ */
+function getTwoColorBriocheInstruction(step, currentRow, construction) {
+    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
+    const rows = stitchPattern?.customSequence?.rows;
+
+    if (!rows) {
+        return {
+            instruction: 'Work in 2-color brioche as established',
+            isSupported: false,
+            needsHelp: true,
+            helpTopic: 'brioche_help'
+        };
+    }
+
+    // Get the color data
+    const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+    const colorA = colorwork?.colorA;
+    const colorB = colorwork?.colorB;
+
+    // Determine side (RS/WS) based on row number and construction
+    const side = construction === 'round' ? 'Round' : (currentRow % 2 === 1 ? 'RS' : 'WS');
+
+    // Get both 'a' and 'b' instructions for this row number
+    const rowKeyA = `${currentRow}a`;
+    const rowKeyB = `${currentRow}b`;
+
+    const instructionA = rows[rowKeyA]?.instruction || 'Work row as established';
+    const instructionB = rows[rowKeyB]?.instruction || 'Work row as established';
+
+    // Format color labels
+    const colorLabelA = colorA?.letter
+        ? `Color ${colorA.letter}${colorA.color ? ` (${colorA.color})` : ''}`
+        : 'Color A';
+    const colorLabelB = colorB?.letter
+        ? `Color ${colorB.letter}${colorB.color ? ` (${colorB.color})` : ''}`
+        : 'Color B';
+
+    // Format the combined instruction with visual separation
+    const combinedInstruction = [
+        `Row ${currentRow}a - ${colorLabelA}:`,
+        instructionA,
+        '',  // Blank line for separation
+        `Row ${currentRow}b - ${colorLabelB}:`,
+        instructionB
+    ].join('\n');
+
+    return {
+        instruction: combinedInstruction,
+        isSupported: true,
+        needsHelp: true,
+        helpTopic: 'brioche_help',
+        isBrioche: true  // Flag to help with formatting
+    };
+}
+
+
 
 /**
  * Cast On instruction generation
