@@ -57,7 +57,7 @@ export const useStepCalculation = () => {
       let stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
 
       // For Custom pattern, calculate from customSequence.rows
-      if (wizardData.stitchPattern.pattern === 'Custom' && wizardData.stitchPattern.customSequence?.rows) {
+      if ((wizardData.stitchPattern.pattern === 'Custom' || wizardData.stitchPattern.pattern === 'Brioche') && wizardData.stitchPattern.customSequence?.rows) {
         stitchChangePerRepeat = calculateStitchChangePerRepeat(wizardData.stitchPattern.customSequence.rows);
         IntelliKnitLogger.debug('Custom Pattern Stitch Change', { stitchChangePerRepeat });
       }
@@ -123,7 +123,7 @@ export const useStepCalculation = () => {
       let stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
 
       // For Custom pattern, calculate from customSequence.rows
-      if (wizardData.stitchPattern.pattern === 'Custom' && wizardData.stitchPattern.customSequence?.rows) {
+      if ((wizardData.stitchPattern.pattern === 'Custom' || wizardData.stitchPattern.pattern === 'Brioche') && wizardData.stitchPattern.customSequence?.rows) {
         const rows = wizardData.stitchPattern.customSequence.rows;
         stitchChangePerRepeat = rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
         console.log('📊 Custom Pattern - calculated stitchChangePerRepeat:', stitchChangePerRepeat, 'from rows:', rows);

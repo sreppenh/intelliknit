@@ -101,6 +101,24 @@ const generateInitialColorText = (colorwork, project) => {
         return 'Using stripe pattern';
     }
 
+    if (colorwork.type === 'two_color_brioche') {
+        const letters = colorwork.letters || [];
+
+        if (letters.length === 0) return null;
+
+        const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
+        const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
+        const letterList = sortedYarns.map(y => y.letter).join(' and ');
+
+        const yarnNames = sortedYarns
+            .filter(y => y.color && y.color !== `Color ${y.letter}`)
+            .map(y => `${y.letter}: ${y.color}`)
+            .join(', ');
+
+        const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
+        return `Using Colors ${letterList} for Two-Color Brioche${namesSuffix}`;
+    }
+
     return null;
 };
 
@@ -148,6 +166,22 @@ const generateColorChangeText = (colorwork, project) => {
             return 'Switch to stripe pattern';
         }
 
+        if (colorwork.type === 'two_color_brioche') {
+            const letters = colorwork.letters || [];
+
+            if (letters.length === 0) return null;
+
+            const letterList = letters.sort().join(', ');
+
+            const yarnNames = letters.map(letter => {
+                const yarn = getYarnByLetter(project?.yarns || [], letter);
+                return yarn.color && yarn.color !== `Color ${letter}` ? yarn.color : null;
+            }).filter(Boolean).join(', ');
+
+            const namesSuffix = yarnNames ? ` (${yarnNames})` : '';
+            return `Switch to Colors ${letterList} for Two-Color Brioche${namesSuffix}`;
+        }
+
         // Collect unique colors from the stripe sequence
         const uniqueColors = [...new Set(stripeSequence.map(stripe => stripe.color))];
 
@@ -193,6 +227,10 @@ const getStepColorForComparison = (step, component) => {
         }
         if (step.colorwork.type === 'stripes') {
             return 'stripes';
+        }
+        if (step.colorwork.type === 'two_color_brioche') {
+            const letters = step.colorwork.letters || [];
+            return `brioche:${letters.sort().join(',')}`;
         }
     }
 

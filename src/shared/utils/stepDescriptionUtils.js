@@ -104,6 +104,10 @@ export const getContextualPatternNotes = (step, project = null) => {
         return customText.trim();
     }
 
+    if (pattern === 'Brioche' || pattern === 'Two-Color Brioche') {
+        return getBriocheRowInstructions(step);
+    }
+
     return null;
 };
 
@@ -323,6 +327,23 @@ const getStripeSequenceDisplay = (step, project) => {
 };
 
 /**
+ * Generate brioche-specific description
+ */
+const getBriocheDescription = (step, duration) => {
+    const rowCount = step.wizardConfig?.stitchPattern?.customSequence?.rowCount;
+
+    if (duration && rowCount) {
+        return `Work ${duration} in ${rowCount}-row Two-Color Brioche`;
+    }
+
+    if (duration) {
+        return `Work ${duration} in Two-Color Brioche`;
+    }
+
+    return 'Work in Two-Color Brioche';
+};
+
+/**
  * Get configuration-specific contextual notes
  * Used for shaping details, timing specifics, duration notes
  */
@@ -434,9 +455,6 @@ export const getContextualConfigNotes = (step) => {
                 }
             }
         }
-
-
-
 
     }
 
@@ -620,6 +638,11 @@ const getNonShapingStepDescription = (step) => {
     // ✅ SPECIAL HANDLING for Stripes
     if (pattern === 'Stripes') {
         return getStripePatternDescription(step);
+    }
+
+    // ✅ ADD THIS: SPECIAL HANDLING for Brioche
+    if (pattern === 'Brioche' || pattern === 'Two-Color Brioche') {
+        return getBriocheDescription(step, duration);
     }
 
     // 🔄 REPLACED: For advanced patterns, include row count in pattern name
@@ -867,6 +890,20 @@ const getColorDisplayForTechnicalData = (step, project) => {
             return 'Color';
         }
 
+        if (colorwork.type === 'two_color_brioche') {
+            const letters = colorwork.letters || [];
+
+            if (letters.length === 0) return null;
+
+            const yarns = letters.map(letter => getYarnByLetter(project?.yarns || [], letter));
+            const colorNames = yarns
+                .map(y => y.color && y.color !== `Color ${y.letter}` ? y.color : `Color ${y.letter}`)
+                .join(' & ');
+
+            return colorNames;
+        }
+
+
         if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
             // ✅ FIXED: Use colorLetters (new format) with fallback to yarnIds (legacy)
             const letters = colorwork.colorLetters || colorwork.letters;
@@ -1040,6 +1077,29 @@ export const getStepDisplayPriority = (step) => {
 
     // Regular pattern steps in middle
     return 50;
+};
+
+/**
+ * Get brioche row instructions for italic display
+ */
+const getBriocheRowInstructions = (step) => {
+    const rows = step.wizardConfig?.stitchPattern?.customSequence?.rows;
+
+    if (!rows || Object.keys(rows).length === 0) {
+        return null;
+    }
+
+    // Format as: Row 1a: [instruction], Row 1b: [instruction], etc.
+    const rowKeys = Object.keys(rows).sort();
+    const instructions = rowKeys
+        .map(key => {
+            const instruction = rows[key]?.instruction;
+            if (!instruction) return null;
+            return `Row ${key}: ${instruction}`;
+        })
+        .filter(Boolean);
+
+    return instructions.length > 0 ? instructions.join('\n') : null;
 };
 
 // ===== EXPORTS =====

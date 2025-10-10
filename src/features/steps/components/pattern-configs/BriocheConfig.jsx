@@ -111,7 +111,7 @@ const BriocheConfig = ({
         updateWizardData('stitchPattern', {
             pattern: 'Brioche',
             customSequence: { rows: updatedRows },
-            rowsInPattern: String(Object.keys(updatedRows).length)
+            rowsInPattern: String(Object.keys(updatedRows).length) / 2
         });
 
         handleCloseModal();
@@ -152,7 +152,7 @@ const BriocheConfig = ({
         updateWizardData('stitchPattern', {
             pattern: 'Brioche',
             customSequence: { rows: updatedRows },
-            rowsInPattern: String(Object.keys(updatedRows).length)
+            rowsInPattern: String(Object.keys(updatedRows).length) / 2
         });
     };
 
@@ -171,7 +171,7 @@ const BriocheConfig = ({
         updateWizardData('stitchPattern', {
             pattern: 'Brioche',
             customSequence: { rows: updatedRows },
-            rowsInPattern: String(Object.keys(updatedRows).length)
+            rowsInPattern: String(Object.keys(updatedRows).length) / 2
         });
     };
 
@@ -198,7 +198,7 @@ const BriocheConfig = ({
         updateWizardData('stitchPattern', {
             pattern: 'Brioche',
             customSequence: { rows: updatedRows },
-            rowsInPattern: String(Object.keys(updatedRows).length)
+            rowsInPattern: String(Object.keys(updatedRows).length) / 2
         });
 
         // Open modal for the first new row
@@ -379,7 +379,7 @@ const BriocheConfig = ({
                 <div className="mt-3 p-3 bg-sage-50 border border-sage-200 rounded-lg">
                     <div className="text-sm text-center">
                         <span className="text-wool-700 font-medium">
-                            {rowStructure.length} {rowStructure.length === 1 ? terms.row : terms.rows} in pattern
+                            {rowStructure.length / 2} {rowStructure.length === 2 ? terms.row : terms.rows} in pattern
                         </span>
                         {calculateNetChange() !== 0 && (
                             <span className={`ml-2 font-semibold ${calculateNetChange() > 0 ? 'text-green-700' : 'text-red-700'
