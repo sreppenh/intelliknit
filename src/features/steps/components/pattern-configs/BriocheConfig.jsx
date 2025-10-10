@@ -16,11 +16,31 @@ const BriocheConfig = ({
     const { yarns } = useYarnManager();
     const terms = getConstructionTerms(construction);
     const colorwork = wizardData.colorwork || {};
-    const letters = colorwork.letters || [];
+    const initialLetters = colorwork.letters || [];
 
-    // Get yarn colors for display
+    // ✅ FIXED: Track letter order in local state so swap works
+    const [letters, setLetters] = useState(initialLetters);
+
+    // Get yarn colors for display - now uses state
     const colorA = letters[0] ? getYarnByLetter(yarns, letters[0]) : null;
     const colorB = letters[1] ? getYarnByLetter(yarns, letters[1]) : null;
+
+    // Handle color swap
+    const handleSwapColors = () => {
+        if (letters.length !== 2) return;
+
+        // Swap the letters array
+        const swappedLetters = [letters[1], letters[0]];
+
+        // Update local state (triggers re-render)
+        setLetters(swappedLetters);
+
+        // Update wizardData with swapped colors
+        updateWizardData('colorwork', {
+            ...colorwork,
+            letters: swappedLetters
+        });
+    };
 
     // ✅ CHANGED: Read from stitchPattern.customSequence.rows instead of colorwork.rows
     const getInitialRows = () => {
@@ -241,8 +261,20 @@ const BriocheConfig = ({
             </div>
 
             {/* Color Reference */}
-            <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4">
-                <h3 className="text-sm font-semibold text-yarn-700 mb-3">Your Colors</h3>
+            <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4 relative">
+                <div className="flex items-center justify-between mb-3">
+                    <h3 className="text-sm font-semibold text-yarn-700">Your Colors</h3>
+                    {colorA && colorB && (
+                        <button
+                            onClick={handleSwapColors}
+                            className="text-xs text-yarn-600 hover:text-yarn-800 hover:bg-yarn-200 rounded-lg px-2 py-1 transition-colors font-medium"
+                            aria-label="Swap color order"
+                            title="Swap Color A ↔ Color B"
+                        >
+                            Swap A ↔ B
+                        </button>
+                    )}
+                </div>
                 <div className="flex gap-4">
                     {colorA && (
                         <div className="flex items-center gap-2">
