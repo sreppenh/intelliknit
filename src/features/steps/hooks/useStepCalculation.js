@@ -12,15 +12,6 @@ export const useStepCalculation = () => {
 
   const calculateEffect = useMemo(() => (wizardData, currentStitches, construction) => {
     // Handle Cast On specially - it sets the stitch count from 0
-    console.log('🔍 calculateEffect called with:', {
-      pattern: wizardData.stitchPattern?.pattern,
-      durationType: wizardData.duration?.type,
-      durationValue: wizardData.duration?.value,
-      rowsInPattern: wizardData.stitchPattern?.rowsInPattern,
-      stitchChangePerRepeat: wizardData.stitchPattern?.stitchChangePerRepeat,
-      hasShaping: wizardData.hasShaping,
-      entryMode: wizardData.stitchPattern?.entryMode
-    });
 
     if (wizardData.stitchPattern.pattern === 'Cast On') {
       const stitchCount = parseInt(wizardData.stitchPattern.stitchCount) || 0;
@@ -106,14 +97,6 @@ export const useStepCalculation = () => {
 
     // Handle patterns with repeats (existing code)
     if (wizardData.duration.type === 'repeats' && wizardData.stitchPattern.rowsInPattern) {
-      console.log('🎯 PATTERN REPEATS CALCULATION TRIGGERED');
-      console.log('📊 Input data:', {
-        durationType: wizardData.duration.type,
-        durationValue: wizardData.duration.value,
-        rowsInPattern: wizardData.stitchPattern.rowsInPattern,
-        stitchChangePerRepeat: wizardData.stitchPattern.stitchChangePerRepeat,
-        currentStitches: currentStitches
-      });
 
       const rowsPerRepeat = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
       const numberOfRepeats = parseInt(wizardData.duration.value) || 1;
@@ -126,7 +109,6 @@ export const useStepCalculation = () => {
       if (wizardData.stitchPattern.pattern === 'Custom' && wizardData.stitchPattern.customSequence?.rows) {
         const rows = wizardData.stitchPattern.customSequence.rows;
         stitchChangePerRepeat = rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
-        console.log('📊 Custom Pattern - calculated stitchChangePerRepeat:', stitchChangePerRepeat, 'from rows:', rows);
       }
 
       // For Brioche pattern (uses object - convert to array first)
@@ -134,7 +116,6 @@ export const useStepCalculation = () => {
         const rows = wizardData.stitchPattern.customSequence.rows;
         const rowValues = Object.values(rows);
         stitchChangePerRepeat = rowValues.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
-        console.log('📊 Brioche Pattern - calculated stitchChangePerRepeat:', stitchChangePerRepeat, 'from rows:', rows);
       }
 
       const totalStitchChange = stitchChangePerRepeat * numberOfRepeats;

@@ -50,7 +50,6 @@ export const getHumanReadableDescription = (step, componentName = null) => {
  */
 export const getContextualPatternNotes = (step, project = null) => {
     const pattern = getStepPatternName(step);
-    console.log('🔍 getContextualPatternNotes called with pattern:', pattern);  // ← ADD THIS
 
     // ✅ TEMPORARY: Debug what pattern we're getting
 
@@ -96,9 +95,7 @@ export const getContextualPatternNotes = (step, project = null) => {
 
     // ✅ Handle Brioche FIRST - before advanced pattern check
     if (pattern === 'Brioche' || pattern === 'Two-Color Brioche') {
-        console.log('🧶 Brioche pattern detected, calling getBriocheRowInstructions');
         const result = getBriocheRowInstructions(step);
-        console.log('🧶 getBriocheRowInstructions returned:', result);
         return result;
     }
 
@@ -336,10 +333,11 @@ const getStripeSequenceDisplay = (step, project) => {
  * Generate brioche-specific description
  */
 const getBriocheDescription = (step, duration) => {
-    const rowCount = step.wizardConfig?.stitchPattern?.customSequence?.rowCount;
+    // Get rowsInPattern from stitchPattern (already divided by 2 in BriocheConfig)
+    const rowsInPattern = step.wizardConfig?.stitchPattern?.rowsInPattern;
 
-    if (duration && rowCount) {
-        return `Work ${duration} in ${rowCount}-row Two-Color Brioche`;
+    if (duration && rowsInPattern) {
+        return `Work ${duration} in ${rowsInPattern}-row Two-Color Brioche`;
     }
 
     if (duration) {
@@ -646,7 +644,7 @@ const getNonShapingStepDescription = (step) => {
         return getStripePatternDescription(step);
     }
 
-    // ✅ ADD THIS: SPECIAL HANDLING for Brioche
+    // ✅ SPECIAL HANDLING for Brioche
     if (pattern === 'Brioche' || pattern === 'Two-Color Brioche') {
         return getBriocheDescription(step, duration);
     }
@@ -1090,10 +1088,8 @@ export const getStepDisplayPriority = (step) => {
  */
 const getBriocheRowInstructions = (step) => {
     const rows = step.wizardConfig?.stitchPattern?.customSequence?.rows;
-    console.log('🧶 getBriocheRowInstructions - rows:', rows);  // ← ADD THIS
 
     if (!rows || Object.keys(rows).length === 0) {
-        console.log('🧶 No rows found or empty');  // ← ADD THIS
         return null;
     }
 
@@ -1107,7 +1103,6 @@ const getBriocheRowInstructions = (step) => {
         })
         .filter(Boolean);
 
-    console.log('🧶 Final instructions:', instructions);  // ← ADD THIS
     return instructions.length > 0 ? instructions.join('\n') : null;
 };
 
