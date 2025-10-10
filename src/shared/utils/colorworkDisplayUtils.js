@@ -86,12 +86,14 @@ export const formatColorworkDisplay = (colorwork, yarns) => {
 };
 
 /**
- * Get sorted yarns A-D for display
+ * Get sorted yarns for display based on project's color count
  * @param {Array} yarns - All project yarns
- * @returns {Array} Array of 4 yarns (A, B, C, D) or null for empty slots
+ * @param {number} colorCount - Number of color slots in project (default 2)
+ * @returns {Array} Array of yarn objects (real or placeholder) for each color slot
  */
-export const getSortedYarnLetters = (yarns) => {
-    return Array.from({ length: 4 }, (_, i) => {
+export const getSortedYarnLetters = (yarns, colorCount = 2) => {
+    // Create color slots based on project's colorCount
+    return Array.from({ length: colorCount }, (_, i) => {
         const letter = String.fromCharCode(65 + i);
         return getYarnByLetter(yarns, letter);
     });
