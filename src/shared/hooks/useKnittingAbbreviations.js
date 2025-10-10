@@ -5,7 +5,7 @@ import {
     filterAbbreviations,
     getRecentlyUsedAbbreviations,
     shouldSkipComma
-} from '../constants/knittingAbbreviations';
+} from '../KnittingAbbreviations';
 
 /**
  * Custom hook for managing knitting abbreviations

@@ -5,7 +5,7 @@ import { calculateRowStitchesLive, getPreviousRowStitches } from '../../../../sh
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import SimpleRowBuilder from './SimpleRowBuilder';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
-import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar'; // ✨ NEW
+import KnittingAbbreviationBar from '../../../../shared/components/knittingAbbreviationBar';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ NEW
 
 
