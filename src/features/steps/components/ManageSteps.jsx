@@ -104,7 +104,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
   const component = currentProject.components[componentIndex];
 
   const getComponentStatus = () => {
-    return getComponentStatusWithDisplay(component);
+    return getComponentStatusWithDisplay(component, currentProject.id);
   };
 
   const componentStatus = getComponentStatus();

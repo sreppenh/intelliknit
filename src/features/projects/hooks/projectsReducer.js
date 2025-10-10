@@ -504,7 +504,6 @@ export const projectsReducer = (state, action) => {
         ...originalStep,
         ...updatedStepData,
         id: originalStep.id,
-        completed: originalStep.completed,
         advancedWizardConfig: updatedStepData.advancedWizardConfig || originalStep.advancedWizardConfig
       };
 

@@ -65,7 +65,7 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
   // Calculate project stats
   const totalComponents = currentProject.components?.length || 0;
   const completedComponents = currentProject.components?.filter(comp => {
-    const state = getComponentState(comp);
+    const state = getComponentState(comp, currentProject.id);
     return state === 'finished';
   }).length || 0;
 

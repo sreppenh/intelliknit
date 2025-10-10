@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateOverviewTab, extractOverviewTabProps } from '../types/TabProps';
 import { getProjectStatus as getSharedProjectStatus } from '../../../../../shared/utils/projectStatus';
-// import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
 import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
-import { getComponentState as getUtilityComponentState, getComponentStatusWithDisplay } from '../../../../../shared/utils/stepDisplayUtils';
+import { getComponentState as getComponentStatusWithDisplay } from '../../../../../shared/utils/stepDisplayUtils';
 import StandardModal from '../../../../../shared/components/modals/StandardModal';
+import { getStepProgressState, PROGRESS_STATUS } from '../../../../../shared/utils/progressTracking';
+import { migrateOldCompletionFlags } from '../../../../../shared/utils/progressTracking';
 
 const OverviewTab = (props) => {
     // Validate props in development
@@ -21,14 +22,27 @@ const OverviewTab = (props) => {
         totalComponents,
         completedComponents,
         onCompleteProject,
-        onEditProjectDetails,
         onManageSteps,
         onStartKnitting,
         onChangeTab,
         onDeleteProject,
-        onCopyProject,
         onShowEnhancedCreation
     } = extractOverviewTabProps(props);
+
+    // ✅ ADD THIS - Migrate old completion flags on mount
+    React.useEffect(() => {
+        if (project?.components) {
+            project.components.forEach(component => {
+                const progressKey = `knitting-progress-${project.id}-${component.id}`;
+                const hasNewProgress = localStorage.getItem(progressKey);
+
+                // If no new progress exists, migrate old completed flags
+                if (!hasNewProgress && component.steps?.length > 0) {
+                    migrateOldCompletionFlags(component, project.id);
+                }
+            });
+        }
+    }, [project?.id]); // Run once when project loads
 
     // Modal states for project actions
     const [showFrogModal, setShowFrogModal] = useState(false);
@@ -36,27 +50,8 @@ const OverviewTab = (props) => {
 
     // === SMART COMPONENT FILTERING (cleaned up with utility) ===
     const getComponentStatus = (component) => {
-        const result = getComponentStatusWithDisplay(component);
-        return result.status; // Extract just the status string for existing logic
-    };
-
-    // Add this function in OverviewTab.jsx
-    const getComponentColorClass = (status) => {
-        switch (status) {
-            case 'edit_mode':
-                return 'color-status-edit-mode';
-            case 'ready_to_knit':
-                return 'color-status-ready-knit';
-            case 'currently_knitting':
-                return 'color-status-currently-knitting';
-            case 'finishing_in_progress':
-                return 'color-status-in-progress';
-            case 'finished':
-            case 'finished_component':
-                return 'color-status-finished';
-            default:
-                return 'color-status-dormant';
-        }
+        const result = getComponentStatusWithDisplay(component, project.id); // ✅ Pass projectId!
+        return result.status;
     };
 
     // Smart filtering for Overview - only show actionable components (limit to 3)
@@ -366,6 +361,7 @@ const OverviewTab = (props) => {
                                         component={component}
                                         status={getComponentStatus(component)}
                                         onClick={() => handleComponentClick(component)}
+                                        projectId={project.id}  // ✅ ADD THIS
                                     />
                                 ))}
                             </div>
@@ -470,7 +466,7 @@ const OverviewTab = (props) => {
 };
 
 // === OVERVIEW COMPONENT CARD ===
-const OverviewComponentCard = ({ component, status, onClick }) => {
+const OverviewComponentCard = ({ component, status, onClick, projectId }) => {
     const getStatusConfig = () => {
         switch (status) {
             case 'currently_knitting':
@@ -503,7 +499,16 @@ const OverviewComponentCard = ({ component, status, onClick }) => {
 
     const config = getStatusConfig();
     const stepCount = component.steps?.length || 0;
-    const completedSteps = component.steps?.filter(s => s.completed).length || 0;
+
+    const completedSteps = component.steps?.filter(step => {
+        const progress = getStepProgressState(step.id, component.id, projectId);
+        return progress.status === PROGRESS_STATUS.COMPLETED;
+    }).length || 0;
+
+    // ✅ DEBUG - Compare counts
+    console.log('Component:', component.name);
+    console.log('New system count:', completedSteps);
+    console.log('Old system count:', component.steps?.filter(s => s.completed).length);
 
     return (
         <button

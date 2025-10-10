@@ -3,8 +3,8 @@ import IntelliKnitLogger from '../../../../../shared/utils/ConsoleLogging';
 import useThreeDotMenu from '../../../../../shared/hooks/useThreeDotMenu';
 import TabContent from '../../../../../shared/components/TabContent';
 import { validateComponentTab, extractComponentProps } from '../types/TabProps';
-// import { getComponentState as getUtilityComponentState } from '../../../../../shared/utils/stepDisplayUtils';
 import { getComponentState as getUtilityComponentState, getComponentStatusWithDisplay } from '../../../../../shared/utils/stepDisplayUtils';
+import { getStepProgressState, PROGRESS_STATUS } from '../../../../../shared/utils/progressTracking';
 
 const ComponentsTab = (props) => {
     // Validate props in development
@@ -48,8 +48,8 @@ const ComponentsTab = (props) => {
     const { openMenuId, setOpenMenuId, handleMenuToggle, handleMenuAction } = useThreeDotMenu();
 
     const getComponentStatus = (component) => {
-        const result = getComponentStatusWithDisplay(component);
-        return result.status; // Extract just the status string for existing logic
+        const result = getComponentStatusWithDisplay(component, project.id);
+        return result.status;
     };
 
     const getComponentsByStatus = (status) => {
@@ -142,6 +142,7 @@ const ComponentsTab = (props) => {
                                 openMenuId={openMenuId}
                                 setOpenMenuId={setOpenMenuId}
                                 handleMenuToggle={handleMenuToggle}
+                                projectId={project.id}  // ✅ ADD THIS
                             />
                         );
                     })}
@@ -152,8 +153,7 @@ const ComponentsTab = (props) => {
 };
 
 // Component Status Section
-const ComponentStatusSection = ({ category, components, onComponentAction, openMenuId, setOpenMenuId, handleMenuToggle }) => {
-
+const ComponentStatusSection = ({ category, components, onComponentAction, openMenuId, setOpenMenuId, handleMenuToggle, projectId }) => {
     if (components.length === 0) return null;
 
     return (
@@ -181,6 +181,7 @@ const ComponentStatusSection = ({ category, components, onComponentAction, openM
                         openMenuId={openMenuId}
                         handleMenuToggle={handleMenuToggle}
                         closeMenu={() => setOpenMenuId(null)}
+                        projectId={projectId}
                     />
                 ))}
             </div>
@@ -189,14 +190,17 @@ const ComponentStatusSection = ({ category, components, onComponentAction, openM
 };
 
 // Component Maintenance Card
-const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, handleMenuToggle, closeMenu }) => {
+const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, handleMenuToggle, closeMenu, projectId }) => {
     const buttonRef = useRef(null);
     const [menuPosition, setMenuPosition] = useState('bottom');
 
-
     const getStepInfo = () => {
         const total = component.steps?.length || 0;
-        const completed = component.steps?.filter(s => s.completed).length || 0;
+
+        const completed = component.steps?.filter(step => {
+            const progress = getStepProgressState(step.id, component.id, projectId);
+            return progress.status === PROGRESS_STATUS.COMPLETED;
+        }).length || 0;
 
         if (status === 'currently_knitting') {
             return `${completed}/${total} completed`;
@@ -312,13 +316,18 @@ const ComponentMaintenanceCard = ({ component, status, onAction, openMenuId, han
                                             onAction(component, 'delete');
                                             closeMenu();
                                         }}
-                                        className={`delete-menu-item ${component.steps?.some(s => s.completed)
-                                            ? 'text-red-700 font-semibold' // Warning styling
-                                            : 'text-red-600'               // Normal styling
+                                        className={`delete-menu-item ${component.steps?.some(step => {
+                                            const progress = getStepProgressState(step.id, component.id, projectId);
+                                            return progress.status === PROGRESS_STATUS.COMPLETED;
+                                        })
+                                            ? 'text-red-700 font-semibold'
+                                            : 'text-red-600'
                                             }`}
                                     >
-                                        🗑️ {component.steps?.some(s => s.completed) ? 'Delete (Has Progress)' : 'Delete'}
-                                    </button>
+                                        🗑️ {component.steps?.some(step => {
+                                            const progress = getStepProgressState(step.id, component.id, projectId);
+                                            return progress.status === PROGRESS_STATUS.COMPLETED;
+                                        }) ? 'Delete (Has Progress)' : 'Delete'} </button>
                                 </div>
                             </>
                         )}

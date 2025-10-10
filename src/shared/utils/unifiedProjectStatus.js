@@ -1,6 +1,7 @@
 // ===== NEW UNIFIED STATUS SYSTEM =====
 // File: src/shared/utils/unifiedProjectStatus.js
 import { isInitializationStep, isFinishingStep } from './stepDisplayUtils';
+import { getStepProgressState, PROGRESS_STATUS } from './progressTracking';
 
 export const getUnifiedProjectStatus = (project) => {
     if (!project) {
@@ -53,7 +54,18 @@ export const getUnifiedProjectStatus = (project) => {
     // 3. For active projects, calculate based on activity and progress
     const totalComponents = project.components?.length || 0;
     const hasSteps = project.components?.some(comp => comp.steps?.length > 0);
-    const hasProgress = project.components?.some(comp => comp.steps?.some(step => step.completed));
+
+    // ✅ FIXED: Use progress tracking system instead of step.completed
+    const hasProgress = project.components?.some(comp =>
+        comp.steps?.some(step => {
+            if (!project.id || !comp.id || !step.id) {
+                // Fallback to old system if IDs missing
+                return step.completed;
+            }
+            const progress = getStepProgressState(step.id, comp.id, project.id);
+            return progress.status === PROGRESS_STATUS.COMPLETED || progress.status === PROGRESS_STATUS.IN_PROGRESS;
+        })
+    );
 
     // Calculate streak (for active projects only)
     const getStreakDays = () => {
@@ -130,8 +142,8 @@ export const getUnifiedProjectStatus = (project) => {
         };
     }
 
-    // ✅ NEW - Proper stepDisplayUtils function usage:
-    const isReadyToKnit = project.components?.some(comp => {
+    // ✅ Ready to Knit - ONLY if no progress has been made yet
+    const isReadyToKnit = !hasProgress && project.components?.some(comp => {
         const hasInitialization = comp.steps?.some(step => isInitializationStep(step));
         const hasFinalization = comp.steps?.some(step => isFinishingStep(step));
         return hasInitialization && hasFinalization;

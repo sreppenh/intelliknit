@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DeleteComponentModal from '../../../shared/components/DeleteComponentModal';
 import { getComponentState as getUtilityComponentState } from '../../../shared/utils/stepDisplayUtils';
+import { getComponentProgressStats } from '../../../shared/utils/progressTracking';
 
 const getCardClassName = (state) => {
   switch (state) {
@@ -19,14 +20,15 @@ const getCardClassName = (state) => {
   }
 };
 
-const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenuId, setOpenMenuId }) => {
+const CompactComponentCard = ({ component, projectId, onManageSteps, onMenuAction, openMenuId, setOpenMenuId }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+
   // Enhanced component state detection with finishing steps support
   const getComponentState = () => {
-    // Handle finishing steps (keep existing logic)
+    // Handle finishing steps (keep existing logic with step.completed fallback)
     if (component.type === 'finishing') {
       if (component.isPlaceholder || !component.steps || component.steps.length === 0) {
-        return 'finishing_in_progress'; // Empty placeholder shows as "in progress"
+        return 'finishing_in_progress';
       }
 
       const allComplete = component.steps.every(s => s.completed);
@@ -36,50 +38,50 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
       return 'finishing_in_progress';
     }
 
-    // ✅ Use utility for regular components (replaces all the string parsing!)
-    return getUtilityComponentState(component);
+    // ✅ FIXED: Pass projectId to utility function
+    return getUtilityComponentState(component, projectId);
   };
 
   const getStateConfig = (state) => {
     const configs = {
       edit_mode: {
         label: 'Edit Mode',
-        background: 'card-component', // ✅ NEW - yarn colors
+        background: 'card-component',
         textColor: 'text-yarn-800',
         icon: '✏️',
         priority: 3
       },
       ready_to_knit: {
         label: 'Ready to Knit',
-        background: 'card-component-ready', // ✅ NEW - light sage
+        background: 'card-component-ready',
         textColor: 'text-sage-800',
         icon: '⚡',
         priority: 2
       },
       currently_knitting: {
         label: 'Currently Knitting',
-        background: 'card-component-progress', // ✅ NEW - medium sage
+        background: 'card-component-progress',
         textColor: 'text-sage-900',
         icon: '🧶',
         priority: 1
       },
       finished: {
         label: 'Finished',
-        background: 'card-component-complete', // ✅ NEW - strong sage
+        background: 'card-component-complete',
         textColor: 'text-sage-900',
         icon: '✅',
         priority: 4
       },
       finishing_in_progress: {
         label: 'In Progress',
-        background: 'card-component-finishing', // ✅ NEW - lavender
+        background: 'card-component-finishing',
         textColor: 'text-lavender-800',
         icon: '🪡',
         priority: 3
       },
       finishing_done: {
         label: 'Completed',
-        background: 'card-component-finishing', // ✅ NEW - lavender (same as in progress)
+        background: 'card-component-finishing',
         textColor: 'text-lavender-800',
         icon: '🪡',
         priority: 6
@@ -87,9 +89,29 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
     };
     return configs[state] || configs.edit_mode;
   };
+
   const state = getComponentState();
   const stateConfig = getStateConfig(state);
   const stepCount = component.steps?.length || 0;
+
+  // ✅ FIXED: Get completed count from progress tracking system
+  const getCompletedCount = () => {
+    if (component.type === 'finishing') {
+      // For finishing tasks, use step.completed as fallback
+      return component.steps?.filter(s => s.completed).length || 0;
+    }
+
+    // For regular components, use progress tracking
+    if (projectId && component.id && component.steps) {
+      const stats = getComponentProgressStats(component.steps, component.id, projectId);
+      return stats.completed;
+    }
+
+    // Fallback to step.completed
+    return component.steps?.filter(s => s.completed).length || 0;
+  };
+
+  const completedCount = getCompletedCount();
 
   // Check if this is a finishing component for special icon handling
   const isFinishing = component.type === 'finishing';
@@ -100,7 +122,6 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
 
   const handleMenuToggle = (e) => {
     e.stopPropagation();
-    // Close any open menu first, then toggle this one
     if (openMenuId === component.id) {
       setOpenMenuId(null);
     } else {
@@ -118,8 +139,8 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
     <div
       onClick={handleCardClick}
       className={`
-    ${getCardClassName(state)} ${openMenuId === component.id ? 'z-20' : 'z-10'}
-  `}
+        ${getCardClassName(state)} ${openMenuId === component.id ? 'z-20' : 'z-10'}
+      `}
     >
       {/* True single column layout */}
       <div className="space-y-1.5">
@@ -157,7 +178,6 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
                   <button
                     onClick={(e) => handleMenuAction('rename', e)}
                     className="w-full px-4 py-3 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors font-medium"
-
                   >
                     ✏️ Rename
                   </button>
@@ -197,7 +217,7 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
         ) : stepCount > 0 ? (
           <div className="text-xs text-wool-500">
             {component.type === 'finishing' ? (
-              `${component.steps?.filter(s => s.completed).length || 0} of ${stepCount} tasks complete`
+              `${completedCount} of ${stepCount} tasks complete`
             ) : (
               `${stepCount} steps`
             )}
@@ -216,8 +236,6 @@ const CompactComponentCard = ({ component, onManageSteps, onMenuAction, openMenu
           }}
         />
       )}
-
-
     </div>
   );
 };

@@ -522,9 +522,20 @@ export const validateStepConfiguration = (step) => {
     return { isValid: true };
 };
 
-export const getComponentState = (component, projectId = null) => {
+export const getComponentState = (component, projectId) => {
+    // ✅ STRICT: projectId is REQUIRED - fail fast if missing
+    if (!projectId) {
+        console.error('getComponentState called without projectId:', { component });
+        throw new Error('projectId is required for getComponentState');
+    }
+
     if (!component.steps || component.steps.length === 0) {
         return 'edit_mode';
+    }
+
+    if (!component.id) {
+        console.error('Component missing id:', component);
+        throw new Error('Component must have an id');
     }
 
     const hasCastOn = component.steps.some(step => isInitializationStep(step));
@@ -532,26 +543,18 @@ export const getComponentState = (component, projectId = null) => {
         isFinishingStep(step) || (typeof step.endingStitches === 'number' && step.endingStitches === 0)
     );
 
-    // ✅ NEW: Check progress tracking system instead of step.completed
-    let hasProgress = false;
-    let allComplete = true;
+    // ✅ ONLY use progress tracking system - no fallbacks
+    const hasProgress = component.steps.some(step => {
+        const progress = getStepProgressState(step.id, component.id, projectId);
+        return progress.status === PROGRESS_STATUS.COMPLETED || progress.status === PROGRESS_STATUS.IN_PROGRESS;
+    });
 
-    if (projectId && component.id) {
-        // Use NEW progress tracking system
-        hasProgress = component.steps.some(step => {
-            const progress = getStepProgressState(step.id, component.id, projectId);
-            return progress.status === PROGRESS_STATUS.COMPLETED || progress.status === PROGRESS_STATUS.IN_PROGRESS;
-        });
-        allComplete = component.steps.every(step => {
-            const progress = getStepProgressState(step.id, component.id, projectId);
-            return progress.status === PROGRESS_STATUS.COMPLETED;
-        });
-    } else {
-        // Fallback to OLD completed flag for backward compatibility
-        hasProgress = component.steps.some(step => step.completed);
-        allComplete = component.steps.every(step => step.completed);
-    }
+    const allComplete = component.steps.every(step => {
+        const progress = getStepProgressState(step.id, component.id, projectId);
+        return progress.status === PROGRESS_STATUS.COMPLETED;
+    });
 
+    // Determine state based on progress
     if (hasEnding && allComplete) return 'finished';
     if (hasCastOn && hasProgress) return 'currently_knitting';
     if (hasCastOn && hasEnding && !hasProgress) return 'ready_to_knit';
