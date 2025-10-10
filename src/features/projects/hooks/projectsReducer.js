@@ -99,9 +99,23 @@ export const projectsReducer = (state, action) => {
 
   switch (action.type) {
     case 'LOAD_PROJECTS':
+      // ✨ ADD: Migrate projects to ensure customAbbreviations exists
+      const migrateProject = (project) => {
+        if (!project.customAbbreviations) {
+          project.customAbbreviations = {
+            recentlyUsed: []
+          };
+        }
+        return project;
+      };
+
+      const migratedProjects = Array.isArray(action.payload)
+        ? action.payload.map(migrateProject)
+        : [];
+
       return {
         ...state,
-        projects: Array.isArray(action.payload) ? action.payload : []
+        projects: migratedProjects
       };
 
     case 'CREATE_PROJECT':
