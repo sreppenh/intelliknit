@@ -113,7 +113,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const handleBriocheConfigContinue = () => {
     setShowBriocheConfig(false);
     // After brioche configured, skip pattern selection and go to duration/shaping
-    wizard.navigation.goToStep(3);
+    wizard.navigation.goToStep(4);
   };
 
   // Component validation
@@ -392,7 +392,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
                   onClick={() => {
                     const { pattern } = wizard.wizardData.stitchPattern || {};
 
-                    if (pattern === 'Brioche' || pattern === 'Description' || pattern === 'Simple Custom') {
+                    if (pattern === 'Custom') {
                       wizard.navigation.goToStep(4);
                     } else {
                       wizard.navigation.nextStep();

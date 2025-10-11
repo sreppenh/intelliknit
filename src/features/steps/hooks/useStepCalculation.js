@@ -142,6 +142,43 @@ export const useStepCalculation = () => {
       };
     }
 
+    // Handle Description pattern with duration.type === 'rows'
+    if (wizardData.stitchPattern.pattern === 'Custom' &&
+      wizardData.duration.type === 'rows' &&
+      !wizardData.stitchPattern.customSequence?.rows &&
+      wizardData.stitchPattern.rowsInPattern &&
+      wizardData.stitchPattern.stitchChangePerRepeat !== undefined) {
+
+      const totalRows = parseInt(wizardData.duration.value) || 1;
+      const rowsInPattern = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
+      const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+
+      // Only count complete repeats for stitch change
+      const completeRepeats = Math.floor(totalRows / rowsInPattern);
+      const totalStitchChange = stitchChangePerRepeat * completeRepeats;
+      const endingStitches = currentStitches + totalStitchChange;
+
+      IntelliKnitLogger.success('Description Pattern Calculated', {
+        totalRows,
+        rowsInPattern,
+        completeRepeats,
+        stitchChangePerRepeat,
+        totalStitchChange,
+        startingStitches: currentStitches,
+        endingStitches
+      });
+
+      return {
+        success: true,
+        totalRows: totalRows,
+        startingStitches: currentStitches,
+        endingStitches: endingStitches,
+        isDescriptionPattern: true,
+        stitchChangePerRepeat: stitchChangePerRepeat,
+        totalStitchChange: totalStitchChange
+      };
+    }
+
     // Handle Custom patterns with duration.type === 'rows'
     if (wizardData.stitchPattern.pattern === 'Custom' &&
       wizardData.duration.type === 'rows' &&
