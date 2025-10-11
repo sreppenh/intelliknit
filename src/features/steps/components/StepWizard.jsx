@@ -390,21 +390,11 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
 
                 <button
                   onClick={() => {
+                    const { pattern } = wizard.wizardData.stitchPattern || {};
 
-                    // Check for intrinsic shaping (no custom actions needed anymore)
-                    const shapingInfo = detectIntrinsicShaping(
-                      wizard.wizardData,
-                      wizard.currentStitches
-                    );
-
-                    if (shapingInfo?.hasIntrinsicShaping) {
-
-                      // Store shaping info and show confirmation modal
-                      setPendingShapingInfo(shapingInfo);
-                      setShowStepConfirmModal(true);
+                    if (pattern === 'Brioche' || pattern === 'Description' || pattern === 'Simple Custom') {
+                      wizard.navigation.goToStep(4);
                     } else {
-
-                      // Normal flow to shaping selection
                       wizard.navigation.nextStep();
                     }
                   }}
