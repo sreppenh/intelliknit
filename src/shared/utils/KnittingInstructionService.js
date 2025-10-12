@@ -162,7 +162,7 @@ function isTwoColorBrioche(step) {
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
     // Check if it's Brioche pattern with customSequence
-    if (stitchPattern?.pattern === 'Brioche' && stitchPattern?.customSequence?.rows) {
+    if (stitchPattern?.pattern === 'Two-Color Brioche' && stitchPattern?.customSequence?.rows) {
         const rows = stitchPattern.customSequence.rows;
         const rowKeys = Object.keys(rows);
 
@@ -183,6 +183,8 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
     const rows = stitchPattern?.customSequence?.rows;
 
+
+
     if (!rows) {
         return {
             instruction: 'Work in 2-color brioche as established',
@@ -195,6 +197,10 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
     // Get the color data - using letters array (correct data structure)
     const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
     const letters = colorwork?.letters || [];
+
+    console.log('🎯 COUNTER READING:', { letters, colorwork });
+
+
 
     // Look up the actual yarn objects
     // letters[0] = first color selected (used for row 'a')
@@ -211,6 +217,12 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
 
     const instructionA = rows[rowKeyA]?.instruction || 'Work row as established';
     const instructionB = rows[rowKeyB]?.instruction || 'Work row as established';
+
+    console.log('BRIOCHE COLORS:', {
+        letters: colorwork?.letters,
+        colorForRowA_letter: colorForRowA?.letter,
+        colorForRowB_letter: colorForRowB?.letter
+    });
 
     // Format color labels - Row A uses first selected color, Row B uses second selected color
     const colorLabelA = colorForRowA

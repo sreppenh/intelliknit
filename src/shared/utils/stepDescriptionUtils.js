@@ -95,7 +95,7 @@ export const getContextualPatternNotes = (step, project = null) => {
 
     // ✅ Handle Brioche FIRST - before advanced pattern check
     if (pattern === 'Brioche' || pattern === 'Two-Color Brioche') {
-        const result = getBriocheRowInstructions(step);
+        const result = getBriocheRowInstructions(step, project);
         return result;
     }
 
@@ -1086,20 +1086,36 @@ export const getStepDisplayPriority = (step) => {
 /**
  * Get brioche row instructions for italic display
  */
-const getBriocheRowInstructions = (step) => {
+const getBriocheRowInstructions = (step, project) => {
     const rows = step.wizardConfig?.stitchPattern?.customSequence?.rows;
 
     if (!rows || Object.keys(rows).length === 0) {
         return null;
     }
 
-    // Format as: Row 1a: [instruction], Row 1b: [instruction], etc.
+    // Get color data
+    const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+    const letters = colorwork?.letters || [];
+
+    // Map row suffix to color: 'a' = first color, 'b' = second color  
+    const getColorForRow = (key) => {
+        if (key.endsWith('a')) {
+            const yarn = letters[0] ? getYarnByLetter(project?.yarns || [], letters[0]) : null;
+            return yarn ? `Color ${yarn.letter}` : '';
+        } else if (key.endsWith('b')) {
+            const yarn = letters[1] ? getYarnByLetter(project?.yarns || [], letters[1]) : null;
+            return yarn ? `Color ${yarn.letter}` : '';
+        }
+        return '';
+    };
+
     const rowKeys = Object.keys(rows).sort();
     const instructions = rowKeys
         .map(key => {
             const instruction = rows[key]?.instruction;
             if (!instruction) return null;
-            return `Row ${key}: ${instruction}`;
+            const colorLabel = getColorForRow(key);
+            return `Row ${key}${colorLabel ? ` (${colorLabel})` : ''}: ${instruction}`;
         })
         .filter(Boolean);
 

@@ -1,6 +1,6 @@
 // src/features/steps/components/pattern-configs/BriocheConfig.jsx
 
-import React, { useState, useRef } from 'react'; // Add useRef
+import React, { useState, useRef, useEffect } from 'react'; // Add useRef
 import { getYarnByLetter } from '../../../../shared/utils/colorworkDisplayUtils';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
@@ -8,6 +8,8 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
 import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
+
+
 
 const BriocheConfig = ({
     wizardData,
@@ -23,23 +25,25 @@ const BriocheConfig = ({
     // ✅ FIXED: Track letter order in local state so swap works
     const [letters, setLetters] = useState(initialLetters);
 
+
+
     // Get yarn colors for display - now uses state
     const colorA = letters[0] ? getYarnByLetter(yarns, letters[0]) : null;
     const colorB = letters[1] ? getYarnByLetter(yarns, letters[1]) : null;
 
     // Handle color swap
     const handleSwapColors = () => {
-        if (letters.length !== 2) return;
+        const currentLetters = wizardData.colorwork?.letters || [];
+        if (currentLetters.length !== 2) return;
 
-        // Swap the letters array
-        const swappedLetters = [letters[1], letters[0]];
+        const swappedLetters = [currentLetters[1], currentLetters[0]];
 
-        // Update local state (triggers re-render)
         setLetters(swappedLetters);
 
-        // Update wizardData with swapped colors
+        // Replace entire colorwork object, don't spread
         updateWizardData('colorwork', {
-            ...colorwork,
+            type: 'two_color_brioche',
+            colorLetter: wizardData.colorwork?.colorLetter,
             letters: swappedLetters
         });
     };
@@ -57,6 +61,17 @@ const BriocheConfig = ({
     const [tempInstructionA, setTempInstructionA] = useState('');
     const [tempInstructionB, setTempInstructionB] = useState('');
     const [tempStitchChange, setTempStitchChange] = useState(0);
+
+    // Add this useEffect in BriocheConfig after the useState declarations
+    useEffect(() => {
+        if (letters.length === 2) {
+            updateWizardData('colorwork', {
+                type: 'two_color_brioche',
+                colorLetter: wizardData.colorwork?.colorLetter,
+                letters: letters
+            });
+        }
+    }, [letters]);
 
     // ✨ ADD THESE:
     const textareaRefA = useRef(null);
@@ -150,7 +165,7 @@ const BriocheConfig = ({
         setRows(updatedRows);
 
         updateWizardData('stitchPattern', {
-            pattern: 'Brioche',
+            pattern: 'Two-Color Brioche',
             customSequence: { rows: updatedRows },
             rowsInPattern: String(Object.keys(updatedRows).length) / 2
         });

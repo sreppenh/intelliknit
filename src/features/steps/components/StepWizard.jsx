@@ -111,8 +111,8 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   };
 
   const handleBriocheConfigContinue = () => {
+    console.log('🔍 LEAVING BRIOCHE - FULL WIZARD DATA:', JSON.stringify(wizard.wizardData.colorwork));
     setShowBriocheConfig(false);
-    // After brioche configured, skip pattern selection and go to duration/shaping
     wizard.navigation.goToStep(4);
   };
 

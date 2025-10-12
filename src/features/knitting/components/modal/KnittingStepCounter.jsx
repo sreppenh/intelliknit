@@ -39,7 +39,7 @@ import {
 function isTwoColorBrioche(step) {
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
 
-    if (stitchPattern?.pattern === 'Brioche' && stitchPattern?.customSequence?.rows) {
+    if (stitchPattern?.pattern === 'Two-Color Brioche' && stitchPattern?.customSequence?.rows) {
         const rows = stitchPattern.customSequence.rows;
         const rowKeys = Object.keys(rows);
 

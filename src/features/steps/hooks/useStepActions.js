@@ -15,6 +15,8 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     useCurrentStitches = false
   } = options;
 
+  console.log('🔍 COLORWORK BEING SAVED:', wizard.wizardData?.colorwork);
+
   const stepObject = {
     description: instruction,
     type: forceManualType ? 'manual' : (effect.success ? 'calculated' : 'manual'),
@@ -28,8 +30,9 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     expectedStitches: effect.endingStitches,
 
     // 🎯 FIX: Ensure colorwork is properly transferred
-    colorwork: wizard.wizardData?.colorwork || null,
 
+
+    colorwork: wizard.wizardData?.colorwork || null,
 
     wizardConfig: wizard.wizardData,
     advancedWizardConfig: {
