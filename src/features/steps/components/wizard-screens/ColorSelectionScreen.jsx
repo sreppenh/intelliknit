@@ -137,7 +137,7 @@ const ColorSelectionScreen = ({
                                                 ? isSelected
                                                     ? selectedLetters.filter(l => l !== yarn.letter)
                                                     : selectedLetters.length < 2
-                                                        ? [...selectedLetters, yarn.letter].sort()
+                                                        ? [...selectedLetters, yarn.letter]
                                                         : selectedLetters
                                                 : isSelected
                                                     ? selectedLetters.filter(l => l !== yarn.letter)
