@@ -138,14 +138,16 @@ const DurationChoice = ({
   const handleTargetStitchesBlur = () => {
     if (wizardData.duration.type === 'target_repeats' && wizardData.duration.targetStitches) {
       const enteredValue = parseInt(wizardData.duration.targetStitches);
+      const stitchChangePerRepeat = repeatInfo.stitchChangePerRepeat;
 
-      // Find nearest valid target
-      if (validTargets.length > 0) {
-        const nearest = validTargets.reduce((prev, curr) =>
-          Math.abs(curr - enteredValue) < Math.abs(prev - enteredValue) ? curr : prev
-        );
+      if (!isNaN(enteredValue) && stitchChangePerRepeat !== 0) {
+        const stitchDifference = enteredValue - currentStitches;
 
-        // Only update if different
+        // Calculate nearest valid target
+        const repeats = Math.round(stitchDifference / stitchChangePerRepeat);
+        const nearest = currentStitches + (repeats * stitchChangePerRepeat);
+
+        // Snap to nearest valid value
         if (nearest !== enteredValue) {
           updateWizardData('duration', { targetStitches: nearest });
         }
