@@ -24,6 +24,11 @@ const getDurationText = (wizardData, construction, currentStitches = 0) => {
     case 'repeats':
       return ` for ${duration.value} repeats`;
     case 'target_repeats':
+      console.log('🔍 CONDITION CHECK:', {
+        hasTargetStitches: !!duration.targetStitches,
+        hasStitchChange: wizardData.stitchPattern.stitchChangePerRepeat !== undefined,
+        actualValue: wizardData.stitchPattern.stitchChangePerRepeat
+      });
       if (duration.targetStitches && wizardData.stitchPattern.stitchChangePerRepeat !== undefined) {
         const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
         const targetStitches = parseInt(duration.targetStitches);

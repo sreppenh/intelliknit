@@ -382,13 +382,17 @@ export const getCorrectDurationDisplay = (step, project) => {
     // ✅ NEW: Handle target-based repeats
     if (duration.type === 'target_repeats') {
         const targetStitches = duration.targetStitches;
-        const completeSequence = duration.completeSequence;
+        const stitchChangePerRepeat = step.wizardConfig?.stitchPattern?.stitchChangePerRepeat;
+        const startingStitches = step.startingStitches;
 
-        if (completeSequence) {
-            return `until ${targetStitches} stitches (complete repeat)`;
+        if (stitchChangePerRepeat && startingStitches != null) {
+            const stitchDifference = targetStitches - startingStitches;
+            const repeatsNeeded = Math.ceil(Math.abs(stitchDifference) / Math.abs(stitchChangePerRepeat));
+
+            return `${repeatsNeeded} ${repeatsNeeded === 1 ? 'repeat' : 'repeats'}`;
         }
 
-        return `until ${targetStitches} stitches`;
+        return `until ${targetStitches} stitches`;  // Fallback
     }
 
     // Handle other types normally

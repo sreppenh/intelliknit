@@ -30,8 +30,19 @@ const DurationWizard = ({
         const originalWizardData = { ...wizardData };
 
         try {
+            // ADD THIS:
+            console.log('🔍 DEBUG wizardData before generation:', {
+                pattern: wizardData.stitchPattern.pattern,
+                durationType: wizardData.duration.type,
+                targetStitches: wizardData.duration.targetStitches,
+                stitchChangePerRepeat: wizardData.stitchPattern.stitchChangePerRepeat,
+                currentStitches: currentStitches
+            });
             // ✅ USE REAL CALCULATION:
             const instruction = generateInstruction(wizardData, currentStitches);
+            // ADD THIS LINE:
+            console.log('🔍 Generated instruction:', instruction);
+
             const effect = calculateEffect(wizardData, currentStitches, construction);
 
             const saveResult = await saveStepAndNavigate({
