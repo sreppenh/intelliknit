@@ -1,6 +1,5 @@
 // src/shared/utils/StepSaveHelper.js
 import React, { useState } from 'react';
-import IntelliKnitLogger from './ConsoleLogging';
 import StandardModal from '../components/modals/StandardModal';
 
 /**
@@ -43,9 +42,6 @@ export const useStepSaveHelper = () => {
         onNavigate,
         skipNavigation = false
     }) => {
-        console.log('🚀 StepSaveHelper.saveStepAndNavigate called!');
-        console.log('📊 wizardData:', wizardData);
-        console.log('📊 currentStitches:', currentStitches);
 
         try {
             setIsLoading(true);
@@ -70,9 +66,6 @@ export const useStepSaveHelper = () => {
                 throw new Error(effect.error || 'Effect calculation failed');
             }
 
-            console.log('🔧 StepSaveHelper - wizardData.colorwork:', wizardData.colorwork);
-            console.log('🔧 StepSaveHelper - full wizardData:', wizardData);
-
             const stepData = {
                 description: instruction,
                 expectedStitches: effect.endingStitches,
@@ -89,8 +82,6 @@ export const useStepSaveHelper = () => {
                     shapingConfig: wizardData.shapingConfig
                 }
             };
-
-            console.log('🔧 StepSaveHelper - final stepData.colorwork:', stepData.colorwork);
 
             // Dispatch appropriate action - detect context type from dispatch function
             if (editingStepIndex !== null) {

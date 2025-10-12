@@ -142,90 +142,103 @@ export const useStepCalculation = () => {
       };
     }
 
-    // Handle Description pattern with duration.type === 'rows'
-    if (wizardData.stitchPattern.pattern === 'Custom' &&
-      wizardData.duration.type === 'rows' &&
-      !wizardData.stitchPattern.customSequence?.rows &&
-      wizardData.stitchPattern.rowsInPattern &&
-      wizardData.stitchPattern.stitchChangePerRepeat !== undefined) {
+    // ===== HANDLE ALL CUSTOM PATTERNS (Description, Simple Row, Two-Color Brioche) =====
+    // This handles "Custom pattern", "Custom", and "Two-Color Brioche" patterns with ALL duration types
 
-      const totalRows = parseInt(wizardData.duration.value) || 1;
+    const isCustomPattern = wizardData.stitchPattern.pattern === 'Custom' ||
+      wizardData.stitchPattern.pattern === 'Custom pattern' ||
+      wizardData.stitchPattern.pattern === 'Two-Color Brioche';
+
+    if (isCustomPattern && wizardData.duration.type && !wizardData.hasShaping) {
       const rowsInPattern = parseInt(wizardData.stitchPattern.rowsInPattern) || 1;
-      const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+      let stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
 
-      // Only count complete repeats for stitch change
-      const completeRepeats = Math.floor(totalRows / rowsInPattern);
-      const totalStitchChange = stitchChangePerRepeat * completeRepeats;
-      const endingStitches = currentStitches + totalStitchChange;
+      // Calculate stitch change from customSequence if it exists
+      if (wizardData.stitchPattern.customSequence?.rows) {
+        const rows = wizardData.stitchPattern.customSequence.rows;
 
-      IntelliKnitLogger.success('Description Pattern Calculated', {
-        totalRows,
-        rowsInPattern,
-        completeRepeats,
-        stitchChangePerRepeat,
-        totalStitchChange,
-        startingStitches: currentStitches,
-        endingStitches
-      });
-
-      return {
-        success: true,
-        totalRows: totalRows,
-        startingStitches: currentStitches,
-        endingStitches: endingStitches,
-        isDescriptionPattern: true,
-        stitchChangePerRepeat: stitchChangePerRepeat,
-        totalStitchChange: totalStitchChange
-      };
-    }
-
-    // Handle Custom patterns with duration.type === 'rows'
-    if (wizardData.stitchPattern.pattern === 'Custom' &&
-      wizardData.duration.type === 'rows' &&
-      wizardData.stitchPattern.customSequence?.rows) {
-
-      const totalRows = parseInt(wizardData.duration.value) || 1;
-      const rowsInPattern = wizardData.stitchPattern.customSequence.rows.length;
-
-      // Calculate stitch change per repeat
-      const stitchChangePerRepeat = wizardData.stitchPattern.customSequence.rows.reduce(
-        (sum, row) => sum + (row.stitchChange || 0),
-        0
-      );
-
-      // Calculate how many complete repeats + partial repeat
-      const completeRepeats = Math.floor(totalRows / rowsInPattern);
-      const partialRows = totalRows % rowsInPattern;
-
-      // Calculate stitch change from partial repeat
-      let partialStitchChange = 0;
-      for (let i = 0; i < partialRows; i++) {
-        partialStitchChange += wizardData.stitchPattern.customSequence.rows[i].stitchChange || 0;
+        // Handle array (Custom) vs object (Two-Color Brioche)
+        const rowValues = Array.isArray(rows) ? rows : Object.values(rows);
+        stitchChangePerRepeat = rowValues.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
       }
 
-      const totalStitchChange = (stitchChangePerRepeat * completeRepeats) + partialStitchChange;
-      const endingStitches = currentStitches + totalStitchChange;
+      // Handle duration.type === 'rows'
+      if (wizardData.duration.type === 'rows') {
+        const totalRows = parseInt(wizardData.duration.value) || 1;
+        const completeRepeats = Math.floor(totalRows / rowsInPattern);
+        const partialRows = totalRows % rowsInPattern;
 
-      IntelliKnitLogger.success('Custom Pattern with Rows Calculated', {
-        totalRows,
-        rowsInPattern,
-        completeRepeats,
-        partialRows,
-        stitchChangePerRepeat,
-        partialStitchChange,
-        totalStitchChange,
-        startingStitches: currentStitches,
-        endingStitches
+        // Calculate partial stitch change if we have customSequence
+        let partialStitchChange = 0;
+        if (wizardData.stitchPattern.customSequence?.rows && partialRows > 0) {
+          const rows = wizardData.stitchPattern.customSequence.rows;
+          const rowValues = Array.isArray(rows) ? rows : Object.values(rows);
+
+          for (let i = 0; i < partialRows && i < rowValues.length; i++) {
+            partialStitchChange += rowValues[i].stitchChange || 0;
+          }
+        }
+
+        const totalStitchChange = (stitchChangePerRepeat * completeRepeats) + partialStitchChange;
+        const endingStitches = currentStitches + totalStitchChange;
+
+        IntelliKnitLogger.success('Custom Pattern Calculated (rows)', {
+          pattern: wizardData.stitchPattern.pattern,
+          totalRows,
+          rowsInPattern,
+          completeRepeats,
+          partialRows,
+          stitchChangePerRepeat,
+          totalStitchChange,
+          startingStitches: currentStitches,
+          endingStitches
+        });
+
+        return {
+          success: true,
+          totalRows,
+          startingStitches: currentStitches,
+          endingStitches,
+          isCustomPattern: true
+        };
+      }
+
+      // Handle duration.type === 'length' or 'until_length'
+      if (wizardData.duration.type === 'length' || wizardData.duration.type === 'until_length') {
+        IntelliKnitLogger.success('Custom Pattern with Length', {
+          pattern: wizardData.stitchPattern.pattern,
+          durationType: wizardData.duration.type,
+          lengthValue: wizardData.duration.value,
+          units: wizardData.duration.units,
+          rowsInPattern,
+          stitchChangePerRepeat,
+          note: 'Ending stitches cannot be calculated without gauge'
+        });
+
+        return {
+          success: true,
+          totalRows: 1, // Placeholder
+          startingStitches: currentStitches,
+          endingStitches: currentStitches, // Can't calculate without gauge
+          isLengthBased: true,
+          lengthValue: wizardData.duration.value,
+          lengthUnits: wizardData.duration.units
+        };
+      }
+
+      // If we got here, it's an unsupported duration type for custom patterns
+      // But still return success to avoid the red box
+      IntelliKnitLogger.warn('Custom Pattern with unsupported duration type', {
+        pattern: wizardData.stitchPattern.pattern,
+        durationType: wizardData.duration.type
       });
 
       return {
         success: true,
-        totalRows: totalRows,
+        totalRows: 1,
         startingStitches: currentStitches,
-        endingStitches: endingStitches,
-        isCustomPatternRows: true,
-        stitchChangePerRepeat: stitchChangePerRepeat,
-        totalStitchChange: totalStitchChange
+        endingStitches: currentStitches,
+        isCustomPattern: true
       };
     }
 

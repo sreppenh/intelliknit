@@ -73,6 +73,17 @@ const DurationWizard = ({
         }
     };
 
+    // Add this before the return statement
+    const canComplete = () => {
+        if (isLoading) return false;
+
+        if (wizardData.duration.type === 'target_repeats') {
+            return wizardData.duration.targetStitches && parseInt(wizardData.duration.targetStitches) > 0;
+        }
+
+        return wizardData.duration?.value;
+    };
+
     return (
         <div className="stack-lg">
             <DurationChoice
@@ -96,7 +107,7 @@ const DurationWizard = ({
                     </button>
                     <button
                         onClick={handleDurationComplete}
-                        disabled={!wizardData.duration?.value || isLoading}
+                        disabled={!canComplete()}
                         className="flex-2 btn-primary"
                         style={{ flexGrow: 2 }}
                     >

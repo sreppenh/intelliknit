@@ -94,12 +94,6 @@ const KnittingStepCounter = ({
 
     // Modified increment handler with animation
     const handleRowIncrementWithFeedback = () => {
-        console.log('handleRowIncrement called', {
-            stepType,
-            currentRow,
-            totalRows,
-            isStepLocked
-        });
 
         if (isStepLocked) return;
 
@@ -109,24 +103,17 @@ const KnittingStepCounter = ({
         setTimeout(() => setIsAnimating(false), 400);
 
         if (stepType === 'single_action') {
-            console.log('Single action handler triggered');
 
             const progress = getStepProgressState(step.id, component.id, project.id);
-            console.log('Current progress state:', progress);
 
             const alreadyCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
-            console.log('Already completed?', alreadyCompleted);
 
             if (!alreadyCompleted) {
-                console.log('Calling handleStepComplete');
                 handleStepComplete();
-                console.log('handleStepComplete returned');
             }
 
             if (!isNotepadMode) {
-                console.log('Calling handleAutoAdvanceToNextStep');
                 handleAutoAdvanceToNextStep();
-                console.log('handleAutoAdvanceToNextStep returned');
             }
             return;
         }
@@ -578,7 +565,6 @@ const KnittingStepCounter = ({
 
             // ✅ NEW: Log continuation state for debugging
             if (continuation) {
-                console.log('💾 Saving continuation state:', continuation);
             }
 
             saveStepProgressState(step.id, component.id, project.id, {
@@ -678,29 +664,19 @@ const KnittingStepCounter = ({
     };
 
     const handleAutoAdvanceToNextStep = () => {
-        console.log('=== handleAutoAdvanceToNextStep START ===');
-        console.log('navigation object:', navigation);
-        console.log('navigation.canGoRight:', navigation?.canGoRight);
-        console.log('onClose exists?', !!onClose);
-        console.log('onComponentComplete exists?', !!onComponentComplete);
 
         IntelliKnitLogger.debug('Row Counter', 'Auto-advancing from final row completion');
 
         try {
             if (navigation.canGoRight) {
-                console.log('Attempting navigation.navigateRight()');
                 navigation.navigateRight();
             } else {
-                console.log('No navigation.canGoRight, trying close');
                 if (onClose) {
-                    console.log('Calling onClose()');
                     onClose();
                 } else {
-                    console.log('onClose is not defined!');
                 }
 
                 if (onComponentComplete) {
-                    console.log('Calling onComponentComplete()');
                     onComponentComplete();
                 }
             }
@@ -710,8 +686,6 @@ const KnittingStepCounter = ({
                 onClose();
             }
         }
-
-        console.log('=== handleAutoAdvanceToNextStep END ===');
     };
 
     // Handle pattern offset changes

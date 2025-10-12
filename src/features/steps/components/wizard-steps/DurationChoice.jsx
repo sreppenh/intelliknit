@@ -112,7 +112,14 @@ const DurationChoice = ({
     })()
     : null;
 
-  // Validation
+
+
+  console.log('🔍 Duration Data:', {
+    type: wizardData.duration.type,
+    targetStitches: wizardData.duration.targetStitches,
+    canSaveResult: wizardData.duration.targetStitches && parseInt(wizardData.duration.targetStitches) > 0
+  });
+
   const canSave = () => {
     if (wizardData.duration.type === 'target_repeats') {
       return wizardData.duration.targetStitches && parseInt(wizardData.duration.targetStitches) > 0;

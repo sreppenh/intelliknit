@@ -102,18 +102,22 @@ export const getPatternRepeatInfo = (stitchPattern) => {
     const rowsInPattern = parseInt(stitchPattern.rowsInPattern) || 0;
     let stitchChangePerRepeat = 0;
 
-    // Custom pattern uses customSequence.rows
+    // Custom pattern (Simple Row) uses customSequence.rows (array)
     if (stitchPattern.pattern === 'Custom' && stitchPattern.customSequence?.rows) {
         stitchChangePerRepeat = calculateStitchChangePerRepeat(stitchPattern.customSequence.rows);
     }
-    // Row-by-row patterns use rowInstructions (Lace, Cable, etc.)
-    else if (stitchPattern.rowInstructions?.length > 0) {
-        // For row-by-row, we need to calculate from the actual row instructions
-        // This would require the stitch calculator, so for now we'll use the stored value
+    // Two-Color Brioche uses customSequence.rows (object)
+    else if (stitchPattern.pattern === 'Two-Color Brioche' && stitchPattern.customSequence?.rows) {
+        const rows = stitchPattern.customSequence.rows;
+        const rowValues = Object.values(rows);
+        stitchChangePerRepeat = rowValues.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
+    }
+    // Custom pattern (Description) and other patterns with stored stitchChangePerRepeat
+    else if (stitchPattern.stitchChangePerRepeat !== undefined) {
         stitchChangePerRepeat = parseInt(stitchPattern.stitchChangePerRepeat) || 0;
     }
-    // Description mode patterns have stitchChangePerRepeat stored
-    else if (stitchPattern.stitchChangePerRepeat !== undefined) {
+    // Row-by-row patterns use rowInstructions (Lace, Cable, etc.)
+    else if (stitchPattern.rowInstructions?.length > 0) {
         stitchChangePerRepeat = parseInt(stitchPattern.stitchChangePerRepeat) || 0;
     }
 
