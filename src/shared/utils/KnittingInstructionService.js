@@ -196,10 +196,11 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
     const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
     const letters = colorwork?.letters || [];
 
-    // Look up the actual yarn objects using the letters in the order they were selected
-    // letters[0] is the FIRST color selected, letters[1] is the SECOND color selected
-    const firstYarn = letters[0] ? getYarnByLetter(project?.yarns || [], letters[0]) : null;
-    const secondYarn = letters[1] ? getYarnByLetter(project?.yarns || [], letters[1]) : null;
+    // Look up the actual yarn objects
+    // letters[0] = first color selected (used for row 'a')
+    // letters[1] = second color selected (used for row 'b')
+    const colorForRowA = letters[0] ? getYarnByLetter(project?.yarns || [], letters[0]) : null;
+    const colorForRowB = letters[1] ? getYarnByLetter(project?.yarns || [], letters[1]) : null;
 
     // Determine side (RS/WS) based on row number and construction
     const side = construction === 'round' ? 'Round' : (currentRow % 2 === 1 ? 'RS' : 'WS');
@@ -211,18 +212,17 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
     const instructionA = rows[rowKeyA]?.instruction || 'Work row as established';
     const instructionB = rows[rowKeyB]?.instruction || 'Work row as established';
 
-    // Format color labels using the ACTUAL yarn data
-    // Row 'a' uses the FIRST selected color, Row 'b' uses the SECOND selected color
-    const colorLabelA = firstYarn
-        ? (firstYarn.color && firstYarn.color !== `Color ${firstYarn.letter}`)
-            ? `${firstYarn.letter} (${firstYarn.color})`
-            : firstYarn.letter
+    // Format color labels - Row A uses first selected color, Row B uses second selected color
+    const colorLabelA = colorForRowA
+        ? (colorForRowA.color && colorForRowA.color !== `Color ${colorForRowA.letter}`)
+            ? `${colorForRowA.letter} (${colorForRowA.color})`
+            : colorForRowA.letter
         : 'A';
 
-    const colorLabelB = secondYarn
-        ? (secondYarn.color && secondYarn.color !== `Color ${secondYarn.letter}`)
-            ? `${secondYarn.letter} (${secondYarn.color})`
-            : secondYarn.letter
+    const colorLabelB = colorForRowB
+        ? (colorForRowB.color && colorForRowB.color !== `Color ${colorForRowB.letter}`)
+            ? `${colorForRowB.letter} (${colorForRowB.color})`
+            : colorForRowB.letter
         : 'B';
 
     // Format the combined instruction with visual separation
@@ -242,7 +242,6 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
         isBrioche: true  // Flag to help with formatting
     };
 }
-
 
 
 /**
