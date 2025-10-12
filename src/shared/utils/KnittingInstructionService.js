@@ -6,6 +6,7 @@ import { formatKnittingInstruction } from './../../shared/utils/knittingNotation
 import { generateMarkerInstructionPreview } from './markerInstructionUtils';
 import { getAdjustedColorRow, getAdjustedPatternRow } from './progressTracking';
 import { getCastOnDisplayName, getBindOffDisplayName } from './constants';  // ✅ ADD THIS
+import { getYarnByLetter } from './colorworkDisplayUtils';
 
 /**
  * Smart Instruction Generation - Phase 2 implementation
@@ -47,7 +48,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
 
     // 🆕 PRIORITY 0: 2-color Brioche (before everything else)
     if (isTwoColorBrioche(step)) {
-        return getTwoColorBriocheInstruction(step, currentRow, construction);
+        return getTwoColorBriocheInstruction(step, currentRow, construction, project);
     }
 
     // Priority 1: Construction patterns (Cast On, Bind Off)
@@ -178,7 +179,7 @@ function isTwoColorBrioche(step) {
  * Get 2-color brioche instruction for current row
  * Returns both 'a' and 'b' instructions together
  */
-function getTwoColorBriocheInstruction(step, currentRow, construction) {
+function getTwoColorBriocheInstruction(step, currentRow, construction, project) {
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
     const rows = stitchPattern?.customSequence?.rows;
 
@@ -191,10 +192,14 @@ function getTwoColorBriocheInstruction(step, currentRow, construction) {
         };
     }
 
-    // Get the color data
+    // Get the color data - using letters array (correct data structure)
     const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-    const colorA = colorwork?.colorA;
-    const colorB = colorwork?.colorB;
+    const letters = colorwork?.letters || [];
+
+    // Look up the actual yarn objects using the letters in the order they were selected
+    // letters[0] is the FIRST color selected, letters[1] is the SECOND color selected
+    const firstYarn = letters[0] ? getYarnByLetter(project?.yarns || [], letters[0]) : null;
+    const secondYarn = letters[1] ? getYarnByLetter(project?.yarns || [], letters[1]) : null;
 
     // Determine side (RS/WS) based on row number and construction
     const side = construction === 'round' ? 'Round' : (currentRow % 2 === 1 ? 'RS' : 'WS');
@@ -206,20 +211,26 @@ function getTwoColorBriocheInstruction(step, currentRow, construction) {
     const instructionA = rows[rowKeyA]?.instruction || 'Work row as established';
     const instructionB = rows[rowKeyB]?.instruction || 'Work row as established';
 
-    // Format color labels
-    const colorLabelA = colorA?.letter
-        ? `Color ${colorA.letter}${colorA.color ? ` (${colorA.color})` : ''}`
-        : 'Color A';
-    const colorLabelB = colorB?.letter
-        ? `Color ${colorB.letter}${colorB.color ? ` (${colorB.color})` : ''}`
-        : 'Color B';
+    // Format color labels using the ACTUAL yarn data
+    // Row 'a' uses the FIRST selected color, Row 'b' uses the SECOND selected color
+    const colorLabelA = firstYarn
+        ? (firstYarn.color && firstYarn.color !== `Color ${firstYarn.letter}`)
+            ? `${firstYarn.letter} (${firstYarn.color})`
+            : firstYarn.letter
+        : 'A';
+
+    const colorLabelB = secondYarn
+        ? (secondYarn.color && secondYarn.color !== `Color ${secondYarn.letter}`)
+            ? `${secondYarn.letter} (${secondYarn.color})`
+            : secondYarn.letter
+        : 'B';
 
     // Format the combined instruction with visual separation
     const combinedInstruction = [
-        `Row ${currentRow}a - ${colorLabelA}:`,
+        `Row ${currentRow}a - Color ${colorLabelA}:`,
         instructionA,
         '',  // Blank line for separation
-        `Row ${currentRow}b - ${colorLabelB}:`,
+        `Row ${currentRow}b - Color ${colorLabelB}:`,
         instructionB
     ].join('\n');
 
