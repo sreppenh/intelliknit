@@ -13,7 +13,7 @@ const createMockStep = (wizardData, construction) => ({
 });
 
 // Helper for consistent duration text
-const getDurationText = (wizardData, construction) => {
+const getDurationText = (wizardData, construction, currentStitches = 0) => {
   const { duration, colorwork } = wizardData;
 
   switch (duration.type) {
@@ -23,6 +23,21 @@ const getDurationText = (wizardData, construction) => {
       return ` until piece measures ${duration.value} ${duration.units}`;
     case 'repeats':
       return ` for ${duration.value} repeats`;
+    case 'target_repeats':
+      if (duration.targetStitches && wizardData.stitchPattern.stitchChangePerRepeat !== undefined) {
+        const stitchChangePerRepeat = parseInt(wizardData.stitchPattern.stitchChangePerRepeat) || 0;
+        const targetStitches = parseInt(duration.targetStitches);
+
+        if (stitchChangePerRepeat === 0) {
+          return ` until ${targetStitches} stitches`; // Fallback
+        }
+
+        const stitchDifference = targetStitches - currentStitches;
+        const repeatsNeeded = Math.ceil(Math.abs(stitchDifference) / Math.abs(stitchChangePerRepeat));
+
+        return ` ${repeatsNeeded} ${repeatsNeeded === 1 ? 'time' : 'times'}`;
+      }
+      return '';
     case 'color_repeats':
       // Calculate total rows from stripe sequence
       if (colorwork?.stripeSequence) {
@@ -42,7 +57,7 @@ const getDurationText = (wizardData, construction) => {
 };
 
 export const useStepGeneration = (construction = 'flat') => {
-  const generateInstruction = useMemo(() => (wizardData) => {
+  const generateInstruction = useMemo(() => (wizardData, currentStitches = 0) => {
     const pattern = wizardData.stitchPattern.pattern === 'Other' ?
       wizardData.stitchPattern.customText :
       wizardData.stitchPattern.pattern;
@@ -78,7 +93,7 @@ export const useStepGeneration = (construction = 'flat') => {
         ` (${wizardData.stitchPattern.customDetails})` : '';
 
       let instruction = `${rowsText}${pattern.toLowerCase()}${detailsText}`;
-      instruction += getDurationText(wizardData, construction);
+      instruction += getDurationText(wizardData, construction, currentStitches);
 
       return instruction;
     }
@@ -94,7 +109,7 @@ export const useStepGeneration = (construction = 'flat') => {
         ` (${wizardData.stitchPattern.customDetails})` : '';
 
       let instruction = `${rowsText}${baseText}${detailsText}`;
-      instruction += getDurationText(wizardData, construction);
+      instruction += getDurationText(wizardData, construction, currentStitches);
 
       return instruction;
     }

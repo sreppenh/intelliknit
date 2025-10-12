@@ -31,7 +31,7 @@ const DurationWizard = ({
 
         try {
             // ✅ USE REAL CALCULATION:
-            const instruction = generateInstruction(wizardData);
+            const instruction = generateInstruction(wizardData, currentStitches);
             const effect = calculateEffect(wizardData, currentStitches, construction);
 
             const saveResult = await saveStepAndNavigate({

@@ -112,14 +112,6 @@ const DurationChoice = ({
     })()
     : null;
 
-
-
-  console.log('🔍 Duration Data:', {
-    type: wizardData.duration.type,
-    targetStitches: wizardData.duration.targetStitches,
-    canSaveResult: wizardData.duration.targetStitches && parseInt(wizardData.duration.targetStitches) > 0
-  });
-
   const canSave = () => {
     if (wizardData.duration.type === 'target_repeats') {
       return wizardData.duration.targetStitches && parseInt(wizardData.duration.targetStitches) > 0;
@@ -139,6 +131,25 @@ const DurationChoice = ({
   const handleCancel = () => {
     if (onCancel) {
       onCancel();
+    }
+  };
+
+  // Validate and correct target stitches on blur
+  const handleTargetStitchesBlur = () => {
+    if (wizardData.duration.type === 'target_repeats' && wizardData.duration.targetStitches) {
+      const enteredValue = parseInt(wizardData.duration.targetStitches);
+
+      // Find nearest valid target
+      if (validTargets.length > 0) {
+        const nearest = validTargets.reduce((prev, curr) =>
+          Math.abs(curr - enteredValue) < Math.abs(prev - enteredValue) ? curr : prev
+        );
+
+        // Only update if different
+        if (nearest !== enteredValue) {
+          updateWizardData('duration', { targetStitches: nearest });
+        }
+      }
     }
   };
 
@@ -440,6 +451,7 @@ const DurationChoice = ({
                         <IncrementInput
                           value={wizardData.duration.targetStitches}
                           onChange={(value) => updateWizardData('duration', { targetStitches: value })}
+                          onBlur={handleTargetStitchesBlur}  // ← ADD THIS
                           label="target stitch count"
                           unit="stitches"
                           min={repeatInfo.stitchChangePerRepeat > 0 ? currentStitches + repeatInfo.stitchChangePerRepeat : repeatInfo.stitchChangePerRepeat}
