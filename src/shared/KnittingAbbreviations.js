@@ -138,9 +138,11 @@ export const KNITTING_ABBREVIATIONS = [
     { abbr: 'last', full: 'last', category: 'phrase' },
     { abbr: 'first', full: 'first', category: 'phrase' },
 
-    // ===== SYMBOLS =====
-    { abbr: '[', full: '[', category: 'symbol' },
-    { abbr: ']', full: ']', category: 'symbol' },
+    // ===== PUNCTUATION/GROUPING =====
+    { abbr: '[', full: 'open bracket', category: 'punctuation' },
+    { abbr: ']', full: 'close bracket', category: 'punctuation' },
+    { abbr: '(', full: 'open parenthesis', category: 'punctuation' },
+    { abbr: ')', full: 'close parenthesis', category: 'punctuation' },
 ];
 
 /**

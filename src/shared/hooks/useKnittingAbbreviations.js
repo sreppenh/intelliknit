@@ -73,7 +73,7 @@ export const useKnittingAbbreviations = ({
     }, [value, getCurrentWord, recentlyUsed]);
 
     /**
-     * Handle abbreviation insertion
+     * Handle abbreviation insertion with smart comma cleanup
      */
     const handleInsert = useCallback((abbr) => {
         if (!textareaRef.current) return;
@@ -84,7 +84,7 @@ export const useKnittingAbbreviations = ({
         const textAfterCursor = value.slice(cursorPos);
 
         // Find the start of the current word to replace
-        const delimiters = [' ', ',', ';', '*', '\n', '(', ')'];
+        const delimiters = [' ', ',', ';', '*', '\n', '(', ')', '[', ']'];
         let wordStartIndex = -1;
 
         for (const delimiter of delimiters) {
@@ -94,10 +94,26 @@ export const useKnittingAbbreviations = ({
             }
         }
 
-        const beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
+        let beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
 
-        // Determine if we should add comma-space after abbreviation
-        const suffix = shouldSkipComma(abbr) ? ' ' : ', ';
+        // ✨ SMART COMMA REMOVAL: If inserting bracket/paren, remove trailing ", "
+        const isBracketOrParen = ['(', ')', '[', ']'].includes(abbr);
+        if (isBracketOrParen && beforeWord.endsWith(', ')) {
+            beforeWord = beforeWord.slice(0, -2); // Remove the ", "
+        }
+
+        // Determine suffix
+        let suffix;
+        if (isBracketOrParen) {
+            // Brackets/parens get no suffix
+            suffix = '';
+        } else if (shouldSkipComma(abbr)) {
+            // Terms that never want commas (e.g., "end", "beginning")
+            suffix = ' ';
+        } else {
+            // Normal abbreviations get comma-space
+            suffix = ', ';
+        }
 
         // Build new text
         const newText = beforeWord + abbr + suffix + textAfterCursor;
@@ -112,7 +128,7 @@ export const useKnittingAbbreviations = ({
         // Update value
         onChange(newText);
 
-        // ✨ FIXED: Use requestAnimationFrame for better mobile reliability
+        // ✨ Use requestAnimationFrame for better mobile reliability
         requestAnimationFrame(() => {
             if (textareaRef.current) {
                 textareaRef.current.focus();
