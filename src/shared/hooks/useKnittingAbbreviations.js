@@ -83,10 +83,10 @@ export const useKnittingAbbreviations = ({
         let textBeforeCursor = value.slice(0, cursorPos);
         const textAfterCursor = value.slice(cursorPos);
 
-        // ✨ SMART COMMA REMOVAL: If inserting bracket/paren, check for trailing ", "
+        // ✨ SMART COMMA REMOVAL: If inserting bracket/paren, remove trailing comma (keep space)
         const isBracketOrParen = ['(', ')', '[', ']'].includes(abbr);
         if (isBracketOrParen && textBeforeCursor.endsWith(', ')) {
-            textBeforeCursor = textBeforeCursor.slice(0, -2); // Remove the ", "
+            textBeforeCursor = textBeforeCursor.slice(0, -2) + ' '; // Remove ", " but add back " "
         }
 
         // Find the start of the current word to replace (only if NOT a bracket)
@@ -140,6 +140,7 @@ export const useKnittingAbbreviations = ({
             }
         });
     }, [value, onChange, recentlyUsed, onUpdateRecentlyUsed, textareaRef]);
+
     return {
         displayAbbreviations,
         currentWord,
