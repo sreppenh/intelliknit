@@ -126,12 +126,11 @@ const ColorSelectionScreen = ({
             {colorChoice === 'two-color-brioche' && (
                 <div>
                     <label className="form-label">Select Your Two Colors</label>
-                    <p className="text-sm text-wool-600 mb-3">Pick which color to work first on each row</p>
 
                     <div className="space-y-3">
                         {/* First Color */}
                         <div>
-                            <div className="text-sm font-medium text-wool-700 mb-2">First color (worked on odd-numbered rows):</div>
+                            <div className="text-sm font-medium text-center text-wool-700 mb-2">First color worked:</div>
                             <div className="grid grid-cols-3 gap-3">
                                 {sortedYarns.map(yarn => {
                                     const isSelected = selectedLetters[0] === yarn.letter;
@@ -158,7 +157,7 @@ const ColorSelectionScreen = ({
 
                         {/* Second Color */}
                         <div>
-                            <div className="text-sm font-medium text-wool-700 mb-2">Second color (worked on even-numbered rows):</div>
+                            <div className="text-sm font-medium text-center text-wool-700 mb-2">Second color worked:</div>
                             <div className="grid grid-cols-3 gap-3">
                                 {sortedYarns.map(yarn => {
                                     const isSelected = selectedLetters[1] === yarn.letter;
