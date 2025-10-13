@@ -137,6 +137,10 @@ export const KNITTING_ABBREVIATIONS = [
     { abbr: 'times', full: 'times', category: 'phrase' },
     { abbr: 'last', full: 'last', category: 'phrase' },
     { abbr: 'first', full: 'first', category: 'phrase' },
+
+    // ===== SYMBOLS =====
+    { abbr: '[', full: '[', category: 'symbol' },
+    { abbr: ']', full: ']', category: 'symbol' },
 ];
 
 /**

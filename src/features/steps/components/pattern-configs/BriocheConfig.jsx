@@ -333,7 +333,7 @@ const BriocheConfig = ({
                                             <button
                                                 onClick={() => handleOpenModal(`${rowNum}a`)}
                                                 className="text-sm text-sage-600 hover:text-sage-700 font-medium"
-                                                aria-label={`Edit Row ${rowNum}`}
+                                                aria-label={`Add Row ${rowNum}`}
                                             >
                                                 ✏️
                                             </button>
@@ -433,7 +433,7 @@ const BriocheConfig = ({
             <StandardModal
                 isOpen={showModal}
                 onClose={handleCloseModal}
-                title={`Edit Row ${currentRowNum}`}
+                title={`Add Row ${currentRowNum}`}
                 category="complex"
                 colorScheme="sage"
             >

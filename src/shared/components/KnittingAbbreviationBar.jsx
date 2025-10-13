@@ -48,7 +48,10 @@ const KnittingAbbreviationBar = ({
                 {displayAbbreviations.map((item) => (
                     <button
                         key={item.abbr}
-                        onClick={() => handleInsert(item.abbr)}
+                        onMouseDown={(e) => {
+                            e.preventDefault(); // ✨ Prevents focus loss on mobile
+                            handleInsert(item.abbr);
+                        }}
                         className="suggestion-bubble flex-shrink-0"
                         type="button"
                         title={item.full}
