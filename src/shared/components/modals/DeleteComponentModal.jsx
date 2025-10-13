@@ -2,17 +2,23 @@
 import React from 'react';
 import { DangerModal } from './StandardModal';
 import { getComponentStatusWithDisplay } from '../../utils/stepDisplayUtils';
+import { getComponentProgressStats } from '../../utils/progressTracking';
 
-const DeleteComponentModal = ({ component, onClose, onDelete }) => {
+const DeleteComponentModal = ({ component, projectId, onClose, onDelete }) => {
     if (!component) return null;
 
-    // Check if component has completed steps
-    const hasCompletedSteps = component.steps?.some(s => s.completed) || false;
-    const completedCount = component.steps?.filter(s => s.completed).length || 0;
+    // ✅ NEW: Use progress tracking system instead of step.completed
+    const progressStats = projectId && component.id ?
+        getComponentProgressStats(component.steps, component.id, projectId) :
+        { completed: 0, inProgress: 0, notStarted: component.steps?.length || 0 };
+
+    const hasCompletedSteps = progressStats.completed > 0 || progressStats.inProgress > 0;
+    const completedCount = progressStats.completed;
+    const inProgressCount = progressStats.inProgress;
     const totalSteps = component.steps?.length || 0;
 
     // Get component status for additional context
-    const componentStatus = getComponentStatusWithDisplay(component);
+    const componentStatus = getComponentStatusWithDisplay(component, projectId);
 
     // Determine warning level
     const showWarning = hasCompletedSteps;
@@ -23,7 +29,7 @@ const DeleteComponentModal = ({ component, onClose, onDelete }) => {
             isOpen={!!component}
             onClose={onClose}
             onConfirm={onDelete}
-            title={showWarning ? "⚠️ Delete Component with Progress?" : "Delete Component?"}
+            title={showWarning ? "Delete Component with Progress?" : "Delete Component?"}
             subtitle={component?.name}
             icon={showWarning ? "⚠️" : "🗑️"}
             primaryButtonText={showWarning ? "Delete Anyway" : "Delete Component"}
@@ -42,8 +48,8 @@ const DeleteComponentModal = ({ component, onClose, onDelete }) => {
                             ⚠️ This component has progress that will be lost:
                         </div>
                         <div className="text-sm text-red-700 space-y-1">
-                            <div>• <strong>{completedCount} of {totalSteps}</strong> steps completed</div>
-                            <div>• Status: <strong>{componentStatus.display}</strong></div>
+                            <div><strong>{completedCount} completed steps</strong> {inProgressCount > 0 && `+ ${inProgressCount} in progress`} {/*of {totalSteps} steps */}</div>
+                            <div>Status: <strong>{componentStatus.display}</strong></div>
                             {isFinished && (
                                 <div className="font-medium text-red-800 mt-2">
                                     🏁 This is a finished component!

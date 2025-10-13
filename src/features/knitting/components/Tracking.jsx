@@ -33,7 +33,7 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
   const [confirmDialogData, setConfirmDialogData] = useState(null);
 
   // ✅ NEW: Force re-render trigger
-  const [setRefreshTrigger] = useState(0);
+  const [refreshTrigger, setRefreshTrigger] = useState(0);  // ✅ CORRECT
 
   // ✅ IMPORTANT: Calculate activeComponent BEFORE hooks (needed for hook dependencies)
   const activeComponent = currentProject?.components[localActiveIndex];

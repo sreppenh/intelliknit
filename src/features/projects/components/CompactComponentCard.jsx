@@ -229,6 +229,7 @@ const CompactComponentCard = ({ component, projectId, onManageSteps, onMenuActio
       {showDeleteModal && (
         <DeleteComponentModal
           component={component}
+          projectId={projectId}
           onClose={() => setShowDeleteModal(false)}
           onDelete={() => {
             // Call parent's onMenuAction to actually delete

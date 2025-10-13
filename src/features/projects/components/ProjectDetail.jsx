@@ -258,6 +258,7 @@ const ProjectDetail = ({ initialTab, onBack, onViewComponent, onEditSteps, onMan
         {modalStates.showDeleteModal && modalStates.componentToDelete && (
           <DeleteComponentModal
             component={modalStates.componentToDelete}
+            projectId={currentProject.id}
             onClose={modalHandlers.closeDeleteModal}
             onDelete={modalHandlers.confirmDeleteComponent}
           />
