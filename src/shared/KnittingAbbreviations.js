@@ -138,11 +138,13 @@ export const KNITTING_ABBREVIATIONS = [
     { abbr: 'last', full: 'last', category: 'phrase' },
     { abbr: 'first', full: 'first', category: 'phrase' },
 
-    // ===== PUNCTUATION/GROUPING =====
+    // ===== PUNCTUATION =====
+    { abbr: ',', full: 'comma', category: 'punctuation' },
     { abbr: '[', full: 'open bracket', category: 'punctuation' },
     { abbr: ']', full: 'close bracket', category: 'punctuation' },
     { abbr: '(', full: 'open parenthesis', category: 'punctuation' },
     { abbr: ')', full: 'close parenthesis', category: 'punctuation' },
+    { abbr: '*', full: 'asterisk (repeat marker)', category: 'punctuation' },
 ];
 
 /**
@@ -176,12 +178,4 @@ export const getRecentlyUsedAbbreviations = (recentlyUsedArray = []) => {
         .map(abbr => KNITTING_ABBREVIATIONS.find(item => item.abbr === abbr))
         .filter(Boolean)
         .slice(0, 8); // Max 8 recent items
-};
-
-/**
- * Check if term should NOT have comma-space after insertion
- */
-export const shouldSkipComma = (abbr) => {
-    const noCommaTerms = ['end', '*', 'beginning', 'last', 'first', 'from *', 'until end', 'to end'];
-    return noCommaTerms.includes(abbr);
 };

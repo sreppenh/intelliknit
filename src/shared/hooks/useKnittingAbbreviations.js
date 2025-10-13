@@ -4,7 +4,6 @@ import { useState, useEffect, useCallback } from 'react';
 import {
     filterAbbreviations,
     getRecentlyUsedAbbreviations,
-    shouldSkipComma
 } from '../KnittingAbbreviations';
 
 /**
@@ -75,49 +74,32 @@ export const useKnittingAbbreviations = ({
     /**
      * Handle abbreviation insertion with smart comma cleanup
      */
+    /**
+   * Handle abbreviation insertion - simple append logic
+   */
     const handleInsert = useCallback((abbr) => {
         if (!textareaRef.current) return;
 
         const textarea = textareaRef.current;
         const cursorPos = textarea.selectionStart;
-        let textBeforeCursor = value.slice(0, cursorPos);
+        const textBeforeCursor = value.slice(0, cursorPos);
         const textAfterCursor = value.slice(cursorPos);
 
-        // ✨ SMART COMMA REMOVAL: If inserting bracket/paren, remove trailing comma (keep space)
-        const isBracketOrParen = ['(', ')', '[', ']'].includes(abbr);
-        if (isBracketOrParen && textBeforeCursor.endsWith(', ')) {
-            textBeforeCursor = textBeforeCursor.slice(0, -2) + ' '; // Remove ", " but add back " "
-        }
+        // Find the start of the current word to replace
+        const delimiters = [' ', ',', ';', '*', '\n', '(', ')', '[', ']'];
+        let wordStartIndex = -1;
 
-        // Find the start of the current word to replace (only if NOT a bracket)
-        let beforeWord = textBeforeCursor;
-
-        if (!isBracketOrParen) {
-            const delimiters = [' ', ',', ';', '*', '\n', '(', ')', '[', ']'];
-            let wordStartIndex = -1;
-
-            for (const delimiter of delimiters) {
-                const index = textBeforeCursor.lastIndexOf(delimiter);
-                if (index > wordStartIndex) {
-                    wordStartIndex = index;
-                }
+        for (const delimiter of delimiters) {
+            const index = textBeforeCursor.lastIndexOf(delimiter);
+            if (index > wordStartIndex) {
+                wordStartIndex = index;
             }
-
-            beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
         }
 
-        // Determine suffix
-        let suffix;
-        if (isBracketOrParen) {
-            // Brackets/parens get no suffix
-            suffix = '';
-        } else if (shouldSkipComma(abbr)) {
-            // Terms that never want commas (e.g., "end", "beginning")
-            suffix = ' ';
-        } else {
-            // Normal abbreviations get comma-space
-            suffix = ', ';
-        }
+        const beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
+
+        // Simple: just add a space after each insertion
+        const suffix = ' ';
 
         // Build new text
         const newText = beforeWord + abbr + suffix + textAfterCursor;
