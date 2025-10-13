@@ -9,7 +9,6 @@ import {
   StripesConfig
 } from '../pattern-configs';
 import SimpleRowBuilder from '../pattern-configs/SimpleRowBuilder';
-import { useKnittingAbbreviations, handleSmartKeyDown } from '../hooks/useKnittingAbbreviations';
 
 const PatternConfiguration = ({
   wizardData,

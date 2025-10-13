@@ -118,10 +118,14 @@ export const useKnittingAbbreviations = ({
 
         // Determine suffix
         let suffix;
+        const noCommaAfter = ['*', ':', ';', '-', '–', '—', 'rep', 'rem'];
+
         if (isOpeningPunctuation) {
             suffix = ''; // No space after opening brackets/parens
         } else if (isClosingPunctuation) {
             suffix = ', '; // Comma-space after closing brackets/parens
+        } else if (noCommaAfter.includes(abbr)) {
+            suffix = ' '; // Just space, no comma
         } else {
             suffix = ', '; // Default: comma-space after abbreviations
         }

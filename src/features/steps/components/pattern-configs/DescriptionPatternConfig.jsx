@@ -4,7 +4,7 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
-import { useKnittingAbbreviations, handleSmartKeyDown } from '../hooks/useKnittingAbbreviations';
+import { useKnittingAbbreviations, handleSmartKeyDown } from '../../../../shared/hooks/useKnittingAbbreviations';
 
 const DescriptionPatternConfig = ({
     wizardData,
