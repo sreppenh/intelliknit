@@ -80,26 +80,30 @@ export const useKnittingAbbreviations = ({
 
         const textarea = textareaRef.current;
         const cursorPos = textarea.selectionStart;
-        const textBeforeCursor = value.slice(0, cursorPos);
+        let textBeforeCursor = value.slice(0, cursorPos);
         const textAfterCursor = value.slice(cursorPos);
 
-        // Find the start of the current word to replace
-        const delimiters = [' ', ',', ';', '*', '\n', '(', ')', '[', ']'];
-        let wordStartIndex = -1;
-
-        for (const delimiter of delimiters) {
-            const index = textBeforeCursor.lastIndexOf(delimiter);
-            if (index > wordStartIndex) {
-                wordStartIndex = index;
-            }
+        // ✨ SMART COMMA REMOVAL: If inserting bracket/paren, check for trailing ", "
+        const isBracketOrParen = ['(', ')', '[', ']'].includes(abbr);
+        if (isBracketOrParen && textBeforeCursor.endsWith(', ')) {
+            textBeforeCursor = textBeforeCursor.slice(0, -2); // Remove the ", "
         }
 
-        let beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
+        // Find the start of the current word to replace (only if NOT a bracket)
+        let beforeWord = textBeforeCursor;
 
-        // ✨ SMART COMMA REMOVAL: If inserting bracket/paren, remove trailing ", "
-        const isBracketOrParen = ['(', ')', '[', ']'].includes(abbr);
-        if (isBracketOrParen && beforeWord.endsWith(', ')) {
-            beforeWord = beforeWord.slice(0, -2); // Remove the ", "
+        if (!isBracketOrParen) {
+            const delimiters = [' ', ',', ';', '*', '\n', '(', ')', '[', ']'];
+            let wordStartIndex = -1;
+
+            for (const delimiter of delimiters) {
+                const index = textBeforeCursor.lastIndexOf(delimiter);
+                if (index > wordStartIndex) {
+                    wordStartIndex = index;
+                }
+            }
+
+            beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
         }
 
         // Determine suffix
@@ -136,7 +140,6 @@ export const useKnittingAbbreviations = ({
             }
         });
     }, [value, onChange, recentlyUsed, onUpdateRecentlyUsed, textareaRef]);
-
     return {
         displayAbbreviations,
         currentWord,
