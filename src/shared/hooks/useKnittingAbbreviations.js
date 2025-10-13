@@ -80,6 +80,9 @@ export const useKnittingAbbreviations = ({
     /**
    * Handle abbreviation insertion with smart punctuation spacing
    */
+    /**
+     * Handle abbreviation insertion with smart auto-comma logic
+     */
     const handleInsert = useCallback((abbr) => {
         if (!textareaRef.current) return;
 
@@ -88,33 +91,46 @@ export const useKnittingAbbreviations = ({
         let textBeforeCursor = value.slice(0, cursorPos);
         const textAfterCursor = value.slice(cursorPos);
 
-        // ✨ SMART SPACING: Remove trailing space before punctuation that doesn't need it
-        const punctuationNoSpaceBefore = [',', ')', ']', ';'];
-        if (punctuationNoSpaceBefore.includes(abbr) && textBeforeCursor.endsWith(' ')) {
-            textBeforeCursor = textBeforeCursor.slice(0, -1); // Remove trailing space
+        // ✨ SMART PUNCTUATION HANDLING
+        const isOpeningPunctuation = ['(', '['].includes(abbr);
+        const isClosingPunctuation = [')', ']'].includes(abbr);
+        const isPunctuation = isOpeningPunctuation || isClosingPunctuation;
+
+        // Remove trailing comma-space before opening punctuation
+        if (isOpeningPunctuation && textBeforeCursor.endsWith(', ')) {
+            textBeforeCursor = textBeforeCursor.slice(0, -2) + ' ';
         }
 
-        // Find the start of the current word to replace
-        const delimiters = [' ', ',', ';', '*', '\n', '(', ')', '[', ']'];
-        let wordStartIndex = -1;
+        // Remove trailing space before closing punctuation
+        if (isClosingPunctuation && textBeforeCursor.endsWith(' ')) {
+            textBeforeCursor = textBeforeCursor.slice(0, -1);
+        }
 
-        for (const delimiter of delimiters) {
-            const index = textBeforeCursor.lastIndexOf(delimiter);
-            if (index > wordStartIndex) {
-                wordStartIndex = index;
+        // Find the start of the current word to replace (only for non-punctuation)
+        let beforeWord = textBeforeCursor;
+
+        if (!isPunctuation) {
+            const delimiters = [' ', ',', ';', '*', '\n', '(', ')', '[', ']'];
+            let wordStartIndex = -1;
+
+            for (const delimiter of delimiters) {
+                const index = textBeforeCursor.lastIndexOf(delimiter);
+                if (index > wordStartIndex) {
+                    wordStartIndex = index;
+                }
             }
+
+            beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
         }
 
-        const beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
-
-        // ✨ SMART SUFFIX: Punctuation that needs space after, vs those that don't
-        const punctuationNoSpaceAfter = ['(', '['];
+        // Determine suffix
         let suffix;
-
-        if (punctuationNoSpaceAfter.includes(abbr)) {
+        if (isOpeningPunctuation) {
             suffix = ''; // No space after opening brackets/parens
+        } else if (isClosingPunctuation) {
+            suffix = ', '; // Comma-space after closing brackets/parens
         } else {
-            suffix = ' '; // Space after everything else
+            suffix = ', '; // Default: comma-space after abbreviations
         }
 
         // Build new text
