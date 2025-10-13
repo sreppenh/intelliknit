@@ -77,13 +77,22 @@ export const useKnittingAbbreviations = ({
     /**
    * Handle abbreviation insertion - simple append logic
    */
+    /**
+   * Handle abbreviation insertion with smart punctuation spacing
+   */
     const handleInsert = useCallback((abbr) => {
         if (!textareaRef.current) return;
 
         const textarea = textareaRef.current;
         const cursorPos = textarea.selectionStart;
-        const textBeforeCursor = value.slice(0, cursorPos);
+        let textBeforeCursor = value.slice(0, cursorPos);
         const textAfterCursor = value.slice(cursorPos);
+
+        // ✨ SMART SPACING: Remove trailing space before punctuation that doesn't need it
+        const punctuationNoSpaceBefore = [',', ')', ']', ';'];
+        if (punctuationNoSpaceBefore.includes(abbr) && textBeforeCursor.endsWith(' ')) {
+            textBeforeCursor = textBeforeCursor.slice(0, -1); // Remove trailing space
+        }
 
         // Find the start of the current word to replace
         const delimiters = [' ', ',', ';', '*', '\n', '(', ')', '[', ']'];
@@ -98,8 +107,15 @@ export const useKnittingAbbreviations = ({
 
         const beforeWord = textBeforeCursor.slice(0, wordStartIndex + 1);
 
-        // Simple: just add a space after each insertion
-        const suffix = ' ';
+        // ✨ SMART SUFFIX: Punctuation that needs space after, vs those that don't
+        const punctuationNoSpaceAfter = ['(', '['];
+        let suffix;
+
+        if (punctuationNoSpaceAfter.includes(abbr)) {
+            suffix = ''; // No space after opening brackets/parens
+        } else {
+            suffix = ' '; // Space after everything else
+        }
 
         // Build new text
         const newText = beforeWord + abbr + suffix + textAfterCursor;
