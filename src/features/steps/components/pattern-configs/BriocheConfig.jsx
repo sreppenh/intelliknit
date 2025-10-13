@@ -1,6 +1,6 @@
 // src/features/steps/components/pattern-configs/BriocheConfig.jsx
 
-import React, { useState, useRef, useEffect } from 'react'; // Add useRef
+import React, { useState, useRef } from 'react'; // Add useRef
 import { getYarnByLetter } from '../../../../shared/utils/colorworkDisplayUtils';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
@@ -17,36 +17,14 @@ const BriocheConfig = ({
     construction,
     currentStitches
 }) => {
+    console.log('🧶 BRIOCHE CONFIG LOADED - colorwork:', wizardData.colorwork);
     const { yarns } = useYarnManager();
     const terms = getConstructionTerms(construction);
     const colorwork = wizardData.colorwork || {};
-    const initialLetters = colorwork.letters || [];
-
-    // ✅ FIXED: Track letter order in local state so swap works
-    const [letters, setLetters] = useState(initialLetters);
-
-
 
     // Get yarn colors for display - now uses state
-    const colorA = letters[0] ? getYarnByLetter(yarns, letters[0]) : null;
-    const colorB = letters[1] ? getYarnByLetter(yarns, letters[1]) : null;
-
-    // Handle color swap
-    const handleSwapColors = () => {
-        const currentLetters = wizardData.colorwork?.letters || [];
-        if (currentLetters.length !== 2) return;
-
-        const swappedLetters = [currentLetters[1], currentLetters[0]];
-
-        setLetters(swappedLetters);
-
-        // Replace entire colorwork object, don't spread
-        updateWizardData('colorwork', {
-            type: 'two_color_brioche',
-            colorLetter: wizardData.colorwork?.colorLetter,
-            letters: swappedLetters
-        });
-    };
+    const colorA = colorwork.rowAColor ? getYarnByLetter(yarns, colorwork.rowAColor) : null;
+    const colorB = colorwork.rowBColor ? getYarnByLetter(yarns, colorwork.rowBColor) : null;
 
     // ✅ CHANGED: Read from stitchPattern.customSequence.rows instead of colorwork.rows
     const getInitialRows = () => {
@@ -61,17 +39,6 @@ const BriocheConfig = ({
     const [tempInstructionA, setTempInstructionA] = useState('');
     const [tempInstructionB, setTempInstructionB] = useState('');
     const [tempStitchChange, setTempStitchChange] = useState(0);
-
-    // Add this useEffect in BriocheConfig after the useState declarations
-    useEffect(() => {
-        if (letters.length === 2) {
-            updateWizardData('colorwork', {
-                type: 'two_color_brioche',
-                colorLetter: wizardData.colorwork?.colorLetter,
-                letters: letters
-            });
-        }
-    }, [letters]);
 
     // ✨ ADD THESE:
     const textareaRefA = useRef(null);
@@ -98,6 +65,19 @@ const BriocheConfig = ({
         return yarn.color && yarn.color !== `Color ${yarn.letter}`
             ? `${yarn.letter} (${yarn.color})`
             : yarn.letter;
+    };
+
+    // Helper to save both stitchPattern and colorwork together
+    const saveCompleteData = (updatedRows) => {
+        updateWizardData('stitchPattern', {
+            pattern: 'Two-Color Brioche',
+            customSequence: { rows: updatedRows },
+            rowsInPattern: String(Object.keys(updatedRows).length / 2)
+        });
+
+        updateWizardData('colorwork', {
+            type: 'two_color_brioche',
+        });
     };
 
     // Define row structure dynamically based on what rows exist
@@ -164,11 +144,7 @@ const BriocheConfig = ({
 
         setRows(updatedRows);
 
-        updateWizardData('stitchPattern', {
-            pattern: 'Two-Color Brioche',
-            customSequence: { rows: updatedRows },
-            rowsInPattern: String(Object.keys(updatedRows).length) / 2
-        });
+        saveCompleteData(updatedRows);
 
         handleCloseModal();
     };
@@ -204,12 +180,7 @@ const BriocheConfig = ({
 
         setRows(updatedRows);
 
-        // ✅ CHANGED: Save to stitchPattern.customSequence
-        updateWizardData('stitchPattern', {
-            pattern: 'Brioche',
-            customSequence: { rows: updatedRows },
-            rowsInPattern: String(Object.keys(updatedRows).length) / 2
-        });
+        saveCompleteData(updatedRows);
     };
 
     const handleDeleteRow = (rowKey) => {
@@ -224,11 +195,7 @@ const BriocheConfig = ({
         setRows(updatedRows);
 
         // ✅ CHANGED: Save to stitchPattern.customSequence
-        updateWizardData('stitchPattern', {
-            pattern: 'Brioche',
-            customSequence: { rows: updatedRows },
-            rowsInPattern: String(Object.keys(updatedRows).length) / 2
-        });
+        saveCompleteData(updatedRows);
     };
 
     const getNextRowNumber = () => {
@@ -251,11 +218,7 @@ const BriocheConfig = ({
         setRows(updatedRows);
 
         // ✅ CHANGED: Save to stitchPattern.customSequence
-        updateWizardData('stitchPattern', {
-            pattern: 'Brioche',
-            customSequence: { rows: updatedRows },
-            rowsInPattern: String(Object.keys(updatedRows).length) / 2
-        });
+        saveCompleteData(updatedRows);
 
         // Open modal for the first new row
         handleOpenModal(`${nextNum}a`);
@@ -300,16 +263,7 @@ const BriocheConfig = ({
             <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4 relative">
                 <div className="flex items-center justify-between mb-3">
                     <h3 className="text-sm font-semibold text-yarn-700">Your Colors</h3>
-                    {colorA && colorB && (
-                        <button
-                            onClick={handleSwapColors}
-                            className="text-xs text-yarn-600 hover:text-yarn-800 hover:bg-yarn-200 rounded-lg px-2 py-1 transition-colors font-medium"
-                            aria-label="Swap color order"
-                            title="Swap Color A ↔ Color B"
-                        >
-                            Swap A ↔ B
-                        </button>
-                    )}
+
                 </div>
                 <div className="flex gap-4">
                     {colorA && (

@@ -45,6 +45,9 @@ const DurationWizard = ({
 
             const effect = calculateEffect(wizardData, currentStitches, construction);
 
+            console.log('🔍 FULL WIZARDDATA:', wizardData);
+            console.log('🔍 COLORWORK IN WIZARDDATA:', wizardData.colorwork);
+
             const saveResult = await saveStepAndNavigate({
                 instruction,
                 effect,  // ← Use real calculated effect

@@ -17,6 +17,8 @@ const ColorSelectionScreen = ({
     const [selectedLetters, setSelectedLetters] = useState([]);
 
     const handleContinue = () => {
+        console.log('🎨 COLOR SELECTION - selectedLetters:', selectedLetters);
+
         if (colorChoice === 'single') {
             updateWizardData('colorwork', {
                 type: 'single',
@@ -34,12 +36,14 @@ const ColorSelectionScreen = ({
         } else if (colorChoice === 'fair-isle' || colorChoice === 'intarsia') {
             onContinue('pattern-selection');
         } else if (colorChoice === 'two-color-brioche') {
-            // ✅ NEW: Save brioche config and go to brioche-config screen
             updateWizardData('colorwork', {
                 type: 'two_color_brioche',
-                letters: selectedLetters,
+                rowAColor: selectedLetters[0],  // Primary color
+                rowBColor: selectedLetters[1]   // Contrasting color
             });
-            onContinue('brioche-config');
+            setTimeout(() => {
+                onContinue('brioche-config');
+            }, 0);
         }
     };
 
@@ -118,11 +122,79 @@ const ColorSelectionScreen = ({
                 </button>
             </div>
 
-            {/* Yarn Selection */}
-            {(colorChoice === 'single' || colorChoice === 'multi-strand' || colorChoice === 'two-color-brioche') && (
+            {/* Yarn Selection for Brioche - Ordered */}
+            {colorChoice === 'two-color-brioche' && (
+                <div>
+                    <label className="form-label">Select Your Two Colors</label>
+                    <p className="text-sm text-wool-600 mb-3">Pick which color to work first on each row</p>
+
+                    <div className="space-y-3">
+                        {/* First Color */}
+                        <div>
+                            <div className="text-sm font-medium text-wool-700 mb-2">First color (worked on odd-numbered rows):</div>
+                            <div className="grid grid-cols-3 gap-3">
+                                {sortedYarns.map(yarn => {
+                                    const isSelected = selectedLetters[0] === yarn.letter;
+                                    return (
+                                        <button
+                                            key={yarn.letter}
+                                            onClick={() => {
+                                                const newSelected = [...selectedLetters];
+                                                newSelected[0] = yarn.letter;
+                                                if (newSelected[1] === yarn.letter) newSelected[1] = undefined;
+                                                setSelectedLetters(newSelected.filter(Boolean));
+                                            }}
+                                            className={`p-3 rounded-lg border-2 transition-all ${isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'}`}
+                                        >
+                                            <div className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1" style={{ backgroundColor: yarn.colorHex || yarn.hex }} />
+                                            <div className="text-xs font-medium text-center">{yarn.letter}</div>
+                                            <div className="text-xs text-center truncate">{yarn.color}</div>
+                                            {isSelected && <div className="text-sage-600 text-center mt-1">✓</div>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
+                        {/* Second Color */}
+                        <div>
+                            <div className="text-sm font-medium text-wool-700 mb-2">Second color (worked on even-numbered rows):</div>
+                            <div className="grid grid-cols-3 gap-3">
+                                {sortedYarns.map(yarn => {
+                                    const isSelected = selectedLetters[1] === yarn.letter;
+                                    const isDisabled = selectedLetters[0] === yarn.letter;
+                                    return (
+                                        <button
+                                            key={yarn.letter}
+                                            onClick={() => {
+                                                if (isDisabled) return;
+                                                const newSelected = [...selectedLetters];
+                                                newSelected[1] = yarn.letter;
+                                                setSelectedLetters(newSelected.filter(Boolean));
+                                            }}
+                                            disabled={isDisabled}
+                                            className={`p-3 rounded-lg border-2 transition-all ${isDisabled ? 'opacity-40 cursor-not-allowed border-wool-200' :
+                                                isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'
+                                                }`}
+                                        >
+                                            <div className="w-8 h-8 rounded-full border-2 border-gray-300 mx-auto mb-1" style={{ backgroundColor: yarn.colorHex || yarn.hex }} />
+                                            <div className="text-xs font-medium text-center">{yarn.letter}</div>
+                                            <div className="text-xs text-center truncate">{yarn.color}</div>
+                                            {isSelected && <div className="text-sage-600 text-center mt-1">✓</div>}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Yarn Selection for Single/Multi-strand */}
+            {(colorChoice === 'single' || colorChoice === 'multi-strand') && (
                 <div>
                     <label className="form-label">
-                        Select {colorChoice === 'single' ? 'Yarn' : colorChoice === 'two-color-brioche' ? '2 Yarns' : 'Yarns'}
+                        Select {colorChoice === 'single' ? 'Yarn' : 'Yarns'}
                     </label>
                     <div className="grid grid-cols-3 gap-3">
                         {sortedYarns.map(yarn => {
@@ -133,15 +205,9 @@ const ColorSelectionScreen = ({
                                     onClick={() => {
                                         const newSelected = colorChoice === 'single'
                                             ? [yarn.letter]
-                                            : colorChoice === 'two-color-brioche'
-                                                ? isSelected
-                                                    ? selectedLetters.filter(l => l !== yarn.letter)
-                                                    : selectedLetters.length < 2
-                                                        ? [...selectedLetters, yarn.letter]
-                                                        : selectedLetters
-                                                : isSelected
-                                                    ? selectedLetters.filter(l => l !== yarn.letter)
-                                                    : [...selectedLetters, yarn.letter].sort();
+                                            : isSelected
+                                                ? selectedLetters.filter(l => l !== yarn.letter)
+                                                : [...selectedLetters, yarn.letter].sort();
                                         setSelectedLetters(newSelected);
                                     }}
                                     className={`p-3 rounded-lg border-2 transition-all ${isSelected ? 'border-sage-500 bg-sage-50' : 'border-wool-200 hover:border-wool-300'}`}

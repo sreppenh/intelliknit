@@ -196,18 +196,8 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
 
     // Get the color data - using letters array (correct data structure)
     const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-    const letters = colorwork?.letters || [];
-
-    console.log('🎯 COUNTER READING:', { letters, colorwork });
-
-
-
-    // Look up the actual yarn objects
-    // letters[0] = first color selected (used for row 'a')
-    // letters[1] = second color selected (used for row 'b')
-    const colorForRowA = letters[0] ? getYarnByLetter(project?.yarns || [], letters[0]) : null;
-    const colorForRowB = letters[1] ? getYarnByLetter(project?.yarns || [], letters[1]) : null;
-
+    const colorForRowA = colorwork?.rowAColor ? getYarnByLetter(project?.yarns || [], colorwork.rowAColor) : null;
+    const colorForRowB = colorwork?.rowBColor ? getYarnByLetter(project?.yarns || [], colorwork.rowBColor) : null;
     // Determine side (RS/WS) based on row number and construction
     const side = construction === 'round' ? 'Round' : (currentRow % 2 === 1 ? 'RS' : 'WS');
 

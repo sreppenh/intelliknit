@@ -402,9 +402,12 @@ export const getCorrectDurationDisplay = (step, project) => {
             return `${duration.value} ${rowTerm}`;
 
         case 'repeats':
-            // Get pattern name from step
             const patternName = step.wizardConfig?.stitchPattern?.pattern || 'pattern';
-            return `${duration.value} ${patternName} repeats`;
+            // Don't include pattern name for brioche since it's in the description already
+            if (patternName === 'Two-Color Brioche' || patternName === 'Brioche') {
+                return `${duration.value} ${duration.value === 1 ? 'repeat' : 'repeats'}`;
+            }
+            return `${duration.value} ${patternName} ${duration.value === 1 ? 'repeat' : 'repeats'}`;
 
         case 'color_repeats':
             // Get colorwork type from step

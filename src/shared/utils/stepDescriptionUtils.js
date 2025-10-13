@@ -333,19 +333,21 @@ const getStripeSequenceDisplay = (step, project) => {
  * Generate brioche-specific description
  */
 const getBriocheDescription = (step, duration) => {
-    // Get rowsInPattern from stitchPattern (already divided by 2 in BriocheConfig)
     const rowsInPattern = step.wizardConfig?.stitchPattern?.rowsInPattern;
+    const construction = step.construction || 'flat';
+    const terms = getConstructionTerms(construction);
 
     if (duration && rowsInPattern) {
-        return `Work ${duration} in ${rowsInPattern}-row Two-Color Brioche`;
+        return `Work ${duration} of ${rowsInPattern}-${terms.row} two-color brioche pattern`;
     }
 
     if (duration) {
-        return `Work ${duration} in Two-Color Brioche`;
+        return `Work ${duration} of two-color brioche pattern`;
     }
 
-    return 'Work in Two-Color Brioche';
+    return 'Work two-color brioche pattern';
 };
+
 
 /**
  * Get configuration-specific contextual notes
@@ -1093,17 +1095,14 @@ const getBriocheRowInstructions = (step, project) => {
         return null;
     }
 
-    // Get color data
     const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-    const letters = colorwork?.letters || [];
 
-    // Map row suffix to color: 'a' = first color, 'b' = second color  
     const getColorForRow = (key) => {
         if (key.endsWith('a')) {
-            const yarn = letters[0] ? getYarnByLetter(project?.yarns || [], letters[0]) : null;
+            const yarn = colorwork?.rowAColor ? getYarnByLetter(project?.yarns || [], colorwork.rowAColor) : null;
             return yarn ? `Color ${yarn.letter}` : '';
         } else if (key.endsWith('b')) {
-            const yarn = letters[1] ? getYarnByLetter(project?.yarns || [], letters[1]) : null;
+            const yarn = colorwork?.rowBColor ? getYarnByLetter(project?.yarns || [], colorwork.rowBColor) : null;
             return yarn ? `Color ${yarn.letter}` : '';
         }
         return '';

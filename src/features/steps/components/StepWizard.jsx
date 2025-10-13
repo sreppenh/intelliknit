@@ -111,7 +111,6 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   };
 
   const handleBriocheConfigContinue = () => {
-    console.log('🔍 LEAVING BRIOCHE - FULL WIZARD DATA:', JSON.stringify(wizard.wizardData.colorwork));
     setShowBriocheConfig(false);
     wizard.navigation.goToStep(4);
   };

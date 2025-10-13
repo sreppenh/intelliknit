@@ -103,7 +103,7 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
      * Persist data for current step based on step type and content
      */
     const persistCurrentStepData = useCallback((step, data) => {
-        const { stitchPattern, shapingConfig, duration } = data;
+        const { stitchPattern, shapingConfig, duration, colorwork } = data;
 
         // Persist pattern data with category+pattern key
         if (stitchPattern?.category && stitchPattern?.pattern) {
@@ -129,6 +129,7 @@ export const useSmartStepNavigation = (initialStep = 1, wizardData, updateWizard
                 timestamp: Date.now()
             };
         }
+
     }, []);
 
     /**
