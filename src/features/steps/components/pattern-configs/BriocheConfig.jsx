@@ -8,7 +8,7 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
 import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
-
+import { handleSmartKeyDown } from '../../../../shared/hooks/useKnittingAbbreviations';
 
 
 const BriocheConfig = ({
@@ -455,6 +455,7 @@ const BriocheConfig = ({
                         <textarea
                             ref={textareaRefA}
                             value={tempInstructionA}
+                            onKeyDown={(e) => handleSmartKeyDown(e, tempInstructionA, setTempInstructionA, textareaRefA)}
                             onChange={(e) => setTempInstructionA(e.target.value)}
                             placeholder="e.g., [brk1, sl1yo] to end"
                             className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 resize-none"
@@ -489,6 +490,7 @@ const BriocheConfig = ({
                         <textarea
                             ref={textareaRefB}
                             value={tempInstructionB}
+                            onKeyDown={(e) => handleSmartKeyDown(e, tempInstructionB, setTempInstructionB, textareaRefB)}
                             onChange={(e) => setTempInstructionB(e.target.value)}
                             placeholder="e.g., [brk1, sl1yo] to end"
                             className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 resize-none"

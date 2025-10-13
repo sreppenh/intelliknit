@@ -4,6 +4,7 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
+import { useKnittingAbbreviations, handleSmartKeyDown } from '../hooks/useKnittingAbbreviations';
 
 const DescriptionPatternConfig = ({
     wizardData,
@@ -100,6 +101,7 @@ const DescriptionPatternConfig = ({
                     ref={textareaRef}
                     value={wizardData.stitchPattern.customText || ''}
                     onChange={(e) => updateWizardData('stitchPattern', { customText: e.target.value })}
+                    onKeyDown={(e) => handleSmartKeyDown(e, wizardData.stitchPattern.customText || '', (newValue) => updateWizardData('stitchPattern', { customText: newValue }), textareaRef)}
                     placeholder="e.g., '5 rows stockinette, 1 bobble row'"
                     rows={3}
                     className="input-field-lg resize-none"

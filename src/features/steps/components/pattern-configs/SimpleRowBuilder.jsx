@@ -5,6 +5,7 @@ import IncrementInput from '../../../../shared/components/IncrementInput';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
 import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
+import { useKnittingAbbreviations, handleSmartKeyDown } from '../../../../shared/hooks/useKnittingAbbreviations';
 
 const SimpleRowBuilder = ({
     wizardData,
@@ -244,6 +245,7 @@ const SimpleRowBuilder = ({
                             ref={textareaRef}
                             value={tempInstruction}
                             onChange={(e) => setTempInstruction(e.target.value)}
+                            onKeyDown={(e) => handleSmartKeyDown(e, tempInstruction, setTempInstruction, textareaRef)}
                             placeholder="e.g., K1, m1, k to last st, m1, k1"
                             className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 resize-none"
                             rows="3"

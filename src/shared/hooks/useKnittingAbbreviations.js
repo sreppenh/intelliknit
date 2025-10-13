@@ -51,6 +51,8 @@ export const useKnittingAbbreviations = ({
         return textBeforeCursor.slice(lastDelimiterIndex + 1).trim().toLowerCase();
     }, [value, textareaRef]);
 
+
+
     /**
      * Update current word and filtered results
      */
@@ -71,15 +73,6 @@ export const useKnittingAbbreviations = ({
         }
     }, [value, getCurrentWord, recentlyUsed]);
 
-    /**
-     * Handle abbreviation insertion with smart comma cleanup
-     */
-    /**
-   * Handle abbreviation insertion - simple append logic
-   */
-    /**
-   * Handle abbreviation insertion with smart punctuation spacing
-   */
     /**
      * Handle abbreviation insertion with smart auto-comma logic
      */
@@ -155,10 +148,63 @@ export const useKnittingAbbreviations = ({
         });
     }, [value, onChange, recentlyUsed, onUpdateRecentlyUsed, textareaRef]);
 
+
+
     return {
         displayAbbreviations,
         currentWord,
         handleInsert,
         isFiltering: currentWord.length > 0
     };
+};
+
+// ✨ ADD THIS AFTER THE HOOK CLOSING BRACE
+/**
+ * Handle keyboard input with smart punctuation cleanup
+ * Call this from textarea's onKeyDown
+ */
+export const handleSmartKeyDown = (e, value, onChange, textareaRef) => {
+    const key = e.key;
+
+    // Only intercept specific punctuation
+    const smartPunctuation = ['[', ']', '(', ')'];
+    if (!smartPunctuation.includes(key)) return;
+
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    const cursorPos = textarea.selectionStart;
+    let textBeforeCursor = value.slice(0, cursorPos);
+    const textAfterCursor = value.slice(cursorPos);
+
+    let modified = false;
+
+    // Remove trailing comma-space before opening punctuation
+    if (['[', '('].includes(key) && textBeforeCursor.endsWith(', ')) {
+        textBeforeCursor = textBeforeCursor.slice(0, -2) + ' ';
+        modified = true;
+    }
+
+    // Remove trailing space before closing punctuation
+    if ([']', ')'].includes(key) && textBeforeCursor.endsWith(' ')) {
+        textBeforeCursor = textBeforeCursor.slice(0, -1);
+        modified = true;
+    }
+
+    if (modified) {
+        e.preventDefault(); // Stop the default key behavior
+
+        // Build new text with the typed character
+        const newText = textBeforeCursor + key + textAfterCursor;
+        const newCursorPos = textBeforeCursor.length + 1;
+
+        onChange(newText);
+
+        // Restore cursor position
+        requestAnimationFrame(() => {
+            if (textareaRef.current) {
+                textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+            }
+        });
+    }
 };

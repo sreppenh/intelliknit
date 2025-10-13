@@ -5,12 +5,11 @@ import {
   BindOffConfig,
   BasicPatternConfig,
   ColorworkPatternConfig,
-  RowByRowPatternConfig,
   DescriptionPatternConfig, // ✨ NEW
   StripesConfig
 } from '../pattern-configs';
-import { isAdvancedRowByRowPattern } from '../../../../shared/utils/stepDisplayUtils';
 import SimpleRowBuilder from '../pattern-configs/SimpleRowBuilder';
+import { useKnittingAbbreviations, handleSmartKeyDown } from '../hooks/useKnittingAbbreviations';
 
 const PatternConfiguration = ({
   wizardData,
