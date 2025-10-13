@@ -8,16 +8,20 @@
 
 export const PATTERN_CATEGORIES = {
     // Quick Selection Categories - Simple patterns that don't need configuration
+
+
     basic: {
         name: 'Standard',
         icon: '📐',
         type: 'quick',
         patterns: [
+            { name: 'None', icon: '⊘', desc: 'Set pattern per step' }, // ✅ FIRST
             { name: 'Stockinette', icon: '⬜', desc: 'Classic smooth fabric' },
             { name: 'Garter', icon: '〰️', desc: 'Bumpy and stretchy' },
             { name: 'Reverse Stockinette', icon: '⬛', desc: 'Purl side showing' }
         ]
     },
+
     rib: {
         name: 'Ribbing',
         icon: '〰️',

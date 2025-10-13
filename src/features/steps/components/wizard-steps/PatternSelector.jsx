@@ -77,13 +77,14 @@ export const PatternSelector = ({
         });
       }
     } else {
+      // ⭐ THIS IS WHERE MY SNIPPET GOES - REPLACE THIS WHOLE BLOCK:
       // Auto-select defaults on first load
       if (!selectedCategory && !selectedPattern) {
         if (activeTab === 'basic') {
           setSelectedQuickCategory('basic');
           updateWizardData('stitchPattern', {
             category: 'basic',
-            pattern: null,
+            pattern: isComponentDefault ? 'None' : null, // ✅ THIS IS THE KEY CHANGE
             customText: '',
             rowsInPattern: '',
             method: '',

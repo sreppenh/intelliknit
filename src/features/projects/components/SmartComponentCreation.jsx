@@ -395,24 +395,24 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
 
             {/* Color Pattern Selection */}
             <div className="grid grid-cols-2 gap-4">
+              {/* ✅ NEW: No Default Color */}
+              <button
+                onClick={() => setDefaultColorData(prev => ({
+                  ...prev,
+                  colorwork: { type: 'none' }
+                }))}
+                className={`card-selectable ${defaultColorData.colorwork.type === 'none' ? 'card-selectable-selected' : ''}`}
+              >
+                <div className="text-3xl mb-2">⊘</div>
+                <div className="font-semibold">No Default</div>
+                <div className="text-xs text-wool-600 mt-1">Set color per step</div>
+              </button>
+
               {/* Single Solid Color */}
               <button
                 onClick={() => setDefaultColorData(prev => ({
                   ...prev,
                   colorwork: { type: 'single', colorLetter: null }
-                }))}
-                className={`card-selectable ${defaultColorData.colorwork.type === 'single' ? 'card-selectable-selected' : ''}`}
-              >
-                <div className="text-3xl mb-2">🎨</div>
-                <div className="font-semibold">Single Color</div>
-                <div className="text-xs text-wool-600 mt-1">One color as default</div>
-              </button>
-
-              {/* Marled/Multi-Strand */}
-              <button
-                onClick={() => setDefaultColorData(prev => ({
-                  ...prev,
-                  colorwork: { type: 'multi_strand', colorLetters: [] }
                 }))}
                 className={`card-selectable ${defaultColorData.colorwork.type === 'multi_strand' ? 'card-selectable-selected' : ''}`}
               >
@@ -570,10 +570,13 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
               </button>
               <button
                 onClick={() => {
-                  if (defaultColorData.colorwork.type === 'stripes') {
-                    setScreen(3); // Configure stripes/fair isle/intarsia
+                  // Skip to pattern if "none" selected
+                  if (defaultColorData.colorwork.type === 'none') {
+                    setScreen(4);
+                  } else if (defaultColorData.colorwork.type === 'stripes') {
+                    setScreen(3);
                   } else {
-                    setScreen(4); // Go to pattern
+                    setScreen(4);
                   }
                 }}
                 disabled={

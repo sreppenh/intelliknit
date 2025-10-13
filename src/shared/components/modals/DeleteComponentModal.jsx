@@ -45,7 +45,7 @@ const DeleteComponentModal = ({ component, projectId, onClose, onDelete }) => {
                 {showWarning && (
                     <div className="bg-red-50 border-2 border-red-200 rounded-lg p-4 mb-4">
                         <div className="text-red-800 font-medium mb-2">
-                            ⚠️ This component has progress that will be lost:
+                            ⚠️ This component has progress:
                         </div>
                         <div className="text-sm text-red-700 space-y-1">
                             <div><strong>{completedCount} completed steps</strong> {inProgressCount > 0 && `+ ${inProgressCount} in progress`} {/*of {totalSteps} steps */}</div>

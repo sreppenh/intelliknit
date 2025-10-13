@@ -104,8 +104,8 @@ const PrepNoteColorScreen = ({
                 </div>
             )}
 
-            {/* Pattern Checkbox */}
-            {component.defaultPattern && (
+            {/* Pattern Checkbox - ONLY show if NOT "None" */}
+            {component.defaultPattern && component.defaultPattern.pattern !== 'None' && (
                 <div>
                     <label className="form-label">Pattern</label>
                     <label className={`checkbox-container ${useDefaultPattern ? 'checkbox-container-checked' : ''}`}>
