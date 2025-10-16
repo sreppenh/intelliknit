@@ -319,6 +319,14 @@ const KnittingStepCounter = ({
             const rows = stitchPattern.customSequence.rows;
             const startingStitches = step.startingStitches || 0;
 
+            // 🔍 DIAGNOSTIC
+            console.log('🧶 BRIOCHE STITCH CALC:', {
+                row,
+                stepStartingStitches: step.startingStitches,
+                stepEndingStitches: step.endingStitches,
+                rowsObject: rows
+            });
+
             // Get pattern length (number of unique row numbers, not counting a/b)
             const rowsInPattern = parseInt(stitchPattern.rowsInPattern) ||
                 Math.max(...Object.keys(rows).map(key => parseInt(key.charAt(0))));
@@ -337,6 +345,9 @@ const KnittingStepCounter = ({
                 // Both 'a' and 'b' rows happen in the same row number
                 currentStitches += (stitchChangeA + stitchChangeB);
             }
+
+            // 🔍 DIAGNOSTIC
+            console.log('🧶 BRIOCHE RESULT:', currentStitches);
 
             return currentStitches;
         }
