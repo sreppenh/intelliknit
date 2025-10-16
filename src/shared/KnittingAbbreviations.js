@@ -70,6 +70,7 @@ export const KNITTING_ABBREVIATIONS = [
     { abbr: 'sl2-k1-p2sso', full: 'slip two, knit one, pass two slipped stitches over', category: 'slip' },
     { abbr: 'wyif', full: 'with yarn in front', category: 'slip' },
     { abbr: 'wyib', full: 'with yarn in back', category: 'slip' },
+    { abbr: 'sl2wyif', full: 'slip two with yarn in front', category: 'slip' },
 
     // ===== CABLES =====
     { abbr: 'cn', full: 'cable needle', category: 'cable' },
@@ -137,13 +138,9 @@ export const KNITTING_ABBREVIATIONS = [
     { abbr: 'times', full: 'times', category: 'phrase' },
     { abbr: 'last', full: 'last', category: 'phrase' },
     { abbr: 'first', full: 'first', category: 'phrase' },
+    { abbr: 'rep to last', full: 'repeat to last', category: 'phrase' },
 
     // ===== PUNCTUATION =====
-    { abbr: ',', full: 'comma', category: 'punctuation' },
-    { abbr: '[', full: 'open bracket', category: 'punctuation' },
-    { abbr: ']', full: 'close bracket', category: 'punctuation' },
-    { abbr: '(', full: 'open parenthesis', category: 'punctuation' },
-    { abbr: ')', full: 'close parenthesis', category: 'punctuation' },
     { abbr: '*', full: 'asterisk (repeat marker)', category: 'punctuation' },
 ];
 
