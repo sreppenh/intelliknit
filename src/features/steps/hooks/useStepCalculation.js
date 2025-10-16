@@ -111,8 +111,8 @@ export const useStepCalculation = () => {
         stitchChangePerRepeat = rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
       }
 
-      // For Brioche pattern (uses object - convert to array first)
-      if (wizardData.stitchPattern.pattern === 'Brioche' && wizardData.stitchPattern.customSequence?.rows) {
+      // For Two-Color Brioche pattern (uses object - convert to array first)
+      if (wizardData.stitchPattern.pattern === 'Two-Color Brioche' && wizardData.stitchPattern.customSequence?.rows) {
         const rows = wizardData.stitchPattern.customSequence.rows;
         const rowValues = Object.values(rows);
         stitchChangePerRepeat = rowValues.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
