@@ -94,7 +94,7 @@ export const useKnittingAbbreviations = ({
             // User is typing - show filtered results
             const filtered = filterAbbreviations(word);
             setFilteredAbbreviations(filtered);
-            setDisplayAbbreviations(filtered.slice(0, 8)); // Max 8 results
+            setDisplayAbbreviations(filtered.slice(0, 20)); // Max 8 results
         } else {
             // Not typing - show most recently used
             const recent = getRecentlyUsedAbbreviations(recentlyUsed);
