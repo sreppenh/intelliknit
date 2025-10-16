@@ -38,7 +38,8 @@ export const useKnittingAbbreviations = ({
         const textBeforeCursor = value.slice(0, cursorPos);
 
         // Find last delimiter (space, comma, semicolon, asterisk, newline)
-        const delimiters = [' ', ',', ';', '*', '\n', '(', ')'];
+        // ✅ FIXED: Removed ( and ) from delimiters so "[k2tog" still detects "k2tog"
+        const delimiters = [' ', ',', ';', '*', '\n'];
         let lastDelimiterIndex = -1;
 
         for (const delimiter of delimiters) {
@@ -48,10 +49,39 @@ export const useKnittingAbbreviations = ({
             }
         }
 
-        return textBeforeCursor.slice(lastDelimiterIndex + 1).trim().toLowerCase();
+        // Get the word after the last delimiter
+        const word = textBeforeCursor.slice(lastDelimiterIndex + 1).trim();
+
+        // ✅ NEW: Strip any leading brackets/parens from the word
+        // So "[k2tog" becomes "k2tog", "(ssk" becomes "ssk"
+        return word.replace(/^[\[\(]+/, '').toLowerCase();
     }, [value, textareaRef]);
 
+    /**
+     * Check if there are any unclosed brackets/parens before cursor
+     */
+    const getUnclosedBrackets = useCallback(() => {
+        if (!textareaRef.current) return { hasOpenBracket: false, hasOpenParen: false };
 
+        const textarea = textareaRef.current;
+        const cursorPos = textarea.selectionStart;
+        const textBeforeCursor = value.slice(0, cursorPos);
+
+        let openBrackets = 0;
+        let openParens = 0;
+
+        for (const char of textBeforeCursor) {
+            if (char === '[') openBrackets++;
+            if (char === ']') openBrackets--;
+            if (char === '(') openParens++;
+            if (char === ')') openParens--;
+        }
+
+        return {
+            hasOpenBracket: openBrackets > 0,
+            hasOpenParen: openParens > 0
+        };
+    }, [value, textareaRef]);
 
     /**
      * Update current word and filtered results
@@ -94,9 +124,15 @@ export const useKnittingAbbreviations = ({
             textBeforeCursor = textBeforeCursor.slice(0, -2) + ' ';
         }
 
-        // Remove trailing space before closing punctuation
-        if (isClosingPunctuation && textBeforeCursor.endsWith(' ')) {
-            textBeforeCursor = textBeforeCursor.slice(0, -1);
+        // ✅ FIX: Remove trailing comma AND space before closing punctuation
+        if (isClosingPunctuation) {
+            if (textBeforeCursor.endsWith(', ')) {
+                textBeforeCursor = textBeforeCursor.slice(0, -2);
+            } else if (textBeforeCursor.endsWith(',')) {
+                textBeforeCursor = textBeforeCursor.slice(0, -1);
+            } else if (textBeforeCursor.endsWith(' ')) {
+                textBeforeCursor = textBeforeCursor.slice(0, -1);
+            }
         }
 
         // Find the start of the current word to replace (only for non-punctuation)
@@ -123,7 +159,14 @@ export const useKnittingAbbreviations = ({
         if (isOpeningPunctuation) {
             suffix = ''; // No space after opening brackets/parens
         } else if (isClosingPunctuation) {
-            suffix = ', '; // Comma-space after closing brackets/parens
+            // ✅ FIX: Check what comes after cursor - don't add comma if there's already one
+            if (textAfterCursor.startsWith(',') || textAfterCursor.startsWith(', ')) {
+                suffix = '';
+            } else if (textAfterCursor.trim() === '' || textAfterCursor.startsWith(' ')) {
+                suffix = ''; // End of line or already space
+            } else {
+                suffix = ', '; // Need comma-space
+            }
         } else if (noCommaAfter.includes(abbr)) {
             suffix = ' '; // Just space, no comma
         } else {
@@ -158,7 +201,8 @@ export const useKnittingAbbreviations = ({
         displayAbbreviations,
         currentWord,
         handleInsert,
-        isFiltering: currentWord.length > 0
+        isFiltering: currentWord.length > 0,
+        getUnclosedBrackets
     };
 };
 

@@ -1325,6 +1325,23 @@ body.modal-open {
   @apply active:scale-95;
 }
 
+/* Punctuation helper buttons - always visible in second row */
+.suggestion-bubble-punctuation {
+  @apply px-3 py-1.5 text-sm font-medium rounded-full border-2;
+  @apply bg-sage-100 border-sage-300 text-sage-700;
+  @apply hover:bg-sage-200 hover:border-sage-400;
+  @apply active:scale-95 transition-all duration-150;
+  @apply cursor-pointer select-none;
+  min-width: 44px;
+  text-align: center;
+}
+
+/* Active state when bracket/paren is open */
+.suggestion-bubble-punctuation-active {
+  @apply bg-sage-500 border-sage-600 text-white;
+  @apply hover:bg-sage-600;
+}
+
 /* Add to src/styles/components.css after the .suggestion-bubble class */
 
 /* Knitting Abbreviation Bar */

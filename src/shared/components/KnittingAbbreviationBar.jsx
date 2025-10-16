@@ -1,14 +1,6 @@
-// src/shared/components/KnittingAbbreviationBar.jsx
-
 import React from 'react';
 import { useKnittingAbbreviations } from '../hooks/useKnittingAbbreviations';
 
-/**
- * Knitting Abbreviation Bar
- * 
- * Displays smart abbreviation suggestions above textareas for simplified knitting pattern entry.
- * Shows recently used terms by default, filters as user types.
- */
 const KnittingAbbreviationBar = ({
     textareaRef,
     value,
@@ -20,7 +12,8 @@ const KnittingAbbreviationBar = ({
         displayAbbreviations,
         currentWord,
         handleInsert,
-        isFiltering
+        isFiltering,
+        getUnclosedBrackets
     } = useKnittingAbbreviations({
         textareaRef,
         value,
@@ -28,6 +21,9 @@ const KnittingAbbreviationBar = ({
         recentlyUsed,
         onUpdateRecentlyUsed
     });
+
+    // Get current bracket/paren state
+    const { hasOpenBracket, hasOpenParen } = getUnclosedBrackets();
 
     // Don't render if no abbreviations to show
     if (displayAbbreviations.length === 0) {
@@ -43,25 +39,72 @@ const KnittingAbbreviationBar = ({
                 </div>
             )}
 
-            {/* Horizontal scrolling bubble container */}
-            <div className="flex gap-2 overflow-x-auto pb-2 px-1">
-                {displayAbbreviations.map((item) => (
+            {/* Scrolling bubble container with two rows */}
+            <div className="flex flex-col gap-2">
+                {/* First row: Regular abbreviation bubbles */}
+                <div className="flex gap-2 overflow-x-auto pb-2 px-1">
+                    {displayAbbreviations.map((item) => (
+                        <button
+                            key={item.abbr}
+                            onMouseDown={(e) => {
+                                e.preventDefault();
+                                handleInsert(item.abbr);
+                            }}
+                            className="suggestion-bubble flex-shrink-0"
+                            type="button"
+                            title={item.full}
+                        >
+                            {item.abbr}
+                        </button>
+                    ))}
+                </div>
+
+                {/* Second row: Always-visible punctuation helpers */}
+                <div className="flex gap-2 px-1">
+                    {/* Smart bracket toggle */}
                     <button
-                        key={item.abbr}
                         onMouseDown={(e) => {
-                            e.preventDefault(); // ✨ Prevents focus loss on mobile
-                            handleInsert(item.abbr);
+                            e.preventDefault();
+                            handleInsert(hasOpenBracket ? ']' : '[');
                         }}
-                        className="suggestion-bubble flex-shrink-0"
+                        className={`suggestion-bubble-punctuation flex-shrink-0 ${hasOpenBracket ? 'suggestion-bubble-punctuation-active' : ''
+                            }`}
                         type="button"
-                        title={item.full}
+                        title={hasOpenBracket ? 'Close bracket ]' : 'Open bracket ['}
                     >
-                        {item.abbr}
+                        {hasOpenBracket ? ']' : '['}
                     </button>
-                ))}
+
+                    {/* Smart paren toggle */}
+                    <button
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleInsert(hasOpenParen ? ')' : '(');
+                        }}
+                        className={`suggestion-bubble-punctuation flex-shrink-0 ${hasOpenParen ? 'suggestion-bubble-punctuation-active' : ''
+                            }`}
+                        type="button"
+                        title={hasOpenParen ? 'Close paren )' : 'Open paren ('}
+                    >
+                        {hasOpenParen ? ')' : '('}
+                    </button>
+
+                    {/* Comma button */}
+                    <button
+                        onMouseDown={(e) => {
+                            e.preventDefault();
+                            handleInsert(',');
+                        }}
+                        className="suggestion-bubble-punctuation flex-shrink-0"
+                        type="button"
+                        title="Insert comma"
+                    >
+                        ,
+                    </button>
+                </div>
             </div>
         </div>
-    ); // hi
+    );
 };
 
 export default KnittingAbbreviationBar;
