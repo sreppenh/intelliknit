@@ -177,13 +177,11 @@ function isTwoColorBrioche(step) {
 
 /**
  * Get 2-color brioche instruction for current row
- * Returns both 'a' and 'b' instructions together
+ * Returns both 'a' and 'b' instructions together with running stitch totals
  */
 function getTwoColorBriocheInstruction(step, currentRow, construction, project) {
     const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
     const rows = stitchPattern?.customSequence?.rows;
-
-
 
     if (!rows) {
         return {
@@ -194,27 +192,27 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
         };
     }
 
-    // Get the color data - using letters array (correct data structure)
-    const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-    const colorForRowA = colorwork?.rowAColor ? getYarnByLetter(project?.yarns || [], colorwork.rowAColor) : null;
-    const colorForRowB = colorwork?.rowBColor ? getYarnByLetter(project?.yarns || [], colorwork.rowBColor) : null;
-    // Determine side (RS/WS) based on row number and construction
-    const side = construction === 'round' ? 'Round' : (currentRow % 2 === 1 ? 'RS' : 'WS');
+    // ✅ FIX ISSUE 2: Calculate which pattern row we're on using modulo
+    const rowsInPattern = parseInt(stitchPattern.rowsInPattern) || Math.max(...Object.keys(rows).map(key => parseInt(key.charAt(0))));
+    const patternRow = ((currentRow - 1) % rowsInPattern) + 1;
 
-    // Get both 'a' and 'b' instructions for this row number
-    const rowKeyA = `${currentRow}a`;
-    const rowKeyB = `${currentRow}b`;
+    // Get both 'a' and 'b' instructions for this PATTERN row (not current row)
+    const rowKeyA = `${patternRow}a`;
+    const rowKeyB = `${patternRow}b`;
 
     const instructionA = rows[rowKeyA]?.instruction || 'Work row as established';
     const instructionB = rows[rowKeyB]?.instruction || 'Work row as established';
 
-    console.log('BRIOCHE COLORS:', {
-        letters: colorwork?.letters,
-        colorForRowA_letter: colorForRowA?.letter,
-        colorForRowB_letter: colorForRowB?.letter
-    });
+    // ✅ FIX ISSUE 1: Get stitch changes for display
+    const stitchChangeA = rows[rowKeyA]?.stitchChange || 0;
+    const stitchChangeB = rows[rowKeyB]?.stitchChange || 0;
 
-    // Format color labels - Row A uses first selected color, Row B uses second selected color
+    // Get the color data
+    const colorwork = step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+    const colorForRowA = colorwork?.rowAColor ? getYarnByLetter(project?.yarns || [], colorwork.rowAColor) : null;
+    const colorForRowB = colorwork?.rowBColor ? getYarnByLetter(project?.yarns || [], colorwork.rowBColor) : null;
+
+    // Format color labels
     const colorLabelA = colorForRowA
         ? (colorForRowA.color && colorForRowA.color !== `Color ${colorForRowA.letter}`)
             ? `${colorForRowA.letter} (${colorForRowA.color})`
@@ -227,13 +225,22 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
             : colorForRowB.letter
         : 'B';
 
-    // Format the combined instruction with visual separation
+    // ✅ FIX ISSUE 1: Format instructions with stitch change indicators
+    const formatWithStitchChange = (instruction, stitchChange) => {
+        if (stitchChange === 0) {
+            return instruction;
+        }
+        const sign = stitchChange > 0 ? '+' : '';
+        return `${instruction} (${sign}${stitchChange} sts)`;
+    };
+
+    // Format the combined instruction with visual separation and stitch tracking
     const combinedInstruction = [
         `Row ${currentRow}a - Color ${colorLabelA}:`,
-        instructionA,
+        formatWithStitchChange(instructionA, stitchChangeA),
         '',  // Blank line for separation
         `Row ${currentRow}b - Color ${colorLabelB}:`,
-        instructionB
+        formatWithStitchChange(instructionB, stitchChangeB)
     ].join('\n');
 
     return {
@@ -241,7 +248,7 @@ function getTwoColorBriocheInstruction(step, currentRow, construction, project) 
         isSupported: true,
         needsHelp: true,
         helpTopic: 'brioche_help',
-        isBrioche: true  // Flag to help with formatting
+        isBrioche: true
     };
 }
 

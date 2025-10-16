@@ -314,6 +314,33 @@ const KnittingStepCounter = ({
             return currentStitches;
         }
 
+        // ✅ NEW: Handle Two-Color Brioche with customSequence.rows (object structure)
+        if (stitchPattern?.pattern === 'Two-Color Brioche' && stitchPattern?.customSequence?.rows) {
+            const rows = stitchPattern.customSequence.rows;
+            const startingStitches = step.startingStitches || 0;
+
+            // Get pattern length (number of unique row numbers, not counting a/b)
+            const rowsInPattern = parseInt(stitchPattern.rowsInPattern) ||
+                Math.max(...Object.keys(rows).map(key => parseInt(key.charAt(0))));
+
+            // Calculate stitch count by accumulating changes up to current row
+            let currentStitches = startingStitches;
+
+            for (let i = 1; i <= row; i++) {
+                const patternRow = ((i - 1) % rowsInPattern) + 1;
+                const rowKeyA = `${patternRow}a`;
+                const rowKeyB = `${patternRow}b`;
+
+                const stitchChangeA = rows[rowKeyA]?.stitchChange || 0;
+                const stitchChangeB = rows[rowKeyB]?.stitchChange || 0;
+
+                // Both 'a' and 'b' rows happen in the same row number
+                currentStitches += (stitchChangeA + stitchChangeB);
+            }
+
+            return currentStitches;
+        }
+
         const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'phases') {

@@ -53,7 +53,7 @@ const KnittingStepInstructions = ({
         if (pattern === 'Attach to Piece' && method === 'kitchener_stitch') return 'kitchener_stitch';
 
         // Structure patterns (NEW!)
-        if (pattern === 'Brioche') return 'brioche_help';
+        if (pattern === 'Brioche' || pattern === 'Two-Color Brioche') return 'brioche_help';  // ✅ FIXED
         if (pattern === 'Lace') return 'lace_help';
         if (pattern === 'Cable') return 'cable_help';
 
