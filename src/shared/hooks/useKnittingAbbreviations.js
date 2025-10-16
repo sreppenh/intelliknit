@@ -169,18 +169,16 @@ export const useKnittingAbbreviations = ({
 
         // Determine suffix
         let suffix;
-        const noCommaAfter = ['*', ':', ';', '-', '–', '—', 'rep', 'rem'];
+        const noCommaAfter = ['*', ':', ';', '-', '–', '—', 'rep', 'rem', 'rep to last', 'to'];
 
         if (isOpeningPunctuation) {
             suffix = ''; // No space after opening brackets/parens
         } else if (isClosingPunctuation) {
-            // ✅ FIX: Check what comes after cursor - don't add comma if there's already one
-            if (textAfterCursor.startsWith(',') || textAfterCursor.startsWith(', ')) {
-                suffix = '';
-            } else if (textAfterCursor.trim() === '' || textAfterCursor.startsWith(' ')) {
-                suffix = ''; // End of line or already space
+            // ✅ FIX: Always add space after closing bracket/paren
+            if (textAfterCursor.startsWith(' ') || textAfterCursor.startsWith(',')) {
+                suffix = ''; // Already has space or comma
             } else {
-                suffix = ', '; // Need comma-space
+                suffix = ' '; // Just space, no comma
             }
         } else if (noCommaAfter.includes(abbr)) {
             suffix = ' '; // Just space, no comma
