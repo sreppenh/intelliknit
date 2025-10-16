@@ -114,11 +114,26 @@ export const useKnittingAbbreviations = ({
         let textBeforeCursor = value.slice(0, cursorPos);
         const textAfterCursor = value.slice(cursorPos);
 
+        // ✅ SPECIAL: Handle comma separately - just insert it, no replacement
+        if (abbr === ',') {
+            const newText = textBeforeCursor + ', ' + textAfterCursor;
+            const newCursorPos = (textBeforeCursor + ', ').length;
+
+            onChange(newText);
+
+            requestAnimationFrame(() => {
+                if (textareaRef.current) {
+                    textareaRef.current.focus();
+                    textareaRef.current.setSelectionRange(newCursorPos, newCursorPos);
+                }
+            });
+            return; // Exit early
+        }
+
         // ✨ SMART PUNCTUATION HANDLING
         const isOpeningPunctuation = ['(', '['].includes(abbr);
         const isClosingPunctuation = [')', ']'].includes(abbr);
         const isPunctuation = isOpeningPunctuation || isClosingPunctuation;
-
         // Remove trailing comma-space before opening punctuation
         if (isOpeningPunctuation && textBeforeCursor.endsWith(', ')) {
             textBeforeCursor = textBeforeCursor.slice(0, -2) + ' ';
