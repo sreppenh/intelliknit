@@ -172,10 +172,24 @@ export const useStepCalculation = () => {
         let partialStitchChange = 0;
         if (wizardData.stitchPattern.customSequence?.rows && partialRows > 0) {
           const rows = wizardData.stitchPattern.customSequence.rows;
-          const rowValues = Array.isArray(rows) ? rows : Object.values(rows);
 
-          for (let i = 0; i < partialRows && i < rowValues.length; i++) {
-            partialStitchChange += rowValues[i].stitchChange || 0;
+          // ✅ FIX: Handle Two-Color Brioche object structure specially
+          if (wizardData.stitchPattern.pattern === 'Two-Color Brioche' && !Array.isArray(rows)) {
+            // Brioche has pairs of rows (1a, 1b), (2a, 2b), etc.
+            // If partialRows = 1, we need BOTH 1a and 1b
+            // If partialRows = 2, we need 1a, 1b, 2a, 2b
+            for (let i = 1; i <= partialRows; i++) {
+              const rowKeyA = `${i}a`;
+              const rowKeyB = `${i}b`;
+              partialStitchChange += (rows[rowKeyA]?.stitchChange || 0);
+              partialStitchChange += (rows[rowKeyB]?.stitchChange || 0);
+            }
+          } else {
+            // Custom pattern (array structure) - original logic
+            const rowValues = Array.isArray(rows) ? rows : Object.values(rows);
+            for (let i = 0; i < partialRows && i < rowValues.length; i++) {
+              partialStitchChange += rowValues[i].stitchChange || 0;
+            }
           }
         }
 
@@ -189,6 +203,7 @@ export const useStepCalculation = () => {
           completeRepeats,
           partialRows,
           stitchChangePerRepeat,
+          partialStitchChange,  // ✅ ADD THIS
           totalStitchChange,
           startingStitches: currentStitches,
           endingStitches
