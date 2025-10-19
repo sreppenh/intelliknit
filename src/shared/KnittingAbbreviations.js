@@ -174,5 +174,5 @@ export const getRecentlyUsedAbbreviations = (recentlyUsedArray = []) => {
     return recentlyUsedArray
         .map(abbr => KNITTING_ABBREVIATIONS.find(item => item.abbr === abbr))
         .filter(Boolean)
-        .slice(0, 8); // Max 8 recent items
+        .slice(0, 20); // Max 8 recent items
 };

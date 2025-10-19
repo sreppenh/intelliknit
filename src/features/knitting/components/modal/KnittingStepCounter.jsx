@@ -756,8 +756,14 @@ const KnittingStepCounter = ({
                 return repeats * briocheCheck.actualRows;
             }
 
-            // For non-repeat brioche, return actual pattern rows
-            return briocheCheck.actualRows;
+            // ✅ FIX: Handle 'rows' duration type for brioche
+            if (duration?.type === 'rows') {
+                // Return the exact number of rows specified, not the pattern length
+                return parseInt(duration.value) || step.totalRows || briocheCheck.actualRows;
+            }
+
+            // For brioche without specific duration, fall back to totalRows or pattern length
+            return step.totalRows || briocheCheck.actualRows;
         }
 
         // EXISTING LOGIC CONTINUES BELOW (keep all existing code)
