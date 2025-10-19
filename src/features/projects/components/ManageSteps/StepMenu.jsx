@@ -1,5 +1,5 @@
 import React from 'react';
-import { isInitializationStep, isMiddleStep, isFinishingStep } from '../../../../shared/utils/stepDisplayUtils';
+import { isInitializationStep, isMiddleStep, isFinishingStep, getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
 
 const StepMenu = ({
     step,
@@ -11,7 +11,8 @@ const StepMenu = ({
     onMenuToggle,
     onDeleteStep,
     onEditPattern,
-    onEditConfig
+    onEditConfig,
+    onEditColor  // ✨ NEW PROP
 }) => {
     // 🎯 SIMPLE: Check step category
     if (isInitializationStep(step)) {
@@ -38,6 +39,10 @@ const StepMenu = ({
 
     // Check if step has pattern that can be edited
     const hasEditablePattern = step.wizardConfig?.stitchPattern?.pattern;
+
+    // ✨ NEW: Check if step is 2-color brioche
+    const patternName = getStepPatternName(step);
+    const isTwoColorBrioche = patternName === 'Two-Color Brioche';
 
     // Check if step has editable configuration
     // Exclude intrinsic shaping since it can't be edited separately
@@ -70,7 +75,18 @@ const StepMenu = ({
                 <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-[160px] whitespace-nowrap">
                     {isMiddleStep(step) && !isComponentFinished() && (
                         <>
-                            {hasEditablePattern && (
+                            {/* ✨ NEW: Show "Edit Color" for 2-color brioche */}
+                            {isTwoColorBrioche && (
+                                <button
+                                    onClick={(e) => onEditColor(stepIndex, e)}
+                                    className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
+                                >
+                                    🎨 Edit Color
+                                </button>
+                            )}
+
+                            {/* Show "Edit Pattern" for non-brioche patterns */}
+                            {hasEditablePattern && !isTwoColorBrioche && (
                                 <button
                                     onClick={(e) => onEditPattern(stepIndex, e)}
                                     className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors whitespace-nowrap"

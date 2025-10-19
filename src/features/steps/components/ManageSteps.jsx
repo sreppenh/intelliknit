@@ -213,7 +213,6 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     setIsEditing(true);
     setOpenMenuId(null);
   };
-
   const handleEditPatternFromMenu = (stepIndex, event) => {
     event.stopPropagation();
     const step = component.steps[stepIndex];
@@ -240,6 +239,15 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     // For other simple patterns, use the modal
     setEditingStepIndex(stepIndex);
     setShowEditPatternModal(true);
+    setOpenMenuId(null);
+  };
+
+  // ✨ NEW: Handle Edit Color from menu (for 2-color brioche)
+  const handleEditColorFromMenu = (stepIndex, event) => {
+    event.stopPropagation();
+    setEditingStepIndex(stepIndex);
+    setEditMode('brioche_color');
+    setIsEditing(true);
     setOpenMenuId(null);
   };
 
@@ -536,6 +544,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
             onEditStep={handleEditStepFromMenu}
             onEditPattern={handleEditPatternFromMenu}
             onEditConfig={handleEditConfigFromMenu}
+            onEditColor={handleEditColorFromMenu}  // ✨ NEW
             onDeleteStep={handleDeleteStepFromMenu}
             onPrepNoteClick={handlePrepNoteClick}
             onAfterNoteClick={handleAfterNoteClick}

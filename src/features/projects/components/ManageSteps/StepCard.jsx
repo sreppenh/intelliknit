@@ -16,6 +16,7 @@ const StepCard = ({
     onDeleteStep,
     onEditPattern,
     onEditConfig,
+    onEditColor,  // ✨ NEW
     onPrepNoteClick,
     onAfterNoteClick,
     editableStepIndex,
@@ -113,7 +114,7 @@ const StepCard = ({
                                 onMenuToggle={onMenuToggle}
                                 onEditStep={onEditStep}
                                 onEditPattern={onEditPattern}
-                                onEditConfig={onEditConfig}
+                                onEditColor={onEditColor}  // ✨ NEW
                                 onDeleteStep={onDeleteStep}
                                 onPrepNoteClick={onPrepNoteClick}
                                 editableStepIndex={editableStepIndex}

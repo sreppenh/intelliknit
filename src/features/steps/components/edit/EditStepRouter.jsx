@@ -7,6 +7,7 @@ import EditConfigScreen from './EditConfigScreen';
 import EditEvenDistributionForm from './EditEvenDistributionForm';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';
 import EditStripesForm from './EditStripesForm';
+import EditBriocheForm from './EditBriocheForm';  // ✨ NEW
 import {
     getStepPatternName,
     isInitializationStep,
@@ -97,6 +98,11 @@ const EditStepRouter = ({
 
         // All other patterns use modal (handled by ManageSteps)
         return null;
+    }
+
+    // ✨ NEW: Handle 2-color brioche editing
+    if (editType === 'brioche_color') {
+        return <EditBriocheForm {...commonProps} />;
     }
 
     if (editType === 'duration') {

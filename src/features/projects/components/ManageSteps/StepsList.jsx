@@ -16,6 +16,7 @@ const StepsList = ({
     onMenuToggle,
     onEditStep,
     onEditPattern,
+    onEditColor,  // ✨ NEW
     onEditConfig,
     onStartKnitting,
     onBack,
@@ -117,6 +118,7 @@ const StepsList = ({
                             onEditStep={onEditStep}
                             onEditPattern={onEditPattern}
                             onEditConfig={onEditConfig}
+                            onEditColor={onEditColor}  // ✨ NEW
                             onDeleteStep={onDeleteStep}
                             onPrepNoteClick={onPrepNoteClick}
                             onAfterNoteClick={onAfterNoteClick}
