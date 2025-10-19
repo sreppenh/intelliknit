@@ -8,6 +8,7 @@ import EditEvenDistributionForm from './EditEvenDistributionForm';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';
 import EditStripesForm from './EditStripesForm';
 import EditBriocheForm from './EditBriocheForm';  // ✨ NEW
+import EditCustomRowByRowForm from './EditCustomRowByRowForm';  // ✨ ADD THIS
 import {
     getStepPatternName,
     isInitializationStep,
@@ -89,10 +90,15 @@ const EditStepRouter = ({
             return <EditStripesForm {...commonProps} />;
         }
 
-        // Custom pattern with row-by-row entry mode
-        if (patternName === 'Custom' && step.wizardConfig?.stitchPattern?.entryMode === 'row_by_row') {
-            // TODO: Create EditCustomRowByRowForm if needed
-            // For now, return null and let ManageSteps handle via modal
+        // ✨ NEW: Custom pattern routing based on entryMode
+        if (patternName === 'Custom') {
+            const entryMode = step.wizardConfig?.stitchPattern?.entryMode;
+
+            if (entryMode === 'row_by_row') {
+                return <EditCustomRowByRowForm {...commonProps} />;
+            }
+
+            // Description mode can use the existing modal in ManageSteps
             return null;
         }
 
