@@ -24,6 +24,13 @@ import {
 } from '../../../shared/utils/stepDisplayUtils';
 import DeleteStepModal from '../../../shared/components/modals/DeleteStepModal';
 import { getHumanReadableDescription } from '../../../shared/utils/stepDescriptionUtils';
+import {
+  getEditSafety,
+  EDIT_SAFETY,
+  isPatternEditSafe
+} from '../../../shared/utils/editSafetyUtils';
+import CascadingEditWarningModal from '../../../shared/components/modals/CascadingEditWarningModal';
+
 
 /**
  * ManageSteps - Component step management interface
@@ -45,6 +52,11 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
   const [openMenuId, setOpenMenuId] = useState(null);
   const [editingPrepNoteStepIndex, setEditingPrepNoteStepIndex] = useState(null);
   const [editingAfterNoteStepIndex, setEditingAfterNoteStepIndex] = useState(null);
+
+
+  const [showCascadingWarning, setShowCascadingWarning] = useState(false);
+  const [pendingCascadingEdit, setPendingCascadingEdit] = useState(null);
+
 
   // ===== PREP NOTE MANAGEMENT =====
   const {
@@ -123,7 +135,12 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     return false;
   };
 
+  // ===== COMPONENT STATE HELPERS ===== 
+  // (Keep these mostly the same, but add a comment)
+
   const getEditableStepIndex = () => {
+    // NOTE: This function is now mainly used for UI hints
+    // Actual edit permissions are determined by checkEditSafety()
     if (isComponentFinished()) return -1;
     for (let i = component.steps.length - 1; i >= 0; i--) {
       if (!component.steps[i].completed) {
@@ -133,6 +150,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     return -1;
   };
 
+  // Simplify getDeletableStepIndex - any non-first step can be deleted
   const getDeletableStepIndex = (targetStepIndex) => {
     if (targetStepIndex === 0) return -1;
     return targetStepIndex;
@@ -198,21 +216,93 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     setOpenMenuId(openMenuId === stepId ? null : stepId);
   };
 
-  const handleEditStepFromMenu = (stepIndex, event) => {
-    if (stepIndex === 0) {
-      const step = component.steps[0];
-      if (isInitializationStep(step)) {
-        alert('Initialization step editing is not yet supported. You can delete and recreate the component to change the cast on method.');
-        setOpenMenuId(null);
-        return;
-      }
+  // ===== EDIT SAFETY HELPERS =====
+  const getFollowingStepsCount = (stepIndex) => {
+    return component.steps.length - stepIndex - 1;
+  };
+
+  const deleteFollowingSteps = (fromIndex) => {
+    // Delete all steps after the specified index
+    for (let i = component.steps.length - 1; i > fromIndex; i--) {
+      dispatch({
+        type: 'DELETE_STEP',
+        payload: { componentIndex, stepIndex: i }
+      });
+    }
+  };
+
+  const checkEditSafety = (stepIndex, editType, onProceed) => {
+    const step = component.steps[stepIndex];
+    const editSafety = getEditSafety(step, stepIndex, editType);
+    const followingStepsCount = getFollowingStepsCount(stepIndex);
+
+    // BLOCKED edits - show alert
+    if (editSafety.safety === EDIT_SAFETY.BLOCKED) {
+      alert(editSafety.reason);
+      setOpenMenuId(null);
+      return false;
     }
 
-    event.stopPropagation();
-    setEditingStepIndex(stepIndex);
-    setIsEditing(true);
+    // SAFE edits - proceed immediately
+    if (editSafety.safety === EDIT_SAFETY.SAFE) {
+      onProceed();
+      return true;
+    }
+
+    // CASCADING edits - check if there are following steps
+    if (editSafety.safety === EDIT_SAFETY.CASCADING) {
+      if (followingStepsCount === 0) {
+        // No following steps, safe to proceed
+        onProceed();
+        return true;
+      }
+
+      // Show warning modal
+      setPendingCascadingEdit({
+        stepIndex,
+        editType,
+        onProceed,
+        followingStepsCount,
+        stepDescription: getHumanReadableDescription(step)
+      });
+      setShowCascadingWarning(true);
+      return false;
+    }
+
+    return false;
+  };
+
+  const handleCascadingEditConfirm = () => {
+    if (pendingCascadingEdit) {
+      // Delete following steps
+      deleteFollowingSteps(pendingCascadingEdit.stepIndex);
+
+      // Proceed with the edit
+      pendingCascadingEdit.onProceed();
+
+      // Clean up
+      setShowCascadingWarning(false);
+      setPendingCascadingEdit(null);
+    }
+  };
+
+  const handleCascadingEditCancel = () => {
+    setShowCascadingWarning(false);
+    setPendingCascadingEdit(null);
     setOpenMenuId(null);
   };
+
+  // ===== UPDATED MENU HANDLERS =====
+  const handleEditStepFromMenu = (stepIndex, event) => {
+    event.stopPropagation();
+
+    checkEditSafety(stepIndex, 'full_step', () => {
+      setEditingStepIndex(stepIndex);
+      setIsEditing(true);
+      setOpenMenuId(null);
+    });
+  };
+
   const handleEditPatternFromMenu = (stepIndex, event) => {
     event.stopPropagation();
     const step = component.steps[stepIndex];
@@ -220,31 +310,48 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
 
     // Check if this is an advanced pattern that needs row-by-row editing
     if (isAdvancedRowByRowPattern(patternName)) {
-      setEditingStepIndex(stepIndex);
-      setEditMode('rowByRow');
-      setIsEditing(true);
-      setOpenMenuId(null);
+      checkEditSafety(stepIndex, 'pattern', () => {
+        setEditingStepIndex(stepIndex);
+        setEditMode('rowByRow');
+        setIsEditing(true);
+        setOpenMenuId(null);
+      });
       return;
     }
 
-    // CHECK FOR STRIPES PATTERN - Route to EditStepRouter
+    // CHECK FOR STRIPES PATTERN - Safe edit (text/color only)
     if (patternName === 'Stripes') {
+      // Stripes editing is SAFE - no stitch count changes
       setEditingStepIndex(stepIndex);
-      setEditMode('pattern'); // This tells EditStepRouter to handle pattern editing
+      setEditMode('pattern');
       setIsEditing(true);
       setOpenMenuId(null);
       return;
     }
 
-    // For other simple patterns, use the modal
-    setEditingStepIndex(stepIndex);
-    setShowEditPatternModal(true);
-    setOpenMenuId(null);
+    // Two-Color Brioche - Safe edit (text/color only)
+    if (patternName === 'Two-Color Brioche') {
+      // Brioche editing is SAFE - no stitch count changes
+      setEditingStepIndex(stepIndex);
+      setEditMode('brioche_color');
+      setIsEditing(true);
+      setOpenMenuId(null);
+      return;
+    }
+
+    // For other simple patterns, use the modal (potentially cascading)
+    checkEditSafety(stepIndex, 'pattern', () => {
+      setEditingStepIndex(stepIndex);
+      setShowEditPatternModal(true);
+      setOpenMenuId(null);
+    });
   };
 
-  // ✨ NEW: Handle Edit Color from menu (for 2-color brioche)
+  // ✨ UPDATED: Handle Edit Color from menu (for 2-color brioche) - ALWAYS SAFE
   const handleEditColorFromMenu = (stepIndex, event) => {
     event.stopPropagation();
+
+    // Brioche color editing is SAFE - no cascade check needed
     setEditingStepIndex(stepIndex);
     setEditMode('brioche_color');
     setIsEditing(true);
@@ -253,15 +360,20 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
 
   const handleEditConfigFromMenu = (stepIndex, event) => {
     event.stopPropagation();
-    setEditingStepIndex(stepIndex);
-    setShowEditConfigScreen(true);
-    setOpenMenuId(null);
+
+    checkEditSafety(stepIndex, 'config', () => {
+      setEditingStepIndex(stepIndex);
+      setShowEditConfigScreen(true);
+      setOpenMenuId(null);
+    });
   };
 
+  // DELETE handler stays mostly the same, but we can simplify it
   const handleDeleteStepFromMenu = (stepIndex, event) => {
     event.stopPropagation();
 
-    if (getDeletableStepIndex(stepIndex) === -1) {
+    // First step cannot be deleted
+    if (stepIndex === 0) {
       alert('The first step cannot be deleted as it defines how the component begins.');
       setOpenMenuId(null);
       return;
@@ -557,7 +669,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
           {editableStepIndex !== -1 && !isComponentFinished() && (
             <div className="bg-yarn-100 border border-yarn-200 rounded-lg p-3">
               <p className="text-xs text-yarn-700 text-center">
-                💡 Only the most recent incomplete step can be edited to maintain step dependencies
+                💡 Safe edits (pattern text, colors, notes) can be made to any step. Changes that affect stitch counts will prompt you to delete following steps.
               </p>
             </div>
           )}
@@ -604,6 +716,18 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
         </div>
 
         {/* ===== MODALS & OVERLAYS ===== */}
+
+        {/* Cascading Edit Warning Modal */}
+        {showCascadingWarning && pendingCascadingEdit && (
+          <CascadingEditWarningModal
+            isOpen={showCascadingWarning}
+            onClose={handleCascadingEditCancel}
+            onDeleteAndContinue={handleCascadingEditConfirm}
+            stepIndex={pendingCascadingEdit.stepIndex}
+            followingStepsCount={pendingCascadingEdit.followingStepsCount}
+            stepDescription={pendingCascadingEdit.stepDescription}
+          />
+        )}
 
         {/* Delete Step Modal */}
         {showDeleteStepModal && stepToDelete && (
