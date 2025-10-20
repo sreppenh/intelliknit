@@ -19,15 +19,17 @@ const StepMenu = ({
         return null; // No menu for initialization steps
     }
 
-    // 🎯 NEW: Check if we should show menu at all
+    // 🎯 UPDATED: Show menu for all non-initialization steps
+    // Smart edit safety will handle restrictions per-edit-type
     const shouldShowMenu = () => {
         if (isFinishingStep(step)) {
             return true; // Always show menu for finishing steps (delete only)
         }
 
         if (isMiddleStep(step)) {
-            // Only show for middle steps that are the currently editable step
-            return !isComponentFinished() && stepIndex === editableStepIndex;
+            // Show menu for all middle steps (not just editable one)
+            // Individual edit handlers will check safety
+            return !isComponentFinished();
         }
 
         return false;
