@@ -155,6 +155,7 @@ const EditBriocheForm = ({
                         updateWizardData={updateWizardData}
                         construction={construction}
                         currentStitches={currentStitches}
+                        mode="edit"
                     />
 
                     {/* Save/Cancel Actions */}

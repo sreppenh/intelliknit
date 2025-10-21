@@ -15,7 +15,8 @@ const BriocheConfig = ({
     wizardData,
     updateWizardData,
     construction,
-    currentStitches
+    currentStitches,
+    mode = 'create'
 }) => {
     console.log('🧶 BRIOCHE CONFIG LOADED - colorwork:', wizardData.colorwork);
     const { yarns } = useYarnManager();
@@ -252,12 +253,14 @@ const BriocheConfig = ({
 
     return (
         <div className="stack-lg">
-            <div>
-                <h2 className="content-header-primary">Configure Two-Color Brioche</h2>
-                <p className="content-subheader">
-                    Edit the row instructions for your brioche pattern
-                </p>
-            </div>
+            {mode === 'create' && (
+                <div>
+                    <h2 className="content-header-primary">Configure Two-Color Brioche</h2>
+                    <p className="content-subheader">
+                        Edit the row instructions for your brioche pattern
+                    </p>
+                </div>
+            )}
 
             {/* Color Reference */}
             <div className="bg-yarn-100 border-2 border-yarn-200 rounded-xl p-4 relative">
