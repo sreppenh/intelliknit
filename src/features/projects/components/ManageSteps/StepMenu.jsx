@@ -20,16 +20,14 @@ const StepMenu = ({
     }
 
     // 🎯 UPDATED: Show menu for all non-initialization steps
-    // Smart edit safety will handle restrictions per-edit-type
+    // Don't check if component is finished - that's handled by edit safety
     const shouldShowMenu = () => {
         if (isFinishingStep(step)) {
-            return true; // Always show menu for finishing steps (delete only)
+            return true; // Always show menu for finishing steps
         }
 
         if (isMiddleStep(step)) {
-            // Show menu for all middle steps (not just editable one)
-            // Individual edit handlers will check safety
-            return !isComponentFinished();
+            return true; // Always show menu for middle steps
         }
 
         return false;
@@ -75,9 +73,9 @@ const StepMenu = ({
             {/* Dropdown menu */}
             {openMenuId === step.id && (
                 <div className="absolute right-0 top-8 bg-white border border-wool-200 rounded-lg shadow-lg z-10 min-w-[160px] whitespace-nowrap">
-                    {isMiddleStep(step) && !isComponentFinished() && (
+                    {isMiddleStep(step) && (
                         <>
-                            {/* ✨ NEW: Show "Edit Color" for 2-color brioche */}
+                            {/* ✨ Show "Edit Color" for 2-color brioche */}
                             {isTwoColorBrioche && (
                                 <button
                                     onClick={(e) => onEditColor(stepIndex, e)}
