@@ -21,15 +21,18 @@ const EditBriocheForm = ({
         const component = currentProject?.components?.[componentIndex];
         const step = component?.steps?.[editingStepIndex];
 
-        if (step?.wizardConfig) {
-            console.log('🧶 EditBriocheForm - Loading step data:', step.wizardConfig);
+        // ✅ FIX: Check if brioche data actually exists
+        if (step?.wizardConfig?.stitchPattern?.customSequence?.rows &&
+            Object.keys(step.wizardConfig.stitchPattern.customSequence.rows).length > 0) {
+
+            console.log('🧶 EditBriocheForm - Loading existing brioche data:', step.wizardConfig);
 
             // Load both stitchPattern and colorwork data
             setWizardData({
                 stitchPattern: {
                     pattern: 'Two-Color Brioche',
-                    customSequence: step.wizardConfig.stitchPattern?.customSequence || { rows: {} },
-                    rowsInPattern: step.wizardConfig.stitchPattern?.rowsInPattern || '0'
+                    customSequence: step.wizardConfig.stitchPattern.customSequence,
+                    rowsInPattern: step.wizardConfig.stitchPattern.rowsInPattern || '0'
                 },
                 colorwork: {
                     type: 'two_color_brioche',
