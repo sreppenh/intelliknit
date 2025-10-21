@@ -1,6 +1,6 @@
 // src/features/steps/components/pattern-configs/BriocheConfig.jsx
 
-import React, { useState, useRef } from 'react'; // Add useRef
+import React, { useState, useEffect, useRef } from 'react'; // Add useRef
 import { getYarnByLetter } from '../../../../shared/utils/colorworkDisplayUtils';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
@@ -33,6 +33,17 @@ const BriocheConfig = ({
         return wizardData.stitchPattern?.customSequence?.rows || {};
     };
     const [rows, setRows] = useState(getInitialRows());
+
+    // ✅ ADD THIS: Sync rows with wizardData when it changes (for edit mode)
+    useEffect(() => {
+        if (mode === 'edit' && wizardData.stitchPattern?.customSequence?.rows) {
+            const loadedRows = wizardData.stitchPattern.customSequence.rows;
+            // Only update if there's actual data and it's different from current state
+            if (Object.keys(loadedRows).length > 0 && JSON.stringify(loadedRows) !== JSON.stringify(rows)) {
+                setRows(loadedRows);
+            }
+        }
+    }, [wizardData.stitchPattern?.customSequence?.rows, mode]);
 
     // Modal state - need to track both rows in the pair
     const [showModal, setShowModal] = useState(false);
