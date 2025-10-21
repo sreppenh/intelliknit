@@ -6,6 +6,7 @@ import { isConstructionStep, getComponentStatusWithDisplay, isFinishingStep } fr
 import { getPrepCardColorInfo } from '../../../../shared/utils/prepCardUtils';
 import { Palette } from 'lucide-react';
 import { UnifiedPrepDisplay } from '../../../../shared/components/PrepStepSystem';
+import { getStepProgressState, PROGRESS_STATUS } from '../../../../shared/utils/progressTracking';
 
 const StepsList = ({
     component,
@@ -95,40 +96,48 @@ const StepsList = ({
 
             {/* Steps with Unified PrepCards */}
             <div className="space-y-2">
-                {component.steps.map((step, stepIndex) => (
-                    <div key={step.id || stepIndex}>
-                        {/* Unified PrepCard - combines color changes and user notes */}
-                        <UnifiedPrepDisplay
-                            step={step}
-                            stepIndex={stepIndex}
-                            component={component}
-                            project={project}
-                            onClick={() => onPrepNoteClick && onPrepNoteClick(stepIndex)}
-                        />
+                {component.steps.map((step, stepIndex) => {
+                    // ✅ Get completion status from progress tracking
+                    const progress = project?.id && component?.id ?
+                        getStepProgressState(step.id, component.id, project.id) :
+                        { status: PROGRESS_STATUS.NOT_STARTED };
+                    const isCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
 
-                        {/* Regular StepCard */}
-                        <StepCard
-                            step={step}
-                            stepIndex={stepIndex}
-                            isEditable={!isComponentFinished}
-                            isCompleted={step.completed}
-                            isComponentFinished={isComponentFinished}
-                            openMenuId={openMenuId}
-                            onMenuToggle={onMenuToggle}
-                            onEditStep={onEditStep}
-                            onEditPattern={onEditPattern}
-                            onEditConfig={onEditConfig}
-                            onEditColor={onEditColor}  // ✨ NEW
-                            onDeleteStep={onDeleteStep}
-                            onPrepNoteClick={onPrepNoteClick}
-                            onAfterNoteClick={onAfterNoteClick}
-                            editableStepIndex={editableStepIndex}
-                            componentName={componentName}
-                            project={project}
-                            component={component}
-                        />
-                    </div>
-                ))}
+                    return (
+                        <div key={step.id || stepIndex}>
+                            {/* Unified PrepCard */}
+                            <UnifiedPrepDisplay
+                                step={step}
+                                stepIndex={stepIndex}
+                                component={component}
+                                project={project}
+                                onClick={() => onPrepNoteClick && onPrepNoteClick(stepIndex)}
+                            />
+
+                            {/* Regular StepCard */}
+                            <StepCard
+                                step={step}
+                                stepIndex={stepIndex}
+                                isEditable={!isComponentFinished}
+                                isCompleted={isCompleted}  // ✅ Now using progress tracking
+                                isComponentFinished={isComponentFinished}
+                                openMenuId={openMenuId}
+                                onMenuToggle={onMenuToggle}
+                                onEditStep={onEditStep}
+                                onEditPattern={onEditPattern}
+                                onEditConfig={onEditConfig}
+                                onEditColor={onEditColor}
+                                onDeleteStep={onDeleteStep}
+                                onPrepNoteClick={onPrepNoteClick}
+                                onAfterNoteClick={onAfterNoteClick}
+                                editableStepIndex={editableStepIndex}
+                                componentName={componentName}
+                                project={project}
+                                component={component}
+                            />
+                        </div>
+                    );
+                })}
             </div>
         </div>
     );
