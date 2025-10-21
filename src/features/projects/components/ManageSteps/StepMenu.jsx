@@ -45,11 +45,13 @@ const StepMenu = ({
     const isTwoColorBrioche = patternName === 'Two-Color Brioche';
 
     // Check if step has editable configuration
+    // Exclude steps with stitch changes (shaping or intrinsic pattern changes)
     // Exclude intrinsic shaping since it can't be edited separately
+    const hasStitchChange = step.startingStitches !== step.endingStitches;
     const hasIntrinsicShaping = step.wizardConfig?.shapingConfig?.type === 'intrinsic_pattern' ||
         step.advancedWizardConfig?.shapingConfig?.type === 'intrinsic_pattern';
 
-    const hasEditableConfig = !hasIntrinsicShaping && step.wizardConfig && (
+    const hasEditableConfig = !hasStitchChange && !hasIntrinsicShaping && step.wizardConfig && (
         step.wizardConfig.duration?.type ||
         step.wizardConfig.hasShaping ||
         step.wizardConfig.shapingConfig?.type ||
