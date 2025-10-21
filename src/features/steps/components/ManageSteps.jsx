@@ -551,7 +551,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     }
 
     // EDIT flow - use router for specific edits
-    if (editMode === 'rowByRow' || editMode === 'duration' || editMode === 'shaping' || editMode === 'pattern') {
+    if (editMode === 'rowByRow' || editMode === 'duration' || editMode === 'shaping' || editMode === 'pattern' || editMode === 'brioche_color') {
       return (
         <EditStepRouter
           componentIndex={componentIndex}
