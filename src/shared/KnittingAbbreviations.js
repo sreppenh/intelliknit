@@ -139,6 +139,9 @@ export const KNITTING_ABBREVIATIONS = [
     { abbr: 'last', full: 'last', category: 'phrase' },
     { abbr: 'first', full: 'first', category: 'phrase' },
     { abbr: 'rep to last', full: 'repeat to last', category: 'phrase' },
+    { abbr: 'knit to last', full: 'knit to last', category: 'phrase' },
+
+
 
     // ===== PUNCTUATION =====
     { abbr: '*', full: 'asterisk (repeat marker)', category: 'punctuation' },

@@ -169,7 +169,7 @@ export const useKnittingAbbreviations = ({
 
         // Determine suffix
         let suffix;
-        const noCommaAfter = ['*', ':', ';', '-', '–', '—', 'rep', 'rem', 'rep to last', 'to'];
+        const noCommaAfter = ['*', ':', ';', '-', '–', '—', 'rep', 'rem', 'rep to last', 'knit to last', 'to'];
 
         if (isOpeningPunctuation) {
             suffix = ''; // No space after opening brackets/parens

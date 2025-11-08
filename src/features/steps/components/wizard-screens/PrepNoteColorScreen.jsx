@@ -35,7 +35,7 @@ const PrepNoteColorScreen = ({
         updateWizardData('prepNote', prepNote);
 
         // Check what needs configuration
-        const needsPatternConfig = component.defaultPattern && !useDefaultPattern;
+        const needsPatternConfig = !component.defaultPattern || !useDefaultPattern;
         const needsColorConfig = component.colorMode === 'multiple' &&
             ((component.defaultColorwork && !useDefaultColor) ||
                 !component.defaultColorwork);
