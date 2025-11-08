@@ -1,8 +1,12 @@
 import React, { useEffect } from 'react';
 import './App.css';
 import IntelliknitMVP from './features/projects/components/IntelliknitMVP';
+import useWakeLock from './shared/hooks/useWakeLock';
 
 function App() {
+  // ✨ NEW: Keep screen awake while app is open
+  useWakeLock();
+
   useEffect(() => {
     const handleWheel = (e) => {
       if (e.target.type === 'number') {
