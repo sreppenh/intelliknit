@@ -81,10 +81,13 @@ const PrepNoteColorScreen = ({
                 />
             </div>
 
-            {/* Helper Text */}
-            <div className="text-sm text-wool-600 text-center py-2 border-t border-b border-wool-200">
-                Uncheck any option below to customize it for this step
-            </div>
+            {/* Helper Text - only show if there are options to customize */}
+            {((component.colorMode === 'multiple' && component.defaultColorwork) ||
+                (component.defaultPattern && component.defaultPattern.pattern !== 'None')) && (
+                    <div className="text-sm text-wool-600 text-center py-2 border-t border-b border-wool-200">
+                        Uncheck any option below to customize it for this step
+                    </div>
+                )}
 
             {/* Color Checkbox */}
             {component.colorMode === 'multiple' && component.defaultColorwork && (
