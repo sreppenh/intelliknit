@@ -186,11 +186,11 @@ export const useKnittingAbbreviations = ({
             suffix = ', '; // Default: comma-space after abbreviations
         }
 
-        // Build new text
+        // Build new text here
         const newText = beforeWord + abbr + suffix + textAfterCursor;
         const newCursorPos = (beforeWord + abbr + suffix).length;
 
-        // Update recently used FIRST
+        // Update recently used FIRST 
         if (onUpdateRecentlyUsed) {
             const updatedRecent = [abbr, ...recentlyUsed.filter(a => a !== abbr)].slice(0, 8);
             onUpdateRecentlyUsed(updatedRecent);
