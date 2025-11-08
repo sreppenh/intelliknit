@@ -79,14 +79,15 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     if (destination === 'color-selection') {
       setShowColorSelectionScreen(true);
     } else if (destination === 'stripes-config') {
-      // ✅ CHANGED: Don't save to stitchPattern - StripesConfig will save to colorwork
-      setShowStripesConfig(true); // Show stripes config screen
-    } else if (destination === 'brioche-config') { // ✅ ADD THIS
+      setShowStripesConfig(true);
+    } else if (destination === 'brioche-config') {
       setShowBriocheConfig(true);
-    } else if (destination === 'pattern-override' || destination === 'pattern-selection') {
-      wizard.navigation.goToStep(1); // Pattern selection
-    } else if (destination === 'duration-shaping') {
-      wizard.navigation.goToStep(3); // Duration/shaping
+    } else if (destination === 'pattern-selection' || destination === 'pattern-override') {
+      // Reset wizard to step 1 for pattern selection
+      wizard.navigation.goToStep(1);
+    } else {
+      // Default: go to duration-shaping (step 3)
+      wizard.navigation.goToStep(3);
     }
   };
 
