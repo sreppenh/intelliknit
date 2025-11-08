@@ -99,12 +99,15 @@ export const projectsReducer = (state, action) => {
 
   switch (action.type) {
     case 'LOAD_PROJECTS':
-      // ✨ ADD: Migrate projects to ensure customAbbreviations exists
       const migrateProject = (project) => {
         if (!project.customAbbreviations) {
           project.customAbbreviations = {
             recentlyUsed: []
           };
+        }
+        // ✨ NEW: Ensure activityLog exists
+        if (!project.activityLog) {
+          project.activityLog = [];
         }
         return project;
       };

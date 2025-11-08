@@ -2,14 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { StandardModal } from '../../../../../shared/components/modals/StandardModal';
 
 /**
- * 📅 TimelineSection - Smart Date Management Showcase
+ * 📅 TimelineSection - Smart Date Management with Auto-Detection
  * 
- * Features:
- * - Comprehensive project lifecycle display
- * - Smart conditional date logic
- * - Separation between system and user dates
- * - Perfect Project Status integration
- * - Selective inline editing for user dates only
+ * ✨ NEW FEATURES:
+ * - Auto-detects "Started Knitting" from first row completion
+ * - No more manual "Started Knitting" prompt
+ * - Shows activity-based dates automatically
+ * - Still allows manual override if needed
  */
 const TimelineSection = ({
     project,
@@ -40,7 +39,37 @@ const TimelineSection = ({
         if (!project.lastActivityAt) return false;
         if (project.completed || project.frogged) return false; // Status dates take priority
         if (project.lastActivityAt === project.createdAt) return false; // Same as creation
+        if (project.startedAt && project.lastActivityAt === project.startedAt) return false; // Same as started
         return true;
+    };
+
+    // ✨ NEW: Smart detection for "Started Knitting"
+    const getStartedKnittingDisplay = () => {
+        // Priority 1: Manual startedAt date (user override)
+        if (project.startedAt) {
+            return {
+                type: 'started',
+                date: project.startedAt,
+                label: 'Started knitting',
+                display: `Started knitting ${formatDate(project.startedAt)}`,
+                isAutoDetected: false
+            };
+        }
+
+        // Priority 2: Auto-detect from first activity
+        if (project.activityLog && project.activityLog.length > 0) {
+            const firstActivity = project.activityLog[0];
+            return {
+                type: 'started_auto',
+                date: firstActivity,
+                label: 'Started knitting',
+                display: `Started knitting ${formatDate(firstActivity)} (auto-detected)`,
+                isAutoDetected: true
+            };
+        }
+
+        // Priority 3: Not started yet
+        return null;
     };
 
     // Build chronological timeline data
@@ -55,20 +84,10 @@ const TimelineSection = ({
             display: `Created ${formatDate(project.createdAt)}`
         });
 
-        // 2. Started knitting (if exists, or add prompt)
-        if (project.startedAt) {
-            entries.push({
-                type: 'started',
-                date: project.startedAt,
-                label: 'Started knitting',
-                display: `Started knitting ${formatDate(project.startedAt)}`
-            });
-        } else {
-            entries.push({
-                type: 'started_prompt',
-                display: '+ Add started knitting date',
-                isPrompt: true
-            });
+        // 2. Started knitting (auto-detected or manual)
+        const startedEntry = getStartedKnittingDisplay();
+        if (startedEntry) {
+            entries.push(startedEntry);
         }
 
         // 3. Last modified (conditional)
@@ -120,11 +139,9 @@ const TimelineSection = ({
         // Update only the user-editable dates
         const updates = {};
 
-        // Started date - allow clearing
-        if (timelineForm.startedAt) {
-            updates.startedAt = timelineForm.startedAt;
-        } else {
-            updates.startedAt = undefined; // Allow clearing
+        // Started date - allow clearing or setting manual override
+        if (timelineForm.startedAt !== project.startedAt) {
+            updates.startedAt = timelineForm.startedAt || undefined;
         }
 
         // Completed date - only if project is completed
@@ -174,8 +191,8 @@ const TimelineSection = ({
                 <div className="text-sm text-wool-700 space-y-1 text-left">
                     {timelineEntries.map((entry, index) => (
                         <div key={`${entry.type}-${index}`}>
-                            {entry.isPrompt ? (
-                                <div className="text-wool-400 italic">
+                            {entry.isAutoDetected ? (
+                                <div className="text-sage-600 italic">
                                     {entry.display}
                                 </div>
                             ) : (
@@ -208,20 +225,34 @@ const TimelineSection = ({
                         {project.lastActivityAt && project.lastActivityAt !== project.createdAt && (
                             <div>Last Modified: {formatDate(project.lastActivityAt)}</div>
                         )}
+                        {project.activityLog && project.activityLog.length > 0 && (
+                            <div className="text-sage-600 italic">
+                                First Activity: {formatDate(project.activityLog[0])} (auto-detected)
+                            </div>
+                        )}
                     </div>
                 </div>
 
                 {/* Editable user dates */}
                 <div className="space-y-4">
                     <div>
-                        <label className="form-label">Started Knitting</label>
+                        <label className="form-label">
+                            Started Knitting
+                            {!project.startedAt && project.activityLog?.length > 0 && (
+                                <span className="text-xs text-sage-600 ml-2">(auto-detected from first activity)</span>
+                            )}
+                        </label>
                         <input
                             data-modal-focus
                             type="date"
                             value={timelineForm.startedAt || ''}
                             onChange={(e) => setTimelineForm(prev => ({ ...prev, startedAt: e.target.value }))}
+                            placeholder={project.activityLog?.[0] || ''}
                             className="details-input-field"
                         />
+                        <p className="text-xs text-wool-500 mt-1">
+                            Leave blank to use auto-detected date, or set a manual override
+                        </p>
                     </div>
 
                     {project.completed && (

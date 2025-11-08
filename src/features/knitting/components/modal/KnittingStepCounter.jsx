@@ -82,7 +82,14 @@ const KnittingStepCounter = ({
         !canStartStep(stepIndex, component.steps, component.id, project.id) :
         false;
 
-    const rowCounter = useRowCounter(project?.id, component?.id, stepIndex, step, isNotepadMode);
+    const rowCounter = useRowCounter(
+        project?.id,
+        component?.id,
+        stepIndex,
+        step,
+        isNotepadMode,
+        updateProject  // ✨ NEW: Pass updateProject function
+    );
     const { currentRow, stitchCount, incrementRow, decrementRow, updateStitchCount } = rowCounter;
 
     // Side tracking hook
@@ -127,12 +134,12 @@ const KnittingStepCounter = ({
                 handleAutoAdvanceToNextStep();
                 return;
             } else {
-                incrementRow();
+                incrementRow(project);
             }
         } else if (stepType === 'length_based') {
-            incrementRow();
+            incrementRow(project);
         } else {
-            incrementRow();
+            incrementRow(project);
         }
     };
 
@@ -145,7 +152,7 @@ const KnittingStepCounter = ({
             setIsAnimating(true);
             setTimeout(() => setIsAnimating(false), 400);
 
-            decrementRow();
+            decrementRow(project);
         }
     };
 
