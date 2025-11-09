@@ -60,10 +60,10 @@ const WakeLockBanner = ({ wakeLockRef, onSuccess }) => {
                 onSuccess();
             }
 
-            // Auto-dismiss after showing success
-            setTimeout(() => {
-                setIsDismissed(true);
-            }, 2000);
+            // DON'T auto-dismiss - let user see the success and close manually
+            // setTimeout(() => {
+            //     setIsDismissed(true);
+            // }, 2000);
 
         } catch (err) {
             console.error('❌ Wake lock request failed:', err);
