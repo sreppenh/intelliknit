@@ -61,7 +61,8 @@ function App() {
 
   const handleWakeLockSuccess = () => {
     console.log('🎉 Wake lock successfully activated from banner');
-    setShowBanner(false);
+    // DON'T hide banner - let user see the result
+    // setShowBanner(false);
   };
 
   return (
