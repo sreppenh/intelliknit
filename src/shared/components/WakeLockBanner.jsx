@@ -6,30 +6,64 @@ import React, { useState, useEffect } from 'react';
  * One-time banner prompting user to activate wake lock
  * Appears once per device, dismisses after activation
  * Uses localStorage to remember dismissal
+ * 
+ * DEBUG VERSION: Shows detailed status and doesn't auto-dismiss
  */
-const WakeLockBanner = ({ needsActivation, onActivate }) => {
+const WakeLockBanner = ({ needsActivation, onActivate, isActive }) => {
     const [isDismissed, setIsDismissed] = useState(false);
+    const [debugInfo, setDebugInfo] = useState('');
     const STORAGE_KEY = 'intelliknit_wakelock_activated';
 
     useEffect(() => {
         // Check if user has already activated wake lock before
         const hasActivated = localStorage.getItem(STORAGE_KEY);
         if (hasActivated) {
-            setIsDismissed(true);
+            setDebugInfo('Previously activated');
+            // DON'T auto-dismiss for debugging
+            // setIsDismissed(true);
         }
     }, []);
 
-    const handleActivate = () => {
+    const handleActivate = async () => {
+        setDebugInfo('Calling activate...');
+        console.log('🔵 Banner: Activate button clicked');
+
         if (onActivate) {
-            onActivate();
-            // Remember that user has activated
-            localStorage.setItem(STORAGE_KEY, 'true');
-            setIsDismissed(true);
+            try {
+                const result = await onActivate();
+                console.log('🔵 Banner: Activation result:', result);
+                setDebugInfo(`Activation result: ${result}`);
+
+                if (result) {
+                    // Remember that user has activated
+                    localStorage.setItem(STORAGE_KEY, 'true');
+                    setDebugInfo('✅ SUCCESS! Wake lock active');
+                    console.log('✅ Banner: Wake lock activated successfully');
+
+                    // Auto-dismiss after 2 seconds
+                    setTimeout(() => {
+                        setIsDismissed(true);
+                    }, 2000);
+                } else {
+                    setDebugInfo('❌ FAILED - Check console');
+                    console.log('❌ Banner: Wake lock activation failed');
+                }
+            } catch (err) {
+                setDebugInfo(`❌ ERROR: ${err.message}`);
+                console.error('❌ Banner error:', err);
+            }
+        } else {
+            setDebugInfo('❌ No activate function provided');
         }
     };
 
-    // Don't show if dismissed or doesn't need activation
-    if (isDismissed || !needsActivation) {
+    // Don't show if dismissed
+    if (isDismissed) {
+        return null;
+    }
+
+    // Show whenever needsActivation is true (for debugging)
+    if (!needsActivation && !debugInfo) {
         return null;
     }
 
@@ -48,7 +82,6 @@ const WakeLockBanner = ({ needsActivation, onActivate }) => {
                 zIndex: 10000,
                 padding: '20px'
             }}
-            onClick={handleActivate}
         >
             <div
                 className="card"
@@ -60,11 +93,10 @@ const WakeLockBanner = ({ needsActivation, onActivate }) => {
                     borderRadius: '16px',
                     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)'
                 }}
-                onClick={(e) => e.stopPropagation()}
             >
                 {/* Icon */}
                 <div style={{ fontSize: '48px', marginBottom: '16px' }}>
-                    ☀️
+                    {isActive ? '✅' : '☀️'}
                 </div>
 
                 {/* Title */}
@@ -83,6 +115,34 @@ const WakeLockBanner = ({ needsActivation, onActivate }) => {
                     IntelliKnit can keep your screen on while you knit, so you don't have to keep unlocking your phone between rows.
                 </p>
 
+                {/* DEBUG INFO */}
+                {debugInfo && (
+                    <div style={{
+                        backgroundColor: isActive ? '#d1fae5' : '#fee2e2',
+                        color: isActive ? '#065f46' : '#991b1b',
+                        padding: '12px',
+                        borderRadius: '8px',
+                        marginBottom: '16px',
+                        fontSize: '14px',
+                        fontFamily: 'monospace'
+                    }}>
+                        {debugInfo}
+                    </div>
+                )}
+
+                {/* Status Display */}
+                <div style={{
+                    backgroundColor: '#f3f4f6',
+                    padding: '12px',
+                    borderRadius: '8px',
+                    marginBottom: '16px',
+                    fontSize: '12px',
+                    textAlign: 'left'
+                }}>
+                    <div><strong>Needs Activation:</strong> {needsActivation ? 'Yes' : 'No'}</div>
+                    <div><strong>Is Active:</strong> {isActive ? 'Yes ✅' : 'No ❌'}</div>
+                </div>
+
                 {/* Activate Button */}
                 <button
                     onClick={handleActivate}
@@ -95,7 +155,7 @@ const WakeLockBanner = ({ needsActivation, onActivate }) => {
                         marginBottom: '12px'
                     }}
                 >
-                    Tap to Activate
+                    {isActive ? 'Wake Lock Active!' : 'Tap to Activate'}
                 </button>
 
                 {/* Dismiss Link */}
@@ -110,7 +170,7 @@ const WakeLockBanner = ({ needsActivation, onActivate }) => {
                         padding: '8px'
                     }}
                 >
-                    No thanks
+                    Close (for debugging)
                 </button>
 
                 {/* Info Text */}
@@ -122,7 +182,7 @@ const WakeLockBanner = ({ needsActivation, onActivate }) => {
                         lineHeight: '1.5'
                     }}
                 >
-                    This only works while IntelliKnit is open. You can change this anytime in settings.
+                    DEBUG MODE: Check console for detailed logs
                 </p>
             </div>
         </div>

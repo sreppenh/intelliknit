@@ -6,7 +6,7 @@ import WakeLockBanner from './shared/components/WakeLockBanner';
 
 function App() {
   // ✨ Keep screen awake while app is open
-  const { needsActivation, activate } = useWakeLock();
+  const { needsActivation, activate, isActive } = useWakeLock();
 
   useEffect(() => {
     const handleWheel = (e) => {
@@ -38,6 +38,7 @@ function App() {
       <WakeLockBanner
         needsActivation={needsActivation}
         onActivate={activate}
+        isActive={isActive}
       />
     </div>
   );
