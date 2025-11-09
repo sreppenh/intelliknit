@@ -35,7 +35,10 @@ function App() {
     <div className="App" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <IntelliknitMVP />
       {/* 🐛 DEBUG: Remove this component after troubleshooting */}
-      <WakeLockDebug status={wakeLockStatus} />
+      <WakeLockDebug
+        status={wakeLockStatus}
+        onActivate={wakeLockStatus?.activate}
+      />
     </div>
   );
 }

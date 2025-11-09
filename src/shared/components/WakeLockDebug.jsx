@@ -4,12 +4,18 @@ import React from 'react';
 
 /**
  * Debug component to display wake lock status
- * Shows visual indicator of wake lock state for troubleshooting
+ * Shows visual indicator and activation prompt when needed
  * 
  * TEMPORARY - Remove after debugging is complete
  */
-const WakeLockDebug = ({ status }) => {
+const WakeLockDebug = ({ status, onActivate }) => {
     if (!status) return null;
+
+    const handleActivate = () => {
+        if (onActivate) {
+            onActivate();
+        }
+    };
 
     return (
         <div
@@ -17,7 +23,7 @@ const WakeLockDebug = ({ status }) => {
                 position: 'fixed',
                 bottom: '10px',
                 right: '10px',
-                backgroundColor: status.active ? '#10b981' : '#ef4444',
+                backgroundColor: status.active ? '#10b981' : status.needsUserGesture ? '#f59e0b' : '#ef4444',
                 color: 'white',
                 padding: '12px 16px',
                 borderRadius: '8px',
@@ -50,6 +56,25 @@ const WakeLockDebug = ({ status }) => {
                 <div style={{ marginTop: '4px', fontSize: '11px', opacity: 0.9 }}>
                     <strong>Error:</strong> {status.error}
                 </div>
+            )}
+            {status.needsUserGesture && (
+                <button
+                    onClick={handleActivate}
+                    style={{
+                        marginTop: '8px',
+                        padding: '8px 12px',
+                        backgroundColor: 'white',
+                        color: '#f59e0b',
+                        border: 'none',
+                        borderRadius: '4px',
+                        fontWeight: 'bold',
+                        fontSize: '12px',
+                        cursor: 'pointer',
+                        width: '100%'
+                    }}
+                >
+                    TAP TO ACTIVATE
+                </button>
             )}
         </div>
     );

@@ -1,21 +1,13 @@
 // src/shared/hooks/useWakeLock.js
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useCallback } from 'react';
 import IntelliKnitLogger from '../utils/ConsoleLogging';
 
 /**
  * Custom hook to prevent screen from sleeping while app is open
- * Uses the Web Wake Lock API with graceful fallback for unsupported browsers
+ * Requires user interaction on iOS/Safari due to security restrictions
  * 
- * Returns debug status for troubleshooting
- * 
- * Usage:
- * ```jsx
- * function App() {
- *   const wakeLockStatus = useWakeLock({ debug: true });
- *   return <div>Your app content</div>;
- * }
- * ```
+ * Returns status object with activation method
  */
 const useWakeLock = (options = {}) => {
     const { debug = false } = options;
@@ -25,58 +17,69 @@ const useWakeLock = (options = {}) => {
         active: false,
         error: null,
         lastAttempt: null,
-        releaseCount: 0
+        releaseCount: 0,
+        needsUserGesture: false
     });
 
-    useEffect(() => {
+    /**
+     * Request wake lock to keep screen on
+     */
+    const requestWakeLock = useCallback(async () => {
         // Check if Wake Lock API is supported
         if (!('wakeLock' in navigator)) {
             const errorMsg = 'Wake Lock API not supported in this browser';
             IntelliKnitLogger.warn(errorMsg);
             setStatus(prev => ({ ...prev, supported: false, error: errorMsg }));
-            return;
+            return false;
         }
 
-        setStatus(prev => ({ ...prev, supported: true }));
+        try {
+            const timestamp = new Date().toLocaleTimeString();
+            setStatus(prev => ({ ...prev, lastAttempt: timestamp, supported: true }));
 
-        /**
-         * Request wake lock to keep screen on
-         */
-        const requestWakeLock = async () => {
-            try {
-                const timestamp = new Date().toLocaleTimeString();
-                setStatus(prev => ({ ...prev, lastAttempt: timestamp }));
+            wakeLockRef.current = await navigator.wakeLock.request('screen');
 
-                wakeLockRef.current = await navigator.wakeLock.request('screen');
+            IntelliKnitLogger.success('✓ Screen wake lock active');
+            setStatus(prev => ({
+                ...prev,
+                active: true,
+                error: null,
+                lastAttempt: timestamp,
+                needsUserGesture: false
+            }));
 
-                IntelliKnitLogger.success('✓ Screen wake lock active');
-                setStatus(prev => ({
-                    ...prev,
-                    active: true,
-                    error: null,
-                    lastAttempt: timestamp
-                }));
-
-                // Listen for wake lock release
-                wakeLockRef.current.addEventListener('release', () => {
-                    IntelliKnitLogger.debug('Wake lock released');
-                    setStatus(prev => ({
-                        ...prev,
-                        active: false,
-                        releaseCount: prev.releaseCount + 1
-                    }));
-                });
-            } catch (err) {
-                const errorMsg = `Wake Lock request failed: ${err.name} - ${err.message}`;
-                IntelliKnitLogger.warn(errorMsg);
+            // Listen for wake lock release
+            wakeLockRef.current.addEventListener('release', () => {
+                IntelliKnitLogger.debug('Wake lock released');
                 setStatus(prev => ({
                     ...prev,
                     active: false,
-                    error: errorMsg
+                    releaseCount: prev.releaseCount + 1
                 }));
-            }
-        };
+                wakeLockRef.current = null;
+            });
 
+            return true;
+        } catch (err) {
+            const errorMsg = `${err.name} - ${err.message}`;
+            IntelliKnitLogger.warn(`Wake Lock request failed: ${errorMsg}`);
+
+            // If NotAllowedError, we need user gesture
+            const needsGesture = err.name === 'NotAllowedError';
+
+            setStatus(prev => ({
+                ...prev,
+                active: false,
+                error: errorMsg,
+                needsUserGesture: needsGesture,
+                supported: true
+            }));
+
+            return false;
+        }
+    }, []);
+
+    useEffect(() => {
         /**
          * Re-acquire wake lock when page becomes visible again
          */
@@ -92,7 +95,7 @@ const useWakeLock = (options = {}) => {
             }
         };
 
-        // Initial wake lock request
+        // Try initial wake lock request (will fail on iOS, succeed on Android/Desktop)
         requestWakeLock();
 
         // Re-acquire wake lock when returning to app
@@ -112,10 +115,10 @@ const useWakeLock = (options = {}) => {
             }
             document.removeEventListener('visibilitychange', handleVisibilityChange);
         };
-    }, []);
+    }, [requestWakeLock]);
 
-    // Return debug info if requested, otherwise return null
-    return debug ? status : null;
+    // Return debug info and activation method
+    return debug ? { ...status, activate: requestWakeLock } : { activate: requestWakeLock };
 };
 
 export default useWakeLock;
