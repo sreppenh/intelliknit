@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import './App.css';
 import IntelliknitMVP from './features/projects/components/IntelliknitMVP';
 import WakeLockBanner from './shared/components/WakeLockBanner';
+import WakeLockStatus from './shared/components/WakeLockStatus';
 
 function App() {
   // Store wake lock reference
@@ -104,6 +105,9 @@ function App() {
           onSuccess={handleWakeLockSuccess}
         />
       )}
+
+      {/* Subtle status indicator */}
+      <WakeLockStatus wakeLockRef={wakeLockRef} />
     </div>
   );
 }
