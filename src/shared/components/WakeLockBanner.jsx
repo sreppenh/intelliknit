@@ -4,66 +4,76 @@ import React, { useState, useEffect } from 'react';
 
 /**
  * One-time banner prompting user to activate wake lock
- * Appears once per device, dismisses after activation
- * Uses localStorage to remember dismissal
- * 
- * DEBUG VERSION: Shows detailed status and doesn't auto-dismiss
+ * DIRECT APPROACH: Calls wake lock API directly from button click
  */
-const WakeLockBanner = ({ needsActivation, onActivate, isActive }) => {
+const WakeLockBanner = ({ wakeLockRef, onSuccess }) => {
     const [isDismissed, setIsDismissed] = useState(false);
     const [debugInfo, setDebugInfo] = useState('');
+    const [isActive, setIsActive] = useState(false);
+    const [needsActivation, setNeedsActivation] = useState(true);
     const STORAGE_KEY = 'intelliknit_wakelock_activated';
 
     useEffect(() => {
         // Check if user has already activated wake lock before
         const hasActivated = localStorage.getItem(STORAGE_KEY);
         if (hasActivated) {
-            setDebugInfo('Previously activated');
-            // DON'T auto-dismiss for debugging
-            // setIsDismissed(true);
+            setDebugInfo('Previously activated (from localStorage)');
         }
     }, []);
 
     const handleActivate = async () => {
-        setDebugInfo('Calling activate...');
-        console.log('🔵 Banner: Activate button clicked');
+        console.log('🔵 Banner: Button clicked - requesting wake lock DIRECTLY');
+        setDebugInfo('Requesting wake lock...');
 
-        if (onActivate) {
-            try {
-                const result = await onActivate();
-                console.log('🔵 Banner: Activation result:', result);
-                setDebugInfo(`Activation result: ${result}`);
+        // Check if Wake Lock API is supported
+        if (!('wakeLock' in navigator)) {
+            setDebugInfo('❌ Wake Lock API not supported');
+            console.error('Wake Lock API not supported');
+            return;
+        }
 
-                if (result) {
-                    // Remember that user has activated
-                    localStorage.setItem(STORAGE_KEY, 'true');
-                    setDebugInfo('✅ SUCCESS! Wake lock active');
-                    console.log('✅ Banner: Wake lock activated successfully');
+        try {
+            console.log('🔵 Calling navigator.wakeLock.request()...');
 
-                    // Auto-dismiss after 2 seconds
-                    setTimeout(() => {
-                        setIsDismissed(true);
-                    }, 2000);
-                } else {
-                    setDebugInfo('❌ FAILED - Check console');
-                    console.log('❌ Banner: Wake lock activation failed');
-                }
-            } catch (err) {
-                setDebugInfo(`❌ ERROR: ${err.message}`);
-                console.error('❌ Banner error:', err);
+            // Request wake lock DIRECTLY in the click handler
+            const wakeLock = await navigator.wakeLock.request('screen');
+
+            console.log('✅ Wake lock acquired!', wakeLock);
+            wakeLockRef.current = wakeLock;
+
+            setIsActive(true);
+            setNeedsActivation(false);
+            setDebugInfo('✅ SUCCESS! Wake lock is ACTIVE');
+
+            // Listen for release
+            wakeLock.addEventListener('release', () => {
+                console.log('Wake lock released');
+                setIsActive(false);
+                wakeLockRef.current = null;
+            });
+
+            // Remember activation
+            localStorage.setItem(STORAGE_KEY, 'true');
+
+            // Notify parent
+            if (onSuccess) {
+                onSuccess();
             }
-        } else {
-            setDebugInfo('❌ No activate function provided');
+
+            // Auto-dismiss after showing success
+            setTimeout(() => {
+                setIsDismissed(true);
+            }, 2000);
+
+        } catch (err) {
+            console.error('❌ Wake lock request failed:', err);
+            setDebugInfo(`❌ FAILED: ${err.name} - ${err.message}`);
+            setNeedsActivation(true);
         }
     };
 
     // Don't show if dismissed
     if (isDismissed) {
-        return null;
-    }
-
-    // Show whenever needsActivation is true (for debugging)
-    if (!needsActivation && !debugInfo) {
         return null;
     }
 
@@ -139,11 +149,11 @@ const WakeLockBanner = ({ needsActivation, onActivate, isActive }) => {
                     fontSize: '12px',
                     textAlign: 'left'
                 }}>
-                    <div><strong>Needs Activation:</strong> {needsActivation ? 'Yes' : 'No'}</div>
+                    <div><strong>API Supported:</strong> {'wakeLock' in navigator ? 'Yes ✅' : 'No ❌'}</div>
                     <div><strong>Is Active:</strong> {isActive ? 'Yes ✅' : 'No ❌'}</div>
                 </div>
 
-                {/* Activate Button */}
+                {/* Activate Button - DIRECT onClick handler */}
                 <button
                     onClick={handleActivate}
                     className="btn-primary"
@@ -155,7 +165,7 @@ const WakeLockBanner = ({ needsActivation, onActivate, isActive }) => {
                         marginBottom: '12px'
                     }}
                 >
-                    {isActive ? 'Wake Lock Active!' : 'Tap to Activate'}
+                    {isActive ? 'Wake Lock Active! 🎉' : 'Tap to Activate'}
                 </button>
 
                 {/* Dismiss Link */}
@@ -182,7 +192,7 @@ const WakeLockBanner = ({ needsActivation, onActivate, isActive }) => {
                         lineHeight: '1.5'
                     }}
                 >
-                    DEBUG MODE: Check console for detailed logs
+                    DEBUG MODE: Open Safari console for detailed logs
                 </p>
             </div>
         </div>
