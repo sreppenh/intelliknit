@@ -2,12 +2,11 @@ import React, { useEffect } from 'react';
 import './App.css';
 import IntelliknitMVP from './features/projects/components/IntelliknitMVP';
 import useWakeLock from './shared/hooks/useWakeLock';
-import WakeLockDebug from './shared/components/WakeLockDebug';
+import WakeLockBanner from './shared/components/WakeLockBanner';
 
 function App() {
-  // ✨ NEW: Keep screen awake while app is open
-  // 🐛 DEBUG MODE: Shows visual status indicator
-  const wakeLockStatus = useWakeLock({ debug: true });
+  // ✨ Keep screen awake while app is open
+  const { needsActivation, activate } = useWakeLock();
 
   useEffect(() => {
     const handleWheel = (e) => {
@@ -34,10 +33,11 @@ function App() {
   return (
     <div className="App" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <IntelliknitMVP />
-      {/* 🐛 DEBUG: Remove this component after troubleshooting */}
-      <WakeLockDebug
-        status={wakeLockStatus}
-        onActivate={wakeLockStatus?.activate}
+
+      {/* One-time wake lock activation banner */}
+      <WakeLockBanner
+        needsActivation={needsActivation}
+        onActivate={activate}
       />
     </div>
   );
