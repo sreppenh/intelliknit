@@ -11,9 +11,30 @@ function App() {
   useEffect(() => {
     // Check if we should show the banner (first time or not dismissed)
     const wakeLockStatus = localStorage.getItem('intelliknit_wakelock_activated');
+
     if (!wakeLockStatus) {
-      // Show banner after a brief delay for smoother UX
+      // First time user - show banner after a brief delay
       setTimeout(() => setShowBanner(true), 500);
+    } else if (wakeLockStatus === 'true') {
+      // Returning user who previously activated - auto-activate wake lock
+      if ('wakeLock' in navigator) {
+        navigator.wakeLock.request('screen')
+          .then(wakeLock => {
+            console.log('✅ Wake lock auto-activated on app load');
+            wakeLockRef.current = wakeLock;
+            wakeLock.addEventListener('release', () => {
+              console.log('Wake lock released');
+              wakeLockRef.current = null;
+            });
+          })
+          .catch(err => {
+            console.log('Failed to auto-activate wake lock:', err.name);
+            // If it fails (NotAllowedError), show the banner so user can tap
+            if (err.name === 'NotAllowedError') {
+              setShowBanner(true);
+            }
+          });
+      }
     }
 
     const handleWheel = (e) => {
