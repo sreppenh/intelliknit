@@ -6,9 +6,16 @@ import WakeLockBanner from './shared/components/WakeLockBanner';
 function App() {
   // Store wake lock reference
   const wakeLockRef = useRef(null);
-  const [showBanner, setShowBanner] = useState(true);
+  const [showBanner, setShowBanner] = useState(false);
 
   useEffect(() => {
+    // Check if we should show the banner (first time or not dismissed)
+    const wakeLockStatus = localStorage.getItem('intelliknit_wakelock_activated');
+    if (!wakeLockStatus) {
+      // Show banner after a brief delay for smoother UX
+      setTimeout(() => setShowBanner(true), 500);
+    }
+
     const handleWheel = (e) => {
       if (e.target.type === 'number') {
         e.target.blur();
@@ -24,14 +31,16 @@ function App() {
     document.addEventListener('wheel', handleWheel, { passive: false });
     document.addEventListener('focus', handleFocus, true);
 
-    // Re-acquire wake lock when page becomes visible
+    // Re-acquire wake lock when page becomes visible (if user previously activated it)
     const handleVisibilityChange = () => {
       if (document.visibilityState === 'visible' && wakeLockRef.current === null) {
-        console.log('Page visible, attempting to re-acquire wake lock...');
-        if ('wakeLock' in navigator) {
+        const wakeLockStatus = localStorage.getItem('intelliknit_wakelock_activated');
+
+        // Only try to re-acquire if user has activated it before and it was successful
+        if (wakeLockStatus === 'true' && 'wakeLock' in navigator) {
           navigator.wakeLock.request('screen')
             .then(wakeLock => {
-              console.log('✅ Wake lock re-acquired');
+              console.log('✅ Wake lock re-acquired on page visibility');
               wakeLockRef.current = wakeLock;
               wakeLock.addEventListener('release', () => {
                 console.log('Wake lock released');
@@ -39,7 +48,7 @@ function App() {
               });
             })
             .catch(err => {
-              console.log('Failed to re-acquire:', err.name);
+              console.log('Failed to re-acquire wake lock:', err.name);
             });
         }
       }
@@ -60,16 +69,14 @@ function App() {
   }, []);
 
   const handleWakeLockSuccess = () => {
-    console.log('🎉 Wake lock successfully activated from banner');
-    // DON'T hide banner - let user see the result
-    // setShowBanner(false);
+    console.log('🎉 Wake lock successfully activated');
   };
 
   return (
     <div className="App" style={{ height: '100vh', display: 'flex', flexDirection: 'column' }}>
       <IntelliknitMVP />
 
-      {/* Wake lock activation banner */}
+      {/* One-time wake lock activation banner */}
       {showBanner && (
         <WakeLockBanner
           wakeLockRef={wakeLockRef}

@@ -1,54 +1,47 @@
 // src/shared/components/WakeLockBanner.jsx
 
 import React, { useState, useEffect } from 'react';
+import IntelliKnitLogger from '../utils/ConsoleLogging';
 
 /**
  * One-time banner prompting user to activate wake lock
- * DIRECT APPROACH: Calls wake lock API directly from button click
+ * Appears once per device, dismisses after activation
+ * Uses localStorage to remember user preference
  */
 const WakeLockBanner = ({ wakeLockRef, onSuccess }) => {
     const [isDismissed, setIsDismissed] = useState(false);
-    const [debugInfo, setDebugInfo] = useState('');
-    const [isActive, setIsActive] = useState(false);
-    const [needsActivation, setNeedsActivation] = useState(true);
+    const [isActivating, setIsActivating] = useState(false);
     const STORAGE_KEY = 'intelliknit_wakelock_activated';
 
     useEffect(() => {
-        // Check if user has already activated wake lock before
+        // Check if user has already activated or dismissed wake lock
         const hasActivated = localStorage.getItem(STORAGE_KEY);
         if (hasActivated) {
-            setDebugInfo('Previously activated (from localStorage)');
+            setIsDismissed(true);
         }
     }, []);
 
     const handleActivate = async () => {
-        console.log('🔵 Banner: Button clicked - requesting wake lock DIRECTLY');
-        setDebugInfo('Requesting wake lock...');
+        setIsActivating(true);
+        IntelliKnitLogger.debug('User activating wake lock...');
 
         // Check if Wake Lock API is supported
         if (!('wakeLock' in navigator)) {
-            setDebugInfo('❌ Wake Lock API not supported');
-            console.error('Wake Lock API not supported');
+            IntelliKnitLogger.warn('Wake Lock API not supported in this browser');
+            setIsActivating(false);
             return;
         }
 
         try {
-            console.log('🔵 Calling navigator.wakeLock.request()...');
-
             // Request wake lock DIRECTLY in the click handler
             const wakeLock = await navigator.wakeLock.request('screen');
 
-            console.log('✅ Wake lock acquired!', wakeLock);
+            IntelliKnitLogger.success('✓ Screen wake lock active');
             wakeLockRef.current = wakeLock;
-
-            setIsActive(true);
-            setNeedsActivation(false);
-            setDebugInfo('✅ SUCCESS! Wake lock is ACTIVE');
 
             // Listen for release
             wakeLock.addEventListener('release', () => {
-                console.log('Wake lock released');
-                setIsActive(false);
+                IntelliKnitLogger.debug('Wake lock released');
                 wakeLockRef.current = null;
             });
 
@@ -60,16 +53,21 @@ const WakeLockBanner = ({ wakeLockRef, onSuccess }) => {
                 onSuccess();
             }
 
-            // DON'T auto-dismiss - let user see the success and close manually
-            // setTimeout(() => {
-            //     setIsDismissed(true);
-            // }, 2000);
+            // Show success briefly, then dismiss
+            setTimeout(() => {
+                setIsDismissed(true);
+            }, 1500);
 
         } catch (err) {
-            console.error('❌ Wake lock request failed:', err);
-            setDebugInfo(`❌ FAILED: ${err.name} - ${err.message}`);
-            setNeedsActivation(true);
+            IntelliKnitLogger.warn(`Wake lock request failed: ${err.name}`);
+            setIsActivating(false);
         }
+    };
+
+    const handleDismiss = () => {
+        // Remember that user dismissed (don't show again)
+        localStorage.setItem(STORAGE_KEY, 'dismissed');
+        setIsDismissed(true);
     };
 
     // Don't show if dismissed
@@ -106,7 +104,7 @@ const WakeLockBanner = ({ wakeLockRef, onSuccess }) => {
             >
                 {/* Icon */}
                 <div style={{ fontSize: '48px', marginBottom: '16px' }}>
-                    {isActive ? '✅' : '☀️'}
+                    {isActivating ? '✨' : '☀️'}
                 </div>
 
                 {/* Title */}
@@ -114,74 +112,61 @@ const WakeLockBanner = ({ wakeLockRef, onSuccess }) => {
                     className="text-xl font-semibold mb-3"
                     style={{ color: '#4a5568' }}
                 >
-                    Keep Your Screen Awake
+                    {isActivating ? 'Activating...' : 'Keep Your Screen Awake'}
                 </h2>
 
                 {/* Description */}
-                <p
-                    className="text-base mb-6"
-                    style={{ color: '#718096', lineHeight: '1.6' }}
-                >
-                    IntelliKnit can keep your screen on while you knit, so you don't have to keep unlocking your phone between rows.
-                </p>
-
-                {/* DEBUG INFO */}
-                {debugInfo && (
-                    <div style={{
-                        backgroundColor: isActive ? '#d1fae5' : '#fee2e2',
-                        color: isActive ? '#065f46' : '#991b1b',
-                        padding: '12px',
-                        borderRadius: '8px',
-                        marginBottom: '16px',
-                        fontSize: '14px',
-                        fontFamily: 'monospace'
-                    }}>
-                        {debugInfo}
-                    </div>
+                {!isActivating && (
+                    <p
+                        className="text-base mb-6"
+                        style={{ color: '#718096', lineHeight: '1.6' }}
+                    >
+                        IntelliKnit can keep your screen on while you knit, so you don't have to keep unlocking your phone between rows.
+                    </p>
                 )}
 
-                {/* Status Display */}
-                <div style={{
-                    backgroundColor: '#f3f4f6',
-                    padding: '12px',
-                    borderRadius: '8px',
-                    marginBottom: '16px',
-                    fontSize: '12px',
-                    textAlign: 'left'
-                }}>
-                    <div><strong>API Supported:</strong> {'wakeLock' in navigator ? 'Yes ✅' : 'No ❌'}</div>
-                    <div><strong>Is Active:</strong> {isActive ? 'Yes ✅' : 'No ❌'}</div>
-                </div>
+                {isActivating && (
+                    <p
+                        className="text-base mb-6"
+                        style={{ color: '#10b981', lineHeight: '1.6', fontWeight: '600' }}
+                    >
+                        Screen wake lock activated! ✓
+                    </p>
+                )}
 
-                {/* Activate Button - DIRECT onClick handler */}
-                <button
-                    onClick={handleActivate}
-                    className="btn-primary"
-                    style={{
-                        width: '100%',
-                        padding: '14px 24px',
-                        fontSize: '16px',
-                        fontWeight: '600',
-                        marginBottom: '12px'
-                    }}
-                >
-                    {isActive ? 'Wake Lock Active! 🎉' : 'Tap to Activate'}
-                </button>
+                {/* Activate Button */}
+                {!isActivating && (
+                    <>
+                        <button
+                            onClick={handleActivate}
+                            className="btn-primary"
+                            style={{
+                                width: '100%',
+                                padding: '14px 24px',
+                                fontSize: '16px',
+                                fontWeight: '600',
+                                marginBottom: '12px'
+                            }}
+                        >
+                            Keep Screen Awake
+                        </button>
 
-                {/* Dismiss Link */}
-                <button
-                    onClick={() => setIsDismissed(true)}
-                    style={{
-                        background: 'none',
-                        border: 'none',
-                        color: '#a0aec0',
-                        fontSize: '14px',
-                        cursor: 'pointer',
-                        padding: '8px'
-                    }}
-                >
-                    Close (for debugging)
-                </button>
+                        {/* Dismiss Link */}
+                        <button
+                            onClick={handleDismiss}
+                            style={{
+                                background: 'none',
+                                border: 'none',
+                                color: '#a0aec0',
+                                fontSize: '14px',
+                                cursor: 'pointer',
+                                padding: '8px'
+                            }}
+                        >
+                            No thanks
+                        </button>
+                    </>
+                )}
 
                 {/* Info Text */}
                 <p
@@ -192,7 +177,7 @@ const WakeLockBanner = ({ wakeLockRef, onSuccess }) => {
                         lineHeight: '1.5'
                     }}
                 >
-                    DEBUG MODE: Open Safari console for detailed logs
+                    This only works while IntelliKnit is open.
                 </p>
             </div>
         </div>
