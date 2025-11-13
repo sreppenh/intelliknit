@@ -22,7 +22,7 @@ import {
   PROGRESS_STATUS
 } from '../../../shared/utils/progressTracking';
 
-const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
+const Tracking = ({ onBack, onEditSteps, onGoToLanding, initialStepIndex }) => {
   const { currentProject, activeComponentIndex, dispatch } = useProjectsContext();
   const [localActiveIndex, setLocalActiveIndex] = useState(activeComponentIndex || 0);
   const [selectedStepIndex, setSelectedStepIndex] = useState(null);
@@ -58,6 +58,20 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding }) => {
       }
     }
   }, [activeComponent?.id, currentProject?.id]);
+
+  // ✅ NEW: Auto-open modal when coming from "Keep Knitting"
+  useEffect(() => {
+    if (initialStepIndex !== null && initialStepIndex !== undefined && activeComponent) {
+      // Verify the step index is valid
+      if (initialStepIndex >= 0 && initialStepIndex < activeComponent.steps.length) {
+        // Small delay to ensure component is fully mounted
+        setTimeout(() => {
+          setSelectedStepIndex(initialStepIndex);
+          setShowStepModal(true);
+        }, 100);
+      }
+    }
+  }, [initialStepIndex, activeComponent?.steps?.length]);
 
   const updateProject = useCallback((updatedProject) => {
     dispatch({ type: 'UPDATE_PROJECT', payload: updatedProject });

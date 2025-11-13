@@ -24,6 +24,7 @@ const IntelliknitMVPContent = () => {
   const { dispatch, selectedComponentIndex, projects } = useProjectsContext();
   const [selectedProjectType, setSelectedProjectType] = useState(null);
   const [projectCreationSource, setProjectCreationSource] = useState(null);
+  const [initialStepIndex, setInitialStepIndex] = useState(null); // ✅ ADD THIS LINE
 
   const {
     goToLanding,
@@ -65,6 +66,9 @@ const IntelliknitMVPContent = () => {
       // No componentId from localStorage, use project's current component
       componentIndex = targetProject.currentComponent || 0;
     }
+
+    // ✅ NEW: Store the step index to pass to Tracking component
+    setInitialStepIndex(resumeData.stepIndex ?? null);
 
     dispatch({ type: 'SET_CURRENT_PROJECT', payload: targetProject });
     dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
@@ -114,6 +118,7 @@ const IntelliknitMVPContent = () => {
 
   const handleStartKnitting = (componentIndex) => {
     dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
+    setInitialStepIndex(null); // ✅ ADD THIS LINE - Clear when starting normally
     setCurrentView('tracking');
   };
 
@@ -267,6 +272,7 @@ const IntelliknitMVPContent = () => {
           onBack={handleBackToProjectDetail}
           onEditSteps={handleEditSteps}
           onGoToLanding={goToLanding}
+          initialStepIndex={initialStepIndex} // ✅ ADD THIS LINE
         />
       );
 
