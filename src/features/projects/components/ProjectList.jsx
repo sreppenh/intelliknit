@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import { getUnifiedProjectStatus } from '../../../shared/utils/unifiedProjectStatus';
-
+import { getStepProgressState, PROGRESS_STATUS } from '../../../shared/utils/progressTracking';
 
 const ProjectList = ({ onCreateProject, onOpenProject, onBack, onGoToLanding }) => {
   const { projects, dispatch } = useProjectsContext();
@@ -160,17 +160,31 @@ const ProjectList = ({ onCreateProject, onOpenProject, onBack, onGoToLanding }) 
     if (totalComponents === 0) {
       componentText = 'No components yet';
     } else {
-      const completedComponents = project.components.filter(comp =>
-        comp.steps?.length > 0 && comp.steps.every(step => step.completed)
-      ).length;
+      // ✅ FIXED: Use progress tracking system instead of deprecated step.completed
+      const completedComponents = project.components.filter(comp => {
+        if (!comp.steps || comp.steps.length === 0) return false;
+
+        // Check if ALL steps are completed using the new progress tracking system
+        return comp.steps.every(step => {
+          const progress = getStepProgressState(step.id, comp.id, project.id);
+          return progress.status === PROGRESS_STATUS.COMPLETED;
+        });
+      }).length;
+
       componentText = `${completedComponents} of ${totalComponents} components completed`;
     }
 
     return {
       total: totalComponents,
-      completed: totalComponents > 0 ? project.components.filter(comp =>
-        comp.steps?.length > 0 && comp.steps.every(step => step.completed)
-      ).length : 0,
+      completed: totalComponents > 0 ? project.components.filter(comp => {
+        if (!comp.steps || comp.steps.length === 0) return false;
+
+        // ✅ FIXED: Use progress tracking system
+        return comp.steps.every(step => {
+          const progress = getStepProgressState(step.id, comp.id, project.id);
+          return progress.status === PROGRESS_STATUS.COMPLETED;
+        });
+      }).length : 0,
       text: `${componentText} • Created ${creationDate}`
     };
   };
