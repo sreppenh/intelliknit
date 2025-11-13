@@ -1,10 +1,11 @@
 // src/features/steps/components/pattern-configs/SimpleRowBuilder.jsx
-import React, { useState, useRef } from 'react'; // Add useRef
+import React, { useState, useRef } from 'react';
 import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
+import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
-import { useProjectsContext } from '../../../projects/hooks/useProjectsContext'; // ✨ ADD
+import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import { useKnittingAbbreviations, handleSmartKeyDown } from '../../../../shared/hooks/useKnittingAbbreviations';
 
 const SimpleRowBuilder = ({
@@ -20,12 +21,12 @@ const SimpleRowBuilder = ({
     const [editingRowIndex, setEditingRowIndex] = useState(null);
     const [tempInstruction, setTempInstruction] = useState('');
     const [tempStitchChange, setTempStitchChange] = useState(0);
+    const [stitchTrackingMode, setStitchTrackingMode] = useState('change'); // 'change' or 'remaining'
+    const [tempStitchesRemaining, setTempStitchesRemaining] = useState(null);
 
-    // ✨ ADD THESE:
     const textareaRef = useRef(null);
     const { currentProject, dispatch } = useProjectsContext();
 
-    // ✨ ADD THIS HANDLER:
     const handleUpdateRecentlyUsed = (updatedArray) => {
         dispatch({
             type: 'UPDATE_PROJECT',
@@ -42,18 +43,44 @@ const SimpleRowBuilder = ({
     const customSequence = wizardData.stitchPattern?.customSequence || { rows: [] };
     const rows = customSequence.rows || [];
 
+    // Calculate current stitch count up to a given row index
+    const getCurrentStitchCount = (upToIndex) => {
+        let count = currentStitches || 0;
+        for (let i = 0; i < upToIndex; i++) {
+            const row = rows[i];
+            if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+                count = row.stitchesRemaining;
+            } else {
+                count += (row.stitchChange || 0);
+            }
+        }
+        return count;
+    };
+
     // ===== MODAL HANDLERS =====
     const handleOpenModal = (index = null) => {
         if (index !== null) {
             // Editing existing row
             setEditingRowIndex(index);
             setTempInstruction(rows[index].instruction || '');
-            setTempStitchChange(rows[index].stitchChange || 0);
+
+            // Load either stitchChange or stitchesRemaining
+            if (rows[index].stitchesRemaining !== null && rows[index].stitchesRemaining !== undefined) {
+                setStitchTrackingMode('remaining');
+                setTempStitchesRemaining(rows[index].stitchesRemaining);
+                setTempStitchChange(0);
+            } else {
+                setStitchTrackingMode('change');
+                setTempStitchChange(rows[index].stitchChange || 0);
+                setTempStitchesRemaining(null);
+            }
         } else {
             // Adding new row
             setEditingRowIndex(null);
             setTempInstruction('');
+            setStitchTrackingMode('change');
             setTempStitchChange(0);
+            setTempStitchesRemaining(null);
         }
         setShowModal(true);
     };
@@ -62,24 +89,31 @@ const SimpleRowBuilder = ({
         setShowModal(false);
         setEditingRowIndex(null);
         setTempInstruction('');
+        setStitchTrackingMode('change');
         setTempStitchChange(0);
+        setTempStitchesRemaining(null);
     };
 
     const handleSaveRow = () => {
         const newRows = [...rows];
 
-        if (editingRowIndex !== null) {
-            // Update existing row
-            newRows[editingRowIndex] = {
-                instruction: tempInstruction,
-                stitchChange: tempStitchChange
-            };
+        // Save based on tracking mode
+        const rowData = {
+            instruction: tempInstruction,
+        };
+
+        if (stitchTrackingMode === 'remaining') {
+            rowData.stitchesRemaining = tempStitchesRemaining;
+            rowData.stitchChange = null;
         } else {
-            // Add new row
-            newRows.push({
-                instruction: tempInstruction,
-                stitchChange: tempStitchChange
-            });
+            rowData.stitchChange = tempStitchChange;
+            rowData.stitchesRemaining = null;
+        }
+
+        if (editingRowIndex !== null) {
+            newRows[editingRowIndex] = rowData;
+        } else {
+            newRows.push(rowData);
         }
 
         updateWizardData('stitchPattern', {
@@ -129,6 +163,34 @@ const SimpleRowBuilder = ({
         return tempInstruction.trim() !== '';
     };
 
+    // Get display value for stitch count badge
+    const getStitchDisplayForRow = (row, index) => {
+        if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+            return `→ ${row.stitchesRemaining} sts`;
+        }
+        return `${row.stitchChange > 0 ? '+' : ''}${row.stitchChange} sts`;
+    };
+
+    // Get badge color class
+    const getBadgeColorClass = (row, index) => {
+        if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+            const currentCount = getCurrentStitchCount(index);
+            if (row.stitchesRemaining > currentCount) {
+                return 'bg-green-100 text-green-700 border border-green-300';
+            } else if (row.stitchesRemaining < currentCount) {
+                return 'bg-red-100 text-red-700 border border-red-300';
+            }
+            return 'bg-gray-100 text-gray-600 border border-gray-300';
+        }
+
+        if (row.stitchChange > 0) {
+            return 'bg-green-100 text-green-700 border border-green-300';
+        } else if (row.stitchChange < 0) {
+            return 'bg-red-100 text-red-700 border border-red-300';
+        }
+        return 'bg-gray-100 text-gray-600 border border-gray-300';
+    };
+
     return (
         <div>
             <label className="form-label">Pattern {terms.Rows}</label>
@@ -152,11 +214,8 @@ const SimpleRowBuilder = ({
                                             {terms.Row} {rowNumber} ({rowSide}):
                                         </div>
                                         {/* Stitch change badge */}
-                                        <div className={`text-xs font-semibold px-2 py-1 rounded-md whitespace-nowrap ${row.stitchChange > 0 ? 'bg-green-100 text-green-700 border border-green-300' :
-                                            row.stitchChange < 0 ? 'bg-red-100 text-red-700 border border-red-300' :
-                                                'bg-gray-100 text-gray-600 border border-gray-300'
-                                            }`}>
-                                            {row.stitchChange > 0 ? '+' : ''}{row.stitchChange} sts
+                                        <div className={`text-xs font-semibold px-2 py-1 rounded-md whitespace-nowrap ${getBadgeColorClass(row, index)}`}>
+                                            {getStitchDisplayForRow(row, index)}
                                         </div>
                                     </div>
 
@@ -255,7 +314,7 @@ const SimpleRowBuilder = ({
                             Enter your custom instruction for this {terms.row}
                         </p>
 
-                        {/* ✨ ADD: Abbreviation Bar */}
+                        {/* Abbreviation Bar */}
                         <KnittingAbbreviationBar
                             textareaRef={textareaRef}
                             value={tempInstruction}
@@ -265,24 +324,68 @@ const SimpleRowBuilder = ({
                         />
                     </div>
 
-                    {/* Net Stitch Change */}
-                    <div>
-                        <label className="form-label">
-                            Net Stitch Change
-                        </label>
-                        <IncrementInput
-                            value={tempStitchChange}
-                            onChange={setTempStitchChange}
-                            label="stitch change"
-                            unit="stitches"
-                            min={-10000}
-                            max={10000}
-                            allowNegative={true}
-                        />
-                        <p className="text-xs text-wool-500 mt-1">
-                            Stitches gained (+) or lost (-) in this {terms.row}. Use 0 for no change.
-                        </p>
-                    </div>
+                    {/* Stitch Tracking Mode Toggle */}
+                    <SegmentedControl
+                        label="Stitch Tracking"
+                        value={stitchTrackingMode}
+                        onChange={(value) => {
+                            setStitchTrackingMode(value);
+                            if (value === 'remaining') {
+                                // Calculate default based on current count
+                                const currentCount = editingRowIndex !== null
+                                    ? getCurrentStitchCount(editingRowIndex)
+                                    : getCurrentStitchCount(rows.length);
+                                setTempStitchesRemaining(currentCount + (tempStitchChange || 0));
+                            } else {
+                                setTempStitchesRemaining(null);
+                            }
+                        }}
+                        options={[
+                            { value: 'change', label: 'Stitch Change' },
+                            { value: 'remaining', label: 'Stitches Remaining' }
+                        ]}
+                    />
+
+                    {/* Conditional input based on mode */}
+                    {stitchTrackingMode === 'change' ? (
+                        <div>
+                            <label className="form-label">
+                                Net Stitch Change
+                            </label>
+                            <IncrementInput
+                                value={tempStitchChange}
+                                onChange={setTempStitchChange}
+                                label="stitch change"
+                                unit="stitches"
+                                min={-10000}
+                                max={10000}
+                                allowNegative={true}
+                            />
+                            <p className="text-xs text-wool-500 mt-1">
+                                Stitches gained (+) or lost (-) in this {terms.row}. Use 0 for no change.
+                            </p>
+                        </div>
+                    ) : (
+                        <div>
+                            <label className="form-label">
+                                Stitches Remaining
+                            </label>
+                            <IncrementInput
+                                value={tempStitchesRemaining}
+                                onChange={setTempStitchesRemaining}
+                                label="stitches remaining"
+                                unit="stitches"
+                                min={0}
+                                max={10000}
+                            />
+                            <p className="text-xs text-wool-500 mt-1">
+                                Total stitches after completing this {terms.row}.
+                                {editingRowIndex !== null && (
+                                    <span className="font-medium"> Currently: {getCurrentStitchCount(editingRowIndex)} sts</span>
+                                )}
+                            </p>
+                        </div>
+                    )}
 
                     {/* Action Buttons */}
                     <div className="flex gap-3 pt-2">

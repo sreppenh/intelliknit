@@ -162,51 +162,53 @@ export const useStepCalculation = () => {
         stitchChangePerRepeat = rowValues.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
       }
 
-      // Handle duration.type === 'rows'
+      // ✅ UPDATE: Handle duration.type === 'rows' section
       if (wizardData.duration.type === 'rows') {
         const totalRows = parseInt(wizardData.duration.value) || 1;
         const completeRepeats = Math.floor(totalRows / rowsInPattern);
         const partialRows = totalRows % rowsInPattern;
 
-        // Calculate partial stitch change if we have customSequence
-        let partialStitchChange = 0;
-        if (wizardData.stitchPattern.customSequence?.rows && partialRows > 0) {
-          const rows = wizardData.stitchPattern.customSequence.rows;
+        // ✅ NEW: Build calculatedRows array with proper stitch tracking
+        let runningStitches = currentStitches;
+        const calculatedRows = [];
 
-          // ✅ FIX: Handle Two-Color Brioche object structure specially
-          if (wizardData.stitchPattern.pattern === 'Two-Color Brioche' && !Array.isArray(rows)) {
-            // Brioche has pairs of rows (1a, 1b), (2a, 2b), etc.
-            // If partialRows = 1, we need BOTH 1a and 1b
-            // If partialRows = 2, we need 1a, 1b, 2a, 2b
-            for (let i = 1; i <= partialRows; i++) {
-              const rowKeyA = `${i}a`;
-              const rowKeyB = `${i}b`;
-              partialStitchChange += (rows[rowKeyA]?.stitchChange || 0);
-              partialStitchChange += (rows[rowKeyB]?.stitchChange || 0);
+        if (wizardData.stitchPattern.customSequence?.rows) {
+          const rows = wizardData.stitchPattern.customSequence.rows;
+          const rowValues = Array.isArray(rows) ? rows : Object.values(rows);
+
+          // Calculate for each row
+          for (let i = 0; i < totalRows; i++) {
+            const rowIndex = i % rowValues.length;
+            const row = rowValues[rowIndex];
+
+            let endingStitchesForRow;
+            // PRIORITY: Use stitchesRemaining if provided
+            if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+              endingStitchesForRow = row.stitchesRemaining;
+            } else {
+              endingStitchesForRow = runningStitches + (row.stitchChange || 0);
             }
-          } else {
-            // Custom pattern (array structure) - original logic
-            const rowValues = Array.isArray(rows) ? rows : Object.values(rows);
-            for (let i = 0; i < partialRows && i < rowValues.length; i++) {
-              partialStitchChange += rowValues[i].stitchChange || 0;
-            }
+
+            calculatedRows.push({
+              rowNumber: i + 1,
+              instruction: row.instruction,
+              stitches: endingStitchesForRow
+            });
+
+            runningStitches = endingStitchesForRow;
           }
         }
 
-        const totalStitchChange = (stitchChangePerRepeat * completeRepeats) + partialStitchChange;
-        const endingStitches = currentStitches + totalStitchChange;
+        const endingStitches = calculatedRows.length > 0
+          ? calculatedRows[calculatedRows.length - 1].stitches
+          : currentStitches;
 
         IntelliKnitLogger.success('Custom Pattern Calculated (rows)', {
           pattern: wizardData.stitchPattern.pattern,
           totalRows,
-          rowsInPattern,
-          completeRepeats,
-          partialRows,
-          stitchChangePerRepeat,
-          partialStitchChange,  // ✅ ADD THIS
-          totalStitchChange,
           startingStitches: currentStitches,
-          endingStitches
+          endingStitches,
+          calculatedRowsCount: calculatedRows.length
         });
 
         return {
@@ -214,6 +216,7 @@ export const useStepCalculation = () => {
           totalRows,
           startingStitches: currentStitches,
           endingStitches,
+          calculatedRows, // ✅ NEW: Include calculated rows
           isCustomPattern: true
         };
       }

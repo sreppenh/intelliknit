@@ -962,7 +962,29 @@ const getColorDisplayForTechnicalData = (step, project) => {
 const getTechnicalDataDisplay = (step, project = null, stepIndex = null, component = null) => {
     const parts = [];
 
-    // Stitch counts
+    // ✅ NEW: Handle Row-by-Row steps with calculatedRows first
+    if (step.calculatedRows && step.calculatedRows.length > 0) {
+        // For steps with many rows, show abbreviated progression
+        if (step.calculatedRows.length > 4) {
+            const last = step.calculatedRows[step.calculatedRows.length - 1].stitches;
+            parts.push(`${step.startingStitches} → ... → ${last} stitches`);
+            parts.push(`${step.calculatedRows.length} rows`);
+        } else {
+            // For 4 or fewer rows, show full progression
+            const stitchProgression = step.calculatedRows
+                .map(row => `${row.stitches}`)
+                .join(' → ');
+            parts.push(`${step.startingStitches} → ${stitchProgression} stitches`);
+        }
+
+        // Add construction
+        const construction = step.construction || 'flat';
+        parts.push(construction);
+
+        return parts.join(' • ');
+    }
+
+    // Existing stitch count logic for non-row-by-row steps
     const startingStitches = step.startingStitches || 0;
     const endingStitches = step.endingStitches || step.expectedStitches || 0;
     parts.push(`${startingStitches} → ${endingStitches} stitches`);
