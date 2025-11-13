@@ -275,8 +275,6 @@ const SimpleRowBuilder = ({
                             onChange={setTempStitchChange}
                             label="stitch change"
                             unit="stitches"
-                            min={-20}
-                            max={20}
                             allowNegative={true}
                         />
                         <p className="text-xs text-wool-500 mt-1">
