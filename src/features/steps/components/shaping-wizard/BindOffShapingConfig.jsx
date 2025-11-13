@@ -104,10 +104,11 @@ const BindOffShapingConfig = ({
     const handleQuickSetupConfirm = () => {
         try {
             // Accept both comma and space-separated input
+            // NOW ALLOWS 0s for pattern rows!
             const amounts = quickSetupInput
                 .split(/[,\s]+/) // Split on comma OR whitespace
                 .map(n => parseInt(n.trim()))
-                .filter(n => !isNaN(n) && n > 0);
+                .filter(n => !isNaN(n) && n >= 0); // ✅ Changed to >= 0 to allow 0s
 
             if (amounts.length === 0) {
                 setQuickSetupError('Please enter at least one number');
@@ -136,6 +137,12 @@ const BindOffShapingConfig = ({
         if (phases.length === 0) return `While working in ${basePattern.toLowerCase()}...`;
 
         const phaseInstructions = phases.map((phase, index) => {
+            // ✅ Handle 0-stitch phases as pattern rows
+            if (phase.stitches === 0) {
+                const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
+                return `Phase ${index + 1}: Work ${nextRows} in pattern`;
+            }
+
             const methodText = phase.method === 'sloped' ? ' using sloped bind-off' : '';
             const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
             return `Phase ${index + 1}: Bind off ${phase.stitches} stitches at beginning of the ${nextRows}${methodText}`;
@@ -158,23 +165,42 @@ const BindOffShapingConfig = ({
 
             currentStitchCount -= totalStitchesThisPhase;
 
-            const methodText = phase.method === 'sloped' ? ' using sloped bind-off' : '';
-            const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
+            // ✅ Handle 0-stitch phases in description
+            if (phase.stitches === 0) {
+                const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
+                phaseDetails.push({
+                    description: `Work ${nextRows} in pattern`,
+                    rowRange: startRow === endRow ? `${startRow}` : `${startRow}-${endRow}`,
+                    rows: phase.rows,
+                    stitchChange: 0,
+                    startingStitches: currentStitchCount,
+                    endingStitches: currentStitchCount
+                });
+            } else {
+                const methodText = phase.method === 'sloped' ? ' using sloped bind-off' : '';
+                const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
 
-            phaseDetails.push({
-                description: `BO ${phase.stitches} sts at beg of ${nextRows}${methodText}`,
-                rowRange: startRow === endRow ? `${startRow}` : `${startRow}-${endRow}`,
-                rows: phase.rows,
-                stitchChange: -totalStitchesThisPhase,
-                startingStitches: currentStitchCount + totalStitchesThisPhase,
-                endingStitches: currentStitchCount
-            });
+                phaseDetails.push({
+                    description: `BO ${phase.stitches} sts at beg of ${nextRows}${methodText}`,
+                    rowRange: startRow === endRow ? `${startRow}` : `${startRow}-${endRow}`,
+                    rows: phase.rows,
+                    stitchChange: -totalStitchesThisPhase,
+                    startingStitches: currentStitchCount + totalStitchesThisPhase,
+                    endingStitches: currentStitchCount
+                });
+            }
 
             currentRow = endRow + 1;
         });
 
         // Generate instruction text
         const phaseInstructions = phases.map((phase, index) => {
+            // ✅ Handle 0-stitch phases
+            if (phase.stitches === 0) {
+                const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
+                return `Work ${nextRows} in pattern`;
+            }
+
             const methodText = phase.method === 'sloped' ? ' using sloped bind-off' : '';
             const nextRows = phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`;
             return `BO ${phase.stitches} sts at beg of ${nextRows}${methodText}`;
@@ -254,8 +280,14 @@ const BindOffShapingConfig = ({
                             {phases.map((phase, index) => (
                                 <div key={phase.id} className="flex items-center justify-between bg-yarn-50 p-3 rounded-lg">
                                     <div className="text-sm text-left">
-                                        <span className="font-medium">Phase {index + 1}:</span> BO {phase.stitches} sts at beg of {phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`}
-                                        {phase.method === 'sloped' && <span className="text-sage-600 ml-1">(sloped)</span>}
+                                        <span className="font-medium">Phase {index + 1}:</span>
+                                        {/* ✅ Handle 0-stitch display */}
+                                        {phase.stitches === 0 ? (
+                                            <> Work {phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`} in pattern</>
+                                        ) : (
+                                            <> BO {phase.stitches} sts at beg of {phase.rows === 1 ? 'next row' : `next ${phase.rows} rows`}
+                                                {phase.method === 'sloped' && <span className="text-sage-600 ml-1">(sloped)</span>}</>
+                                        )}
                                     </div>
                                     <button
                                         onClick={() => handleDeletePhase(phase.id)}
@@ -306,13 +338,18 @@ const BindOffShapingConfig = ({
                                 value={currentPhase.stitches}
                                 onChange={(value) => setCurrentPhase(prev => ({
                                     ...prev,
-                                    stitches: Math.max(1, Math.min(value, maxStitchesForPhase))
+                                    stitches: Math.max(0, Math.min(value, maxStitchesForPhase))
                                 }))}
-                                min={1}
+                                min={0}
                                 max={maxStitchesForPhase}
                                 unit="stitches"
                                 size="sm"
                             />
+                            {currentPhase.stitches === 0 && (
+                                <p className="text-xs text-sage-600 mt-1">
+                                    💡 0 stitches = work in pattern (no bind-off)
+                                </p>
+                            )}
                             {maxStitchesForPhase < currentPhase.stitches && (
                                 <p className="text-xs text-red-600 mt-1">
                                     Maximum {maxStitchesForPhase} stitches available for {currentPhase.rows} rows
@@ -344,7 +381,7 @@ const BindOffShapingConfig = ({
                         <div className="pt-4 border-t border-wool-200">
                             <button
                                 onClick={handleAddPhase}
-                                disabled={!canAddPhase}
+                                disabled={!canAddPhase && currentPhase.stitches !== 0}
                                 className="suggestion-bubble w-full"
                             >
                                 + Add This Phase
@@ -457,7 +494,7 @@ const BindOffShapingConfig = ({
                                 setQuickSetupInput(e.target.value);
                                 setQuickSetupError('');
                             }}
-                            placeholder="8 6 4 2"
+                            placeholder="8 6 4 2 0 0"
                             className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 bg-white"
                             data-modal-focus
                         />
@@ -471,6 +508,8 @@ const BindOffShapingConfig = ({
                         <div className="text-sm text-sage-600 space-y-1">
                             <div>• Enter numbers separated by spaces or commas</div>
                             <div>• Example: "8 6 4 2" or "8,6,4,2"</div>
+                            <div>• <strong>Use 0 to insert pattern rows between bind-offs</strong></div>
+                            <div>• Example: "2 2 0 0" = BO 2, BO 2, work 2 rows in pattern</div>
                             <div>• Each number creates a phase with 1 row</div>
                             <div>• You can adjust rows and method after creation</div>
                         </div>

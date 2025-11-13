@@ -1498,6 +1498,13 @@ function extractBindOffInstruction(description, construction, step, project, cur
 
     if (match) {
         const stitchCount = match[1];
+
+        // ✅ ADD THIS CHECK
+        if (parseInt(stitchCount) === 0) {
+            const basePattern = getBasePatternForCurrentRow(step, currentRow, currentRow, construction, project);
+            return basePattern;
+        }
+
         const hasSloped = description.toLowerCase().includes('sloped');
         const methodText = hasSloped ? ' using sloped bind-off' : '';
 
