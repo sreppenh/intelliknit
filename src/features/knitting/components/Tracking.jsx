@@ -59,7 +59,7 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding, initialStepIndex }) => {
     }
   }, [activeComponent?.id, currentProject?.id]);
 
-  // ✅ NEW: Auto-open modal when coming from "Keep Knitting"
+  // ✅ IMPROVED: Auto-open modal when coming from "Keep Knitting"
   useEffect(() => {
     if (initialStepIndex !== null && initialStepIndex !== undefined && activeComponent) {
       // Verify the step index is valid
@@ -575,6 +575,7 @@ const Tracking = ({ onBack, onEditSteps, onGoToLanding, initialStepIndex }) => {
                 setSelectedStepIndex(newIndex);
               }
             }}
+            skipPrepCard={initialStepIndex !== null}  // ✅ ADD THIS LINE - skip prep when resuming
           />
         )}
       </div>

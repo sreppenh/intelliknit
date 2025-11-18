@@ -12,7 +12,8 @@ export const useStepNavigation = ({
     carouselItems = [],
     onNavigateStep,
     onToggleCompletion,
-    isModalOpen = false
+    isModalOpen = false,
+    skipPrepCard = false  // ✅ ADD THIS LINE
 }) => {
     const [currentCarouselIndex, setCurrentCarouselIndex] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -20,9 +21,15 @@ export const useStepNavigation = ({
     const [navigationDirection, setNavigationDirection] = useState('forward');
 
     // Enhanced carousel positioning when step changes
-    // Enhanced carousel positioning when step changes
     useEffect(() => {
         if (carouselItems.length > 0) {
+
+            // ✅ NEW: Skip prep card on initial load if requested (for "Keep Knitting")
+            if (skipPrepCard && carouselItems.length > 1) {
+                const mainStepIndex = carouselItems.findIndex(item => item.type === 'step');
+                setCurrentCarouselIndex(mainStepIndex >= 0 ? mainStepIndex : 0);
+                return; // Early return to prevent resetting below
+            }
 
             // For backward navigation, land on main step (skip prep initially)
             if (navigationDirection === 'backward' && carouselItems.length > 1) {
@@ -36,7 +43,7 @@ export const useStepNavigation = ({
 
         // Reset direction after handling
         setNavigationDirection('forward');
-    }, [stepIndex]);
+    }, [stepIndex, skipPrepCard]);  // ✅ ADD skipPrepCard to dependencies
 
     // Safe carousel navigation
     const safeCarouselIndex = Math.min(currentCarouselIndex, carouselItems.length - 1);

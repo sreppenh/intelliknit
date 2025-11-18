@@ -25,7 +25,8 @@ const KnittingStepModal = ({
     onToggleCompletion,
     onNavigateStep,
     updateProject,
-    onShowGaugeCard
+    onShowGaugeCard,
+    skipPrepCard = false  // ✅ ADD THIS LINE
 }) => {
 
     // Reset view mode when step changes
@@ -173,7 +174,8 @@ const KnittingStepModal = ({
         carouselItems,
         onNavigateStep,
         onToggleCompletion,
-        isModalOpen: true
+        isModalOpen: true,
+        skipPrepCard  // ✅ ADD THIS LINE
     });
 
     // NEW: Auto-navigate to gauge card when it appears
