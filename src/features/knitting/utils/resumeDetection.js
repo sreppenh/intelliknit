@@ -31,12 +31,13 @@ export const getResumeData = () => {
                     const componentId = parts.slice(7, 12).join('-');
                     mostRecentActivity = { projectId, componentId };
                 } else if (key.startsWith('row-counter-')) {
-                    // Format: row-counter-projectId-componentId-stepIndex
+                    // ✅ FIX: row-counter uses step.id (UUID) not stepIndex in project mode
+                    // Don't try to parse stepIndex - we'll determine it using getCurrentStepIndex
                     const parts = key.split('-');
                     const projectId = parts.slice(2, 7).join('-'); // First UUID (5 parts)
-                    const componentId = parts.slice(7, 12).join('-'); // Second UUID (5 parts)  
-                    const stepIndex = parseInt(parts[12]); // Step index
-                    mostRecentActivity = { projectId, componentId, stepIndex };
+                    const componentId = parts.slice(7, 12).join('-'); // Second UUID (5 parts)
+                    // ❌ REMOVED: const stepIndex = parseInt(parts[12]); 
+                    mostRecentActivity = { projectId, componentId }; // ✅ Don't include stepIndex
                 }
             }
         } catch (e) {

@@ -18,6 +18,7 @@ import NoteDetail from '../../../features/notes/components/NoteDetail';
 import { useNotesContext } from '../../../features/notes/hooks/useNotesContext';
 import CreateNoteWizard from '../../notes/components/CreateNoteWizard';
 import ConfigureNotePattern from '../../notes/components/ConfigureNotePattern';
+import { getCurrentStepIndex } from '../../../shared/utils/progressTracking';
 
 const IntelliknitMVPContent = () => {
   const [currentView, setCurrentView] = useState('landing');
@@ -67,8 +68,16 @@ const IntelliknitMVPContent = () => {
       componentIndex = targetProject.currentComponent || 0;
     }
 
-    // ✅ NEW: Store the step index to pass to Tracking component
-    setInitialStepIndex(resumeData.stepIndex ?? null);
+    // ✅ FIX: Use getCurrentStepIndex to find the first in-progress or incomplete step
+    const component = targetProject.components[componentIndex];
+    const activeStepIndex = getCurrentStepIndex(
+      component.steps,
+      component.id,
+      targetProject.id
+    );
+
+    // ✅ FIX: Store the correct step index (or null if all complete)
+    setInitialStepIndex(activeStepIndex < component.steps.length ? activeStepIndex : null);
 
     dispatch({ type: 'SET_CURRENT_PROJECT', payload: targetProject });
     dispatch({ type: 'SET_ACTIVE_COMPONENT_INDEX', payload: componentIndex });
