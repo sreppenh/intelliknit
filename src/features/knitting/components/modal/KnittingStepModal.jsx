@@ -196,9 +196,11 @@ const KnittingStepModal = ({
     // Celebration Callback
     const handleComponentComplete = () => setShowCelebration(true);
 
-    // Theme for current step
-    const theme = getModalTheme(step, 'project', stepIndex, component, project);
+    // ✅ FIX: Define currentItem BEFORE calling getModalTheme
     const currentItem = navigation.currentItem || carouselItems[0];
+
+    // ✅ FIX: Pass currentItem as third parameter instead of unused params
+    const theme = getModalTheme(step, 'project', currentItem);
 
     const renderCardContent = () => {
         if (currentItem.type === 'prep') {

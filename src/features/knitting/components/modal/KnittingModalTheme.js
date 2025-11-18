@@ -6,9 +6,10 @@ import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
  * 
  * @param {Object} step - Step data object
  * @param {string} context - Context: 'project', 'notepad', 'note' (default: 'project')
+ * @param {Object} currentItem - Current carousel item being displayed (optional)
  * @returns {Object} Theme configuration with colors and styling
  */
-export const getModalTheme = (step, context = 'project') => {
+export const getModalTheme = (step, context = 'project', currentItem = null) => {
     // Force lavender theme for notepad context
     if (context === 'notepad' || context === 'note') {
         return {
@@ -20,17 +21,9 @@ export const getModalTheme = (step, context = 'project') => {
         };
     }
 
-    // Get the pattern name to check for prep steps
-    const patternName = getStepPatternName(step);
-
-    // Check if this is a prep step (has prep note OR is a "Preparation" step)
-    const hasPrep = step?.prepNote ||
-        step?.wizardConfig?.prepNote ||
-        step?.advancedWizardConfig?.prepNote ||
-        patternName === 'Preparation';
-
-    // Lavender theme for prep cards ONLY
-    if (hasPrep && (typeof hasPrep === 'string' ? hasPrep.trim().length > 0 : true)) {
+    // ✅ FIX: Check if we're CURRENTLY displaying a prep card
+    // This is the key - we only use lavender theme when actively viewing the prep card
+    if (currentItem && currentItem.type === 'prep') {
         return {
             cardBg: 'bg-gradient-to-br from-lavender-50 via-lavender-25 to-white',
             contentBg: 'bg-lavender-50/30 border-lavender-200/50',
@@ -44,8 +37,8 @@ export const getModalTheme = (step, context = 'project') => {
     return {
         cardBg: 'bg-gradient-to-br from-sage-25 via-white to-sage-50',
         contentBg: 'bg-sage-50/30 border-sage-200/50',
-        textPrimary: 'text-gray-800',      // ✅ Changed to gray-800 for consistency
-        textSecondary: 'text-gray-700',    // ✅ Changed to gray-700 for consistency
+        textPrimary: 'text-gray-800',
+        textSecondary: 'text-gray-700',
         accent: 'sage'
     };
 };
