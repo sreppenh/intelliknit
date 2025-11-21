@@ -1459,7 +1459,11 @@ function getBindOffPhaseRowInstruction(phase, currentRow, construction, step, pr
         ? parseInt(rowRange.split('-')[0])
         : parseInt(rowRange);
 
-    const isBindOffRow = currentRow === startRow;
+    // ✅ FIX: Check if current row is within bind-off range, not just the first row
+    const endRow = rowRange.includes('-')
+        ? parseInt(rowRange.split('-')[1])
+        : startRow;
+    const isBindOffRow = currentRow >= startRow && currentRow <= endRow;
 
     if (isBindOffRow) {
         // This is the bind-off row - extract the bind-off instruction with pattern
