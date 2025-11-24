@@ -66,7 +66,7 @@ const EvenDistributionConfig = ({
     });
 
     // Navigate back to component steps
-    onComplete(configData);
+    onExitToComponentSteps();
   };
 
 
