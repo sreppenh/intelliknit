@@ -5,6 +5,7 @@ import { useActiveContext } from '../../../../shared/hooks/useActiveContext'; //
 import ShapingHeader from './ShapingHeader';
 import EvenDistributionForm from './EvenDistributionForm';
 
+
 /**
  * EvenDistributionConfig - Creation flow wrapper around EvenDistributionForm
  * 
@@ -50,11 +51,11 @@ const EvenDistributionConfig = ({
 
   // Handle save from form component
   const handleFormSave = async (configData) => {
-    console.log('🔧 EvenDistributionConfig handleFormSave called');
-    console.log('🔧 Saving config:', configData);
+    console.log('🔧 EvenDistributionConfig saving config');
+    console.log('🔧 configData:', configData);
 
-    // ✅ FIXED: Actually save the shaping data before navigating
-    setShapingData({
+    // ✅ FIXED: Update the PARENT wizard's wizardData (not local shapingData)
+    wizard.updateWizardData('shapingConfig', {
       type: 'even_distribution',
       config: {
         action: configData.action,
@@ -64,11 +65,11 @@ const EvenDistributionConfig = ({
         calculation: configData.calculation
       }
     });
+    wizard.updateWizardData('hasShaping', true);
 
-    // Navigate back to component steps
+    // Navigate back - parent StepWizard should create the step
     onExitToComponentSteps();
   };
-
 
   return (
     <div>
