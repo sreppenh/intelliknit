@@ -30,7 +30,7 @@ const EvenDistributionConfig = ({
 
   // ✅ FIXED: Use context bridge instead of hardcoded projects context
   const { dispatch } = useActiveContext(mode);
-  const { error, clearError } = useStepSaveHelper();
+  const { saveStepAndNavigate, error, clearError } = useStepSaveHelper();
 
   // Get initial configuration from shapingData
   const getInitialConfig = () => {
@@ -54,21 +54,31 @@ const EvenDistributionConfig = ({
     console.log('🔧 EvenDistributionConfig saving config');
     console.log('🔧 configData:', configData);
 
-    // ✅ FIXED: Update the PARENT wizard's wizardData (not local shapingData)
-    wizard.updateWizardData('shapingConfig', {
-      type: 'even_distribution',
-      config: {
-        action: configData.action,
-        amount: configData.amount,
-        description: configData.description,
-        construction: configData.construction,
-        calculation: configData.calculation
-      }
+    // ✅ RESTORED: The actual save logic that was removed in the refactor
+    await saveStepAndNavigate({
+      instruction: configData.calculation.instruction,
+      effect: {
+        success: !configData.calculation.error,
+        endingStitches: configData.calculation.endingStitches,
+        startingStitches: configData.calculation.startingStitches,
+        totalRows: 1,
+        error: configData.calculation.error
+      },
+      wizardData: {
+        ...wizardData,
+        hasShaping: true,
+        shapingConfig: {
+          type: 'even_distribution',
+          config: configData
+        }
+      },
+      currentStitches,
+      construction,
+      componentIndex,
+      editingStepIndex,
+      dispatch,
+      onNavigate: onExitToComponentSteps
     });
-    wizard.updateWizardData('hasShaping', true);
-
-    // Navigate back - parent StepWizard should create the step
-    onExitToComponentSteps();
   };
 
   return (
