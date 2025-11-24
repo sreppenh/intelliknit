@@ -50,13 +50,25 @@ const EvenDistributionConfig = ({
 
   // Handle save from form component
   const handleFormSave = async (configData) => {
-    console.log('🔧 EvenDistributionConfig handleFormSave called with mode:', mode);
-    console.log('🔧 configData:', configData);
-    console.log('🔧 dispatch function:', dispatch);
+    console.log('🔧 EvenDistributionConfig handleFormSave called');
+    console.log('🔧 Saving config:', configData);
+
+    // ✅ FIXED: Actually save the shaping data before navigating
+    setShapingData({
+      type: 'even_distribution',
+      config: {
+        action: configData.action,
+        amount: configData.amount,
+        description: configData.description,
+        construction: configData.construction,
+        calculation: configData.calculation
+      }
+    });
 
     // Navigate back to component steps
     onExitToComponentSteps();
   };
+
 
   return (
     <div>

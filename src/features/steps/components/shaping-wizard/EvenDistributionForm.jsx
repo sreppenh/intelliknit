@@ -355,7 +355,7 @@ const EvenDistributionForm = ({
                             disabled={!canSave()}
                             className="flex-1 btn-primary"
                         >
-                            Save Changes
+                            {isEditMode ? 'Save Changes' : 'Continue'}
                         </button>
                     </div>
                 </div>
