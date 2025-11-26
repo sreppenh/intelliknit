@@ -84,10 +84,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
  * Determine step type for counter behavior
  */
 export const getStepType = (step, totalRows, duration) => {
-    // Cast-on, bind-off, and other single-action steps
-    if (totalRows === 1) {
-        return 'single_action';
-    }
+    // ✅ CHECK DURATION TYPE FIRST - length-based and completion-when-ready take priority
 
     // Length-based steps (work until measurement)
     if (duration?.type === 'length' || duration?.type === 'until_length') {
@@ -97,6 +94,11 @@ export const getStepType = (step, totalRows, duration) => {
     // Steps that can be completed at any time
     if (duration?.type === 'stitches' && duration?.value === 'all') {
         return 'completion_when_ready';
+    }
+
+    // Cast-on, bind-off, and other single-action steps
+    if (totalRows === 1) {
+        return 'single_action';
     }
 
     // Standard multi-row steps
