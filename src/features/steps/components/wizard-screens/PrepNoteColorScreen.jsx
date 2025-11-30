@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 import { formatColorworkDisplay } from '../../../../shared/utils/colorworkDisplayUtils';
+import { getStepStartingSide } from '../../../../shared/utils/sideIntelligence';
+import SegmentedControl from '../../../../shared/components/SegmentedControl';
 
 const PrepNoteColorScreen = ({
     wizardData,
@@ -24,6 +26,14 @@ const PrepNoteColorScreen = ({
         component.colorMode === 'multiple' && component.defaultColorwork ? true : false
     );
 
+    // ✨ NEW: Starting Side state for flat construction
+    const stepIndex = component.steps.length; // Index of step we're creating
+    const expectedStartingSide = getStepStartingSide(component, stepIndex);
+    const [startingSide, setStartingSide] = useState(
+        wizardData.sideTracking?.startingSide || expectedStartingSide
+    );
+    const isOverride = startingSide !== expectedStartingSide;
+
     // Auto-handle components without colorMode set (legacy)
     useEffect(() => {
         if (!component.colorMode) {
@@ -33,6 +43,15 @@ const PrepNoteColorScreen = ({
 
     const handleContinue = () => {
         updateWizardData('prepNote', prepNote);
+
+        // ✨ NEW: Save side tracking for flat construction
+        if (component.construction === 'flat') {
+            updateWizardData('sideTracking', {
+                startingSide: startingSide,
+                userOverride: isOverride,
+                expectedStartingSide: expectedStartingSide
+            });
+        }
 
         // Check what needs configuration
         const needsPatternConfig = !component.defaultPattern || !useDefaultPattern;
@@ -54,6 +73,10 @@ const PrepNoteColorScreen = ({
             }
             onContinue('duration-shaping');
         }
+    };
+
+    const handleSideChange = (side) => {
+        setStartingSide(side);
     };
 
     const canContinue = () => {
@@ -80,6 +103,36 @@ const PrepNoteColorScreen = ({
                     className="input-field-lg resize-none"
                 />
             </div>
+
+            {/* ✨ NEW: Starting Side Toggle - Only for flat construction */}
+            {component.construction === 'flat' && (
+                <div>
+                    <label className="form-label">
+                        Starting Side
+                    </label>
+                    <div className="space-y-2">
+                        <SegmentedControl
+                            options={[
+                                { value: 'RS', label: 'RS (Right Side)' },
+                                { value: 'WS', label: 'WS (Wrong Side)' }
+                            ]}
+                            value={startingSide}
+                            onChange={handleSideChange}
+                        />
+                        <div className="text-xs text-wool-500">
+                            {isOverride ? (
+                                <span className="text-yarn-600 font-medium">
+                                    ⚠️ Overriding expected side ({expectedStartingSide})
+                                </span>
+                            ) : (
+                                <span>
+                                    Expected: {expectedStartingSide}
+                                </span>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Helper Text - only show if there are options to customize */}
             {((component.colorMode === 'multiple' && component.defaultColorwork) ||
