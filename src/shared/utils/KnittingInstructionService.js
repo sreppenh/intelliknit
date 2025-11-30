@@ -7,6 +7,7 @@ import { generateMarkerInstructionPreview } from './markerInstructionUtils';
 import { getAdjustedColorRow, getAdjustedPatternRow } from './progressTracking';
 import { getCastOnDisplayName, getBindOffDisplayName } from './constants';  // ✅ ADD THIS
 import { getYarnByLetter } from './colorworkDisplayUtils';
+import { getCurrentSide, generatePatternInstruction } from './sideIntelligence';
 
 /**
  * Smart Instruction Generation - Phase 2 implementation
@@ -906,16 +907,18 @@ function extractShapingInstruction(description, construction) {
 /**
  * Generate instructions for basic algorithmic patterns
  */
-function getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName, stepStartingSide = null) {  // ← ADD stepStartingSide
-    // Standard algorithmic pattern processing (colorwork handled separately above)
-    const rowInstruction = getAlgorithmicRowInstruction(patternName, currentRow, currentStitchCount, construction, stepStartingSide);  // ← PASS IT DOWN
+function getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName, stepStartingSide = null) {
+    // ✨ NEW: Use side intelligence to get the instruction
+    const currentSide = getCurrentSide(construction, currentRow, stepStartingSide);
+    const rowInstruction = generatePatternInstruction(patternName, currentRow, currentSide);
 
     if (!rowInstruction) {
         return getFallbackInstruction(step, currentRow, currentStitchCount, patternName);
     }
 
-    // Add stitch count if it stays the same
     const stitchCountText = shouldShowStitchCount(step) ? ` (${currentStitchCount} stitches)` : '';
+
+    console.log('🔍 ALGO DEBUG:', { patternName, currentRow, stepStartingSide, currentSide, rowInstruction });
 
     return {
         instruction: `${rowInstruction}${stitchCountText}`,

@@ -585,6 +585,14 @@ const KnittingStepCounter = ({
                 }
             }
 
+            console.log('🔍 PASSING TO getRowInstruction:', {
+                stepStartingSide,
+                currentSide,
+                currentRow,
+                hasSideTracking: !!step.sideTracking,
+                sideTrackingValue: step.sideTracking
+            });
+
             const result = getRowInstruction(step, currentRow, stitchCount, project, component, stepIndex, stepStartingSide);
             return result;
         } catch (error) {
