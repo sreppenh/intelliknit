@@ -585,7 +585,7 @@ const KnittingStepCounter = ({
                 }
             }
 
-            const result = getRowInstruction(step, currentRow, stitchCount, project, component, stepIndex);
+            const result = getRowInstruction(step, currentRow, stitchCount, project, component, stepIndex, stepStartingSide);
             return result;
         } catch (error) {
             console.error('Error getting row instruction:', error);

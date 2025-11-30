@@ -47,6 +47,7 @@ const DurationWizard = ({
 
             console.log('🔍 FULL WIZARDDATA:', wizardData);
             console.log('🔍 COLORWORK IN WIZARDDATA:', wizardData.colorwork);
+            console.log('🔍 SIDE TRACKING IN WIZARDDATA:', wizardData.sideTracking);
 
             const saveResult = await saveStepAndNavigate({
                 instruction,

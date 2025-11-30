@@ -12,19 +12,14 @@ import { getYarnByLetter } from './colorworkDisplayUtils';
  * Smart Instruction Generation - Phase 2 implementation
  * Generates proper knitting instructions based on step configuration
  */
-export const getRowInstruction = (step, currentRow, currentStitchCount, project = null, component = null, stepIndex = null) => {
+export const getRowInstruction = (step, currentRow, currentStitchCount, project = null, component = null, stepIndex = null, stepStartingSide = null) => {
     try {
         // Get basic step info
         const construction = step.construction || 'flat';
         const rowTerm = construction === 'round' ? 'Round' : 'Row';
 
         // Route to appropriate instruction type
-        const instructionResult = routeInstruction(step, currentRow, currentStitchCount, construction, project, component, stepIndex);
-
-        // Add row number prefix for multi-row steps
-        // if (step.totalRows > 1 && instructionResult.instruction) {
-        //  instructionResult.instruction = `${rowTerm} ${currentRow}: ${instructionResult.instruction}`;
-        //  }
+        const instructionResult = routeInstruction(step, currentRow, currentStitchCount, construction, project, component, stepIndex, stepStartingSide);  // ← ADD stepStartingSide here
 
         return instructionResult;
 
@@ -42,7 +37,7 @@ export const getRowInstruction = (step, currentRow, currentStitchCount, project 
 /**
  * Route instruction generation based on step type and configuration
  */
-function routeInstruction(step, currentRow, currentStitchCount, construction, project, component = null, stepIndex = null) {
+function routeInstruction(step, currentRow, currentStitchCount, construction, project, component = null, stepIndex = null, stepStartingSide = null) {  // ← ADD stepStartingSide
     const patternName = getStepPatternName(step);
     const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
@@ -73,7 +68,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
     }
     // Priority 4: Basic algorithmic patterns
     if (isAlgorithmicPattern(patternName)) {
-        return getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName);
+        return getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName, stepStartingSide);  // ← ADD stepStartingSide here
     }
 
     // Priority 5: Fallback
@@ -911,9 +906,9 @@ function extractShapingInstruction(description, construction) {
 /**
  * Generate instructions for basic algorithmic patterns
  */
-function getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName) {
+function getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName, stepStartingSide = null) {  // ← ADD stepStartingSide
     // Standard algorithmic pattern processing (colorwork handled separately above)
-    const rowInstruction = getAlgorithmicRowInstruction(patternName, currentRow, currentStitchCount, construction);
+    const rowInstruction = getAlgorithmicRowInstruction(patternName, currentRow, currentStitchCount, construction, stepStartingSide);  // ← PASS IT DOWN
 
     if (!rowInstruction) {
         return getFallbackInstruction(step, currentRow, currentStitchCount, patternName);
