@@ -360,11 +360,14 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
 
   const handleEditConfigFromMenu = (stepIndex, event) => {
     event.stopPropagation();
+    console.log('🔧 Edit Config clicked for step', stepIndex);
 
     checkEditSafety(stepIndex, 'config', () => {
+      console.log('✅ Edit safety check passed, setting state...');
       setEditingStepIndex(stepIndex);
       setShowEditConfigScreen(true);
       setOpenMenuId(null);
+      console.log('✅ State set - showEditConfigScreen should be true');
     });
   };
 
