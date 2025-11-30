@@ -211,20 +211,23 @@ export const PatternSelector = ({
                     {PATTERN_CATEGORIES[selectedQuickCategory].name} Patterns
                   </h4>
                   <div className="grid grid-cols-2 gap-3">
-                    {PATTERN_CATEGORIES[selectedQuickCategory].patterns.map(pattern => (
-                      <button
-                        key={pattern.name}
-                        onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
-                        className={`card-selectable ${selectedPattern === pattern.name
-                          ? 'card-selectable-selected'
-                          : ''
-                          }`}
-                      >
-                        <div className="text-lg mb-1">{pattern.icon}</div>
-                        <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
-                        <div className="text-xs opacity-70">{pattern.desc}</div>
-                      </button>
-                    ))}
+                    {PATTERN_CATEGORIES[selectedQuickCategory].patterns
+                      .filter(pattern => isComponentDefault || pattern.name !== 'None')
+                      .map(pattern => (
+
+                        <button
+                          key={pattern.name}
+                          onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
+                          className={`card-selectable ${selectedPattern === pattern.name
+                            ? 'card-selectable-selected'
+                            : ''
+                            }`}
+                        >
+                          <div className="text-lg mb-1">{pattern.icon}</div>
+                          <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
+                          <div className="text-xs opacity-70">{pattern.desc}</div>
+                        </button>
+                      ))}
                   </div>
                 </div>
               )}
