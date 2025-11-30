@@ -918,8 +918,6 @@ function getAlgorithmicInstruction(step, currentRow, currentStitchCount, constru
 
     const stitchCountText = shouldShowStitchCount(step) ? ` (${currentStitchCount} stitches)` : '';
 
-    console.log('🔍 ALGO DEBUG:', { patternName, currentRow, stepStartingSide, currentSide, rowInstruction });
-
     return {
         instruction: `${rowInstruction}${stitchCountText}`,
         isSupported: true,

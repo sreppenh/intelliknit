@@ -435,6 +435,7 @@ export const projectsReducer = (state, action) => {
         endingStitches: step.endingStitches !== undefined ? step.endingStitches : step.expectedStitches,
         totalRows: step.totalRows,
         colorwork: step.colorwork,
+        sideTracking: step.sideTracking,
         completed: false
       };
 

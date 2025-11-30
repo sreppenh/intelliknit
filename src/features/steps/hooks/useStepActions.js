@@ -15,8 +15,6 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     useCurrentStitches = false
   } = options;
 
-  console.log('🔍 COLORWORK BEING SAVED:', wizard.wizardData?.colorwork);
-
   const stepObject = {
     description: instruction,
     type: forceManualType ? 'manual' : (effect.success ? 'calculated' : 'manual'),
@@ -44,9 +42,6 @@ const createStepObject = (instruction, effect, wizard, options = {}) => {
     ...(includeNavigation && wizard.navigationStack && { navigationStack: wizard.navigationStack }),
     ...(includeNavigation && wizard.navigationCache && { navigationCache: wizard.navigationCache })
   };
-
-  console.log('🔍 SIDE TRACKING BEING SAVED:', wizard.wizardData?.sideTracking);
-
 
   return stepObject;
 };
