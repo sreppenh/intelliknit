@@ -54,9 +54,9 @@ const DurationChoice = ({
     wizardData.colorwork?.stripeSequence?.length > 0;
 
   const handleDurationTypeSelect = (type) => {
-    updateWizardData('duration', { type, value: '' });
+    const defaultValue = (type === 'repeats' || type === 'color_repeats') ? '1' : '';
+    updateWizardData('duration', { type, value: defaultValue });
   };
-
   // Smart gauge calculation using real project data
   const calculateRowsFromLength = (inches) => {
     const projectGauge = project?.gauge;
@@ -398,7 +398,7 @@ const DurationChoice = ({
                     <div className="mt-3 space-y-2">
 
                       <div className="flex items-center gap-2">
-                        <span className="text-sm text-sage-700">Repeat the pattern</span>
+                        <span className="text-sm text-sage-700">Work the pattern</span>
                         <IncrementInput
                           value={wizardData.duration.value}
                           onChange={(value) => updateWizardData('duration', { value })}
@@ -411,7 +411,7 @@ const DurationChoice = ({
 
                       {wizardData.duration.value && (
                         <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
-                          <strong>Preview:</strong> Repeat the {wizardData.stitchPattern.rowsInPattern}-{construction === 'round' ? 'round' : 'row'} pattern {wizardData.duration.value} times
+                          <strong>Preview:</strong> Work the {wizardData.stitchPattern.rowsInPattern}-{construction === 'round' ? 'round' : 'row'} pattern {wizardData.duration.value} times
                           ({(parseInt(wizardData.stitchPattern.rowsInPattern) || 0) * (parseInt(wizardData.duration.value) || 0)} total {construction === 'round' ? 'rounds' : 'rows'})
                         </div>
                       )}
@@ -554,7 +554,7 @@ const DurationChoice = ({
 
                         return (
                           <div className="text-xs text-sage-600 bg-sage-50 rounded-lg p-2">
-                            <strong>Preview:</strong> Repeat the {totalRowsInSequence}-{construction === 'round' ? 'round' : 'row'} stripe pattern {wizardData.duration.value} times
+                            <strong>Preview:</strong> Work the {totalRowsInSequence}-{construction === 'round' ? 'round' : 'row'} stripe pattern {wizardData.duration.value} times
                             ({totalRows} total {construction === 'round' ? 'rounds' : 'rows'})
                           </div>
                         );
