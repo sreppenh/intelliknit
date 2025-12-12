@@ -43,14 +43,31 @@ export const getValidTargetStitches = (startingStitches, stitchChangePerRepeat, 
  * @param {number} startingStitches - Starting stitch count
  * @param {number} targetStitches - Desired ending stitch count
  * @param {number} stitchChangePerRepeat - Net stitch change per repeat
- * @returns {Object} - { repeats, isExact, actualEnding }
+ * @returns {Object} - { repeats, isExact, actualEnding, isValid }
  */
 export const calculateRepeatsToTarget = (startingStitches, targetStitches, stitchChangePerRepeat) => {
     if (stitchChangePerRepeat === 0) {
-        return { repeats: 0, isExact: false, actualEnding: startingStitches };
+        return { repeats: 0, isExact: false, actualEnding: startingStitches, isValid: false };
     }
 
     const stitchDifference = targetStitches - startingStitches;
+
+    // ✅ FIX: Validate that the direction makes sense
+    // If increasing (positive change), target must be higher than starting
+    // If decreasing (negative change), target must be lower than starting
+    if ((stitchChangePerRepeat > 0 && stitchDifference <= 0) ||
+        (stitchChangePerRepeat < 0 && stitchDifference >= 0)) {
+        return {
+            repeats: 0,
+            isExact: false,
+            actualEnding: startingStitches,
+            isValid: false,
+            error: stitchChangePerRepeat > 0
+                ? 'Target must be higher than starting stitches for increasing patterns'
+                : 'Target must be lower than starting stitches for decreasing patterns'
+        };
+    }
+
     const repeats = Math.abs(Math.floor(stitchDifference / stitchChangePerRepeat));
     const actualEnding = startingStitches + (repeats * stitchChangePerRepeat);
     const isExact = actualEnding === targetStitches;
@@ -58,7 +75,8 @@ export const calculateRepeatsToTarget = (startingStitches, targetStitches, stitc
     return {
         repeats,
         isExact,
-        actualEnding
+        actualEnding,
+        isValid: true
     };
 };
 
@@ -73,6 +91,12 @@ export const isValidTarget = (startingStitches, targetStitches, stitchChangePerR
     if (stitchChangePerRepeat === 0) return false;
 
     const stitchDifference = targetStitches - startingStitches;
+
+    // ✅ FIX: Check direction validity first
+    if ((stitchChangePerRepeat > 0 && stitchDifference <= 0) ||
+        (stitchChangePerRepeat < 0 && stitchDifference >= 0)) {
+        return false;
+    }
 
     // Check if difference is divisible by change per repeat
     return stitchDifference % stitchChangePerRepeat === 0;
@@ -148,9 +172,34 @@ export const calculateTargetRows = (
     startingStitches,
     stitchChangePerRepeat
 ) => {
-    // Calculate which row within a repeat we hit the target
+    // ✅ FIX: Validate inputs to prevent negative rows
+    if (repeatsNeeded < 0 || rowsPerRepeat <= 0) {
+        return {
+            totalRows: 0,
+            actualRepeats: 0,
+            endingStitches: startingStitches,
+            reachedOnRow: 0,
+            isValid: false,
+            error: 'Invalid calculation parameters'
+        };
+    }
+
     const totalStitchChange = targetStitches - startingStitches;
-    const fullRepeats = Math.floor(totalStitchChange / stitchChangePerRepeat);
+
+    // ✅ FIX: Validate direction
+    if ((stitchChangePerRepeat > 0 && totalStitchChange <= 0) ||
+        (stitchChangePerRepeat < 0 && totalStitchChange >= 0)) {
+        return {
+            totalRows: 0,
+            actualRepeats: 0,
+            endingStitches: startingStitches,
+            reachedOnRow: 0,
+            isValid: false,
+            error: 'Target stitch count is in wrong direction for this pattern'
+        };
+    }
+
+    const fullRepeats = Math.floor(Math.abs(totalStitchChange) / Math.abs(stitchChangePerRepeat));
     const remainingStitchChange = totalStitchChange - (fullRepeats * stitchChangePerRepeat);
 
     let reachedOnRow = null;
@@ -162,25 +211,27 @@ export const calculateTargetRows = (
 
     if (completeSequence || remainingStitchChange === 0) {
         // Complete all repeats
-        const actualRepeats = Math.ceil(totalStitchChange / stitchChangePerRepeat);
-        const totalRows = actualRepeats * rowsPerRepeat;
+        const actualRepeats = Math.ceil(Math.abs(totalStitchChange) / Math.abs(stitchChangePerRepeat));
+        const totalRows = Math.max(0, actualRepeats * rowsPerRepeat); // ✅ Ensure non-negative
         const endingStitches = startingStitches + (actualRepeats * stitchChangePerRepeat);
 
         return {
             totalRows,
             actualRepeats,
             endingStitches,
-            reachedOnRow: reachedOnRow || totalRows
+            reachedOnRow: reachedOnRow || totalRows,
+            isValid: true
         };
     } else {
         // Stop at target (incomplete repeat)
-        const totalRows = reachedOnRow || (repeatsNeeded * rowsPerRepeat);
+        const totalRows = Math.max(0, reachedOnRow || (repeatsNeeded * rowsPerRepeat)); // ✅ Ensure non-negative
 
         return {
             totalRows,
             actualRepeats: repeatsNeeded,
             endingStitches: targetStitches,
-            reachedOnRow: totalRows
+            reachedOnRow: totalRows,
+            isValid: true
         };
     }
 };

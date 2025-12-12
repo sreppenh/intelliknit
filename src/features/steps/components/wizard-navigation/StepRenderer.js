@@ -28,8 +28,8 @@ export const renderStep = (
           wizardData={wizard.wizardData}
           updateWizardData={wizard.updateWizardData}
           navigation={customNavigation}
-          construction={wizard.construction}  // Make sure this is passed
-          currentStitches={wizard.currentStitches}  // ADD THIS LINE
+          construction={wizard.construction}
+          currentStitches={wizard.currentStitches}
         />
       );
 
@@ -45,10 +45,14 @@ export const renderStep = (
 
     case 4:
       // Duration Choice - our new single page that NEEDS nav buttons
+      // ✅ FIX: Pass construction, project, and currentStitches to enable target stitch calculations
       return (
         <DurationChoice
           wizardData={wizard.wizardData}
           updateWizardData={wizard.updateWizardData}
+          construction={wizard.construction}
+          project={wizard.project}
+          currentStitches={wizard.currentStitches}
         />
       );
 
