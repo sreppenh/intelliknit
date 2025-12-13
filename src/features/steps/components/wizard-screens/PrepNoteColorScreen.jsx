@@ -197,7 +197,7 @@ const PrepNoteColorScreen = ({
             <div className="pt-4 border-t border-wool-200">
                 <button
                     onClick={handleFinishComponent}
-                    className="w-full btn-tertiary flex items-center justify-center gap-2"
+                    className="w-full btn-secondary flex items-center justify-center gap-2"
                 >
                     <span className="text-lg">🏁</span>
                     <span>Finish Component</span>
