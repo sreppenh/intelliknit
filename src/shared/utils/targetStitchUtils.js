@@ -104,21 +104,42 @@ export const isValidTarget = (startingStitches, targetStitches, stitchChangePerR
 
 /**
  * Calculate stitch change per repeat for a pattern
- * @param {Array} rows - Array of row objects with stitchChange property
+ * @param {Array} rows - Array of row objects with stitchChange or stitchesRemaining property
+ * @param {number} startingStitches - Starting stitch count (needed if rows use stitchesRemaining)
  * @returns {number} - Total stitch change per complete repeat
  */
-export const calculateStitchChangePerRepeat = (rows) => {
+export const calculateStitchChangePerRepeat = (rows, startingStitches = 0) => {
     if (!rows || rows.length === 0) return 0;
 
-    return rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
+    // If rows use stitchChange property, sum them up
+    const hasStitchChange = rows.some(row => row.stitchChange !== null && row.stitchChange !== undefined);
+    if (hasStitchChange) {
+        return rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
+    }
+
+    // If rows use stitchesRemaining property, calculate the net change
+    const hasStitchesRemaining = rows.some(row => row.stitchesRemaining !== null && row.stitchesRemaining !== undefined);
+    if (hasStitchesRemaining) {
+        let runningStitches = startingStitches;
+        for (const row of rows) {
+            if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+                runningStitches = row.stitchesRemaining;
+            }
+        }
+        // Net change is the difference between where we started and where we ended
+        return runningStitches - startingStitches;
+    }
+
+    return 0;
 };
 
 /**
  * Get pattern repeat info from wizardData
  * @param {Object} stitchPattern - The stitchPattern from wizardData
+ * @param {number} startingStitches - Starting stitch count (optional, needed for stitchesRemaining mode)
  * @returns {Object} - { hasRepeat, rowsInPattern, stitchChangePerRepeat }
  */
-export const getPatternRepeatInfo = (stitchPattern) => {
+export const getPatternRepeatInfo = (stitchPattern, startingStitches = 0) => {
     if (!stitchPattern) {
         return { hasRepeat: false, rowsInPattern: 0, stitchChangePerRepeat: 0 };
     }
@@ -128,7 +149,7 @@ export const getPatternRepeatInfo = (stitchPattern) => {
 
     // Custom pattern (Simple Row) uses customSequence.rows (array)
     if (stitchPattern.pattern === 'Custom' && stitchPattern.customSequence?.rows) {
-        stitchChangePerRepeat = calculateStitchChangePerRepeat(stitchPattern.customSequence.rows);
+        stitchChangePerRepeat = calculateStitchChangePerRepeat(stitchPattern.customSequence.rows, startingStitches);
     }
     // Two-Color Brioche uses customSequence.rows (object)
     else if (stitchPattern.pattern === 'Two-Color Brioche' && stitchPattern.customSequence?.rows) {
