@@ -36,6 +36,19 @@ export const useStepCalculation = () => {
       };
     }
 
+    // Handle duration.type === 'length' or 'until_length' for ALL patterns
+    if (wizardData.duration.type === 'length' || wizardData.duration.type === 'until_length') {
+      return {
+        success: true,
+        totalRows: 1, // Placeholder - actual tracking happens in knitting mode
+        startingStitches: currentStitches,
+        endingStitches: currentStitches, // Can't calculate without knowing actual rows worked
+        isLengthBased: true,
+        lengthValue: parseFloat(wizardData.duration.value),
+        lengthUnits: wizardData.duration.units || 'inches'
+      };
+    }
+
     // ✅ NEW: Handle target-based pattern repeats
     if (wizardData.duration.type === 'target_repeats' && wizardData.duration.targetStitches) {
       IntelliKnitLogger.debug('Target Repeats Calculation', 'Triggered');
