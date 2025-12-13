@@ -49,7 +49,7 @@ const DurationChoice = ({
 
   // ✅ NEW: Calculate valid target stitches if applicable
   const validTargets = supportsTargetRepeats
-    ? getValidTargetStitches(currentStitches, repeatInfo.stitchChangePerRepeat, 100)
+    ? getValidTargetStitches(currentStitches, wizardData.stitchPattern, 100)
     : [];
 
   // ✅ NEW: Check if color pattern exists

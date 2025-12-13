@@ -11,27 +11,36 @@
  * @param {number} maxRepeats - Maximum repeats to calculate (default 100)
  * @returns {Array<number>} - Array of valid target stitch counts
  */
-export const getValidTargetStitches = (startingStitches, stitchChangePerRepeat, maxRepeats = 100) => {
-    if (!startingStitches || !stitchChangePerRepeat || stitchChangePerRepeat === 0) {
+export const getValidTargetStitches = (startingStitches, stitchPattern, maxRepeats = 100) => {
+    if (!startingStitches || !stitchPattern?.customSequence?.rows) {
         return [];
     }
 
+    const rows = stitchPattern.customSequence.rows;
     const validTargets = [];
     let currentStitches = startingStitches;
 
-    // Generate valid targets based on direction
-    if (stitchChangePerRepeat > 0) {
-        // Increasing pattern (lace shawl growth)
-        for (let i = 1; i <= maxRepeats; i++) {
-            currentStitches += stitchChangePerRepeat;
-            validTargets.push(currentStitches);
-        }
-    } else {
-        // Decreasing pattern (sleeve taper, etc.)
-        for (let i = 1; i <= maxRepeats; i++) {
-            currentStitches += stitchChangePerRepeat; // Adding negative number
-            if (currentStitches <= 0) break; // Stop if we hit zero or below
-            validTargets.push(currentStitches);
+    // Generate targets for each row in the pattern, across multiple repeats
+    for (let repeat = 0; repeat < maxRepeats; repeat++) {
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+
+            // Apply stitch change
+            if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+                currentStitches = row.stitchesRemaining;
+            } else {
+                currentStitches += (row.stitchChange || 0);
+            }
+
+            // Only add as valid target if stitches actually changed
+            if (currentStitches !== startingStitches && currentStitches > 0) {
+                validTargets.push(currentStitches);
+            }
+
+            // Stop if we hit zero or below
+            if (currentStitches <= 0) {
+                return validTargets;
+            }
         }
     }
 
