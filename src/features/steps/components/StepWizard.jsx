@@ -478,8 +478,8 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
             onContinue={handlePrepColorContinue}
             onBack={onBack}
             onCancel={handleXButtonClick}
-            onFinishComponent={() => {          // ✅ ADD THIS
-              wizardState.handleShowEndingWizard();
+            onFinishComponent={() => {
+              wizardState.handleFinishComponent();  // ✅ This is the right function name
             }}
           />
         ) : showColorSelectionScreen ? (
