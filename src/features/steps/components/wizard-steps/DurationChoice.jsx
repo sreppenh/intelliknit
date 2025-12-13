@@ -456,11 +456,15 @@ const DurationChoice = ({
                         <IncrementInput
                           value={wizardData.duration.targetStitches}
                           onChange={(value) => updateWizardData('duration', { targetStitches: value })}
-                          onBlur={handleTargetStitchesBlur}  // ← ADD THIS
+                          onBlur={handleTargetStitchesBlur}
                           label="target stitch count"
                           unit="stitches"
-                          min={repeatInfo.stitchChangePerRepeat > 0 ? currentStitches + repeatInfo.stitchChangePerRepeat : repeatInfo.stitchChangePerRepeat}
-                          max={validTargets[validTargets.length - 1]}
+                          min={repeatInfo.stitchChangePerRepeat > 0 ?
+                            currentStitches + repeatInfo.stitchChangePerRepeat :
+                            2}
+                          max={repeatInfo.stitchChangePerRepeat > 0 ?
+                            validTargets[validTargets.length - 1] :
+                            currentStitches + repeatInfo.stitchChangePerRepeat}
                           size="sm"
                         />
                       </div>
