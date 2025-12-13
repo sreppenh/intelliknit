@@ -58,8 +58,18 @@ const DurationChoice = ({
 
   const handleDurationTypeSelect = (type) => {
     const defaultValue = (type === 'repeats' || type === 'color_repeats') ? '1' : '';
-    updateWizardData('duration', { type, value: defaultValue });
+
+    // Set default target to first complete repeat
+    if (type === 'target_repeats' && validTargets.length > 0) {
+      const rowsInPattern = parseInt(wizardData.stitchPattern.rowsInPattern) || 0;
+      // Find the target at the end of the first complete repeat
+      const defaultTarget = validTargets[rowsInPattern - 1] || validTargets[0];
+      updateWizardData('duration', { type, value: defaultValue, targetStitches: defaultTarget });
+    } else {
+      updateWizardData('duration', { type, value: defaultValue });
+    }
   };
+
   // Smart gauge calculation using real project data
   const calculateRowsFromLength = (inches) => {
     const projectGauge = project?.gauge;
