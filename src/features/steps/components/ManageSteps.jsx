@@ -677,22 +677,12 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
             </div>
           )}
 
-          {/* Action Buttons */}
+          {/* Action Buttons - REMOVED: Finish button now in Step Options */}
           {!isComponentFullyEntered() ? (
             <div className="flex gap-3">
-              {component.steps.length > 0 && (
-                <button
-                  onClick={handleFinishComponent}
-                  className="flex-1 btn-secondary flex items-center justify-center gap-2"
-                >
-                  <span className="text-lg">🏁</span>
-                  Finish
-                </button>
-              )}
-
               <button
                 onClick={handleAddNewStep}
-                className="flex-1 btn-primary flex items-center justify-center gap-2"
+                className="w-full btn-primary flex items-center justify-center gap-2"
               >
                 <span className="text-lg">➕</span>
                 Add Step

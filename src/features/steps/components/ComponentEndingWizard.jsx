@@ -2,19 +2,18 @@ import React, { useState } from 'react';
 import PageHeader from '../../../shared/components/PageHeader';
 import UnsavedChangesModal from '../../../shared/components/modals/UnsavedChangesModal';
 import ComponentCompletionModal from '../../../shared/components/modals/ComponentCompletionModal';
-import { PrepStepModal, usePrepNoteManager, getPrepNoteConfig } from '../../../shared/components/PrepStepSystem';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
 import { getStepMethodDisplay } from '../../../shared/utils/stepDisplayUtils';
 import { createEndingStep } from '../../../shared/utils/stepCreationUtils';
 import { getBindOffMethodsArray } from '../../../shared/utils/constants';
-import useYarnManager from '../../../shared/hooks/useYarnManager';
 
 const ComponentEndingWizard = ({
   component,
   projectName,
   onBack,
   onComplete,
-  onNavigateToProject, onGoToLanding
+  onNavigateToProject,
+  onGoToLanding
 }) => {
   const [step, setStep] = useState(1);
   const [endingData, setEndingData] = useState({
@@ -24,26 +23,15 @@ const ComponentEndingWizard = ({
     customText: '',
     customMethod: '',
     stitchCount: '',
-    prepNote: '',
     afterNote: ''
+    // ✅ REMOVED: prepNote - now handled in PrepNoteColorScreen
   });
 
   const [showExitModal, setShowExitModal] = useState(false);
   const [showCompletionModal, setShowCompletionModal] = useState(false);
   const [completedEndingStep, setCompletedEndingStep] = useState(null);
 
-  // Prep note management
-  const {
-    isModalOpen: isPrepNoteModalOpen,
-    currentNote: currentPrepNote,
-    handleOpenModal: handleOpenPrepNoteModal,
-    handleCloseModal: handleClosePrepNoteModal,
-    handleSaveNote: handleSavePrepNote
-  } = usePrepNoteManager(endingData.prepNote, (note) => {
-    setEndingData(prev => ({ ...prev, prepNote: note }));
-  });
-
-  const prepConfig = getPrepNoteConfig('componentEnding');
+  // ✅ REMOVED: All PrepNote management code (usePrepNoteManager, handlers, etc.)
 
   // Get current stitch count from last step
   const getCurrentStitchCount = () => {
@@ -163,21 +151,12 @@ const ComponentEndingWizard = ({
     }
   };
 
-  // EndingTypeSelector
+  // ✅ UPDATED: EndingTypeSelector - Removed PrepNote button
   const renderEndingTypeSelector = () => (
     <div className="stack-lg">
-      <div className="content-header-with-buttons">
-        <div>
-          <h2 className="content-header-primary">Finish Component</h2>
-        </div>
-        <div className="button-group">
-          <button
-            onClick={handleOpenPrepNoteModal}
-            className="btn-secondary btn-sm"
-          >
-            {currentPrepNote.trim().length > 0 ? 'Edit Preparation Note' : '+ Add Preparation Note'}
-          </button>
-        </div>
+      <div>
+        <h2 className="content-header-primary">Finish Component</h2>
+        <p className="content-subheader">Choose how to complete this component</p>
       </div>
 
       <div className="stack-sm">
@@ -458,7 +437,6 @@ const ComponentEndingWizard = ({
         />
       </div>
 
-
       {/* After note */}
       <div>
         <label className="form-label">
@@ -524,14 +502,6 @@ const ComponentEndingWizard = ({
           onConfirmExit={handleConfirmExit}
           onCancel={handleCancelExit}
         />
-
-        <PrepStepModal
-          isOpen={isPrepNoteModalOpen}
-          onClose={handleClosePrepNoteModal}
-          onSave={handleSavePrepNote}
-          existingNote={currentPrepNote}
-          {...prepConfig}
-        />
       </>
     );
   }
@@ -585,14 +555,6 @@ const ComponentEndingWizard = ({
         isOpen={showExitModal}
         onConfirmExit={handleConfirmExit}
         onCancel={handleCancelExit}
-      />
-
-      <PrepStepModal
-        isOpen={isPrepNoteModalOpen}
-        onClose={handleClosePrepNoteModal}
-        onSave={handleSavePrepNote}
-        existingNote={currentPrepNote}
-        {...prepConfig}
       />
     </>
   );

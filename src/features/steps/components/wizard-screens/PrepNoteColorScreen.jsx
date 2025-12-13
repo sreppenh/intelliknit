@@ -11,7 +11,8 @@ const PrepNoteColorScreen = ({
     component,
     onContinue,
     onBack,
-    onCancel
+    onCancel,
+    onFinishComponent  // ✨ NEW: For launching finish component flow
 }) => {
     const { yarns } = useYarnManager();
     const [prepNote, setPrepNote] = useState(wizardData.prepNote || '');
@@ -80,6 +81,17 @@ const PrepNoteColorScreen = ({
 
     const handleSideChange = (side) => {
         setStartingSide(side);
+    };
+
+    // ✨ NEW: Handle finish component with prep note
+    const handleFinishComponent = () => {
+        // Save any prep note entered
+        updateWizardData('prepNote', prepNote);
+
+        // Call parent handler to launch ComponentEndingWizard
+        if (onFinishComponent) {
+            onFinishComponent();
+        }
     };
 
     const canContinue = () => {
@@ -181,8 +193,19 @@ const PrepNoteColorScreen = ({
                 </div>
             )}
 
+            {/* ✨ NEW: Finish Component Button - TERTIARY priority */}
+            <div className="pt-4 border-t border-wool-200">
+                <button
+                    onClick={handleFinishComponent}
+                    className="w-full btn-tertiary flex items-center justify-center gap-2"
+                >
+                    <span className="text-lg">🏁</span>
+                    <span>Finish Component</span>
+                </button>
+            </div>
+
             {/* Navigation Buttons */}
-            <div className="pt-6 border-t border-wool-100">
+            <div className="pt-2">
                 <div className="flex gap-3">
                     <button
                         onClick={onBack}
@@ -197,7 +220,7 @@ const PrepNoteColorScreen = ({
                         className="flex-2 btn-primary"
                         style={{ flexGrow: 2 }}
                     >
-                        Continue
+                        Continue to Add Step
                     </button>
                 </div>
             </div>

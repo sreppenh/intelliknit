@@ -10,23 +10,22 @@ import { getStepProgressState, PROGRESS_STATUS } from '../../../../shared/utils/
 
 const StepsList = ({
     component,
-    componentName, // This prop is already being passed from ManageSteps
+    componentName,
     editableStepIndex,
     isComponentFinished,
     openMenuId,
     onMenuToggle,
     onEditStep,
     onEditPattern,
-    onEditColor,  // ✨ NEW
+    onEditColor,
     onEditConfig,
     onStartKnitting,
     onBack,
     onDeleteStep,
     onPrepNoteClick,
     onAfterNoteClick,
-    // New props for buttons
     onAddStep,
-    onFinishComponent,
+    onFinishComponent,  // Still passed as prop but not used in UI anymore
     project,
 }) => {
     // Determine if component is fully entered (same logic as ManageSteps)
@@ -53,43 +52,42 @@ const StepsList = ({
         );
     }
 
-    // Replace the existing return statement with this enhanced version:
+    // ✅ UPDATED: Buttons with text - Add and Knit
     return (
         <div className="stack-sm">
-            {/* FIXED: Button consistency to match ManageSteps exactly */}
             <div className="flex justify-between items-center">
                 <h3 className="content-header-secondary text-left">Instructions</h3>
-                <div className="flex gap-3">
+                <div className="flex gap-2">
                     {!isComponentFullyEntered() ? (
                         <>
+                            {/* Show Knit button when component has steps */}
                             {component.steps.length > 0 && (
                                 <button
-                                    onClick={onFinishComponent}
-                                    className="flex-1 btn-secondary flex items-center justify-center gap-2 btn-sm"
+                                    onClick={onStartKnitting}
+                                    className="btn-secondary btn-sm"
                                 >
-                                    <span className="text-lg">🏁</span>
-                                    Finish
+                                    <span className="text-lg">🧶</span>
+                                    <span className="ml-1"> Knit</span>
                                 </button>
                             )}
+                            {/* Always show Add button */}
                             <button
                                 onClick={onAddStep}
-                                className="flex-1 btn-primary flex items-center justify-center gap-2 btn-sm"
+                                className="btn-primary btn-sm"
                             >
                                 <span className="text-lg">➕</span>
-                                Add Step
+                                <span className="ml-1"> Add Step</span>
                             </button>
                         </>
                     ) : (
-                        <>
-
-                            <button
-                                onClick={onStartKnitting}
-                                className="flex-1 btn-primary flex items-center justify-center gap-2 btn-sm"
-                            >
-                                <span className="text-lg">🧶</span>
-                                Start Knitting
-                            </button>
-                        </>
+                        /* Component is finished - only show Knit button */
+                        <button
+                            onClick={onStartKnitting}
+                            className="btn-primary btn-sm"
+                        >
+                            <span className="text-lg">🧶</span>
+                            <span className="ml-1">Knit</span>
+                        </button>
                     )}
                 </div>
             </div>
@@ -119,7 +117,7 @@ const StepsList = ({
                                 step={step}
                                 stepIndex={stepIndex}
                                 isEditable={!isComponentFinished}
-                                isCompleted={isCompleted}  // ✅ Now using progress tracking
+                                isCompleted={isCompleted}
                                 isComponentFinished={isComponentFinished}
                                 openMenuId={openMenuId}
                                 onMenuToggle={onMenuToggle}
