@@ -93,6 +93,7 @@ const DurationWizard = ({
                 updateWizardData={updateWizardData}
                 construction={construction}
                 project={project}
+                currentStitches={currentStitches}  // ← ADD THIS LINE
                 existingPrepNote={wizardData.prepNote || ''}
                 onSavePrepNote={(note) => updateWizardData('prepNote', note)}
                 mode={mode}

@@ -13,6 +13,9 @@ const DurationChoice = ({
   showSaveActions = false,
   currentStitches = 0
 }) => {
+
+
+
   const { pattern } = wizardData.stitchPattern;
 
   // SAFETY CHECK: Ensure duration exists
