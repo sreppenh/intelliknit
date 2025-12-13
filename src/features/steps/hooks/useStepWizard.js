@@ -154,9 +154,11 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
         return;
       }
     } else {
-      // Original project logic
+      // ✅ FIX: Original project logic - check component.startingStitches!
       if (component.steps.length === 0) {
-        setCurrentStitches(0);
+        // No steps yet - use component's starting stitches (not 0!)
+        const initialStitches = component.startingStitches || 0;
+        setCurrentStitches(initialStitches);
         return;
       }
     }
