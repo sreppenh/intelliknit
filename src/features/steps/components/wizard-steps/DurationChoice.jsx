@@ -466,59 +466,64 @@ const DurationChoice = ({
                         <IncrementInput
                           value={wizardData.duration.targetStitches}
                           onChange={(value) => updateWizardData('duration', { targetStitches: value })}
-                          onBlur={handleTargetStitchesBlur}
+                          onBlur={() => {
+                            const entered = parseInt(wizardData.duration.targetStitches);
+                            if (!isNaN(entered) && validTargets.length > 0) {
+                              const nearest = validTargets.reduce((prev, curr) =>
+                                Math.abs(curr - entered) < Math.abs(prev - entered) ? curr : prev
+                              );
+                              if (nearest !== entered) {
+                                updateWizardData('duration', { targetStitches: nearest });
+                              }
+                            }
+                          }}
                           label="target stitch count"
                           unit="stitches"
-                          min={repeatInfo.stitchChangePerRepeat > 0 ?
-                            currentStitches + repeatInfo.stitchChangePerRepeat :
-                            2}
-                          max={repeatInfo.stitchChangePerRepeat > 0 ?
-                            validTargets[validTargets.length - 1] :
-                            currentStitches + repeatInfo.stitchChangePerRepeat}
+                          min={validTargets[validTargets.length - 1] || 2}
+                          max={validTargets[0] || currentStitches}
                           size="sm"
                         />
-                      </div>
 
-                      <div className="text-xs text-sage-600 bg-white border border-sage-200 rounded-lg p-2">
-                        <div><strong>Currently:</strong> {currentStitches} stitches</div>
-                        <div><strong>Pattern change:</strong> {repeatInfo.stitchChangePerRepeat > 0 ? '+' : ''}{repeatInfo.stitchChangePerRepeat} stitches per repeat</div>
-                      </div>
+                        <div className="text-xs text-sage-600 bg-white border border-sage-200 rounded-lg p-2">
+                          <div><strong>Currently:</strong> {currentStitches} stitches</div>
+                          <div><strong>Pattern change:</strong> {repeatInfo.stitchChangePerRepeat > 0 ? '+' : ''}{repeatInfo.stitchChangePerRepeat} stitches per repeat</div>
+                        </div>
 
-                      {targetRepeatDetails && (
-                        <>
-                          <div className="bg-sage-50 border border-sage-200 rounded-lg p-3">
-                            <div className="text-sm text-sage-700">
-                              <div className="font-medium mb-1">Calculation:</div>
-                              <div className="text-xs space-y-1">
-                                <div>• Needs {targetRepeatDetails.repeats} {targetRepeatDetails.repeats === 1 ? 'repeat' : 'repeats'}</div>
-                                <div>• Total {construction === 'round' ? 'rounds' : 'rows'}: {targetRepeatDetails.totalRows}</div>
-                                <div>• Ending stitches: {targetRepeatDetails.endingStitches}</div>
+                        {targetRepeatDetails && (
+                          <>
+                            <div className="bg-sage-50 border border-sage-200 rounded-lg p-3">
+                              <div className="text-sm text-sage-700">
+                                <div className="font-medium mb-1">Calculation:</div>
+                                <div className="text-xs space-y-1">
+                                  <div>• Needs {targetRepeatDetails.repeats} {targetRepeatDetails.repeats === 1 ? 'repeat' : 'repeats'}</div>
+                                  <div>• Total {construction === 'round' ? 'rounds' : 'rows'}: {targetRepeatDetails.totalRows}</div>
+                                  <div>• Ending stitches: {targetRepeatDetails.endingStitches}</div>
+                                </div>
                               </div>
                             </div>
-                          </div>
 
-                          {/* Complete sequence toggle */}
-                          <label className="flex items-start gap-3 p-3 bg-white border border-sage-200 rounded-lg cursor-pointer hover:bg-sage-50 transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={wizardData.duration.completeSequence || false}
-                              onChange={(e) => updateWizardData('duration', { completeSequence: e.target.checked })}
-                              className="w-4 h-4 text-sage-600 mt-0.5"
-                            />
-                            <div className="flex-1">
-                              <div className="text-sm font-medium text-sage-700">
-                                Complete final repeat
+                            {/* Complete sequence toggle */}
+                            <label className="flex items-start gap-3 p-3 bg-white border border-sage-200 rounded-lg cursor-pointer hover:bg-sage-50 transition-colors">
+                              <input
+                                type="checkbox"
+                                checked={wizardData.duration.completeSequence || false}
+                                onChange={(e) => updateWizardData('duration', { completeSequence: e.target.checked })}
+                                className="w-4 h-4 text-sage-600 mt-0.5"
+                              />
+                              <div className="flex-1">
+                                <div className="text-sm font-medium text-sage-700">
+                                  Complete final repeat
+                                </div>
+                                <div className="text-xs text-sage-600 mt-1">
+                                  Finish all {repeatInfo.rowsInPattern} {construction === 'round' ? 'rounds' : 'rows'} even if target is reached mid-sequence
+                                </div>
                               </div>
-                              <div className="text-xs text-sage-600 mt-1">
-                                Finish all {repeatInfo.rowsInPattern} {construction === 'round' ? 'rounds' : 'rows'} even if target is reached mid-sequence
-                              </div>
-                            </div>
-                          </label>
-                        </>
-                      )}
-                    </div>
+                            </label>
+                          </>
+                        )}
+                      </div>
                   )}
-                </div>
+                    </div>
               </div>
             </label>
           )}
