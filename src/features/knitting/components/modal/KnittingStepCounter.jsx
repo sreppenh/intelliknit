@@ -289,8 +289,6 @@ const KnittingStepCounter = ({
                 onShowGaugeCard(promptData);
             }
         }
-
-        onToggleCompletion?.(stepIndex);
     };
 
     // Calculate current stitch count based on step configuration
@@ -646,6 +644,9 @@ const KnittingStepCounter = ({
         if (sideTracking.hasSessionChanges) {
             sideTracking.commitSideChanges(() => { });
         }
+
+        // ✅ ADD THIS LINE HERE (after side tracking):
+        onToggleCompletion?.(stepIndex);
     };
 
     const handleLengthBasedComplete = () => {
