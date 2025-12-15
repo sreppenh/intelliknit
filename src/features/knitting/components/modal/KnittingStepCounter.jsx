@@ -289,6 +289,8 @@ const KnittingStepCounter = ({
                 onShowGaugeCard(promptData);
             }
         }
+
+        onToggleCompletion?.(stepIndex);
     };
 
     // Calculate current stitch count based on step configuration
