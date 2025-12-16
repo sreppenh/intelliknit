@@ -302,6 +302,21 @@ const KnittingStepCounter = ({
             return step.endingStitches || 0;
         }
 
+        // ✅ FIX: Handle Pick Up & Knit initialization steps
+        if (patternName === 'Pick Up & Knit') {
+            return step.endingStitches || 0;
+        }
+
+        // ✅ FIX: Handle Continue from Stitches initialization steps  
+        if (patternName === 'Continue from Stitches') {
+            return step.endingStitches || 0;
+        }
+
+        // ✅ FIX: Handle Custom Initialization steps
+        if (patternName === 'Custom Initialization') {
+            return step.endingStitches || 0;
+        }
+
         // ✅ NEW: Handle Custom pattern with customSequence.rows
         const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
         if (stitchPattern?.pattern === 'Custom' && stitchPattern?.customSequence?.rows) {

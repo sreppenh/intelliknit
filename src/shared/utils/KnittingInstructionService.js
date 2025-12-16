@@ -301,11 +301,19 @@ function getBindOffInstruction(step, stitchPattern) {
  */
 function getPickUpInstruction(step, stitchPattern) {
     const stitchCount = stitchPattern?.stitchCount || step.endingStitches || '0';
-    const customDetails = stitchPattern?.customDetails || '';
+    const location = stitchPattern?.customText || ''; // WHERE to pick up from
+    const instructions = stitchPattern?.instruction || ''; // HOW to pick up
 
     let instruction = `Pick up and knit ${stitchCount} stitches`;
-    if (customDetails) {
-        instruction += ` ${customDetails}`;
+
+    // Add location (WHERE)
+    if (location && location.trim()) {
+        instruction += ` from ${location.trim()}`;
+    }
+
+    // Add instructions (HOW) in parentheses
+    if (instructions && instructions.trim()) {
+        instruction += `, ${instructions.trim()}`;
     }
 
     return {
