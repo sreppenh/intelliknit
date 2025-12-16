@@ -369,11 +369,11 @@ const KnittingStepCounter = ({
             const rowsInPattern = parseInt(stitchPattern?.rowsInPattern) || 1;
             const stitchChangePerRepeat = parseInt(stitchPattern?.stitchChangePerRepeat) || 0;
 
-            // Calculate how many pattern repeats have been completed by this row
-            const repeatsCompleted = Math.floor(row / rowsInPattern);
+            // Calculate how many complete pattern repeats will be done AFTER this row
+            const repeatsAfterThisRow = Math.ceil(row / rowsInPattern);
 
-            // Calculate stitch count: starting + (change per repeat × repeats completed)
-            return (step.startingStitches || 0) + (stitchChangePerRepeat * repeatsCompleted);
+            // Calculate stitch count: starting + (change per repeat × repeats after this row)
+            return (step.startingStitches || 0) + (stitchChangePerRepeat * repeatsAfterThisRow);
         }
 
         const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
