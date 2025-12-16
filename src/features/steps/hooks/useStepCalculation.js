@@ -243,10 +243,11 @@ export const useStepCalculation = () => {
           }
         }
 
-        // Use calculated ending stitches from row progression
+        // ✅ FIX: Calculate ending stitches for Description Entry mode
+        // Description Entry doesn't have customSequence, so calculate from stitchChangePerRepeat
         const endingStitches = calculatedRows.length > 0
           ? calculatedRows[calculatedRows.length - 1].stitches
-          : currentStitches;
+          : currentStitches + (stitchChangePerRepeat * Math.ceil(totalRows / rowsInPattern));
 
         IntelliKnitLogger.success('Custom Pattern Calculated (rows)', {
           pattern: wizardData.stitchPattern.pattern,
