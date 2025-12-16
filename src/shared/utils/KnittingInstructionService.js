@@ -302,7 +302,7 @@ function getBindOffInstruction(step, stitchPattern) {
 function getPickUpInstruction(step, stitchPattern) {
     const stitchCount = stitchPattern?.stitchCount || step.endingStitches || '0';
     const location = stitchPattern?.customText || ''; // WHERE to pick up from
-    const instructions = stitchPattern?.instruction || ''; // HOW to pick up
+    const howTo = stitchPattern?.instruction || ''; // HOW to pick up
 
     let instruction = `Pick up and knit ${stitchCount} stitches`;
 
@@ -311,9 +311,9 @@ function getPickUpInstruction(step, stitchPattern) {
         instruction += ` from ${location.trim()}`;
     }
 
-    // Add instructions (HOW) in parentheses
-    if (instructions && instructions.trim()) {
-        instruction += `, ${instructions.trim()}`;
+    // Add instructions (HOW)
+    if (howTo && howTo.trim()) {
+        instruction += `, ${howTo.trim()}`;
     }
 
     return {

@@ -363,6 +363,19 @@ const KnittingStepCounter = ({
             return currentStitches;
         }
 
+        // ✅ FIX: Handle Custom - Description Entry (no customSequence)
+        if (patternName === 'Custom' && !step.wizardConfig?.stitchPattern?.customSequence?.rows) {
+            const stitchPattern = step.wizardConfig?.stitchPattern;
+            const rowsInPattern = parseInt(stitchPattern?.rowsInPattern) || 1;
+            const stitchChangePerRepeat = parseInt(stitchPattern?.stitchChangePerRepeat) || 0;
+
+            // Calculate how many pattern repeats have been completed by this row
+            const repeatsCompleted = Math.floor(row / rowsInPattern);
+
+            // Calculate stitch count: starting + (change per repeat × repeats completed)
+            return (step.startingStitches || 0) + (stitchChangePerRepeat * repeatsCompleted);
+        }
+
         const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
         if (hasShaping && step.wizardConfig?.shapingConfig?.type === 'phases') {
