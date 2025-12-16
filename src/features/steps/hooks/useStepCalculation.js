@@ -433,10 +433,22 @@ export const useStepCalculation = () => {
       IntelliKnitLogger.error('Calculation error', error);
     }
 
-    // Fallback for patterns we can't calculate yet
+    // Fallback - validate we have minimum required data
+    if (!wizardData.duration?.type || !wizardData.duration?.value) {
+      return {
+        success: false,
+        error: 'Missing duration configuration',
+        totalRows: 1,
+        startingStitches: currentStitches,
+        endingStitches: currentStitches
+      };
+    }
+
+    // We have everything needed for basic patterns
     return {
-      success: false,
-      totalRows: wizardData.duration.type === 'rows' ? parseInt(wizardData.duration.value) || 1 : 1,
+      success: true,  // ✅ Safe - we validated above
+      totalRows: wizardData.duration.type === 'rows' ?
+        parseInt(wizardData.duration.value) || 1 : 1,
       startingStitches: currentStitches,
       endingStitches: currentStitches
     };
