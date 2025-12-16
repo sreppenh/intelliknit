@@ -67,7 +67,7 @@ const StepsList = ({
                                     className="btn-secondary btn-sm"
                                 >
                                     <span className="text-lg">🧶</span>
-                                    <span className="ml-1"> Starting Knitting</span>
+                                    <span className="ml-1"> Knit</span>
                                 </button>
                             )}
                             {/* Always show Add button */}
