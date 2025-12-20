@@ -49,7 +49,7 @@ const DurationChoice = ({
 
   // ✅ NEW: Calculate valid target stitches if applicable
   const validTargets = supportsTargetRepeats
-    ? getValidTargetStitches(currentStitches, wizardData.stitchPattern, 100)
+    ? getValidTargetStitches(currentStitches, wizardData.stitchPattern, 500)
     : [];
 
   // ✅ NEW: Check if color pattern exists
@@ -63,7 +63,7 @@ const DurationChoice = ({
     if (type === 'target_repeats' && validTargets.length > 0) {
       const rowsInPattern = parseInt(wizardData.stitchPattern.rowsInPattern) || 0;
       // Find the target at the end of the first complete repeat
-      const defaultTarget = validTargets[rowsInPattern - 1] || validTargets[0];
+      const defaultTarget = currentStitches + repeatInfo.stitchChangePerRepeat;
       updateWizardData('duration', { type, value: defaultValue, targetStitches: defaultTarget });
     } else {
       updateWizardData('duration', { type, value: defaultValue });
@@ -479,8 +479,8 @@ const DurationChoice = ({
                           }}
                           label="target stitch count"
                           unit="stitches"
-                          min={validTargets[validTargets.length - 1] || 2}
-                          max={validTargets[0] || currentStitches}
+                          min={Math.min(...validTargets) || 1}
+                          max={Math.max(...validTargets) || (currentStitches * 10)}
                           size="sm"
                         />
                       </div>
