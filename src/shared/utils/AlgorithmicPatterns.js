@@ -425,13 +425,14 @@ function generateSmartPattern(basePattern, stitchCount) {
  * NEW: Textured pattern generator for flat knitting
  * Handles the proper "work as they appear" logic for seed, moss, etc.
  */
+/**
+ * Textured pattern generator for flat knitting
+ * Handles seed stitch, moss stitch, and other K/P alternating patterns
+ */
 function generateTexturedPattern(basePattern, stitchCount, side) {
-    // For textured patterns like seed stitch, we work stitches "as they appear"
-    // This means we need to track the actual stitch sequence when the work is flipped
-
     const patternParts = basePattern.split(', ').map(part => part.trim());
 
-    // Calculate pattern repeat length
+    // Calculate stitch consumption per repeat
     let stitchesPerRepeat = 0;
     for (const part of patternParts) {
         const match = part.match(/(\d+)/);
@@ -445,80 +446,84 @@ function generateTexturedPattern(basePattern, stitchCount, side) {
     const fullRepeats = Math.floor(stitchCount / stitchesPerRepeat);
     const remainingStitches = stitchCount % stitchesPerRepeat;
 
+    // Generate instruction based on side
     if (side === 'RS') {
-        // RS: Standard pattern logic
-        return generateSmartPattern(basePattern, stitchCount);
-    }
+        // RS: Standard pattern
+        if (remainingStitches === 0) {
+            return fullRepeats === 1
+                ? basePattern
+                : `[${basePattern}] ${fullRepeats} times`;
+        } else {
+            // Has remainder
+            const remainderParts = [];
+            let stitchesNeeded = remainingStitches;
 
-    // WS: Work stitches as they appear (flip K/P for each individual stitch)
-    if (remainingStitches === 0) {
-        // Even number of repeats - standard WS conversion
-        const wsPattern = generateWSTexturedPattern(patternParts);
-        return fullRepeats === 1 ? wsPattern : `[${wsPattern}] ${fullRepeats} times`;
-    }
-
-    // Partial pattern on WS - need to consider where the pattern falls
-    const wsBasePattern = generateWSTexturedPattern(patternParts);
-    const partialWS = generatePartialTexturedFromWS(patternParts, remainingStitches);
-
-    if (fullRepeats === 0) {
-        return partialWS;
-    } else if (fullRepeats === 1) {
-        return `${partialWS}, ${wsBasePattern}`;
-    } else {
-        return `${partialWS}, [${wsBasePattern}] ${fullRepeats} times`;
-    }
-}
-
-/**
- * Generate WS version of textured pattern by flipping each stitch type
- */
-function generateWSTexturedPattern(patternParts) {
-    const flippedParts = patternParts.map(part => {
-        // Handle single stitches and numbered stitches
-        if (part.startsWith('K')) {
-            return part.replace('K', 'P');
-        } else if (part.startsWith('P')) {
-            return part.replace('P', 'K');
-        }
-        return part;
-    });
-
-    return flippedParts.join(', ');
-}
-
-/**
- * Generate partial textured pattern from WS perspective
- * For textured patterns, we work backwards through the pattern
- */
-function generatePartialTexturedFromWS(patternParts, remainingStitches) {
-    const partialParts = [];
-    let stitchesNeeded = remainingStitches;
-
-    // Work backwards through the pattern to find the partial sequence
-    for (let i = patternParts.length - 1; i >= 0 && stitchesNeeded > 0; i--) {
-        const part = patternParts[i];
-        const match = part.match(/([KP])(\d+)?/);
-
-        if (match) {
-            const stitchType = match[1];
-            const count = match[2] ? parseInt(match[2]) : 1;
-
-            if (stitchesNeeded >= count) {
-                // Use the full part, flipped
-                const flippedType = stitchType === 'K' ? 'P' : 'K';
-                partialParts.unshift(count > 1 ? `${flippedType}${count}` : flippedType);
-                stitchesNeeded -= count;
-            } else {
-                // Use partial count
-                const flippedType = stitchType === 'K' ? 'P' : 'K';
-                partialParts.unshift(`${flippedType}${stitchesNeeded}`);
-                stitchesNeeded = 0;
+            for (const part of patternParts) {
+                if (stitchesNeeded === 0) break;
+                const match = part.match(/([KP]\d*)\s*(\d+)?/);
+                if (match) {
+                    const count = match[2] ? parseInt(match[2]) : (match[1].match(/\d+/) ? parseInt(match[1].match(/\d+/)[0]) : 1);
+                    if (stitchesNeeded >= count) {
+                        remainderParts.push(part);
+                        stitchesNeeded -= count;
+                    } else {
+                        remainderParts.push(`${match[1].replace(/\d+/, '')}${stitchesNeeded}`);
+                        stitchesNeeded = 0;
+                    }
+                }
             }
+
+            const remainderText = remainderParts.join(', ');
+            return fullRepeats === 0
+                ? remainderText
+                : fullRepeats === 1
+                    ? `${basePattern}, ${remainderText}`
+                    : `[${basePattern}] ${fullRepeats} times, ${remainderText}`;
+        }
+    } else {
+        // WS: Flip K/P
+        const flippedParts = patternParts.map(part => {
+            if (part.startsWith('K')) {
+                return part.replace(/^K/, 'P');
+            } else if (part.startsWith('P')) {
+                return part.replace(/^P/, 'K');
+            }
+            return part;
+        });
+        const flippedPattern = flippedParts.join(', ');
+
+        if (remainingStitches === 0) {
+            return fullRepeats === 1
+                ? flippedPattern
+                : `[${flippedPattern}] ${fullRepeats} times`;
+        } else {
+            // Has remainder - flip it too
+            const remainderParts = [];
+            let stitchesNeeded = remainingStitches;
+
+            for (const part of flippedParts) {
+                if (stitchesNeeded === 0) break;
+                const match = part.match(/([KP]\d*)\s*(\d+)?/);
+                if (match) {
+                    const count = match[2] ? parseInt(match[2]) : (match[1].match(/\d+/) ? parseInt(match[1].match(/\d+/)[0]) : 1);
+                    if (stitchesNeeded >= count) {
+                        remainderParts.push(part);
+                        stitchesNeeded -= count;
+                    } else {
+                        remainderParts.push(`${match[1].replace(/\d+/, '')}${stitchesNeeded}`);
+                        stitchesNeeded = 0;
+                    }
+                }
+            }
+
+            const remainderText = remainderParts.join(', ');
+            return fullRepeats === 0
+                ? remainderText
+                : fullRepeats === 1
+                    ? `${flippedPattern}, ${remainderText}`
+                    : `[${flippedPattern}] ${fullRepeats} times, ${remainderText}`;
         }
     }
-
-    return partialParts.join(', ');
 }
 
 /**
