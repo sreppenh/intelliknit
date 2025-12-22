@@ -329,8 +329,18 @@ const KnittingStepCounter = ({
 
             for (let i = 1; i <= row; i++) {
                 const rowIndex = (i - 1) % patternLength;
-                const stitchChange = rows[rowIndex]?.stitchChange || 0;
-                currentStitches += stitchChange;
+                const rowData = rows[rowIndex];
+
+                if (rowData) {
+                    // Check stitchesRemaining FIRST (absolute value takes priority)
+                    if (rowData.stitchesRemaining !== null && rowData.stitchesRemaining !== undefined) {
+                        currentStitches = rowData.stitchesRemaining;
+                    }
+                    // Otherwise use stitchChange (relative adjustment)
+                    else if (rowData.stitchChange !== null && rowData.stitchChange !== undefined) {
+                        currentStitches += rowData.stitchChange;
+                    }
+                }
             }
 
             return currentStitches;
