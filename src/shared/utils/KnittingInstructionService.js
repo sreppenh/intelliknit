@@ -916,9 +916,8 @@ function extractShapingInstruction(description, construction) {
  * Generate instructions for basic algorithmic patterns
  */
 function getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName, stepStartingSide = null) {
-    // ✨ NEW: Use side intelligence to get the instruction
-    const currentSide = getCurrentSide(construction, currentRow, stepStartingSide);
-    const rowInstruction = generatePatternInstruction(patternName, currentRow, currentSide);
+    // Call the AlgorithmicPatterns system directly with stitch count
+    const rowInstruction = getAlgorithmicRowInstruction(patternName, currentRow, currentStitchCount, construction);
 
     if (!rowInstruction) {
         return getFallbackInstruction(step, currentRow, currentStitchCount, patternName);
