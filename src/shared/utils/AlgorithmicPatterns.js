@@ -526,7 +526,7 @@ function generatePartialTexturedFromWS(patternParts, remainingStitches) {
  * Generates proper flat knitting instructions with correct WS alignment
  */
 function generateRibPattern(basePattern, stitchCount, side) {
-    // Parse the base pattern (e.g., "K3, P3" -> ["K3", "P3"])
+    // Parse the base pattern (e.g., "K2, P2" -> ["K2", "P2"])
     const patternParts = basePattern.split(', ').map(part => part.trim());
 
     // Calculate stitch consumption per repeat
@@ -544,85 +544,88 @@ function generateRibPattern(basePattern, stitchCount, side) {
     const fullRepeats = Math.floor(stitchCount / stitchesPerRepeat);
     const remainingStitches = stitchCount % stitchesPerRepeat;
 
-    if (side === 'RS' || remainingStitches === 0) {
-        // RS or no remainder: use standard smart pattern logic
-        return generateSmartPattern(basePattern, stitchCount);
-    }
+    // Generate the instruction based on side
+    if (side === 'RS') {
+        // RS: Standard pattern
+        if (remainingStitches === 0) {
+            // Perfect repeats
+            return fullRepeats === 1
+                ? basePattern
+                : `[${basePattern}] ${fullRepeats} times`;
+        } else {
+            // Has remainder - extract what stitches to work
+            const remainderParts = [];
+            let stitchesNeeded = remainingStitches;
 
-    // WS with remainder: need to flip the starting pattern
-    if (fullRepeats === 0) {
-        // Only partial pattern - work what fits from the flipped perspective
-        return generatePartialRibFromWS(patternParts, remainingStitches);
-    }
-
-    // WS: Full repeats + remainder
-    // The remainder comes at the beginning when viewed from WS
-    const remainderParts = generatePartialRibFromWS(patternParts, remainingStitches);
-    const fullRepeatPattern = generateWSRibPattern(patternParts);
-
-    if (fullRepeats === 1) {
-        return `${remainderParts}, ${fullRepeatPattern}`;
-    } else {
-        return `${remainderParts}, [${fullRepeatPattern}] ${fullRepeats} times`;
-    }
-}
-
-/**
- * Generate WS rib pattern by flipping K/P for each stitch type
- */
-function generateWSRibPattern(patternParts) {
-    const flippedParts = patternParts.map(part => {
-        if (part.startsWith('K')) {
-            return part.replace('K', 'P');
-        } else if (part.startsWith('P')) {
-            return part.replace('P', 'K');
-        }
-        return part; // Handle special cases like 'K1tbl'
-    });
-
-    return flippedParts.join(', ');
-}
-
-/**
- * Generate partial rib pattern from WS perspective
- * For 31-st 3x3 rib: RS ends with K1, so WS starts with P1
- */
-function generatePartialRibFromWS(patternParts, remainingStitches) {
-    // Work backwards through the pattern to find what the remainder should be
-    let totalStitches = 0;
-    for (const part of patternParts) {
-        const match = part.match(/(\d+)/);
-        totalStitches += match ? parseInt(match[1]) : 1;
-    }
-
-    // Find where we are in the pattern cycle for the remainder
-    const partialParts = [];
-    let stitchesNeeded = remainingStitches;
-
-    // Start from the end of the pattern (since we're flipping)
-    for (let i = patternParts.length - 1; i >= 0 && stitchesNeeded > 0; i--) {
-        const part = patternParts[i];
-        const match = part.match(/([KP]\d*(?:tbl)?)\s*(\d+)?/);
-
-        if (match) {
-            const stitchType = match[1];
-            const count = match[2] ? parseInt(match[2]) : (match[1].match(/\d+/) ? parseInt(match[1].match(/\d+/)[0]) : 1);
-
-            if (stitchesNeeded >= count) {
-                // Use the full part, but flip K/P
-                const flippedType = stitchType.startsWith('K') ? stitchType.replace('K', 'P') : stitchType.replace('P', 'K');
-                partialParts.unshift(count > 1 ? `${flippedType.replace(/\d+/, '')}${count}` : flippedType);
-                stitchesNeeded -= count;
-            } else {
-                // Use partial count
-                const flippedType = stitchType.startsWith('K') ? stitchType.replace('K', 'P') : stitchType.replace('P', 'K');
-                partialParts.unshift(`${flippedType.replace(/\d+/, '')}${stitchesNeeded}`);
-                stitchesNeeded = 0;
+            for (const part of patternParts) {
+                if (stitchesNeeded === 0) break;
+                const match = part.match(/([KP]\d*(?:tbl)?)\s*(\d+)?/);
+                if (match) {
+                    const stitchType = match[1];
+                    const count = match[2] ? parseInt(match[2]) : (match[1].match(/\d+/) ? parseInt(match[1].match(/\d+/)[0]) : 1);
+                    if (stitchesNeeded >= count) {
+                        remainderParts.push(part);
+                        stitchesNeeded -= count;
+                    } else {
+                        remainderParts.push(`${stitchType.replace(/\d+/, '')}${stitchesNeeded}`);
+                        stitchesNeeded = 0;
+                    }
+                }
             }
+
+            const remainderText = remainderParts.join(', ');
+            return fullRepeats === 0
+                ? remainderText
+                : fullRepeats === 1
+                    ? `${basePattern}, ${remainderText}`
+                    : `[${basePattern}] ${fullRepeats} times, ${remainderText}`;
+        }
+    } else {
+        // WS: Flip the pattern (K ↔ P)
+        const flippedParts = patternParts.map(part => {
+            if (part.startsWith('K')) {
+                return part.replace(/^K/, 'P');
+            } else if (part.startsWith('P')) {
+                return part.replace(/^P/, 'K');
+            }
+            return part;
+        });
+        const flippedPattern = flippedParts.join(', ');
+
+        if (remainingStitches === 0) {
+            // Perfect repeats
+            return fullRepeats === 1
+                ? flippedPattern
+                : `[${flippedPattern}] ${fullRepeats} times`;
+        } else {
+            // Has remainder - flip it too
+            const remainderParts = [];
+            let stitchesNeeded = remainingStitches;
+
+            for (const part of flippedParts) {
+                if (stitchesNeeded === 0) break;
+                const match = part.match(/([KP]\d*(?:tbl)?)\s*(\d+)?/);
+                if (match) {
+                    const stitchType = match[1];
+                    const count = match[2] ? parseInt(match[2]) : (match[1].match(/\d+/) ? parseInt(match[1].match(/\d+/)[0]) : 1);
+                    if (stitchesNeeded >= count) {
+                        remainderParts.push(part);
+                        stitchesNeeded -= count;
+                    } else {
+                        remainderParts.push(`${stitchType.replace(/\d+/, '')}${stitchesNeeded}`);
+                        stitchesNeeded = 0;
+                    }
+                }
+            }
+
+            const remainderText = remainderParts.join(', ');
+            return fullRepeats === 0
+                ? remainderText
+                : fullRepeats === 1
+                    ? `${flippedPattern}, ${remainderText}`
+                    : `[${flippedPattern}] ${fullRepeats} times, ${remainderText}`;
         }
     }
-
-    return partialParts.join(', ');
 }
 
 /**
