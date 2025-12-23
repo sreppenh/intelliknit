@@ -17,6 +17,7 @@ const StepCard = ({
     onEditPattern,
     onEditConfig,
     onEditColor,  // ✨ NEW
+    onCopyStep,
     onPrepNoteClick,
     onAfterNoteClick,
     editableStepIndex,
@@ -119,6 +120,8 @@ const StepCard = ({
                                 onEditConfig={onEditConfig}
                                 onPrepNoteClick={onPrepNoteClick}
                                 editableStepIndex={editableStepIndex}
+                                onCopyStep={onCopyStep}
+
                             />
                         </div>
                     </div>

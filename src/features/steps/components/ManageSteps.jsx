@@ -396,6 +396,26 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     setOpenMenuId(null);
   };
 
+  const handleCopyStep = (stepIndex, event) => {
+    event.stopPropagation();
+    const step = component.steps[stepIndex];
+
+    // Deep clone the step with a new ID and reset completion
+    const copiedStep = {
+      ...step,
+      id: crypto.randomUUID(),
+      completed: false
+    };
+
+    // Dispatch the COPY_STEP action
+    dispatch({
+      type: 'COPY_STEP',
+      payload: { componentIndex, stepToCopy: copiedStep }
+    });
+
+    setOpenMenuId(null);
+  };
+
   const handleCopyStepPattern = (stepIndex, event) => {
     event.stopPropagation();
     const step = component.steps[stepIndex];
@@ -666,6 +686,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
             onStartKnitting={handleKnittingView}
             onBack={handleViewAllComponents}
             project={currentProject}
+            onCopyStep={handleCopyStep}  // Add this line
           />
 
           {/* Editing Rules Info */}

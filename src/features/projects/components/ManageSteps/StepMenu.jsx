@@ -12,7 +12,8 @@ const StepMenu = ({
     onDeleteStep,
     onEditPattern,
     onEditConfig,
-    onEditColor  // ✨ NEW PROP
+    onEditColor,
+    onCopyStep  // ✨ NEW PROP
 }) => {
     // 🎯 SIMPLE: Check step category
     if (isInitializationStep(step)) {
@@ -107,6 +108,13 @@ const StepMenu = ({
                             )}
 
                             <button
+                                onClick={(e) => onCopyStep(stepIndex, e)}
+                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors whitespace-nowrap"
+                            >
+                                📋 Copy Step
+                            </button>
+
+                            <button
                                 onClick={(e) => onDeleteStep(stepIndex, e)}
                                 className="delete-menu-item rounded-b-lg"
                             >
@@ -116,12 +124,20 @@ const StepMenu = ({
                     )}
 
                     {isFinishingStep(step) && (
-                        <button
-                            onClick={(e) => onDeleteStep(stepIndex, e)}
-                            className="delete-menu-item rounded-lg"
-                        >
-                            🗑️ Delete Step
-                        </button>
+                        <>
+                            <button
+                                onClick={(e) => onCopyStep(stepIndex, e)}
+                                className="w-full px-3 py-2 text-left text-wool-600 hover:bg-sage-50 text-sm flex items-center gap-2 transition-colors whitespace-nowrap rounded-t-lg"
+                            >
+                                📋 Copy Step
+                            </button>
+                            <button
+                                onClick={(e) => onDeleteStep(stepIndex, e)}
+                                className="delete-menu-item rounded-b-lg"
+                            >
+                                🗑️ Delete Step
+                            </button>
+                        </>
                     )}
                 </div>
             )}

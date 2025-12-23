@@ -499,6 +499,45 @@ export const projectsReducer = (state, action) => {
         )
       };
 
+    case 'COPY_STEP':
+      if (!state.currentProject) {
+        IntelliKnitLogger.error('COPY_STEP: No current project');
+        return state;
+      }
+
+      const { componentIndex: copyCompIndex, stepToCopy } = action.payload;
+
+      if (copyCompIndex === null || copyCompIndex === undefined ||
+        !state.currentProject.components[copyCompIndex]) {
+        IntelliKnitLogger.error('COPY_STEP: Invalid component index', copyCompIndex);
+        return state;
+      }
+
+      const componentsWithCopiedStep = [...state.currentProject.components];
+      if (!componentsWithCopiedStep[copyCompIndex].steps) {
+        componentsWithCopiedStep[copyCompIndex].steps = [];
+      }
+
+      // Append the copied step to the end of the steps array
+      componentsWithCopiedStep[copyCompIndex].steps.push(stepToCopy);
+
+      const projectWithCopiedStep = {
+        ...state.currentProject,
+        components: componentsWithCopiedStep
+      };
+
+      // Add activity tracking
+      const projectWithCopyStepActivity = updateProjectActivity(projectWithCopiedStep);
+
+      return {
+        ...state,
+        currentProject: projectWithCopyStepActivity,
+        projects: state.projects.map(p =>
+          p.id === state.currentProject.id ? projectWithCopyStepActivity : p
+        )
+      };
+
+
     case 'UPDATE_STEP':
       if (!state.currentProject) {
         IntelliKnitLogger.error('UPDATE_STEP: No current project');
