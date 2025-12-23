@@ -312,7 +312,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     if (isAdvancedRowByRowPattern(patternName)) {
       checkEditSafety(stepIndex, 'pattern', () => {
         setEditingStepIndex(stepIndex);
-        setEditMode('rowByRow');
+        setEditMode('pattern');  // ← CHANGED from 'rowByRow' to 'pattern'
         setIsEditing(true);
         setOpenMenuId(null);
       });
