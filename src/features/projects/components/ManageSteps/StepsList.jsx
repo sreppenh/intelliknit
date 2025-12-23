@@ -20,6 +20,7 @@ const StepsList = ({
     onEditColor,
     onEditConfig,
     onStartKnitting,
+    onCopyStep,
     onBack,
     onDeleteStep,
     onPrepNoteClick,
@@ -132,6 +133,7 @@ const StepsList = ({
                                 componentName={componentName}
                                 project={project}
                                 component={component}
+                                onCopyStep={onCopyStep}
                             />
                         </div>
                     );
