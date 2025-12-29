@@ -1,4 +1,5 @@
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import { getStepProgressState, PROGRESS_STATUS } from '../../shared/utils/progressTracking';
 
 export const initialState = {
   projects: [],
@@ -323,14 +324,45 @@ export const projectsReducer = (state, action) => {
         return state;
       }
 
+      // ✅ ENHANCED: Convert length-based steps to fixed rows
       const copiedComponent = {
         id: crypto.randomUUID(),
         name: newName.trim(),
-        steps: originalComponent.steps.map((step, index) => ({
-          ...step,
-          id: crypto.randomUUID(),
-          completed: false
-        })),
+        steps: originalComponent.steps.map((step, index) => {
+          // Import at top of file: import { getStepProgressState, PROGRESS_STATUS } from '../../shared/utils/progressTracking';
+
+          // Get progress data for this step
+          const progress = getStepProgressState(step.id, originalComponent.id, state.currentProject.id);
+
+          // Check if this was a length-based step that was completed
+          const isLengthBased = step.wizardConfig?.duration?.type === 'length';
+          const wasCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
+          const actualRows = progress.currentRow;
+
+          if (isLengthBased && wasCompleted && actualRows) {
+            // Convert from length-based to fixed rows!
+            return {
+              ...step,
+              id: crypto.randomUUID(),
+              completed: false,
+              totalRows: actualRows,
+              wizardConfig: {
+                ...step.wizardConfig,
+                duration: {
+                  type: 'rows',
+                  value: String(actualRows)
+                }
+              }
+            };
+          }
+
+          // For non-length steps, copy normally
+          return {
+            ...step,
+            id: crypto.randomUUID(),
+            completed: false
+          };
+        }),
         currentStep: 0
       };
 
