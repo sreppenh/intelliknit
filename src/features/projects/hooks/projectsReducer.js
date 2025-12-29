@@ -325,7 +325,6 @@ export const projectsReducer = (state, action) => {
       }
 
       // ✅ Build debug info for alert
-      let debugInfo = `Copying: ${originalComponent.name}\n\n`;
 
       const copiedComponent = {
         id: crypto.randomUUID(),
@@ -353,14 +352,8 @@ export const projectsReducer = (state, action) => {
             }
           }
 
-          // Add to debug info
-          debugInfo += `Step ${index + 1}: ${step.description?.substring(0, 30)}...\n`;
-          debugInfo += `  Type: ${step.wizardConfig?.duration?.type || 'none'}\n`;
-          debugInfo += `  Status: ${progress.status}\n`;
-          debugInfo += `  Rows: ${actualRows || 'none'}\n`;
-
           if (isLengthBased && wasCompleted && actualRows && actualRows > 1) {
-            debugInfo += `  ✅ CONVERTING to ${actualRows} rows\n\n`;
+
             return {
               ...step,
               id: crypto.randomUUID(),
@@ -376,7 +369,6 @@ export const projectsReducer = (state, action) => {
             };
           }
 
-          debugInfo += `  ⏭️ Normal copy\n\n`;
           return {
             ...step,
             id: crypto.randomUUID(),
@@ -385,9 +377,6 @@ export const projectsReducer = (state, action) => {
         }),
         currentStep: 0
       };
-
-      // ✅ Show the debug alert
-      setTimeout(() => alert(debugInfo), 100);
 
       const projectWithCopiedComponent = {
         ...state.currentProject,
