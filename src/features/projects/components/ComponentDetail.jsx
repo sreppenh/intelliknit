@@ -87,19 +87,34 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
       payload: copiedComponent
     });
 
-    // Better alert message
-    const convertedSteps = component.steps.filter((step, idx) => {
+    // ✅ DETAILED alert showing what happened
+    const conversionDetails = component.steps.map((step, idx) => {
       const progress = getStepProgressState(step.id, component.id, currentProject.id);
-      return step.wizardConfig?.duration?.type === 'length' &&
-        progress.status === PROGRESS_STATUS.COMPLETED;
-    }).length;
+      const isLengthBased = step.wizardConfig?.duration?.type === 'length';
+      const wasCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
+      const actualRows = progress.currentRow;
 
-    if (convertedSteps > 0) {
-      alert(`${component.name} has been copied!\n\n${convertedSteps} length-based step(s) converted to fixed row counts based on your actual knitting.`);
+      if (isLengthBased && wasCompleted && actualRows) {
+        const originalLength = step.wizardConfig.duration.value;
+        const units = step.wizardConfig.duration.units;
+        return `• Step ${idx + 1}: ${originalLength} ${units} → ${actualRows} rows`;
+      }
+      return null;
+    }).filter(Boolean);
+
+    if (conversionDetails.length > 0) {
+      alert(
+        `${component.name} has been copied!\n\n` +
+        `Converted ${conversionDetails.length} length-based step(s):\n` +
+        conversionDetails.join('\n') +
+        `\n\nGo to "${component.name} Copy" to verify!`
+      );
     } else {
       alert(`${component.name} has been copied!`);
     }
   };
+
+
   // ✅ UPDATED: Always allow deletion, but track progress for UI
   const hasCompletedSteps = component.steps.some(step => step.completed);
 

@@ -829,15 +829,15 @@ const KnittingStepCounter = ({
         return step.totalRows || 1;
     }
 
-    // Get display text for row with length intelligence
+    // In KnittingStepCounter.jsx, update getRowDisplayText():
     const getRowDisplayText = () => {
         if (isLengthStep && lengthDisplayData) {
             let rowText = lengthDisplayData.rowText;
 
             if (useSideIntelligence && construction === 'flat' && currentSide) {
-                // ✅ Add subtle moon icon for WS rows
-                const sideIndicator = currentSide === 'WS' ? '🌙 ' : '';
-                rowText += ` (${sideIndicator}${currentSide})`;
+                // ✅ Add subtle moon icon AFTER the parenthesis
+                const sideIndicator = currentSide === 'WS' ? ' 🌙' : '';
+                rowText += ` (${currentSide})${sideIndicator}`;
             }
 
             return rowText;
@@ -854,9 +854,9 @@ const KnittingStepCounter = ({
             : `${rowTerm} ${currentRow}`;
 
         if (useSideIntelligence && construction === 'flat' && currentSide) {
-            // ✅ Add subtle moon icon for WS rows
-            const sideIndicator = currentSide === 'WS' ? '🌙 ' : '';
-            rowText += ` (${sideIndicator}${currentSide})`;
+            // ✅ Add subtle moon icon AFTER the parenthesis
+            const sideIndicator = currentSide === 'WS' ? ' 🌙' : '';
+            rowText += ` (${currentSide})${sideIndicator}`;
         }
 
         return rowText;
