@@ -1,5 +1,5 @@
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
-import { getStepProgressState, PROGRESS_STATUS } from '../../shared/utils/progressTracking';
+import { getStepProgressState, PROGRESS_STATUS } from '../../../shared/utils/progressTracking';
 
 export const initialState = {
   projects: [],
