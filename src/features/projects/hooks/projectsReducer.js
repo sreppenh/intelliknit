@@ -333,7 +333,8 @@ export const projectsReducer = (state, action) => {
         steps: originalComponent.steps.map((step, index) => {
           const progress = getStepProgressState(step.id, originalComponent.id, state.currentProject.id);
 
-          const isLengthBased = step.wizardConfig?.duration?.type === 'length';
+          const isLengthBased = step.wizardConfig?.duration?.type === 'length' ||
+            step.wizardConfig?.duration?.type === 'until_length';
           const wasCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
           const actualRows = progress.currentRow;
 
