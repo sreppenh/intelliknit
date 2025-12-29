@@ -5,6 +5,8 @@ import React, { useState } from 'react';
 import { useProjectsContext } from '../hooks/useProjectsContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import DeleteComponentModal from '../../../shared/components/modals/DeleteComponentModal'; // ADD THIS IMPORT
+import { getStepProgressState, PROGRESS_STATUS } from '../../../shared/utils/progressTracking';
+
 
 const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnitting, onGoToLanding }) => {
   const { currentProject, dispatch } = useProjectsContext();
@@ -38,17 +40,46 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
     onBack(); // Then navigate back
   };
 
+  // Then update handleCopyComponent:
   const handleCopyComponent = () => {
     const copiedComponent = {
       ...component,
       name: `${component.name} Copy`,
       id: crypto.randomUUID(),
       currentStep: 0,
-      steps: component.steps.map(step => ({
-        ...step,
-        id: crypto.randomUUID() + Math.random(),
-        completed: false
-      }))
+      steps: component.steps.map(step => {
+        // Get progress data for this step
+        const progress = getStepProgressState(step.id, component.id, currentProject.id);
+
+        // Check if this was a length-based step that was completed
+        const isLengthBased = step.wizardConfig?.duration?.type === 'length';
+        const wasCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
+        const actualRows = progress.currentRow;
+
+        if (isLengthBased && wasCompleted && actualRows) {
+          // ✅ Convert from length-based to fixed rows!
+          return {
+            ...step,
+            id: crypto.randomUUID() + Math.random(),
+            completed: false,
+            totalRows: actualRows,  // Use actual rows knitted
+            wizardConfig: {
+              ...step.wizardConfig,
+              duration: {
+                type: 'rows',  // Change from 'length' to 'rows'
+                value: String(actualRows)  // Use actual count
+              }
+            }
+          };
+        }
+
+        // For non-length steps, just copy normally
+        return {
+          ...step,
+          id: crypto.randomUUID() + Math.random(),
+          completed: false
+        };
+      })
     };
 
     dispatch({
@@ -56,9 +87,19 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
       payload: copiedComponent
     });
 
-    alert(`${component.name} has been copied!`);
-  };
+    // Better alert message
+    const convertedSteps = component.steps.filter((step, idx) => {
+      const progress = getStepProgressState(step.id, component.id, currentProject.id);
+      return step.wizardConfig?.duration?.type === 'length' &&
+        progress.status === PROGRESS_STATUS.COMPLETED;
+    }).length;
 
+    if (convertedSteps > 0) {
+      alert(`${component.name} has been copied!\n\n${convertedSteps} length-based step(s) converted to fixed row counts based on your actual knitting.`);
+    } else {
+      alert(`${component.name} has been copied!`);
+    }
+  };
   // ✅ UPDATED: Always allow deletion, but track progress for UI
   const hasCompletedSteps = component.steps.some(step => step.completed);
 
@@ -177,8 +218,8 @@ const ComponentDetail = ({ componentIndex, onBack, onManageSteps, onStartKnittin
                 <button
                   onClick={() => setShowDeleteModal(true)}
                   className={`w-full flex items-center justify-center gap-2 ${hasCompletedSteps
-                      ? 'btn-danger font-semibold' // Emphasize warning state
-                      : 'btn-danger'              // Normal styling
+                    ? 'btn-danger font-semibold' // Emphasize warning state
+                    : 'btn-danger'              // Normal styling
                     }`}
                 >
                   <span>🗑️</span>
