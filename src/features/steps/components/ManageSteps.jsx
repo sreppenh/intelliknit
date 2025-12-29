@@ -362,13 +362,11 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     event.stopPropagation();
     console.log('🔧 Edit Config clicked for step', stepIndex);
 
-    checkEditSafety(stepIndex, 'config', () => {
-      console.log('✅ Edit safety check passed, setting state...');
-      setEditingStepIndex(stepIndex);
-      setShowEditConfigScreen(true);
-      setOpenMenuId(null);
-      console.log('✅ State set - showEditConfigScreen should be true');
-    });
+    // ✅ REMOVED: Safety check - allow editing configuration without warnings
+    // User can manually adjust following steps if needed
+    setEditingStepIndex(stepIndex);
+    setShowEditConfigScreen(true);
+    setOpenMenuId(null);
   };
 
   // DELETE handler stays mostly the same, but we can simplify it
