@@ -331,12 +331,27 @@ export const projectsReducer = (state, action) => {
         id: crypto.randomUUID(),
         name: newName.trim(),
         steps: originalComponent.steps.map((step, index) => {
+          // Get progress data for this step
           const progress = getStepProgressState(step.id, originalComponent.id, state.currentProject.id);
 
           const isLengthBased = step.wizardConfig?.duration?.type === 'length' ||
             step.wizardConfig?.duration?.type === 'until_length';
           const wasCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
-          const actualRows = progress.currentRow;
+          let actualRows = progress.currentRow;
+
+          // ✅ FALLBACK: If progress shows 1 row but step is length-based, check row counter
+          if (isLengthBased && wasCompleted && actualRows === 1) {
+            const rowCounterKey = `row-counter-${state.currentProject.id}-${originalComponent.id}-${step.id}`;
+            const rowCounterData = localStorage.getItem(rowCounterKey);
+            if (rowCounterData) {
+              try {
+                const parsed = JSON.parse(rowCounterData);
+                actualRows = parsed.currentRow || actualRows;
+              } catch (e) {
+                // Keep original value if parse fails
+              }
+            }
+          }
 
           // Add to debug info
           debugInfo += `Step ${index + 1}: ${step.description?.substring(0, 30)}...\n`;
@@ -344,7 +359,7 @@ export const projectsReducer = (state, action) => {
           debugInfo += `  Status: ${progress.status}\n`;
           debugInfo += `  Rows: ${actualRows || 'none'}\n`;
 
-          if (isLengthBased && wasCompleted && actualRows) {
+          if (isLengthBased && wasCompleted && actualRows && actualRows > 1) {
             debugInfo += `  ✅ CONVERTING to ${actualRows} rows\n\n`;
             return {
               ...step,
@@ -379,6 +394,7 @@ export const projectsReducer = (state, action) => {
         components: [...state.currentProject.components, copiedComponent]
       };
 
+      // NEW: Add activity tracking
       const projectWithCopyActivity = updateProjectActivity(projectWithCopiedComponent);
 
       return {
