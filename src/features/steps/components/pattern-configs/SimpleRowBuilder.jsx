@@ -1,6 +1,6 @@
 // src/features/steps/components/pattern-configs/SimpleRowBuilder.jsx
 import React, { useState, useRef } from 'react';
-import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerms';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
