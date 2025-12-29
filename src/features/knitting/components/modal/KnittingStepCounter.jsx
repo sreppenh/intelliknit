@@ -835,7 +835,9 @@ const KnittingStepCounter = ({
             let rowText = lengthDisplayData.rowText;
 
             if (useSideIntelligence && construction === 'flat' && currentSide) {
-                rowText += ` (${currentSide})`;
+                // ✅ Add subtle moon icon for WS rows
+                const sideIndicator = currentSide === 'WS' ? '🌙 ' : '';
+                rowText += ` (${sideIndicator}${currentSide})`;
             }
 
             return rowText;
@@ -852,7 +854,9 @@ const KnittingStepCounter = ({
             : `${rowTerm} ${currentRow}`;
 
         if (useSideIntelligence && construction === 'flat' && currentSide) {
-            rowText += ` (${currentSide})`;
+            // ✅ Add subtle moon icon for WS rows
+            const sideIndicator = currentSide === 'WS' ? '🌙 ' : '';
+            rowText += ` (${sideIndicator}${currentSide})`;
         }
 
         return rowText;
