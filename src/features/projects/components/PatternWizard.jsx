@@ -77,6 +77,7 @@ const PatternWizard = ({
                             currentStitches={componentData.startStitches}
                             project={currentProject}
                             mode="component-default"
+                            startingSide="RS"  // ✅ ADD THIS LINE - defaults always start RS
                         />
                     )}
 

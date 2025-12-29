@@ -17,7 +17,8 @@ const PatternConfiguration = ({
   construction,
   currentStitches,
   project,
-  mode
+  mode,
+  startingSide = 'RS'  // ✅ ADD THIS LINE
 }) => {
   const { pattern, entryMode } = wizardData.stitchPattern;
 
@@ -82,6 +83,7 @@ const PatternConfiguration = ({
               updateWizardData={updateWizardData}
               construction={construction}
               currentStitches={currentStitches}
+              startingSide={startingSide}  // ✅ ADD THIS LINE
             />
           );
         } else if (entryMode === 'description') {

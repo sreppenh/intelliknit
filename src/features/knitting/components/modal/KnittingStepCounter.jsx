@@ -628,18 +628,12 @@ const KnittingStepCounter = ({
     const instructionResult = getCurrentInstruction();
 
     const handleStepComplete = () => {
-        if (isStepLocked) return; // Prevent completion of locked steps
+        if (isStepLocked) return;
 
         // ✅ NEW: Save completion to progress system FIRST (project mode only)
         if (!isNotepadMode && step && component && project) {
             const totalRows = calculateActualTotalRows(step);
-
-            // ✅ NEW: Calculate continuation state for this step
             const continuation = calculateContinuationState(step);
-
-            // ✅ NEW: Log continuation state for debugging
-            if (continuation) {
-            }
 
             saveStepProgressState(step.id, component.id, project.id, {
                 status: PROGRESS_STATUS.COMPLETED,
@@ -647,7 +641,7 @@ const KnittingStepCounter = ({
                 totalRows: totalRows,
                 completedAt: new Date().toISOString(),
                 completionMethod: 'knitting_modal',
-                continuation: continuation  // ✅ NEW: Add continuation data
+                continuation: continuation
             });
         }
 
@@ -664,13 +658,17 @@ const KnittingStepCounter = ({
             return;
         }
 
-        // Length-based gauge update check
+        // ✅ FIX: Toggle completion BEFORE gauge check
+        // This ensures the step is marked complete even if gauge card shows
+        onToggleCompletion?.(stepIndex);
+
+        // Length-based gauge update check (after completion is toggled)
         if (!isNotepadMode && isLengthStep && !isCompleted) {
             const shouldPrompt = shouldPromptGaugeUpdate(step, currentRow, project, startingLength);
             if (shouldPrompt && onShowGaugeCard) {
                 const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
                 onShowGaugeCard(promptData);
-                return;
+                return; // ← Now it's OK to return here
             }
         }
 
@@ -682,9 +680,6 @@ const KnittingStepCounter = ({
         if (sideTracking.hasSessionChanges) {
             sideTracking.commitSideChanges(() => { });
         }
-
-        // ✅ ADD THIS LINE HERE (after side tracking):
-        onToggleCompletion?.(stepIndex);
     };
 
     const handleLengthBasedComplete = () => {

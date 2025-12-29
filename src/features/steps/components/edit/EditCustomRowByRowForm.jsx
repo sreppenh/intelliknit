@@ -142,6 +142,7 @@ const EditCustomRowByRowForm = ({
                         wizardData={wizardData}
                         updateWizardData={updateWizardData}
                         construction={construction}
+                        startingSide={step?.sideTracking?.startingSide || 'RS'}
                     />
 
                     {/* Save/Cancel Actions */}

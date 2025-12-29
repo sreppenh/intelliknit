@@ -376,6 +376,7 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
               currentStitches={wizard.currentStitches}
               project={currentProject}
               mode={mode}
+              startingSide={wizard.getStepStartingSide()}  // ✅ ADD THIS LINE
             />
 
             {/* 🎯 SIMPLIFIED: Navigation for Step 2 */}

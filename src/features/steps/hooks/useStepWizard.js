@@ -5,7 +5,7 @@ import { CONSTRUCTION_TYPES } from '../../../shared/utils/constants';
 import useSmartStepNavigation from '../../../shared/hooks/useSmartStepNavigation';
 import { validatePatternConfiguration } from '../../../shared/utils/stepDisplayUtils';
 import { shouldSkipConfiguration as shouldSkipPatternConfiguration } from '../../../shared/utils/PatternCategories';
-
+import { getStepStartingSide } from '../../../shared/utils/sideIntelligence';
 
 export const useStepWizard = (componentIndex, editingStepIndex = null, editMode = null, mode = 'project') => {
   const { currentProject } = useActiveContext(mode);
@@ -322,6 +322,20 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     };
   };
 
+  // ✅ NEW: Get starting side for the step being created/edited
+  const getStepStartingSide = () => {
+    if (!component) return 'RS';
+
+    // If editing an existing step, use its starting side
+    if (isEditing && editingStep?.sideTracking?.startingSide) {
+      return editingStep.sideTracking.startingSide;
+    }
+
+    // For new steps, calculate based on component's steps
+    const stepIndex = component.steps?.length || 0;
+    return getStepStartingSide(component, stepIndex);
+  };
+
   return {
     // State (updated to use smart navigation)
     wizardStep: smartNav.currentStep,
@@ -340,6 +354,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     canHaveShaping,
     resetWizardData,
     setCurrentStitches,
+    getStepStartingSide,
 
     // Navigation (enhanced)
     navigation,

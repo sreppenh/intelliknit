@@ -1,18 +1,20 @@
 // src/features/steps/components/pattern-configs/SimpleRowBuilder.jsx
 import React, { useState, useRef } from 'react';
-import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerminology';
+import { getConstructionTerms } from '../../../../shared/utils/ConstructionTerms';
 import IncrementInput from '../../../../shared/components/IncrementInput';
 import StandardModal from '../../../../shared/components/modals/StandardModal';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import { useKnittingAbbreviations, handleSmartKeyDown } from '../../../../shared/hooks/useKnittingAbbreviations';
+import { getCurrentSide } from '../../../../shared/utils/sideIntelligence'; // ✅ NEW IMPORT
 
 const SimpleRowBuilder = ({
     wizardData,
     updateWizardData,
     construction,
-    currentStitches
+    currentStitches,
+    startingSide = 'RS' // ✅ NEW PROP with default
 }) => {
     const terms = getConstructionTerms(construction);
 
@@ -21,7 +23,7 @@ const SimpleRowBuilder = ({
     const [editingRowIndex, setEditingRowIndex] = useState(null);
     const [tempInstruction, setTempInstruction] = useState('');
     const [tempStitchChange, setTempStitchChange] = useState(0);
-    const [stitchTrackingMode, setStitchTrackingMode] = useState('change'); // 'change' or 'remaining'
+    const [stitchTrackingMode, setStitchTrackingMode] = useState('change');
     const [tempStitchesRemaining, setTempStitchesRemaining] = useState(null);
 
     const textareaRef = useRef(null);
@@ -60,11 +62,9 @@ const SimpleRowBuilder = ({
     // ===== MODAL HANDLERS =====
     const handleOpenModal = (index = null) => {
         if (index !== null) {
-            // Editing existing row
             setEditingRowIndex(index);
             setTempInstruction(rows[index].instruction || '');
 
-            // Load either stitchChange or stitchesRemaining
             if (rows[index].stitchesRemaining !== null && rows[index].stitchesRemaining !== undefined) {
                 setStitchTrackingMode('remaining');
                 setTempStitchesRemaining(rows[index].stitchesRemaining);
@@ -75,7 +75,6 @@ const SimpleRowBuilder = ({
                 setTempStitchesRemaining(null);
             }
         } else {
-            // Adding new row
             setEditingRowIndex(null);
             setTempInstruction('');
             setStitchTrackingMode('change');
@@ -97,7 +96,6 @@ const SimpleRowBuilder = ({
     const handleSaveRow = () => {
         const newRows = [...rows];
 
-        // Save based on tracking mode
         const rowData = {
             instruction: tempInstruction,
         };
@@ -150,9 +148,12 @@ const SimpleRowBuilder = ({
     };
 
     // ===== UTILITIES =====
+    // ✅ FIXED: Now respects the actual starting side
     const getRowSide = (rowNumber) => {
         if (construction === 'round') return 'Round';
-        return rowNumber % 2 === 1 ? 'RS' : 'WS';
+
+        // Use sideIntelligence to calculate the correct side
+        return getCurrentSide(construction, rowNumber, startingSide);
     };
 
     const calculateNetChange = () => {
@@ -248,7 +249,8 @@ const SimpleRowBuilder = ({
                                 </div>
 
                                 {/* Second line: Instruction gets full width */}
-                                <div className="text-sm text-wool-700 font-mono pl-2">{row.instruction || <span className="text-wool-400 italic">No instruction</span>}
+                                <div className="text-sm text-wool-700 font-mono pl-2">
+                                    {row.instruction || <span className="text-wool-400 italic">No instruction</span>}
                                 </div>
                             </div>
                         );
@@ -272,8 +274,7 @@ const SimpleRowBuilder = ({
                             {rows.length} {rows.length === 1 ? terms.row : terms.rows} in pattern
                         </span>
                         {calculateNetChange() !== 0 && (
-                            <span className={`ml-2 font-semibold ${calculateNetChange() > 0 ? 'text-green-700' : 'text-red-700'
-                                }`}>
+                            <span className={`ml-2 font-semibold ${calculateNetChange() > 0 ? 'text-green-700' : 'text-red-700'}`}>
                                 • {calculateNetChange() > 0 ? '+' : ''}{calculateNetChange()} stitches per repeat
                             </span>
                         )}
@@ -331,7 +332,6 @@ const SimpleRowBuilder = ({
                         onChange={(value) => {
                             setStitchTrackingMode(value);
                             if (value === 'remaining') {
-                                // Calculate default based on current count
                                 const currentCount = editingRowIndex !== null
                                     ? getCurrentStitchCount(editingRowIndex)
                                     : getCurrentStitchCount(rows.length);
