@@ -324,23 +324,27 @@ export const projectsReducer = (state, action) => {
         return state;
       }
 
-      // ✅ ENHANCED: Convert length-based steps to fixed rows
+      // ✅ Build debug info for alert
+      let debugInfo = `Copying: ${originalComponent.name}\n\n`;
+
       const copiedComponent = {
         id: crypto.randomUUID(),
         name: newName.trim(),
         steps: originalComponent.steps.map((step, index) => {
-          // Import at top of file: import { getStepProgressState, PROGRESS_STATUS } from '../../shared/utils/progressTracking';
-
-          // Get progress data for this step
           const progress = getStepProgressState(step.id, originalComponent.id, state.currentProject.id);
 
-          // Check if this was a length-based step that was completed
           const isLengthBased = step.wizardConfig?.duration?.type === 'length';
           const wasCompleted = progress.status === PROGRESS_STATUS.COMPLETED;
           const actualRows = progress.currentRow;
 
+          // Add to debug info
+          debugInfo += `Step ${index + 1}: ${step.description?.substring(0, 30)}...\n`;
+          debugInfo += `  Type: ${step.wizardConfig?.duration?.type || 'none'}\n`;
+          debugInfo += `  Status: ${progress.status}\n`;
+          debugInfo += `  Rows: ${actualRows || 'none'}\n`;
+
           if (isLengthBased && wasCompleted && actualRows) {
-            // Convert from length-based to fixed rows!
+            debugInfo += `  ✅ CONVERTING to ${actualRows} rows\n\n`;
             return {
               ...step,
               id: crypto.randomUUID(),
@@ -356,7 +360,7 @@ export const projectsReducer = (state, action) => {
             };
           }
 
-          // For non-length steps, copy normally
+          debugInfo += `  ⏭️ Normal copy\n\n`;
           return {
             ...step,
             id: crypto.randomUUID(),
@@ -366,12 +370,14 @@ export const projectsReducer = (state, action) => {
         currentStep: 0
       };
 
+      // ✅ Show the debug alert
+      setTimeout(() => alert(debugInfo), 100);
+
       const projectWithCopiedComponent = {
         ...state.currentProject,
         components: [...state.currentProject.components, copiedComponent]
       };
 
-      // NEW: Add activity tracking
       const projectWithCopyActivity = updateProjectActivity(projectWithCopiedComponent);
 
       return {
