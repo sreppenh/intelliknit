@@ -113,7 +113,8 @@ const DurationChoice = ({
         wizardData.duration.completeSequence || false,
         targetStitches,
         currentStitches,
-        repeatInfo.stitchChangePerRepeat
+        repeatInfo.stitchChangePerRepeat,
+        wizardData.stitchPattern.customSequence?.rows || null  // ✅ Pass actual row data
       );
 
       return {

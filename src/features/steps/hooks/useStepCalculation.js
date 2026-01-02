@@ -80,7 +80,8 @@ export const useStepCalculation = () => {
         completeSequence,
         targetStitches,
         currentStitches,
-        stitchChangePerRepeat
+        stitchChangePerRepeat,
+        wizardData.stitchPattern.customSequence?.rows || null  // ✅ Pass actual row data
       );
 
       IntelliKnitLogger.success('Target Repeats Calculated', {

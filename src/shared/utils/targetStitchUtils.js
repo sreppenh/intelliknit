@@ -192,6 +192,7 @@ export const getPatternRepeatInfo = (stitchPattern, startingStitches = 0) => {
  * @param {number} targetStitches - Target stitch count
  * @param {number} startingStitches - Starting stitch count
  * @param {number} stitchChangePerRepeat - Change per repeat
+ * @param {Array} customSequenceRows - Optional: actual row data for precise calculation
  * @returns {Object} - { totalRows, actualRepeats, endingStitches, reachedOnRow }
  */
 export const calculateTargetRows = (
@@ -200,7 +201,8 @@ export const calculateTargetRows = (
     completeSequence,
     targetStitches,
     startingStitches,
-    stitchChangePerRepeat
+    stitchChangePerRepeat,
+    customSequenceRows = null  // ✅ NEW PARAMETER
 ) => {
     // ✅ FIX: Validate inputs to prevent negative rows
     if (repeatsNeeded < 0 || rowsPerRepeat <= 0) {
@@ -232,36 +234,82 @@ export const calculateTargetRows = (
     const fullRepeats = Math.floor(Math.abs(totalStitchChange) / Math.abs(stitchChangePerRepeat));
     const remainingStitchChange = totalStitchChange - (fullRepeats * stitchChangePerRepeat);
 
-    let reachedOnRow = null;
-    if (remainingStitchChange !== 0) {
-        // Target is reached mid-repeat
-        // This is simplified - actual calculation would need row-by-row analysis
-        reachedOnRow = fullRepeats * rowsPerRepeat + 1; // Approximate
-    }
-
     if (completeSequence || remainingStitchChange === 0) {
         // Complete all repeats
         const actualRepeats = Math.ceil(Math.abs(totalStitchChange) / Math.abs(stitchChangePerRepeat));
-        const totalRows = Math.max(0, actualRepeats * rowsPerRepeat); // ✅ Ensure non-negative
+        const totalRows = Math.max(0, actualRepeats * rowsPerRepeat);
         const endingStitches = startingStitches + (actualRepeats * stitchChangePerRepeat);
 
         return {
             totalRows,
             actualRepeats,
             endingStitches,
-            reachedOnRow: reachedOnRow || totalRows,
+            reachedOnRow: totalRows,
             isValid: true
         };
     } else {
         // Stop at target (incomplete repeat)
-        const totalRows = Math.max(0, reachedOnRow || (repeatsNeeded * rowsPerRepeat)); // ✅ Ensure non-negative
+        // ✅ NEW: Walk through row-by-row if we have the actual sequence
+        if (customSequenceRows && Array.isArray(customSequenceRows)) {
+            let currentStitches = startingStitches;
+            let rowNumber = 0;
+            let repeatsCompleted = 0;
+
+            // Walk through repeats until we reach or exceed target
+            const maxRepeats = Math.ceil(Math.abs(totalStitchChange) / Math.abs(stitchChangePerRepeat)) + 1;
+
+            for (let repeat = 0; repeat < maxRepeats; repeat++) {
+                for (let i = 0; i < customSequenceRows.length; i++) {
+                    rowNumber++;
+                    const row = customSequenceRows[i];
+
+                    // Apply stitch change
+                    if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+                        currentStitches = row.stitchesRemaining;
+                    } else {
+                        currentStitches += (row.stitchChange || 0);
+                    }
+
+                    // Check if we've reached the target
+                    if ((stitchChangePerRepeat > 0 && currentStitches >= targetStitches) ||
+                        (stitchChangePerRepeat < 0 && currentStitches <= targetStitches)) {
+
+                        return {
+                            totalRows: rowNumber,
+                            actualRepeats: repeatsCompleted + ((i + 1) / customSequenceRows.length),
+                            endingStitches: currentStitches,
+                            reachedOnRow: rowNumber,
+                            isValid: true,
+                            stoppedMidRepeat: true
+                        };
+                    }
+                }
+                repeatsCompleted++;
+            }
+
+            // If we somehow didn't reach target (shouldn't happen), return what we got
+            return {
+                totalRows: rowNumber,
+                actualRepeats: repeatsCompleted,
+                endingStitches: currentStitches,
+                reachedOnRow: rowNumber,
+                isValid: false,
+                error: 'Target not reached within calculated repeats'
+            };
+        }
+
+        // ❌ FALLBACK: Old approximate calculation (when we don't have row data)
+        // This is less accurate but better than nothing
+        const approximateRow = fullRepeats * rowsPerRepeat + Math.ceil(rowsPerRepeat / 2);
+        const totalRows = Math.max(0, approximateRow);
 
         return {
             totalRows,
             actualRepeats: repeatsNeeded,
             endingStitches: targetStitches,
             reachedOnRow: totalRows,
-            isValid: true
+            isValid: true,
+            isApproximate: true  // Flag that this is not precise
         };
     }
 };
