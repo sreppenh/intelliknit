@@ -529,73 +529,65 @@ const DurationChoice = ({
                             </div>
                           </div>
 
-                          {/* Complete sequence toggle */}
-                          <label className="flex items-start gap-3 p-3 bg-white border border-sage-200 rounded-lg cursor-pointer hover:bg-sage-50 transition-colors">
-                            <input
-                              type="checkbox"
-                              checked={wizardData.duration.completeSequence || false}
-                              onChange={(e) => {
-                                // Clear endOnSide when enabling completeSequence
-                                if (e.target.checked) {
-                                  updateWizardData('duration', { completeSequence: true, endOnSide: null });
-                                } else {
-                                  updateWizardData('duration', { completeSequence: false });
-                                }
-                              }}
-                              className="w-4 h-4 text-sage-600 mt-0.5"
-                            />
-                            <div className="flex-1">
-                              <div className="text-sm font-medium text-sage-700">
-                                Complete final repeat
-                              </div>
-                              <div className="text-xs text-sage-600 mt-1">
-                                Finish all {repeatInfo.rowsInPattern} {construction === 'round' ? 'rounds' : 'rows'} even if target is reached mid-sequence
-                              </div>
+                          {/* ✅ REFACTORED: Single "How to end" section */}
+                          <div className="bg-sage-50 border border-sage-200 rounded-lg p-3">
+                            <div className="text-sm font-medium text-sage-900 mb-2">
+                              How to end this step
                             </div>
-                          </label>
+                            <div className="text-xs text-sage-600 mb-3">
+                              {endOnSideOption
+                                ? `Target is reached on ${construction === 'round' ? 'an' : ''} ${endOnSideOption.naturalEndingSide} ${construction === 'round' ? 'round' : ''}`
+                                : `Choose how to complete this step`
+                              }
+                            </div>
 
-                          {/* ✅ NEW: End on specific side option */}
-                          {endOnSideOption && (
-                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                              <div className="text-sm font-medium text-blue-900 mb-2">
-                                {construction === 'round' ? 'End on specific round' : 'End on specific side'} (optional)
-                              </div>
-                              <div className="text-xs text-blue-700 mb-3">
-                                Target is reached on {construction === 'round' ? 'an' : ''} {endOnSideOption.naturalEndingSide} {construction === 'round' ? 'round' : ''}.
-                                Add 1 {construction === 'round' ? 'round' : 'row'} if needed.
-                              </div>
+                            <div className="space-y-2">
+                              {/* Option 1: Stop at target (default) */}
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="endingBehavior"
+                                  checked={!wizardData.duration.completeSequence && !wizardData.duration.endOnSide}
+                                  onChange={() => updateWizardData('duration', { completeSequence: false, endOnSide: null })}
+                                  className="w-4 h-4 text-sage-600"
+                                />
+                                <span className="text-sm text-sage-700">
+                                  Stop at target
+                                </span>
+                              </label>
 
-                              <div className="space-y-2">
-                                <label className="flex items-center gap-2 cursor-pointer">
+                              {/* Option 2: Complete final repeat */}
+                              <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                  type="radio"
+                                  name="endingBehavior"
+                                  checked={wizardData.duration.completeSequence === true}
+                                  onChange={() => updateWizardData('duration', { completeSequence: true, endOnSide: null })}
+                                  className="w-4 h-4 text-sage-600"
+                                />
+                                <span className="text-sm text-sage-700">
+                                  Complete final repeat (all {repeatInfo.rowsInPattern} {construction === 'round' ? 'rounds' : 'rows'})
+                                </span>
+                              </label>
+
+                              {/* Options 3+: End on specific side (only if safe) */}
+                              {endOnSideOption && endOnSideOption.options.map(option => (
+                                <label key={option} className="flex items-center gap-2 cursor-pointer">
                                   <input
                                     type="radio"
-                                    name="endOnSide"
-                                    checked={!wizardData.duration.endOnSide}
-                                    onChange={() => updateWizardData('duration', { endOnSide: null })}
+                                    name="endingBehavior"
+                                    checked={wizardData.duration.endOnSide === option && !wizardData.duration.completeSequence}
+                                    onChange={() => updateWizardData('duration', { completeSequence: false, endOnSide: option })}
                                     className="w-4 h-4 text-sage-600"
                                   />
                                   <span className="text-sm text-sage-700">
-                                    Don't care (stop at target)
+                                    End on {option} {construction === 'round' ? 'round' : ''}
+                                    <span className="text-xs text-sage-500 ml-1">(+1 {construction === 'round' ? 'round' : 'row'})</span>
                                   </span>
                                 </label>
-
-                                {endOnSideOption.options.map(option => (
-                                  <label key={option} className="flex items-center gap-2 cursor-pointer">
-                                    <input
-                                      type="radio"
-                                      name="endOnSide"
-                                      checked={wizardData.duration.endOnSide === option}
-                                      onChange={() => updateWizardData('duration', { endOnSide: option })}
-                                      className="w-4 h-4 text-sage-600"
-                                    />
-                                    <span className="text-sm text-sage-700">
-                                      End on {option} {construction === 'round' && 'round'}
-                                    </span>
-                                  </label>
-                                ))}
-                              </div>
+                              ))}
                             </div>
-                          )}
+                          </div>
 
                         </>
                       )}
