@@ -534,7 +534,14 @@ const DurationChoice = ({
                             <input
                               type="checkbox"
                               checked={wizardData.duration.completeSequence || false}
-                              onChange={(e) => updateWizardData('duration', { completeSequence: e.target.checked })}
+                              onChange={(e) => {
+                                // Clear endOnSide when enabling completeSequence
+                                if (e.target.checked) {
+                                  updateWizardData('duration', { completeSequence: true, endOnSide: null });
+                                } else {
+                                  updateWizardData('duration', { completeSequence: false });
+                                }
+                              }}
                               className="w-4 h-4 text-sage-600 mt-0.5"
                             />
                             <div className="flex-1">
