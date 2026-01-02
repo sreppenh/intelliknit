@@ -40,7 +40,8 @@ const PrepNoteColorScreen = ({
         if (!component.colorMode) {
             onContinue('pattern-selection');
         }
-    }, [component.colorMode, onContinue]);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [component.colorMode]);  // ← Remove onContinue from deps!
 
     const handleContinue = () => {
         updateWizardData('prepNote', prepNote);
