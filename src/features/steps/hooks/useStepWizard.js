@@ -323,7 +323,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
   };
 
   // ✅ NEW: Get starting side for the step being created/edited
-  const getStepStartingSide = () => {
+  const getStepStartingSideForWizard = () => {
     if (!component) return 'RS';
 
     // If editing an existing step, use its starting side
@@ -354,7 +354,7 @@ export const useStepWizard = (componentIndex, editingStepIndex = null, editMode 
     canHaveShaping,
     resetWizardData,
     setCurrentStitches,
-    getStepStartingSide,
+    getStepStartingSide: getStepStartingSideForWizard,
 
     // Navigation (enhanced)
     navigation,
