@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import PageHeader from '../../../../shared/components/PageHeader';
 import DurationChoice from '../wizard-steps/DurationChoice';
-import { calculateTargetRows, calculateRepeatsToTarget, calculateStitchChangePerRepeat } from '../../../../shared/utils/targetStitchUtils';
-
+import targetStitchUtils from '../../../../shared/utils/targetStitchUtils';
+const { calculateTargetRows, calculateRepeatsToTarget, calculateStitchChangePerRepeat } = targetStitchUtils;
 
 /**
  * EditDurationForm - Thin wrapper around DurationChoice
@@ -122,8 +122,6 @@ const EditDurationForm = ({
             const currentStitches = step.startingStitches || 0;
 
             if (targetStitches && step.wizardConfig?.stitchPattern?.customSequence?.rows) {
-                // Import the calculation function at the top of the file
-                const { calculateTargetRows, calculateRepeatsToTarget, calculateStitchChangePerRepeat } = require('../../../shared/utils/targetStitchUtils');
 
                 const rows = step.wizardConfig.stitchPattern.customSequence.rows;
                 const stitchChangePerRepeat = calculateStitchChangePerRepeat(rows, currentStitches);
