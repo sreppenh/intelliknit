@@ -571,21 +571,26 @@ const DurationChoice = ({
                               </label>
 
                               {/* Options 3+: End on specific side (only if safe) */}
-                              {endOnSideOption && endOnSideOption.options.map(option => (
-                                <label key={option} className="flex items-center gap-2 cursor-pointer">
-                                  <input
-                                    type="radio"
-                                    name="endingBehavior"
-                                    checked={wizardData.duration.endOnSide === option && !wizardData.duration.completeSequence}
-                                    onChange={() => updateWizardData('duration', { completeSequence: false, endOnSide: option })}
-                                    className="w-4 h-4 text-sage-600"
-                                  />
-                                  <span className="text-sm text-sage-700">
-                                    End on {option} {construction === 'round' ? 'round' : ''}
-                                    <span className="text-xs text-sage-500 ml-1">(+1 {construction === 'round' ? 'round' : 'row'})</span>
-                                  </span>
-                                </label>
-                              ))}
+                              {endOnSideOption && endOnSideOption.options.map(option => {
+                                const needsExtraRow = option !== endOnSideOption.naturalEndingSide;
+                                return (
+                                  <label key={option} className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name="endingBehavior"
+                                      checked={wizardData.duration.endOnSide === option && !wizardData.duration.completeSequence}
+                                      onChange={() => updateWizardData('duration', { completeSequence: false, endOnSide: option })}
+                                      className="w-4 h-4 text-sage-600"
+                                    />
+                                    <span className="text-sm text-sage-700">
+                                      End on {option} {construction === 'round' ? 'round' : ''}
+                                      {needsExtraRow && (
+                                        <span className="text-xs text-sage-500 ml-1">(+1 {construction === 'round' ? 'round' : 'row'})</span>
+                                      )}
+                                    </span>
+                                  </label>
+                                );
+                              })}
                             </div>
                           </div>
 

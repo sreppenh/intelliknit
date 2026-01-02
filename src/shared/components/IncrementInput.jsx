@@ -99,7 +99,14 @@ const IncrementInput = ({
     }
 
     const shouldUseDecimals = useDecimals || (step % 1 !== 0);
+    // ✅ FIX: Handle string values during typing
     const numValue = shouldUseDecimals ? parseFloat(value) : parseInt(value);
+
+    // If parsing fails, default to min
+    if (isNaN(numValue)) {
+      onChange(min);
+      return;
+    }
 
     // Apply min/max constraints
     if (numValue < min) {
@@ -136,7 +143,8 @@ const IncrementInput = ({
   const isAtMax = currentValue >= effectiveMax;
 
   // Display value - always show the current valid value
-  const displayValue = value === '' ? '' : getCurrentValue().toString();
+  // ✅ FIX: Show raw value during typing, don't convert yet
+  const displayValue = value === '' ? '' : value.toString();
 
   // NEW: Get construction-aware unit for display
   const displayUnit = getConstructionAwareUnit(unit);
