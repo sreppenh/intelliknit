@@ -3,6 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import PageHeader from '../../../../shared/components/PageHeader';
 import DurationChoice from '../wizard-steps/DurationChoice';
+import { calculateTargetRows, calculateRepeatsToTarget, calculateStitchChangePerRepeat } from '../../../../shared/utils/targetStitchUtils';
+
 
 /**
  * EditDurationForm - Thin wrapper around DurationChoice
@@ -82,17 +84,67 @@ const EditDurationForm = ({
             }
         };
 
-        // For repeats, recalculate total rows if pattern has rowsInPattern
         let updatedStep = {
             ...step,
             wizardConfig: updatedWizardConfig
         };
 
-        if (durationData.type === 'repeats' && step.wizardConfig?.stitchPattern?.rowsInPattern) {
+        // ✅ FIX: Recalculate totalRows based on duration type
+        const durationType = durationData.type;
+
+        if (durationType === 'rows' || durationType === 'rounds') {
+            // Direct row count
+            updatedStep.totalRows = parseInt(durationData.value) || 1;
+        }
+        else if (durationType === 'repeats' && step.wizardConfig?.stitchPattern?.rowsInPattern) {
+            // Repeats of pattern
             const repeats = parseInt(durationData.value) || 1;
             const rowsInPattern = parseInt(step.wizardConfig.stitchPattern.rowsInPattern) || 1;
             updatedStep.totalRows = repeats * rowsInPattern;
         }
+        else if (durationType === 'color_repeats') {
+            // Color stripe repeats
+            const repeats = parseInt(durationData.value) || 1;
+            const colorwork = step.wizardConfig?.colorwork;
+
+            if (colorwork?.stripeSequence) {
+                const totalRowsInSequence = colorwork.stripeSequence.reduce(
+                    (sum, stripe) => sum + (stripe.rows || 0),
+                    0
+                );
+                updatedStep.totalRows = repeats * totalRowsInSequence;
+            }
+        }
+        else if (durationType === 'target_repeats') {
+            // Target stitch count - need to recalculate
+            // This is more complex, but let's handle it
+            const targetStitches = parseInt(durationData.targetStitches);
+            const currentStitches = step.startingStitches || 0;
+
+            if (targetStitches && step.wizardConfig?.stitchPattern?.customSequence?.rows) {
+                // Import the calculation function at the top of the file
+                const { calculateTargetRows, calculateRepeatsToTarget, calculateStitchChangePerRepeat } = require('../../../shared/utils/targetStitchUtils');
+
+                const rows = step.wizardConfig.stitchPattern.customSequence.rows;
+                const stitchChangePerRepeat = calculateStitchChangePerRepeat(rows, currentStitches);
+                const repeatCalc = calculateRepeatsToTarget(currentStitches, targetStitches, stitchChangePerRepeat);
+                const rowsPerRepeat = parseInt(step.wizardConfig.stitchPattern.rowsInPattern) || rows.length;
+
+                const rowCalc = calculateTargetRows(
+                    repeatCalc.repeats,
+                    rowsPerRepeat,
+                    durationData.completeSequence || false,
+                    targetStitches,
+                    currentStitches,
+                    stitchChangePerRepeat,
+                    rows
+                );
+
+                updatedStep.totalRows = rowCalc.totalRows;
+                updatedStep.endingStitches = rowCalc.endingStitches;
+            }
+        }
+        // For 'until_length', totalRows stays as calculated (gauge-based)
 
         // Dispatch update
         dispatch({

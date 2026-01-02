@@ -280,7 +280,8 @@ export const calculateTargetRows = (
                             endingStitches: currentStitches,
                             reachedOnRow: rowNumber,
                             isValid: true,
-                            stoppedMidRepeat: true
+                            stoppedMidRepeat: true,
+                            naturalStopRow: rowNumber  // ✅ Track where we naturally stopped
                         };
                     }
                 }
@@ -314,11 +315,37 @@ export const calculateTargetRows = (
     }
 };
 
+/**
+ * Check if we can safely add an extra row to end on a specific side
+ * @param {Array} customSequenceRows - The row sequence
+ * @param {number} stoppedOnRow - Row number where we stopped
+ * @returns {Object} - { canAddRow: boolean, nextRowHasChange: boolean }
+ */
+export const canAddExtraRowForSide = (customSequenceRows, stoppedOnRow) => {
+    if (!customSequenceRows || !Array.isArray(customSequenceRows) || customSequenceRows.length === 0) {
+        return { canAddRow: false, nextRowHasChange: false };
+    }
+
+    // Get the next row in the sequence
+    const nextRowIndex = stoppedOnRow % customSequenceRows.length;
+    const nextRow = customSequenceRows[nextRowIndex];
+
+    // Check if next row has stitch changes
+    const hasStitchChange = (nextRow.stitchChange && nextRow.stitchChange !== 0) ||
+        (nextRow.stitchesRemaining !== null && nextRow.stitchesRemaining !== undefined);
+
+    return {
+        canAddRow: !hasStitchChange,
+        nextRowHasChange: hasStitchChange
+    };
+};
+
 export default {
     getValidTargetStitches,
     calculateRepeatsToTarget,
     isValidTarget,
     calculateStitchChangePerRepeat,
     getPatternRepeatInfo,
-    calculateTargetRows
+    calculateTargetRows,
+    canAddExtraRowForSide  // ✅ ADD THIS
 };

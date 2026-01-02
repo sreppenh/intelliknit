@@ -84,6 +84,36 @@ export const useStepCalculation = () => {
         wizardData.stitchPattern.customSequence?.rows || null  // ✅ Pass actual row data
       );
 
+      // ✅ NEW: Adjust for endOnSide preference
+      let adjustedTotalRows = rowCalc.totalRows;
+      let adjustedEndingStitches = rowCalc.endingStitches;
+
+      if (wizardData.duration.endOnSide && !completeSequence) {
+        const construction = wizardData.stitchPattern.construction || 'flat';
+        const rows = wizardData.stitchPattern.customSequence?.rows;
+
+        if (rows && rowCalc.naturalStopRow) {
+          // Calculate what side we ended on
+          const { getCurrentSide: getSide } = require('../../../shared/utils/sideIntelligence');
+          const naturalSide = construction === 'round'
+            ? (rowCalc.naturalStopRow % 2 === 0 ? 'even' : 'odd')
+            : getSide(construction, rowCalc.naturalStopRow, 'RS');
+
+          // Check if we need to add a row
+          const needsExtraRow = naturalSide !== wizardData.duration.endOnSide;
+
+          if (needsExtraRow) {
+            const { canAddExtraRowForSide: canAdd } = require('../../../shared/utils/targetStitchUtils');
+            const check = canAdd(rows, rowCalc.naturalStopRow);
+
+            if (check.canAddRow) {
+              adjustedTotalRows = rowCalc.totalRows + 1;
+              // Ending stitches stay the same since next row has no changes
+            }
+          }
+        }
+      }
+
       IntelliKnitLogger.success('Target Repeats Calculated', {
         pattern: wizardData.stitchPattern.pattern,
         startingStitches: currentStitches,
@@ -97,9 +127,9 @@ export const useStepCalculation = () => {
 
       return {
         success: true,
-        totalRows: rowCalc.totalRows,
+        totalRows: adjustedTotalRows,  // ✅ Use adjusted
         startingStitches: currentStitches,
-        endingStitches: rowCalc.endingStitches,
+        endingStitches: adjustedEndingStitches,  // ✅ Use adjusted
         isTargetRepeat: true,
         targetStitches: targetStitches,
         repeatsNeeded: repeatCalc.repeats,

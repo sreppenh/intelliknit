@@ -1,6 +1,7 @@
 import React from 'react';
 import IncrementInput from '../../../../shared/components/IncrementInput';
-import { getPatternRepeatInfo, getValidTargetStitches, calculateRepeatsToTarget, calculateTargetRows } from '../../../../shared/utils/targetStitchUtils';
+import { getPatternRepeatInfo, getValidTargetStitches, calculateRepeatsToTarget, calculateTargetRows, canAddExtraRowForSide } from '../../../../shared/utils/targetStitchUtils';
+import { getCurrentSide } from '../../../../shared/utils/sideIntelligence';
 
 const DurationChoice = ({
   wizardData,
@@ -122,6 +123,30 @@ const DurationChoice = ({
         ...rowCalc,
         changePerRepeat: repeatInfo.stitchChangePerRepeat,
         rowsPerRepeat: repeatInfo.rowsInPattern
+      };
+    })()
+    : null;
+
+  // ✅ NEW: Check if we can offer "end on side" option
+  const endOnSideOption = targetRepeatDetails && !wizardData.duration.completeSequence
+    ? (() => {
+      const rows = wizardData.stitchPattern.customSequence?.rows;
+      if (!rows) return null;
+
+      const check = canAddExtraRowForSide(rows, targetRepeatDetails.reachedOnRow);
+      if (!check.canAddRow) return null;
+
+      // Calculate what side we'd end on naturally
+      const naturalEndingSide = construction === 'round'
+        ? (targetRepeatDetails.reachedOnRow % 2 === 0 ? 'even' : 'odd')
+        : getCurrentSide(construction, targetRepeatDetails.reachedOnRow, 'RS');
+
+      return {
+        available: true,
+        naturalEndingSide,
+        options: construction === 'round'
+          ? ['even', 'odd']
+          : ['RS', 'WS']
       };
     })()
     : null;
@@ -521,6 +546,50 @@ const DurationChoice = ({
                               </div>
                             </div>
                           </label>
+
+                          {/* ✅ NEW: End on specific side option */}
+                          {endOnSideOption && (
+                            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                              <div className="text-sm font-medium text-blue-900 mb-2">
+                                {construction === 'round' ? 'End on specific round' : 'End on specific side'} (optional)
+                              </div>
+                              <div className="text-xs text-blue-700 mb-3">
+                                Target is reached on {construction === 'round' ? 'an' : ''} {endOnSideOption.naturalEndingSide} {construction === 'round' ? 'round' : ''}.
+                                Add 1 {construction === 'round' ? 'round' : 'row'} if needed.
+                              </div>
+
+                              <div className="space-y-2">
+                                <label className="flex items-center gap-2 cursor-pointer">
+                                  <input
+                                    type="radio"
+                                    name="endOnSide"
+                                    checked={!wizardData.duration.endOnSide}
+                                    onChange={() => updateWizardData('duration', { endOnSide: null })}
+                                    className="w-4 h-4 text-sage-600"
+                                  />
+                                  <span className="text-sm text-sage-700">
+                                    Don't care (stop at target)
+                                  </span>
+                                </label>
+
+                                {endOnSideOption.options.map(option => (
+                                  <label key={option} className="flex items-center gap-2 cursor-pointer">
+                                    <input
+                                      type="radio"
+                                      name="endOnSide"
+                                      checked={wizardData.duration.endOnSide === option}
+                                      onChange={() => updateWizardData('duration', { endOnSide: option })}
+                                      className="w-4 h-4 text-sage-600"
+                                    />
+                                    <span className="text-sm text-sage-700">
+                                      End on {option} {construction === 'round' && 'round'}
+                                    </span>
+                                  </label>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
                         </>
                       )}
                     </div>
