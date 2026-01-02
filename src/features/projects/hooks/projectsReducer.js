@@ -324,11 +324,11 @@ export const projectsReducer = (state, action) => {
         return state;
       }
 
-      // ✅ Build debug info for alert
-
       const copiedComponent = {
-        id: crypto.randomUUID(),
-        name: newName.trim(),
+        ...originalComponent,  // ✅ Copy ALL properties from original component
+        id: crypto.randomUUID(),  // Override with new ID
+        name: newName.trim(),  // Override with new name
+        currentStep: 0,  // Reset to beginning
         steps: originalComponent.steps.map((step, index) => {
           // Get progress data for this step
           const progress = getStepProgressState(step.id, originalComponent.id, state.currentProject.id);
@@ -353,7 +353,6 @@ export const projectsReducer = (state, action) => {
           }
 
           if (isLengthBased && wasCompleted && actualRows && actualRows > 1) {
-
             return {
               ...step,
               id: crypto.randomUUID(),
@@ -374,8 +373,7 @@ export const projectsReducer = (state, action) => {
             id: crypto.randomUUID(),
             completed: false
           };
-        }),
-        currentStep: 0
+        })
       };
 
       const projectWithCopiedComponent = {

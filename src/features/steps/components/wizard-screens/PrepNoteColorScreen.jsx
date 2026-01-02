@@ -12,10 +12,19 @@ const PrepNoteColorScreen = ({
     onContinue,
     onBack,
     onCancel,
-    onFinishComponent  // ✨ NEW: For launching finish component flow
+    onFinishComponent
 }) => {
+    // 🔍 DEBUG: Log every time this component renders
+    console.log('🔍 PrepNoteColorScreen RENDER:', {
+        hasColorMode: !!component?.colorMode,
+        colorModeValue: component?.colorMode,
+        hasDefaultPattern: !!component?.defaultPattern,
+        defaultPatternValue: component?.defaultPattern?.pattern
+    });
+
     const { yarns } = useYarnManager();
     const [prepNote, setPrepNote] = useState(wizardData.prepNote || '');
+
 
     // Pattern state
     const [useDefaultPattern, setUseDefaultPattern] = useState(
@@ -37,7 +46,13 @@ const PrepNoteColorScreen = ({
 
     // Auto-handle components without colorMode set (legacy)
     useEffect(() => {
+        console.log('🔍 useEffect running - checking colorMode:', {
+            hasColorMode: !!component.colorMode,
+            willCallOnContinue: !component.colorMode
+        });
+
         if (!component.colorMode) {
+            console.log('🚨 AUTO-CONTINUING from useEffect!');
             onContinue('pattern-selection');
         }
     }, [component.colorMode, onContinue]);
@@ -68,9 +83,14 @@ const PrepNoteColorScreen = ({
         } else if (needsPatternConfig) {
             onContinue('pattern-selection');
         } else {
-            // ✅ CHANGED: Always go to pattern selection when adding steps
-            // Users should explicitly choose to use defaults
-            onContinue('pattern-selection');
+            // Save defaults and skip ahead
+            if (useDefaultPattern) {
+                updateWizardData('stitchPattern', component.defaultPattern);
+            }
+            if (useDefaultColor && component.colorMode === 'multiple') {
+                updateWizardData('colorwork', component.defaultColorwork);
+            }
+            onContinue('duration-shaping');
         }
     };
 
