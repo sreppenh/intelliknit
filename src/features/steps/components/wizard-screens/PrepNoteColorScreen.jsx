@@ -40,8 +40,7 @@ const PrepNoteColorScreen = ({
         if (!component.colorMode) {
             onContinue('pattern-selection');
         }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [component.colorMode]);  // ← Remove onContinue from deps!
+    }, [component.colorMode, onContinue]);
 
     const handleContinue = () => {
         updateWizardData('prepNote', prepNote);
@@ -69,14 +68,9 @@ const PrepNoteColorScreen = ({
         } else if (needsPatternConfig) {
             onContinue('pattern-selection');
         } else {
-            // Save defaults and skip ahead
-            if (useDefaultPattern) {
-                updateWizardData('stitchPattern', component.defaultPattern);
-            }
-            if (useDefaultColor && component.colorMode === 'multiple') {
-                updateWizardData('colorwork', component.defaultColorwork);
-            }
-            onContinue('duration-shaping');
+            // ✅ CHANGED: Always go to pattern selection when adding steps
+            // Users should explicitly choose to use defaults
+            onContinue('pattern-selection');
         }
     };
 
