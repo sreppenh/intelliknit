@@ -836,9 +836,10 @@ const KnittingStepCounter = ({
             let rowText = lengthDisplayData.rowText;
 
             if (useSideIntelligence && construction === 'flat' && currentSide) {
-                // ✅ Add subtle moon icon AFTER the parenthesis
-                const sideIndicator = currentSide === 'WS' ? ' 🌙' : ' ☀️';
-                rowText += ` (${currentSide})${sideIndicator}`;
+                // ✅ Add sun BEFORE for RS, moon AFTER for WS
+                const sideIndicator = currentSide === 'WS' ? ' 🌙' : '';
+                const sunIndicator = currentSide === 'RS' ? '☀️ ' : '';
+                rowText = sunIndicator + rowText + ` (${currentSide})${sideIndicator}`;
             }
 
             return rowText;
@@ -855,9 +856,10 @@ const KnittingStepCounter = ({
             : `${rowTerm} ${currentRow}`;
 
         if (useSideIntelligence && construction === 'flat' && currentSide) {
-            // ✅ Add subtle moon icon AFTER the parenthesis
-            const sideIndicator = currentSide === 'WS' ? ' 🌙' : ' ☀️';
-            rowText += ` (${currentSide})${sideIndicator}`;
+            // ✅ Add sun BEFORE for RS, moon AFTER for WS
+            const sideIndicator = currentSide === 'WS' ? ' 🌙' : '';
+            const sunIndicator = currentSide === 'RS' ? '☀️ ' : '';
+            rowText = sunIndicator + rowText + ` (${currentSide})${sideIndicator}`;
         }
 
         return rowText;
