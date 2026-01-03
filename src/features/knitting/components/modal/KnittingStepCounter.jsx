@@ -837,7 +837,7 @@ const KnittingStepCounter = ({
 
             if (useSideIntelligence && construction === 'flat' && currentSide) {
                 // ✅ Add subtle moon icon AFTER the parenthesis
-                const sideIndicator = currentSide === 'WS' ? ' 🌙' : '';
+                const sideIndicator = currentSide === 'WS' ? ' 🌙' : ' ☀️';
                 rowText += ` (${currentSide})${sideIndicator}`;
             }
 
@@ -856,7 +856,7 @@ const KnittingStepCounter = ({
 
         if (useSideIntelligence && construction === 'flat' && currentSide) {
             // ✅ Add subtle moon icon AFTER the parenthesis
-            const sideIndicator = currentSide === 'WS' ? ' 🌙' : '';
+            const sideIndicator = currentSide === 'WS' ? ' 🌙' : ' ☀️';
             rowText += ` (${currentSide})${sideIndicator}`;
         }
 
