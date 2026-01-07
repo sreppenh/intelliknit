@@ -47,7 +47,12 @@ export const getRowGaugePerInch = (project) => {
     const rows = parseFloat(rowGauge.rows);
     const measurement = parseFloat(rowGauge.measurement) || 4;
 
-    return rows / measurement; // rows per inch
+    // ✅ FIX: Convert measurement to inches if project uses cm
+    const measurementInInches = project?.defaultUnits === 'cm'
+        ? measurement / 2.54  // Convert cm to inches
+        : measurement;
+
+    return rows / measurementInInches; // rows per inch
 };
 
 /**
