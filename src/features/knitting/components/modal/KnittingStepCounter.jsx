@@ -281,9 +281,14 @@ const KnittingStepCounter = ({
             return;
         }
 
-        // Project mode - existing logic
+        // ✅ FIX: Capture completion state BEFORE toggling
+        const wasCompleted = isCompleted;
+
+        // Project mode - toggle completion
         handleStepComplete();
-        if (isLengthStep && shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
+
+        // ✅ FIX: Only show gauge card if we're COMPLETING (not un-completing)
+        if (!wasCompleted && isLengthStep && shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
             const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
             if (onShowGaugeCard) {
                 onShowGaugeCard(promptData);

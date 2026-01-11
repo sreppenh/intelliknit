@@ -376,7 +376,11 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
               currentStitches={wizard.currentStitches}
               project={currentProject}
               mode={mode}
-              startingSide={wizard.getStepStartingSide()}  // ✅ ADD THIS LINE
+              startingSide={
+                // ✅ FIX: Check for user override FIRST
+                wizard.wizardData.sideTracking?.startingSide ||
+                wizard.getStepStartingSide()
+              }
             />
 
             {/* 🎯 SIMPLIFIED: Navigation for Step 2 */}
