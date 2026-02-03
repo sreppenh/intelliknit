@@ -1,0 +1,137 @@
+import React from 'react';
+import { AfterNoteDisplay } from '../../../../shared/components/PrepStepSystem';
+import StepMenu from './StepMenu';
+import { getFormattedStepDisplay } from '../../../../shared/utils/stepDescriptionUtils';
+
+const StepCard = ({
+    step,
+    stepIndex,
+    isEditable,
+    isCompleted,
+    isSpecial,
+    isComponentFinished,
+    openMenuId,
+    onMenuToggle,
+    onEditStep,
+    onDeleteStep,
+    onEditPattern,
+    onEditConfig,
+    onEditColor,  // ✨ NEW
+    onCopyStep,
+    onPrepNoteClick,
+    onAfterNoteClick,
+    editableStepIndex,
+    componentName,
+    project,
+    component
+}) => {
+
+    // ✅ NEW: Extract after note from various possible locations
+    const afterNote = step.afterNote ||
+        step.wizardConfig?.afterNote ||
+        step.advancedWizardConfig?.afterNote ||
+        '';
+
+    // ✅ Get formatted display data
+    const { description, contextualPatternNotes, contextualColorNotes, contextualConfigNotes, technicalData } = getFormattedStepDisplay(step, componentName, project, stepIndex, component);
+    // Check if we have both types of notes for divider logic
+    const hasPatternNotes = contextualPatternNotes && contextualPatternNotes.trim().length > 0;
+    const hasColorNotes = contextualColorNotes && contextualColorNotes.trim().length > 0;
+    const hasConfigNotes = contextualConfigNotes && contextualConfigNotes.trim().length > 0;
+
+    return (
+        <div className="space-y-2">
+            {/* Step Card */}
+            <div className="bg-sage-50 border-sage-300 border-2 rounded-xl p-4 transition-all duration-200">
+                <div className="flex items-start gap-3">
+                    <div className="w-7 h-7 rounded-full bg-sage-500 text-white flex items-center justify-center text-xs font-bold flex-shrink-0">
+                        {stepIndex + 1}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                        <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0 flex-1 text-left">
+                                {/* Human-readable description */}
+                                <h4 className={`text-sm font-semibold mb-1 text-left ${isCompleted ? 'text-wool-600' : 'text-wool-700'
+                                    }`}>
+                                    {description}
+                                </h4>
+
+                                {(hasPatternNotes || hasColorNotes || hasConfigNotes) && (
+                                    <div className="text-xs text-wool-600 italic mb-1 text-left">
+                                        {/* Pattern Notes */}
+                                        {hasPatternNotes && (
+                                            <div className="whitespace-pre-line">
+                                                {contextualPatternNotes}
+                                            </div>
+                                        )}
+
+                                        {/* Divider between pattern and color */}
+                                        {hasPatternNotes && hasColorNotes && (
+                                            <div className="my-1.5 border-t border-wool-300 opacity-30"></div>
+                                        )}
+
+                                        {/* Color Notes */}
+                                        {hasColorNotes && (
+                                            <div className="whitespace-pre-line">
+                                                {contextualColorNotes}
+                                            </div>
+                                        )}
+
+                                        {/* Divider between color and config */}
+                                        {(hasPatternNotes || hasColorNotes) && hasConfigNotes && (
+                                            <div className="my-1.5 border-t border-wool-300 opacity-30"></div>
+                                        )}
+
+                                        {/* Config Notes */}
+                                        {hasConfigNotes && (
+                                            <div className="whitespace-pre-line">
+                                                {contextualConfigNotes}
+                                            </div>
+                                        )}
+                                    </div>
+                                )}
+
+                                {/* Technical data display */}
+                                <div className="text-xs text-wool-500 text-left">
+                                    {technicalData}
+                                </div>
+                            </div>
+
+                            {/* Three-dot menu */}
+                            <StepMenu
+                                step={step}
+                                stepIndex={stepIndex}
+                                isEditable={isEditable}
+                                isSpecial={isSpecial}
+                                isComponentFinished={isComponentFinished}
+                                openMenuId={openMenuId}
+                                onMenuToggle={onMenuToggle}
+                                onEditStep={onEditStep}
+                                onEditPattern={onEditPattern}
+                                onEditColor={onEditColor}  // ✨ NEW
+                                onDeleteStep={onDeleteStep}
+                                onEditConfig={onEditConfig}
+                                onPrepNoteClick={onPrepNoteClick}
+                                editableStepIndex={editableStepIndex}
+                                onCopyStep={onCopyStep}
+
+                            />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {/* ✅ NEW: AfterNote Display - Below the step, not numbered */}
+            <AfterNoteDisplay
+                note={afterNote}
+                className="mx-1"
+                onClick={() => {
+                    onAfterNoteClick && onAfterNoteClick(stepIndex)
+                }}
+            />
+        </div>
+    );
+};
+
+export default StepCard;

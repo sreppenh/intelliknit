@@ -1,0 +1,114 @@
+import React from 'react';
+import DurationChoice from './wizard-steps/DurationChoice';
+import useStepSaveHelper, { StepSaveErrorModal } from '../../../shared/utils/StepSaveHelper';
+import { useProjectsContext } from '../../projects/hooks/useProjectsContext';
+import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
+import { useStepCalculation } from '../hooks/useStepCalculation';
+import { useStepGeneration } from '../hooks/useStepGeneration';
+
+
+const DurationWizard = ({
+    wizardData,
+    updateWizardData,
+    currentStitches,
+    construction,
+    componentIndex,
+    project,
+    onBack,
+    onExitToComponentSteps,
+    editingStepIndex = null,
+    mode
+}) => {
+    const { dispatch } = useProjectsContext();
+    const { saveStepAndNavigate, isLoading, error, clearError } = useStepSaveHelper();
+
+    // ✅ ADD THESE:
+    const { calculateEffect } = useStepCalculation();
+    const { generateInstruction } = useStepGeneration(construction);
+
+    const handleDurationComplete = async () => {
+        const originalWizardData = { ...wizardData };
+
+        try {
+
+            // ✅ USE REAL CALCULATION:
+            const instruction = generateInstruction(wizardData, currentStitches);
+
+            const effect = calculateEffect(wizardData, currentStitches, construction);
+
+            const saveResult = await saveStepAndNavigate({
+                instruction,
+                effect,  // ← Use real calculated effect
+                wizardData: originalWizardData,
+                currentStitches,
+                construction,
+                componentIndex,
+                editingStepIndex,
+                dispatch,
+                skipNavigation: true
+            });
+
+            if (saveResult.success) {
+                // 🔧 PRESERVE: Navigate back like the original flow
+                onExitToComponentSteps(); // ← FIX: Use this instead
+            }
+        } catch (saveError) {
+            IntelliKnitLogger.error('Duration save failed', saveError);
+        }
+    };
+
+    // Add this before the return statement
+    const canComplete = () => {
+        if (isLoading) return false;
+
+        if (wizardData.duration.type === 'target_repeats') {
+            return wizardData.duration.targetStitches && parseInt(wizardData.duration.targetStitches) > 0;
+        }
+
+        return wizardData.duration?.value;
+    };
+
+    return (
+        <div className="stack-lg">
+            <DurationChoice
+                wizardData={wizardData}
+                updateWizardData={updateWizardData}
+                construction={construction}
+                project={project}
+                currentStitches={currentStitches}  // ← ADD THIS LINE
+                existingPrepNote={wizardData.prepNote || ''}
+                onSavePrepNote={(note) => updateWizardData('prepNote', note)}
+                mode={mode}
+            />
+
+            {/* Complete Step Button */}
+            <div className="pt-6 border-t border-wool-100">
+                <div className="flex gap-3">
+                    <button
+                        onClick={onBack}
+                        className="flex-1 btn-tertiary"
+                    >
+                        ← Back
+                    </button>
+                    <button
+                        onClick={handleDurationComplete}
+                        disabled={!canComplete()}
+                        className="flex-2 btn-primary"
+                        style={{ flexGrow: 2 }}
+                    >
+                        {isLoading ? 'Saving...' : 'Complete Step'}
+                    </button>
+                </div>
+            </div>
+
+            <StepSaveErrorModal
+                isOpen={!!error}
+                error={error}
+                onClose={clearError}
+                onRetry={handleDurationComplete}
+            />
+        </div>
+    );
+};
+
+export default DurationWizard;
