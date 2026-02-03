@@ -200,7 +200,7 @@ const MarkerTimingConfig = ({
                 instruction: generatePreview(),
                 startingStitches: currentStitches,
                 endingStitches: currentStitchCount,
-                totalRows: currentRowPosition - 1,
+                totalRows: currentRowPosition - 1 + finishingRows, // ✅ FIX: Include finishing rows
                 netStitchChange: currentStitchCount - currentStitches,
                 stitchChangePerIteration: stitchChangePerIteration,
 
