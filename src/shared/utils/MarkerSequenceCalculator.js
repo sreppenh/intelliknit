@@ -80,15 +80,23 @@ export class MarkerSequenceCalculator {
                 actions: instructionData.actions
             });
 
-            // Use markerArrayUtils to calculate the progression
-            const progression = markerArrayUtils.calculateMarkerPhaseProgression(
-                instructionData.actions,
-                instructionData.phases,
-                startingStitches,
-                0 // No finishing rows in this context
-            );
-
-            IntelliKnitLogger.debug('Progression calculated', progression);
+            // ✅ FIX: Use the pre-calculated totalRows from instructionData.calculation if available
+            // This preserves the finishing rows calculation from MarkerTimingConfig
+            let totalRows;
+            if (instructionData.calculation?.totalRows) {
+                totalRows = instructionData.calculation.totalRows;
+                IntelliKnitLogger.debug('Using pre-calculated totalRows', { totalRows });
+            } else {
+                // Fallback: calculate if not pre-calculated (shouldn't happen in normal flow)
+                const progression = markerArrayUtils.calculateMarkerPhaseProgression(
+                    instructionData.actions,
+                    instructionData.phases,
+                    startingStitches,
+                    0 // No finishing rows context available
+                );
+                totalRows = progression.totalRows;
+                IntelliKnitLogger.warn('Had to recalculate totalRows - this may be missing finishing rows', { totalRows });
+            }
 
             // Calculate which rows have shaping actions
             const activeRows = this.calculateMarkerActiveRows(startRow, instructionData.phases);
@@ -100,9 +108,9 @@ export class MarkerSequenceCalculator {
                 sequenceId: sequence.id,
                 sequenceName: sequence.name,
                 startRow: startRow,
-                endRow: startRow + progression.totalRows - 1,
-                totalRows: progression.totalRows,
-                stitchChangePerAction: progression.stitchChangePerAction,
+                endRow: startRow + totalRows - 1,
+                totalRows: totalRows,
+                stitchChangePerAction: instructionData.calculation?.stitchChangePerIteration || 0,
                 instructionData: instructionData,
                 actions: instructionData.actions,
                 activeRows: activeRows
@@ -335,32 +343,39 @@ export class MarkerSequenceCalculator {
             instruction: instruction,
             startingStitches: startingStitches,
             endingStitches: (() => {
-                if (sequences.length > 0 && sequences[0].instructionData?.actions && sequences[0].instructionData?.phases) {
-                    const instructionData = sequences[0].instructionData;
+                if (sequences.length > 0 && sequences[0].instructionData?.calculation?.endingStitches) {
+                    // ✅ FIX: Use pre-calculated value from instructionData
+                    return sequences[0].instructionData.calculation.endingStitches;
+                }
 
-                    // Use the shared calculation function
+                if (sequences.length > 0 && sequences[0].instructionData?.actions && sequences[0].instructionData?.phases) {
+                    // Fallback: calculate if not pre-calculated
+                    const instructionData = sequences[0].instructionData;
                     const result = markerArrayUtils.calculateMarkerPhaseProgression(
                         instructionData.actions,
                         instructionData.phases,
                         startingStitches,
-                        0 // No finishing rows in this context
+                        0 // No finishing rows context
                     );
-
                     return result.endingStitches;
                 }
                 return finalRowData.totalStitches;
             })(),
             totalRows: (() => {
-                if (sequences.length > 0 && sequences[0].instructionData?.phases) {
-                    const instructionData = sequences[0].instructionData;
+                if (sequences.length > 0 && sequences[0].instructionData?.calculation?.totalRows) {
+                    // ✅ FIX: Use the pre-calculated totalRows that includes finishing rows!
+                    return sequences[0].instructionData.calculation.totalRows;
+                }
 
+                if (sequences.length > 0 && sequences[0].instructionData?.phases) {
+                    // Fallback: recalculate (may be missing finishing rows)
+                    const instructionData = sequences[0].instructionData;
                     const result = markerArrayUtils.calculateMarkerPhaseProgression(
                         instructionData.actions || [],
                         instructionData.phases,
                         startingStitches,
                         0
                     );
-
                     return result.totalRows;
                 }
                 return unifiedTimeline.length;
