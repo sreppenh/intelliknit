@@ -555,6 +555,14 @@ const MarkerPhasesConfig = ({
                                                     max={maxForThisField}
                                                     size="sm"
                                                 />
+                                                <button
+                                                    type="button"
+                                                    onClick={() => updateSegment(segment.id, 'count', maxForThisField)}
+                                                    className="btn-secondary btn-sm px-2"
+                                                    title="Fill with remaining stitches"
+                                                >
+                                                    ⚡
+                                                </button>
                                                 <span className="text-sm text-wool-600">stitches</span>
                                             </div>
                                         );
