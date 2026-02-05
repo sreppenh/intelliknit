@@ -221,9 +221,9 @@ const KnittingStepCounter = ({
         ? getCurrentSide(construction, currentRow, stepStartingSide)
         : null;
 
-    // Mark Complete function
+    // ✅ FIXED: Mark Complete function with proper side tracking and navigation
     const handleMarkComplete = () => {
-        if (isStepLocked) return; // Prevent completion of locked steps
+        if (isStepLocked) return;
 
         if (isNotepadMode) {
             // Notepad: Complete step with full state updates
@@ -281,18 +281,78 @@ const KnittingStepCounter = ({
             return;
         }
 
-        // ✅ FIX: Capture completion state BEFORE toggling
+        // ✅ FIX: Capture completion state BEFORE making any changes
         const wasCompleted = isCompleted;
 
-        // Project mode - toggle completion
-        handleStepComplete();
-
-        // ✅ FIX: Only show gauge card if we're COMPLETING (not un-completing)
-        if (!wasCompleted && isLengthStep && shouldPromptGaugeUpdate(step, currentRow, project, startingLength)) {
-            const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
-            if (onShowGaugeCard) {
-                onShowGaugeCard(promptData);
+        // ✅ FIX: ALWAYS complete step and record side tracking FIRST
+        if (!wasCompleted) {
+            // Record side tracking BEFORE toggling completion
+            if (useSideIntelligence && currentSide) {
+                sideTracking.recordEndingSide(currentSide, currentRow, () => { });
             }
+
+            if (sideTracking.hasSessionChanges) {
+                sideTracking.commitSideChanges(() => { });
+            }
+
+            // Save completion to progress system
+            const rowsCompleted = isLengthStep ? currentRow : calculateActualTotalRows(step);
+            const continuation = calculateContinuationState(step);
+
+            saveStepProgressState(step.id, component.id, project.id, {
+                status: PROGRESS_STATUS.COMPLETED,
+                currentRow: rowsCompleted,
+                totalRows: rowsCompleted,
+                completedAt: new Date().toISOString(),
+                completionMethod: 'knitting_modal',
+                continuation: continuation
+            });
+
+            // Toggle completion in UI
+            onToggleCompletion?.(stepIndex);
+        } else {
+            // Just un-complete
+            onToggleCompletion?.(stepIndex);
+            return;
+        }
+
+        // ✅ FIX: Check if we should show gauge card (AFTER completion is recorded)
+        if (isLengthStep) {
+            // Always get gauge data for length steps
+            const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
+            
+            if (promptData && onShowGaugeCard) {
+                // Show gauge card - it will handle navigation
+                onShowGaugeCard(promptData);
+                return;
+            }
+        }
+
+        // ✅ FIX: If no gauge card shown, navigate manually
+        handlePostCompletionNavigation();
+    };
+
+    // ✅ NEW: Handle navigation after step completion
+    const handlePostCompletionNavigation = () => {
+        const isLastStep = stepIndex === (component?.steps?.length - 1);
+
+        if (isLastStep) {
+            // Last step - show celebration or component complete
+            if (onShowCelebration) {
+                const celebrationData = {
+                    rowsCompleted: currentRow,
+                    targetLength: step.totalRows || currentRow,
+                    units: 'rows'
+                };
+                onShowCelebration(celebrationData);
+            } else if (onComponentComplete) {
+                onComponentComplete();
+            } else if (onClose) {
+                onClose();
+            }
+        } else if (navigation.canGoRight) {
+            // Not last step - navigate to next
+            navigation.navigateRight();
         }
     };
 

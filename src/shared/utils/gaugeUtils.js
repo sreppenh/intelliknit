@@ -252,7 +252,9 @@ export const calculateMeasuredGauge = (actualRows, targetLength, targetUnits, st
 };
 
 /**
- * Check if step completion should prompt for gauge update
+ * ✅ FIXED: Check if step completion should prompt for gauge update
+ * Now always returns true for length steps - we show gauge card every time
+ * But we mark whether the gauge is a "match" or needs updating
  */
 export const shouldPromptGaugeUpdate = (step, actualRows, project, startingLength = null) => {
     const lengthTarget = getLengthTarget(step);
@@ -261,17 +263,13 @@ export const shouldPromptGaugeUpdate = (step, actualRows, project, startingLengt
     const measuredGauge = calculateMeasuredGauge(actualRows, lengthTarget.value, lengthTarget.units, step, startingLength);
     if (!measuredGauge) return false; // Can't calculate gauge
 
-    const currentGauge = getRowGaugePerInch(project);
-
-    // Only prompt if there's a meaningful difference (>5% change)
-    if (!currentGauge) return true; // No existing gauge - always prompt
-
-    const percentDifference = Math.abs((measuredGauge - currentGauge) / currentGauge) * 100;
-    return percentDifference > 5;
+    // ✅ CHANGE: Always show gauge card for length steps
+    return true;
 };
 
 /**
- * Get gauge update prompt data for user display
+ * ✅ FIXED: Get gauge update prompt data for user display
+ * Now includes an "isMatch" flag to indicate if gauge is within tolerance
  */
 export const getGaugeUpdatePromptData = (actualRows, step, project, startingLength = null) => {
     const lengthTarget = getLengthTarget(step);
@@ -292,6 +290,15 @@ export const getGaugeUpdatePromptData = (actualRows, step, project, startingLeng
         actualDistance = lengthTarget.value - startingLength;
     }
 
+    // ✅ NEW: Calculate if gauges match (within 5% tolerance)
+    let isMatch = false;
+    let percentDifference = 0;
+    
+    if (currentGauge) {
+        percentDifference = Math.abs((measuredGauge - currentGauge) / currentGauge) * 100;
+        isMatch = percentDifference <= 5; // Within 5% is considered a match
+    }
+
     return {
         measuredGauge: Math.round(measuredGauge * 10) / 10, // 1 decimal
         newRowsForMeasurement,
@@ -300,7 +307,10 @@ export const getGaugeUpdatePromptData = (actualRows, step, project, startingLeng
         hasExistingGauge: !!currentGauge,
         oldRowsForMeasurement: currentGauge ? Math.round(currentGauge * gaugeMeasurement) : null,
         actualDistance: Math.round(actualDistance * 10) / 10, // Show what was actually knitted
-        actualRows: actualRows
+        actualRows: actualRows,
+        // ✅ NEW: Add match information
+        isMatch: isMatch,
+        percentDifference: Math.round(percentDifference * 10) / 10 // 1 decimal place
     };
 };
 

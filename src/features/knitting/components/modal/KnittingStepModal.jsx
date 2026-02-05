@@ -26,7 +26,7 @@ const KnittingStepModal = ({
     onNavigateStep,
     updateProject,
     onShowGaugeCard,
-    skipPrepCard = false  // ✅ ADD THIS LINE
+    skipPrepCard = false
 }) => {
 
     // Reset view mode when step changes
@@ -40,51 +40,55 @@ const KnittingStepModal = ({
     const [showGaugeCard, setShowGaugeCard] = useState(false);
     const [gaugeData, setGaugeData] = useState(null);
 
-    // Add these gauge card handlers in KnittingStepModal.jsx
+    // ✅ FIXED: Gauge card handlers with proper navigation
     const handleGaugeAccept = () => {
         if (gaugeData) {
-            const updatedProject = updateProjectGaugeFromMeasurement(project, gaugeData);
-
-            // Update project with new gauge
-            if (updateProject) {
-                updateProject(updatedProject);
+            // Update gauge if it's not a perfect match (if it's a match, gauge is already correct)
+            if (!gaugeData.isMatch) {
+                const updatedProject = updateProjectGaugeFromMeasurement(project, gaugeData);
+                if (updateProject) {
+                    updateProject(updatedProject);
+                }
             }
 
-            // Mark step as complete after accepting gauge
-            onToggleCompletion(stepIndex);
-
-            // Clear gauge card and navigate
+            // Clear gauge card
             setShowGaugeCard(false);
             setGaugeData(null);
 
-            // Navigate to next step/card or close modal
-            if (project?.isNotepadMode) {
-                onClose(); // Close modal for notepad
-            } else {
-                // Navigate to next step/card for project mode
-                if (navigation.canGoRight) {
-                    navigation.navigateRight();
-                }
-            }
+            // ✅ NEW: Navigate based on whether this is the last step
+            handlePostGaugeNavigation();
         }
     };
 
     const handleGaugeDecline = () => {
-        // Mark step as complete even if declining gauge update
-        onToggleCompletion(stepIndex);
-
-        // Clear gauge card and navigate without updating gauge
+        // Clear gauge card without updating gauge
         setShowGaugeCard(false);
         setGaugeData(null);
 
-        // Navigate to next step/card or close modal
+        // ✅ NEW: Navigate based on whether this is the last step
+        handlePostGaugeNavigation();
+    };
+
+    // ✅ NEW: Handle navigation after gauge card interaction
+    const handlePostGaugeNavigation = () => {
+        const isLastStep = stepIndex === (totalSteps - 1);
+
         if (project?.isNotepadMode) {
-            onClose(); // Close modal for notepad
-        } else {
-            // Navigate to next step/card for project mode
-            if (navigation.canGoRight) {
-                navigation.navigateRight();
+            // Notepad mode - just close
+            if (onClose) {
+                onClose();
             }
+        } else if (isLastStep) {
+            // Last step - show celebration or close
+            if (navigation.canGoRight) {
+                // If there's a celebration card, go to it
+                navigation.navigateRight();
+            } else if (onClose) {
+                onClose();
+            }
+        } else if (navigation.canGoRight) {
+            // Not last step - navigate to next step
+            navigation.navigateRight();
         }
     };
 
@@ -175,7 +179,7 @@ const KnittingStepModal = ({
         onNavigateStep,
         onToggleCompletion,
         isModalOpen: true,
-        skipPrepCard  // ✅ ADD THIS LINE
+        skipPrepCard
     });
 
     // NEW: Auto-navigate to gauge card when it appears
@@ -208,10 +212,10 @@ const KnittingStepModal = ({
         if (currentItem.type === 'prep') {
             return (
                 <KnittingPrepCard
-                    step={step}                    // ✅ ADD
+                    step={step}
                     stepIndex={stepIndex}
-                    component={component}          // ✅ ADD
-                    project={project}              // ✅ ADD
+                    component={component}
+                    project={project}
                     prepNote={currentItem.prepNote}
                 />
             );
@@ -291,6 +295,12 @@ const KnittingStepModal = ({
 
         // If showing celebration or assembly, use yarn
         if (currentItem.type === 'celebration' || currentItem.type === 'assembly') return 'yarn';
+
+        // ✅ NEW: If showing gauge card with match, use sage (celebration colors)
+        if (currentItem.type === 'gauge' && gaugeData?.isMatch) return 'sage';
+
+        // ✅ NEW: If showing gauge card needing update, use yarn
+        if (currentItem.type === 'gauge') return 'yarn';
 
         // Otherwise use the step's theme
         if (theme.accent === 'lavender') return 'lavender';
