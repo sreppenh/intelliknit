@@ -345,7 +345,6 @@ export const hasValidGaugeForLength = (project) => {
  */
 export const getGaugeAvailabilityMessage = (project) => {
     if (hasValidGaugeForLength(project)) {
-        const rowGaugePerInch = getRowGaugePerInch(project);
         return {
             hasGauge: true,
             message: `Using gauge: ${project.gauge.rowGauge.rows} rows = ${project.gauge.rowGauge.measurement || 4} inches`

@@ -174,7 +174,7 @@ const KnittingStepCounter = ({
 
     const lengthProgressData = useMemo(() => {
         return isLengthStep ? getLengthProgressDisplay(step, currentRow, project, startingLength) : null;
-    }, [isLengthStep, step.wizardConfig?.duration, currentRow, project?.gauge, startingLength]);
+    }, [isLengthStep, step, currentRow, project, startingLength]);
 
     const lengthDisplayData = isLengthStep ? formatLengthCounterDisplay(lengthProgressData, construction) : null;
 
@@ -204,7 +204,7 @@ const KnittingStepCounter = ({
             lastWorkedAt: new Date().toISOString(),
             completionMethod: 'knitting_modal'
         });
-    }, [currentRow, step?.id, component?.id, project?.id, isNotepadMode, isStepLocked]);
+    }, [currentRow, step, component, project, isNotepadMode, isStepLocked]);
 
     // Side intelligence calculations
     const useSideIntelligence = shouldUseSideIntelligence(step);

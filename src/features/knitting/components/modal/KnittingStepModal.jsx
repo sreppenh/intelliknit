@@ -194,7 +194,7 @@ const KnittingStepModal = ({
                 }, 50);
             }
         }
-    }, [showGaugeCard, gaugeData, carouselItems.length]); // Use carouselItems.length to detect changes
+    }, [showGaugeCard, gaugeData, carouselItems, navigation]);
 
     // Progress hook integration
     const progress = useKnittingProgress(project.id, component.id, component.steps);
