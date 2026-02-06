@@ -1,6 +1,5 @@
 import { useMemo } from 'react';
 import IntelliKnitLogger from '../../../shared/utils/ConsoleLogging';
-import { getConstructionTerms } from '../../../shared/utils/ConstructionTerminology';
 import { getStepMethodDisplay, includesInRowCountPatterns, requiresCustomText } from '../../../shared/utils/stepDisplayUtils';
 
 // Helper to create mock step for utility usage

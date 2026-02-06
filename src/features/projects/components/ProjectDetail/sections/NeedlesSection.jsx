@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, Edit2, X } from 'lucide-react';
+import { Plus, Edit2 } from 'lucide-react';
 import PageHeader from '../../../../../shared/components/PageHeader';
 import { StandardModal, FullScreenModal } from '../../../../../shared/components/modals/StandardModal';
 

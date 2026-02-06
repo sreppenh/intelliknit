@@ -4,7 +4,6 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { useNotesContext } from '../hooks/useNotesContext';
-import { useLocalStorage } from '../../../shared/hooks/useLocalStorage';
 import PageHeader from '../../../shared/components/PageHeader';
 import StandardModal from '../../../shared/components/modals/StandardModal';
 import SegmentedControl from '../../../shared/components/SegmentedControl';

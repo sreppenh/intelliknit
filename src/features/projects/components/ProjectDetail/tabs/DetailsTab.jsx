@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import useProjectUpdate from '../../../../../shared/hooks/useProjectUpdate';
 import { getProjectStatus } from '../../../../../shared/utils/projectStatus';
 import UnitsConstructionSection from '../sections/UnitsConstruction';

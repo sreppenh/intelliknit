@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import DurationChoice from './wizard-steps/DurationChoice';
 import useStepSaveHelper, { StepSaveErrorModal } from '../../../shared/utils/StepSaveHelper';
 import { useProjectsContext } from '../../projects/hooks/useProjectsContext';

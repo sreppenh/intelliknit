@@ -1,6 +1,5 @@
 // src/shared/hooks/useSmartStepNavigation.js
 import { useState, useRef, useCallback } from 'react';
-import IntelliKnitLogger from '../utils/ConsoleLogging';
 
 /**
  * Smart Step Navigation Hook

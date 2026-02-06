@@ -2,7 +2,6 @@
 import React from 'react';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import EditDurationForm from './EditDurationForm';
-import EditPatternModal from './EditPatternModal';
 import EditConfigScreen from './EditConfigScreen';
 import EditEvenDistributionForm from './EditEvenDistributionForm';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';

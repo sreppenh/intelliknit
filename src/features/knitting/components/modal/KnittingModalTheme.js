@@ -1,5 +1,4 @@
 // src/features/knitting/components/modal/KnittingModalTheme.js
-import { getStepPatternName } from '../../../../shared/utils/stepDisplayUtils';
 
 /**
  * Get theme configuration for knitting step modal based on step type and context

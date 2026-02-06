@@ -1,5 +1,5 @@
 // src/features/steps/components/edit/EditSequentialPhasesForm.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import PageHeader from '../../../../shared/components/PageHeader';
 import PhaseConfig from '../shaping-wizard/PhaseConfig';

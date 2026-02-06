@@ -37,7 +37,8 @@ export const getLengthTarget = (step) => {
 // ===== GAUGE CALCULATIONS =====
 
 /**
- * Get row gauge from project in rows per inch
+ * Get row gauge from project in rows per unit (native project units)
+ * Returns rows per inch if project uses inches, rows per cm if project uses cm
  */
 export const getRowGaugePerInch = (project) => {
     const rowGauge = project?.gauge?.rowGauge;
@@ -47,26 +48,34 @@ export const getRowGaugePerInch = (project) => {
     const rows = parseFloat(rowGauge.rows);
     const measurement = parseFloat(rowGauge.measurement) || 4;
 
-    // ✅ FIX: Convert measurement to inches if project uses cm
-    const measurementInInches = project?.defaultUnits === 'cm'
-        ? measurement / 2.54  // Convert cm to inches
-        : measurement;
-
-    return rows / measurementInInches; // rows per inch
+    // Return rows per measurement unit (no conversion needed!)
+    return rows / measurement; // rows per unit (inch or cm)
 };
 
 /**
  * Convert length to estimated rows using project gauge
+ * Works in native project units - no conversion needed!
  */
 export const estimateRowsFromLength = (targetLength, targetUnits, project) => {
-    const rowGaugePerInch = getRowGaugePerInch(project);
+    const rowGaugePerUnit = getRowGaugePerInch(project); // Actually returns rows per unit now
 
-    if (!rowGaugePerInch) return null;
+    if (!rowGaugePerUnit) return null;
 
-    // Convert target to inches if needed
-    const targetInches = targetUnits === 'cm' ? targetLength / 2.54 : targetLength;
+    // Both gauge and target should be in same units (project.defaultUnits)
+    // If they're not, convert target to match gauge units
+    const projectUnits = project?.defaultUnits || 'inches';
+    let targetInProjectUnits = targetLength;
 
-    return Math.round(targetInches * rowGaugePerInch);
+    if (targetUnits !== projectUnits) {
+        // Convert between cm and inches if needed
+        if (targetUnits === 'cm' && projectUnits === 'inches') {
+            targetInProjectUnits = targetLength / 2.54;
+        } else if (targetUnits === 'inches' && projectUnits === 'cm') {
+            targetInProjectUnits = targetLength * 2.54;
+        }
+    }
+
+    return Math.round(targetInProjectUnits * rowGaugePerUnit);
 };
 
 /**
@@ -229,6 +238,7 @@ export const getCompletionSuggestionText = (step, currentRow, project) => {
 
 /**
  * Calculate measured gauge from completed length step
+ * Returns gauge in rows per unit (same units as targetUnits)
  */
 export const calculateMeasuredGauge = (actualRows, targetLength, targetUnits, step, startingLength = null) => {
     // Calculate the effective distance that was actually knitted
@@ -247,8 +257,8 @@ export const calculateMeasuredGauge = (actualRows, targetLength, targetUnits, st
         }
     }
 
-    const effectiveInches = targetUnits === 'cm' ? effectiveDistance / 2.54 : effectiveDistance;
-    return actualRows / effectiveInches; // rows per inch
+    // Return gauge in native units - no conversion!
+    return actualRows / effectiveDistance; // rows per unit (cm or inches)
 };
 
 /**

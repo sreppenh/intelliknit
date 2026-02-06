@@ -6,7 +6,6 @@ import React, { useState } from 'react';
 import { useNotesContext } from '../hooks/useNotesContext';
 import PageHeader from '../../../shared/components/PageHeader';
 import NoteCard from './NoteCard';
-import CreateNoteWizard from './CreateNoteWizard';
 
 const NotesList = ({ onBack, onGoToLanding, onOpenNote, onCreateNote }) => {
     const { notes, createNote, deleteNote, updateNote } = useNotesContext();

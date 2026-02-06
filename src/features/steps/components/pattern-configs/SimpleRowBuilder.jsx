@@ -6,7 +6,7 @@ import StandardModal from '../../../../shared/components/modals/StandardModal';
 import SegmentedControl from '../../../../shared/components/SegmentedControl';
 import KnittingAbbreviationBar from '../../../../shared/components/KnittingAbbreviationBar';
 import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
-import { useKnittingAbbreviations, handleSmartKeyDown } from '../../../../shared/hooks/useKnittingAbbreviations';
+import { handleSmartKeyDown } from '../../../../shared/hooks/useKnittingAbbreviations';
 import { getCurrentSide } from '../../../../shared/utils/sideIntelligence'; // ✅ NEW IMPORT
 
 const SimpleRowBuilder = ({
