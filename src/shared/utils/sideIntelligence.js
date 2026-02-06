@@ -58,7 +58,16 @@ export const getStepStartingSide = (component, stepIndex) => {
         return getInitializationNextSide(previousStep);
     }
 
-    // Fall back to calculated ending side
+    // ✅ FIX: For length-based steps, we CAN'T predict the ending side
+    // because totalRows is just an estimate. Default to RS.
+    const isLengthBased = previousStep.wizardConfig?.duration?.type === 'length' ||
+        previousStep.wizardConfig?.duration?.type === 'until_length';
+
+    if (isLengthBased) {
+        return 'RS';  // Can't predict - default to RS, user can override
+    }
+
+    // ✅ For fixed-row steps, calculate the correct ending side
     const previousEndingRow = previousStep.totalRows;
     const previousConstruction = previousStep.construction || component.construction || 'flat';
     const previousStartingSide = previousStep.sideTracking?.startingSide || 'RS';
