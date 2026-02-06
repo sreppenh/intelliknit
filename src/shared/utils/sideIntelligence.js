@@ -48,29 +48,14 @@ export const getStepStartingSide = (component, stepIndex) => {
     const previousStep = component.steps[stepIndex - 1];
     if (!previousStep) return 'RS';
 
-    // Check if previous step has recorded ending side from actual knitting
+    // ✅ ONLY use actualEndingSide if it was recorded during actual knitting
     if (previousStep.sideTracking?.actualEndingSide) {
         return getNextRowSide(previousStep.sideTracking.actualEndingSide, component.construction || 'flat');
     }
 
-    // SPECIAL CASE: Previous step was initialization (cast-on, pick-up, etc.)
-    if (isInitializationStep(previousStep)) {
-        return getInitializationNextSide(previousStep);
-    }
-
-    // Fall back to calculated ending side
-    const previousEndingRow = previousStep.totalRows;
-    const previousConstruction = previousStep.construction || component.construction || 'flat';
-    const previousStartingSide = previousStep.sideTracking?.startingSide || 'RS';
-
-    // Calculate what side the previous step ended on
-    const calculatedEndingSide = getCurrentSide(
-        previousConstruction,
-        previousEndingRow,
-        previousStartingSide
-    );
-
-    return getNextRowSide(calculatedEndingSide, previousConstruction);
+    // ✅ FIX: Always default to RS for new steps
+    // User can override if they need WS
+    return 'RS';
 };
 
 /**
