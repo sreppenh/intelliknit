@@ -286,6 +286,7 @@ const SimpleRowBuilder = ({
             {rows.length > 0 && (
                 <div className="mt-3 p-3 bg-sage-50 border border-sage-200 rounded-lg">
                     <div className="text-sm text-center">
+                        <div>DEBUG: currentStitches = {currentStitches || 'UNDEFINED'}</div>
                         <span className="text-wool-700 font-medium">
                             {rows.length} {rows.length === 1 ? terms.row : terms.rows} in pattern
                         </span>
