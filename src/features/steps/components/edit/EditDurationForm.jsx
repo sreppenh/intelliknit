@@ -64,6 +64,9 @@ const EditDurationForm = ({
 
     const construction = step?.construction || 'flat';
 
+    // Get current stitches for calculations
+    const currentStitches = step.startingStitches || 0;
+
     // ===== DATA HANDLERS =====
     const updateWizardData = (section, data) => {
         if (section === 'duration') {
@@ -177,6 +180,7 @@ const EditDurationForm = ({
                         updateWizardData={updateWizardData}
                         construction={construction}
                         project={currentProject}
+                        currentStitches={currentStitches}
                         mode="edit"
                         onSave={handleSave}
                         onCancel={onBack}
