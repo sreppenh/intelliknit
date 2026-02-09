@@ -64,8 +64,16 @@ const EditDurationForm = ({
 
     const construction = step?.construction || 'flat';
 
-    // Get current stitches for calculations
-    const currentStitches = step.startingStitches || 0;
+    // Get current stitches - recalculate from previous step for accuracy
+    const currentStitches = (() => {
+        if (editingStepIndex === 0) {
+            // First step uses its stored starting stitches (cast-on count)
+            return step.startingStitches || 0;
+        }
+        // For other steps, use the previous step's ending stitches
+        const previousStep = component.steps[editingStepIndex - 1];
+        return previousStep?.endingStitches || step.startingStitches || 0;
+    })();
 
     // ===== DATA HANDLERS =====
     const updateWizardData = (section, data) => {
@@ -120,9 +128,11 @@ const EditDurationForm = ({
         }
         else if (durationType === 'target_repeats') {
             // Target stitch count - need to recalculate
-            // This is more complex, but let's handle it
+            // Use the same current stitches calculation as above
+            const currentStitches = editingStepIndex === 0
+                ? (step.startingStitches || 0)
+                : (component.steps[editingStepIndex - 1]?.endingStitches || step.startingStitches || 0);
             const targetStitches = parseInt(durationData.targetStitches);
-            const currentStitches = step.startingStitches || 0;
 
             if (targetStitches && step.wizardConfig?.stitchPattern?.customSequence?.rows) {
 
