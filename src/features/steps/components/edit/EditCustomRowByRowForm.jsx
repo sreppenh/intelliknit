@@ -98,7 +98,13 @@ const EditCustomRowByRowForm = ({
 
         // ✅ RECALCULATE ending stitches from row data
         const rows = wizardData.stitchPattern.customSequence?.rows || [];
-        let calculatedEndingStitches = step.startingStitches || 0;
+
+        // Calculate starting stitches from previous step (not stored value which may be stale)
+        const calculatedStartingStitches = editingStepIndex === 0
+            ? (step.startingStitches || 0)
+            : (component.steps[editingStepIndex - 1]?.endingStitches || step.startingStitches || 0);
+
+        let calculatedEndingStitches = calculatedStartingStitches;
 
         // Walk through all rows to calculate final stitch count
         for (const row of rows) {
