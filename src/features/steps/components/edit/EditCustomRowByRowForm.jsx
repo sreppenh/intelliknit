@@ -158,6 +158,7 @@ const EditCustomRowByRowForm = ({
                         wizardData={wizardData}
                         updateWizardData={updateWizardData}
                         construction={construction}
+                        currentStitches={step.startingStitches || 0}
                         startingSide={step?.sideTracking?.startingSide || 'RS'}
                     />
 
