@@ -157,7 +157,23 @@ const SimpleRowBuilder = ({
     };
 
     const calculateNetChange = () => {
-        return rows.reduce((sum, row) => sum + (row.stitchChange || 0), 0);
+        // Calculate actual net change by walking through rows
+        // This respects manual "stitches remaining" entries
+        if (rows.length === 0 || !currentStitches) return 0;
+
+        let runningStitches = currentStitches;
+
+        for (const row of rows) {
+            // PRIORITY: Use stitchesRemaining if provided (manual entry)
+            if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+                runningStitches = row.stitchesRemaining;
+            } else {
+                // Otherwise use stitchChange
+                runningStitches += (row.stitchChange || 0);
+            }
+        }
+
+        return runningStitches - currentStitches;
     };
 
     const canSave = () => {
