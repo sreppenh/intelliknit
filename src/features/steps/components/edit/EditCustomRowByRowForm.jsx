@@ -96,6 +96,21 @@ const EditCustomRowByRowForm = ({
             }
         };
 
+        // ✅ RECALCULATE ending stitches from row data
+        const rows = wizardData.stitchPattern.customSequence?.rows || [];
+        let calculatedEndingStitches = step.startingStitches || 0;
+
+        // Walk through all rows to calculate final stitch count
+        for (const row of rows) {
+            // PRIORITY: Use stitchesRemaining if provided (manual entry)
+            if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
+                calculatedEndingStitches = row.stitchesRemaining;
+            } else {
+                // Otherwise use stitchChange
+                calculatedEndingStitches += (row.stitchChange || 0);
+            }
+        }
+
         dispatch({
             type: 'UPDATE_STEP',
             payload: {
@@ -103,7 +118,8 @@ const EditCustomRowByRowForm = ({
                 stepIndex: editingStepIndex,
                 step: {
                     ...step,
-                    wizardConfig: updatedWizardConfig
+                    wizardConfig: updatedWizardConfig,
+                    endingStitches: calculatedEndingStitches  // ✅ UPDATE with recalculated value
                 }
             }
         });
