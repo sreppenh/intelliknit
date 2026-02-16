@@ -343,9 +343,9 @@ const MarkerPhasesConfig = ({
                 totalRows: calculation.totalRows, hasShaping: true
             },
             wizardData: {
-                ...wizard.wizardData,  // Preserve all existing wizard data including colorwork
                 hasShaping: true,
-                shapingConfig: markerConfig
+                shapingConfig: markerConfig,
+                stitchPattern: wizard?.wizardData?.stitchPattern
             },
             currentStitches: currentStitches,  // ← ADD THIS
             construction: construction,         // ← ADD THIS

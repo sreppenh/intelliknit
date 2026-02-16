@@ -239,9 +239,9 @@ const BindOffShapingConfig = ({
                 hasShaping: true
             },
             wizardData: {
-                ...wizard.wizardData,  // Preserve all existing wizard data including colorwork
                 hasShaping: true,
-                shapingConfig: bindOffConfig
+                shapingConfig: bindOffConfig,
+                stitchPattern: wizard?.wizardData?.stitchPattern
             },
             componentIndex,
             dispatch,
