@@ -79,38 +79,28 @@ const PrepNoteColorScreen = ({
             });
         }
 
+        // ✅ FIX: Copy colorwork FIRST if continuing pattern
+        if (useContinuePattern && previousPattern) {
+            updateWizardData('colorwork', {
+                ...previousPattern.data,
+                continuedFromStep: previousPattern.stepNumber
+            });
+        }
+
         // Check what needs configuration
         const needsPatternConfig = !component.defaultPattern ||
             component.defaultPattern.pattern === 'None' ||
             !useDefaultPattern;
 
-        // Check if we need color configuration
-        const needsColorConfig = component.colorMode === 'multiple' &&
-            !useContinuePattern;
+        // Check if we need color configuration (skip if continuing)
+        const needsColorConfig = component.colorMode === 'multiple' && !useContinuePattern;
 
         if (needsColorConfig) {
             onContinue('color-selection');
-        } else if (useContinuePattern && previousPattern) {
-            // Copy previous step's colorwork data
-            updateWizardData('colorwork', {
-                ...previousPattern.data,
-                continuedFromStep: previousPattern.stepNumber
-            });
-
-            // Continue to next screen
-            if (needsPatternConfig) {
-                onContinue('pattern-selection');
-            } else {
-                // Save pattern default if needed
-                if (useDefaultPattern) {
-                    updateWizardData('stitchPattern', component.defaultPattern);
-                }
-                onContinue('duration-shaping');
-            }
         } else if (needsPatternConfig) {
             onContinue('pattern-selection');
         } else {
-            // Save defaults and skip ahead
+            // Save defaults
             if (useDefaultPattern) {
                 updateWizardData('stitchPattern', component.defaultPattern);
             }

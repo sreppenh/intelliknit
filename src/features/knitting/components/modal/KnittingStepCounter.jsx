@@ -35,19 +35,27 @@ import {
 // Helper function to get color info for custom patterns
 // Returns { text, jsx } where jsx is the React element to display
 function getColorInfoForCustomPattern(colorwork, currentRow, project) {
+
     // Handle marled stripes
     if (colorwork.type === 'marled_stripes') {
         const marledSequence = colorwork.marledSequence;
-        if (!marledSequence || marledSequence.length === 0) return null;
-        
+
+        if (!marledSequence || marledSequence.length === 0) {
+            return null;
+        }
+
         // Calculate which combo for this row
         const patternLength = marledSequence.reduce((total, m) => total + m.rows, 0);
-        if (patternLength === 0) return null;
-        
+        console.log('📏 Pattern length:', patternLength);
+
+        if (patternLength === 0) {
+            return null;
+        }
+
         const positionInPattern = ((currentRow - 1) % patternLength) + 1;
         let accumulatedRows = 0;
         let currentMarled = null;
-        
+
         for (const marled of marledSequence) {
             accumulatedRows += marled.rows;
             if (positionInPattern <= accumulatedRows) {
@@ -55,20 +63,20 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
                 break;
             }
         }
-        
+
         if (!currentMarled || !currentMarled.colors || currentMarled.colors.length < 2) return null;
-        
+
         const yarn1 = getYarnInfo(currentMarled.colors[0], project);
         const yarn2 = getYarnInfo(currentMarled.colors[1], project);
-        
+
         // If both colors are the same, show with × 2
         if (currentMarled.colors[0] === currentMarled.colors[1]) {
             return {
                 text: `${yarn1.displayName} × 2`,
                 jsx: (
                     <div className="flex items-center gap-1.5 justify-center">
-                        <span 
-                            className="inline-block w-3 h-3 rounded-full border border-gray-300" 
+                        <span
+                            className="inline-block w-3 h-3 rounded-full border border-gray-300"
                             style={{ backgroundColor: yarn1.hex }}
                         />
                         <span>{yarn1.displayName} × 2</span>
@@ -76,20 +84,20 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
                 )
             };
         }
-        
+
         // Different colors held together
         return {
             text: `${yarn1.displayName} and ${yarn2.displayName} held together`,
             jsx: (
                 <div className="flex items-center gap-1.5 justify-center flex-wrap">
-                    <span 
-                        className="inline-block w-3 h-3 rounded-full border border-gray-300" 
+                    <span
+                        className="inline-block w-3 h-3 rounded-full border border-gray-300"
                         style={{ backgroundColor: yarn1.hex }}
                     />
                     <span>{yarn1.displayName}</span>
                     <span>and</span>
-                    <span 
-                        className="inline-block w-3 h-3 rounded-full border border-gray-300" 
+                    <span
+                        className="inline-block w-3 h-3 rounded-full border border-gray-300"
                         style={{ backgroundColor: yarn2.hex }}
                     />
                     <span>{yarn2.displayName}</span>
@@ -98,19 +106,19 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
             )
         };
     }
-    
+
     // Handle regular stripes
     if (colorwork.type === 'stripes') {
         const stripeSequence = colorwork.stripeSequence;
         if (!stripeSequence || stripeSequence.length === 0) return null;
-        
+
         const patternLength = stripeSequence.reduce((total, s) => total + s.rows, 0);
         if (patternLength === 0) return null;
-        
+
         const positionInPattern = ((currentRow - 1) % patternLength) + 1;
         let accumulatedRows = 0;
         let currentStripe = null;
-        
+
         for (const stripe of stripeSequence) {
             accumulatedRows += stripe.rows;
             if (positionInPattern <= accumulatedRows) {
@@ -118,16 +126,16 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
                 break;
             }
         }
-        
+
         if (!currentStripe) return null;
-        
+
         const yarn = getYarnInfo(currentStripe.color, project);
         return {
             text: yarn.displayName,
             jsx: (
                 <div className="flex items-center gap-1.5 justify-center">
-                    <span 
-                        className="inline-block w-3 h-3 rounded-full border border-gray-300" 
+                    <span
+                        className="inline-block w-3 h-3 rounded-full border border-gray-300"
                         style={{ backgroundColor: yarn.hex }}
                     />
                     <span>{yarn.displayName}</span>
@@ -135,14 +143,14 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
             )
         };
     }
-    
+
     // Handle multi-strand
     if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
         const letters = colorwork.letters || colorwork.colorLetters || [];
         if (letters.length < 2) return null;
-        
+
         const yarns = letters.map(letter => getYarnInfo(letter, project));
-        
+
         return {
             text: yarns.map(y => y.displayName).join(' and ') + ' held together',
             jsx: (
@@ -150,8 +158,8 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
                     {yarns.map((yarn, i) => (
                         <React.Fragment key={i}>
                             {i > 0 && <span>and</span>}
-                            <span 
-                                className="inline-block w-3 h-3 rounded-full border border-gray-300" 
+                            <span
+                                className="inline-block w-3 h-3 rounded-full border border-gray-300"
                                 style={{ backgroundColor: yarn.hex }}
                             />
                             <span>{yarn.displayName}</span>
@@ -162,18 +170,18 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
             )
         };
     }
-    
+
     return null;
 }
 
 // Helper to get yarn info (name and hex)
 function getYarnInfo(colorLetter, project) {
     const yarn = project?.yarns?.find(y => y.letter === colorLetter);
-    
+
     // Use yarn.color if it exists, otherwise fall back to letter
     const displayName = yarn?.color || colorLetter;
     const hex = yarn?.colorHex || yarn?.hex || '#cccccc';
-    
+
     return { displayName, hex };
 }
 
@@ -465,7 +473,7 @@ const KnittingStepCounter = ({
         if (isLengthStep) {
             // Always get gauge data for length steps
             const promptData = getGaugeUpdatePromptData(currentRow, step, project, startingLength);
-            
+
             if (promptData && onShowGaugeCard) {
                 // Show gauge card - it will handle navigation
                 onShowGaugeCard(promptData);
@@ -794,14 +802,14 @@ const KnittingStepCounter = ({
 
                 if (rowData && rowData.instruction) {
                     const instruction = rowData.instruction;
-                    
+
                     // Get color info if this step has colorwork
                     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
                     let colorInfo = null;
                     if (colorwork && colorwork.type && colorwork.type !== 'single') {
                         colorInfo = getColorInfoForCustomPattern(colorwork, currentRow, project);
                     }
-                    
+
                     return {
                         instruction: instruction,
                         colorInfo: colorInfo,
@@ -848,24 +856,24 @@ const KnittingStepCounter = ({
     // Get instruction and add color info if needed
     const getInstructionWithColor = () => {
         const instructionResult = getCurrentInstruction();
-        
+
         // If instruction already has colorInfo, return as-is
         if (instructionResult.colorInfo) {
             return instructionResult;
         }
-        
+
         // Check if step has colorwork and add color info
         const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+
         if (colorwork && colorwork.type && colorwork.type !== 'single') {
-            const colorInfo = getColorInfoForCustomPattern(colorwork, currentRow, project);
-            if (colorInfo) {
+            const colorInfo = getColorInfoForCustomPattern(colorwork, currentRow, project); if (colorInfo) {
                 return {
                     ...instructionResult,
                     colorInfo: colorInfo
                 };
             }
         }
-        
+
         return instructionResult;
     };
 
@@ -1155,7 +1163,7 @@ const KnittingStepCounter = ({
                         <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed mb-3 ${instructionResult.isBrioche ? 'whitespace-pre-line' : ''}`}>
                             {instructionResult.instruction || 'Loading instruction...'}
                         </div>
-                        
+
                         {/* Color info below instruction (if present) */}
                         {instructionResult.colorInfo && (
                             <div className={`text-sm ${theme.textSecondary} flex justify-center`}>
