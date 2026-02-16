@@ -527,7 +527,23 @@ export const getContextualConfigNotes = (step) => {
  */
 export const getContextualColorNotes = (step, project = null) => {
 
-    // Check colorwork data for stripes
+    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
+
+    // Check if this step continues from previous
+    if (colorwork?.continuedFromStep) {
+        const stepNum = colorwork.continuedFromStep;
+        if (colorwork.type === 'stripes') {
+            return `Continuing stripe pattern from Step ${stepNum}`;
+        }
+        if (colorwork.type === 'marled_stripes') {
+            return `Continuing marled stripe pattern from Step ${stepNum}`;
+        }
+        if (colorwork.type === 'two_color_brioche') {
+            return `Continuing two-color brioche from Step ${stepNum}`;
+        }
+    }
+
+        // Check colorwork data for stripes
     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
 
     if (colorwork?.type === 'stripes') {

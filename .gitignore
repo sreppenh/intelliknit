@@ -108,4 +108,7 @@ Thumbs.db
 **/xx*.ts
 **/xx*.tsx
 **/xx*.css
+
+# Backup files from Python update scripts
 *.backup
+*.backup-continue

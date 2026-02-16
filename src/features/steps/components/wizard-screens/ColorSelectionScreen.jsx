@@ -1,6 +1,6 @@
 // src/features/steps/components/wizard-screens/ColorSelectionScreen.jsx
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getSortedYarnLetters } from '../../../../shared/utils/colorworkDisplayUtils';
 import useYarnManager from '../../../../shared/hooks/useYarnManager';
 
@@ -34,7 +34,13 @@ const ColorSelectionScreen = ({
         } else if (colorChoice === 'stripes') {
             onContinue('stripes-config');
         } else if (colorChoice === 'marled-stripes') {
-            onContinue('marled-stripes-config');
+            onContinue('marled-stripes-config');        } else if (colorChoice === 'continue-pattern') {
+            // Copy previous step's colorwork data
+            updateWizardData('colorwork', {
+                ...previousPattern.data,
+                continuedFromStep: previousPattern.stepNumber
+            });
+            onContinue('pattern-selection');
         } else if (colorChoice === 'fair-isle' || colorChoice === 'intarsia') {
             onContinue('pattern-selection');
         } else if (colorChoice === 'two-color-brioche') {
@@ -60,6 +66,32 @@ const ColorSelectionScreen = ({
     // Only show yarns that actually exist in the project
     // const sortedYarns = getSortedYarnLetters(yarns).filter(yarn => yarn && yarn.id);
     const sortedYarns = yarns.sort((a, b) => a.letter.localeCompare(b.letter));
+
+    // Check if previous step has a continuable color pattern
+    const getPreviousStepPattern = () => {
+        if (!component?.steps || component.steps.length === 0) return null;
+        
+        const prevStep = component.steps[component.steps.length - 1];
+        const prevColorwork = prevStep?.colorwork || prevStep?.wizardConfig?.colorwork;
+        
+        if (!prevColorwork) return null;
+        
+        // Only allow continuation for complex patterns
+        const continuableTypes = ['stripes', 'marled_stripes', 'two_color_brioche'];
+        if (continuableTypes.includes(prevColorwork.type)) {
+            return {
+                type: prevColorwork.type,
+                stepNumber: component.steps.length,
+                data: prevColorwork
+            };
+        }
+        
+        return null;
+    };
+    
+    const previousPattern = getPreviousStepPattern();
+
+
 
     return (
         <div className="stack-lg">
@@ -128,10 +160,78 @@ const ColorSelectionScreen = ({
                     onClick={() => setColorChoice('fair-isle')}
                     className={`card-selectable ${colorChoice === 'fair-isle' ? 'card-selectable-selected' : ''}`}
                 >
-                    <div className="text-3xl mb-2">🎨</div>
-                    <div className="font-semibold">Fair Isle</div>
-                    <div className="text-xs text-wool-600 mt-1">Colorwork patterns</div>
+                    <div className="text-3xl mb-2">🎨
+                {/* Continue Pattern - only show if previous step has pattern */}
+                {previousPattern && (
+                    <button
+                        onClick={() => setColorChoice('continue-pattern')}
+                        className={`card-selectable ${colorChoice === 'continue-pattern' ? 'card-selectable-selected' : ''}`}
+                    >
+                        <div className="text-3xl mb-2">↪️</div>
+                        <div className="font-semibold">Continue Pattern</div>
+                        <div className="text-xs text-wool-600 mt-1">
+                            Continue {previousPattern.type === 'stripes' ? 'Stripes' : 
+                                     previousPattern.type === 'marled_stripes' ? 'Marled Stripes' : 
+                                     'Two-Color Brioche'} from Step {previousPattern.stepNumber}
+                        </div>
+                    </button>
+                )}
+
+            </div>
+                    <div className="font-semibold">Fair Isle
+                {/* Continue Pattern - only show if previous step has pattern */}
+                {previousPattern && (
+                    <button
+                        onClick={() => setColorChoice('continue-pattern')}
+                        className={`card-selectable ${colorChoice === 'continue-pattern' ? 'card-selectable-selected' : ''}`}
+                    >
+                        <div className="text-3xl mb-2">↪️</div>
+                        <div className="font-semibold">Continue Pattern</div>
+                        <div className="text-xs text-wool-600 mt-1">
+                            Continue {previousPattern.type === 'stripes' ? 'Stripes' : 
+                                     previousPattern.type === 'marled_stripes' ? 'Marled Stripes' : 
+                                     'Two-Color Brioche'} from Step {previousPattern.stepNumber}
+                        </div>
+                    </button>
+                )}
+
+            </div>
+                    <div className="text-xs text-wool-600 mt-1">Colorwork patterns
+                {/* Continue Pattern - only show if previous step has pattern */}
+                {previousPattern && (
+                    <button
+                        onClick={() => setColorChoice('continue-pattern')}
+                        className={`card-selectable ${colorChoice === 'continue-pattern' ? 'card-selectable-selected' : ''}`}
+                    >
+                        <div className="text-3xl mb-2">↪️</div>
+                        <div className="font-semibold">Continue Pattern</div>
+                        <div className="text-xs text-wool-600 mt-1">
+                            Continue {previousPattern.type === 'stripes' ? 'Stripes' : 
+                                     previousPattern.type === 'marled_stripes' ? 'Marled Stripes' : 
+                                     'Two-Color Brioche'} from Step {previousPattern.stepNumber}
+                        </div>
+                    </button>
+                )}
+
+            </div>
                 </button>
+            
+                {/* Continue Pattern - only show if previous step has pattern */}
+                {previousPattern && (
+                    <button
+                        onClick={() => setColorChoice('continue-pattern')}
+                        className={`card-selectable ${colorChoice === 'continue-pattern' ? 'card-selectable-selected' : ''}`}
+                    >
+                        <div className="text-3xl mb-2">↪️</div>
+                        <div className="font-semibold">Continue Pattern</div>
+                        <div className="text-xs text-wool-600 mt-1">
+                            Continue {previousPattern.type === 'stripes' ? 'Stripes' : 
+                                     previousPattern.type === 'marled_stripes' ? 'Marled Stripes' : 
+                                     'Two-Color Brioche'} from Step {previousPattern.stepNumber}
+                        </div>
+                    </button>
+                )}
+
             </div>
 
             {/* Yarn Selection for Brioche - Ordered */}

@@ -58,6 +58,19 @@ export const getPrepCardColorInfo = (step, stepIndex, component, project) => {
  * Generate "Using Color X" text for first step
  */
 const generateInitialColorText = (colorwork, project) => {
+    // Check if continuing from previous step
+    if (colorwork.continuedFromStep) {
+        const stepNum = colorwork.continuedFromStep;
+        if (colorwork.type === 'stripes') {
+            return `Continuing stripe pattern from Step ${stepNum}`;
+        }
+        if (colorwork.type === 'marled_stripes') {
+            return `Continuing marled stripe pattern from Step ${stepNum}`;
+        }
+        if (colorwork.type === 'two_color_brioche') {
+            return `Continuing two-color brioche from Step ${stepNum}`;
+        }
+    }
 
     if (colorwork.type === 'single') {
         // Get the letter (check multiple possible field names for compatibility)
