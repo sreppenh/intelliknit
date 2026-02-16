@@ -543,9 +543,6 @@ export const getContextualColorNotes = (step, project = null) => {
         }
     }
 
-        // Check colorwork data for stripes
-    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-
     if (colorwork?.type === 'stripes') {
         return getStripeSequenceDisplay(step, project);
     }
