@@ -14,43 +14,27 @@ const PrepNoteColorScreen = ({
     onCancel,
     onFinishComponent
 }) => {
+    // 🔍 DEBUG: Log every time this component renders
+    console.log('🔍 PrepNoteColorScreen RENDER:', {
+        hasColorMode: !!component?.colorMode,
+        colorModeValue: component?.colorMode,
+        hasDefaultPattern: !!component?.defaultPattern,
+        defaultPatternValue: component?.defaultPattern?.pattern
+    });
+
     const { yarns } = useYarnManager();
     const [prepNote, setPrepNote] = useState(wizardData.prepNote || '');
+
 
     // Pattern state
     const [useDefaultPattern, setUseDefaultPattern] = useState(
         component.defaultPattern ? true : false
     );
 
-    // Check if previous step has a continuable color pattern
-    const getPreviousStepPattern = () => {
-        if (!component?.steps || component.steps.length === 0) return null;
-
-        const prevStep = component.steps[component.steps.length - 1];
-        const prevColorwork = prevStep?.colorwork || prevStep?.wizardConfig?.colorwork;
-
-        if (!prevColorwork) return null;
-
-        // Only allow continuation for complex patterns
-        const continuableTypes = ['stripes', 'marled_stripes', 'two_color_brioche'];
-        if (continuableTypes.includes(prevColorwork.type)) {
-            return {
-                type: prevColorwork.type,
-                stepNumber: component.steps.length,
-                data: prevColorwork,
-                displayName: prevColorwork.type === 'stripes' ? 'Stripes' :
-                    prevColorwork.type === 'marled_stripes' ? 'Marled Stripes' :
-                        'Two-Color Brioche'
-            };
-        }
-
-        return null;
-    };
-
-    const previousPattern = getPreviousStepPattern();
-
-    // Color state - default to continuing pattern if available
-    const [useContinuePattern, setUseContinuePattern] = useState(!!previousPattern);
+    // Color state  
+    const [useDefaultColor, setUseDefaultColor] = useState(
+        component.colorMode === 'multiple' && component.defaultColorwork ? true : false
+    );
 
     // ✨ NEW: Starting Side state for flat construction
     const stepIndex = component.steps.length; // Index of step we're creating
@@ -62,7 +46,13 @@ const PrepNoteColorScreen = ({
 
     // Auto-handle components without colorMode set (legacy)
     useEffect(() => {
+        console.log('🔍 useEffect running - checking colorMode:', {
+            hasColorMode: !!component.colorMode,
+            willCallOnContinue: !component.colorMode
+        });
+
         if (!component.colorMode) {
+            console.log('🚨 AUTO-CONTINUING from useEffect!');
             onContinue('pattern-selection');
         }
     }, [component.colorMode, onContinue]);
@@ -84,35 +74,21 @@ const PrepNoteColorScreen = ({
             component.defaultPattern.pattern === 'None' ||
             !useDefaultPattern;
 
-        // Check if we need color configuration
         const needsColorConfig = component.colorMode === 'multiple' &&
-            !useContinuePattern;
+            ((component.defaultColorwork && !useDefaultColor) ||
+                !component.defaultColorwork);
 
         if (needsColorConfig) {
             onContinue('color-selection');
-        } else if (useContinuePattern && previousPattern) {
-            // Copy previous step's colorwork data
-            updateWizardData('colorwork', {
-                ...previousPattern.data,
-                continuedFromStep: previousPattern.stepNumber
-            });
-
-            // Continue to next screen
-            if (needsPatternConfig) {
-                onContinue('pattern-selection');
-            } else {
-                // Save pattern default if needed
-                if (useDefaultPattern) {
-                    updateWizardData('stitchPattern', component.defaultPattern);
-                }
-                onContinue('duration-shaping');
-            }
         } else if (needsPatternConfig) {
             onContinue('pattern-selection');
         } else {
             // Save defaults and skip ahead
             if (useDefaultPattern) {
                 updateWizardData('stitchPattern', component.defaultPattern);
+            }
+            if (useDefaultColor && component.colorMode === 'multiple') {
+                updateWizardData('colorwork', component.defaultColorwork);
             }
             onContinue('duration-shaping');
         }
@@ -189,26 +165,26 @@ const PrepNoteColorScreen = ({
             )}
 
             {/* Helper Text - only show if there are options to customize */}
-            {((previousPattern && component.colorMode === 'multiple') ||
+            {((component.colorMode === 'multiple' && component.defaultColorwork) ||
                 (component.defaultPattern && component.defaultPattern.pattern !== 'None')) && (
                     <div className="text-sm text-wool-600 text-center py-2 border-t border-b border-wool-200">
                         Uncheck any option below to customize it for this step
                     </div>
                 )}
 
-            {/* Color Checkbox - Continue Pattern */}
-            {previousPattern && component.colorMode === 'multiple' && (
+            {/* Color Checkbox */}
+            {component.colorMode === 'multiple' && component.defaultColorwork && (
                 <div>
                     <label className="form-label">Color</label>
-                    <label className={`checkbox-container ${useContinuePattern ? 'checkbox-container-checked' : ''}`}>
+                    <label className={`checkbox-container ${useDefaultColor ? 'checkbox-container-checked' : ''}`}>
                         <input
                             type="checkbox"
-                            checked={useContinuePattern}
-                            onChange={(e) => setUseContinuePattern(e.target.checked)}
+                            checked={useDefaultColor}
+                            onChange={(e) => setUseDefaultColor(e.target.checked)}
                             className="checkbox-sage"
                         />
-                        <span className={`checkbox-label ${useContinuePattern ? 'checkbox-label-checked' : ''}`}>
-                            Continue {previousPattern.displayName} from Step {previousPattern.stepNumber}
+                        <span className={`checkbox-label ${useDefaultColor ? 'checkbox-label-checked' : ''}`}>
+                            {formatColorworkDisplay(component.defaultColorwork, yarns)}
                         </span>
                     </label>
                 </div>
