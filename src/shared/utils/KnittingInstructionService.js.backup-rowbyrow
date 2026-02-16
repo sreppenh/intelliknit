@@ -38,7 +38,7 @@ export const getRowInstruction = (step, currentRow, currentStitchCount, project 
 /**
  * Route instruction generation based on step type and configuration
  */
-function routeInstruction(step, currentRow, currentStitchCount, construction, project, component = null, stepIndex = null, stepStartingSide = null) {
+function routeInstruction(step, currentRow, currentStitchCount, construction, project, component = null, stepIndex = null, stepStartingSide = null) {  // ← ADD stepStartingSide
     const patternName = getStepPatternName(step);
     const hasShaping = step.wizardConfig?.hasShaping || step.advancedWizardConfig?.hasShaping;
 
@@ -57,12 +57,7 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
         return getShapingInstruction(step, currentRow, currentStitchCount, construction, project);
     }
 
-    // 🆕 PRIORITY 3: Row-by-row patterns (check BEFORE pure colorwork)
-    if (hasRowByRowInstructions(step)) {
-        return getRowByRowWithColorwork(step, currentRow, currentStitchCount, construction, project, component, stepIndex);
-    }
-
-    // Priority 4: Pure colorwork patterns (no row-by-row instructions)
+    // Priority 3: Colorwork patterns (before algorithmic check)
     if (isColorworkPattern(patternName, step)) {
         const colorworkResult = getColorworkInstruction(step, currentRow, currentStitchCount, construction, patternName, project, component, stepIndex);
         if (colorworkResult?.instruction) {
@@ -72,148 +67,13 @@ function routeInstruction(step, currentRow, currentStitchCount, construction, pr
             };
         }
     }
-
-    // Priority 5: Basic algorithmic patterns
+    // Priority 4: Basic algorithmic patterns
     if (isAlgorithmicPattern(patternName)) {
-        return getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName, stepStartingSide);
+        return getAlgorithmicInstruction(step, currentRow, currentStitchCount, construction, patternName, stepStartingSide);  // ← ADD stepStartingSide here
     }
 
-    // Priority 6: Fallback
+    // Priority 5: Fallback
     return getFallbackInstruction(step, currentRow, currentStitchCount, patternName);
-}
-
-
-
-/**
- * Check if step has row-by-row instructions (Custom, Lace, Cable with entryMode)
- */
-function hasRowByRowInstructions(step) {
-    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
-    
-    if (!stitchPattern) return false;
-    
-    // Check for row-by-row entry mode
-    if (stitchPattern.entryMode === 'row_by_row' && stitchPattern.rowInstructions) {
-        return stitchPattern.rowInstructions.length > 0;
-    }
-    
-    // Check for Custom pattern with customSequence
-    if (stitchPattern.pattern === 'Custom' && stitchPattern.customSequence?.rows) {
-        return stitchPattern.customSequence.rows.length > 0;
-    }
-    
-    return false;
-}
-
-/**
- * Get row-by-row instruction with colorwork prepended
- * Combines custom pattern instructions with stripe/marled stripe colors
- */
-function getRowByRowWithColorwork(step, currentRow, currentStitchCount, construction, project, component = null, stepIndex = null) {
-    const stitchPattern = step.wizardConfig?.stitchPattern || step.advancedWizardConfig?.stitchPattern;
-    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-    
-    // Get the base row instruction
-    let rowInstruction = null;
-    
-    // Check for row-by-row entry mode (Lace, Cable)
-    if (stitchPattern.entryMode === 'row_by_row' && stitchPattern.rowInstructions) {
-        const rowsInPattern = stitchPattern.rowInstructions.length;
-        const patternRow = ((currentRow - 1) % rowsInPattern);
-        rowInstruction = stitchPattern.rowInstructions[patternRow];
-    }
-    
-    // Check for Custom pattern with customSequence
-    if (stitchPattern.pattern === 'Custom' && stitchPattern.customSequence?.rows) {
-        const rows = stitchPattern.customSequence.rows;
-        const rowsInPattern = rows.length;
-        const patternRow = ((currentRow - 1) % rowsInPattern);
-        rowInstruction = rows[patternRow]?.instruction;
-    }
-    
-    if (!rowInstruction) {
-        return {
-            instruction: 'Work in pattern',
-            isSupported: false,
-            needsHelp: false,
-            helpTopic: null
-        };
-    }
-    
-    // If no colorwork, return just the row instruction
-    if (!colorwork || !colorwork.type || colorwork.type === 'single') {
-        return {
-            instruction: rowInstruction,
-            isSupported: true,
-            needsHelp: false,
-            helpTopic: null
-        };
-    }
-    
-    // Get color prefix based on colorwork type
-    const colorPrefix = getColorPrefixForRow(step, currentRow, colorwork, project, component, stepIndex);
-    
-    if (colorPrefix) {
-        return {
-            instruction: `${colorPrefix}, ${rowInstruction}`,
-            isSupported: true,
-            needsHelp: false,
-            helpTopic: null
-        };
-    }
-    
-    // Fallback: just return row instruction
-    return {
-        instruction: rowInstruction,
-        isSupported: true,
-        needsHelp: false,
-        helpTopic: null
-    };
-}
-
-/**
- * Get color prefix for current row (e.g., "With A+B held together" or "Using Color A")
- */
-function getColorPrefixForRow(step, currentRow, colorwork, project, component = null, stepIndex = null) {
-    const adjustedRow = component && stepIndex !== null && project
-        ? getAdjustedColorRow(currentRow, step, component, stepIndex, project.id)
-        : currentRow;
-    
-    // Handle regular stripes
-    if (colorwork.type === 'stripes') {
-        const stripeSequence = colorwork.stripeSequence;
-        if (stripeSequence && stripeSequence.length > 0) {
-            const currentColor = getCurrentStripeColor(adjustedRow, stripeSequence);
-            if (currentColor) {
-                const colorDisplay = getColorDisplayName(currentColor.color, project);
-                return `Using ${colorDisplay}`;
-            }
-        }
-    }
-    
-    // Handle marled stripes
-    if (colorwork.type === 'marled_stripes') {
-        const marledSequence = colorwork.marledSequence;
-        if (marledSequence && marledSequence.length > 0) {
-            const currentMarled = getCurrentMarledCombo(adjustedRow, marledSequence);
-            if (currentMarled) {
-                const color1Display = getColorDisplayName(currentMarled.colors[0], project);
-                const color2Display = getColorDisplayName(currentMarled.colors[1], project);
-                return `With ${color1Display} and ${color2Display} held together`;
-            }
-        }
-    }
-    
-    // Handle multi-strand (held together all the time, not changing)
-    if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
-        const letters = colorwork.letters || colorwork.colorLetters || [];
-        if (letters.length >= 2) {
-            const colorDisplays = letters.map(letter => getColorDisplayName(letter, project));
-            return `With ${colorDisplays.join(' and ')} held together`;
-        }
-    }
-    
-    return null;
 }
 
 /**
