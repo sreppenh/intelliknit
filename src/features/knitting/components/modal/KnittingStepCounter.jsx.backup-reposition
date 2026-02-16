@@ -61,17 +61,17 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
         const yarn1 = getYarnInfo(currentMarled.colors[0], project);
         const yarn2 = getYarnInfo(currentMarled.colors[1], project);
         
-        // If both colors are the same, show with × 2
+        // If both colors are the same, just show once
         if (currentMarled.colors[0] === currentMarled.colors[1]) {
             return {
-                text: `${yarn1.displayName} × 2`,
+                text: yarn1.displayName,
                 jsx: (
-                    <div className="flex items-center gap-1.5 justify-center">
+                    <div className="flex items-center gap-1.5">
                         <span 
                             className="inline-block w-3 h-3 rounded-full border border-gray-300" 
                             style={{ backgroundColor: yarn1.hex }}
                         />
-                        <span>{yarn1.displayName} × 2</span>
+                        <span>{yarn1.displayName}</span>
                     </div>
                 )
             };
@@ -81,7 +81,7 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
         return {
             text: `${yarn1.displayName} and ${yarn2.displayName} held together`,
             jsx: (
-                <div className="flex items-center gap-1.5 justify-center flex-wrap">
+                <div className="flex items-center gap-1.5">
                     <span 
                         className="inline-block w-3 h-3 rounded-full border border-gray-300" 
                         style={{ backgroundColor: yarn1.hex }}
@@ -125,7 +125,7 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
         return {
             text: yarn.displayName,
             jsx: (
-                <div className="flex items-center gap-1.5 justify-center">
+                <div className="flex items-center gap-1.5">
                     <span 
                         className="inline-block w-3 h-3 rounded-full border border-gray-300" 
                         style={{ backgroundColor: yarn.hex }}
@@ -146,7 +146,7 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
         return {
             text: yarns.map(y => y.displayName).join(' and ') + ' held together',
             jsx: (
-                <div className="flex items-center gap-1.5 flex-wrap justify-center">
+                <div className="flex items-center gap-1.5 flex-wrap">
                     {yarns.map((yarn, i) => (
                         <React.Fragment key={i}>
                             {i > 0 && <span>and</span>}
@@ -170,8 +170,10 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
 function getYarnInfo(colorLetter, project) {
     const yarn = project?.yarns?.find(y => y.letter === colorLetter);
     
-    // Use yarn.color if it exists, otherwise fall back to letter
-    const displayName = yarn?.color || colorLetter;
+    // If yarn has a custom name (not "Color X"), use that
+    const hasCustomName = yarn?.color && yarn.color !== `Color ${colorLetter}`;
+    const displayName = hasCustomName ? yarn.color : colorLetter;
+    
     const hex = yarn?.colorHex || yarn?.hex || '#cccccc';
     
     return { displayName, hex };
@@ -1122,17 +1124,17 @@ const KnittingStepCounter = ({
                     )}
 
                     <div className={`${instructionResult.isBrioche ? 'text-left' : ''} mb-4`}>
-                        {/* Main instruction - primary focus */}
-                        <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed mb-3 ${instructionResult.isBrioche ? 'whitespace-pre-line' : ''}`}>
-                            {instructionResult.instruction || 'Loading instruction...'}
-                        </div>
-                        
-                        {/* Color info below instruction (if present) */}
+                        {/* Color info on separate line (if present) */}
                         {instructionResult.colorInfo && (
-                            <div className={`text-sm ${theme.textSecondary} flex justify-center`}>
+                            <div className={`text-sm ${theme.textSecondary} mb-2`}>
                                 {instructionResult.colorInfo.jsx}
                             </div>
                         )}
+                        
+                        {/* Main instruction */}
+                        <div className={`text-lg font-semibold ${theme.textPrimary} leading-relaxed ${instructionResult.isBrioche ? 'whitespace-pre-line' : ''}`}>
+                            {instructionResult.instruction || 'Loading instruction...'}
+                        </div>
                     </div>
 
 
