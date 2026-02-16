@@ -101,10 +101,6 @@ const generateInitialColorText = (colorwork, project) => {
         return 'Using stripe pattern';
     }
 
-    if (colorwork.type === 'marled_stripes') {
-        return 'Using marled stripe pattern';
-    }
-
     if (colorwork.type === 'two_color_brioche') {
         const letters = colorwork.letters || [];
 
@@ -199,26 +195,6 @@ const generateColorChangeText = (colorwork, project) => {
         return `Switch to stripe pattern: ${colorInfo}`;
     }
 
-    if (colorwork.type === 'marled_stripes') {
-        const marledSequence = colorwork.marledSequence || [];
-
-        if (marledSequence.length === 0) {
-            return 'Switch to marled stripe pattern';
-        }
-
-        // Collect unique colors from the marled sequence
-        const uniqueColors = [...new Set(marledSequence.flatMap(marled => marled.colors))];
-
-        // Get yarn names for each color
-        const colorInfo = uniqueColors.map(letter => {
-            const yarn = getYarnByLetter(project?.yarns || [], letter);
-            const yarnName = yarn.color && yarn.color !== `Color ${letter}` ? ` (${yarn.color})` : '';
-            return `Color ${letter}${yarnName}`;
-        }).join(', ');
-
-        return `Switch to marled stripe pattern: ${colorInfo}`;
-    }
-
     return null;
 };
 
@@ -251,9 +227,6 @@ const getStepColorForComparison = (step, component) => {
         }
         if (step.colorwork.type === 'stripes') {
             return 'stripes';
-        }
-        if (step.colorwork.type === 'marled_stripes') {
-            return 'marled_stripes';
         }
         if (step.colorwork.type === 'two_color_brioche') {
             const letters = step.colorwork.letters || [];

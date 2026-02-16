@@ -7,6 +7,7 @@ import SegmentedControl from '../../../shared/components/SegmentedControl';
 import useYarnManager from '../../../shared/hooks/useYarnManager';
 import StripesConfig from '../../steps/components/pattern-configs/StripesConfig';
 import PatternWizard from './PatternWizard';
+import MarledStripesConfig from '../../steps/components/pattern-configs/MarledStripesConfig';
 import {
   getCastOnMethodsArray,
   getPickUpMethodsArray,
@@ -438,6 +439,23 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                 <div className="text-xs text-wool-600 mt-1">Alternating colors</div>
               </button>
 
+              {/* Marled Stripes */}
+              <button
+                onClick={() => setDefaultColorData(prev => ({
+                  ...prev,
+                  colorwork: {
+                    type: 'marled_stripes',
+                    marledSequence: [],
+                    totalRows: 0
+                  }
+                }))}
+                className={`card-selectable ${defaultColorData.colorwork.type === 'marled_stripes' ? 'card-selectable-selected' : ''}`}
+              >
+                <div className="text-3xl mb-2">🌈</div>
+                <div className="font-semibold">Marled Stripes</div>
+                <div className="text-xs text-wool-600 mt-1">Changing marled combos</div>
+              </button>
+
               {/* Fair Isle */}
               <button
                 onClick={() => setDefaultColorData(prev => ({
@@ -573,7 +591,8 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                   // Skip to pattern if "none" selected
                   if (defaultColorData.colorwork.type === 'none') {
                     setScreen(4);
-                  } else if (defaultColorData.colorwork.type === 'stripes') {
+                  } else if (defaultColorData.colorwork.type === 'stripes' ||
+                    defaultColorData.colorwork.type === 'marled_stripes') {
                     setScreen(3);
                   } else {
                     setScreen(4);
@@ -617,7 +636,38 @@ const SmartComponentCreation = ({ onBack, onComponentCreated }) => {
                   project={currentProject}
                   mode="component-default"
                 />
+
+
+
               </>
+
+            ) : defaultColorData.colorwork.type === 'marled_stripes' ? (
+              // Marled Stripes Configuration
+              <>
+                <h1 className="page-title">Marled Stripe Pattern</h1>
+                <p className="text-wool-600 text-center">
+                  Define your marled stripe sequence
+                </p>
+
+                <MarledStripesConfig
+                  wizardData={{ colorwork: defaultColorData.colorwork }}
+                  updateWizardData={(key, value) => {
+                    if (key === 'colorwork') {
+                      setDefaultColorData(prev => ({
+                        ...prev,
+                        colorwork: value
+                      }));
+                    }
+                  }}
+                  construction={componentData.construction}
+                  project={currentProject}
+                  mode="component-default"
+                />
+              </>
+
+
+
+
             ) : defaultColorData.colorwork.advancedType === 'fair_isle' ? (
               // Fair Isle Placeholder
               <>

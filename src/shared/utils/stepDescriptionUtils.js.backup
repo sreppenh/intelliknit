@@ -329,44 +329,6 @@ const getStripeSequenceDisplay = (step, project) => {
     return stripeDescriptions.join(', ');
 };
 
-
-/**
- * Generate detailed marled stripe sequence display
- */
-const getMarledStripeSequenceDisplay = (step, project) => {
-    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-    const marledSequence = colorwork?.marledSequence;
-
-    if (!marledSequence || !Array.isArray(marledSequence) || marledSequence.length === 0) {
-        return null;
-    }
-
-    const construction = step.construction || 'flat';
-    const terms = getConstructionTerms(construction);
-    const rowTerm = terms.rows;
-    const rowTermSingle = terms.row;
-
-    // Get color mapping from project
-    const getColorName = (letter) => {
-        const yarn = project?.yarns?.find(y => y.letter === letter);
-        if (yarn?.color) {
-            return yarn.color;
-        }
-        return `Color ${letter}`;
-    };
-
-    // Format each marled stripe in the sequence
-    const marledDescriptions = marledSequence.map(marled => {
-        const color1Name = getColorName(marled.colors[0]);
-        const color2Name = getColorName(marled.colors[1]);
-        const rowCount = marled.rows || 1;
-        const term = rowCount === 1 ? rowTermSingle : rowTerm;
-        return `${rowCount} ${term} ${color1Name}+${color2Name}`;
-    });
-
-    return marledDescriptions.join(', ');
-};
-
 /**
  * Generate brioche-specific description
  */
@@ -532,10 +494,6 @@ export const getContextualColorNotes = (step, project = null) => {
 
     if (colorwork?.type === 'stripes') {
         return getStripeSequenceDisplay(step, project);
-    }
-
-    if (colorwork?.type === 'marled_stripes') {
-        return getMarledStripeSequenceDisplay(step, project);
     }
 
     // Future: Add Fair Isle, Intarsia, etc. here
@@ -986,19 +944,6 @@ const getColorDisplayForTechnicalData = (step, project) => {
                 return colorNames;
             }
         }
-
-        if (colorwork.type === 'marled_stripes') {
-            const marledSequence = colorwork.marledSequence;
-            if (marledSequence && marledSequence.length > 0) {
-                const uniqueColors = [...new Set(marledSequence.flatMap(m => m.colors))];
-                const colorNames = uniqueColors.map(letter => {
-                    const yarn = getYarnByLetter(project?.yarns || [], letter);
-                    return `Color ${yarn.letter}`;
-                }).join(', ');
-                return colorNames;
-            }
-        }
-
 
         return null; // Stripes, etc.
     }

@@ -435,27 +435,14 @@ export const getPatternLength = (step) => {
 export const getColorSequenceLength = (step) => {
     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
 
-    if (!colorwork) return null;
+    if (!colorwork || colorwork.type !== 'stripes') return null;
 
-    // Handle regular stripes
-    if (colorwork.type === 'stripes') {
-        const stripeSequence = colorwork.stripeSequence;
-        if (!stripeSequence || !Array.isArray(stripeSequence) || stripeSequence.length === 0) {
-            return null;
-        }
-        return stripeSequence.reduce((sum, stripe) => sum + (stripe.rows || 0), 0);
+    const stripeSequence = colorwork.stripeSequence;
+    if (!stripeSequence || !Array.isArray(stripeSequence) || stripeSequence.length === 0) {
+        return null;
     }
 
-    // Handle marled stripes
-    if (colorwork.type === 'marled_stripes') {
-        const marledSequence = colorwork.marledSequence;
-        if (!marledSequence || !Array.isArray(marledSequence) || marledSequence.length === 0) {
-            return null;
-        }
-        return marledSequence.reduce((sum, marled) => sum + (marled.rows || 0), 0);
-    }
-
-    return null;
+    return stripeSequence.reduce((sum, stripe) => sum + (stripe.rows || 0), 0);
 };
 
 /**
@@ -579,25 +566,15 @@ export const getColorRowOffset = (step, component, stepIndex, projectId) => {
     const currentColorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
     const prevColorwork = prevStep.colorwork || prevStep.wizardConfig?.colorwork || prevStep.advancedWizardConfig?.colorwork;
 
-    // Both must be the same type of color pattern
-    if (currentColorwork?.type !== prevColorwork?.type) {
+    // Both must be stripe patterns
+    if (currentColorwork?.type !== 'stripes' || prevColorwork?.type !== 'stripes') {
         return 0;
     }
 
-    // For regular stripes, compare stripe sequences
-    if (currentColorwork.type === 'stripes') {
-        if (!doStripeSequencesMatch(currentColorwork.stripeSequence, prevColorwork.stripeSequence)) {
-            console.warn('Stripe sequence changed - resetting color continuation');
-            return 0;
-        }
-    }
-
-    // For marled stripes, compare marled sequences
-    if (currentColorwork.type === 'marled_stripes') {
-        if (!doMarledSequencesMatch(currentColorwork.marledSequence, prevColorwork.marledSequence)) {
-            console.warn('Marled stripe sequence changed - resetting color continuation');
-            return 0;
-        }
+    // Compare stripe sequences for exact match
+    if (!doStripeSequencesMatch(currentColorwork.stripeSequence, prevColorwork.stripeSequence)) {
+        console.warn('Stripe sequence changed - resetting color continuation');
+        return 0;
     }
 
     return prevContinuation.colorRow;
@@ -619,24 +596,6 @@ function doStripeSequencesMatch(seq1, seq2) {
     return true;
 }
 
-
-/**
- * Helper: Compare two marled stripe sequences for exact match
- */
-function doMarledSequencesMatch(seq1, seq2) {
-    if (!seq1 || !seq2) return false;
-    if (seq1.length !== seq2.length) return false;
-
-    for (let i = 0; i < seq1.length; i++) {
-        if (seq1[i].rows !== seq2[i].rows) return false;
-        if (seq1[i].colors.length !== seq2[i].colors.length) return false;
-        for (let j = 0; j < seq1[i].colors.length; j++) {
-            if (seq1[i].colors[j] !== seq2[i].colors[j]) return false;
-        }
-    }
-
-    return true;
-}
 /**
  * Calculate adjusted row number for pattern instructions
  * Use this when fetching the current pattern row

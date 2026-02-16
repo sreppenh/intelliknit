@@ -22,6 +22,7 @@ import PrepNoteColorScreen from './wizard-screens/PrepNoteColorScreen';
 import ColorSelectionScreen from './wizard-screens/ColorSelectionScreen';
 import StripesConfig from './pattern-configs/StripesConfig';
 import BriocheConfig from './pattern-configs/BriocheConfig';
+import MarledStripesConfig from './pattern-configs/MarledStripesConfig';
 
 
 const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, editMode = null, onBack, mode = 'project' }) => {
@@ -36,7 +37,8 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
 
   // ADD THIS with the other state declarations:
   const [showStripesConfig, setShowStripesConfig] = useState(false);
-  const [showBriocheConfig, setShowBriocheConfig] = useState(false); // ✅ ADD THIS
+  const [showBriocheConfig, setShowBriocheConfig] = useState(false);
+  const [showMarledStripesConfig, setShowMarledStripesConfig] = useState(false);
 
   const wizardState = useWizardState(wizard, onBack, mode);
 
@@ -97,7 +99,9 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
     if (destination === 'stripes-config') {
       // ✅ CHANGED: Don't save to stitchPattern - StripesConfig will save to colorwork
       setShowStripesConfig(true); // Show stripes config screen
-    } else if (destination === 'brioche-config') { // ✅ ADD THIS
+    } else if (destination === 'marled-stripes-config') {
+      setShowMarledStripesConfig(true);
+    } else if (destination === 'brioche-config') {
       setShowBriocheConfig(true);
     } else {
       // Color configured, go to pattern selection
@@ -108,6 +112,11 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
   const handleStripesConfigContinue = () => {
     setShowStripesConfig(false);
     // After stripes configured, go to pattern selection
+    wizard.navigation.goToStep(1);
+  };
+
+  const handleMarledStripesConfigContinue = () => {
+    setShowMarledStripesConfig(false);
     wizard.navigation.goToStep(1);
   };
 
@@ -529,7 +538,38 @@ const StepWizard = ({ componentIndex, onGoToLanding, editingStepIndex = null, ed
               </div>
             </div>
           </>
-        ) : showBriocheConfig ? ( // ✅ ADD THIS ENTIRE SECTION
+        ) : showMarledStripesConfig ? (
+          <>
+            <MarledStripesConfig
+              wizardData={wizard.wizardData}
+              updateWizardData={wizard.updateWizardData}
+              construction={wizard.construction}
+              project={currentProject}
+              mode="create"
+            />
+            <div className="pt-6 border-t border-wool-100">
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    setShowMarledStripesConfig(false);
+                    setShowColorSelectionScreen(true);
+                  }}
+                  className="flex-1 btn-tertiary"
+                >
+                  ← Back
+                </button>
+                <button
+                  onClick={handleMarledStripesConfigContinue}
+                  disabled={!wizard.wizardData.colorwork?.marledSequence?.length}
+                  className="flex-2 btn-primary"
+                  style={{ flexGrow: 2 }}
+                >
+                  Continue →
+                </button>
+              </div>
+            </div>
+          </>
+        ) : showBriocheConfig ? (
           <>
             <BriocheConfig
               wizardData={wizard.wizardData}

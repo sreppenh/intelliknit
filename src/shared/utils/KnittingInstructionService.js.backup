@@ -966,10 +966,6 @@ function getColorworkInstruction(step, currentRow, currentStitchCount, construct
         return getStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project, component, stepIndex);
     }
 
-    if (colorwork?.type === 'marled_stripes') {
-        return getMarledStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project, component, stepIndex);
-    }
-
     // Other colorwork patterns - basic handling for now
     const customText = stitchPattern?.customText || stitchPattern?.customDetails || '';
     if (customText) {
@@ -1077,99 +1073,6 @@ function getCurrentStripeColor(currentRow, stripeSequence) {
 
     // Fallback to first color if calculation fails
     return stripeSequence[0];
-}
-
-
-/**
- * Generate intelligent marled stripe instructions with current color combo tracking
- */
-function getMarledStripeInstruction(step, currentRow, currentStitchCount, construction, stitchPattern, project, component = null, stepIndex = null) {
-    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-    const marledSequence = colorwork?.marledSequence;
-
-    if (!marledSequence || marledSequence.length === 0) {
-        return {
-            instruction: 'Work in marled stripe pattern',
-            isSupported: false,
-            needsHelp: true,
-            helpTopic: 'marled_stripe_setup_help'
-        };
-    }
-
-    // Use adjusted row number that accounts for continuation
-    const adjustedRow = component && stepIndex !== null && project
-        ? getAdjustedColorRow(currentRow, step, component, stepIndex, project.id)
-        : currentRow;
-
-    // Calculate which marled combo should be used for the adjusted row
-    const currentMarled = getCurrentMarledCombo(adjustedRow, marledSequence);
-
-    if (!currentMarled) {
-        return {
-            instruction: 'Work in marled stripe pattern (sequence error)',
-            isSupported: false,
-            needsHelp: true,
-            helpTopic: 'marled_stripe_setup_help'
-        };
-    }
-
-    // Get display names for both colors
-    const color1Display = getColorDisplayName(currentMarled.colors[0], project);
-    const color2Display = getColorDisplayName(currentMarled.colors[1], project);
-
-    // Get the actual base pattern
-    const basePattern = step.wizardConfig?.stitchPattern?.pattern || 'Stockinette';
-    const baseInstruction = getAlgorithmicRowInstruction(basePattern, currentRow, currentStitchCount, construction);
-
-    if (!baseInstruction) {
-        return {
-            instruction: `With ${color1Display} and ${color2Display} held together, work in pattern`,
-            isSupported: true,
-            needsHelp: false,
-            helpTopic: null
-        };
-    }
-
-    // Fix capitalization
-    const formattedInstruction = formatBaseInstruction(baseInstruction);
-
-    return {
-        instruction: `With ${color1Display} and ${color2Display} held together, ${formattedInstruction}`,
-        isSupported: true,
-        needsHelp: false,
-        helpTopic: null
-    };
-}
-
-/**
- * Calculate which marled combo should be used for the current row
- */
-function getCurrentMarledCombo(currentRow, marledSequence) {
-    if (!marledSequence || marledSequence.length === 0) {
-        return null;
-    }
-
-    // Calculate total pattern repeat length
-    const patternLength = marledSequence.reduce((total, marled) => total + marled.rows, 0);
-
-    if (patternLength === 0) {
-        return null;
-    }
-
-    // Find position within the pattern repeat (1-indexed)
-    const positionInPattern = ((currentRow - 1) % patternLength) + 1;
-
-    // Find which marled combo this position falls into
-    let accumulatedRows = 0;
-    for (const marled of marledSequence) {
-        accumulatedRows += marled.rows;
-        if (positionInPattern <= accumulatedRows) {
-            return marled;
-        }
-    }
-
-    // Fallback to first combo if calculation fails
-    return marledSequence[0];
 }
 
 /**

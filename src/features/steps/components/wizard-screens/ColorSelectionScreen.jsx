@@ -33,6 +33,8 @@ const ColorSelectionScreen = ({
             onContinue('pattern-selection');
         } else if (colorChoice === 'stripes') {
             onContinue('stripes-config');
+        } else if (colorChoice === 'marled-stripes') {
+            onContinue('marled-stripes-config');
         } else if (colorChoice === 'fair-isle' || colorChoice === 'intarsia') {
             onContinue('pattern-selection');
         } else if (colorChoice === 'two-color-brioche') {
@@ -98,6 +100,15 @@ const ColorSelectionScreen = ({
                     <div className="text-3xl mb-2">📊</div>
                     <div className="font-semibold">Stripes</div>
                     <div className="text-xs text-wool-600 mt-1">Alternating colors</div>
+                </button>
+
+                <button
+                    onClick={() => setColorChoice('marled-stripes')}
+                    className={`card-selectable ${colorChoice === 'marled-stripes' ? 'card-selectable-selected' : ''}`}
+                >
+                    <div className="text-3xl mb-2">🌈</div>
+                    <div className="font-semibold">Marled Stripes</div>
+                    <div className="text-xs text-wool-600 mt-1">Changing marled combos</div>
                 </button>
 
                 <button
