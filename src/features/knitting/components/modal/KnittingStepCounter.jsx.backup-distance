@@ -1088,11 +1088,6 @@ const KnittingStepCounter = ({
     // Get progress info text
     const getProgressInfoText = () => {
         if (isLengthStep && lengthDisplayData) {
-            // For distance-based steps, show both stitch count and target length
-            const lengthTarget = getLengthTarget(step);
-            if (lengthTarget && targetStitches) {
-                return `Target: ${targetStitches} stitches (knit to ${lengthTarget.value} ${lengthTarget.units})`;
-            }
             return lengthDisplayData.progressText;
         }
 
