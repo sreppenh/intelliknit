@@ -32,83 +32,6 @@ import {
     calculateContinuationState,
     PROGRESS_STATUS
 } from '../../../../shared/utils/progressTracking';
-// Helper function to get color prefix for custom patterns
-function getColorPrefixForCustomPattern(colorwork, currentRow, project, component, stepIndex, step) {
-    // Handle marled stripes
-    if (colorwork.type === 'marled_stripes') {
-        const marledSequence = colorwork.marledSequence;
-        if (!marledSequence || marledSequence.length === 0) return null;
-        
-        // Calculate which combo for this row
-        const patternLength = marledSequence.reduce((total, m) => total + m.rows, 0);
-        if (patternLength === 0) return null;
-        
-        const positionInPattern = ((currentRow - 1) % patternLength) + 1;
-        let accumulatedRows = 0;
-        let currentMarled = null;
-        
-        for (const marled of marledSequence) {
-            accumulatedRows += marled.rows;
-            if (positionInPattern <= accumulatedRows) {
-                currentMarled = marled;
-                break;
-            }
-        }
-        
-        if (!currentMarled || !currentMarled.colors || currentMarled.colors.length < 2) return null;
-        
-        const color1 = getColorName(currentMarled.colors[0], project);
-        const color2 = getColorName(currentMarled.colors[1], project);
-        return `With ${color1} and ${color2} held together`;
-    }
-    
-    // Handle regular stripes
-    if (colorwork.type === 'stripes') {
-        const stripeSequence = colorwork.stripeSequence;
-        if (!stripeSequence || stripeSequence.length === 0) return null;
-        
-        const patternLength = stripeSequence.reduce((total, s) => total + s.rows, 0);
-        if (patternLength === 0) return null;
-        
-        const positionInPattern = ((currentRow - 1) % patternLength) + 1;
-        let accumulatedRows = 0;
-        let currentStripe = null;
-        
-        for (const stripe of stripeSequence) {
-            accumulatedRows += stripe.rows;
-            if (positionInPattern <= accumulatedRows) {
-                currentStripe = stripe;
-                break;
-            }
-        }
-        
-        if (!currentStripe) return null;
-        
-        const colorName = getColorName(currentStripe.color, project);
-        return `Using ${colorName}`;
-    }
-    
-    // Handle multi-strand
-    if (colorwork.type === 'multi-strand' || colorwork.type === 'multi_strand') {
-        const letters = colorwork.letters || colorwork.colorLetters || [];
-        if (letters.length < 2) return null;
-        
-        const colorNames = letters.map(letter => getColorName(letter, project));
-        return `With ${colorNames.join(' and ')} held together`;
-    }
-    
-    return null;
-}
-
-// Helper to get color display name
-function getColorName(colorLetter, project) {
-    const yarn = project?.yarns?.find(y => y.letter === colorLetter);
-    if (yarn?.color) {
-        return `${yarn.color} (Color ${colorLetter})`;
-    }
-    return `Color ${colorLetter}`;
-}
-
 
 /**
  * Check if step is 2-color brioche and calculate actual pattern rows
@@ -725,19 +648,8 @@ const KnittingStepCounter = ({
                 const rowData = rows[rowIndex];
 
                 if (rowData && rowData.instruction) {
-                    let instruction = rowData.instruction;
-                    
-                    // Add color info if this step has colorwork
-                    const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-                    if (colorwork && colorwork.type && colorwork.type !== 'single') {
-                        const colorPrefix = getColorPrefixForCustomPattern(colorwork, currentRow, project, component, stepIndex, step);
-                        if (colorPrefix) {
-                            instruction = `${colorPrefix}, ${instruction}`;
-                        }
-                    }
-                    
                     return {
-                        instruction: instruction,
+                        instruction: rowData.instruction,  // Already plain text, no need to format
                         isSupported: true,
                         isRowByRow: true
                     };
