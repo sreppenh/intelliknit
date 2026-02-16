@@ -845,31 +845,7 @@ const KnittingStepCounter = ({
         }
     };
 
-    // Get instruction and add color info if needed
-    const getInstructionWithColor = () => {
-        const instructionResult = getCurrentInstruction();
-        
-        // If instruction already has colorInfo, return as-is
-        if (instructionResult.colorInfo) {
-            return instructionResult;
-        }
-        
-        // Check if step has colorwork and add color info
-        const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
-        if (colorwork && colorwork.type && colorwork.type !== 'single') {
-            const colorInfo = getColorInfoForCustomPattern(colorwork, currentRow, project);
-            if (colorInfo) {
-                return {
-                    ...instructionResult,
-                    colorInfo: colorInfo
-                };
-            }
-        }
-        
-        return instructionResult;
-    };
-
-    const instructionResult = getInstructionWithColor();
+    const instructionResult = getCurrentInstruction();
 
     const handleStepComplete = () => {
         if (isStepLocked) return;
