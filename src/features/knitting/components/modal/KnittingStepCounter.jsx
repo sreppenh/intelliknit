@@ -13,6 +13,7 @@ import SimpleRowSettings from '../SimpleRowSettings';
 import { formatReadableInstruction } from '../../../../shared/utils/stepDescriptionUtils';
 import IntelliKnitLogger from '../../../../shared/utils/ConsoleLogging';
 import markerArrayUtils from '../../../../shared/utils/markerArrayUtils';
+import { getAdjustedColorRow } from '../../../../shared/utils/progressTracking';
 
 // Gauge utilities
 import {
@@ -34,7 +35,7 @@ import {
 } from '../../../../shared/utils/progressTracking';
 // Helper function to get color info for custom patterns
 // Returns { text, jsx } where jsx is the React element to display
-function getColorInfoForCustomPattern(colorwork, currentRow, project) {
+function getColorInfoForCustomPattern(colorwork, currentRow, project, step, component, stepIndex) {
 
     // Handle marled stripes
     if (colorwork.type === 'marled_stripes') {
@@ -52,7 +53,12 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
             return null;
         }
 
-        const positionInPattern = ((currentRow - 1) % patternLength) + 1;
+        // ✅ USE CONTINUATION: Get adjusted row accounting for previous step
+        const adjustedRow = step && component && stepIndex !== null && project
+            ? getAdjustedColorRow(currentRow, step, component, stepIndex, project.id)
+            : currentRow;
+
+        const positionInPattern = ((adjustedRow - 1) % patternLength) + 1;
         let accumulatedRows = 0;
         let currentMarled = null;
 
@@ -115,7 +121,12 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project) {
         const patternLength = stripeSequence.reduce((total, s) => total + s.rows, 0);
         if (patternLength === 0) return null;
 
-        const positionInPattern = ((currentRow - 1) % patternLength) + 1;
+        // ✅ USE CONTINUATION: Get adjusted row accounting for previous step
+        const adjustedRow = step && component && stepIndex !== null && project
+            ? getAdjustedColorRow(currentRow, step, component, stepIndex, project.id)
+            : currentRow;
+
+        const positionInPattern = ((adjustedRow - 1) % patternLength) + 1;
         let accumulatedRows = 0;
         let currentStripe = null;
 
