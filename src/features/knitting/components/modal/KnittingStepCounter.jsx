@@ -31,6 +31,7 @@ import {
     saveStepProgressState,
     canStartStep,
     calculateContinuationState,
+    getColorRowOffset,
     PROGRESS_STATUS
 } from '../../../../shared/utils/progressTracking';
 // Helper function to get color info for custom patterns
@@ -469,7 +470,9 @@ const KnittingStepCounter = ({
             // Save completion to progress system
             const rowsCompleted = isLengthStep ? currentRow : calculateActualTotalRows(step);
             // ✅ FIX: Pass actual rows knitted for continuation
-            const continuation = calculateContinuationState(step, currentRow);
+            const colorOffset = getColorRowOffset(step, component, stepIndex, project.id);
+            const stepWithOffset = { ...step, _colorRowOffset: colorOffset };
+            const continuation = calculateContinuationState(stepWithOffset, currentRow);
 
             saveStepProgressState(step.id, component.id, project.id, {
                 status: PROGRESS_STATUS.COMPLETED,
@@ -826,7 +829,7 @@ const KnittingStepCounter = ({
                     const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
                     let colorInfo = null;
                     if (colorwork && colorwork.type && colorwork.type !== 'single') {
-                        colorInfo = getColorInfoForCustomPattern(colorwork, currentRow, project);
+                        colorInfo = getColorInfoForCustomPattern(colorwork, currentRow, project, step, component, stepIndex);
                     }
 
                     return {
@@ -906,7 +909,9 @@ const KnittingStepCounter = ({
             // ✅ FIX: For length-based steps, use currentRow from counter, not calculateActualTotalRows
             const rowsCompleted = isLengthStep ? currentRow : calculateActualTotalRows(step);
             // ✅ FIX: Pass actual rows knitted for continuation
-            const continuation = calculateContinuationState(step, currentRow);
+            const colorOffset = getColorRowOffset(step, component, stepIndex, project.id);
+            const stepWithOffset = { ...step, _colorRowOffset: colorOffset };
+            const continuation = calculateContinuationState(stepWithOffset, currentRow);
 
             saveStepProgressState(step.id, component.id, project.id, {
                 status: PROGRESS_STATUS.COMPLETED,

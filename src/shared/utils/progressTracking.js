@@ -491,8 +491,10 @@ export const calculateContinuationState = (step, rowsKnitted = null) => {
     }
 
     // Calculate color continuation
+    // ✅ FIX: Account for incoming offset so chaining works across multiple steps
     if (colorLength && colorLength > 0) {
-        continuation.colorRow = (totalRows % colorLength) || colorLength;
+        const incomingOffset = step._colorRowOffset || 0;
+        continuation.colorRow = ((incomingOffset + totalRows) % colorLength) || colorLength;
         continuation.colorLength = colorLength;
     }
 
