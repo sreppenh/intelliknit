@@ -58,6 +58,13 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project, step, comp
             ? getAdjustedColorRow(currentRow, step, component, stepIndex, project.id)
             : currentRow;
 
+        console.log('🎨 COLOR CONTINUATION:', {
+            currentRow,
+            adjustedRow,
+            stepIndex,
+            stepId: step?.id
+        });
+
         const positionInPattern = ((adjustedRow - 1) % patternLength) + 1;
         let accumulatedRows = 0;
         let currentMarled = null;
@@ -878,7 +885,7 @@ const KnittingStepCounter = ({
         const colorwork = step.colorwork || step.wizardConfig?.colorwork || step.advancedWizardConfig?.colorwork;
 
         if (colorwork && colorwork.type && colorwork.type !== 'single') {
-            const colorInfo = getColorInfoForCustomPattern(colorwork, currentRow, project); if (colorInfo) {
+            const colorInfo = getColorInfoForCustomPattern(colorwork, currentRow, project, step, component, stepIndex); if (colorInfo) {
                 return {
                     ...instructionResult,
                     colorInfo: colorInfo
