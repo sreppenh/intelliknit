@@ -461,8 +461,7 @@ const KnittingStepCounter = ({
 
             // Save completion to progress system
             const rowsCompleted = isLengthStep ? currentRow : calculateActualTotalRows(step);
-            // ✅ FIX: Pass actual rows knitted for continuation
-            const continuation = calculateContinuationState(step, currentRow);
+            const continuation = calculateContinuationState(step);
 
             saveStepProgressState(step.id, component.id, project.id, {
                 status: PROGRESS_STATUS.COMPLETED,
@@ -898,8 +897,7 @@ const KnittingStepCounter = ({
         if (!isNotepadMode && step && component && project) {
             // ✅ FIX: For length-based steps, use currentRow from counter, not calculateActualTotalRows
             const rowsCompleted = isLengthStep ? currentRow : calculateActualTotalRows(step);
-            // ✅ FIX: Pass actual rows knitted for continuation
-            const continuation = calculateContinuationState(step, currentRow);
+            const continuation = calculateContinuationState(step);
 
             saveStepProgressState(step.id, component.id, project.id, {
                 status: PROGRESS_STATUS.COMPLETED,

@@ -471,7 +471,7 @@ export const shouldIgnoreContinuation = (step) => {
  * Calculate continuation state when a step is completed
  * Returns object with pattern and color ending positions
  */
-export const calculateContinuationState = (step, rowsKnitted = null) => {
+export const calculateContinuationState = (step) => {
     // Don't calculate continuation for repeat-based steps
     if (shouldIgnoreContinuation(step)) {
         return null;
@@ -479,8 +479,7 @@ export const calculateContinuationState = (step, rowsKnitted = null) => {
 
     const patternLength = getPatternLength(step);
     const colorLength = getColorSequenceLength(step);
-    // ✅ FIX: Use actual rows knitted if provided, otherwise fall back to totalRows
-    const totalRows = rowsKnitted !== null ? rowsKnitted : (step.totalRows || 1);
+    const totalRows = step.totalRows || 1;
 
     const continuation = {};
 
