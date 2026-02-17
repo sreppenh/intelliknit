@@ -472,12 +472,8 @@ export const shouldIgnoreContinuation = (step) => {
  * Returns object with pattern and color ending positions
  */
 export const calculateContinuationState = (step, rowsKnitted = null) => {
-    // Don't calculate continuation for repeat-based steps
-    if (shouldIgnoreContinuation(step)) {
-        return null;
-    }
-
     const patternLength = getPatternLength(step);
+
     const colorLength = getColorSequenceLength(step);
     // ✅ FIX: Use actual rows knitted if provided, otherwise fall back to totalRows
     const totalRows = rowsKnitted !== null ? rowsKnitted : (step.totalRows || 1);
@@ -528,11 +524,6 @@ export const getPatternRowOffset = (step, component, stepIndex, projectId) => {
         return 0;
     }
 
-    // Check if this step type should ignore continuation
-    if (shouldIgnoreContinuation(step)) {
-        return 0;
-    }
-
     // Get continuation from previous step
     const prevContinuation = getPreviousStepContinuation(component, stepIndex, projectId);
 
@@ -561,11 +552,6 @@ export const getPatternRowOffset = (step, component, stepIndex, projectId) => {
 export const getColorRowOffset = (step, component, stepIndex, projectId) => {
     // Check if user wants to reset color
     if (step.continuationOverrides?.resetColor) {
-        return 0;
-    }
-
-    // Check if this step type should ignore continuation
-    if (shouldIgnoreContinuation(step)) {
         return 0;
     }
 
