@@ -530,9 +530,11 @@ const MarkerPhasesConfig = ({
 
                     {/* Marker Count Section */}
                     <div className="card">
+
+
+
                         <div className="stack-md">
                             <h4 className="text-sm font-semibold text-wool-700 mb-3">How many markers do you need?</h4>
-
 
                             <div className="flex items-center gap-3">
                                 <IncrementInput
@@ -548,16 +550,18 @@ const MarkerPhasesConfig = ({
                                 >
                                     Update
                                 </button>
-                                {construction === 'flat' && markerCount === 2 && (
-                                    <button
-                                        onClick={handleEdgeMarkers}
-                                        className="btn-secondary btn-sm"
-                                    >
-                                        Edge Markers
-                                    </button>
-                                )}
                             </div>
+
+                            {construction === 'flat' && markerCount === 2 && (
+                                <button
+                                    onClick={handleEdgeMarkers}
+                                    className="btn-secondary btn-sm"
+                                >
+                                    Set Edge Markers
+                                </button>
+                            )}
                         </div>
+
                     </div>
 
                     {/* Marker Configuration Section */}
