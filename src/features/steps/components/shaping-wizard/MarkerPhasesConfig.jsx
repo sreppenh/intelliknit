@@ -470,6 +470,27 @@ const MarkerPhasesConfig = ({
             setShowSegments(true);
         };
 
+        const handleEdgeMarkers = () => {
+            const edgeStitches = 2;
+            const middleStitches = currentStitches - (edgeStitches * 2);
+
+            const newSegments = [
+                { type: 'stitches', count: edgeStitches, id: 'stitches_0' },
+                { type: 'marker', name: 'M1', id: 'marker_M1_0', readonly: false },
+                { type: 'stitches', count: middleStitches, id: 'stitches_1' },
+                { type: 'marker', name: 'M2', id: 'marker_M2_1', readonly: false },
+                { type: 'stitches', count: edgeStitches, id: 'stitches_final' },
+            ];
+
+            const newArray = [edgeStitches, 'M1', middleStitches, 'M2', edgeStitches];
+
+            setSegments(newSegments);
+            setMarkerArray(newArray);
+            setMarkerCount(2);
+            setShowSegments(true);
+            IntelliKnitLogger.success('Edge markers preset applied', newArray);
+        };
+
         return (
             <div>
                 <ShapingHeader
@@ -527,6 +548,14 @@ const MarkerPhasesConfig = ({
                                 >
                                     Update
                                 </button>
+                                {construction === 'flat' && markerCount === 2 && (
+                                    <button
+                                        onClick={handleEdgeMarkers}
+                                        className="btn-secondary btn-sm"
+                                    >
+                                        Edge Markers
+                                    </button>
+                                )}
                             </div>
                         </div>
                     </div>
