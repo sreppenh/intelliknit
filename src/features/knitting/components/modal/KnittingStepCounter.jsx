@@ -55,18 +55,21 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project, step, comp
         }
 
         // ✅ USE CONTINUATION: Get adjusted row accounting for previous step
+        const offset = step && component && stepIndex !== null && project
+            ? getColorRowOffset(step, component, stepIndex, project.id)
+            : 0;
+
         const adjustedRow = step && component && stepIndex !== null && project
             ? getAdjustedColorRow(currentRow, step, component, stepIndex, project.id)
             : currentRow;
 
-        console.log('🎨 COLOR CONTINUATION:', {
-            currentRow,
-            adjustedRow,
-            stepIndex,
-            stepId: step?.id
-        });
-
         const positionInPattern = ((adjustedRow - 1) % patternLength) + 1;
+
+        alert(`Len=${patternLength} Off=${offset} Adj=${adjustedRow} Pos=${positionInPattern}`);
+
+
+
+
         let accumulatedRows = 0;
         let currentMarled = null;
 
