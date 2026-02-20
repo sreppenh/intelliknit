@@ -55,20 +55,12 @@ function getColorInfoForCustomPattern(colorwork, currentRow, project, step, comp
         }
 
         // ✅ USE CONTINUATION: Get adjusted row accounting for previous step
-        const offset = step && component && stepIndex !== null && project
-            ? getColorRowOffset(step, component, stepIndex, project.id)
-            : 0;
 
         const adjustedRow = step && component && stepIndex !== null && project
             ? getAdjustedColorRow(currentRow, step, component, stepIndex, project.id)
             : currentRow;
 
         const positionInPattern = ((adjustedRow - 1) % patternLength) + 1;
-
-        alert(`Len=${patternLength} Off=${offset} Adj=${adjustedRow} Pos=${positionInPattern}`);
-
-
-
 
         let accumulatedRows = 0;
         let currentMarled = null;
@@ -473,7 +465,8 @@ const KnittingStepCounter = ({
             // Save completion to progress system
             const rowsCompleted = isLengthStep ? currentRow : calculateActualTotalRows(step);
             // ✅ FIX: Pass actual rows knitted for continuation
-            const continuation = calculateContinuationState(step, currentRow);
+            const adjustedRow = getAdjustedColorRow(currentRow, step, component, stepIndex, project.id);
+            const continuation = calculateContinuationState(step, adjustedRow);
 
             saveStepProgressState(step.id, component.id, project.id, {
                 status: PROGRESS_STATUS.COMPLETED,
@@ -910,7 +903,8 @@ const KnittingStepCounter = ({
             // ✅ FIX: For length-based steps, use currentRow from counter, not calculateActualTotalRows
             const rowsCompleted = isLengthStep ? currentRow : calculateActualTotalRows(step);
             // ✅ FIX: Pass actual rows knitted for continuation
-            const continuation = calculateContinuationState(step, currentRow);
+            const adjustedRow = getAdjustedColorRow(currentRow, step, component, stepIndex, project.id);
+            const continuation = calculateContinuationState(step, adjustedRow);
 
             saveStepProgressState(step.id, component.id, project.id, {
                 status: PROGRESS_STATUS.COMPLETED,
