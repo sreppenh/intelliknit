@@ -42,13 +42,12 @@ const EditPatternModal = ({
         }
     }, [isOpen, currentStep]);
 
-    // ===== NEW: Check if this is an advanced pattern that needs full-screen editing =====
+    // Check if this is an advanced pattern that needs full-screen editing
     const shouldRouteToAdvancedEdit = currentStep ? requiresAdvancedPatternEdit(currentStep) : false;
 
-    // ===== NEW: Route to advanced edit if needed =====
+    // Route to advanced edit if needed
     useEffect(() => {
         if (isOpen && shouldRouteToAdvancedEdit && onRouteToAdvancedEdit) {
-            // Close this modal and route to advanced edit
             onClose();
             onRouteToAdvancedEdit();
         }
@@ -73,6 +72,12 @@ const EditPatternModal = ({
         });
     };
 
+    // Route to Pattern Builder — close modal first, then navigate
+    const handleSwitchToPatternBuilder = () => {
+        onClose();
+        onRouteToAdvancedEdit?.();
+    };
+
     const handleSave = () => {
         onSave(patternData);
         onClose();
@@ -94,19 +99,16 @@ const EditPatternModal = ({
         if (isAdvancedPattern()) {
             const { pattern, customText, rowsInPattern, colorworkType } = patternData;
 
-            // Custom pattern just needs description
             if (pattern === 'Custom pattern') {
                 return customText && customText.trim() !== '';
             }
 
-            // Colorwork needs type selection, description, and row count
             if (pattern === 'Colorwork') {
                 return colorworkType &&
                     customText && customText.trim() !== '' &&
                     rowsInPattern && parseInt(rowsInPattern) > 0;
             }
 
-            // Complex patterns need both description AND row count
             if (['Lace Pattern', 'Cable Pattern'].includes(pattern)) {
                 return customText && customText.trim() !== '' &&
                     rowsInPattern && parseInt(rowsInPattern) > 0;
@@ -118,7 +120,6 @@ const EditPatternModal = ({
         return false;
     };
 
-    // 🆕 NEW: Get configuration tips from centralized config
     const configurationTips = getPatternConfigurationTips(patternData.pattern);
 
     if (shouldRouteToAdvancedEdit) {
@@ -135,16 +136,13 @@ const EditPatternModal = ({
             title={`🧶 ${title}`}
             subtitle="Update your pattern settings"
             showButtons={false}
-            // Enable scrolling for complex content
             modalOptions={{ maxHeight: '90vh', overflow: 'auto' }}
         >
             <div className="space-y-5">
                 {/* Case 1: Basic Pattern Editing */}
                 {isBasicPattern() && (
                     <div className="space-y-4">
-                        {/* REMOVED: "Switch to Different Basic Pattern" text */}
-
-                        {/* Basic Patterns Section with Drawer */}
+                        {/* Category + pattern drill-down — unchanged */}
                         <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
                             <div className="grid grid-cols-3 gap-2 mb-4">
                                 {Object.entries(PATTERN_CATEGORIES)
@@ -171,7 +169,7 @@ const EditPatternModal = ({
                                             <button
                                                 key={pattern.name}
                                                 onClick={() => handleBasicPatternSelect(selectedQuickCategory, pattern)}
-                                                className={`card-selectable  ${patternData.pattern === pattern.name
+                                                className={`card-selectable ${patternData.pattern === pattern.name
                                                     ? 'card-selectable-selected'
                                                     : ''
                                                     }`}
@@ -185,10 +183,31 @@ const EditPatternModal = ({
                                 </div>
                             )}
                         </div>
+
+                        {/* ── NEW: Pattern Builder escape hatch ── */}
+                        {onRouteToAdvancedEdit && (
+                            <button
+                                onClick={handleSwitchToPatternBuilder}
+                                className="w-full p-3 rounded-xl border-2 border-yarn-300 bg-yarn-50 hover:border-yarn-400 hover:bg-yarn-100 transition-all duration-200 text-left"
+                            >
+                                <div className="flex items-center gap-3">
+                                    <div className="text-xl flex-shrink-0">🔨</div>
+                                    <div className="flex-1">
+                                        <div className="text-sm font-semibold text-wool-800">
+                                            Switch to Pattern Builder
+                                        </div>
+                                        <div className="text-xs text-wool-500">
+                                            Build a custom row-by-row pattern instead
+                                        </div>
+                                    </div>
+                                    <div className="text-wool-400 text-sm">→</div>
+                                </div>
+                            </button>
+                        )}
                     </div>
                 )}
 
-                {/* Case 2: Advanced Pattern Configuration */}
+                {/* Case 2: Advanced Pattern Configuration — unchanged */}
                 {isAdvancedPattern() && (
                     <div className="space-y-4">
                         <div>
@@ -196,10 +215,8 @@ const EditPatternModal = ({
                             <p className="text-sm text-wool-500">Update the details for your {patternData.pattern.toLowerCase()}</p>
                         </div>
 
-                        {/* Colorwork Pattern Configuration */}
                         {patternData.pattern === 'Colorwork' && (
                             <>
-                                {/* Colorwork Type Selector */}
                                 <div>
                                     <label className="form-label">
                                         Colorwork Type <span className="text-red-500">*</span>
@@ -259,7 +276,6 @@ const EditPatternModal = ({
                             </>
                         )}
 
-                        {/* Custom Pattern Configuration */}
                         {patternData.pattern === 'Custom pattern' && (
                             <div>
                                 <label className="form-label">
@@ -275,7 +291,6 @@ const EditPatternModal = ({
                             </div>
                         )}
 
-                        {/* Lace/Cable Pattern Configuration */}
                         {['Lace Pattern', 'Cable Pattern'].includes(patternData.pattern) && (
                             <>
                                 <div>
@@ -307,7 +322,6 @@ const EditPatternModal = ({
                             </>
                         )}
 
-                        {/* 🔄 REPLACED: Configuration Tips using centralized configuration */}
                         {configurationTips.length > 0 && (
                             <div className="help-block">
                                 <h4 className="text-sm font-semibold text-sage-700 mb-2">💡 Configuration Tips</h4>
@@ -322,7 +336,7 @@ const EditPatternModal = ({
                 )}
             </div>
 
-            {/* Custom action buttons inside content */}
+            {/* Action buttons */}
             <div className="flex gap-3 mt-6">
                 <button
                     onClick={onClose}

@@ -12,17 +12,7 @@ export const PatternSelector = ({
   existingPrepNote = '',
   onSavePrepNote
 }) => {
-  // State for toggle between Basic and Custom
-  const [activeTab, setActiveTab] = useState(() => {
-    // Initialize based on existing data if available
-    const selectedCategory = wizardData?.stitchPattern?.category;
-    if (selectedCategory && PATTERN_CATEGORIES[selectedCategory]) {
-      const categoryType = PATTERN_CATEGORIES[selectedCategory].type;
-      return categoryType === 'quick' ? 'basic' : 'custom';
-    }
-    return 'basic'; // Default fallback
-  });
-
+  // No more tab state — single scrollable view
   const [selectedQuickCategory, setSelectedQuickCategory] = useState(null);
 
   // Mode detection
@@ -57,8 +47,6 @@ export const PatternSelector = ({
 
     if (selectedCategory && PATTERN_CATEGORIES[selectedCategory]) {
       const categoryType = PATTERN_CATEGORIES[selectedCategory].type;
-      setActiveTab(categoryType === 'quick' ? 'basic' : 'custom');
-
       if (categoryType === 'quick') {
         setSelectedQuickCategory(selectedCategory);
       }
@@ -66,31 +54,26 @@ export const PatternSelector = ({
       // Reverse lookup if we only have pattern
       const found = findCategoryFromPattern(selectedPattern);
       if (found) {
-        setActiveTab(found.type === 'quick' ? 'basic' : 'custom');
         if (found.type === 'quick') {
           setSelectedQuickCategory(found.categoryKey);
         }
-        // Update wizardData with found category
         updateWizardData('stitchPattern', {
           ...wizardData.stitchPattern,
           category: found.categoryKey
         });
       }
     } else {
-      // ⭐ THIS IS WHERE MY SNIPPET GOES - REPLACE THIS WHOLE BLOCK:
-      // Auto-select defaults on first load
+      // Auto-expand Standard category on first load
       if (!selectedCategory && !selectedPattern) {
-        if (activeTab === 'basic') {
-          setSelectedQuickCategory('basic');
-          updateWizardData('stitchPattern', {
-            category: 'basic',
-            pattern: isComponentDefault ? 'None' : null, // ✅ THIS IS THE KEY CHANGE
-            customText: '',
-            rowsInPattern: '',
-            method: '',
-            entryMode: null
-          });
-        }
+        setSelectedQuickCategory('basic');
+        updateWizardData('stitchPattern', {
+          category: 'basic',
+          pattern: isComponentDefault ? 'None' : null,
+          customText: '',
+          rowsInPattern: '',
+          method: '',
+          entryMode: null
+        });
       }
     }
   }, [
@@ -98,24 +81,7 @@ export const PatternSelector = ({
     wizardData?.stitchPattern?.pattern,
     updateWizardData,
     findCategoryFromPattern,
-    activeTab
   ]);
-
-  // Tab switching
-  const handleTabChange = (tab) => {
-    setActiveTab(tab);
-    setSelectedQuickCategory(null);
-
-    // Clear all selections when switching tabs
-    updateWizardData('stitchPattern', {
-      category: null,
-      pattern: null,
-      customText: '',
-      rowsInPattern: '',
-      method: '',
-      entryMode: null
-    });
-  };
 
   // Quick pattern handlers
   const handleQuickCategorySelect = (categoryKey) => {
@@ -145,164 +111,157 @@ export const PatternSelector = ({
       customText: '',
       rowsInPattern: '',
       method: '',
-      entryMode: entryMode // 'row_by_row' or 'description'
+      entryMode: entryMode
     });
   };
 
   // Get current selections
   const selectedPattern = wizardData?.stitchPattern?.pattern;
+  const selectedEntryMode = wizardData?.stitchPattern?.entryMode;
 
-  // Main pattern selector
+  const isPatternBuilderSelected = selectedEntryMode === 'row_by_row';
+  const isDescriptionSelected = selectedEntryMode === 'description';
+
+  // Derive quick categories in order: basic first, then rib, then textured
+  const quickCategories = Object.entries(PATTERN_CATEGORIES).filter(
+    ([_, category]) => category.type === 'quick'
+  );
+
+  // Standard is the first quick category — always auto-expanded
+  const [standardKey, standardCategory] = quickCategories[0] ?? [];
+  // Ribbing & Textured are the rest — shown with drill-down
+  const browseCategories = quickCategories.slice(1);
+
   return (
     <>
-      <div className="space-y-4 relative">
+      <div className="space-y-5 relative">
+
         {/* Header */}
         <div>
           <h2 className="content-header-primary">{headerText}</h2>
         </div>
 
-        {/* Pattern Type Toggle */}
-        <div className="mb-4">
-          <div className="segmented-control">
-            <div className="grid grid-cols-2 gap-1">
-              <button
-                onClick={() => handleTabChange('basic')}
-                className={`segmented-option ${activeTab === 'basic' ? 'segmented-option-active' : ''}`}
-              >
-                Basic Patterns
-              </button>
-              <button
-                onClick={() => handleTabChange('custom')}
-                className={`segmented-option ${activeTab === 'custom' ? 'segmented-option-active' : ''}`}
-              >
-                Custom
-              </button>
+        {/* ── SECTION 1: Pattern Builder (promoted, top) ── */}
+        <div>
+          <button
+            onClick={() => handleCustomEntryModeSelect('row_by_row')}
+            className={`w-full rounded-2xl border-2 p-4 text-left transition-all duration-200 ${isPatternBuilderSelected
+                ? 'border-sage-500 bg-sage-50 shadow-sm'
+                : 'border-yarn-300 bg-yarn-50 hover:border-yarn-400 hover:bg-yarn-100 hover:shadow-sm'
+              }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-3xl flex-shrink-0">🔨</div>
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-0.5">
+                  <div className="font-semibold text-wool-800">Pattern Builder</div>
+                  <span className="badge bg-yarn-200 text-yarn-800 text-xs px-2 py-0.5 rounded-full font-medium">
+                    Most Powerful
+                  </span>
+                </div>
+                <div className="text-sm text-wool-600">
+                  Build any stitch pattern row by row — cables, lace, anything
+                </div>
+              </div>
+              {isPatternBuilderSelected && (
+                <div className="text-sage-600 text-xl flex-shrink-0">✓</div>
+              )}
             </div>
+          </button>
+        </div>
+
+        {/* ── SECTION 2: Standard Patterns (auto-expanded) ── */}
+        <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
+          <h3 className="text-sm font-semibold text-wool-700 mb-3">
+            {standardCategory?.name ?? 'Standard'} Patterns
+          </h3>
+          <div className="grid grid-cols-2 gap-3">
+            {standardCategory?.patterns
+              .filter(pattern => isComponentDefault || pattern.name !== 'None')
+              .map(pattern => (
+                <button
+                  key={pattern.name}
+                  onClick={() => handleQuickPatternSelect(standardKey, pattern)}
+                  className={`card-selectable ${selectedPattern === pattern.name ? 'card-selectable-selected' : ''
+                    }`}
+                >
+                  <div className="text-lg mb-1">{pattern.icon}</div>
+                  <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
+                  <div className="text-xs opacity-70">{pattern.desc}</div>
+                </button>
+              ))}
           </div>
         </div>
 
-        {/* Basic Patterns View */}
-        {activeTab === 'basic' && (
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
-              {/* Category Selection */}
-              <div className="grid grid-cols-3 gap-2 mb-4">
-                {Object.entries(PATTERN_CATEGORIES)
-                  .filter(([_, category]) => category.type === 'quick')
-                  .map(([key, category]) => (
-                    <button
-                      key={key}
-                      onClick={() => handleQuickCategorySelect(key)}
-                      className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${selectedQuickCategory === key
-                        ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
-                        : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
-                        }`}
-                    >
-                      <div className="text-xl mb-1">{category.icon}</div>
-                      <div className="text-xs font-medium">{category.name}</div>
-                    </button>
-                  ))}
+        {/* ── SECTION 3: Ribbing & Textured (category drill-down, starts collapsed) ── */}
+        <div className="bg-white rounded-2xl border-2 border-wool-200 shadow-sm p-4">
+          <h3 className="text-sm font-semibold text-wool-700 mb-3">More Patterns</h3>
+
+          {/* Category pills */}
+          <div className="grid grid-cols-2 gap-2 mb-4">
+            {browseCategories.map(([key, category]) => (
+              <button
+                key={key}
+                onClick={() => handleQuickCategorySelect(key)}
+                className={`p-3 rounded-xl border-2 transition-all duration-200 text-center ${selectedQuickCategory === key
+                    ? 'border-sage-500 bg-sage-100 text-sage-700 shadow-sm'
+                    : 'border-wool-200 bg-sage-50 text-wool-700 hover:border-sage-300 hover:bg-sage-100 hover:shadow-sm'
+                  }`}
+              >
+                <div className="text-xl mb-1">{category.icon}</div>
+                <div className="text-xs font-medium">{category.name}</div>
+              </button>
+            ))}
+          </div>
+
+          {/* Pattern grid — only shown when a browse category is selected and it's not Standard */}
+          {selectedQuickCategory && selectedQuickCategory !== standardKey && (
+            <div className="border-t border-wool-200 pt-4">
+              <h4 className="text-sm font-semibold text-wool-700 mb-3">
+                {PATTERN_CATEGORIES[selectedQuickCategory].name} Patterns
+              </h4>
+              <div className="grid grid-cols-2 gap-3">
+                {PATTERN_CATEGORIES[selectedQuickCategory].patterns.map(pattern => (
+                  <button
+                    key={pattern.name}
+                    onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
+                    className={`card-selectable ${selectedPattern === pattern.name ? 'card-selectable-selected' : ''
+                      }`}
+                  >
+                    <div className="text-lg mb-1">{pattern.icon}</div>
+                    <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
+                    <div className="text-xs opacity-70">{pattern.desc}</div>
+                  </button>
+                ))}
               </div>
+            </div>
+          )}
+        </div>
 
-              {/* Pattern Selection */}
-              {selectedQuickCategory && (
-                <div className="border-t border-wool-200 pt-4">
-                  <h4 className="text-sm font-semibold text-wool-700 mb-3 text-left">
-                    {PATTERN_CATEGORIES[selectedQuickCategory].name} Patterns
-                  </h4>
-                  <div className="grid grid-cols-2 gap-3">
-                    {PATTERN_CATEGORIES[selectedQuickCategory].patterns
-                      .filter(pattern => isComponentDefault || pattern.name !== 'None')
-                      .map(pattern => (
-
-                        <button
-                          key={pattern.name}
-                          onClick={() => handleQuickPatternSelect(selectedQuickCategory, pattern)}
-                          className={`card-selectable ${selectedPattern === pattern.name
-                            ? 'card-selectable-selected'
-                            : ''
-                            }`}
-                        >
-                          <div className="text-lg mb-1">{pattern.icon}</div>
-                          <div className="text-xs font-medium mb-0.5">{pattern.name}</div>
-                          <div className="text-xs opacity-70">{pattern.desc}</div>
-                        </button>
-                      ))}
-                  </div>
+        {/* ── SECTION 4: Description Entry (demoted, secondary) ── */}
+        <div>
+          <button
+            onClick={() => handleCustomEntryModeSelect('description')}
+            className={`w-full p-3 rounded-xl border-2 transition-all duration-200 text-left ${isDescriptionSelected
+                ? 'border-sage-400 bg-sage-50 shadow-sm'
+                : 'border-wool-200 bg-white hover:border-wool-300 hover:bg-wool-50'
+              }`}
+          >
+            <div className="flex items-center gap-3">
+              <div className="text-xl flex-shrink-0">📝</div>
+              <div className="flex-1">
+                <div className="text-sm font-medium text-wool-700">Description Entry</div>
+                <div className="text-xs text-wool-500">
+                  Describe your pattern with a repeat length
                 </div>
+              </div>
+              {isDescriptionSelected && (
+                <div className="text-sage-600 text-sm flex-shrink-0">✓</div>
               )}
             </div>
+          </button>
+        </div>
 
-            <div className="help-block">
-              <div className="text-xs text-sage-600 text-center">
-                💡 <strong>Basic patterns</strong> work right out of the box with simple setup
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Custom Pattern View - Two Entry Mode Cards */}
-        {activeTab === 'custom' && (
-          <div className="space-y-4">
-            <div className="space-y-3">
-              {/* Row-by-Row Entry Card */}
-              <button
-                onClick={() => handleCustomEntryModeSelect('row_by_row')}
-                className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${wizardData?.stitchPattern?.entryMode === 'row_by_row'
-                  ? 'border-sage-500 bg-sage-50 shadow-sm'
-                  : 'border-wool-200 bg-white hover:border-sage-300 hover:bg-sage-50'
-                  }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="text-3xl flex-shrink-0">📋</div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-wool-800 mb-1">Row-by-Row Entry</div>
-                    <div className="text-sm text-wool-600 mb-2">
-                      Enter each row individually with our smart keyboard
-                    </div>
-                    <div className="text-xs text-wool-500">
-                      Best for: Complex patterns with varying rows
-                    </div>
-                  </div>
-                  {wizardData?.stitchPattern?.entryMode === 'row_by_row' && (
-                    <div className="text-sage-600 text-xl flex-shrink-0">✓</div>
-                  )}
-                </div>
-              </button>
-
-              {/* Description Entry Card */}
-              <button
-                onClick={() => handleCustomEntryModeSelect('description')}
-                className={`w-full p-4 rounded-xl border-2 transition-all duration-200 text-left ${wizardData?.stitchPattern?.entryMode === 'description'
-                  ? 'border-sage-500 bg-sage-50 shadow-sm'
-                  : 'border-wool-200 bg-white hover:border-sage-300 hover:bg-sage-50'
-                  }`}
-              >
-                <div className="flex items-start gap-3">
-                  <div className="text-3xl flex-shrink-0">📝</div>
-                  <div className="flex-1">
-                    <div className="font-semibold text-wool-800 mb-1">Description Entry</div>
-                    <div className="text-sm text-wool-600 mb-2">
-                      Describe your pattern and specify the repeat length
-                    </div>
-                    <div className="text-xs text-wool-500">
-                      Best for: Simple repeating patterns
-                    </div>
-                  </div>
-                  {wizardData?.stitchPattern?.entryMode === 'description' && (
-                    <div className="text-sage-600 text-xl flex-shrink-0">✓</div>
-                  )}
-                </div>
-              </button>
-            </div>
-
-            <div className="tip-block">
-              <div className="text-xs text-yarn-700 text-center">
-                ✨ <strong>Custom patterns</strong> let you define any stitch pattern you can imagine
-              </div>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Prep Note Modal */}

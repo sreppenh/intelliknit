@@ -539,6 +539,13 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     setEditingStepIndex(null);
   };
 
+  const handleRouteToPatternBuilder = () => {
+    setShowEditPatternModal(false);
+    setEditMode('pattern');
+    setIsEditing(true);
+    // editingStepIndex is already set when the modal opened, so no need to set it again
+  };
+
   // ===== STATUS ICON HELPER =====
   const getStatusIcon = (statusType) => {
     const statusIcons = {
@@ -788,6 +795,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
           onSave={handleSavePatternChanges}
           currentStep={editingStepIndex !== null ? component.steps[editingStepIndex] : null}
           title="Edit Pattern"
+          onRouteToAdvancedEdit={handleRouteToPatternBuilder}
         />
       </div>
     </div>
