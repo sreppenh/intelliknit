@@ -5,6 +5,7 @@ import { useProjectsContext } from '../../../projects/hooks/useProjectsContext';
 import EditSequentialPhasesForm from './EditSequentialPhasesForm';
 import EditEvenDistributionForm from './EditEvenDistributionForm';
 import { getShapingDisplay } from '../../../../shared/utils/stepDisplayUtils';
+import EditMarkerPhasesForm from './EditMarkerPhasesForm';
 
 const EditConfigScreen = ({
     componentIndex,
@@ -65,6 +66,8 @@ const EditConfigScreen = ({
                 return 'even_distribution';
             } else if (shapingType === 'phases') {
                 return 'sequential_phases';
+            } else if (shapingType === 'marker_phases') {
+                return 'marker_phases';
             }
 
             // Legacy shaping detection - assume even distribution for legacy
@@ -102,6 +105,15 @@ const EditConfigScreen = ({
         case 'sequential_phases':
             return (
                 <EditSequentialPhasesForm
+                    componentIndex={componentIndex}
+                    editingStepIndex={editingStepIndex}
+                    onBack={onBack}
+                />
+            );
+
+        case 'marker_phases':
+            return (
+                <EditMarkerPhasesForm
                     componentIndex={componentIndex}
                     editingStepIndex={editingStepIndex}
                     onBack={onBack}
