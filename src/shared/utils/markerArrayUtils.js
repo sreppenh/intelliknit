@@ -323,8 +323,12 @@ export const calculateStitchChangePerIteration = (actions) => {
                 totalChange += stitchChange * 2 * action.targets.length; // Both before and after for each target
             }
         } else {
-            // Single position action
-            totalChange += stitchChange * (action.targets?.length || 1);
+            if (action.technique?.includes('_')) {
+                const techniques = action.technique.split('_');
+                totalChange += techniques.reduce((sum, tech) => sum + getStitchChangeForTechnique(tech), 0);
+            } else {
+                totalChange += stitchChange * (action.targets?.length || 1);
+            }
         }
     }
 
