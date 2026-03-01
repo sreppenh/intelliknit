@@ -8,6 +8,7 @@ import EditSequentialPhasesForm from './EditSequentialPhasesForm';
 import EditStripesForm from './EditStripesForm';
 import EditBriocheForm from './EditBriocheForm';  // ✨ NEW
 import EditCustomRowByRowForm from './EditCustomRowByRowForm';  // ✨ ADD THIS
+import EditMarkerPhasesForm from './EditMarkerPhasesForm';
 import {
     getStepPatternName,
     isInitializationStep,
@@ -126,9 +127,13 @@ const EditStepRouter = ({
         if (shapingType === 'phases') {
             return <EditSequentialPhasesForm {...commonProps} />;
         }
+        if (shapingType === 'marker_phases') {
+            return <EditMarkerPhasesForm {...commonProps} />;
+        }
 
         // No shaping or unknown type
         return (
+
             <div className="min-h-screen bg-yarn-50 flex items-center justify-center">
                 <div className="text-center bg-white rounded-xl p-6 shadow-lg border-2 border-wool-200">
                     <div className="text-4xl mb-4">🚧</div>
@@ -216,6 +221,10 @@ const EditStepRouter = ({
 
             if (shapingType === 'phases') {
                 return <EditSequentialPhasesForm {...commonProps} />;
+            }
+
+            if (shapingType === 'marker_phases') {
+                return <EditMarkerPhasesForm {...commonProps} />;
             }
         }
 

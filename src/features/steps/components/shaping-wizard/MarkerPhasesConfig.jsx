@@ -36,6 +36,8 @@ const MarkerPhasesConfig = ({
     wizard,
     onCancel,
     mode,
+    existingConfig = null,
+    initialScreen = 'marker-setup',
     project
 }) => {
 
@@ -44,21 +46,33 @@ const MarkerPhasesConfig = ({
     const { saveStepAndNavigate, error, clearError } = useStepSaveHelper();
 
     // ===== MULTI-SCREEN STATE MANAGEMENT =====
-    const [currentScreen, setCurrentScreen] = useState('marker-setup');
-    const [markerArray, setMarkerArray] = useState([]);
-    const [sequences, setSequences] = useState([]);
+    // When editing an existing step, initialScreen + existingConfig skip the
+    // marker-setup screen and pre-populate sequences/markerArray.
+    const [currentScreen, setCurrentScreen] = useState(initialScreen);
+    const [markerArray, setMarkerArray] = useState(
+        () => existingConfig?.markerSetup?.stitchArray || []
+    );
+    const [sequences, setSequences] = useState(
+        () => existingConfig?.phases || []
+    );
     const [editingSequence, setEditingSequence] = useState(null);
-    const [sequenceCalculation, setSequenceCalculation] = useState(null);
-
+    const [sequenceCalculation, setSequenceCalculation] = useState(
+        () => existingConfig?.calculation || null
+    );
     // ===== NEW: INSTRUCTION BUILDER STATE =====
-    const [currentSequenceData, setCurrentSequenceData] = useState(null);
+    // In edit mode, pre-load the existing sequence so the builder shows current config
+    const [currentSequenceData, setCurrentSequenceData] = useState(
+        () => existingConfig?.phases?.[0] || null
+    );
 
     // ===== SCREEN 1: MARKER SETUP STATE =====
     const [markerCount, setMarkerCount] = useState(2);
     const [segments, setSegments] = useState([]);
 
     // ===== MARKER COLOR STATE =====
-    const [markerColors, setMarkerColors] = useState({}); // markerName -> colorIndex
+    const [markerColors, setMarkerColors] = useState(
+        () => existingConfig?.markerColors || {}
+    );
     const [showSegments, setShowSegments] = useState(true);
 
     // ===== MARKER COLOR FUNCTIONS =====
