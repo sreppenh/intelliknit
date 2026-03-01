@@ -296,6 +296,9 @@ const calculateEndingStitches = (startingStitches, shapingData) => {
     } else if (shapingData.type === 'phases') {
         // For sequential phases, use the final stitch count from calculation
         return shapingData.config?.calculation?.endingStitches || startingStitches;
+    } else if (shapingData.type === 'marker_phases') {
+        // For marker-based shaping (ends or markers), use the final stitch count from calculation
+        return shapingData.config?.calculation?.endingStitches || startingStitches;
     }
 
     return startingStitches; // No change for unknown shaping types
