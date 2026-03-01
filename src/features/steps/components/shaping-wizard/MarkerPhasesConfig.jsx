@@ -288,28 +288,13 @@ const MarkerPhasesConfig = ({
 
     // ===== NEW: INSTRUCTION BUILDER HANDLERS =====
     const handleInstructionComplete = (instructionData) => {
-        // Store the instruction data for the next step
-        setCurrentSequenceData({
-            id: editingSequence?.id || Date.now().toString(),
-            name: editingSequence?.name || 'Custom Sequence',
-            instructionData: instructionData,
-            // Add any other sequence properties needed
-        });
-
-        // For now, go back to sequence management with the instruction
-        // In the future, this could go to timing/frequency configuration
-        handleSimpleSequenceComplete({
+        const sequenceData = {
             id: editingSequence?.id || Date.now().toString(),
             name: editingSequence?.name || 'Marker Sequence',
             instructionData: instructionData,
-            phases: [{
-                type: 'marker_instruction',
-                instructionData: instructionData,
-                frequency: 2, // Default frequency
-                times: 10     // Default times
-            }]
-        });
+        };
 
+        setCurrentSequenceData(sequenceData);
         setCurrentScreen('timing');
     };
 
