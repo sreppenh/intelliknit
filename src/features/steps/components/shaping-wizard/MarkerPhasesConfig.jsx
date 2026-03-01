@@ -364,6 +364,7 @@ const MarkerPhasesConfig = ({
             currentStitches: currentStitches,  // ← ADD THIS
             construction: construction,         // ← ADD THIS
             componentIndex,
+            editingStepIndex,
             dispatch,
             skipNavigation: true
         });
