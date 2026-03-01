@@ -20,21 +20,24 @@ const MarkerTimingConfig = ({
     onCancel,
     project
 }) => {
-    const [phases, setPhases] = useState([
-        { type: 'initial' }, // Always present - the kickoff special row
-        {
-            type: 'repeat',
-            regularRows: construction === 'flat' ? 2 : 1,
-            amountMode: 'times',
-            times: 1,
-            targetStitches: null,
-        },
-        { type: 'finish', regularRows: construction === 'flat' ? 2 : 1 }
-    ]);
+    const [phases, setPhases] = useState(() => {
+        if (instructionData?.phases) return instructionData.phases;
+        return [
+            { type: 'initial' },
+            { type: 'repeat', regularRows: construction === 'flat' ? 2 : 1, amountMode: 'times', times: 1, targetStitches: null },
+            { type: 'finish', regularRows: construction === 'flat' ? 2 : 1 }
+        ];
+    });
 
-    const [completedPhases, setCompletedPhases] = useState([]);
-    const [finishingRows, setFinishingRows] = useState(construction === 'flat' ? 1 : 0);
+    const [completedPhases, setCompletedPhases] = useState(() => {
+        if (!instructionData?.phases) return [];
+        return instructionData.phases.filter(p => p.type === 'repeat').slice(0, -1);
+    });
 
+    const [finishingRows, setFinishingRows] = useState(() => {
+        const finishPhase = instructionData?.phases?.find(p => p.type === 'finish');
+        return finishPhase?.regularRows ?? (construction === 'flat' ? 1 : 0);
+    });
     // Generate preview with completed phases AND current phase
     const generatePreview = () => {
         if (!instructionData?.actions) return "No instruction data";
