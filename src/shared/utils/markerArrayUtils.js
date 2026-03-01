@@ -701,18 +701,14 @@ const convertInstructionToMarkerActions = (actions, currentArray) => {
 
         // Handle edge targets directly (beginning/end as explicit targets)
         if (action.targets && (action.targets.includes('beginning') || action.targets.includes('end'))) {
-            for (const target of action.targets) {
-                const stitchChange = getStitchChangeForTechnique(action.technique);
+            const techniques = action.technique?.includes('_') ? action.technique.split('_') : [action.technique, action.technique];
+            for (let i = 0; i < action.targets.length; i++) {
+                const target = action.targets[i];
+                const stitchChange = getStitchChangeForTechnique(techniques[i] || techniques[0]);
                 if (target === 'beginning') {
-                    markerActions.push({
-                        markers: ['beginning'],
-                        before: { count: stitchChange }
-                    });
+                    markerActions.push({ markers: ['beginning'], before: { count: stitchChange } });
                 } else if (target === 'end') {
-                    markerActions.push({
-                        markers: ['end'],
-                        after: { count: stitchChange }
-                    });
+                    markerActions.push({ markers: ['end'], after: { count: stitchChange } });
                 }
             }
             continue;
