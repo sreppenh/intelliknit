@@ -366,7 +366,7 @@ const ManageSteps = ({ componentIndex, onBack, onStartKnitting, onGoToLanding, o
     // User can manually adjust following steps if needed
     setEditingStepIndex(stepIndex);
     setShowEditConfigScreen(true);
-    setIsEditing(true);
+
 
     setOpenMenuId(null);
   };
