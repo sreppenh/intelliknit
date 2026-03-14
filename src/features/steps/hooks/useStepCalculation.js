@@ -256,12 +256,7 @@ export const useStepCalculation = () => {
               const row = rowValues[rowIndex];
 
               let endingStitchesForRow;
-              // PRIORITY: Use stitchesRemaining if provided
-              if (row.stitchesRemaining !== null && row.stitchesRemaining !== undefined) {
-                endingStitchesForRow = row.stitchesRemaining;
-              } else {
-                endingStitchesForRow = runningStitches + (row.stitchChange || 0);
-              }
+              endingStitchesForRow = runningStitches + (row.stitchChange || 0);
 
               calculatedRows.push({
                 rowNumber: i + 1,
