@@ -25,8 +25,6 @@ const SimpleRowBuilder = ({
     const [tempStitchChange, setTempStitchChange] = useState(0);
     const [stitchTrackingMode, setStitchTrackingMode] = useState('change');
     const [tempStitchesRemaining, setTempStitchesRemaining] = useState(null);
-    const [isTextMode, setIsTextMode] = useState(false);
-    const [activeNumberEdit, setActiveNumberEdit] = useState(null);
 
     const textareaRef = useRef(null);
     const { currentProject, dispatch } = useProjectsContext();
@@ -83,8 +81,6 @@ const SimpleRowBuilder = ({
             setTempStitchChange(0);
             setTempStitchesRemaining(null);
         }
-        setIsTextMode(index === null);
-        setActiveNumberEdit(null);
         setShowModal(true);
     };
 
@@ -95,8 +91,6 @@ const SimpleRowBuilder = ({
         setStitchTrackingMode('change');
         setTempStitchChange(0);
         setTempStitchesRemaining(null);
-        setIsTextMode(false);
-        setActiveNumberEdit(null);
     };
 
     const handleSaveRow = () => {
@@ -214,31 +208,6 @@ const SimpleRowBuilder = ({
         return 'bg-gray-100 text-gray-600 border border-gray-300';
     };
 
-    const parseInstructionSegments = (text) => {
-        const segments = [];
-        const regex = /\d+/g;
-        let lastIndex = 0;
-        let match;
-        while ((match = regex.exec(text)) !== null) {
-            if (match.index > lastIndex) {
-                segments.push({ type: 'text', value: text.slice(lastIndex, match.index) });
-            }
-            segments.push({ type: 'number', value: match[0], startIndex: match.index, endIndex: match.index + match[0].length });
-            lastIndex = match.index + match[0].length;
-        }
-        if (lastIndex < text.length) {
-            segments.push({ type: 'text', value: text.slice(lastIndex) });
-        }
-        return segments;
-    };
-
-    const handleDoneNumberEdit = () => {
-        const { currentValue, startIndex, endIndex } = activeNumberEdit;
-        const newInstruction = tempInstruction.slice(0, startIndex) + String(currentValue) + tempInstruction.slice(endIndex);
-        setTempInstruction(newInstruction);
-        setActiveNumberEdit(null);
-    };
-
     return (
         <div>
             <label className="form-label">Pattern {terms.Rows}</label>
@@ -348,75 +317,28 @@ const SimpleRowBuilder = ({
                         <label className="form-label">
                             {terms.Row} Instruction
                         </label>
+                        <textarea
+                            ref={textareaRef}
+                            value={tempInstruction}
+                            onChange={(e) => setTempInstruction(e.target.value)}
+                            onKeyDown={(e) => handleSmartKeyDown(e, tempInstruction, setTempInstruction, textareaRef)}
+                            placeholder="e.g., K1, m1, k to last st, m1, k1"
+                            className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 resize-none"
+                            rows="3"
+                            autoFocus
+                        />
+                        <p className="text-xs text-wool-500 mt-1">
+                            Enter your custom instruction for this {terms.row}
+                        </p>
 
-                        {isTextMode ? (
-                            <>
-                                <textarea
-                                    ref={textareaRef}
-                                    value={tempInstruction}
-                                    onChange={(e) => setTempInstruction(e.target.value)}
-                                    onKeyDown={(e) => handleSmartKeyDown(e, tempInstruction, setTempInstruction, textareaRef)}
-                                    placeholder="e.g., K1, m1, k to last st, m1, k1"
-                                    className="w-full border-2 border-wool-200 rounded-xl px-4 py-3 text-base focus:border-sage-500 focus:ring-0 transition-colors placeholder-wool-400 resize-none"
-                                    rows="3"
-                                    autoFocus
-                                />
-                                {tempInstruction ? (
-                                    <div className="flex justify-end mt-1">
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsTextMode(false)}
-                                            className="text-xs text-wool-500 hover:text-sage-600"
-                                        >
-                                            ← tap numbers
-                                        </button>
-                                    </div>
-                                ) : null}
-                                <KnittingAbbreviationBar
-                                    textareaRef={textareaRef}
-                                    value={tempInstruction}
-                                    onChange={setTempInstruction}
-                                    recentlyUsed={currentProject?.customAbbreviations?.recentlyUsed || []}
-                                    onUpdateRecentlyUsed={handleUpdateRecentlyUsed}
-                                />
-                            </>
-                        ) : (
-                            <>
-                                <div className="min-h-[80px] border-2 border-wool-200 rounded-xl px-4 py-3 bg-white">
-                                    {tempInstruction ? (
-                                        <p className="text-base text-wool-800 font-mono leading-relaxed">
-                                            {parseInstructionSegments(tempInstruction).map((seg, i) =>
-                                                seg.type === 'number' ? (
-                                                    <button
-                                                        type="button"
-                                                        key={i}
-                                                        onClick={() => setActiveNumberEdit({ currentValue: parseInt(seg.value, 10), startIndex: seg.startIndex, endIndex: seg.endIndex })}
-                                                        className="text-sage-600 font-semibold"
-                                                    >
-                                                        {seg.value}
-                                                    </button>
-                                                ) : (
-                                                    <span key={i}>{seg.value}</span>
-                                                )
-                                            )}
-                                        </p>
-                                    ) : (
-                                        <p className="text-wool-400 italic text-sm">
-                                            Tap "Edit text ✏️" below to add an instruction
-                                        </p>
-                                    )}
-                                </div>
-                                <div className="flex justify-end mt-1">
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsTextMode(true)}
-                                        className="text-xs text-wool-500 hover:text-sage-600"
-                                    >
-                                        Edit text ✏️
-                                    </button>
-                                </div>
-                            </>
-                        )}
+                        {/* Abbreviation Bar */}
+                        <KnittingAbbreviationBar
+                            textareaRef={textareaRef}
+                            value={tempInstruction}
+                            onChange={setTempInstruction}
+                            recentlyUsed={currentProject?.customAbbreviations?.recentlyUsed || []}
+                            onUpdateRecentlyUsed={handleUpdateRecentlyUsed}
+                        />
                     </div>
 
                     {/* Stitch Tracking Mode Toggle */}
@@ -499,45 +421,6 @@ const SimpleRowBuilder = ({
                     </div>
                 </div>
             </StandardModal>
-
-            {activeNumberEdit && (
-                <div
-                    className="fixed inset-0 z-[60] flex items-end justify-center bg-black/30"
-                    onClick={() => setActiveNumberEdit(null)}
-                >
-                    <div
-                        className="bg-white rounded-t-2xl p-6 w-full max-w-sm shadow-xl"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <div className="flex items-center justify-center gap-6 mb-4">
-                            <button
-                                type="button"
-                                onClick={() => setActiveNumberEdit(prev => ({ ...prev, currentValue: Math.max(0, prev.currentValue - 1) }))}
-                                className="w-12 h-12 flex items-center justify-center rounded-full bg-sage-100 text-sage-700 text-2xl font-bold hover:bg-sage-200 active:bg-sage-300 transition-colors"
-                            >
-                                −
-                            </button>
-                            <span className="text-3xl font-bold text-wool-800 min-w-[4ch] text-center">
-                                {activeNumberEdit.currentValue}
-                            </span>
-                            <button
-                                type="button"
-                                onClick={() => setActiveNumberEdit(prev => ({ ...prev, currentValue: prev.currentValue + 1 }))}
-                                className="w-12 h-12 flex items-center justify-center rounded-full bg-sage-100 text-sage-700 text-2xl font-bold hover:bg-sage-200 active:bg-sage-300 transition-colors"
-                            >
-                                +
-                            </button>
-                        </div>
-                        <button
-                            type="button"
-                            onClick={handleDoneNumberEdit}
-                            className="btn-primary w-full"
-                        >
-                            Done
-                        </button>
-                    </div>
-                </div>
-            )}
         </div>
     );
 };
