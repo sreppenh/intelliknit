@@ -83,7 +83,7 @@ const SimpleRowBuilder = ({
             setTempStitchChange(0);
             setTempStitchesRemaining(null);
         }
-        setIsTextMode(false);
+        setIsTextMode(index === null);
         setActiveNumberEdit(null);
         setShowModal(true);
     };
