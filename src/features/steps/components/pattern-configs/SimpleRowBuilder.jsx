@@ -361,18 +361,17 @@ const SimpleRowBuilder = ({
                                     rows="3"
                                     autoFocus
                                 />
-                                <div className="flex justify-between items-center mt-1">
-                                    <p className="text-xs text-wool-500">
-                                        Enter your custom instruction for this {terms.row}
-                                    </p>
-                                    <button
-                                        type="button"
-                                        onClick={() => setIsTextMode(false)}
-                                        className="text-xs text-wool-500 hover:text-sage-600 ml-2 whitespace-nowrap"
-                                    >
-                                        ← Formatted view
-                                    </button>
-                                </div>
+                                {tempInstruction ? (
+                                    <div className="flex justify-end mt-1">
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsTextMode(false)}
+                                            className="text-xs text-wool-500 hover:text-sage-600"
+                                        >
+                                            ← tap numbers
+                                        </button>
+                                    </div>
+                                ) : null}
                                 <KnittingAbbreviationBar
                                     textareaRef={textareaRef}
                                     value={tempInstruction}
