@@ -586,49 +586,85 @@ function generateRibPattern(basePattern, stitchCount, side) {
                     : `[${basePattern}] ${fullRepeats} times, ${remainderText}`;
         }
     } else {
-        // WS: Flip the pattern (K ↔ P)
-        const flippedParts = patternParts.map(part => {
-            if (part.startsWith('K')) {
-                return part.replace(/^K/, 'P');
-            } else if (part.startsWith('P')) {
-                return part.replace(/^P/, 'K');
+        // WS: Correct alignment-aware computation for ribbing.
+        // Ribbing WS = "work stitches as they appear" (knit the knits, purl the purls).
+        // The first WS stitch is the OPPOSITE of whatever stitch the RS row ended on,
+        // so the WS base pattern is determined by reading the RS sequence backwards
+        // from the last stitch and flipping K↔P.
+
+        // Build a flat per-stitch array from the base pattern
+        // e.g. 'K2, P2' → ['K','K','P','P'], 'K1tbl, P1' → ['Ktbl','P']
+        const flatPattern = [];
+        for (const part of patternParts) {
+            const m = part.match(/^([KP])(\d*)(tbl)?$/);
+            if (m) {
+                const baseType = m[3] ? `${m[1]}tbl` : m[1];
+                const count = m[2] ? parseInt(m[2]) : 1;
+                for (let i = 0; i < count; i++) flatPattern.push(baseType);
             }
-            return part;
-        });
-        const flippedPattern = flippedParts.join(', ');
+        }
 
-        if (remainingStitches === 0) {
-            // Perfect repeats
-            return fullRepeats === 1
-                ? flippedPattern
-                : `[${flippedPattern}] ${fullRepeats} times`;
-        } else {
-            // Has remainder - flip it too
-            const remainderParts = [];
-            let stitchesNeeded = remainingStitches;
+        // Flip helper — preserves tbl modifier
+        const flipStitch = s => s.startsWith('K') ? s.replace('K', 'P') : s.startsWith('P') ? s.replace('P', 'K') : s;
 
-            for (const part of flippedParts) {
-                if (stitchesNeeded === 0) break;
-                const match = part.match(/([KP]\d*(?:tbl)?)\s*(\d+)?/);
-                if (match) {
-                    const stitchType = match[1];
-                    const count = match[2] ? parseInt(match[2]) : (match[1].match(/\d+/) ? parseInt(match[1].match(/\d+/)[0]) : 1);
-                    if (stitchesNeeded >= count) {
-                        remainderParts.push(part);
-                        stitchesNeeded -= count;
-                    } else {
-                        remainderParts.push(`${stitchType.replace(/\d+/, '')}${stitchesNeeded}`);
-                        stitchesNeeded = 0;
-                    }
+        // Compress a flat stitch array into instruction parts
+        // e.g. ['K','K','P','P'] → ['K2','P2'], ['Ktbl','P'] → ['K1tbl','P1']
+        const compressToParts = (arr) => {
+            if (!arr.length) return [];
+            const parts = [];
+            let runType = arr[0], runCount = 1;
+            for (let i = 1; i < arr.length; i++) {
+                if (arr[i] === runType) {
+                    runCount++;
+                } else {
+                    const letter = runType[0];
+                    const mod = runType.includes('tbl') ? 'tbl' : '';
+                    parts.push(`${letter}${runCount}${mod}`);
+                    runType = arr[i];
+                    runCount = 1;
                 }
             }
+            const letter = runType[0];
+            const mod = runType.includes('tbl') ? 'tbl' : '';
+            parts.push(`${letter}${runCount}${mod}`);
+            return parts;
+        };
 
-            const remainderText = remainderParts.join(', ');
+        // Fallback to simple flip if pattern parts couldn't be parsed (shouldn't happen)
+        if (flatPattern.length !== stitchesPerRepeat) {
+            const flippedParts = patternParts.map(p =>
+                p.startsWith('K') ? p.replace(/^K/, 'P') : p.startsWith('P') ? p.replace(/^P/, 'K') : p
+            );
+            const flippedPattern = flippedParts.join(', ');
+            if (remainingStitches === 0) {
+                return fullRepeats === 1 ? flippedPattern : `[${flippedPattern}] ${fullRepeats} times`;
+            }
+            return fullRepeats === 0 ? flippedPattern : `[${flippedPattern}] ${fullRepeats} times, ${flippedPattern}`;
+        }
+
+        // The last RS stitch falls at this 0-indexed position in the repeat
+        const shift = (stitchCount - 1) % stitchesPerRepeat;
+
+        // Build WS base pattern: read RS backwards from `shift`, flip each stitch
+        const wsBaseFlat = [];
+        for (let i = 0; i < stitchesPerRepeat; i++) {
+            const rsPos = (shift - i + stitchesPerRepeat) % stitchesPerRepeat;
+            wsBaseFlat.push(flipStitch(flatPattern[rsPos]));
+        }
+
+        const wsBaseParts = compressToParts(wsBaseFlat);
+        const wsBasePattern = wsBaseParts.join(', ');
+
+        if (remainingStitches === 0) {
+            return fullRepeats === 1 ? wsBasePattern : `[${wsBasePattern}] ${fullRepeats} times`;
+        } else {
+            const wsRemainderParts = compressToParts(wsBaseFlat.slice(0, remainingStitches));
+            const wsRemainderText = wsRemainderParts.join(', ');
             return fullRepeats === 0
-                ? remainderText
+                ? wsRemainderText
                 : fullRepeats === 1
-                    ? `${flippedPattern}, ${remainderText}`
-                    : `[${flippedPattern}] ${fullRepeats} times, ${remainderText}`;
+                    ? `${wsBasePattern}, ${wsRemainderText}`
+                    : `[${wsBasePattern}] ${fullRepeats} times, ${wsRemainderText}`;
         }
     }
 }
